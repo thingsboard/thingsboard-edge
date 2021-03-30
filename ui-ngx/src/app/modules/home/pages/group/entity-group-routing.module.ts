@@ -337,7 +337,7 @@ const SCHEDULER_EVENTS_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
-  childEdgeGroupType: EntityType.SCHEDULER_EVENT,
+  grandChildGroupType: EntityType.SCHEDULER_EVENT,
     groupScope: 'edge',
     groupType: EntityType.SCHEDULER_EVENT,
     auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
@@ -356,7 +356,7 @@ const SCHEDULER_EVENTS_ROUTE: Route = {
 const RULE_CHAINS_ROUTE: Route = {
   path: ':edgeId/ruleChains',
   data: {
-    childEdgeGroupType: EntityType.RULE_CHAIN,
+    grandChildGroupType: EntityType.RULE_CHAIN,
     groupScope: 'edge',
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
@@ -607,7 +607,7 @@ const routes: Routes = [
                   {...USER_GROUPS_ROUTE, ...{
                       path: ':edgeId/userGroups',
                       data: {
-                        childEdgeGroupType: EntityType.USER,
+                        grandChildGroupType: EntityType.USER,
                         groupScope: 'edge',
                         groupType: EntityType.USER,
                         breadcrumb: {
@@ -622,7 +622,7 @@ const routes: Routes = [
                   {...ASSET_GROUPS_ROUTE, ...{
                       path: ':edgeId/assetGroups',
                       data: {
-                        childEdgeGroupType: EntityType.ASSET,
+                        grandChildGroupType: EntityType.ASSET,
                         groupScope: 'edge',
                         groupType: EntityType.ASSET,
                         breadcrumb: {
@@ -637,7 +637,7 @@ const routes: Routes = [
                   {...DEVICE_GROUPS_ROUTE, ...{
                       path: ':edgeId/deviceGroups',
                       data: {
-                        childEdgeGroupType: EntityType.DEVICE,
+                        grandChildGroupType: EntityType.DEVICE,
                         groupScope: 'edge',
                         groupType: EntityType.DEVICE,
                         breadcrumb: {
@@ -652,7 +652,7 @@ const routes: Routes = [
                   {...ENTITY_VIEW_GROUPS_ROUTE, ...{
                       path: ':edgeId/entityViewGroups',
                       data: {
-                        childEdgeGroupType: EntityType.ENTITY_VIEW,
+                        grandChildGroupType: EntityType.ENTITY_VIEW,
                         groupScope: 'edge',
                         groupType: EntityType.ENTITY_VIEW,
                         breadcrumb: {
@@ -667,7 +667,7 @@ const routes: Routes = [
                   {...DASHBOARD_GROUPS_ROUTE, ...{
                       path: ':edgeId/dashboardGroups',
                       data: {
-                        childEdgeGroupType: EntityType.DASHBOARD,
+                        grandChildGroupType: EntityType.DASHBOARD,
                         groupScope: 'edge',
                         groupType: EntityType.DASHBOARD,
                         breadcrumb: {

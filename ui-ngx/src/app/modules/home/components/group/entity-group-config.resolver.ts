@@ -55,7 +55,7 @@ export class EntityGroupConfigResolver {
   }
 
   public constructGroupConfigByStateParams<T>(params: EntityGroupParams): Observable<EntityGroupStateInfo<T>> {
-    const entityGroupId: string = params.childEdgeEntityGroupId || params.childEntityGroupId || params.entityGroupId;
+    const entityGroupId: string = params.grandChildEntityGroupId || params.childEntityGroupId || params.entityGroupId;
     if (entityGroupId) {
       return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
         mergeMap((entityGroup) => {
@@ -107,7 +107,7 @@ export class EntityGroupConfigResolver {
           }
         ));
     } else if (params.edgeId && !params.customerId) {
-      const groupType: EntityType = params.childEdgeGroupType || params.childGroupType || params.groupType;
+      const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
       return this.edgeService.getEdge(params.edgeId).pipe(
         mergeMap((info) => {
             entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(groupType));
@@ -136,7 +136,7 @@ export class EntityGroupConfigResolver {
     );
     this.edgeService.getEdge(params.edgeId).subscribe(
       (info) => {
-        entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(params.childEdgeGroupType));
+        entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType));
       }
     )
     return entityGroup;

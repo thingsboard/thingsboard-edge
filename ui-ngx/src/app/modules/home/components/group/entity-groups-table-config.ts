@@ -85,8 +85,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.customerId = params.customerId;
     this.edgeId = params.edgeId;
-    if (params.childEdgeGroupType) {
-      this.groupType = params.childEdgeGroupType;
+    if (params.grandChildGroupType) {
+      this.groupType = params.grandChildGroupType;
     } else if ((this.customerId || this.edgeId) && params.childGroupType) {
       this.groupType = params.childGroupType;
     } else {
