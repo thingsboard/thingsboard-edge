@@ -725,6 +725,7 @@ export class EntityService {
         {
           key: nameField,
           valueType: EntityKeyValueType.STRING,
+          value: null,
           predicate: {
             type: FilterPredicateType.STRING,
             operation: StringOperation.STARTS_WITH,
@@ -792,6 +793,8 @@ export class EntityService {
         case AliasFilterType.entityList:
           return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.entityName:
+          return entityTypes.indexOf(filter.entityType) > -1;
+        case AliasFilterType.entityType:
           return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.entityGroupList:
           return entityTypes.indexOf(EntityType.ENTITY_GROUP) > -1;
@@ -864,6 +867,8 @@ export class EntityService {
       case AliasFilterType.entityList:
         return true;
       case AliasFilterType.entityName:
+        return true;
+      case AliasFilterType.entityType:
         return true;
       case AliasFilterType.entityGroupList:
         return entityType === EntityType.ENTITY_GROUP;
@@ -1199,6 +1204,9 @@ export class EntityService {
       case AliasFilterType.entityName:
         result.entityFilter = deepClone(filter);
         return of(result);
+      case AliasFilterType.entityType:
+        result.entityFilter = deepClone(filter);
+        return of(result);
       case AliasFilterType.entityGroupList:
         result.entityFilter = deepClone(filter);
         return of(result);
@@ -1208,7 +1216,8 @@ export class EntityService {
       case AliasFilterType.entitiesByGroupName:
         result.stateEntity = filter.groupStateEntity;
         result.entityFilter = deepClone(filter);
-        if (stateEntityId && (stateEntityId.entityType === EntityType.TENANT || stateEntityId.entityType === EntityType.CUSTOMER)) {
+        if (filter.groupStateEntity && stateEntityId &&
+            (stateEntityId.entityType === EntityType.TENANT || stateEntityId.entityType === EntityType.CUSTOMER)) {
           result.entityFilter.ownerId = stateEntityId;
         }
         return of(result);
@@ -1627,10 +1636,10 @@ export class EntityService {
         dataKeys: []
       };
       this.prepareEntityFilterFromSubscriptionInfo(datasource, subscriptionInfo);
-    } else if (subscriptionInfo.type === DatasourceType.function) {
+    } else if (subscriptionInfo.type === DatasourceType.function || subscriptionInfo.type === DatasourceType.entityCount) {
       datasource = {
         type: subscriptionInfo.type,
-        name: subscriptionInfo.name || DatasourceType.function,
+        name: subscriptionInfo.name || subscriptionInfo.type,
         dataKeys: []
       };
     }
@@ -1646,6 +1655,10 @@ export class EntityService {
       }
       if (subscriptionInfo.alarmFields) {
         this.createDatasourceKeys(subscriptionInfo.alarmFields, DataKeyType.alarm, datasource);
+      }
+      if (subscriptionInfo.type === DatasourceType.entityCount) {
+        const dataKey = this.utils.createKey({ name: 'count'}, DataKeyType.count);
+        datasource.dataKeys.push(dataKey);
       }
     }
     return datasource;

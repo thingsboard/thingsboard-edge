@@ -730,7 +730,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     private EntityKey columnToEntityKey(ColumnConfiguration column) {
-        EntityKeyType entityKeyType = EntityKeyType.valueOf(column.getType().name());
+        EntityKeyType entityKeyType = column.getType().getEntityKeyType();
         String key;
 
         if (entityKeyType.equals(EntityKeyType.ENTITY_FIELD)) {
@@ -751,11 +751,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         columnToEntityKeyMap.put("assigned_customer", "assignedCustomer");
         columnToEntityKeyMap.put("first_name", "firstName");
         columnToEntityKeyMap.put("last_name", "lastName");
+        columnToEntityKeyMap.put("device_profile", "type");
 
         entityDataKeyToShortEntityViewKeyMap.put("createdTime", "created_time");
         entityDataKeyToShortEntityViewKeyMap.put("assignedCustomer", "assigned_customer");
         entityDataKeyToShortEntityViewKeyMap.put("firstName", "first_name");
         entityDataKeyToShortEntityViewKeyMap.put("lastName", "last_name");
+        entityDataKeyToShortEntityViewKeyMap.put("type", "device_profile");
     }
 
     @Override

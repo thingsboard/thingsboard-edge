@@ -31,8 +31,7 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { EntitySearchDirection, EntityTypeFilter } from '@shared/models/relation.models';
-import { EntityInfo } from './entity.models';
+import { EntitySearchDirection, RelationEntityTypeFilter } from '@shared/models/relation.models';
 import { EntityFilter } from '@shared/models/query/query.models';
 
 export enum AliasFilterType {
@@ -40,6 +39,7 @@ export enum AliasFilterType {
   entityGroup = 'entityGroup',
   entityList = 'entityList',
   entityName = 'entityName',
+  entityType = 'entityType',
   entityGroupList = 'entityGroupList',
   entityGroupName = 'entityGroupName',
   entitiesByGroupName = 'entitiesByGroupName',
@@ -63,6 +63,7 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.entityGroup, 'alias.filter-type-entity-group' ],
     [ AliasFilterType.entityList, 'alias.filter-type-entity-list' ],
     [ AliasFilterType.entityName, 'alias.filter-type-entity-name' ],
+    [ AliasFilterType.entityType, 'alias.filter-type-entity-type' ],
     [ AliasFilterType.entityGroupList, 'alias.filter-type-entity-group-list' ],
     [ AliasFilterType.entityGroupName, 'alias.filter-type-entity-group-name' ],
     [ AliasFilterType.entitiesByGroupName, 'alias.filter-type-entities-by-group-name' ],
@@ -102,6 +103,10 @@ export interface EntityListFilter {
 export interface EntityNameFilter {
   entityType?: EntityType;
   entityNameFilter?: string;
+}
+
+export interface EntityTypeFilter {
+  entityType?: EntityType;
 }
 
 export interface EntityGroupListFilter {
@@ -158,7 +163,7 @@ export interface RelationsQueryFilter {
   defaultStateEntity?: EntityId;
   rootEntity?: EntityId;
   direction?: EntitySearchDirection;
-  filters?: Array<EntityTypeFilter>;
+  filters?: Array<RelationEntityTypeFilter>;
   maxLevel?: number;
   fetchLastLevelOnly?: boolean;
 }
@@ -200,6 +205,7 @@ export type EntityFilters =
   EntityGroupFilter &
   EntityListFilter &
   EntityNameFilter &
+  EntityTypeFilter &
   EntityGroupListFilter &
   EntityGroupNameFilter &
   EntitiesByGroupNameFilter &

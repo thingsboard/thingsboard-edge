@@ -227,22 +227,29 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.2.0 to 3.2.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.2.0");
                         case "3.2.1":
-                            log.info("Upgrading ThingsBoard from version 3.2.1 to 3.3.0 ...");
-                        case "3.3.0": // to 3.3.0PE
-                            log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.0PE ...");
-                            // TODO: voba - verify
-                            //if (databaseTsUpgradeService != null) {
-                            //    databaseTsUpgradeService.upgradeDatabase("3.2.1");
-                            //}
+                            log.info("Upgrading ThingsBoard from version 3.2.1 to 3.2.2 ...");
+                            if (databaseTsUpgradeService != null) {
+                                databaseTsUpgradeService.upgradeDatabase("3.2.1");
+                            }
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.1");
+                        case "3.2.2": // to 3.3.0PE
+                            log.info("Upgrading ThingsBoard from version 3.2.2 to 3.3.0PE ...");
 
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.3.0");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.2");
 
-                            dataUpdateService.updateData("3.3.0");
+                            dataUpdateService.updateData("3.2.2");
 
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
                             break;
                             // TODO: voba - verify
+//                        log.info("Upgrading ThingsBoard from version 3.2.1 to 3.3.0 ...");
+//                        case "3.3.0": // to 3.3.0PE
+//                            log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.0PE ...");
+                            // TODO: voba - verify
+                            //if (databaseTsUpgradeService != null) {
+                            //    databaseTsUpgradeService.upgradeDatabase("3.2.1");
+                            //}
 //                        case "3.2.1": // to 3.2.1PE
 //                            log.info("Upgrading ThingsBoard from version 3.2.1 to 3.2.1PE ...");
 //

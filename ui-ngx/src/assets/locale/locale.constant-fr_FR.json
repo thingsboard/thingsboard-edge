@@ -2566,7 +2566,7 @@
         "export-to-excel-xlsx": "Exporter les données au format XLSX...",
         "html": "HTML",
         "javascript": "Javascript",
-        "latest-values": "Dernières valeurs",
+        "latest": "Dernières valeurs",
         "management": "Gestion des widgets",
         "missing-widget-title-error": "Le titre du widget doit être spécifié!",
         "no-data": "Aucune donnée à afficher sur le widget",

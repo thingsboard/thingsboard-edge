@@ -77,6 +77,8 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, OnIn
     }
   }
 
+  @Input() onlyUserDynamicSource = false;
+
   @Input()
   valueType: EntityKeyValueType;
 

@@ -50,7 +50,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -472,7 +472,7 @@ public class BaseRelationService implements RelationService {
         //boolean fetchLastLevelOnly = true;
         log.trace("Executing findByQuery [{}]", query);
         RelationsSearchParameters params = query.getParameters();
-        final List<EntityTypeFilter> filters = query.getFilters();
+        final List<RelationEntityTypeFilter> filters = query.getFilters();
         if (filters == null || filters.isEmpty()) {
             log.debug("Filters are not set [{}]", query);
         }
@@ -590,8 +590,8 @@ public class BaseRelationService implements RelationService {
         };
     }
 
-    private boolean matchFilters(List<EntityTypeFilter> filters, EntityRelation relation, EntitySearchDirection direction) {
-        for (EntityTypeFilter filter : filters) {
+    private boolean matchFilters(List<RelationEntityTypeFilter> filters, EntityRelation relation, EntitySearchDirection direction) {
+        for (RelationEntityTypeFilter filter : filters) {
             if (match(filter, relation, direction)) {
                 return true;
             }
@@ -599,7 +599,7 @@ public class BaseRelationService implements RelationService {
         return false;
     }
 
-    private boolean match(EntityTypeFilter filter, EntityRelation relation, EntitySearchDirection direction) {
+    private boolean match(RelationEntityTypeFilter filter, EntityRelation relation, EntitySearchDirection direction) {
         if (StringUtils.isEmpty(filter.getRelationType()) || filter.getRelationType().equals(relation.getType())) {
             if (filter.getEntityTypes() == null || filter.getEntityTypes().isEmpty()) {
                 return true;

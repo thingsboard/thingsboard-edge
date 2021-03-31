@@ -465,6 +465,7 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
   'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',
   'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode': 'ruleNodeDuplicateToGroup',
+  'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode': 'ruleNodeDuplicateToGroupByName',
   'org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode': 'ruleNodeDuplicateToRelated',
   'org.thingsboard.rule.engine.action.TbChangeOwnerNode': 'ruleNodeChangeOwner',
   'org.thingsboard.rule.engine.report.TbGenerateReportNode': 'ruleNodeGenerateReport',

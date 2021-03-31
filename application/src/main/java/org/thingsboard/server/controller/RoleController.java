@@ -50,8 +50,6 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
@@ -123,9 +121,7 @@ public class RoleController extends BaseController {
             RoleId roleId = new RoleId(toUUID(strRoleId));
             Role role = checkRoleId(roleId, Operation.DELETE);
 
-            PageData<GroupPermission> groupPermissions =
-                    groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), role.getId(), new PageLink(1));
-            if (!groupPermissions.getData().isEmpty()) {
+            if (isUsed(role.getId(), getTenantId())) {
                 throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
             roleService.deleteRole(getTenantId(), roleId);
@@ -140,6 +136,10 @@ public class RoleController extends BaseController {
                     ActionType.DELETED, e, strRoleId);
             throw handleException(e);
         }
+    }
+
+    private boolean isUsed(RoleId roleId, TenantId tenantId) {
+        return groupPermissionService.findGroupPermissionByTenantIdAndRoleId(tenantId, roleId, new PageLink(1)).getTotalElements() > 0;
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

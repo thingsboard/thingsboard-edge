@@ -139,6 +139,7 @@ class DraggableChip {
     if (this.preventDrag) {
       event.preventDefault();
     } else {
+      event.stopPropagation();
       this.dragging = true;
       globalDraggingChipListId = this.chipListElement.id;
       this.chipListElement.classList.add(draggingClassName);
@@ -174,6 +175,7 @@ class DraggableChip {
   }
 
   private onDragEnd(event: Event | any) {
+    event.stopPropagation();
     this.dragging = false;
     globalDraggingChipListId = null;
     this.chipListElement.classList.remove(draggingClassName);

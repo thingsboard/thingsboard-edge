@@ -580,8 +580,8 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
                     + "AND " + ModelConstants.ENTITY_ID_COLUMN + EQUALS_PARAM
                     + "AND " + ModelConstants.KEY_COLUMN + EQUALS_PARAM
                     + "AND " + ModelConstants.PARTITION_COLUMN + EQUALS_PARAM
-                    + "AND " + ModelConstants.TS_COLUMN + " > ? "
-                    + "AND " + ModelConstants.TS_COLUMN + " <= ?");
+                    + "AND " + ModelConstants.TS_COLUMN + " >= ? "
+                    + "AND " + ModelConstants.TS_COLUMN + " < ?");
         }
         return deleteStmt;
     }
@@ -789,8 +789,8 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
                         + "AND " + ModelConstants.ENTITY_ID_COLUMN + EQUALS_PARAM
                         + "AND " + ModelConstants.KEY_COLUMN + EQUALS_PARAM
                         + "AND " + ModelConstants.PARTITION_COLUMN + EQUALS_PARAM
-                        + "AND " + ModelConstants.TS_COLUMN + " > ? "
-                        + "AND " + ModelConstants.TS_COLUMN + " <= ?"
+                        + "AND " + ModelConstants.TS_COLUMN + " >= ? "
+                        + "AND " + ModelConstants.TS_COLUMN + " < ?"
                         + (type == Aggregation.NONE ? " ORDER BY " + ModelConstants.TS_COLUMN + " " + orderBy + " LIMIT ?" : ""));
             }
         }

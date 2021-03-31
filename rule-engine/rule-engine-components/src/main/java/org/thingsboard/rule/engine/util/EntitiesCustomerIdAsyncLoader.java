@@ -57,7 +57,7 @@ public class EntitiesCustomerIdAsyncLoader {
             case DEVICE:
                 return getCustomerAsync(ctx.getDeviceService().findDeviceByIdAsync(ctx.getTenantId(), (DeviceId) original));
             default:
-                return Futures.immediateFailedFuture(new TbNodeException("Unexpected original EntityType " + original));
+                return Futures.immediateFailedFuture(new TbNodeException("Unexpected original EntityType " + original.getEntityType()));
         }
     }
 

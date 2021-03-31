@@ -41,7 +41,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AlarmCondition implements Serializable {
 
-    private List<KeyFilter> condition;
+    private List<AlarmConditionFilter> condition;
     private AlarmConditionSpec spec;
 
 }

@@ -165,6 +165,10 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
 import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
 import { ContactComponent } from '@shared/components/contact.component';
+import { FileSizePipe } from '@shared/pipe/file-size.pipe';
+import { WidgetsBundleSearchComponent } from '@shared/components/widgets-bundle-search.component';
+import { SelectableColumnsPipe } from '@shared/pipe/selectable-columns.pipe';
+import { QuickTimeIntervalComponent } from '@shared/components/time/quick-time-interval.component';
 import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
@@ -178,6 +182,7 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    FileSizePipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -210,6 +215,7 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     TimewindowComponent,
     TimewindowPanelComponent,
     TimeintervalComponent,
+    QuickTimeIntervalComponent,
     DashboardSelectComponent,
     DashboardSelectPanelComponent,
     DatetimePeriodComponent,
@@ -265,6 +271,8 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    FileSizePipe,
+    SelectableColumnsPipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
@@ -274,6 +282,7 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent
@@ -348,6 +357,7 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     TimewindowComponent,
     TimewindowPanelComponent,
     TimeintervalComponent,
+    QuickTimeIntervalComponent,
     DashboardSelectComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
@@ -449,6 +459,8 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     TruncatePipe,
     TbJsonPipe,
     KeyboardShortcutPipe,
+    FileSizePipe,
+    SelectableColumnsPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -457,6 +469,7 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent

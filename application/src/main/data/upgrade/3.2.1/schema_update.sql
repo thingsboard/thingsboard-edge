@@ -29,35 +29,10 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-CREATE TABLE IF NOT EXISTS edge (
-    id uuid NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
-    created_time bigint NOT NULL,
-    additional_info varchar,
-    customer_id uuid,
-    root_rule_chain_id uuid,
-    type varchar(255),
-    name varchar(255),
-    label varchar(255),
-    routing_key varchar(255),
-    secret varchar(255),
-    edge_license_key varchar(30),
-    cloud_endpoint varchar(255),
-    search_text varchar(255),
-    tenant_id uuid,
-    CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
-    CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
-);
+ALTER TABLE widget_type
+    ADD COLUMN IF NOT EXISTS image varchar (1000000),
+    ADD COLUMN IF NOT EXISTS description varchar (255);
 
-CREATE TABLE IF NOT EXISTS edge_event (
-    id uuid NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,
-    created_time bigint NOT NULL,
-    edge_id uuid,
-    edge_event_type varchar(255),
-    edge_event_uid varchar(255),
-    entity_id uuid,
-    edge_event_action varchar(255),
-    body varchar(10000000),
-    tenant_id uuid,
-    entity_group_id uuid,
-    ts bigint NOT NULL
-);
+ALTER TABLE widgets_bundle
+    ADD COLUMN IF NOT EXISTS image varchar (1000000),
+    ADD COLUMN IF NOT EXISTS description varchar (255);

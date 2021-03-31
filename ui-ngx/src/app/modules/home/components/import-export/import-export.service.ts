@@ -53,7 +53,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { EntityService } from '@core/http/entity.service';
-import { Widget, WidgetSize, WidgetType } from '@shared/models/widget.models';
+import { Widget, WidgetSize, WidgetType, WidgetTypeDetails } from '@shared/models/widget.models';
 import {
   EntityAliasesDialogComponent,
   EntityAliasesDialogData
@@ -83,7 +83,9 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { ConverterService } from '@core/http/converter.service';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
-import { Borders, Column, Workbook } from 'exceljs';
+import { DeviceProfileService } from '@core/http/device-profile.service';
+import { DeviceProfile } from '@shared/models/device.models';
+import { Column, Borders, Workbook} from 'exceljs';
 import * as moment_ from 'moment';
 
 const moment = moment_;
@@ -99,6 +101,7 @@ export class ImportExportService {
               private dashboardService: DashboardService,
               private dashboardUtils: DashboardUtilsService,
               private widgetService: WidgetService,
+              private deviceProfileService: DeviceProfileService,
               private entityService: EntityService,
               private ruleChainService: RuleChainService,
               private converterService: ConverterService,
@@ -268,13 +271,13 @@ export class ImportExportService {
 
   public exportWidgetType(widgetTypeId: string) {
     this.widgetService.getWidgetTypeById(widgetTypeId).subscribe(
-      (widgetType) => {
-        if (isDefined(widgetType.bundleAlias)) {
-          delete widgetType.bundleAlias;
+      (widgetTypeDetails) => {
+        if (isDefined(widgetTypeDetails.bundleAlias)) {
+          delete widgetTypeDetails.bundleAlias;
         }
-        let name = widgetType.name;
+        let name = widgetTypeDetails.name;
         name = name.toLowerCase().replace(/\W/g, '_');
-        this.exportToPc(this.prepareExport(widgetType), name);
+        this.exportToPc(this.prepareExport(widgetTypeDetails), name);
       },
       (e) => {
         this.handleExportError(e, 'widget-type.export-failed-error');
@@ -284,15 +287,15 @@ export class ImportExportService {
 
   public importWidgetType(bundleAlias: string): Observable<WidgetType> {
     return this.openImportDialog('widget-type.import', 'widget-type.widget-type-file').pipe(
-      mergeMap((widgetType: WidgetType) => {
-        if (!this.validateImportedWidgetType(widgetType)) {
+      mergeMap((widgetTypeDetails: WidgetTypeDetails) => {
+        if (!this.validateImportedWidgetTypeDetails(widgetTypeDetails)) {
           this.store.dispatch(new ActionNotificationShow(
             {message: this.translate.instant('widget-type.invalid-widget-type-file-error'),
               type: 'error'}));
           throw new Error('Invalid widget type file');
         } else {
-          widgetType.bundleAlias = bundleAlias;
-          return this.widgetService.saveImportedWidgetType(widgetType);
+          widgetTypeDetails.bundleAlias = bundleAlias;
+          return this.widgetService.saveImportedWidgetTypeDetails(widgetTypeDetails);
         }
       }),
       catchError((err) => {
@@ -306,17 +309,18 @@ export class ImportExportService {
       (widgetsBundle) => {
         const bundleAlias = widgetsBundle.alias;
         const isSystem = widgetsBundle.tenantId.id === NULL_UUID;
-        this.widgetService.getBundleWidgetTypes(bundleAlias, isSystem).subscribe(
-          (widgetTypes) => {
+        this.widgetService.getBundleWidgetTypesDetails(bundleAlias, isSystem).subscribe(
+          (widgetTypesDetails) => {
+            widgetTypesDetails = widgetTypesDetails.sort((a, b) => a.createdTime - b.createdTime);
             const widgetsBundleItem: WidgetsBundleItem = {
               widgetsBundle: this.prepareExport(widgetsBundle),
               widgetTypes: []
             };
-            for (const widgetType of widgetTypes) {
-              if (isDefined(widgetType.bundleAlias)) {
-                delete widgetType.bundleAlias;
+            for (const widgetTypeDetails of widgetTypesDetails) {
+              if (isDefined(widgetTypeDetails.bundleAlias)) {
+                delete widgetTypeDetails.bundleAlias;
               }
-              widgetsBundleItem.widgetTypes.push(this.prepareExport(widgetType));
+              widgetsBundleItem.widgetTypes.push(this.prepareExport(widgetTypeDetails));
             }
             let name = widgetsBundle.title;
             name = name.toLowerCase().replace(/\W/g, '_');
@@ -346,12 +350,12 @@ export class ImportExportService {
           return this.widgetService.saveWidgetsBundle(widgetsBundle).pipe(
             mergeMap((savedWidgetsBundle) => {
               const bundleAlias = savedWidgetsBundle.alias;
-              const widgetTypes = widgetsBundleItem.widgetTypes;
-              if (widgetTypes.length) {
+              const widgetTypesDetails = widgetsBundleItem.widgetTypes;
+              if (widgetTypesDetails.length) {
                 const saveWidgetTypesObservables: Array<Observable<WidgetType>> = [];
-                for (const widgetType of widgetTypes) {
-                  widgetType.bundleAlias = bundleAlias;
-                  saveWidgetTypesObservables.push(this.widgetService.saveImportedWidgetType(widgetType));
+                for (const widgetTypeDetails of widgetTypesDetails) {
+                  widgetTypeDetails.bundleAlias = bundleAlias;
+                  saveWidgetTypesObservables.push(this.widgetService.saveImportedWidgetTypeDetails(widgetTypeDetails));
                 }
                 return forkJoin(saveWidgetTypesObservables).pipe(
                   map(() => savedWidgetsBundle)
@@ -484,6 +488,37 @@ export class ImportExportService {
           throw new Error('Invalid converter file');
         } else {
           return this.converterService.saveConverter(converter);
+        }
+      }),
+      catchError((err) => {
+        return of(null);
+      })
+    );
+  }
+
+  public exportDeviceProfile(deviceProfileId: string) {
+    this.deviceProfileService.getDeviceProfile(deviceProfileId).subscribe(
+      (deviceProfile) => {
+          let name = deviceProfile.name;
+          name = name.toLowerCase().replace(/\W/g, '_');
+          this.exportToPc(this.prepareDeviceProfileExport(deviceProfile), name);
+        },
+        (e) => {
+          this.handleExportError(e, 'device-profile.export-failed-error');
+        }
+      );
+  }
+
+  public importDeviceProfile(): Observable<DeviceProfile> {
+    return this.openImportDialog('device-profile.import', 'device-profile.device-profile-file').pipe(
+      mergeMap((deviceProfile: DeviceProfile) => {
+        if (!this.validateImportedDeviceProfile(deviceProfile)) {
+          this.store.dispatch(new ActionNotificationShow(
+            {message: this.translate.instant('device-profile.invalid-device-profile-file-error'),
+              type: 'error'}));
+          throw new Error('Invalid device profile file');
+        } else {
+            return this.deviceProfileService.saveDeviceProfile(deviceProfile);
         }
       }),
       catchError((err) => {
@@ -673,6 +708,17 @@ export class ImportExportService {
     return true;
   }
 
+  private validateImportedDeviceProfile(deviceProfile: DeviceProfile): boolean {
+    if (isUndefined(deviceProfile.name)
+      || isUndefined(deviceProfile.type)
+      || isUndefined(deviceProfile.transportType)
+      || isUndefined(deviceProfile.provisionType)
+      || isUndefined(deviceProfile.profileData)) {
+      return false;
+    }
+    return true;
+  }
+
   private sumObject(obj1: any, obj2: any): any {
     Object.keys(obj2).map((key) => {
       if (isObject(obj2[key])) {
@@ -718,9 +764,9 @@ export class ImportExportService {
     return true;
   }
 
-  private validateImportedWidgetType(widgetType: WidgetType): boolean {
-    if (isUndefined(widgetType.name)
-      || isUndefined(widgetType.descriptor)) {
+  private validateImportedWidgetTypeDetails(widgetTypeDetails: WidgetTypeDetails): boolean {
+    if (isUndefined(widgetTypeDetails.name)
+      || isUndefined(widgetTypeDetails.descriptor)) {
       return false;
     }
     return true;
@@ -737,9 +783,9 @@ export class ImportExportService {
     if (isUndefined(widgetsBundle.title)) {
       return false;
     }
-    const widgetTypes = widgetsBundleItem.widgetTypes;
-    for (const widgetType of widgetTypes) {
-      if (!this.validateImportedWidgetType(widgetType)) {
+    const widgetTypesDetails = widgetsBundleItem.widgetTypes;
+    for (const widgetTypeDetails of widgetTypesDetails) {
+      if (!this.validateImportedWidgetTypeDetails(widgetTypeDetails)) {
         return false;
       }
     }
@@ -899,6 +945,12 @@ export class ImportExportService {
     return dashboard;
   }
 
+  private prepareDeviceProfileExport(deviceProfile: DeviceProfile): DeviceProfile {
+    deviceProfile = this.prepareExport(deviceProfile);
+    deviceProfile.default = false;
+    return deviceProfile;
+  }
+
   private prepareExport(data: any): any {
     const exportedData = deepClone(data);
     if (isDefined(exportedData.id)) {
@@ -971,6 +1023,5 @@ export class ImportExportService {
       a.dispatchEvent(e);
     }
   }
-
 
 }

@@ -42,14 +42,14 @@ import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import { WidgetService } from '@core/http/widget.service';
 import { WidgetEditorComponent } from '@home/pages/widget/widget-editor.component';
 import { map } from 'rxjs/operators';
-import { toWidgetInfo, WidgetInfo } from '@home/models/widget-component.models';
-import { widgetType, WidgetType } from '@app/shared/models/widget.models';
+import { detailsToWidgetInfo, toWidgetInfo, WidgetInfo } from '@home/models/widget-component.models';
+import { widgetType, WidgetType, WidgetTypeDetails } from '@app/shared/models/widget.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { WidgetsData } from '@home/models/dashboard-component.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 export interface WidgetEditorData {
-  widgetType: WidgetType;
+  widgetTypeDetails: WidgetTypeDetails;
   widget: WidgetInfo;
 }
 
@@ -98,8 +98,8 @@ export class WidgetEditorDataResolver implements Resolve<WidgetEditorData> {
     return this.widgetsService.getWidgetTypeById(widgetTypeId).pipe(
       map((result) => {
         return {
-          widgetType: result,
-          widget: toWidgetInfo(result)
+          widgetTypeDetails: result,
+          widget: detailsToWidgetInfo(result)
         };
       })
     );
@@ -121,7 +121,7 @@ export class WidgetEditorAddDataResolver implements Resolve<WidgetEditorData> {
       map((widget) => {
         widget.widgetName = null;
         return {
-          widgetType: null,
+          widgetTypeDetails: null,
           widget
         };
       })

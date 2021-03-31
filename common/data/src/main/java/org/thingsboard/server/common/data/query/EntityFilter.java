@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = EntityGroupFilter.class, name = "entityGroup"),
         @JsonSubTypes.Type(value = EntityListFilter.class, name = "entityList"),
         @JsonSubTypes.Type(value = EntityNameFilter.class, name = "entityName"),
+        @JsonSubTypes.Type(value = EntityTypeFilter.class, name = "entityType"),
         @JsonSubTypes.Type(value = EntityGroupListFilter.class, name = "entityGroupList"),
         @JsonSubTypes.Type(value = EntityGroupNameFilter.class, name = "entityGroupName"),
         @JsonSubTypes.Type(value = EntitiesByGroupNameFilter.class, name = "entitiesByGroupName"),

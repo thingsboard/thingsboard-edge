@@ -83,14 +83,12 @@ import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
-import org.thingsboard.server.dao.util.DaoTestUtil;
-import org.thingsboard.server.dao.util.SqlDbType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -286,13 +284,13 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
         Assert.assertEquals(30, count);
 
-        filter.setFilters(Collections.singletonList(new EntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
+        filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
         count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
         Assert.assertEquals(25, count);
 
         filter.setRootEntity(devices.get(0).getId());
         filter.setDirection(EntitySearchDirection.TO);
-        filter.setFilters(Collections.singletonList(new EntityTypeFilter("Manages", Collections.singletonList(EntityType.TENANT))));
+        filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Manages", Collections.singletonList(EntityType.TENANT))));
         count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
         Assert.assertEquals(1, count);
 
@@ -436,7 +434,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         RelationsQueryFilter filter = new RelationsQueryFilter();
         filter.setRootEntity(tenantId);
         filter.setDirection(EntitySearchDirection.FROM);
-        filter.setFilters(Collections.singletonList(new EntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
+        filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
 
         EntityDataSortOrder sortOrder = new EntityDataSortOrder(
                 new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC

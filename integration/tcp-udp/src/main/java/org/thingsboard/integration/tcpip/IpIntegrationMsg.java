@@ -36,13 +36,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 
 @Data
 public class IpIntegrationMsg {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    private final SocketAddress address;
     private final byte[] payload;
+
 
     public JsonNode toJson() {
         ObjectNode json = mapper.createObjectNode();

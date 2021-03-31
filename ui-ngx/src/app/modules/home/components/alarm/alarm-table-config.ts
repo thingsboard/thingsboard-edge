@@ -58,9 +58,9 @@ import {
   AlarmDetailsDialogComponent,
   AlarmDetailsDialogData
 } from '@home/components/alarm/alarm-details-dialog.component';
-import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { DAY, historyInterval } from '@shared/models/time/time.models';
 
 export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink> {
 

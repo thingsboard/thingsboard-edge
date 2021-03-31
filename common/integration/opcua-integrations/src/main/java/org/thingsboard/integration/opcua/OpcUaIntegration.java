@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
@@ -306,6 +307,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 t = e.getCause();
             }
             log.error("[{}] Failed to connect to OPC-UA server. Reason: {}", this.configuration.getName(), t.getMessage(), t);
+            disconnect();
             throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + t.getMessage(), e);
         }
     }
@@ -653,6 +655,12 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 } else {
                     name = rd.getBrowseName().getName();
                 }
+
+                if (StringUtils.isEmpty(name) || name.endsWith("//")) {
+                    log.trace("[{}] Ignoring self-referenced node: {}", this.configuration.getName(), rd.getNodeId());
+                    continue;
+                }
+
                 log.trace("[{}] Found tag: [{}].[{}]", this.configuration.getName(), nodeId, name);
                 if (tags.contains(name)) {
                     values.put(name, childId);

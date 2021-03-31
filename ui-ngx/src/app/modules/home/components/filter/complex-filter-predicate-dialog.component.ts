@@ -52,6 +52,7 @@ export interface ComplexFilterPredicateDialogData {
   valueType: EntityKeyValueType;
   displayUserParameters: boolean;
   allowUserDynamicSource: boolean;
+  onlyUserDynamicSource: boolean;
 }
 
 @Component({

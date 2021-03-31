@@ -35,6 +35,7 @@ public enum EntityFilterType {
     ENTITY_GROUP("entityGroup"),
     ENTITY_LIST("entityList"),
     ENTITY_NAME("entityName"),
+    ENTITY_TYPE("entityType"),
     ENTITY_GROUP_LIST("entityGroupList"),
     ENTITY_GROUP_NAME("entityGroupName"),
     ENTITIES_BY_GROUP_NAME("entitiesByGroupName"),
