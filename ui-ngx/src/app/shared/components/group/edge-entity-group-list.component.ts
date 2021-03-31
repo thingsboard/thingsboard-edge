@@ -33,7 +33,8 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  forwardRef, Inject,
+  forwardRef,
+  Inject,
   Input,
   OnChanges,
   OnInit,
@@ -41,8 +42,8 @@ import {
   ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
-import {filter, map, mergeMap, publishReplay, refCount, share, tap} from 'rxjs/operators';
+import { forkJoin, Observable } from 'rxjs';
+import { filter, map, mergeMap, publishReplay, refCount, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -50,11 +51,12 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import {EntityGroupInfo} from "@shared/models/entity-group.models";
-import {EntityGroupService} from "@core/http/entity-group.service";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {AddEntityGroupsToEdgeDialogData} from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
-import {EntityId} from "@shared/models/id/entity-id";
+import { EntityGroupInfo } from "@shared/models/entity-group.models";
+import { EntityGroupService } from "@core/http/entity-group.service";
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { AddEntityGroupsToEdgeDialogData } from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
+import { EntityId } from "@shared/models/id/entity-id";
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 
 @Component({
   selector: 'tb-edge-entity-group-list',
@@ -104,6 +106,8 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   filteredEntityGroups: Observable<Array<EntityGroupInfo>>;
   ownerId: EntityId;
   edgeId: string;
+  tenantId: string;
+  customerId: string;
 
   searchText = '';
 
@@ -116,12 +120,16 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
               private entityGroupService: EntityGroupService,
               @Inject(MAT_DIALOG_DATA) public data: AddEntityGroupsToEdgeDialogData,
               private fb: FormBuilder) {
+    const authUser = getCurrentAuthUser(this.store);
+    this.tenantId = authUser.tenantId;
+    this.ownerId = this.data.ownerId;
+    this.edgeId = this.data.edgeId;
+    this.customerId = this.data.customerId;
+    this.groupType = this.data.groupType;
     this.edgeEntityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
       entityGroup: [null]
     });
-    this.ownerId = this.data.ownerId;
-    this.edgeId = this.data.edgeId;
   }
 
   updateValidators() {
@@ -247,25 +255,45 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   }
 
   getEntityGroups(): Observable<Array<EntityGroupInfo>> {
+    if (this.customerId && this.tenantId) {
+      const tenantEntityGroups: Observable<any> = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.TENANT as EntityType, this.tenantId, this.groupType, {ignoreLoading: true});
+      const customerEntityGroups: Observable<any> = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER as EntityType, this.customerId, this.groupType, {ignoreLoading: true});
+      return forkJoin([tenantEntityGroups, customerEntityGroups])
+        .pipe(map(data => {
+            const entityGroups = data[0].concat(data[1]);
+            if (entityGroups) {
+              if (this.excludeGroupAll) {
+                return entityGroups.filter(group => !group.groupAll);
+              }
+              else {
+                return entityGroups;
+              }
+            } else {
+              return [];
+            }
+          }),
+          publishReplay(1),
+          refCount()
+        );
+    } else {
       return this.entityGroupService.getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true})
         .pipe(map(data => {
-
-          if (data) {
-            if (this.excludeGroupAll) {
-              return data.filter(group => !group.groupAll);
+            if (data) {
+              if (this.excludeGroupAll) {
+                return data.filter(group => !group.groupAll);
+              }
+              else {
+                return data;
+              }
+            } else {
+              return [];
             }
-            else {
-              return data;
-            }
-          } else {
-            return [];
-          }
-        }),
-        publishReplay(1),
-        refCount()
-      );
-
-  }
+          }),
+          publishReplay(1),
+          refCount()
+        );
+    }
+}
 
   onFocus() {
     if (this.dirty) {

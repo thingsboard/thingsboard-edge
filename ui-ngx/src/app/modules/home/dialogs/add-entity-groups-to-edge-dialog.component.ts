@@ -47,12 +47,13 @@ import { EntityGroupInfo } from "@shared/models/entity-group.models";
 
 export interface AddEntityGroupsToEdgeDialogData {
   ownerId: EntityId;
-  childGroupType: EntityType;
+  groupType: EntityType;
   edgeId: string;
   addEntityGroupsToEdgeTitle: string;
   confirmSelectTitle: string;
   notFoundText: string;
   requiredText: string;
+  customerId?: string;
 }
 
 @Component({
@@ -70,9 +71,9 @@ export class AddEntityGroupsToEdgeDialogComponent extends
 
   entityType = EntityType;
 
-  ownerId: EntityId;
-  childGroupType: EntityType;
+  groupType: EntityType;
   edgeId: string;
+  customerId: string;
   childGroupId: string;
   addEntityGroupsToEdgeTitle: string;
   confirmSelectTitle: string;
@@ -91,8 +92,7 @@ export class AddEntityGroupsToEdgeDialogComponent extends
               public dialogRef: MatDialogRef<AddEntityGroupsToEdgeDialogComponent>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
-    this.ownerId = data.ownerId;
-    this.childGroupType = data.childGroupType;
+    this.groupType = data.groupType;
     this.edgeId = data.edgeId;
     this.addEntityGroupsToEdgeTitle = data.addEntityGroupsToEdgeTitle;
     this.confirmSelectTitle = data.confirmSelectTitle;
@@ -123,7 +123,7 @@ export class AddEntityGroupsToEdgeDialogComponent extends
     const tasks: Observable<any>[] = [];
     edgeEntityGroupIds.forEach(
       (entityGroupId) => {
-        tasks.push(this.entityGroupService.assignEntityGroupToEdge(this.edgeId, entityGroupId, this.childGroupType));
+        tasks.push(this.entityGroupService.assignEntityGroupToEdge(this.edgeId, entityGroupId, this.groupType));
       }
     );
     forkJoin(tasks).subscribe(

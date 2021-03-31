@@ -70,9 +70,10 @@ export interface EdgeNodeData extends BaseCustomersHierarchyNodeData {
 export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
   type: 'edgeGroups';
   edge: Edge;
+  groupScope: string;
+  customerId: string;
   groupsType?: EntityType;
   entityType?: EntityType;
-  groupScope: string;
 }
 
 export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData | EdgeNodeData | EdgeEntityGroupsNodeData;
@@ -102,9 +103,9 @@ export function entityGroupsNodeText(translate: TranslateService, groupType: Ent
   return nodeIcon + nodeText;
 }
 
-export function entitiesNodeText(translate: TranslateService, entityType: EntityType) {
+export function entitiesNodeText(translate: TranslateService, entityType: EntityType, name: string) {
   const nodeIcon = materialIconByEntityType(entityType);
-  const nodeText = translate.instant('entity.type-scheduler-events');
+  const nodeText = translate.instant(name);
   return nodeIcon + nodeText;
 }
 
@@ -154,6 +155,9 @@ function materialIconByEntityType (entityType: EntityType): string {
       break;
     case EntityType.SCHEDULER_EVENT:
       materialIcon = 'schedule';
+      break;
+    case EntityType.RULE_CHAIN:
+      materialIcon = 'settings_ethernet';
       break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';

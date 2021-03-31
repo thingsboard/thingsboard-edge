@@ -34,13 +34,13 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!isEdit && !isEdgeScope()">
+          [fxShow]="!isEdit">
     {{'rulechain.open-rulechain' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'export')"
-          [fxShow]="!isEdit && !isEdgeScope()">
+          [fxShow]="!isEdit">
     {{'rulechain.export' | translate }}
   </button>
   <button mat-raised-button color="primary"
