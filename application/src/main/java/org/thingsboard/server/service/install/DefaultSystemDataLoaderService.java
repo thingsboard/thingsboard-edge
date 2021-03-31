@@ -41,9 +41,27 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.device.profile.AlarmCondition;
+import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
+import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
+import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
+import org.thingsboard.server.common.data.device.profile.AlarmRule;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -57,8 +75,8 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
-import org.thingsboard.server.service.user.UserLoaderService;
 
 @Service
 @Profile("install")
@@ -71,7 +89,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private InstallScripts installScripts;
 
     @Autowired
-    private UserLoaderService userLoaderService;
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -110,7 +131,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Override
     public void createSysAdmin() {
-        userLoaderService.createUser(Authority.SYS_ADMIN, null, null, "sysadmin@thingsboard.org", "sysadmin");
+        createUser(Authority.SYS_ADMIN, null, null, "sysadmin@thingsboard.org", "sysadmin");
     }
 
     @Override
@@ -237,7 +258,34 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("date");
         this.deleteSystemWidgetBundle("entity_admin_widgets");
         this.deleteSystemWidgetBundle("navigation_widgets");
+        this.deleteSystemWidgetBundle("edge_widgets");
         installScripts.loadSystemWidgets();
+    }
+
+    private User createUser(Authority authority,
+                            TenantId tenantId,
+                            CustomerId customerId,
+                            String email,
+                            String password) {
+        User user = new User();
+        user.setAuthority(authority);
+        user.setEmail(email);
+        user.setTenantId(tenantId);
+        user.setCustomerId(customerId);
+        user = userService.saveUser(user);
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(TenantId.SYS_TENANT_ID, user.getId());
+        userCredentials.setPassword(passwordEncoder.encode(password));
+        userCredentials.setEnabled(true);
+        userCredentials.setActivateToken(null);
+        userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
+        if (Authority.TENANT_ADMIN.equals(authority)) {
+            EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(user.getTenantId());
+            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), user.getId());
+        } else if (Authority.CUSTOMER_USER.equals(authority)) {
+            EntityGroup users = entityGroupService.findOrCreateCustomerUsersGroup(user.getTenantId(), user.getCustomerId(), null);
+            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, users.getId(), user.getId());
+        }
+        return user;
     }
 
     @Override

@@ -91,7 +91,6 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.AUDIT_LOG, TenantAdminPermissions.genericPermissionChecker);
     }
 
-
     private final PermissionChecker customerStandaloneEntityPermissionChecker = new PermissionChecker() {
 
         @Override

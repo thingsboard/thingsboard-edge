@@ -38,7 +38,9 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,33 +81,24 @@ public class TbCoreConsumerStats {
     public TbCoreConsumerStats(StatsFactory statsFactory) {
         String statsKey = StatsType.CORE.getName();
 
-        this.totalCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS);
-        this.sessionEventCounter = statsFactory.createStatsCounter(statsKey, SESSION_EVENTS);
-        this.getAttributesCounter = statsFactory.createStatsCounter(statsKey, GET_ATTRIBUTE);
-        this.subscribeToAttributesCounter = statsFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES);
-        this.subscribeToRPCCounter = statsFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES);
-        this.toDeviceRPCCallResponseCounter = statsFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES);
-        this.subscriptionInfoCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO);
-        this.claimDeviceCounter = statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS);
-        this.deviceStateCounter = statsFactory.createStatsCounter(statsKey, DEVICE_STATES);
-        this.subscriptionMsgCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
-        this.toCoreNotificationsCounter = statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
-        this.schedulerMsgCounter = statsFactory.createStatsCounter(statsKey, SCHEDULER);
-        this.cloudNotificationMsgCounter = statsFactory.createStatsCounter(statsKey, CLOUD_NOTIFICATIONS);
+        this.totalCounter = register(statsFactory.createStatsCounter(statsKey, TOTAL_MSGS));
+        this.sessionEventCounter = register(statsFactory.createStatsCounter(statsKey, SESSION_EVENTS));
+        this.getAttributesCounter = register(statsFactory.createStatsCounter(statsKey, GET_ATTRIBUTE));
+        this.subscribeToAttributesCounter = register(statsFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES));
+        this.subscribeToRPCCounter = register(statsFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES));
+        this.toDeviceRPCCallResponseCounter = register(statsFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES));
+        this.subscriptionInfoCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO));
+        this.claimDeviceCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS));
+        this.deviceStateCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_STATES));
+        this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
+        this.toCoreNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS));
+        this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
+        this.cloudNotificationMsgCounter = register(statsFactory.createStatsCounter(statsKey, CLOUD_NOTIFICATIONS));
+    }
 
-        counters.add(totalCounter);
-        counters.add(sessionEventCounter);
-        counters.add(getAttributesCounter);
-        counters.add(subscribeToAttributesCounter);
-        counters.add(subscribeToRPCCounter);
-        counters.add(toDeviceRPCCallResponseCounter);
-        counters.add(subscriptionInfoCounter);
-        counters.add(claimDeviceCounter);
-        counters.add(deviceStateCounter);
-        counters.add(subscriptionMsgCounter);
-        counters.add(toCoreNotificationsCounter);
-        counters.add(schedulerMsgCounter);
-        counters.add(cloudNotificationMsgCounter);
+    private StatsCounter register(StatsCounter counter){
+        counters.add(counter);
+        return counter;
     }
 
     public void log(TransportToDeviceActorMsg msg) {

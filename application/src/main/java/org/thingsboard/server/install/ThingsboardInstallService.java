@@ -93,7 +93,7 @@ public class ThingsboardInstallService {
                 log.info("Starting ThingsBoard Upgrade from version {} ...", upgradeFromVersion);
 
                 switch (upgradeFromVersion) {
-                    case "1.0.0":
+                    case "3.3.0":
                         log.info("Updating system data...");
 
                         systemDataLoaderService.deleteSystemWidgetBundle("charts");

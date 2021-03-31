@@ -129,6 +129,7 @@ export const HelpLinks = {
     ruleNodeAddToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node',
     ruleNodeDuplicateToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node',
+    ruleNodeDuplicateToGroupByName: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node-by-name',
     ruleNodeDuplicateToRelated: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-related-node',
     ruleNodeChangeOwner: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#change-owner-node',
     ruleNodeGenerateReport: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#generate-report-node',

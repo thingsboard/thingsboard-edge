@@ -132,6 +132,7 @@ import { DeviceProfileDialogComponent } from '@home/components/profile/device-pr
 import { DeviceProfileAutocompleteComponent } from '@home/components/profile/device-profile-autocomplete.component';
 import { MqttDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/mqtt-device-profile-transport-configuration.component';
 import { Lwm2mDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/lwm2m-device-profile-transport-configuration.component';
+import {CoapDeviceProfileTransportConfigurationComponent} from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
 import { DeviceProfileAlarmsComponent } from '@home/components/profile/alarm/device-profile-alarms.component';
 import { DeviceProfileAlarmComponent } from '@home/components/profile/alarm/device-profile-alarm.component';
 import { CreateAlarmRulesComponent } from '@home/components/profile/alarm/create-alarm-rules.component';
@@ -170,6 +171,7 @@ import { EmbedDashboardDialogComponent } from '@home/components/widget/dialog/em
 import { EMBED_DASHBOARD_DIALOG_TOKEN } from '@home/components/widget/dialog/embed-dashboard-dialog-token';
 import { CloudEventTableComponent } from '@home/components/cloud-event/cloud-event-table.component';
 import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/cloud-event-details-dialog.component';
+import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
 
 @NgModule({
   declarations:
@@ -266,6 +268,7 @@ import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/c
       DefaultDeviceProfileTransportConfigurationComponent,
       MqttDeviceProfileTransportConfigurationComponent,
       Lwm2mDeviceProfileTransportConfigurationComponent,
+      CoapDeviceProfileTransportConfigurationComponent,
       DeviceProfileTransportConfigurationComponent,
       CreateAlarmRulesComponent,
       AlarmRuleComponent,
@@ -301,7 +304,8 @@ import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/c
       DashboardStateDialogComponent,
       EmbedDashboardDialogComponent,
       CloudEventTableComponent,
-      CloudEventDetailsDialogComponent
+      CloudEventDetailsDialogComponent,
+      DisplayWidgetTypesPanelComponent
     ],
   imports: [
     CommonModule,
@@ -388,6 +392,7 @@ import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/c
     DefaultDeviceProfileTransportConfigurationComponent,
     MqttDeviceProfileTransportConfigurationComponent,
     Lwm2mDeviceProfileTransportConfigurationComponent,
+    CoapDeviceProfileTransportConfigurationComponent,
     DeviceProfileTransportConfigurationComponent,
     CreateAlarmRulesComponent,
     AlarmRuleComponent,
@@ -423,7 +428,8 @@ import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/c
     DashboardStateDialogComponent,
     EmbedDashboardDialogComponent,
     CloudEventTableComponent,
-    CloudEventDetailsDialogComponent
+    CloudEventDetailsDialogComponent,
+    DisplayWidgetTypesPanelComponent
   ],
   providers: [
     WidgetComponentService,

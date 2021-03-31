@@ -37,7 +37,7 @@ import { isDefined, isUndefined } from '@core/utils';
 import {
   EntityRelationsQuery,
   EntitySearchDirection,
-  EntityTypeFilter,
+  RelationEntityTypeFilter,
   RelationTypeGroup
 } from '@shared/models/relation.models';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -114,7 +114,7 @@ export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = nodeC
   const entity = nodeCtx.entity;
   const entityType = entity.id.entityType;
   let relationTypeGroup = RelationTypeGroup.COMMON;
-  let filters: EntityTypeFilter[] = [
+  let filters: RelationEntityTypeFilter[] = [
     {
       relationType: 'Contains',
       entityTypes: []
@@ -194,7 +194,16 @@ export const defaultNodeOpenedFunction: NodeOpenedFunction = nodeCtx => {
 };
 
 export const defaultNodesSortFunction: NodesSortFunction = (nodeCtx1, nodeCtx2) => {
-  let result = nodeCtx1.entity.id.entityType.localeCompare(nodeCtx2.entity.id.entityType);
+  let result = 0;
+  if (!nodeCtx1.entity.id.entityType || !nodeCtx2.entity.id.entityType ) {
+    if (nodeCtx1.entity.id.entityType) {
+      result = 1;
+    } else if (nodeCtx2.entity.id.entityType) {
+      result = -1;
+    }
+  } else {
+    result = nodeCtx1.entity.id.entityType.localeCompare(nodeCtx2.entity.id.entityType);
+  }
   if (result === 0) {
     if (nodeCtx1.entity.id.entityType === EntityType.ENTITY_GROUP) {
       result = (nodeCtx1.entity as EntityGroupInfo).type.localeCompare((nodeCtx2.entity as EntityGroupInfo).type);

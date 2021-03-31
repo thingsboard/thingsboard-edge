@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntitySearchQueryFilter;
+import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.EntityViewSearchQueryFilter;
 import org.thingsboard.server.common.data.query.EntityViewTypeFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
@@ -75,7 +76,7 @@ import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
@@ -416,22 +417,110 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter());
-        ctx.append("select count(e.id) from ");
-        ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
-        ctx.append(" e");
-        String entityWhereClause = buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList());
-        if (!entityWhereClause.isEmpty()) {
-            ctx.append(" where ");
-            ctx.append(entityWhereClause);
-        }
-        return transactionTemplate.execute(status -> {
-            long startTs = System.currentTimeMillis();
-            try {
-                return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
-            } finally {
-                queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+        if (query.getKeyFilters() == null || query.getKeyFilters().isEmpty()) {
+            ctx.append("select count(e.id) from ");
+            ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
+            ctx.append(" e");
+            String entityWhereClause = buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList());
+            if (!entityWhereClause.isEmpty()) {
+                ctx.append(" where ");
+                ctx.append(entityWhereClause);
             }
-        });
+            return transactionTemplate.execute(status -> {
+                long startTs = System.currentTimeMillis();
+                try {
+                    return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
+                } finally {
+                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+                }
+            });
+        } else {
+            MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+            if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
+                if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
+                    return 0L;
+                }
+            } else if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+                if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
+                    return 0L;
+                }
+            } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+                return 0L;
+            } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
+                return 0L;
+            }
+
+            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareEntityCountKeyMapping(query);
+
+            List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
+                    .collect(Collectors.toList());
+            List<EntityKeyMapping> entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest())
+                    .collect(Collectors.toList());
+
+            List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
+                    .collect(Collectors.toList());
+            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest())
+                    .collect(Collectors.toList());
+
+            List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
+                    .collect(Collectors.toList());
+
+
+            String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
+            String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
+            String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
+            String entityTypeStr;
+            if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+                entityTypeStr = "e.entity_type";
+            } else if (query.getEntityFilter().getType().equals(EntityFilterType.ENTITY_GROUP_NAME)) {
+                entityTypeStr = "'ENTITY_GROUP'";
+            } else {
+                entityTypeStr = "'" + ctx.getEntityType().name() + "'";
+            }
+            if (!StringUtils.isEmpty(entityFieldsSelection)) {
+                entityFieldsSelection = String.format("e.id id, %s entity_type, %s", entityTypeStr, entityFieldsSelection);
+            } else {
+                entityFieldsSelection = String.format("e.id id, %s entity_type", entityTypeStr);
+            }
+
+            StringBuilder entitiesQuery;
+            switch (query.getEntityFilter().getType()) {
+                case RELATIONS_QUERY:
+                    entitiesQuery = buildRelationsEntitiesQuery(query, ctx, entityWhereClause, entityFieldsSelection);
+                    break;
+                case ENTITY_GROUP_NAME:
+                case ENTITY_GROUP_LIST:
+                    entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    break;
+                case SINGLE_ENTITY:
+                    if (ctx.getSecurityCtx().isEntityGroup()) {
+                        entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    } else {
+                        entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    }
+                    break;
+                default:
+                    entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    break;
+            }
+
+            String fromClauseCount = String.format("from (select %s from (%s) entities %s) result %s",
+                    "entities.*",
+                    entitiesQuery,
+                    latestJoinsCnt,
+                    "");
+
+            String countQuery = String.format("select count(*) %s", fromClauseCount);
+
+            return transactionTemplate.execute(status -> {
+                long startTs = System.currentTimeMillis();
+                try {
+                    return jdbcTemplate.queryForObject(countQuery, ctx, Long.class);
+                } finally {
+                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+                }
+            });
+        }
     }
 
     @Override
@@ -446,11 +535,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
                 return new PageData<>();
             }
-        } else if (query.getEntityFilter().getType().equals(EntityFilterType.API_USAGE_STATE)) {
-            if (!ctx.isTenantUser()) {
-                return new PageData<>();
-            }
         } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+            return new PageData<>();
+        } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
             return new PageData<>();
         }
         return transactionTemplate.execute(status -> {
@@ -578,6 +665,48 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
+    }
+
+    private boolean customerUserIsTryingToAccessTenantEntity(QueryContext ctx, EntityFilter entityFilter) {
+        if (ctx.isTenantUser()) {
+            return false;
+        } else {
+            switch (entityFilter.getType()) {
+                case SINGLE_ENTITY:
+                    SingleEntityFilter seFilter = (SingleEntityFilter) entityFilter;
+                    return isSystemOrTenantEntity(seFilter.getSingleEntity().getEntityType());
+                case ENTITY_LIST:
+                    EntityListFilter elFilter = (EntityListFilter) entityFilter;
+                    return isSystemOrTenantEntity(elFilter.getEntityType());
+                case ENTITY_NAME:
+                    EntityNameFilter enFilter = (EntityNameFilter) entityFilter;
+                    return isSystemOrTenantEntity(enFilter.getEntityType());
+                case ENTITY_TYPE:
+                    EntityTypeFilter etFilter = (EntityTypeFilter) entityFilter;
+                    return isSystemOrTenantEntity(etFilter.getEntityType());
+                case API_USAGE_STATE:
+                    return !ctx.isTenantUser();
+                default:
+                    return false;
+            }
+        }
+    }
+
+    private boolean isSystemOrTenantEntity(EntityType entityType) {
+        switch (entityType) {
+            case INTEGRATION:
+            case CONVERTER:
+            case DEVICE_PROFILE:
+            case RULE_CHAIN:
+            case SCHEDULER_EVENT:
+            case TENANT:
+            case TENANT_PROFILE:
+            case WIDGET_TYPE:
+            case WIDGETS_BUNDLE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter) {
@@ -800,7 +929,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         });
     }
 
-    private StringBuilder buildRelationsEntitiesQuery(EntityDataQuery query, QueryContext ctx, String entityWhereClause, String entityFieldsSelection) {
+    private StringBuilder buildRelationsEntitiesQuery(EntityCountQuery query, QueryContext ctx, String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
 
         Map<Resource, MergedGroupTypePermissionInfo> readPermMap = ctx.getSecurityCtx().getMergedReadEntityPermissionsMap();
@@ -952,7 +1081,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private StringBuilder buildCommonEntitiesQuery(EntityDataQuery query, QueryContext ctx,
+    private StringBuilder buildCommonEntitiesQuery(EntityCountQuery query, QueryContext ctx,
                                                    MergedGroupTypePermissionInfo readPermissions,
                                                    String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
@@ -1108,7 +1237,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return permissions.getEntityGroupIds() == null || permissions.getEntityGroupIds().isEmpty();
     }
 
-    private StringBuilder buildGroupEntitiesQuery(EntityDataQuery query, QueryContext ctx,
+    private StringBuilder buildGroupEntitiesQuery(EntityCountQuery query, QueryContext ctx,
                                                   MergedGroupTypePermissionInfo readPermissions, String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
 
@@ -1318,6 +1447,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
             case API_USAGE_STATE:
+            case ENTITY_TYPE:
                 return "";
             default:
                 throw new RuntimeException("Not implemented!");
@@ -1522,7 +1652,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         boolean single = entityFilter.getFilters() != null && entityFilter.getFilters().size() == 1;
         if (entityFilter.getFilters() != null && !entityFilter.getFilters().isEmpty()) {
             int entityTypeFilterIdx = 0;
-            for (EntityTypeFilter etf : entityFilter.getFilters()) {
+            for (RelationEntityTypeFilter etf : entityFilter.getFilters()) {
                 String etfCondition = buildEtfCondition(ctx, etf, entityFilter.getDirection(), entityTypeFilterIdx++);
                 if (!etfCondition.isEmpty()) {
                     if (noConditions) {
@@ -1571,7 +1701,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "( " + selectFields + from + ")";
     }
 
-    private String buildEtfCondition(QueryContext ctx, EntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
+    private String buildEtfCondition(QueryContext ctx, RelationEntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
         StringBuilder whereFilter = new StringBuilder();
         String relationType = etf.getRelationType();
         List<EntityType> entityTypes = etf.getEntityTypes();
@@ -1698,6 +1828,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 return ((EntityListFilter) entityFilter).getEntityType();
             case ENTITY_NAME:
                 return ((EntityNameFilter) entityFilter).getEntityType();
+            case ENTITY_TYPE:
+                return ((EntityTypeFilter) entityFilter).getEntityType();
             case ENTITY_GROUP_LIST:
             case ENTITY_GROUP_NAME:
                 return EntityType.ENTITY_GROUP;

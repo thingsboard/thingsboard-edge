@@ -119,9 +119,26 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
-            return checkUserId(userId, Operation.READ);
+            User user = checkUserId(userId, Operation.READ);
+            if(!user.getAdditionalInfo().isNull()) {
+                processDashboardIdFromAdditionalInfo((ObjectNode) user.getAdditionalInfo(), DEFAULT_DASHBOARD);
+                processDashboardIdFromAdditionalInfo((ObjectNode) user.getAdditionalInfo(), HOME_DASHBOARD);
+            }
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+            if(userCredentials.isEnabled()) {
+                addUserCredentialsEnabled((ObjectNode) user.getAdditionalInfo());
+            }
+            return user;
         } catch (Exception e) {
             throw handleException(e);
+        }
+    }
+
+    private void addUserCredentialsEnabled(ObjectNode additionalInfo) {
+        if(!additionalInfo.isNull()) {
+            if(!additionalInfo.has("userCredentialsEnabled")) {
+                additionalInfo.put("userCredentialsEnabled", true);
+            }
         }
     }
 
@@ -279,13 +296,13 @@ public class UserController extends BaseController {
                     user.getId(), user);
 
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(getCurrentUser().getTenantId(), user.getId());
-            if (!userCredentials.isEnabled()) {
+            if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
                 String baseUrl = systemSecurityService.getBaseUrl(getCurrentUser().getAuthority(), getTenantId(), getCurrentUser().getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 mailService.sendActivationEmail(getTenantId(), activateUrl, email);
             } else {
-                throw new ThingsboardException("User is already active!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -304,12 +321,12 @@ public class UserController extends BaseController {
             User user = checkUserId(userId, Operation.READ);
             SecurityUser authUser = getCurrentUser();
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), user.getId());
-            if (!userCredentials.isEnabled()) {
+            if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
                 String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), getTenantId(), authUser.getCustomerId(), request);
                 return String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
             } else {
-                throw new ThingsboardException("User is already active!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -492,4 +509,5 @@ public class UserController extends BaseController {
             }
         }).collect(Collectors.toList());
     }
+
 }

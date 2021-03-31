@@ -37,10 +37,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AzureEventHubClientConfiguration {
 
-    private String namespaceName;
-    private String eventHubName;
-    private String sasKeyName;
-    private String sasKey;
+    private String connectionString;
     private String iotHubName;
 
     private int connectTimeoutSec;

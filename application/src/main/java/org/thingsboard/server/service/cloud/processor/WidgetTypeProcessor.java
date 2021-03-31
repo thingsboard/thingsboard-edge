@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 
@@ -56,22 +57,22 @@ public class WidgetTypeProcessor extends BaseProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
                     widgetCreationLock.lock();
-                    WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
-                    if (widgetType == null) {
-                        widgetType = new WidgetType();
+                    WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(tenantId, widgetTypeId);
+                    if (widgetTypeDetails == null) {
+                        widgetTypeDetails = new WidgetTypeDetails();
                         if (widgetTypeUpdateMsg.getIsSystem()) {
-                            widgetType.setTenantId(TenantId.SYS_TENANT_ID);
+                            widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);
                         } else {
-                            widgetType.setTenantId(tenantId);
+                            widgetTypeDetails.setTenantId(tenantId);
                         }
-                        widgetType.setId(widgetTypeId);
-                        widgetType.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
+                        widgetTypeDetails.setId(widgetTypeId);
+                        widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
                     }
-                    widgetType.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
-                    widgetType.setAlias(widgetTypeUpdateMsg.getAlias());
-                    widgetType.setName(widgetTypeUpdateMsg.getName());
-                    widgetType.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
-                    widgetTypeService.saveWidgetType(widgetType);
+                    widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
+                    widgetTypeDetails.setAlias(widgetTypeUpdateMsg.getAlias());
+                    widgetTypeDetails.setName(widgetTypeUpdateMsg.getName());
+                    widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
+                    widgetTypeService.saveWidgetType(widgetTypeDetails);
                 } finally {
                     widgetCreationLock.unlock();
                 }

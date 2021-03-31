@@ -71,8 +71,8 @@
             <artifactId>cassandra-all</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.datastax.oss</groupId>
-            <artifactId>java-driver-core</artifactId>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -94,7 +94,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <configuration>
+                    <configuration combine.self="override">
                         <archive>
                             <manifest>
                                 <mainClass>org.thingsboard.client.tools.migrator.MigratorTool</mainClass>

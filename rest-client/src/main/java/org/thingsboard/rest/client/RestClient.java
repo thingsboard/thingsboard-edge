@@ -1861,7 +1861,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/tenantProfiles" + getUrlParams(pageLink),
+                baseURL + "/api/tenantProfiles?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<TenantProfile>>() {
@@ -1872,7 +1872,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/tenantProfileInfos" + getUrlParams(pageLink),
+                baseURL + "/api/tenantProfileInfos?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<EntityInfo>>() {
@@ -1929,7 +1929,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/users" + getUrlParams(pageLink),
+                baseURL + "/api/users?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<User>>() {

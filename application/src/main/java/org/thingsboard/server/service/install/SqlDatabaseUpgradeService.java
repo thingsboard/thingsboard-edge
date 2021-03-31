@@ -30,14 +30,21 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 
@@ -86,6 +93,8 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Autowired
     private ApiUsageStateService apiUsageStateService;
 
+    @Autowired
+    private IntegrationRepository integrationRepository;
 
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {

@@ -68,7 +68,7 @@ public class WidgetsBundleProcessor extends BaseProcessor {
                     }
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
                     widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                    widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toByteArray());
+                    widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toString());
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle);
                 } finally {
                     widgetCreationLock.unlock();

@@ -37,6 +37,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.MalformedJsonException;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
@@ -132,7 +133,7 @@ public class JsonConverter {
     public static ClaimDeviceMsg convertToClaimDeviceProto(DeviceId deviceId, String json) {
         long durationMs = 0L;
         if (json != null && !json.isEmpty()) {
-            return convertToClaimDeviceProto(deviceId, new JsonParser().parse(json));
+            return convertToClaimDeviceProto(deviceId, JSON_PARSER.parse(json));
         }
         return buildClaimDeviceMsg(deviceId, DataConstants.DEFAULT_SECRET_KEY, durationMs);
     }
@@ -181,7 +182,15 @@ public class JsonConverter {
             result.addProperty("id", msg.getRequestId());
         }
         result.addProperty("method", msg.getMethodName());
-        result.add("params", new JsonParser().parse(msg.getParams()));
+        try {
+            result.add("params", JSON_PARSER.parse(msg.getParams()));
+        } catch (JsonSyntaxException ex) {
+            if (ex.getCause() instanceof MalformedJsonException) {
+                result.addProperty("params", msg.getParams());
+            } else {
+                throw ex;
+            }
+        }
         return result;
     }
 
@@ -429,7 +438,7 @@ public class JsonConverter {
 
     public static JsonElement toJson(ToServerRpcResponseMsg msg) {
         if (StringUtils.isEmpty(msg.getError())) {
-            return new JsonParser().parse(msg.getPayload());
+            return JSON_PARSER.parse(msg.getPayload());
         } else {
             JsonObject errorMsg = new JsonObject();
             errorMsg.addProperty("error", msg.getError());
@@ -584,7 +593,7 @@ public class JsonConverter {
     }
 
     public static ProvisionDeviceRequestMsg convertToProvisionRequestMsg(String json) {
-        JsonElement jsonElement = new JsonParser().parse(json);
+        JsonElement jsonElement = JSON_PARSER.parse(json);
         if (jsonElement.isJsonObject()) {
             return buildProvisionRequestMsg(jsonElement.getAsJsonObject());
         } else {

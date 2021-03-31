@@ -59,7 +59,7 @@ import java.util.function.Predicate;
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
-        name = "alarms count",
+        name = "alarms count (deprecated)",
         configClazz = TbAlarmsCountNodeConfiguration.class,
         nodeDescription = "Periodically counts alarms for entities",
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
