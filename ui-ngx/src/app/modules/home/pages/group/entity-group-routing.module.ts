@@ -333,7 +333,7 @@ const DASHBOARD_GROUPS_ROUTE: Route =   {
   ]
 };
 
-const SCHEDULER_EVENTS_ROUTE: Route = {
+const SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
@@ -679,7 +679,7 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {...SCHEDULER_EVENTS_ROUTE},
+                  {...SCHEDULER_ROUTE},
                   {...RULE_CHAINS_ROUTE}
                 ]
               }
@@ -845,7 +845,7 @@ const routes: Routes = [
               }
             }
           },
-          {...SCHEDULER_EVENTS_ROUTE},
+          {...SCHEDULER_ROUTE},
           {...RULE_CHAINS_ROUTE}
         ]
       }
