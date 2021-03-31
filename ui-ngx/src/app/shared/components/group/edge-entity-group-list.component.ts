@@ -33,7 +33,8 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  forwardRef, Inject,
+  forwardRef,
+  Inject,
   Input,
   OnChanges,
   OnInit,
@@ -41,8 +42,8 @@ import {
   ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
-import {filter, map, mergeMap, publishReplay, refCount, share, tap} from 'rxjs/operators';
+import { forkJoin, Observable } from 'rxjs';
+import { filter, map, mergeMap, publishReplay, refCount, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -50,11 +51,13 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import {EntityGroupInfo} from "@shared/models/entity-group.models";
-import {EntityGroupService} from "@core/http/entity-group.service";
-import {MAT_DIALOG_DATA} from "@angular/material/dialog";
-import {AddEntityGroupsToEdgeDialogData} from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
-import {EntityId} from "@shared/models/id/entity-id";
+import { EntityGroupInfo } from "@shared/models/entity-group.models";
+import { EntityGroupService } from "@core/http/entity-group.service";
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { AddEntityGroupsToEdgeDialogData } from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
+import { EntityId } from "@shared/models/id/entity-id";
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from "@shared/models/authority.enum";
 
 @Component({
   selector: 'tb-edge-entity-group-list',
@@ -104,6 +107,9 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   filteredEntityGroups: Observable<Array<EntityGroupInfo>>;
   ownerId: EntityId;
   edgeId: string;
+  tenantId: string;
+  customerId: string;
+  groupScope: string;
 
   searchText = '';
 
@@ -116,12 +122,17 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
               private entityGroupService: EntityGroupService,
               @Inject(MAT_DIALOG_DATA) public data: AddEntityGroupsToEdgeDialogData,
               private fb: FormBuilder) {
+    const authUser = getCurrentAuthUser(this.store);
+    this.tenantId = authUser.tenantId;
+    this.ownerId = this.data.ownerId;
+    this.edgeId = this.data.edgeId;
+    this.customerId = this.data.customerId;
+    this.groupType = this.data.groupType;
+    this.groupScope = this.data.groupScope;
     this.edgeEntityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
       entityGroup: [null]
     });
-    this.ownerId = this.data.ownerId;
-    this.edgeId = this.data.edgeId;
   }
 
   updateValidators() {
@@ -247,15 +258,16 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   }
 
   getEntityGroups(): Observable<Array<EntityGroupInfo>> {
-      return this.entityGroupService.getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true})
-        .pipe(map(data => {
-
-          if (data) {
+    const entityGroupsObservable: Array<Observable<any>> = this.getEntityGroupsObservable();
+    return forkJoin(entityGroupsObservable)
+      .pipe(map(data => {
+          const entityGroups = data[0].concat(data[1]);
+          if (entityGroups) {
             if (this.excludeGroupAll) {
-              return data.filter(group => !group.groupAll);
+              return entityGroups.filter(group => !group.groupAll);
             }
             else {
-              return data;
+              return entityGroups;
             }
           } else {
             return [];
@@ -264,8 +276,7 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
         publishReplay(1),
         refCount()
       );
-
-  }
+}
 
   onFocus() {
     if (this.dirty) {
@@ -281,6 +292,18 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
       this.entityGroupInput.nativeElement.blur();
       this.entityGroupInput.nativeElement.focus();
     }, 0);
+  }
+
+  private getEntityGroupsObservable(): Array<Observable<any>> {
+    var entityGroupsObservables: Array<Observable<any>> = [];
+    const ownerEntityGroups: Observable<any> = this.entityGroupService.getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true});
+    const currentUser = getCurrentAuthUser(this.store);
+    entityGroupsObservables.push(ownerEntityGroups);
+    if (currentUser.authority === Authority.TENANT_ADMIN && this.customerId) {
+      const tenantEntityGroups: Observable<any> = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.TENANT as EntityType, currentUser.tenantId, this.groupType, {ignoreLoading: true});
+      entityGroupsObservables.push(tenantEntityGroups);
+    }
+    return entityGroupsObservables;
   }
 
 }
