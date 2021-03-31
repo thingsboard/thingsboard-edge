@@ -421,6 +421,9 @@ caffeine:
     attributes:
       timeToLiveInMinutes: 1440
       maxSize: 100000
+    tokensOutdatageTime:
+      timeToLiveInMinutes: 20000
+      maxSize: 10000
     edges:
       timeToLiveInMinutes: 1440
       maxSize: 0

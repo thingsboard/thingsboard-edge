@@ -35,7 +35,6 @@ import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.CoapServer;
 
 import org.eclipse.californium.core.network.CoapEndpoint;
-import org.eclipse.californium.core.network.CoapEndpoint.Builder;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -67,6 +66,7 @@ public class CoapTransportService {
     public void init() throws UnknownHostException {
         log.info("Starting CoAP transport...");
         log.info("Starting CoAP transport server");
+
         this.server = new CoapServer();
         createResources();
         Resource root = this.server.getRoot();

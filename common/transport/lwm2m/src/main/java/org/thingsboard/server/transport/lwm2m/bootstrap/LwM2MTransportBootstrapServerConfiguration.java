@@ -32,7 +32,6 @@ package org.thingsboard.server.transport.lwm2m.bootstrap;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
-import org.eclipse.leshan.core.model.StaticModel;
 import org.eclipse.leshan.core.util.Hex;
 import org.eclipse.leshan.server.bootstrap.BootstrapSessionManager;
 import org.eclipse.leshan.server.californium.bootstrap.LeshanBootstrapServer;
@@ -109,7 +108,7 @@ public class LwM2MTransportBootstrapServerConfiguration {
         builder.setCoapConfig(getCoapConfig(bootstrapPortNoSec, bootstrapSecurePort));
 
         /** Define model provider (Create Models )*/
-        builder.setModel(new StaticModel(contextS.getLwM2MTransportConfigServer().getModelsValue()));
+//        builder.setModel(new StaticModel(contextS.getLwM2MTransportConfigServer().getModelsValueCommon()));
 
         /**  Create credentials */
         this.setServerWithCredentials(builder);

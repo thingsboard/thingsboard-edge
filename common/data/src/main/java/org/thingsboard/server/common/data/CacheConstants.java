@@ -48,4 +48,5 @@ public class CacheConstants {
     public static final String DEVICE_PROFILE_CACHE = "deviceProfiles";
     public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
     public static final String ATTRIBUTES_CACHE = "attributes";
+    public static final String TOKEN_OUTDATAGE_TIME_CACHE = "tokensOutdatageTime";
 }

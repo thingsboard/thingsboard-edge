@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.entity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -87,11 +88,8 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.common.util.JacksonUtil;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.function.Function;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -105,9 +103,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
-
-    private static final JavaType assignedCustomersType =
-            JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Autowired
     private AssetService assetService;
@@ -379,7 +374,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 String assignedCustomersStr = assignedCustomers.toString();
                 if (!StringUtils.isEmpty(assignedCustomersStr)) {
                     try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, assignedCustomersType));
+                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {}));
                     } catch (IllegalArgumentException e) {
                         log.warn("Unable to parse assigned customers!", e);
                     }

@@ -113,7 +113,6 @@ export interface ProfileConfigModels {
 
 export interface ClientLwM2mSettings {
   clientOnlyObserveAfterConnect: boolean;
-  clientUpdateValueAfterConnect: boolean;
 }
 export interface ObservableAttributes {
   observe: string[];
@@ -172,8 +171,7 @@ function getDefaultProfileObserveAttrConfig(): ObservableAttributes {
 
 function getDefaultProfileClientLwM2mSettingsConfig(): ClientLwM2mSettings {
   return {
-    clientOnlyObserveAfterConnect: true,
-    clientUpdateValueAfterConnect: false
+    clientOnlyObserveAfterConnect: true
   };
 }
 

@@ -73,12 +73,12 @@ public class JacksonUtil {
         }
     }
 
-    public static <T> T fromString(String string, JavaType valueType) {
+    public static <T> T fromString(String string, TypeReference<T> valueTypeRef) {
         try {
-            return OBJECT_MAPPER.readValue(string, valueType);
+            return string != null ? OBJECT_MAPPER.readValue(string, valueTypeRef) : null;
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value: "
-                    + string + " cannot be transformed to Json object");
+                    + string + " cannot be transformed to Json object", e);
         }
     }
 

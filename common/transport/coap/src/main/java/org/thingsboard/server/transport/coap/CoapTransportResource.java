@@ -95,7 +95,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
     private static final int FEATURE_TYPE_POSITION = 4;
     private static final int REQUEST_ID_POSITION = 5;
 
-    private final ConcurrentMap<String, SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TransportProtos.SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, AtomicInteger> tokenToNotificationCounterMap = new ConcurrentHashMap<>();
     private final Set<UUID> rpcSubscriptions = ConcurrentHashMap.newKeySet();
     private final Set<UUID> attributeSubscriptions = ConcurrentHashMap.newKeySet();
@@ -252,7 +252,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
                                         new CoapOkCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
                                 break;
                             case SUBSCRIBE_ATTRIBUTES_REQUEST:
-                                SessionInfoProto currentAttrSession = tokenToSessionIdMap.get(getTokenFromRequest(request));
+                                TransportProtos.SessionInfoProto currentAttrSession = tokenToSessionIdMap.get(getTokenFromRequest(request));
                                 if (currentAttrSession == null) {
                                     attributeSubscriptions.add(sessionId);
                                     registerAsyncCoapSession(exchange, sessionInfo, coapTransportAdaptor, getTokenFromRequest(request));
@@ -272,7 +272,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
                                 }
                                 break;
                             case SUBSCRIBE_RPC_COMMANDS_REQUEST:
-                                SessionInfoProto currentRpcSession = tokenToSessionIdMap.get(getTokenFromRequest(request));
+                                TransportProtos.SessionInfoProto currentRpcSession = tokenToSessionIdMap.get(getTokenFromRequest(request));
                                 if (currentRpcSession == null) {
                                     rpcSubscriptions.add(sessionId);
                                     registerAsyncCoapSession(exchange, sessionInfo, coapTransportAdaptor, getTokenFromRequest(request));
@@ -320,13 +320,13 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
                 }));
     }
 
-    private SessionInfoProto lookupAsyncSessionInfo(String token) {
+    private TransportProtos.SessionInfoProto lookupAsyncSessionInfo(String token) {
         tokenToNotificationCounterMap.remove(token);
         return tokenToSessionIdMap.remove(token);
 
     }
 
-    private void registerAsyncCoapSession(CoapExchange exchange, SessionInfoProto sessionInfo, CoapTransportAdaptor coapTransportAdaptor, String token) {
+    private void registerAsyncCoapSession(CoapExchange exchange, TransportProtos.SessionInfoProto sessionInfo, CoapTransportAdaptor coapTransportAdaptor, String token) {
         tokenToSessionIdMap.putIfAbsent(token, sessionInfo);
         transportService.registerAsyncSession(sessionInfo, getCoapSessionListener(exchange, coapTransportAdaptor));
         transportService.process(sessionInfo, getSessionEventMsg(SessionEvent.OPEN), null);
