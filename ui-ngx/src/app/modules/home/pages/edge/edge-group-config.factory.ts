@@ -251,9 +251,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (config.groupParams.groupType === EntityType.CUSTOMER) { //TODO deaflynx: define else if statement and if needed to change other manage-buttons
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`);
-    } else {
+    } else if (config.groupParams.groupType === EntityType.EDGE) {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
     }
   }
