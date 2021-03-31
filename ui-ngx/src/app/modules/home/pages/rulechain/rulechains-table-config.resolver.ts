@@ -73,7 +73,6 @@ import { Operation, Resource } from '@shared/models/security.models';
 export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
 
   private readonly config: EntityTableConfig<RuleChain> = new EntityTableConfig<RuleChain>();
-  private edge: Edge;
 
   constructor(private ruleChainService: RuleChainService,
               private dialogService: DialogService,
@@ -136,27 +135,19 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
 
   resolveRuleChainsTableConfig(params: any): EntityTableConfig<RuleChain> {
     const edgeId = params?.edgeId;
+    const edge = params?.edge;
     var ruleChainScope = params.data?.ruleChainsType ? params.data?.ruleChainsType : 'tenant';
     if (params.hierarchyView && params.groupType === EntityType.EDGE) {
       ruleChainScope = 'edge';
     }
     this.config.componentsData = {
       ruleChainScope,
-      edgeId
+      edgeId,
+      edge
     };
-    if (ruleChainScope === 'tenant' || ruleChainScope === 'edges') {
-      this.config.entitySelectionEnabled = ruleChain => ruleChain && !ruleChain.root &&
-        this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
-      this.config.deleteEnabled = (ruleChain) => ruleChain && !ruleChain.root &&
-        this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
-      this.config.entitiesDeleteEnabled = true;
-      this.config.tableTitle = this.configureTableTitle(ruleChainScope, null);
-    } else if (ruleChainScope === 'edge') {
-      this.edgeService.getEdge(edgeId).subscribe(edge => {
-        this.config.componentsData.edge = edge;
-        this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
-        this.config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
-      });
+    if (ruleChainScope === 'edge') {
+      this.config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
+      this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
       this.config.entitiesDeleteEnabled = false;
     }
     this.config.columns = this.configureEntityTableColumns(ruleChainScope);

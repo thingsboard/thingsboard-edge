@@ -66,6 +66,8 @@ import { Edge, edgeEntityGroupTypes } from '@shared/models/edge.models';
 import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
 import { Authority } from "@shared/models/authority.enum";
+import { EdgeService } from "@core/http/edge.service";
+import { map } from "rxjs/operators";
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -135,6 +137,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   public customerId: string;
 
+  private edge: Edge;
+
   private allowedGroupTypes = groupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
@@ -148,6 +152,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
               private ngZone: NgZone,
               private entityGroupService: EntityGroupService,
               private entityService: EntityService,
+              private edgeService: EdgeService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private entityGroupsTableConfigResolver: EntityGroupsTableConfigResolver,
@@ -189,6 +194,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         const parentEntityGroupId = node.data.parentEntityGroupId;
         cb(this.loadNodesForCustomer(node.id, parentEntityGroupId, customer));
       } else if (node.data.type === 'edge') {
+        this.edgeService.getEdge(node.data.entity.id.id).subscribe((edge) => this.edge = edge);
         const edge = node.data.entity;
         const parentEntityGroupId = node.data.parentEntityGroupId;
         cb(this.loadNodesForEdge(node.id, parentEntityGroupId, edge));
@@ -267,6 +273,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         const parentEntityGroupId = node.data.parentEntityGroupId;
         if (parentEntityGroupId) {
           entityGroupParams.entityGroupId = parentEntityGroupId;
+          entityGroupParams.edge = this.edge;
           entityGroupParams.groupType = EntityType.EDGE;
           entityGroupParams.childGroupType = node.data.groupsType;
         } else {
