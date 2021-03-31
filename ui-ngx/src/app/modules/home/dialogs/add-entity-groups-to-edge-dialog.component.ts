@@ -54,6 +54,7 @@ export interface AddEntityGroupsToEdgeDialogData {
   notFoundText: string;
   requiredText: string;
   customerId?: string;
+  groupScope?: string;
 }
 
 @Component({
