@@ -63,8 +63,9 @@ import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-ta
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { Edge, edgeEntityGroupTypes } from '@shared/models/edge.models';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
+import { Authority } from "@shared/models/authority.enum";
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -541,7 +542,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       nodesMap[groupsType] = node.id;
       this.registerNode(node, parentNodeId);
     }
-    if (this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.EDGE), Operation.WRITE)) {
+    if (this.hasRuleChainsPermission()) {
       const groupsType = EntityType.RULE_CHAIN;
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
@@ -561,6 +562,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.registerNode(node, parentNodeId);
     }
     return nodes;
+  }
+
+  private hasRuleChainsPermission() {
+    const isCustomerUser = getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER;
+    return !isCustomerUser && this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.EDGE), Operation.WRITE);
   }
 
   private registerNode(node: CustomersHierarchyNode, parentNodeId: string) {
