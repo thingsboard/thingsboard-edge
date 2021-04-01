@@ -1,7 +1,7 @@
 /*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,9 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-const forwardUrl = "http://localhost:8080";
-const wsForwardUrl = "ws://localhost:8080";
+const forwardUrl = "http://localhost:28080";
+const wsForwardUrl = "ws://localhost:28080";
 const ruleNodeUiforwardUrl = forwardUrl;
 
 const PROXY_CONFIG = {
@@ -42,15 +41,15 @@ const PROXY_CONFIG = {
     "target": ruleNodeUiforwardUrl,
     "secure": false,
   },
+  "/static/widgets": {
+    "target": forwardUrl,
+    "secure": false,
+  },
   "/oauth2": {
     "target": forwardUrl,
     "secure": false,
   },
   "/login/oauth2": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/static": {
     "target": forwardUrl,
     "secure": false,
   },

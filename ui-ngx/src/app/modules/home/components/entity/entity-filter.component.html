@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -127,6 +127,13 @@
         </mat-error>
       </mat-form-field>
     </ng-template>
+    <ng-template [ngSwitchCase]="aliasFilterType.entityType">
+      <tb-entity-type-select required
+                             showLabel
+                             [allowedEntityTypes]="allowedEntityTypes"
+                             formControlName="entityType">
+      </tb-entity-type-select>
+    </ng-template>
     <ng-template [ngSwitchCase]="aliasFilterType.entityGroupList">
       <tb-entity-type-select required
                              showLabel
@@ -159,7 +166,7 @@
           <mat-slide-toggle class="root-state-entity-switch"
                             formControlName="groupStateEntity">
           </mat-slide-toggle>
-          <label class="tb-small root-state-entity-label" translate>alias.group-state-entity</label>
+          <label class="tb-small root-state-entity-label" translate>alias.group-state-entity-owner</label>
         </section>
         <div fxFlex fxLayout="column" style="margin-top: 16px;">
           <mat-form-field *ngIf="filterFormGroup.get('groupStateEntity').value"
@@ -387,6 +394,14 @@
         required
         [entityType]="entityType.DEVICE"
         formControlName="deviceTypes">
+      </tb-entity-subtype-list>
+    </ng-template>
+    <ng-template [ngSwitchCase]="aliasFilterType.edgeSearchQuery">
+      <div class="mat-caption tb-required" style="color: rgba(0,0,0,0.57);" translate>edge.edge-types</div>
+      <tb-entity-subtype-list
+        required
+        [entityType]="entityType.EDGE"
+        formControlName="edgeTypes">
       </tb-entity-subtype-list>
     </ng-template>
     <ng-template [ngSwitchCase]="aliasFilterType.entityViewSearchQuery">

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -314,6 +314,11 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                                         throw new DataValidationException("Role with such name already exists!");
                                     }
                                 });
+                    }
+
+                    Role before = findRoleById(tenantId, role.getId());
+                    if (role.getType() != before.getType()) {
+                        throw new DataValidationException("Role type cannot be changed after role creation");
                     }
                 }
 

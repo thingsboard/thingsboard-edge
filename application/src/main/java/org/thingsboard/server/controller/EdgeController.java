@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeGrpcSession;
@@ -77,6 +78,13 @@ public class EdgeController extends BaseController {
 
     public static final String EDGE_ID = "edgeId";
 
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edges/enabled", method = RequestMethod.GET)
+    @ResponseBody
+    public boolean isEdgesSupportEnabled() {
+        return edgesEnabled;
+    }
+
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}", method = RequestMethod.GET)
     @ResponseBody
@@ -84,7 +92,11 @@ public class EdgeController extends BaseController {
         checkParameter(EDGE_ID, strEdgeId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            return checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                cleanUpSensitiveData(edge);
+            }
+            return edge;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -100,10 +112,10 @@ public class EdgeController extends BaseController {
             edge.setTenantId(tenantId);
             boolean created = edge.getId() == null;
 
-            RuleChain defaultRootEdgeRuleChain = null;
+            RuleChain edgeTemplateRootRuleChain = null;
             if (created) {
-                defaultRootEdgeRuleChain = ruleChainService.getDefaultRootEdgeRuleChain(tenantId);
-                if (defaultRootEdgeRuleChain == null) {
+                edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);
+                if (edgeTemplateRootRuleChain == null) {
                     throw new DataValidationException("Root edge rule chain is not available!");
                 }
             }
@@ -133,8 +145,8 @@ public class EdgeController extends BaseController {
             }
 
             if (created) {
-                ruleChainService.assignRuleChainToEdge(tenantId, defaultRootEdgeRuleChain.getId(), savedEdge.getId());
-                edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, defaultRootEdgeRuleChain.getId());
+                ruleChainService.assignRuleChainToEdge(tenantId, edgeTemplateRootRuleChain.getId(), savedEdge.getId());
+                edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
             }
 
@@ -277,15 +289,24 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
-            TenantId tenantId = getCurrentUser().getTenantId();
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            PageData<Edge> result;
             if (type != null && type.trim().length() > 0) {
-                return checkNotNull(edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                result = edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink);
             } else {
-                return checkNotNull(edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
             }
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                for (Edge edge : result.getData()) {
+                    cleanUpSensitiveData(edge);
+                }
+            }
+            return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -326,13 +347,19 @@ public class EdgeController extends BaseController {
             for (String strEdgeId : strEdgeIds) {
                 edgeIds.add(new EdgeId(toUUID(strEdgeId)));
             }
-            ListenableFuture<List<Edge>> edges;
+            ListenableFuture<List<Edge>> edgesFuture;
             if (customerId == null || customerId.isNullUid()) {
-                edges = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);
+                edgesFuture = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);
             } else {
-                edges = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
+                edgesFuture = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
             }
-            return checkNotNull(edges.get());
+            List<Edge> edges = edgesFuture.get();
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                for (Edge edge : edges) {
+                    cleanUpSensitiveData(edge);
+                }
+            }
+            return checkNotNull(edges);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -347,15 +374,22 @@ public class EdgeController extends BaseController {
         checkNotNull(query.getEdgeTypes());
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
         try {
-            List<Edge> edges = checkNotNull(edgeService.findEdgesByQuery(getCurrentUser().getTenantId(), query).get());
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<Edge> edges = checkNotNull(edgeService.findEdgesByQuery(tenantId, query).get());
             edges = edges.stream().filter(edge -> {
                 try {
-                    accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ, edge.getId(), edge);
+                    accessControlService.checkPermission(user, Resource.EDGE, Operation.READ, edge.getId(), edge);
                     return true;
                 } catch (ThingsboardException e) {
                     return false;
                 }
             }).collect(Collectors.toList());
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                for (Edge edge : edges) {
+                    cleanUpSensitiveData(edge);
+                }
+            }
             return edges;
         } catch (Exception e) {
             throw handleException(e);
@@ -377,14 +411,18 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/sync", method = RequestMethod.POST)
-    public void syncEdge(@RequestBody EdgeId edgeId) throws ThingsboardException {
+    @RequestMapping(value = "/edge/sync/{edgeId}", method = RequestMethod.POST)
+    public void syncEdge(@PathVariable("edgeId") String strEdgeId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
         try {
-            edgeId = checkNotNull(edgeId);
-            if (isEdgesSupportEnabled()) {
-                EdgeGrpcSession session = edgeGrpcService.getEdgeGrpcSessionById(edgeId);
+            if (isEdgesEnabled()) {
+                EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+                edgeId = checkNotNull(edgeId);
+                SecurityUser user = getCurrentUser();
+                TenantId tenantId = user.getTenantId();
+                EdgeGrpcSession session = edgeGrpcService.getEdgeGrpcSessionById(tenantId, edgeId);
                 Edge edge = session.getEdge();
-                syncEdgeService.sync(edge);
+                syncEdgeService.sync(tenantId, edge);
             } else {
                 throw new ThingsboardException("Edges support disabled", ThingsboardErrorCode.GENERAL);
             }
@@ -412,5 +450,28 @@ public class EdgeController extends BaseController {
         } catch (Exception e) {
             throw new ThingsboardException(e, ThingsboardErrorCode.SUBSCRIPTION_VIOLATION);
         }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/missingToRelatedRuleChains/{edgeId}", method = RequestMethod.GET)
+    @ResponseBody
+    public String findMissingToRelatedRuleChains(@PathVariable("edgeId") String strEdgeId) throws ThingsboardException {
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            edgeId = checkNotNull(edgeId);
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return edgeService.findMissingToRelatedRuleChains(tenantId, edgeId);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private void cleanUpSensitiveData(Edge edge) {
+        edge.setEdgeLicenseKey(null);
+        edge.setRoutingKey(null);
+        edge.setSecret(null);
+        edge.setCloudEndpoint(null);
+        edge.setRootRuleChainId(null);
     }
 }

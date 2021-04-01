@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -66,6 +67,7 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
+import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
@@ -73,6 +75,7 @@ import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
@@ -147,7 +150,7 @@ public class TenantActor extends RuleChainManagerActor {
             log.info("[{}] Processing missing Tenant msg: {}", tenantId, msg);
             if (msg.getMsgType().equals(MsgType.QUEUE_TO_RULE_ENGINE_MSG)) {
                 QueueToRuleEngineMsg queueMsg = (QueueToRuleEngineMsg) msg;
-                queueMsg.getTbMsg().getCallback().onSuccess();
+                queueMsg.getMsg().getCallback().onSuccess();
             } else if (msg.getMsgType().equals(MsgType.TRANSPORT_TO_DEVICE_ACTOR_MSG)) {
                 TransportToDeviceActorMsgWrapper transportMsg = (TransportToDeviceActorMsgWrapper) msg;
                 transportMsg.getCallback().onSuccess();
@@ -183,12 +186,17 @@ public class TenantActor extends RuleChainManagerActor {
             case DEVICE_ATTRIBUTES_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_CREDENTIALS_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_NAME_OR_TYPE_UPDATE_TO_DEVICE_ACTOR_MSG:
+            case DEVICE_EDGE_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG:
+            case DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG:
             case SERVER_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG:
                 onToDeviceActorMsg((DeviceAwareMsg) msg, true);
                 break;
             case RULE_CHAIN_TO_RULE_CHAIN_MSG:
                 onRuleChainMsg((RuleChainAwareMsg) msg);
+                break;
+            case EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG:
+                onToEdgeSessionMsg((EdgeEventUpdateMsg) msg);
                 break;
             default:
                 return false;
@@ -205,7 +213,7 @@ public class TenantActor extends RuleChainManagerActor {
             log.warn("RECEIVED INVALID MESSAGE: {}", msg);
             return;
         }
-        TbMsg tbMsg = msg.getTbMsg();
+        TbMsg tbMsg = msg.getMsg();
         if (apiUsageState.isReExecEnabled()) {
             if (tbMsg.getRuleChainId() == null) {
                 if (getRootChainActor() != null) {
@@ -248,7 +256,7 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onComponentLifecycleMsg(ComponentLifecycleMsg msg) {
-        if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
+       if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
             IntegrationId integrationId = new IntegrationId(msg.getEntityId().getId());
             PlatformIntegrationService platformIntegrationService = systemContext.getPlatformIntegrationService();
             if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
@@ -295,21 +303,19 @@ public class TenantActor extends RuleChainManagerActor {
                     edgeRpcService.updateEdge(edge);
                 }
             }
-        } else {
-            if (isRuleEngineForCurrentTenant) {
-                TbActorRef target = getEntityActorRef(msg.getEntityId());
-                if (target != null) {
-                    if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
-                        RuleChain ruleChain = systemContext.getRuleChainService().
-                                findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
-                        if (ruleChain != null && ruleChain.getType().equals(RuleChainType.CORE)) {
-                            visit(ruleChain, target);
-                        }
+        } else if (isRuleEngineForCurrentTenant) {
+            TbActorRef target = getEntityActorRef(msg.getEntityId());
+            if (target != null) {
+                if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
+                    RuleChain ruleChain = systemContext.getRuleChainService().
+                            findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
+                    if (ruleChain != null && RuleChainType.CORE.equals(ruleChain.getType())) {
+                        visit(ruleChain, target);
                     }
-                    target.tellWithHighPriority(msg);
-                } else {
-                    log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
                 }
+                target.tellWithHighPriority(msg);
+            } else {
+                log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
             }
         }
     }
@@ -318,6 +324,11 @@ public class TenantActor extends RuleChainManagerActor {
         return ctx.getOrCreateChildActor(new TbEntityActorId(deviceId),
                 () -> DefaultActorService.DEVICE_DISPATCHER_NAME,
                 () -> new DeviceActorCreator(systemContext, tenantId, deviceId));
+    }
+
+    private void onToEdgeSessionMsg(EdgeEventUpdateMsg msg) {
+        log.trace("[{}] onToEdgeSessionMsg [{}]", msg.getTenantId(), msg);
+        systemContext.getEdgeRpcService().onEdgeEvent(msg.getEdgeId());
     }
 
     public static class ActorCreator extends ContextBasedCreator {

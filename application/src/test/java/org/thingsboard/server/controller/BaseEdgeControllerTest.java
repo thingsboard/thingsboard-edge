@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,23 +38,26 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
-import org.thingsboard.server.gen.edge.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.RoleProto;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -386,48 +389,62 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @Disabled
-    // TODO: voba - fix this test
     public void testSyncEdge() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
+
+        EntityGroup savedDeviceGroup = new EntityGroup();
+        savedDeviceGroup.setType(EntityType.DEVICE);
+        savedDeviceGroup.setName("DeviceGroup");
+        savedDeviceGroup = doPost("/api/entityGroup", savedDeviceGroup, EntityGroup.class);
 
         Device device = new Device();
         device.setName("Edge Device 1");
         device.setType("test");
-        Device savedDevice = doPost("/api/device", device, Device.class);
+        Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
+
         doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/device/" + savedDevice.getId().getId().toString(), Device.class);
+                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
+
+        EntityGroup savedAssetGroup = new EntityGroup();
+        savedAssetGroup.setType(EntityType.ASSET);
+        savedAssetGroup.setName("AssetGroup");
+        savedAssetGroup = doPost("/api/entityGroup", savedAssetGroup, EntityGroup.class);
 
         Asset asset = new Asset();
         asset.setName("Edge Asset 1");
         asset.setType("test");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
+        Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
+
         doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
+                + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
 
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.expectMessageAmount(7);
+        edgeImitator.expectMessageAmount(11);
         edgeImitator.connect();
         edgeImitator.waitForMessages();
 
-        Assert.assertEquals(7, edgeImitator.getDownlinkMsgs().size());
+        Assert.assertEquals(11, edgeImitator.getDownlinkMsgs().size());
         Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(DeviceUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(AssetUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(UserUpdateMsg.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
 
         edgeImitator.getDownlinkMsgs().clear();
 
-        edgeImitator.expectMessageAmount(4);
-        doPost("/api/edge/sync", edge.getId());
+        edgeImitator.expectMessageAmount(8);
+        doPost("/api/edge/sync/" + edge.getId());
         edgeImitator.waitForMessages();
 
-        Assert.assertEquals(4, edgeImitator.getDownlinkMsgs().size());
+        Assert.assertEquals(8, edgeImitator.getDownlinkMsgs().size());
         Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(DeviceUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(AssetUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(UserUpdateMsg.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
 
         edgeImitator.allowIgnoredTypes();
         edgeImitator.disconnect();

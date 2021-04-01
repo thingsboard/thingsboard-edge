@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import Raphael, { RaphaelElement, RaphaelPaper, RaphaelSet } from 'raphael';
+import { RaphaelElement, RaphaelPaper, RaphaelSet } from 'raphael';
 import * as tinycolor_ from 'tinycolor2';
 
 const tinycolor = tinycolor_;
@@ -105,10 +105,14 @@ export class LedLightComponent implements OnInit, AfterViewInit, OnChanges {
     if (this.paper) {
       this.paper.remove();
     }
-    this.paper = Raphael($('#canvas_container', this.elementRef.nativeElement)[0], this.canvasSize, this.canvasSize);
-    const center = this.canvasSize / 2;
-    this.circleElement = this.paper.circle(center, center, this.radius);
-    this.draw();
+    import('raphael').then(
+      (raphael) => {
+        this.paper = raphael.default($('#canvas_container', this.elementRef.nativeElement)[0], this.canvasSize, this.canvasSize);
+        const center = this.canvasSize / 2;
+        this.circleElement = this.paper.circle(center, center, this.radius);
+        this.draw();
+      }
+    );
   }
 
   private draw() {

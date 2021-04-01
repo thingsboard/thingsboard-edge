@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -380,6 +380,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
     this.customTranslatedTitle = this.dashboard.utils.customTranslation(this.title, this.title);
     this.titleTooltip = isDefined(this.widgetContext.widgetTitleTooltip)
       && this.widgetContext.widgetTitleTooltip.length ? this.widgetContext.widgetTitleTooltip : this.widget.config.titleTooltip;
+    this.titleTooltip = this.dashboard.utils.customTranslation(this.titleTooltip, this.titleTooltip);
     this.showTitle = isDefined(this.widget.config.showTitle) ? this.widget.config.showTitle : true;
     this.titleStyle = this.widget.config.titleStyle ? this.widget.config.titleStyle : {};
 

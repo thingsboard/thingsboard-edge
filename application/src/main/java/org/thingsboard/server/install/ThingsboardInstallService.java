@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -111,7 +111,6 @@ public class ThingsboardInstallService {
                 } else if ("3.0.1-cassandra".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
-                    log.info("Updating system data...");
                 } else {
                     switch (upgradeFromVersion) {
                         case "1.2.3": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
@@ -190,22 +189,22 @@ public class ThingsboardInstallService {
 
                         // TODO: voba - verify TB update
 
-                        case "2.5.5":
-                            log.info("Upgrading ThingsBoard from version 2.5.5 to 2.6.0 ...");
-                            if (databaseTsUpgradeService != null) {
-                                databaseTsUpgradeService.upgradeDatabase("2.5.5");
-                            }
-                            databaseEntitiesUpgradeService.upgradeDatabase("2.5.5");
-
-                            dataUpdateService.updateData("2.5.5");
-                        case "2.6.0": // to 2.6.0PE
-                            log.info("Upgrading ThingsBoard from version 2.6.0 to 2.6.0PE ...");
-
-                            databaseEntitiesUpgradeService.upgradeDatabase("2.6.0");
-
-                            dataUpdateService.updateData("2.6.0");
-
-                            // log.info("Upgrading ThingsBoard from version 2.6.0 to 3.0.0 ...");
+//                        case "2.5.5":
+//                            log.info("Upgrading ThingsBoard from version 2.5.5 to 2.6.0 ...");
+//                            if (databaseTsUpgradeService != null) {
+//                                databaseTsUpgradeService.upgradeDatabase("2.5.5");
+//                            }
+//                            databaseEntitiesUpgradeService.upgradeDatabase("2.5.5");
+//
+//                            dataUpdateService.updateData("2.5.5");
+//                        case "2.6.0": // to 2.6.0PE
+//                            log.info("Upgrading ThingsBoard from version 2.6.0 to 2.6.0PE ...");
+//
+//                            databaseEntitiesUpgradeService.upgradeDatabase("2.6.0");
+//
+//                            dataUpdateService.updateData("2.6.0");
+//
+//                            // log.info("Upgrading ThingsBoard from version 2.6.0 to 3.0.0 ...");
 
                          // TODO: voba - verify TB update
 
@@ -223,16 +222,54 @@ public class ThingsboardInstallService {
                             }
                             databaseEntitiesUpgradeService.upgradeDatabase("3.1.1");
                             dataUpdateService.updateData("3.1.1");
-                        case "3.2.0": // to 3.2.0PE
-                            log.info("Upgrading ThingsBoard from version 3.2.0 to 3.2.0PE ...");
-
+                            systemDataLoaderService.createOAuth2Templates();
+                        case "3.2.0":
+                            log.info("Upgrading ThingsBoard from version 3.2.0 to 3.2.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.2.0");
+                        case "3.2.1":
+                            log.info("Upgrading ThingsBoard from version 3.2.1 to 3.2.2 ...");
+                            if (databaseTsUpgradeService != null) {
+                                databaseTsUpgradeService.upgradeDatabase("3.2.1");
+                            }
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.1");
+                        case "3.2.2": // to 3.3.0PE
+                            log.info("Upgrading ThingsBoard from version 3.2.2 to 3.3.0PE ...");
 
-                            dataUpdateService.updateData("3.2.0");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.2");
+
+                            dataUpdateService.updateData("3.2.2");
+
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
-                            systemDataLoaderService.createOAuth2Templates();
                             break;
+                            // TODO: voba - verify
+//                        log.info("Upgrading ThingsBoard from version 3.2.1 to 3.3.0 ...");
+//                        case "3.3.0": // to 3.3.0PE
+//                            log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.0PE ...");
+                            // TODO: voba - verify
+                            //if (databaseTsUpgradeService != null) {
+                            //    databaseTsUpgradeService.upgradeDatabase("3.2.1");
+                            //}
+//                        case "3.2.1": // to 3.2.1PE
+//                            log.info("Upgrading ThingsBoard from version 3.2.1 to 3.2.1PE ...");
+//
+//                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.1");
+//
+//                            dataUpdateService.updateData("3.2.1");
+//                            log.info("Updating system data...");
+//                            systemDataLoaderService.updateSystemWidgets();
+//                            break;
+//                            log.info("Updating system data...");
+//                            systemDataLoaderService.updateSystemWidgets();
+//                            break;
+//                        case "3.2.2":
+//                            log.info("Upgrading ThingsBoard from version 3.2.2 to 3.3.0 ...");
+//                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.2");
+//
+//                            dataUpdateService.updateData("3.2.2");
+//
+//                            log.info("Updating system data...");
+//                            break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 
@@ -265,6 +302,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.loadSystemWidgets();
                 systemDataLoaderService.createOAuth2Templates();
+                systemDataLoaderService.loadSystemLwm2mResources();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
 

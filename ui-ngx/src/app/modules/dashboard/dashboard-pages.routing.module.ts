@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
 
 import { Authority } from '@shared/models/authority.enum';
-import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';
+import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
 import { Dashboard } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
@@ -62,6 +62,8 @@ export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
       typeAlias: 'customWidget',
       type: editWidgetInfo.type,
       title: 'My widget',
+      image: null,
+      description: null,
       sizeX: editWidgetInfo.sizeX * 2,
       sizeY: editWidgetInfo.sizeY * 2,
       row: 2,

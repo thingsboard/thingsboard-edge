@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,10 @@
 ///
 
 import { Component } from '@angular/core';
-import { EntityTableHeaderComponent } from "@home/components/entity/entity-table-header.component";
-import { EntityType } from "@shared/models/entity-type.models";
-import { Store } from "@ngrx/store";
-import { AppState } from "@core/core.state";
+import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
+import { EntityType } from '@shared/models/entity-type.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 import { Edge } from "@shared/models/edge.models";
 
 @Component({

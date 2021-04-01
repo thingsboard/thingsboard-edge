@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,13 @@ import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { AdminSettings, MailServerSettings, SecuritySettings, UpdateMessage } from '@shared/models/settings.models';
+import {
+  AdminSettings,
+  MailServerSettings,
+  SecuritySettings,
+  TestSmsRequest,
+  UpdateMessage
+} from '@shared/models/settings.models';
 
 @Injectable({
   providedIn: 'root'
@@ -57,6 +63,11 @@ export class AdminService {
   public sendTestMail(adminSettings: AdminSettings<MailServerSettings>,
                       config?: RequestConfig): Observable<void> {
     return this.http.post<void>('/api/admin/settings/testMail', adminSettings, defaultHttpOptionsFromConfig(config));
+  }
+
+  public sendTestSms(testSmsRequest: TestSmsRequest,
+                     config?: RequestConfig): Observable<void> {
+    return this.http.post<void>('/api/admin/settings/testSms', testSmsRequest, defaultHttpOptionsFromConfig(config));
   }
 
   public getSecuritySettings(config?: RequestConfig): Observable<SecuritySettings> {

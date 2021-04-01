@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,7 @@ import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -86,6 +87,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.AccessValidator;
@@ -108,6 +110,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -220,7 +223,7 @@ public class TelemetryController extends BaseController {
             @RequestParam(name = "interval", defaultValue = "0") Long interval,
             @RequestParam(name = "limit", defaultValue = "100") Integer limit,
             @RequestParam(name = "agg", defaultValue = "NONE") String aggStr,
-            @RequestParam(name= "orderBy", defaultValue = "DESC") String orderBy,
+            @RequestParam(name = "orderBy", defaultValue = "DESC") String orderBy,
             @RequestParam(name = "useStrictDataTypes", required = false, defaultValue = "false") Boolean useStrictDataTypes) throws ThingsboardException {
         return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.READ_TELEMETRY, entityType, entityIdStr,
                 (result, tenantId, entityId) -> {
@@ -327,13 +330,13 @@ public class TelemetryController extends BaseController {
             Futures.addCallback(future, new FutureCallback<List<Void>>() {
                 @Override
                 public void onSuccess(@Nullable List<Void> tmp) {
-                    logTimeseriesDeleted(user, entityId, keys, null);
+                    logTimeseriesDeleted(user, entityId, keys, deleteFromTs, deleteToTs, null);
                     result.setResult(new ResponseEntity<>(HttpStatus.OK));
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
-                    logTimeseriesDeleted(user, entityId, keys, t);
+                    logTimeseriesDeleted(user, entityId, keys, deleteFromTs, deleteToTs, t);
                     result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
                 }
             }, executor);
@@ -406,7 +409,7 @@ public class TelemetryController extends BaseController {
             if (attributes.isEmpty()) {
                 return getImmediateDeferredResult("No attributes data found in request body!", HttpStatus.BAD_REQUEST);
             }
-            for (AttributeKvEntry attributeKvEntry: attributes) {
+            for (AttributeKvEntry attributeKvEntry : attributes) {
                 if (attributeKvEntry.getKey().isEmpty() || attributeKvEntry.getKey().trim().length() == 0) {
                     return getImmediateDeferredResult("Key cannot be empty or contains only spaces", HttpStatus.BAD_REQUEST);
                 }
@@ -456,14 +459,21 @@ public class TelemetryController extends BaseController {
         }
         SecurityUser user = getCurrentUser();
         return accessValidator.validateEntityAndCallback(getCurrentUser(), Operation.WRITE_TELEMETRY, entityIdSrc, (result, tenantId, entityId) -> {
-            tsSubService.saveAndNotify(tenantId, entityId, entries, ttl, new FutureCallback<Void>() {
+            long tenantTtl = ttl;
+            if (!TenantId.SYS_TENANT_ID.equals(tenantId) && tenantTtl == 0) {
+                TenantProfile tenantProfile = tenantProfileCache.get(tenantId);
+                tenantTtl = TimeUnit.DAYS.toSeconds(((DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration()).getDefaultStorageTtlDays());
+            }
+            tsSubService.saveAndNotify(tenantId, entityId, entries, tenantTtl, new FutureCallback<Void>() {
                 @Override
                 public void onSuccess(@Nullable Void tmp) {
+                    logTelemetryUpdated(user, entityId, entries, null);
                     result.setResult(new ResponseEntity(HttpStatus.OK));
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
+                    logTelemetryUpdated(user, entityId, entries, t);
                     AccessValidator.handleError(t, result, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             });
@@ -595,12 +605,20 @@ public class TelemetryController extends BaseController {
         };
     }
 
-    private void logTimeseriesDeleted(SecurityUser user, EntityId entityId, List<String> keys, Throwable e) {
+    private void logTimeseriesDeleted(SecurityUser user, EntityId entityId, List<String> keys, long startTs, long endTs, Throwable e) {
         try {
             logEntityAction(user, (UUIDBased & EntityId) entityId, null, null, ActionType.TIMESERIES_DELETED, toException(e),
-                    keys);
+                    keys, startTs, endTs);
         } catch (ThingsboardException te) {
             log.warn("Failed to log timeseries delete", te);
+        }
+    }
+
+    private void logTelemetryUpdated(SecurityUser user, EntityId entityId, List<TsKvEntry> telemetry, Throwable e) {
+        try {
+            logEntityAction(user, (UUIDBased & EntityId) entityId, null, null, ActionType.TIMESERIES_UPDATED, toException(e), telemetry);
+        } catch (ThingsboardException te) {
+            log.warn("Failed to log telemetry update");
         }
     }
 

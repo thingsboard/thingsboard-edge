@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -181,8 +182,8 @@ public class EntityGroupController extends BaseController {
                     entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
             if (entityGroup.getId() != null) {
-                sendNotificationMsgToEdgeService(getTenantId(), savedEntityGroup.getId(),
-                        ActionType.UPDATED);
+                sendEntityNotificationMsg(getTenantId(), savedEntityGroup.getId(),
+                        EdgeEventActionType.UPDATED);
             }
 
             return toEntityGroupInfo(savedEntityGroup);
@@ -222,7 +223,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.DELETED, null, strEntityGroupId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), entityGroupId, ActionType.DELETED);
+            sendEntityNotificationMsg(getTenantId(), entityGroupId, EdgeEventActionType.DELETED);
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.ENTITY_GROUP),
@@ -362,7 +363,7 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                sendGroupEntityNotificationMsg(getTenantId(), entityId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {
@@ -409,7 +410,8 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
+                sendGroupEntityNotificationMsg(getTenantId(), entityId,
+                        EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {
@@ -805,7 +807,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), edgeId, savedEntityGroup.getId(), ActionType.ASSIGNED_TO_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
@@ -839,7 +841,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), edgeId, savedEntityGroup.getId(), ActionType.UNASSIGNED_FROM_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenAuthenticati
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenProcessingFilter;
 import org.thingsboard.server.service.security.auth.jwt.SkipPathRequestMatcher;
 import org.thingsboard.server.service.security.auth.jwt.extractor.TokenExtractor;
+import org.thingsboard.server.service.security.auth.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationProvider;
 import org.thingsboard.server.service.security.auth.rest.RestLoginProcessingFilter;
 import org.thingsboard.server.service.security.auth.rest.RestPublicLoginProcessingFilter;
@@ -98,6 +99,9 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
     @Autowired(required = false)
     @Qualifier("oauth2AuthenticationFailureHandler")
     private AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
+
+    @Autowired(required = false)
+    private HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Autowired
     @Qualifier("defaultAuthenticationSuccessHandler")
@@ -142,7 +146,7 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
     }
 
     protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter() throws Exception {
-        List<String> pathsToSkip = new ArrayList(Arrays.asList(NON_TOKEN_BASED_AUTH_ENTRY_POINTS));
+        List<String> pathsToSkip = new ArrayList<>(Arrays.asList(NON_TOKEN_BASED_AUTH_ENTRY_POINTS));
         pathsToSkip.addAll(Arrays.asList(WS_TOKEN_BASED_AUTH_ENTRY_POINT, TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT,
                 PUBLIC_LOGIN_ENTRY_POINT, DEVICE_API_ENTRY_POINT, WEBJARS_ENTRY_POINT));
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT);
@@ -228,7 +232,9 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .addFilterAfter(rateLimitProcessingFilter, UsernamePasswordAuthenticationFilter.class);
         if (oauth2Configuration != null) {
             http.oauth2Login()
-                    .authorizationEndpoint().authorizationRequestResolver(oAuth2AuthorizationRequestResolver)
+                    .authorizationEndpoint()
+                    .authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository)
+                    .authorizationRequestResolver(oAuth2AuthorizationRequestResolver)
                     .and()
                     .loginPage("/oauth2Login")
                     .loginProcessingUrl(oauth2Configuration.getLoginProcessingUrl())

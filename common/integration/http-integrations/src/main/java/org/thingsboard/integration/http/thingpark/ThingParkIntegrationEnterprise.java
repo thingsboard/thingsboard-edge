@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -132,7 +132,7 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         if (uplinkDataList != null) {
             uplinkDataList.stream().forEach(data -> {
                 processUplinkData(context, data);
-                log.info("[{}] Processing uplink data", data);
+                log.trace("[{}] Processing uplink data", data);
             });
         }
         return fromStatus(HttpStatus.OK);
@@ -271,8 +271,8 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         getResult(url, HttpMethod.POST, body, true, downlink, msg);
     }
 
-    private ResponseEntity getResult(String url, HttpMethod method, String body, boolean token, DownlinkData downlink, TbMsg msg) {
-        ResponseEntity result = sendRestHttp(url, method, body, token, msg);
+    private ResponseEntity<String> getResult(String url, HttpMethod method, String body, boolean token, DownlinkData downlink, TbMsg msg) {
+        ResponseEntity<String> result = sendRestHttp(url, method, body, token, msg);
         if (result != null) {//            Access
             if (result.getStatusCode().is2xxSuccessful()) {
                 log.info("[{}] ResponseEntity is2xxSuccessful", result);

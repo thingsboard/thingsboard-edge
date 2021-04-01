@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
@@ -123,8 +124,8 @@ public class GroupPermissionController extends BaseController {
             logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedGroupPermission.getId(),
-                    groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendEntityNotificationMsg(getTenantId(), savedGroupPermission.getId(),
+                    groupPermission.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
             return savedGroupPermission;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.GROUP_PERMISSION), groupPermission, null,
@@ -158,7 +159,7 @@ public class GroupPermissionController extends BaseController {
 
             logEntityAction(groupPermissionId, groupPermission, null, ActionType.DELETED, null, strGroupPermissionId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), groupPermissionId, ActionType.DELETED);
+            sendEntityNotificationMsg(getTenantId(), groupPermissionId, EdgeEventActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.GROUP_PERMISSION),
                     null,

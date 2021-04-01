@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,5 +34,5 @@ package org.thingsboard.rule.engine.analytics.incoming;
  * Created by ashvayka on 25.06.18.
  */
 public enum IntervalPersistPolicy {
-    ON_EACH_CHECK, ON_EACH_CHECK_AFTER_INTERVAL_END
+    ON_EACH_CHECK, ON_EACH_CHECK_AFTER_INTERVAL_END, ON_EACH_MESSAGE
 }

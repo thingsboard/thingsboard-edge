@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.edge;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -68,7 +67,7 @@ public class BaseEdgeEventService implements EdgeEventService {
                     if (edgeEvent.getEdgeId() == null) {
                         throw new DataValidationException("Edge id should be specified!");
                     }
-                    if (StringUtils.isEmpty(edgeEvent.getAction())) {
+                    if (edgeEvent.getAction() == null) {
                         throw new DataValidationException("Edge Event action should be specified!");
                     }
                 }

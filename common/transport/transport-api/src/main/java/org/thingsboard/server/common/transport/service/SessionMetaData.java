@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,18 +41,18 @@ import java.util.concurrent.ScheduledFuture;
  * Created by ashvayka on 15.10.18.
  */
 @Data
-class SessionMetaData {
+public class SessionMetaData {
 
-    private final SessionInfoProto sessionInfo;
+    private volatile SessionInfoProto sessionInfo;
     private final SessionType sessionType;
     private final SessionMsgListener listener;
 
-    private ScheduledFuture scheduledFuture;
-
+    private volatile ScheduledFuture scheduledFuture;
     private volatile long lastActivityTime;
     private volatile long lastReportedActivityTime;
     private volatile boolean subscribedToAttributes;
     private volatile boolean subscribedToRPC;
+    private volatile boolean overwriteActivityTime;
 
     SessionMetaData(SessionInfoProto sessionInfo, SessionType sessionType, SessionMsgListener listener) {
         this.sessionInfo = sessionInfo;
@@ -66,11 +66,15 @@ class SessionMetaData {
         this.lastActivityTime = System.currentTimeMillis();
     }
 
-    void setScheduledFuture(ScheduledFuture scheduledFuture) { this.scheduledFuture = scheduledFuture; }
+    void setScheduledFuture(ScheduledFuture scheduledFuture) {
+        this.scheduledFuture = scheduledFuture;
+    }
 
     public ScheduledFuture getScheduledFuture() {
         return scheduledFuture;
     }
 
-    public boolean hasScheduledFuture() { return null != this.scheduledFuture; }
+    public boolean hasScheduledFuture() {
+        return null != this.scheduledFuture;
+    }
 }

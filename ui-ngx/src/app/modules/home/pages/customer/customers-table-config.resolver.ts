@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,9 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Customer } from '@app/shared/models/customer.model';
 import { CustomerService } from '@app/core/http/customer.service';
 import { CustomerTabsComponent } from '@home/pages/customer/customer-tabs.component';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
@@ -56,6 +59,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
+              private store: Store<AppState>,
               private utils: UtilsService) {
 
     this.config.entityType = EntityType.CUSTOMER;
@@ -63,6 +67,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     this.config.entityTabsComponent = CustomerTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.CUSTOMER);
     this.config.entityResources = entityTypeResources.get(EntityType.CUSTOMER);
+    const authState = getCurrentAuthState(this.store);
 
     this.config.entityTitle = (customer) => customer ?
       this.utils.customTranslation(customer.title, customer.title) : '';
@@ -74,7 +79,6 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
       new EntityTableColumn<Customer>('country', 'contact.country', '25%'),
       new EntityTableColumn<Customer>('city', 'contact.city', '25%')
     );
-
     this.config.cellActionDescriptors.push(
       {
         name: this.translate.instant('customer.manage-customer-users'),
@@ -114,8 +118,22 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         icon: 'dashboard',
         isEnabled: (customer) => true,
         onAction: ($event, entity) => this.manageCustomerDashboards($event, entity)
-      }
-    );
+      });
+    if (authState.edgesSupportEnabled) {
+      this.config.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('customer.manage-customer-edges'),
+          nameFunction: (customer) => {
+            return customer.additionalInfo && customer.additionalInfo.isPublic
+              ? this.translate.instant('customer.manage-public-edges')
+              : this.translate.instant('customer.manage-customer-edges');
+          },
+          icon: 'router',
+          isEnabled: (customer) => true,
+          onAction: ($event, entity) => this.manageCustomerEdges($event, entity)
+        }
+      );
+    }
 
     this.config.deleteEntityTitle = customer => this.translate.instant('customer.delete-customer-title', { customerTitle: customer.title });
     this.config.deleteEntityContent = () => this.translate.instant('customer.delete-customer-text');
@@ -166,6 +184,13 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     this.router.navigateByUrl(`customers/${customer.id.id}/dashboards`);
   }
 
+  manageCustomerEdges($event: Event, customer: Customer) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`customers/${customer.id.id}/edges`);
+  }
+
   onCustomerAction(action: EntityAction<Customer>): boolean {
     switch (action.action) {
       case 'manageUsers':
@@ -179,6 +204,9 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         return true;
       case 'manageDashboards':
         this.manageCustomerDashboards(action.event, action.entity);
+        return true;
+      case 'manageEdges':
+        this.manageCustomerEdges(action.event, action.entity);
         return true;
     }
     return false;

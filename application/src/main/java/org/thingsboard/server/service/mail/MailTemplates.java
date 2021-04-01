@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,9 @@ public class MailTemplates {
     public static final String ACTIVATION = "activation";
     public static final String ACCOUNT_ACTIVATED = "accountActivated";
     public static final String ACCOUNT_LOCKOUT = "accountLockout";
+    public static final String API_USAGE_STATE_ENABLED = "apiUsageStateEnabled";
+    public static final String API_USAGE_STATE_WARNING = "apiUsageStateWarning";
+    public static final String API_USAGE_STATE_DISABLED = "apiUsageStateDisabled";
     public static final String RESET_PASSWORD = "resetPassword"; //NOSONAR, used as constant defining key for mail template
     public static final String PASSWORD_WAS_RESET = "passwordWasReset"; //NOSONAR, used as constant defining key for mail template
     public static final String USER_ACTIVATED = "userActivated";

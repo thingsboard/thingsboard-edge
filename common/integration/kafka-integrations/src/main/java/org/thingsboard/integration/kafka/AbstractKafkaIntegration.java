@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -119,8 +120,8 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         properties.put(ConsumerConfig.CLIENT_ID_CONFIG, configuration.getClientId());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, configuration.getGroupId());
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         properties.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, configuration.getAutoCreateTopics());
         if (configuration.getOtherProperties() != null) {
             configuration.getOtherProperties().forEach(properties::put);
@@ -130,7 +131,12 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         kafkaLock.lock();
         try {
             kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
-        } finally {
+            kafkaConsumer.partitionsFor(configuration.getTopics());
+        }
+        catch(Exception e) {
+            throw new RuntimeException("Connection to node could not be established. Broker may not be available.", e);
+        }
+        finally {
             kafkaLock.unlock();
         }
 

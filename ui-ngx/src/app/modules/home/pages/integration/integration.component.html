@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -87,25 +87,27 @@
       </mat-slide-toggle>
     </fieldset>
     <div [fxShow]="entityForm.get('remote').value" class="mat-elevation-z1 remote-config-panel">
-      <div fxLayout="row">
+      <div fxLayout="row" fxLayoutAlign="start center">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>integration.integration-key</mat-label>
           <input matInput formControlName="routingKey">
         </mat-form-field>
-        <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onIntegrationInfoCopied('key')"
-          [cbContent]="entityForm?.get('routingKey').value"
-          matTooltip="{{'integration.copy-integration-key' | translate}}">
+        <button mat-button mat-icon-button ngxClipboard type="button"
+                (cbOnSuccess)="onIntegrationInfoCopied('key')"
+                [cbContent]="entityForm?.get('routingKey').value"
+                matTooltip="{{'integration.copy-integration-key' | translate}}">
           <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
         </button>
       </div>
-      <div fxLayout="row">
+      <div fxLayout="row" fxLayoutAlign="start center">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>integration.integration-secret</mat-label>
           <input matInput formControlName="secret">
         </mat-form-field>
-        <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onIntegrationInfoCopied('secret')"
-          [cbContent]="entityForm?.get('secret').value"
-          matTooltip="{{'integration.copy-integration-secret' | translate}}">
+        <button mat-button mat-icon-button ngxClipboard type="button"
+                (cbOnSuccess)="onIntegrationInfoCopied('secret')"
+                [cbContent]="entityForm?.get('secret').value"
+                matTooltip="{{'integration.copy-integration-secret' | translate}}">
           <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
         </button>
       </div>
@@ -163,6 +165,9 @@
         <tb-azure-event-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
         [downlinkConverterIdControl]="entityForm.get('downlinkConverterId')">
         </tb-azure-event-hub-integration-form>
+        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+          {{ 'integration.check-connection' | translate }}
+        </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.AZURE_IOT_HUB">
         <tb-azure-iot-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
@@ -170,11 +175,11 @@
         </tb-azure-iot-hub-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.TCP">
-        <tb-tcp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-tcp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
         </tb-tcp-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.UDP">
-        <tb-udp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-udp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
         </tb-udp-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.KAFKA">
@@ -185,9 +190,19 @@
         <tb-rabbitmq-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-rabbitmq-integration-form>
       </section>
+      <section *ngIf="integrationType === integrationTypes.CHIRPSTACK">
+        <tb-chirpstack-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
+                                        [integrationType]="integrationType"
+                                        [routingKey]="entityForm.get('routingKey').value">
+        </tb-chirpstack-integration-form>
+      </section>
       <section *ngIf="integrationType === integrationTypes.APACHE_PULSAR">
         <tb-pulsar-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-pulsar-integration-form>
+      </section>
+      <section *ngIf="integrationType === integrationTypes.PUB_SUB">
+        <tb-pubsub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        </tb-pubsub-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.CUSTOM">
         <tb-custom-integration-form #integrationFormComponent [form]="integrationForm">

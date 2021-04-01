@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,7 +102,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
     }
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
@@ -133,6 +133,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         );
     }
 
+    @SuppressWarnings("unchecked")
     private <T> DeferredResult<ResponseEntity> processRequest(String routingKey,
                                                               Optional<String> suffix,
                                                               Map<String, String> requestHeaders,
@@ -177,7 +178,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return fileArrayNode;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey,

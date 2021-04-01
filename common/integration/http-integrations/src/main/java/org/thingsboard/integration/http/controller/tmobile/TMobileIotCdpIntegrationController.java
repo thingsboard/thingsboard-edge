@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,6 @@ import java.util.Map;
 @Slf4j
 public class TMobileIotCdpIntegrationController extends BaseIntegrationController {
 
-    @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", consumes = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public void processCheck(
@@ -66,7 +65,7 @@ public class TMobileIotCdpIntegrationController extends BaseIntegrationControlle
         log.debug("[{}] Received validation request: {}", routingKey, requestHeaders);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(

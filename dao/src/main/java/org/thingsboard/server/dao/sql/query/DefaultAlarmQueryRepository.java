@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -88,8 +88,8 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
         alarmFieldColumnMap.put("status", ModelConstants.ALARM_STATUS_PROPERTY);
         alarmFieldColumnMap.put("type", ModelConstants.ALARM_TYPE_PROPERTY);
         alarmFieldColumnMap.put("severity", ModelConstants.ALARM_SEVERITY_PROPERTY);
-        alarmFieldColumnMap.put("originator_id", ModelConstants.ALARM_ORIGINATOR_ID_PROPERTY);
-        alarmFieldColumnMap.put("originator_type", ModelConstants.ALARM_ORIGINATOR_TYPE_PROPERTY);
+        alarmFieldColumnMap.put("originatorId", ModelConstants.ALARM_ORIGINATOR_ID_PROPERTY);
+        alarmFieldColumnMap.put("originatorType", ModelConstants.ALARM_ORIGINATOR_TYPE_PROPERTY);
         alarmFieldColumnMap.put("originator", "originator_name");
     }
 
@@ -146,7 +146,6 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
             AlarmDataPageLink pageLink = query.getPageLink();
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
             ctx.addUuidListParameter("entity_ids", orderedEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()));
-
             StringBuilder selectPart = new StringBuilder(FIELDS_SELECTION);
             StringBuilder fromPart = new StringBuilder(" from alarm a ");
             StringBuilder wherePart = new StringBuilder(" where ");
@@ -173,7 +172,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
                     wherePart.append(" a.originator_id in (:entity_ids)");
                 }
             } else {
-                fromPart.append(" left join (select * from (VALUES");
+                fromPart.append(" inner join (select * from (VALUES");
                 int entityIdIdx = 0;
                 int lastEntityIdIdx = orderedEntityIds.size() - 1;
                 for (EntityId entityId : orderedEntityIds) {
@@ -295,64 +294,64 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
 
     private String buildPermissionsQuery(TenantId tenantId, CustomerId customerId, QueryContext ctx, MergedUserPermissions mergedUserPermissions) {
         StringBuilder permissionsQuery = new StringBuilder();
-            ctx.addUuidParameter("permissions_tenant_id", tenantId.getId());
+        ctx.addUuidParameter("permissions_tenant_id", tenantId.getId());
         permissionsQuery.append(" a.tenant_id = :permissions_tenant_id ");
-        if (customerId != null && !customerId.isNullUid()) {
-            ctx.addUuidParameter("permissions_customer_id", customerId.getId());
-            permissionsQuery.append(" and (");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.DEVICE.ordinal())
-                    .append("' and exists (select 1 from device cd where cd.id = a.originator_id and ")
-                    .append("(cd.customer_id in ").append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.DEVICE, "cd", ctx, mergedUserPermissions, permissionsQuery);
-            permissionsQuery.append(")))");
-            permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.ASSET.ordinal())
-                    .append("' and exists (select 1 from asset ca where ca.id = a.originator_id and (ca.customer_id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.ASSET, "ca", ctx, mergedUserPermissions, permissionsQuery);
-            permissionsQuery.append(")))");
-            permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.CUSTOMER.ordinal())
-                    .append("' and exists (select 1 from customer cc where cc.id = a.originator_id and (cc.id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.CUSTOMER, "cc", ctx, mergedUserPermissions, permissionsQuery);
-            permissionsQuery.append(")))");
-            permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.USER.ordinal())
-                    .append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and (cu.customer_id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.USER, "cu", ctx, mergedUserPermissions, permissionsQuery);
-            permissionsQuery.append(")))");
-            permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.ENTITY_VIEW.ordinal())
-                    .append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and (cv.customer_id in")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.ENTITY_VIEW, "cv", ctx, mergedUserPermissions, permissionsQuery);
-            permissionsQuery.append(")))");
-            permissionsQuery.append(")");
-        } else if (!mergedUserPermissions.hasGenericPermission(Resource.ALL, Operation.READ)) {
-            permissionsQuery.append(" and (");
-            boolean atLeastOne = false;
-            if (addTenantPermissionsCheck(EntityType.DEVICE, ModelConstants.DEVICE_FAMILY_NAME, "td", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
-                atLeastOne = true;
-            }
-            if (addTenantPermissionsCheck(EntityType.ASSET, ModelConstants.ASSET_COLUMN_FAMILY_NAME, "ta", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
-                atLeastOne = true;
-            }
-            if (addTenantPermissionsCheck(EntityType.CUSTOMER, ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME, "tc", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
-                atLeastOne = true;
-            }
-            if (addTenantPermissionsCheck(EntityType.USER, ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME, "tu", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
-                atLeastOne = true;
-            }
-            if (addTenantPermissionsCheck(EntityType.ENTITY_VIEW, ModelConstants.ENTITY_VIEW_TABLE_FAMILY_NAME, "tev", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
-                atLeastOne = true;
-            }
-            if (!atLeastOne) {
-                permissionsQuery.append(" false");
-            }
-            permissionsQuery.append(")");
-        }
+//        if (customerId != null && !customerId.isNullUid()) {
+//            ctx.addUuidParameter("permissions_customer_id", customerId.getId());
+//            permissionsQuery.append(" and (");
+//            permissionsQuery.append("(a.originator_type = '").append(EntityType.DEVICE.ordinal())
+//                    .append("' and exists (select 1 from device cd where cd.id = a.originator_id and ")
+//                    .append("(cd.customer_id in ").append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+//            addGroupPermissionsIfAny(EntityType.DEVICE, "cd", ctx, mergedUserPermissions, permissionsQuery);
+//            permissionsQuery.append(")))");
+//            permissionsQuery.append(" or ");
+//            permissionsQuery.append("(a.originator_type = '").append(EntityType.ASSET.ordinal())
+//                    .append("' and exists (select 1 from asset ca where ca.id = a.originator_id and (ca.customer_id in ")
+//                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+//            addGroupPermissionsIfAny(EntityType.ASSET, "ca", ctx, mergedUserPermissions, permissionsQuery);
+//            permissionsQuery.append(")))");
+//            permissionsQuery.append(" or ");
+//            permissionsQuery.append("(a.originator_type = '").append(EntityType.CUSTOMER.ordinal())
+//                    .append("' and exists (select 1 from customer cc where cc.id = a.originator_id and (cc.id in ")
+//                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+//            addGroupPermissionsIfAny(EntityType.CUSTOMER, "cc", ctx, mergedUserPermissions, permissionsQuery);
+//            permissionsQuery.append(")))");
+//            permissionsQuery.append(" or ");
+//            permissionsQuery.append("(a.originator_type = '").append(EntityType.USER.ordinal())
+//                    .append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and (cu.customer_id in ")
+//                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+//            addGroupPermissionsIfAny(EntityType.USER, "cu", ctx, mergedUserPermissions, permissionsQuery);
+//            permissionsQuery.append(")))");
+//            permissionsQuery.append(" or ");
+//            permissionsQuery.append("(a.originator_type = '").append(EntityType.ENTITY_VIEW.ordinal())
+//                    .append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and (cv.customer_id in")
+//                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+//            addGroupPermissionsIfAny(EntityType.ENTITY_VIEW, "cv", ctx, mergedUserPermissions, permissionsQuery);
+//            permissionsQuery.append(")))");
+//            permissionsQuery.append(")");
+//        } else if (!mergedUserPermissions.hasGenericPermission(Resource.ALL, Operation.READ)) {
+//            permissionsQuery.append(" and (");
+//            boolean atLeastOne = false;
+//            if (addTenantPermissionsCheck(EntityType.DEVICE, ModelConstants.DEVICE_FAMILY_NAME, "td", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+//                atLeastOne = true;
+//            }
+//            if (addTenantPermissionsCheck(EntityType.ASSET, ModelConstants.ASSET_COLUMN_FAMILY_NAME, "ta", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+//                atLeastOne = true;
+//            }
+//            if (addTenantPermissionsCheck(EntityType.CUSTOMER, ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME, "tc", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+//                atLeastOne = true;
+//            }
+//            if (addTenantPermissionsCheck(EntityType.USER, ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME, "tu", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+//                atLeastOne = true;
+//            }
+//            if (addTenantPermissionsCheck(EntityType.ENTITY_VIEW, ModelConstants.ENTITY_VIEW_TABLE_FAMILY_NAME, "tev", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+//                atLeastOne = true;
+//            }
+//            if (!atLeastOne) {
+//                permissionsQuery.append(" false");
+//            }
+//            permissionsQuery.append(")");
+//        }
         return permissionsQuery.toString();
     }
 

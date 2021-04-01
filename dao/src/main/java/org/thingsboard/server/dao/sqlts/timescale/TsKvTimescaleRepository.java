@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ public interface TsKvTimescaleRepository extends CrudRepository<TimescaleTsKvEnt
 
     @Query("SELECT tskv FROM TimescaleTsKvEntity tskv WHERE tskv.entityId = :entityId " +
             "AND tskv.key = :entityKey " +
-            "AND tskv.ts > :startTs AND tskv.ts <= :endTs")
+            "AND tskv.ts >= :startTs AND tskv.ts < :endTs")
     List<TimescaleTsKvEntity> findAllWithLimit(
             @Param("entityId") UUID entityId,
             @Param("entityKey") int key,
@@ -59,7 +59,7 @@ public interface TsKvTimescaleRepository extends CrudRepository<TimescaleTsKvEnt
     @Modifying
     @Query("DELETE FROM TimescaleTsKvEntity tskv WHERE tskv.entityId = :entityId " +
             "AND tskv.key = :entityKey " +
-            "AND tskv.ts > :startTs AND tskv.ts <= :endTs")
+            "AND tskv.ts >= :startTs AND tskv.ts < :endTs")
     void delete(@Param("entityId") UUID entityId,
                 @Param("entityKey") int key,
                 @Param("startTs") long startTs,

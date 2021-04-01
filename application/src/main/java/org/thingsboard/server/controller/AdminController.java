@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.SmsService;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.UpdateMessage;
@@ -60,6 +62,7 @@ import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.mail.MailTemplates;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.update.UpdateService;
 
@@ -76,6 +79,9 @@ public class AdminController extends BaseController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private SmsService smsService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -103,6 +109,11 @@ public class AdminController extends BaseController {
                 adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
                 adminSettings = getTenantAdminSettings(key, systemByDefault);
+                if (adminSettings.getKey().equals("mailTemplates")) {
+                    ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_ENABLED);
+                    ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_WARNING);
+                    ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_DISABLED);
+                }
             }
             if (adminSettings.getKey().equals("mail")) {
                 ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
@@ -174,6 +185,22 @@ public class AdminController extends BaseController {
                 String email = getCurrentUser().getEmail();
                 mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @RequestMapping(value = "/settings/testSms", method = RequestMethod.POST)
+    public void sendTestSms(@RequestBody TestSmsRequest testSmsRequest) throws ThingsboardException {
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            } else {
+                accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
+            }
+            smsService.sendTestSms(testSmsRequest);
         } catch (Exception e) {
             throw handleException(e);
         }

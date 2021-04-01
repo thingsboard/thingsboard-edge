@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
@@ -52,8 +52,10 @@ public class EntityGroupMsgConstructor {
                 .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
                 .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
                 .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
-                .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
                 .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
+        if (entityGroup.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()));
+        }
         return builder.build();
     }
 

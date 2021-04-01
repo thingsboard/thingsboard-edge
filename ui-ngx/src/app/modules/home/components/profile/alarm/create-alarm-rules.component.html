@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -50,7 +50,7 @@
         </mat-error>
       </mat-form-field>
       <mat-divider vertical></mat-divider>
-      <tb-alarm-rule formControlName="alarmRule" required fxFlex>
+      <tb-alarm-rule formControlName="alarmRule" [deviceProfileId]="deviceProfileId" required fxFlex>
       </tb-alarm-rule>
     </div>
     <button *ngIf="!disabled"
@@ -66,7 +66,7 @@
       <span translate fxLayoutAlign="center center" style="margin: 16px 0"
             class="tb-prompt required">device-profile.add-create-alarm-rule-prompt</span>
   </div>
-  <div fxLayout="row" *ngIf="!disabled">
+  <div *ngIf="!disabled">
     <button mat-stroked-button color="primary"
             type="button"
             (click)="addCreateAlarmRule()"

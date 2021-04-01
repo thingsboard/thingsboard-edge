@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ export enum IntegrationType {
   AWS_SQS = 'AWS_SQS',
   AWS_KINESIS = 'AWS_KINESIS',
   IBM_WATSON_IOT = 'IBM_WATSON_IOT',
+  CHIRPSTACK = 'CHIRPSTACK',
   TTN = 'TTN',
   TTI = 'TTI',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
@@ -57,6 +58,7 @@ export enum IntegrationType {
   KAFKA = 'KAFKA',
   RABBITMQ = 'RABBITMQ',
   APACHE_PULSAR = 'APACHE_PULSAR',
+  PUB_SUB = 'PUB_SUB',
   CUSTOM = 'CUSTOM'
 }
 
@@ -126,6 +128,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       { name: 'integration.type-tti', mqtt: true }
     ],
     [
+      IntegrationType.CHIRPSTACK,
+      { name: 'integration.type-chirpstack' }
+    ],
+    [
       IntegrationType.AZURE_EVENT_HUB,
       { name: 'integration.type-azure-event-hub' }
     ],
@@ -158,6 +164,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       { name: 'integration.type-apache-pulsar' }
     ],
     [
+      IntegrationType.PUB_SUB,
+      { name: 'integration.type-pubsub' }
+    ],
+    [
       IntegrationType.CUSTOM,
       { name: 'integration.type-custom', remote: true }
     ]
@@ -171,14 +181,26 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.SIGFOX, 'integrationSigFox'],
     [IntegrationType.THINGPARK, 'integrationThingPark'],
     [IntegrationType.TPE, 'integrationThingParkEnterprise'],
+    [IntegrationType.TMOBILE_IOT_CDP, 'integrationTMobileIotCdp'],
+    [IntegrationType.LORIOT, 'integrationLoriot'],
     [IntegrationType.MQTT, 'integrationMqtt'],
     [IntegrationType.AWS_IOT, 'integrationAwsIoT'],
+    [IntegrationType.AWS_SQS, 'integrationAwsSQS'],
     [IntegrationType.AWS_KINESIS, 'integrationAwsKinesis'],
     [IntegrationType.IBM_WATSON_IOT, 'integrationIbmWatsonIoT'],
     [IntegrationType.TTN, 'integrationTheThingsNetwork'],
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
+    [IntegrationType.CHIRPSTACK, 'integrationChirpStack'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
-    [IntegrationType.OPC_UA, 'integrationOpcUa']
+    [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
+    [IntegrationType.OPC_UA, 'integrationOpcUa'],
+    [IntegrationType.UDP, 'integrationUdp'],
+    [IntegrationType.TCP, 'integrationTcp'],
+    [IntegrationType.KAFKA, 'integrationKafka'],
+    [IntegrationType.RABBITMQ, 'integrationRabbitmq'],
+    [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
+    [IntegrationType.PUB_SUB, 'integrationPubsub'],
+    [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );
 

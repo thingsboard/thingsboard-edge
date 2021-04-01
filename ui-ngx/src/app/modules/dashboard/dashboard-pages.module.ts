@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,6 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { HomeDialogsModule } from '@app/modules/home/dialogs/home-dialogs.module';
-import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 import { DashboardPagesRoutingModule } from './dashboard-pages.routing.module';
 
 @NgModule({
@@ -43,7 +42,6 @@ import { DashboardPagesRoutingModule } from './dashboard-pages.routing.module';
     SharedModule,
     HomeComponentsModule,
     HomeDialogsModule,
-    DashboardModule,
     DashboardPagesRoutingModule
   ]
 })

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,11 @@ public enum MsgType {
     COMPONENT_LIFE_CYCLE_MSG,
 
     /**
+     * Special message to indicate rule node update request
+     */
+    RULE_NODE_UPDATED_MSG,
+
+    /**
      * Misc messages consumed from the Queue and forwarded to Rule Engine Actor.
      *
      * See {@link QueueToRuleEngineMsg}
@@ -82,11 +87,6 @@ public enum MsgType {
     REMOTE_TO_RULE_CHAIN_TELL_NEXT_MSG,
 
     /**
-     * Message that is sent by RuleActor implementation to RuleActor itself to log the error.
-     */
-    RULE_TO_SELF_ERROR_MSG,
-
-    /**
      * Message that is sent by RuleActor implementation to RuleActor itself to process the message.
      */
     RULE_TO_SELF_MSG,
@@ -97,7 +97,11 @@ public enum MsgType {
 
     DEVICE_NAME_OR_TYPE_UPDATE_TO_DEVICE_ACTOR_MSG,
 
+    DEVICE_EDGE_UPDATE_TO_DEVICE_ACTOR_MSG,
+
     DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG,
+
+    DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG,
 
     SERVER_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG,
 
@@ -116,6 +120,11 @@ public enum MsgType {
     /**
      * Message that is sent by TransportRuleEngineService to Device Actor. Represents messages from the device itself.
      */
-    TRANSPORT_TO_DEVICE_ACTOR_MSG;
+    TRANSPORT_TO_DEVICE_ACTOR_MSG,
+
+    /**
+     * Message that is sent on Edge Event to Edge Session
+     */
+    EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG;
 
 }

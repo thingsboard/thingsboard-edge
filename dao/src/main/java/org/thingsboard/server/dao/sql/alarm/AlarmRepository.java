@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -90,6 +90,20 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                                      @Param("alarmStatuses") Set<AlarmStatus> alarmStatuses,
                                      @Param("searchText") String searchText,
                                      Pageable pageable);
+
+    @Query(value = "SELECT a.severity FROM AlarmEntity a " +
+            "LEFT JOIN RelationEntity re ON a.id = re.toId " +
+            "AND re.relationTypeGroup = 'ALARM' " +
+            "AND re.toType = 'ALARM' " +
+            "AND re.fromId = :affectedEntityId " +
+            "AND re.fromType = :affectedEntityType " +
+            "WHERE a.tenantId = :tenantId " +
+            "AND (a.originatorId = :affectedEntityId or re.fromId IS NOT NULL) " +
+            "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses))")
+    Set<AlarmSeverity> findAlarmSeverities(@Param("tenantId") UUID tenantId,
+                                           @Param("affectedEntityId") UUID affectedEntityId,
+                                           @Param("affectedEntityType") String affectedEntityType,
+                                           @Param("alarmStatuses") Set<AlarmStatus> alarmStatuses);
 
     @Query("SELECT COUNT(a) FROM AlarmEntity a " +
             "LEFT JOIN RelationEntity re ON a.id = re.toId " +

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,10 @@ import java.util.Arrays;
 
 @RunWith(ClasspathSuite.class)
 @ClassnameFilters({
-        "org.thingsboard.server.dao.service.sql.*SqlTest"
+        "org.thingsboard.server.dao.service.sql.*SqlTest",
+        "org.thingsboard.server.dao.service.attributes.sql.*SqlTest",
+        "org.thingsboard.server.dao.service.event.sql.*SqlTest",
+        "org.thingsboard.server.dao.service.timeseries.sql.*SqlTest"
 })
 public class SqlDaoServiceTestSuite {
 

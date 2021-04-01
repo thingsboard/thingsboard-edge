@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,8 +42,8 @@ public class EntityDataQuery extends AbstractDataQuery<EntityDataPageLink> {
     public EntityDataQuery() {
     }
 
-    public EntityDataQuery(EntityFilter entityFilter) {
-        super(entityFilter);
+    public EntityDataQuery(EntityFilter entityFilter, List<KeyFilter> keyFilters) {
+        super(entityFilter, keyFilters);
     }
 
     public EntityDataQuery(EntityFilter entityFilter, EntityDataPageLink pageLink, List<EntityKey> entityFields, List<EntityKey> latestValues, List<KeyFilter> keyFilters) {

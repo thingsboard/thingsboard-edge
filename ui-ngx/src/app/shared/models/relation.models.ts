@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,7 +69,7 @@ export const directionTypeTranslations = new Map<EntitySearchDirection, string>(
   ]
 );
 
-export interface EntityTypeFilter {
+export interface RelationEntityTypeFilter {
   relationType: string;
   entityTypes: Array<EntityType>;
 }
@@ -85,7 +85,7 @@ export interface RelationsSearchParameters {
 
 export interface EntityRelationsQuery {
   parameters: RelationsSearchParameters;
-  filters: Array<EntityTypeFilter>;
+  filters: Array<RelationEntityTypeFilter>;
 }
 
 export interface EntitySearchQuery {

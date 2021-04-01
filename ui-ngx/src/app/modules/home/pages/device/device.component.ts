@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Device } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
-  createDeviceTransportConfiguration,
+  createDeviceTransportConfiguration, DeviceCredentials,
   DeviceData,
   DeviceProfileInfo,
   DeviceProfileType,
@@ -49,6 +49,7 @@ import { DeviceService } from '@core/http/device.service';
 import { ClipboardService } from 'ngx-clipboard';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'tb-device',
@@ -59,7 +60,9 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
 
-//  deviceScope: 'tenant' | 'customer' | 'customer_user';
+  deviceCredentials$: Subject<DeviceCredentials>;
+
+//  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -73,6 +76,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   ngOnInit() {
     // this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
+    this.deviceCredentials$ = this.entitiesTableConfigValue.componentsData.deviceCredentials$;
     super.ngOnInit();
   }
 
@@ -114,6 +118,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
         additionalInfo: this.fb.group(
           {
             gateway: [entity && entity.additionalInfo ? entity.additionalInfo.gateway : false],
+            overwriteActivityTime: [entity && entity.additionalInfo ? entity.additionalInfo.overwriteActivityTime : false],
             description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
           }
         )
@@ -126,8 +131,13 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
     this.entityForm.patchValue({deviceProfileId: entity.deviceProfileId});
     this.entityForm.patchValue({label: entity.label});
     this.entityForm.patchValue({deviceData: entity.deviceData});
-    this.entityForm.patchValue({additionalInfo:
-        {gateway: entity.additionalInfo ? entity.additionalInfo.gateway : false}});
+    this.entityForm.patchValue({
+      additionalInfo:
+        {
+          gateway: entity.additionalInfo ? entity.additionalInfo.gateway : false,
+          overwriteActivityTime: entity.additionalInfo ? entity.additionalInfo.overwriteActivityTime : false
+        }
+    });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
   }
 
@@ -141,26 +151,6 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  copyAccessToken($event) {
-    if (this.entity.id) {
-      this.deviceService.getDeviceCredentials(this.entity.id.id, true).subscribe(
-        (deviceCredentials) => {
-          const credentialsId = deviceCredentials.credentialsId;
-          if (this.clipboardService.copyFromContent(credentialsId)) {
-            this.store.dispatch(new ActionNotificationShow(
-              {
-                message: this.translate.instant('device.accessTokenCopiedMessage'),
-                type: 'success',
-                duration: 750,
-                verticalPosition: 'bottom',
-                horizontalPosition: 'right'
-              }));
-          }
-        }
-      );
-    }
   }
 
   onDeviceProfileUpdated() {

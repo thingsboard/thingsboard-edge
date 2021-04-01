@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,18 +45,21 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = EntityGroupFilter.class, name = "entityGroup"),
         @JsonSubTypes.Type(value = EntityListFilter.class, name = "entityList"),
         @JsonSubTypes.Type(value = EntityNameFilter.class, name = "entityName"),
+        @JsonSubTypes.Type(value = EntityTypeFilter.class, name = "entityType"),
         @JsonSubTypes.Type(value = EntityGroupListFilter.class, name = "entityGroupList"),
         @JsonSubTypes.Type(value = EntityGroupNameFilter.class, name = "entityGroupName"),
         @JsonSubTypes.Type(value = EntitiesByGroupNameFilter.class, name = "entitiesByGroupName"),
         @JsonSubTypes.Type(value = StateEntityOwnerFilter.class, name = "stateEntityOwner"),
         @JsonSubTypes.Type(value = AssetTypeFilter.class, name = "assetType"),
         @JsonSubTypes.Type(value = DeviceTypeFilter.class, name = "deviceType"),
+        @JsonSubTypes.Type(value = EdgeTypeFilter.class, name = "edgeType"),
         @JsonSubTypes.Type(value = EntityViewTypeFilter.class, name = "entityViewType"),
         @JsonSubTypes.Type(value = ApiUsageStateFilter.class, name = "apiUsageState"),
         @JsonSubTypes.Type(value = RelationsQueryFilter.class, name = "relationsQuery"),
         @JsonSubTypes.Type(value = AssetSearchQueryFilter.class, name = "assetSearchQuery"),
         @JsonSubTypes.Type(value = DeviceSearchQueryFilter.class, name = "deviceSearchQuery"),
-        @JsonSubTypes.Type(value = EntityViewSearchQueryFilter.class, name = "entityViewSearchQuery")})
+        @JsonSubTypes.Type(value = EntityViewSearchQueryFilter.class, name = "entityViewSearchQuery"),
+        @JsonSubTypes.Type(value = EdgeSearchQueryFilter.class, name = "edgeSearchQuery")})
 public interface EntityFilter {
 
     @JsonIgnore

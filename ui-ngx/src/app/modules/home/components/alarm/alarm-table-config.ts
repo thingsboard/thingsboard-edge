@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,6 +60,7 @@ import {
 } from '@home/components/alarm/alarm-details-dialog.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { DAY, historyInterval } from '@shared/models/time/time.models';
 
 export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink> {
 
@@ -78,6 +79,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     this.loadDataOnInit = false;
     this.tableTitle = '';
     this.useTimePageLink = true;
+    this.defaultTimewindowInterval = historyInterval(DAY * 30);
     this.detailsPanelEnabled = false;
     this.selectionEnabled = false;
     this.searchEnabled = true;

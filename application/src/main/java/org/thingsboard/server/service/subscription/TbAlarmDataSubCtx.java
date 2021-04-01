@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -149,8 +149,8 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
     }
 
     @Override
-    public void createSubscriptions(List<EntityKey> keys, boolean resultToLatestValues) {
-        super.createSubscriptions(keys, resultToLatestValues);
+    public void createLatestValuesSubscriptions(List<EntityKey> keys) {
+        super.createLatestValuesSubscriptions(keys);
         createAlarmSubscriptions();
     }
 
@@ -299,7 +299,7 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
                 newSubsList.forEach(
                         entity -> {
                             log.trace("[{}][{}] Found new subscription for entity: {}", sessionRef.getSessionId(), cmdId, entity.getEntityId());
-                            subsToAdd.addAll(addSubscriptions(entity, keysByType, true));
+                            subsToAdd.addAll(addSubscriptions(entity, keysByType, true, 0, 0));
                         }
                 );
             }

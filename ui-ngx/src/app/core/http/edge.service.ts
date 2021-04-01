@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,10 +35,9 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { EntitySubtype, EntityType } from '@app/shared/models/entity-type.models';
-import { Edge, EdgeSearchQuery } from "@shared/models/edge.models";
-import { Event } from "@shared/models/event.models";
-import { EdgeId } from "@shared/models/id/edge-id";
+import { EntitySubtype } from '@app/shared/models/entity-type.models';
+import { Edge, EdgeEvent, EdgeSearchQuery } from '@shared/models/edge.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 @Injectable({
   providedIn: 'root'
@@ -92,13 +91,7 @@ export class EdgeService {
   }
 
   public makeEdgePublic(edgeId: string, config?: RequestConfig): Observable<Edge> {
-    return this.http.post<Edge>(`/api/customer/public/edge/${edgeId}`,
-      defaultHttpOptionsFromConfig(config));
-  }
-
-  public setRootRuleChain(edgeId: string, ruleChainId: string,
-                          config?: RequestConfig): Observable<Edge> {
-    return this.http.post<Edge>(`/api/edge/${edgeId}/${ruleChainId}/root`,
+    return this.http.post<Edge>(`/api/customer/public/edge/${edgeId}`, null,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -123,9 +116,21 @@ export class EdgeService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getEdgeEvents(edgeId: EdgeId, pageLink: TimePageLink,
-                       config?: RequestConfig): Observable<PageData<Event>> {
-    return this.http.get<PageData<Event>>(`/api/edge/${edgeId.id}/events` + `${pageLink.toQuery()}`,
+  public getEdgeEvents(entityId: EntityId, pageLink: TimePageLink,
+                       config?: RequestConfig): Observable<PageData<EdgeEvent>> {
+    return this.http.get<PageData<EdgeEvent>>(`/api/edge/${entityId.id}/events` + `${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public syncEdge(edgeId: string, config?: RequestConfig) {
+    return this.http.post(`/api/edge/sync/${edgeId}`, edgeId, defaultHttpOptionsFromConfig(config));
+  }
+
+  public findMissingToRelatedRuleChains(edgeId: string, config?: RequestConfig): Observable<string> {
+    return this.http.get<string>(`/api/edge/missingToRelatedRuleChains/${edgeId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public findByName(edgeName: string, config?: RequestConfig): Observable<Edge> {
+    return this.http.get<Edge>(`/api/tenant/edges?edgeName=${edgeName}`, defaultHttpOptionsFromConfig(config));
   }
 }

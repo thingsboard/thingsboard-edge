@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -85,6 +85,7 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
         return getResult (allRequestParams, IntegrationType.TPE, request, requestHeaders, routingKey, msg);
     }
 
+    @SuppressWarnings("unchecked")
     private DeferredResult<ResponseEntity> getResult(Map<String, String> allRequestParams, IntegrationType typeIntegration,
                                                      HttpServletRequest request, Map<String, String>  requestHeaders, String routingKey, JsonNode msg) {
         final ObjectMapper mapper = new ObjectMapper();

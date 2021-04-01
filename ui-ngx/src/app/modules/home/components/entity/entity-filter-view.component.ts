@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -99,6 +99,10 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           prefix = this.filter.entityNameFilter;
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).nameStartsWith,
             {prefix});
+          break;
+        case AliasFilterType.entityType:
+          entityType = this.filter.entityType;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).typePlural);
           break;
         case AliasFilterType.entityGroupList:
           entityType = this.filter.groupType;
@@ -261,6 +265,16 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
             const deviceTypesText = deviceTypesQuoted.join(', ');
             translationValues.deviceTypes = deviceTypesText;
             this.filterDisplayValue = this.translate.instant('alias.filter-type-device-search-query-description',
+              translationValues
+            );
+          } else if (this.filter.type === AliasFilterType.edgeSearchQuery) {
+            const edgeTypesQuoted = [];
+            this.filter.edgeTypes.forEach((filterEdgeType) => {
+              edgeTypesQuoted.push(`'${filterEdgeType}'`);
+            });
+            const edgeTypesText = edgeTypesQuoted.join(', ');
+            translationValues.edgeTypes = edgeTypesText;
+            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-search-query-description',
               translationValues
             );
           } else if (this.filter.type === AliasFilterType.entityViewSearchQuery) {

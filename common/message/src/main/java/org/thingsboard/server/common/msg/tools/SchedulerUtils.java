@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,22 +32,19 @@ package org.thingsboard.server.common.msg.tools;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.TemporalUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoField.DAY_OF_MONTH;
 import static java.time.temporal.ChronoUnit.MONTHS;
 
 public class SchedulerUtils {
 
-    private final static ZoneId UTC = ZoneId.of("UTC");
     private static final ConcurrentMap<String, ZoneId> tzMap = new ConcurrentHashMap<>();
 
     public static ZoneId getZoneId(String tz) {
@@ -59,7 +56,7 @@ public class SchedulerUtils {
     }
 
     public static long getStartOfCurrentHour(ZoneId zoneId) {
-        return LocalDateTime.now(ZoneOffset.UTC).atZone(zoneId).truncatedTo(ChronoUnit.HOURS).toInstant().toEpochMilli();
+        return LocalDateTime.now(UTC).atZone(zoneId).truncatedTo(ChronoUnit.HOURS).toInstant().toEpochMilli();
     }
 
     public static long getStartOfCurrentMonth() {
@@ -67,7 +64,7 @@ public class SchedulerUtils {
     }
 
     public static long getStartOfCurrentMonth(ZoneId zoneId) {
-        return LocalDate.now().withDayOfMonth(1).atStartOfDay(zoneId).toInstant().toEpochMilli();
+        return LocalDate.now(UTC).withDayOfMonth(1).atStartOfDay(zoneId).toInstant().toEpochMilli();
     }
 
     public static long getStartOfNextMonth() {
@@ -75,7 +72,7 @@ public class SchedulerUtils {
     }
 
     public static long getStartOfNextMonth(ZoneId zoneId) {
-        return LocalDate.now().with(TemporalAdjusters.firstDayOfNextMonth()).atStartOfDay(zoneId).toInstant().toEpochMilli();
+        return LocalDate.now(UTC).with(TemporalAdjusters.firstDayOfNextMonth()).atStartOfDay(zoneId).toInstant().toEpochMilli();
     }
 
     public static long getStartOfNextNextMonth() {
@@ -83,7 +80,7 @@ public class SchedulerUtils {
     }
 
     public static long getStartOfNextNextMonth(ZoneId zoneId) {
-        return LocalDate.now().with(firstDayOfNextNextMonth()).atStartOfDay(zoneId).toInstant().toEpochMilli();
+        return LocalDate.now(UTC).with(firstDayOfNextNextMonth()).atStartOfDay(zoneId).toInstant().toEpochMilli();
     }
 
     public static TemporalAdjuster firstDayOfNextNextMonth() {

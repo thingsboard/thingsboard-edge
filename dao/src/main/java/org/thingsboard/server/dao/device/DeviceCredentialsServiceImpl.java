@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,6 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Device;
@@ -49,7 +48,7 @@ import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 
 import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CREDENTIALS_CACHE;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -102,6 +101,9 @@ public class DeviceCredentialsServiceImpl extends AbstractEntityService implemen
             case MQTT_BASIC:
                 formatSimpleMqttCredentials(deviceCredentials);
                 break;
+            case LWM2M_CREDENTIALS:
+                formatSimpleLwm2mCredentials(deviceCredentials);
+                break;
         }
         log.trace("Executing updateDeviceCredentials [{}]", deviceCredentials);
         credentialsValidator.validate(deviceCredentials, id -> tenantId);
@@ -144,11 +146,16 @@ public class DeviceCredentialsServiceImpl extends AbstractEntityService implemen
         deviceCredentials.setCredentialsValue(JacksonUtil.toString(mqttCredentials));
     }
 
+
     private void formatCertData(DeviceCredentials deviceCredentials) {
         String cert = EncryptionUtil.trimNewLines(deviceCredentials.getCredentialsValue());
         String sha3Hash = EncryptionUtil.getSha3Hash(cert);
         deviceCredentials.setCredentialsId(sha3Hash);
         deviceCredentials.setCredentialsValue(cert);
+    }
+
+    private void formatSimpleLwm2mCredentials(DeviceCredentials deviceCredentials) {
+
     }
 
     @Override

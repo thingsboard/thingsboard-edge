@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -108,7 +108,7 @@ export class ItemBufferService {
       if (widget.config.datasources) {
         for (let i = 0; i < widget.config.datasources.length; i++) {
           const datasource = widget.config.datasources[i];
-          if (datasource.type === DatasourceType.entity && datasource.entityAliasId) {
+          if ((datasource.type === DatasourceType.entity || datasource.type === DatasourceType.entityCount) && datasource.entityAliasId) {
             entityAlias = dashboard.configuration.entityAliases[datasource.entityAliasId];
             if (entityAlias) {
               aliasesInfo.datasourceAliases[i] = this.prepareAliasInfo(entityAlias);
@@ -134,7 +134,7 @@ export class ItemBufferService {
       if (widget.config.datasources) {
         for (let i = 0; i < widget.config.datasources.length; i++) {
           const datasource = widget.config.datasources[i];
-          if (datasource.type === DatasourceType.entity && datasource.filterId) {
+          if ((datasource.type === DatasourceType.entity || datasource.type === DatasourceType.entityCount) && datasource.filterId) {
             filter = dashboard.configuration.filters[datasource.filterId];
             if (filter) {
               filtersInfo.datasourceFilters[i] = this.prepareFilterInfo(filter);
@@ -307,6 +307,7 @@ export class ItemBufferService {
         y: origNode.y,
         name: origNode.name,
         componentClazz: origNode.component.clazz,
+        ruleChainType: origNode.ruleChainType
       };
       if (origNode.targetRuleChainId) {
         node.targetRuleChainId = origNode.targetRuleChainId;
@@ -345,7 +346,7 @@ export class ItemBufferService {
       const deltaX = x - ruleNodes.originX;
       const deltaY = y - ruleNodes.originY;
       for (const node of ruleNodes.nodes) {
-        const component = this.ruleChainService.getRuleNodeComponentByClazz(node.componentClazz);
+        const component = this.ruleChainService.getRuleNodeComponentByClazz(node.ruleChainType, node.componentClazz);
         if (component) {
           let icon = ruleNodeTypeDescriptors.get(component.type).icon;
           let iconUrl: string = null;

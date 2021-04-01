@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 /**
  * Created by ashvayka on 02.12.17.
  */
-public interface PlatformIntegrationService extends ApplicationListener<PartitionChangeEvent> {
+public interface PlatformIntegrationService {
 
     void validateIntegrationConfiguration(Integration integration);
 

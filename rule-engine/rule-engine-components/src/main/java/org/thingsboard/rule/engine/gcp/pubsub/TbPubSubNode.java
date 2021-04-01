@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -108,8 +108,8 @@ public class TbPubSubNode implements TbNode {
         PubsubMessage.Builder pubsubMessageBuilder = PubsubMessage.newBuilder();
         pubsubMessageBuilder.setData(data);
         this.config.getMessageAttributes().forEach((k, v) -> {
-            String name = TbNodeUtils.processPattern(k, msg.getMetaData());
-            String val = TbNodeUtils.processPattern(v, msg.getMetaData());
+            String name = TbNodeUtils.processPattern(k, msg);
+            String val = TbNodeUtils.processPattern(v, msg);
             pubsubMessageBuilder.putAttributes(name, val);
         });
         ApiFuture<String> messageIdFuture = this.pubSubClient.publish(pubsubMessageBuilder.build());

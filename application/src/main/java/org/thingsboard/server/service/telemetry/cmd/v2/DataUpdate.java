@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,24 +30,24 @@
  */
 package org.thingsboard.server.service.telemetry.cmd.v2;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionErrorCode;
 
 import java.util.List;
 
-@Data
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class DataUpdate<T> {
+public abstract class DataUpdate<T> extends CmdUpdate {
 
-    private final int cmdId;
+    @Getter
     private final PageData<T> data;
+    @Getter
     private final List<T> update;
-    private final int errorCode;
-    private final String errorMsg;
+
+    public DataUpdate(int cmdId, PageData<T> data, List<T> update, int errorCode, String errorMsg) {
+        super(cmdId, errorCode, errorMsg);
+        this.data = data;
+        this.update = update;
+    }
 
     public DataUpdate(int cmdId, PageData<T> data, List<T> update) {
         this(cmdId, data, update, SubscriptionErrorCode.NO_ERROR.getCode(), null);
@@ -57,5 +57,4 @@ public abstract class DataUpdate<T> {
         this(cmdId, null, null, errorCode, errorMsg);
     }
 
-    public abstract DataUpdateType getDataUpdateType();
 }

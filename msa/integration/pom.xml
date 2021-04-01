@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -58,18 +58,9 @@
         <module>aws</module>
         <module>tcp-udp</module>
         <module>kafka</module>
+        <module>apache-pulsar</module>
+        <module>rabbitmq</module>
+        <module>pubsub</module>
     </modules>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>com.spotify</groupId>
-                    <artifactId>dockerfile-maven-plugin</artifactId>
-                    <version>1.4.5</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
 
 </project>

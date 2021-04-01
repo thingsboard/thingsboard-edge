@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -729,7 +730,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     private EntityKey columnToEntityKey(ColumnConfiguration column) {
-        EntityKeyType entityKeyType = EntityKeyType.valueOf(column.getType().name());
+        EntityKeyType entityKeyType = column.getType().getEntityKeyType();
         String key;
 
         if (entityKeyType.equals(EntityKeyType.ENTITY_FIELD)) {
@@ -750,11 +751,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         columnToEntityKeyMap.put("assigned_customer", "assignedCustomer");
         columnToEntityKeyMap.put("first_name", "firstName");
         columnToEntityKeyMap.put("last_name", "lastName");
+        columnToEntityKeyMap.put("device_profile", "type");
 
         entityDataKeyToShortEntityViewKeyMap.put("createdTime", "created_time");
         entityDataKeyToShortEntityViewKeyMap.put("assignedCustomer", "assigned_customer");
         entityDataKeyToShortEntityViewKeyMap.put("firstName", "first_name");
         entityDataKeyToShortEntityViewKeyMap.put("lastName", "last_name");
+        entityDataKeyToShortEntityViewKeyMap.put("type", "device_profile");
     }
 
     @Override
@@ -850,7 +853,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                             .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
                     return Futures.transformAsync(currentEntityGroupFuture, currentEntityGroup -> {
                         if (currentEntityGroup != null) {
-                            if (!currentEntityGroup.isPresent()) {
+                            if (currentEntityGroup.isEmpty()) {
                                 EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId);
                                 entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(),
                                         edge.getId(), EntityType.DEVICE);

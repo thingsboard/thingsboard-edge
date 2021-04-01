@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,8 @@ import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
+import org.thingsboard.server.common.data.query.EdgeSearchQueryFilter;
+import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -69,6 +71,7 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntitySearchQueryFilter;
+import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.EntityViewSearchQueryFilter;
 import org.thingsboard.server.common.data.query.EntityViewTypeFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
@@ -76,7 +79,7 @@ import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
@@ -301,7 +304,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select name from entity_view where id = entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
-            " THEN (select name from edge where id = entity_id)" +
+            " THEN (select label from edge where id = entity_id)" +
             " END as label";
     private static final String SELECT_ADDITIONAL_INFO = " CASE" +
             " WHEN entity.entity_type = 'TENANT'" +
@@ -332,7 +335,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.ASSET, "asset");
         entityTableMap.put(EntityType.DEVICE, "device");
         entityTableMap.put(EntityType.ENTITY_VIEW, "entity_view");
-        entityTableMap.put(EntityType.EDGE, "edge");
         entityTableMap.put(EntityType.DASHBOARD, "dashboard");
         entityTableMap.put(EntityType.CUSTOMER, "customer");
         entityTableMap.put(EntityType.USER, "tb_user");
@@ -343,6 +345,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.BLOB_ENTITY, "blob_entity");
         entityTableMap.put(EntityType.ROLE, "role");
         entityTableMap.put(EntityType.API_USAGE_STATE, SELECT_API_USAGE_STATE);
+        entityTableMap.put(EntityType.EDGE, "edge");
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
@@ -432,22 +435,110 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter());
-        ctx.append("select count(e.id) from ");
-        ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
-        ctx.append(" e");
-        String entityWhereClause = buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList());
-        if (!entityWhereClause.isEmpty()) {
-            ctx.append(" where ");
-            ctx.append(entityWhereClause);
-        }
-        return transactionTemplate.execute(status -> {
-            long startTs = System.currentTimeMillis();
-            try {
-                return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
-            } finally {
-                queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+        if (query.getKeyFilters() == null || query.getKeyFilters().isEmpty()) {
+            ctx.append("select count(e.id) from ");
+            ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
+            ctx.append(" e");
+            String entityWhereClause = buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList());
+            if (!entityWhereClause.isEmpty()) {
+                ctx.append(" where ");
+                ctx.append(entityWhereClause);
             }
-        });
+            return transactionTemplate.execute(status -> {
+                long startTs = System.currentTimeMillis();
+                try {
+                    return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
+                } finally {
+                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+                }
+            });
+        } else {
+            MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+            if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
+                if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
+                    return 0L;
+                }
+            } else if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+                if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
+                    return 0L;
+                }
+            } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+                return 0L;
+            } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
+                return 0L;
+            }
+
+            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareEntityCountKeyMapping(query);
+
+            List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
+                    .collect(Collectors.toList());
+            List<EntityKeyMapping> entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest())
+                    .collect(Collectors.toList());
+
+            List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
+                    .collect(Collectors.toList());
+            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest())
+                    .collect(Collectors.toList());
+
+            List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
+                    .collect(Collectors.toList());
+
+
+            String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
+            String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
+            String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
+            String entityTypeStr;
+            if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+                entityTypeStr = "e.entity_type";
+            } else if (query.getEntityFilter().getType().equals(EntityFilterType.ENTITY_GROUP_NAME)) {
+                entityTypeStr = "'ENTITY_GROUP'";
+            } else {
+                entityTypeStr = "'" + ctx.getEntityType().name() + "'";
+            }
+            if (!StringUtils.isEmpty(entityFieldsSelection)) {
+                entityFieldsSelection = String.format("e.id id, %s entity_type, %s", entityTypeStr, entityFieldsSelection);
+            } else {
+                entityFieldsSelection = String.format("e.id id, %s entity_type", entityTypeStr);
+            }
+
+            StringBuilder entitiesQuery;
+            switch (query.getEntityFilter().getType()) {
+                case RELATIONS_QUERY:
+                    entitiesQuery = buildRelationsEntitiesQuery(query, ctx, entityWhereClause, entityFieldsSelection);
+                    break;
+                case ENTITY_GROUP_NAME:
+                case ENTITY_GROUP_LIST:
+                    entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    break;
+                case SINGLE_ENTITY:
+                    if (ctx.getSecurityCtx().isEntityGroup()) {
+                        entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    } else {
+                        entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    }
+                    break;
+                default:
+                    entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                    break;
+            }
+
+            String fromClauseCount = String.format("from (select %s from (%s) entities %s) result %s",
+                    "entities.*",
+                    entitiesQuery,
+                    latestJoinsCnt,
+                    "");
+
+            String countQuery = String.format("select count(*) %s", fromClauseCount);
+
+            return transactionTemplate.execute(status -> {
+                long startTs = System.currentTimeMillis();
+                try {
+                    return jdbcTemplate.queryForObject(countQuery, ctx, Long.class);
+                } finally {
+                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+                }
+            });
+        }
     }
 
     @Override
@@ -462,11 +553,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
                 return new PageData<>();
             }
-        } else if (query.getEntityFilter().getType().equals(EntityFilterType.API_USAGE_STATE)) {
-            if (!ctx.isTenantUser()) {
-                return new PageData<>();
-            }
         } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+            return new PageData<>();
+        } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
             return new PageData<>();
         }
         return transactionTemplate.execute(status -> {
@@ -594,6 +683,48 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
+    }
+
+    private boolean customerUserIsTryingToAccessTenantEntity(QueryContext ctx, EntityFilter entityFilter) {
+        if (ctx.isTenantUser()) {
+            return false;
+        } else {
+            switch (entityFilter.getType()) {
+                case SINGLE_ENTITY:
+                    SingleEntityFilter seFilter = (SingleEntityFilter) entityFilter;
+                    return isSystemOrTenantEntity(seFilter.getSingleEntity().getEntityType());
+                case ENTITY_LIST:
+                    EntityListFilter elFilter = (EntityListFilter) entityFilter;
+                    return isSystemOrTenantEntity(elFilter.getEntityType());
+                case ENTITY_NAME:
+                    EntityNameFilter enFilter = (EntityNameFilter) entityFilter;
+                    return isSystemOrTenantEntity(enFilter.getEntityType());
+                case ENTITY_TYPE:
+                    EntityTypeFilter etFilter = (EntityTypeFilter) entityFilter;
+                    return isSystemOrTenantEntity(etFilter.getEntityType());
+                case API_USAGE_STATE:
+                    return !ctx.isTenantUser();
+                default:
+                    return false;
+            }
+        }
+    }
+
+    private boolean isSystemOrTenantEntity(EntityType entityType) {
+        switch (entityType) {
+            case INTEGRATION:
+            case CONVERTER:
+            case DEVICE_PROFILE:
+            case RULE_CHAIN:
+            case SCHEDULER_EVENT:
+            case TENANT:
+            case TENANT_PROFILE:
+            case WIDGET_TYPE:
+            case WIDGETS_BUNDLE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter) {
@@ -816,7 +947,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         });
     }
 
-    private StringBuilder buildRelationsEntitiesQuery(EntityDataQuery query, QueryContext ctx, String entityWhereClause, String entityFieldsSelection) {
+    private StringBuilder buildRelationsEntitiesQuery(EntityCountQuery query, QueryContext ctx, String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
 
         Map<Resource, MergedGroupTypePermissionInfo> readPermMap = ctx.getSecurityCtx().getMergedReadEntityPermissionsMap();
@@ -968,7 +1099,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private StringBuilder buildCommonEntitiesQuery(EntityDataQuery query, QueryContext ctx,
+    private StringBuilder buildCommonEntitiesQuery(EntityCountQuery query, QueryContext ctx,
                                                    MergedGroupTypePermissionInfo readPermissions,
                                                    String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
@@ -1124,7 +1255,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return permissions.getEntityGroupIds() == null || permissions.getEntityGroupIds().isEmpty();
     }
 
-    private StringBuilder buildGroupEntitiesQuery(EntityDataQuery query, QueryContext ctx,
+    private StringBuilder buildGroupEntitiesQuery(EntityCountQuery query, QueryContext ctx,
                                                   MergedGroupTypePermissionInfo readPermissions, String entityWhereClause, String entityFieldsSelection) {
         StringBuilder entitiesQuery = new StringBuilder();
 
@@ -1283,6 +1414,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case EDGE_SEARCH_QUERY:
             case ENTITY_GROUP:
             case ENTITY_GROUP_NAME:
                 return this.defaultPermissionQuery(ctx);
@@ -1323,6 +1455,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ASSET_TYPE:
             case DEVICE_TYPE:
             case ENTITY_VIEW_TYPE:
+            case EDGE_TYPE:
                 return this.typeQuery(ctx, entityFilter);
             case STATE_ENTITY_OWNER:
                 return this.singleEntityByStateOwner(ctx);
@@ -1333,7 +1466,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case EDGE_SEARCH_QUERY:
             case API_USAGE_STATE:
+            case ENTITY_TYPE:
                 return "";
             default:
                 throw new RuntimeException("Not implemented!");
@@ -1367,6 +1502,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_VIEW_SEARCH_QUERY:
                 EntityViewSearchQueryFilter entityViewQuery = (EntityViewSearchQueryFilter) entityFilter;
                 return entitySearchQuery(ctx, entityViewQuery, EntityType.ENTITY_VIEW, entityViewQuery.getEntityViewTypes());
+            case EDGE_SEARCH_QUERY:
+                EdgeSearchQueryFilter edgeQuery = (EdgeSearchQueryFilter) entityFilter;
+                return entitySearchQuery(ctx, edgeQuery, EntityType.EDGE, edgeQuery.getEdgeTypes());
             default:
                 return entityTableMap.get(ctx.getEntityType());
         }
@@ -1423,14 +1561,40 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         MergedGroupTypePermissionInfo groupTypePermissionInfo = ctx.getSecurityCtx().getMergedReadGroupPermissionsByEntityType();
         String where;
         if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-
+            EntityId customOwnerId = entityFilter.getOwnerId();
+            if (customOwnerId != null && !customOwnerId.getEntityType().equals(EntityType.TENANT) && !customOwnerId.getEntityType().equals(EntityType.CUSTOMER)) {
+                customOwnerId = null;
+            }
             String allowedGroupIdsSelect = "(";
+            boolean genericPartAdded = false;
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
-                ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+                if (customOwnerId == null || ctx.getOwnerId().equals(customOwnerId.getId())) {
+                    // No custom owner - just select a list of groups that belong to current owner
+                    allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
+                    ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                } else if (ctx.isTenantUser()) {
+                    // Tenant user with different custom owner id. We need to check that this is our customer.
+                    allowedGroupIdsSelect += "owner_id in (select id from customer where id = :where_group_owner_id and tenant_id = :where_real_tenant_id)";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
+                    ctx.addUuidParameter("where_real_tenant_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                } else if (customOwnerId.getEntityType().equals(EntityType.CUSTOMER)) {
+                    // Customer user with different custom owner id. We need to check the hierarchy now
+                    allowedGroupIdsSelect += "owner_id in (select id from customer where id = :where_group_owner_id and tenant_id = :where_real_tenant_id and id in ";
+                    allowedGroupIdsSelect += "(WITH RECURSIVE customers_ids(id) AS" +
+                            " (SELECT id id FROM customer WHERE tenant_id = :where_real_tenant_id and id = :where_real_owner_id" +
+                            " UNION SELECT c.id id FROM customer c, customers_ids parent WHERE c.tenant_id = :where_real_tenant_id" +
+                            " and c.parent_customer_id = parent.id) SELECT id FROM customers_ids)";
+                    allowedGroupIdsSelect += ")";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
+                    ctx.addUuidParameter("where_real_tenant_id", ctx.getTenantId().getId());
+                    ctx.addUuidParameter("where_real_owner_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                }
             }
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-                if (groupTypePermissionInfo.isHasGenericRead()) {
+                if (genericPartAdded) {
                     allowedGroupIdsSelect += " or ";
                 }
                 allowedGroupIdsSelect += "id in (:where_group_ids)";
@@ -1512,7 +1676,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         boolean single = entityFilter.getFilters() != null && entityFilter.getFilters().size() == 1;
         if (entityFilter.getFilters() != null && !entityFilter.getFilters().isEmpty()) {
             int entityTypeFilterIdx = 0;
-            for (EntityTypeFilter etf : entityFilter.getFilters()) {
+            for (RelationEntityTypeFilter etf : entityFilter.getFilters()) {
                 String etfCondition = buildEtfCondition(ctx, etf, entityFilter.getDirection(), entityTypeFilterIdx++);
                 if (!etfCondition.isEmpty()) {
                     if (noConditions) {
@@ -1561,7 +1725,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "( " + selectFields + from + ")";
     }
 
-    private String buildEtfCondition(QueryContext ctx, EntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
+    private String buildEtfCondition(QueryContext ctx, RelationEntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
         StringBuilder whereFilter = new StringBuilder();
         String relationType = etf.getRelationType();
         List<EntityType> entityTypes = etf.getEntityTypes();
@@ -1692,6 +1856,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 return ((EntityListFilter) entityFilter).getEntityType();
             case ENTITY_NAME:
                 return ((EntityNameFilter) entityFilter).getEntityType();
+            case ENTITY_TYPE:
+                return ((EntityTypeFilter) entityFilter).getEntityType();
             case ENTITY_GROUP_LIST:
             case ENTITY_GROUP_NAME:
                 return EntityType.ENTITY_GROUP;
@@ -1708,6 +1874,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_VIEW_TYPE:
             case ENTITY_VIEW_SEARCH_QUERY:
                 return EntityType.ENTITY_VIEW;
+            case EDGE_TYPE:
+            case EDGE_SEARCH_QUERY:
+                return EntityType.EDGE;
             case RELATIONS_QUERY:
                 return ((RelationsQueryFilter) entityFilter).getRootEntity().getEntityType();
             case API_USAGE_STATE:

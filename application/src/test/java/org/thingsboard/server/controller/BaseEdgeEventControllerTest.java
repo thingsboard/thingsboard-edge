@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,15 +36,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -93,8 +92,6 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @Disabled
-    // TODO: voba - fix this test
     public void testGetEdgeEvents() throws Exception {
         Thread.sleep(500);
         Edge edge = constructEdge("TestEdge", "default");
@@ -135,25 +132,25 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
 
         Assert.assertEquals(6, edgeEvents.size());
 
-        Assert.assertEquals(EdgeEventType.RELATION, edgeEvents.get(0).getType());
-        Assert.assertEquals(ActionType.RELATION_ADD_OR_UPDATE.name(), edgeEvents.get(0).getAction());
+        Assert.assertEquals(EdgeEventType.RULE_CHAIN, edgeEvents.get(0).getType());
+        Assert.assertEquals(EdgeEventActionType.UPDATED, edgeEvents.get(0).getAction());
 
-        Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(1).getType());
-        Assert.assertEquals(ActionType.ADDED_TO_ENTITY_GROUP.name(), edgeEvents.get(1).getAction());
-        Assert.assertEquals(savedAssetEntityGroup.getUuidId(), edgeEvents.get(1).getEntityGroupId());
+        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(1).getType());
+        Assert.assertEquals(EdgeEventActionType.ASSIGNED_TO_EDGE, edgeEvents.get(1).getAction());
 
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(2).getType());
-        Assert.assertEquals(ActionType.ASSIGNED_TO_EDGE.name(), edgeEvents.get(2).getAction());
+        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(2).getType());
+        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(2).getAction());
+        Assert.assertEquals(savedDeviceEntityGroup.getUuidId(), edgeEvents.get(2).getEntityGroupId());
 
-        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(3).getType());
-        Assert.assertEquals(ActionType.ADDED_TO_ENTITY_GROUP.name(), edgeEvents.get(3).getAction());
-        Assert.assertEquals(savedDeviceEntityGroup.getUuidId(), edgeEvents.get(3).getEntityGroupId());
+        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(3).getType());
+        Assert.assertEquals(EdgeEventActionType.ASSIGNED_TO_EDGE, edgeEvents.get(3).getAction());
 
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(4).getType());
-        Assert.assertEquals(ActionType.ASSIGNED_TO_EDGE.name(), edgeEvents.get(4).getAction());
+        Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(4).getType());
+        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(4).getAction());
+        Assert.assertEquals(savedAssetEntityGroup.getUuidId(), edgeEvents.get(4).getEntityGroupId());
 
-        Assert.assertEquals(EdgeEventType.RULE_CHAIN, edgeEvents.get(5).getType());
-        Assert.assertEquals(ActionType.UPDATED.name(), edgeEvents.get(5).getAction());
+        Assert.assertEquals(EdgeEventType.RELATION, edgeEvents.get(5).getType());
+        Assert.assertEquals(EdgeEventActionType.RELATION_ADD_OR_UPDATE, edgeEvents.get(5).getAction());
     }
 
     private EntityGroup constructEntityGroup(String name, EntityType type) {

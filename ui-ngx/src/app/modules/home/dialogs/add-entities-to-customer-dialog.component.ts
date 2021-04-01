@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import { EntityViewService } from '@core/http/entity-view.service';
 import { DashboardService } from '@core/http/dashboard.service';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
+import { EdgeService } from '@core/http/edge.service';
 
 export interface AddEntitiesToCustomerDialogData {
   customerId: string;
@@ -72,6 +73,7 @@ export class AddEntitiesToCustomerDialogComponent extends
               @Inject(MAT_DIALOG_DATA) public data: AddEntitiesToCustomerDialogData,
               private deviceService: DeviceService,
               private assetService: AssetService,
+              private edgeService: EdgeService,
               private entityViewService: EntityViewService,
               private dashboardService: DashboardService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
@@ -141,6 +143,8 @@ export class AddEntitiesToCustomerDialogComponent extends
         return this.deviceService.assignDeviceToCustomer(customerId, entityId);
       case EntityType.ASSET:
         return this.assetService.assignAssetToCustomer(customerId, entityId);
+      case EntityType.EDGE:
+        return this.edgeService.assignEdgeToCustomer(customerId, entityId);
       case EntityType.ENTITY_VIEW:
         return this.entityViewService.assignEntityViewToCustomer(customerId, entityId);
       case EntityType.DASHBOARD:

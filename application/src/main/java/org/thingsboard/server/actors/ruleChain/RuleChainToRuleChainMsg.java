@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,23 +30,43 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.TbActorStopReason;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbRuleEngineActorMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
+import org.thingsboard.server.common.msg.queue.RuleEngineException;
 
 /**
  * Created by ashvayka on 19.03.18.
  */
-@Data
-public final class RuleChainToRuleChainMsg implements TbActorMsg, RuleChainAwareMsg {
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public final class RuleChainToRuleChainMsg extends TbRuleEngineActorMsg implements RuleChainAwareMsg {
 
+    @Getter
     private final RuleChainId target;
+    @Getter
     private final RuleChainId source;
-    private final TbMsg msg;
+    @Getter
     private final String fromRelationType;
+
+    public RuleChainToRuleChainMsg(RuleChainId target, RuleChainId source, TbMsg tbMsg, String fromRelationType) {
+        super(tbMsg);
+        this.target = target;
+        this.source = source;
+        this.fromRelationType = fromRelationType;
+    }
+
+    @Override
+    public void onTbActorStopped(TbActorStopReason reason) {
+        String message = reason == TbActorStopReason.STOPPED ? String.format("Rule chain [%s] stopped", target.getId()) : String.format("Failed to initialize rule chain [%s]!", target.getId());
+        msg.getCallback().onFailure(new RuleEngineException(message));
+    }
 
     @Override
     public RuleChainId getRuleChainId() {

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -47,13 +47,49 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'setRoot')"
           *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.WRITE"
-          [fxShow]="!isEdit && !entity?.root">
+          [fxShow]="!isEdit && !entity?.root && ruleChainScope === 'tenant'">
     {{'rulechain.set-root' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'setEdgeTemplateRoot')"
+          [fxShow]="!isEdit && !entity?.root && isTemplateScope()">
+    {{'rulechain.set-edge-template-root-rulechain' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'setEdgeTemplateRoot')"
+          [fxShow]="!isEdit && !entity?.root && isTemplateScope()">
+    {{'rulechain.set-edge-template-root-rulechain' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'setAutoAssignToEdge')"
+          [fxShow]="!isEdit && isNotAutoAssignToEdgeRuleChain() && isTemplateScope()">
+    {{'rulechain.set-auto-assign-to-edge' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'unsetAutoAssignToEdge')"
+          [fxShow]="!isEdit && isAutoAssignToEdgeRuleChain() && isTemplateScope()">
+    {{'rulechain.unset-auto-assign-to-edge' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'setRoot')"
+          [fxShow]="!isEdit && !isEdgeRootRuleChain() && isEdgeScope()">
+    {{'rulechain.set-root' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'unassignFromEdge')"
+          [fxShow]="!isEdit && !isEdgeRootRuleChain() && isEdgeScope()">
+    {{'edge.unassign-from-edge' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          [fxShow]="!hideDelete() && !isEdit">
+          [fxShow]="!hideDelete() && !isEdit && !isEdgeScope()">
     {{'rulechain.delete' | translate }}
   </button>
   <div fxLayout="row">

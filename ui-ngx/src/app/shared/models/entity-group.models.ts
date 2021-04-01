@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,17 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {EntityType} from '@shared/models/entity-type.models';
-import {EntityId} from '@shared/models/id/entity-id';
-import {BaseData} from '@shared/models/base-data';
-import {EntityGroupId} from '@shared/models/id/entity-group-id';
-import {WidgetActionDescriptor, WidgetActionSource, WidgetActionType} from '@shared/models/widget.models';
-import {ActivatedRouteSnapshot} from '@angular/router';
-import {isEqual, isUndefinedOrNull} from '@core/utils';
-import {Customer} from '@shared/models/customer.model';
-import {EntityData, EntityDataPageLink, EntityKey, EntityKeyType} from '@shared/models/query/query.models';
-import {PageLink} from '@shared/models/page/page-link';
-import {RoleId} from '@shared/models/id/role-id';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { BaseData } from '@shared/models/base-data';
+import { EntityGroupId } from '@shared/models/id/entity-group-id';
+import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import { isEqual, isUndefinedOrNull } from '@core/utils';
+import { Customer } from '@shared/models/customer.model';
+import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
+import { PageLink } from '@shared/models/page/page-link';
+import { RoleId } from '@shared/models/id/role-id';
+import { Edge } from '@shared/models/edge.models';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -106,7 +107,6 @@ export interface EntityGroupSettings {
   enableDashboardsManagement: boolean;
   enableEdgesManagement: boolean;
   enableSchedulerEventsManagement: boolean;
-  enableRuleChainsManagement: boolean;
 }
 
 export enum EntityGroupSortOrder {
@@ -444,8 +444,7 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
         enableDevicesManagement: true,
         enableEntityViewsManagement: true,
         enableDashboardsManagement: true,
-        enableSchedulerEventsManagement: true,
-        enableRuleChainsManagement: true
+        enableSchedulerEventsManagement: true
       }, ...settings};
   }
   return settings;
@@ -468,9 +467,9 @@ export function entityGroupsTitle(groupType: EntityType) {
     case EntityType.EDGE:
       return 'entity-group.edge-groups';
     case EntityType.SCHEDULER_EVENT:
-      return 'scheduler.scheduler-events';
+      return 'scheduler.scheduler';
     case EntityType.RULE_CHAIN:
-      return 'rulechain.edge-rulechains';
+      return 'edge.rulechains';
   }
 }
 
@@ -486,6 +485,9 @@ export interface HierarchyCallbacks {
   customerAdded?: (parentNodeId: string, customer: Customer) => void;
   customerUpdated?: (customer: Customer) => void;
   customersDeleted?: (customerIds: string[]) => void;
+  edgeAdded?: (parentNodeId: string, edge: Edge) => void;
+  edgeUpdated?: (edge: Edge) => void;
+  edgesDeleted?: (edgeIds: string[]) => void;
 }
 
 export interface EntityGroupParams {
@@ -499,6 +501,10 @@ export interface EntityGroupParams {
   internalId?: string;
   hierarchyCallbacks?: HierarchyCallbacks;
   edgeId?: string;
+  edge?: Edge;
+  groupScope?: string;
+  grandChildGroupType?: EntityType;
+  grandChildEntityGroupId?: string;
 }
 
 export interface ShareGroupRequest {
@@ -512,6 +518,10 @@ export interface ShareGroupRequest {
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
   let routeParams = {...route.params};
   let routeData = {...route.data};
+  var grandChildEntityGroupId;
+  if (routeData.groupScope && routeData.groupScope === 'edge') {
+    grandChildEntityGroupId = routeParams.entityGroupId;
+  }
   while (route.parent !== null) {
     route = route.parent;
     if (routeParams.entityGroupId && route.params.entityGroupId &&
@@ -530,6 +540,9 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     groupType: routeData.groupType,
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
-    edgeId: routeParams.edgeId
+    edgeId: routeParams.edgeId,
+    groupScope: routeData.groupScope,
+    grandChildGroupType: routeData.grandChildGroupType,
+    grandChildEntityGroupId: grandChildEntityGroupId
   }
 }

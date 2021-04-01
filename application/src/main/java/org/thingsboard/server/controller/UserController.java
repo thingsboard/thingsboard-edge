@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,8 +35,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiParam;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -52,10 +53,12 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -66,22 +69,26 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
+import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
+@RequiredArgsConstructor
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -95,21 +102,11 @@ public class UserController extends BaseController {
     @Getter
     private boolean userTokenAccessEnabled;
 
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private UserPermissionsService userPermissionsService;
-
-    @Autowired
-    private JwtTokenFactory tokenFactory;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private SystemSecurityService systemSecurityService;
-
+    private final MailService mailService;
+    private final JwtTokenFactory tokenFactory;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final SystemSecurityService systemSecurityService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
@@ -118,9 +115,26 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
-            return checkUserId(userId, Operation.READ);
+            User user = checkUserId(userId, Operation.READ);
+            if(!user.getAdditionalInfo().isNull()) {
+                processDashboardIdFromAdditionalInfo((ObjectNode) user.getAdditionalInfo(), DEFAULT_DASHBOARD);
+                processDashboardIdFromAdditionalInfo((ObjectNode) user.getAdditionalInfo(), HOME_DASHBOARD);
+            }
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+            if(userCredentials.isEnabled()) {
+                addUserCredentialsEnabled((ObjectNode) user.getAdditionalInfo());
+            }
+            return user;
         } catch (Exception e) {
             throw handleException(e);
+        }
+    }
+
+    private void addUserCredentialsEnabled(ObjectNode additionalInfo) {
+        if(!additionalInfo.isNull()) {
+            if(!additionalInfo.has("userCredentialsEnabled")) {
+                additionalInfo.put("userCredentialsEnabled", true);
+            }
         }
     }
 
@@ -195,6 +209,28 @@ public class UserController extends BaseController {
                 checkEntity(user.getId(), user, Resource.USER, entityGroupId);
             }
 
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
+                String prevHomeDashboardId = null;
+                boolean prevHideDashboardToolbar = true;
+                if (user.getId() != null) {
+                    User prevUser = userService.findUserById(getTenantId(), user.getId());
+                    JsonNode additionalInfo = prevUser.getAdditionalInfo();
+                    if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                        prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                        if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                            prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                        }
+                    }
+                }
+                JsonNode additionalInfo = user.getAdditionalInfo();
+                if (additionalInfo == null) {
+                    additionalInfo = JacksonUtil.newObjectNode();
+                    user.setAdditionalInfo(additionalInfo);
+                }
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
+            }
+
             boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
 
@@ -211,7 +247,8 @@ public class UserController extends BaseController {
                         savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
 
-                sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(), ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                sendGroupEntityNotificationMsg(getTenantId(), savedUser.getId(),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             if (sendEmail) {
@@ -235,8 +272,8 @@ public class UserController extends BaseController {
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(),
-                    user.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendEntityNotificationMsg(getTenantId(), savedUser.getId(),
+                    user.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedUser;
         } catch (Exception e) {
@@ -261,13 +298,13 @@ public class UserController extends BaseController {
                     user.getId(), user);
 
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(getCurrentUser().getTenantId(), user.getId());
-            if (!userCredentials.isEnabled()) {
+            if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
                 String baseUrl = systemSecurityService.getBaseUrl(getCurrentUser().getAuthority(), getTenantId(), getCurrentUser().getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 mailService.sendActivationEmail(getTenantId(), activateUrl, email);
             } else {
-                throw new ThingsboardException("User is already active!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -286,12 +323,12 @@ public class UserController extends BaseController {
             User user = checkUserId(userId, Operation.READ);
             SecurityUser authUser = getCurrentUser();
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), user.getId());
-            if (!userCredentials.isEnabled()) {
+            if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
                 String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), getTenantId(), authUser.getCustomerId(), request);
                 return String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
             } else {
-                throw new ThingsboardException("User is already active!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -306,6 +343,9 @@ public class UserController extends BaseController {
         try {
             UserId userId = new UserId(toUUID(strUserId));
             User user = checkUserId(userId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), userId);
+
             userService.deleteUser(getCurrentUser().getTenantId(), userId);
 
             userPermissionsService.onUserUpdatedOrRemoved(user);
@@ -314,7 +354,7 @@ public class UserController extends BaseController {
                     user.getCustomerId(),
                     ActionType.DELETED, null, strUserId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), user.getId(), ActionType.DELETED);
+            sendDeleteNotificationMsg(getTenantId(), userId, relatedEdgeIds);
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.USER),
@@ -438,6 +478,10 @@ public class UserController extends BaseController {
             checkUserId(userId, Operation.WRITE);
             TenantId tenantId = getCurrentUser().getTenantId();
             userService.setUserCredentialsEnabled(tenantId, userId, userCredentialsEnabled);
+
+            if (!userCredentialsEnabled) {
+                eventPublisher.publishEvent(new UserAuthDataChangedEvent(userId));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -476,4 +520,5 @@ public class UserController extends BaseController {
             }
         }).collect(Collectors.toList());
     }
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,22 +31,25 @@
 package org.thingsboard.server.common.data.group;
 
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.query.EntityKeyType;
 
 public enum ColumnType {
-    CLIENT_ATTRIBUTE(DataConstants.CLIENT_SCOPE),
-    SHARED_ATTRIBUTE(DataConstants.SHARED_SCOPE),
-    SERVER_ATTRIBUTE(DataConstants.SERVER_SCOPE),
-    TIMESERIES,
-    ENTITY_FIELD;
+    CLIENT_ATTRIBUTE(EntityKeyType.CLIENT_ATTRIBUTE, DataConstants.CLIENT_SCOPE),
+    SHARED_ATTRIBUTE(EntityKeyType.SHARED_ATTRIBUTE, DataConstants.SHARED_SCOPE),
+    SERVER_ATTRIBUTE(EntityKeyType.SERVER_ATTRIBUTE, DataConstants.SERVER_SCOPE),
+    TIMESERIES(EntityKeyType.TIME_SERIES),
+    ENTITY_FIELD(EntityKeyType.ENTITY_FIELD);
 
     private final String attributeScope;
+    private final EntityKeyType entityKeyType;
 
-    ColumnType() {
-        this(null);
+    ColumnType(EntityKeyType entityKeyType, String attributeScope) {
+        this.entityKeyType = entityKeyType;
+        this.attributeScope = attributeScope;
     }
 
-    ColumnType(String attributeScope) {
-        this.attributeScope = attributeScope;
+    ColumnType(EntityKeyType entityKeyType) {
+        this(entityKeyType, null);
     }
 
     public String getAttributeScope() {
@@ -57,4 +60,7 @@ public enum ColumnType {
         return this.attributeScope != null;
     }
 
+    public EntityKeyType getEntityKeyType() {
+        return entityKeyType;
+    }
 }

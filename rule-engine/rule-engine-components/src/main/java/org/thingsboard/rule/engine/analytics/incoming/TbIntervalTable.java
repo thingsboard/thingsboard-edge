@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbAvgIntervalState;
@@ -94,7 +95,7 @@ class TbIntervalTable {
             tmpIntervalDuration = getDefaultIntervalDurationByAggType();
         }
         this.intervalDuration = Math.max(tmpIntervalDuration, TimeUnit.MINUTES.toMillis(1));
-        this.intervalTtl = TimeUnit.valueOf(config.getIntervalTtlTimeUnit()).toMillis(config.getIntervalTtlValue());
+        this.intervalTtl = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue() * 2);
         this.function = MathFunction.valueOf(config.getMathFunction());
         this.autoCreateIntervals = config.isAutoCreateIntervals();
     }
@@ -118,7 +119,7 @@ class TbIntervalTable {
     }
 
     //TODO: make this async
-    TbIntervalState getByEntityIdAndTs(EntityId entityId, long ts) throws ExecutionException, InterruptedException {
+    Pair<Long, TbIntervalState> getByEntityIdAndTs(EntityId entityId, long ts) throws ExecutionException, InterruptedException {
         long intervalStartTs = calculateIntervalStart(ts);
 
         Map<Long, TbIntervalState> tsStates = states.computeIfAbsent(entityId, k -> new ConcurrentHashMap<>());
@@ -127,12 +128,12 @@ class TbIntervalTable {
             state = fetchIntervalState(entityId, intervalStartTs).get();
             tsStates.put(intervalStartTs, state);
         }
-        return state;
+        return Pair.of(intervalStartTs, state);
     }
 
-    ListenableFuture<Integer> saveIntervalState(EntityId entityId, long intervalStartTs, TbIntervalState state) {
+    ListenableFuture<Integer> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
         KvEntry kvEntry = new StringDataEntry("RuleNodeState_" + ctx.getSelfId(), state.toStateJson(gson));
-        TsKvEntry tsKvEntry = new BasicTsKvEntry(intervalStartTs, kvEntry);
+        TsKvEntry tsKvEntry = new BasicTsKvEntry(calculateIntervalStart(ts), kvEntry);
         return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);
     }
 
@@ -259,6 +260,8 @@ class TbIntervalTable {
                     return zdt.truncatedTo(ChronoUnit.DAYS).toInstant().toEpochMilli();
                 case WEEK:
                     return zdt.truncatedTo(ChronoUnit.DAYS).with(DayOfWeek.MONDAY).toInstant().toEpochMilli();
+                case WEEK_SUN_SAT:
+                    return zdt.truncatedTo(ChronoUnit.DAYS).with(DayOfWeek.SUNDAY).toInstant().toEpochMilli();
                 case MONTH:
                     return zdt.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1).toInstant().toEpochMilli();
                 case YEAR:
@@ -276,6 +279,7 @@ class TbIntervalTable {
             case DAY:
                 return TimeUnit.DAYS.toMillis(1);
             case WEEK:
+            case WEEK_SUN_SAT:
                 return TimeUnit.DAYS.toMillis(7);
             case MONTH:
                 return TimeUnit.DAYS.toMillis(30);

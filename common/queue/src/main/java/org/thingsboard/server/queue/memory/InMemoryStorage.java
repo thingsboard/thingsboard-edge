@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -75,6 +75,7 @@ public final class InMemoryStorage {
     public <T extends TbQueueMsg> List<T> get(String topic) throws InterruptedException {
         if (storage.containsKey(topic)) {
             List<T> entities;
+            @SuppressWarnings("unchecked")
             T first = (T) storage.get(topic).poll();
             if (first != null) {
                 entities = new ArrayList<>();
@@ -82,7 +83,9 @@ public final class InMemoryStorage {
                 List<TbQueueMsg> otherList = new ArrayList<>();
                 storage.get(topic).drainTo(otherList, 999);
                 for (TbQueueMsg other : otherList) {
-                    entities.add((T) other);
+                    @SuppressWarnings("unchecked")
+                    T entity = (T) other;
+                    entities.add(entity);
                 }
             } else {
                 entities = Collections.emptyList();

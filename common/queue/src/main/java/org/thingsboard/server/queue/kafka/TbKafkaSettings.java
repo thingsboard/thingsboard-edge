@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,9 +34,15 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +53,7 @@ import java.util.Properties;
  * Created by ashvayka on 25.09.18.
  */
 @Slf4j
-@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+@ConditionalOnProperty(prefix = "queue", value = "type", havingValue = "kafka")
 @ConfigurationProperties(prefix = "queue.kafka")
 @Component
 public class TbKafkaSettings {
@@ -75,15 +81,15 @@ public class TbKafkaSettings {
     private short replicationFactor;
 
     @Value("${queue.kafka.max_poll_records:8192}")
-    @Getter
     private int maxPollRecords;
 
+    @Value("${queue.kafka.max_poll_interval_ms:300000}")
+    private int maxPollIntervalMs;
+
     @Value("${queue.kafka.max_partition_fetch_bytes:16777216}")
-    @Getter
     private int maxPartitionFetchBytes;
 
     @Value("${queue.kafka.fetch_max_bytes:134217728}")
-    @Getter
     private int fetchMaxBytes;
 
     @Value("${queue.kafka.use_confluent_cloud:false}")
@@ -104,21 +110,48 @@ public class TbKafkaSettings {
     @Setter
     private List<TbKafkaProperty> other;
 
-    public Properties toProps() {
-        Properties props = new Properties();
+    public Properties toAdminProps() {
+        Properties props = toProps();
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
+        props.put(AdminClientConfig.RETRIES_CONFIG, retries);
+
+        return props;
+    }
+
+    public Properties toConsumerProps() {
+        Properties props = toProps();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
+        props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, maxPartitionFetchBytes);
+        props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, fetchMaxBytes);
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollIntervalMs);
+
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+        return props;
+    }
+
+    public Properties toProducerProps() {
+        Properties props = toProps();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
         props.put(ProducerConfig.RETRIES_CONFIG, retries);
+        props.put(ProducerConfig.ACKS_CONFIG, acks);
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
+        props.put(ProducerConfig.LINGER_MS_CONFIG, lingerMs);
+        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, bufferMemory);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+        return props;
+    }
+
+    private Properties toProps() {
+        Properties props = new Properties();
 
         if (useConfluent) {
             props.put("ssl.endpoint.identification.algorithm", sslAlgorithm);
             props.put("sasl.mechanism", saslMechanism);
             props.put("sasl.jaas.config", saslConfig);
             props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
-        } else {
-            props.put(ProducerConfig.ACKS_CONFIG, acks);
-            props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
-            props.put(ProducerConfig.LINGER_MS_CONFIG, lingerMs);
-            props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, bufferMemory);
         }
 
         if (other != null) {
@@ -126,4 +159,5 @@ public class TbKafkaSettings {
         }
         return props;
     }
+
 }

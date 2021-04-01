@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,12 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
     @Getter
     @Setter
     private ApiUsageStateValue jsExecState;
+    @Getter
+    @Setter
+    private ApiUsageStateValue emailExecState;
+    @Getter
+    @Setter
+    private ApiUsageStateValue smsExecState;
 
     public ApiUsageState() {
         super();
@@ -80,6 +86,8 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
         this.dbStorageState = ur.getDbStorageState();
         this.reExecState = ur.getReExecState();
         this.jsExecState = ur.getJsExecState();
+        this.emailExecState = ur.getEmailExecState();
+        this.smsExecState = ur.getSmsExecState();
     }
 
     public boolean isTransportEnabled() {
@@ -96,6 +104,14 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
 
     public boolean isJsExecEnabled() {
         return !ApiUsageStateValue.DISABLED.equals(jsExecState);
+    }
+
+    public boolean isEmailSendEnabled(){
+        return !ApiUsageStateValue.DISABLED.equals(emailExecState);
+    }
+
+    public boolean isSmsSendEnabled(){
+        return !ApiUsageStateValue.DISABLED.equals(smsExecState);
     }
 
     @Override

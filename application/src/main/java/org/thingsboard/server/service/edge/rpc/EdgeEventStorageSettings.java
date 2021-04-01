@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,10 +38,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class EdgeEventStorageSettings {
-    @Value("${edges.rpc.storage.max_read_records_count}")
+    @Value("${edges.storage.max_read_records_count}")
     private int maxReadRecordsCount;
-    @Value("${edges.rpc.storage.no_read_records_sleep}")
+    @Value("${edges.storage.no_read_records_sleep}")
     private long noRecordsSleepInterval;
-    @Value("${edges.rpc.storage.sleep_between_batches}")
+    @Value("${edges.storage.sleep_between_batches}")
     private long sleepIntervalBetweenBatches;
 }

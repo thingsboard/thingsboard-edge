@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,10 +37,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AzureEventHubClientConfiguration {
 
-    private String namespaceName;
-    private String eventHubName;
-    private String sasKeyName;
-    private String sasKey;
+    private String connectionString;
     private String iotHubName;
 
     private int connectTimeoutSec;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,7 @@ import { TestScriptInputParams } from '@shared/models/rule-node.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { mergeMap } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { beautifyJs } from '@shared/models/beautify.models';
 
 export interface NodeScriptTestDialogData {
   script: string;
@@ -125,12 +126,17 @@ export class NodeScriptTestDialogComponent extends DialogComponent<NodeScriptTes
     this.nodeScriptTestFormGroup = this.fb.group({
       payload: this.fb.group({
         msgType: [this.data.msgType, [Validators.required]],
-        msg: [js_beautify(JSON.stringify(this.data.msg), {indent_size: 4}), []],
+        msg: [null, []],
       }),
       metadata: [this.data.metadata, [Validators.required]],
       script: [this.data.script, []],
       output: ['', []]
     });
+    beautifyJs(JSON.stringify(this.data.msg), {indent_size: 4}).subscribe(
+      (res) => {
+        this.nodeScriptTestFormGroup.get('payload').get('msg').patchValue(res, {emitEvent: false});
+      }
+    );
   }
 
   ngAfterViewInit(): void {
@@ -181,7 +187,11 @@ export class NodeScriptTestDialogComponent extends DialogComponent<NodeScriptTes
 
   test(): void {
     this.testNodeScript().subscribe((output) => {
-      this.nodeScriptTestFormGroup.get('output').setValue(js_beautify(output, {indent_size: 4}));
+      beautifyJs(output, {indent_size: 4}).subscribe(
+        (res) => {
+          this.nodeScriptTestFormGroup.get('output').setValue(res);
+        }
+      );
     });
   }
 

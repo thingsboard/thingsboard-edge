@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import java.util.Map;
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.*Test"})
 public class ContainerTestSuite {
 
-    private static DockerComposeContainer testContainer;
+    private static DockerComposeContainer<?> testContainer;
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
@@ -58,7 +58,7 @@ public class ContainerTestSuite {
     public static DockerComposeContainer getTestContainer() {
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
-            testContainer = new DockerComposeContainer(
+            testContainer = new DockerComposeContainer<>(
                     new File("./../../docker/docker-compose.yml"),
                     new File("./../../docker/docker-compose.postgres.yml"),
                     new File("./../../docker/docker-compose.postgres.volumes.yml"),

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,8 @@ package org.thingsboard.integration.tcpip.tcp;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -41,28 +43,24 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
-import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 @Slf4j
 public class BasicTcpIntegration extends AbstractIpIntegration {
@@ -140,8 +138,8 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
                                 delimiters);
                         socketChannel.pipeline()
                                 .addLast("framer", framer)
-                                .addLast("tcpStringHandler", new AbstractChannelHandler<ByteBuf>(BasicTcpIntegration.this::toByteArray, Objects::isNull) {
-                                });
+                                .addLast("tcpTextDecoder", new BasicTcpIntegration.AbstractTcpMsgDecoder<ByteBuf, byte[]>(BasicTcpIntegration.this::toByteArray){})
+                                .addLast("tcpStringHandler", new AbstractChannelHandler<byte[]>(msg -> msg, Objects::isNull) {});
                     }
                 };
             case JSON_PAYLOAD:
@@ -151,7 +149,8 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
                         try {
                             socketChannel.pipeline()
                                     .addLast("datagramToJsonDecoder", new JsonObjectDecoder())
-                                    .addLast("tcpJsonHandler", new AbstractChannelHandler<ByteBuf>(BasicTcpIntegration.this::toByteArray, BasicTcpIntegration.this::isEmptyFrame) {});
+                                    .addLast("tcpJsonDecoder", new BasicTcpIntegration.AbstractTcpMsgDecoder<ByteBuf, byte[]>(BasicTcpIntegration.this::toByteArray){})
+                                    .addLast("tcpJsonHandler", new AbstractChannelHandler<byte[]>(msg -> msg, Objects::isNull) {});
                         } catch (Exception e) {
                             log.error("Init Channel Exception: {}", e.getMessage(), e);
                             throw new RuntimeException(e);
@@ -176,11 +175,42 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
                         );
                         socketChannel.pipeline()
                                 .addLast("tcpByteDecoder", framer)
-                                .addLast("tcpByteHandler", new AbstractChannelHandler<ByteBuf>(BasicTcpIntegration.this::toByteArray, BasicTcpIntegration.this::isEmptyFrame) {});
+                                .addLast("tcpByteDecoderOverride", new BasicTcpIntegration.AbstractTcpMsgDecoder<ByteBuf, byte[]>(BasicTcpIntegration.this::toByteArray){})
+                                .addLast("tcpByteHandler", new AbstractChannelHandler<byte[]>(msg -> msg, Objects::isNull) {});
                     }
                 };
             default:
                 throw new RuntimeException("Unknown handler configuration type");
+        }
+    }
+
+    @Override
+    protected void sendDownlink(ChannelHandlerContext deviceCtx, String entityName) {
+        if (!deviceCtx.isRemoved()) {
+            for (DownlinkData downlinkData : devicesDownlinkData.get(entityName)) {
+                deviceCtx.write(Unpooled.wrappedBuffer(downlinkData.getData()));
+                deviceCtx.write(Unpooled.wrappedBuffer("\n".getBytes()));
+            }
+            deviceCtx.flush();
+            devicesDownlinkData.remove(entityName);
+        } else {
+            connectedDevicesContexts.remove(entityName);
+        }
+    }
+
+    @AllArgsConstructor
+    private abstract class AbstractTcpMsgDecoder<T, R> extends MessageToMessageDecoder<T> {
+
+        private Function<T, R> transformer;
+
+        @Override
+        protected void decode(ChannelHandlerContext ctx, T msg, List<Object> out) throws Exception {
+            try {
+                out.add(new RawIpIntegrationMsg<R>(ctx.pipeline().channel().remoteAddress(), transformer.apply(msg)));
+            } catch (Exception e) {
+                log.error("[{}] Exception during of decoding message", e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
         }
     }
 }

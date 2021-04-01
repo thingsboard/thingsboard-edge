@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -121,6 +121,15 @@ export interface DashboardConfiguration {
 
 export interface Dashboard extends DashboardInfo {
   configuration?: DashboardConfiguration;
+}
+
+export interface HomeDashboard extends Dashboard {
+  hideDashboardToolbar: boolean;
+}
+
+export interface HomeDashboardInfo {
+  dashboardId: DashboardId;
+  hideDashboardToolbar: boolean;
 }
 
 export function isPublicDashboard(dashboard: DashboardInfo): boolean {

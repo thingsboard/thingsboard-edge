@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,11 +32,14 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -49,13 +52,15 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
+import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.TbClusterService;
-import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 @Slf4j
@@ -70,6 +75,9 @@ public abstract class BaseProcessor {
     protected DeviceService deviceService;
 
     @Autowired
+    protected TbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
     protected DashboardService dashboardService;
 
     @Autowired
@@ -77,6 +85,9 @@ public abstract class BaseProcessor {
 
     @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected EdgeService edgeService;
 
     @Autowired
     protected CustomerService customerService;
@@ -111,7 +122,7 @@ public abstract class BaseProcessor {
     protected ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
                                                         EdgeId edgeId,
                                                         EdgeEventType type,
-                                                        ActionType action,
+                                                        EdgeEventActionType action,
                                                         EntityId entityId,
                                                         JsonNode body) {
         log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
@@ -122,11 +133,23 @@ public abstract class BaseProcessor {
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setEdgeId(edgeId);
         edgeEvent.setType(type);
-        edgeEvent.setAction(action.name());
+        edgeEvent.setAction(action);
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
         }
         edgeEvent.setBody(body);
-        return edgeEventService.saveAsync(edgeEvent);
+        ListenableFuture<EdgeEvent> future = edgeEventService.saveAsync(edgeEvent);
+        Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
+            @Override
+            public void onSuccess(@Nullable EdgeEvent result) {
+                tbClusterService.onEdgeEventUpdate(tenantId, edgeId);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Can't save edge event [{}] for edge [{}]", tenantId.getId(), edgeEvent, edgeId.getId(), t);
+            }
+        }, dbCallbackExecutorService);
+        return future;
     }
 }

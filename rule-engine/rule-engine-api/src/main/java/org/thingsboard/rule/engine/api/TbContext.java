@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,17 +33,22 @@ package org.thingsboard.rule.engine.api;
 import io.netty.channel.EventLoopGroup;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -55,8 +60,8 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -166,6 +171,8 @@ public interface TbContext {
     // TODO: Does this changes the message?
     TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action);
 
+    void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
+
     /*
      *
      *  METHODS TO PROCESS THE MESSAGES
@@ -175,6 +182,10 @@ public interface TbContext {
     boolean isLocalEntity(EntityId entityId);
 
     RuleNodeId getSelfId();
+
+    RuleNode getSelf();
+
+    String getRuleChainName();
 
     TenantId getTenantId();
 
@@ -216,11 +227,17 @@ public interface TbContext {
 
     ListeningExecutor getMailExecutor();
 
+    ListeningExecutor getSmsExecutor();
+
     ListeningExecutor getDbCallbackExecutor();
 
     ListeningExecutor getExternalCallExecutor();
 
     MailService getMailService();
+
+    SmsService getSmsService();
+
+    SmsSenderFactory getSmsSenderFactory();
 
     ScriptEngine createJsScriptEngine(String script, String... argNames);
 
@@ -244,9 +261,6 @@ public interface TbContext {
 
     TbResultSetFuture submitCassandraTask(CassandraStatementTask task);
 
-    @Deprecated
-    RedisTemplate<String, Object> getRedisTemplate();
-
     PageData<RuleNodeState> findRuleNodeStates(PageLink pageLink);
 
     RuleNodeState findRuleNodeStateForEntity(EntityId entityId);
@@ -257,7 +271,11 @@ public interface TbContext {
 
     void clearRuleNodeStates();
 
+    void addTenantProfileListener(Consumer<TenantProfile> listener);
+
     void addDeviceProfileListeners(Consumer<DeviceProfile> listener, BiConsumer<DeviceId, DeviceProfile> deviceListener);
 
-    void removeProfileListener();
+    void removeListeners();
+
+    TenantProfile getTenantProfile();
 }

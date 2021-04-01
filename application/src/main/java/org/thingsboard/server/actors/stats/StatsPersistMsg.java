@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,10 +43,10 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 @ToString
 public final class StatsPersistMsg implements TbActorMsg {
 
-    private long messagesProcessed;
-    private long errorsOccurred;
-    private TenantId tenantId;
-    private EntityId entityId;
+    private final long messagesProcessed;
+    private final long errorsOccurred;
+    private final TenantId tenantId;
+    private final EntityId entityId;
 
     @Override
     public MsgType getMsgType() {

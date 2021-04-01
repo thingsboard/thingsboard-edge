@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.dao.service;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,6 +53,9 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class BaseDeviceProfileServiceTest extends AbstractServiceTest {
@@ -125,6 +132,23 @@ public class BaseDeviceProfileServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(foundDefaultDeviceProfileInfo.getId());
         Assert.assertNotNull(foundDefaultDeviceProfileInfo.getName());
         Assert.assertNotNull(foundDefaultDeviceProfileInfo.getType());
+    }
+
+    @Test
+    public void testFindOrCreateDeviceProfile() throws ExecutionException, InterruptedException {
+        ListeningExecutorService testExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(100));
+        try {
+            List<ListenableFuture<DeviceProfile>> futures = new ArrayList<>();
+            for (int i = 0; i < 50; i ++) {
+                futures.add(testExecutor.submit(() -> deviceProfileService.findOrCreateDeviceProfile(tenantId, "Device Profile 1")));
+                futures.add(testExecutor.submit(() -> deviceProfileService.findOrCreateDeviceProfile(tenantId, "Device Profile 2")));
+            }
+
+            List<DeviceProfile> deviceProfiles = Futures.allAsList(futures).get();
+            deviceProfiles.forEach(Assert::assertNotNull);
+        } finally {
+            testExecutor.shutdownNow();
+        }
     }
 
     @Test

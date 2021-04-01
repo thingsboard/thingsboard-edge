@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import {Component, forwardRef, Input, OnDestroy, OnInit} from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -48,9 +48,19 @@ import {
   DeviceCredentials,
   DeviceCredentialsType
 } from '@shared/models/device.models';
-import { Subscription } from 'rxjs';
-import { isDefinedAndNotNull } from '@core/utils';
-import { distinctUntilChanged } from 'rxjs/operators';
+import {Subscription} from 'rxjs';
+import {distinctUntilChanged} from 'rxjs/operators';
+import {SecurityConfigComponent} from '@home/pages/device/lwm2m/security-config.component';
+import {
+  DEFAULT_END_POINT,
+  DeviceCredentialsDialogLwm2mData,
+  END_POINT,
+  getDefaultSecurityConfig,
+  JSON_ALL_CONFIG, SecurityConfigModels, validateSecurityConfig
+} from '@home/pages/device/lwm2m/security-config.models';
+import {TranslateService} from '@ngx-translate/core';
+import {MatDialog} from '@angular/material/dialog';
+import {isDefinedAndNotNull} from '@core/utils';
 
 @Component({
   selector: 'tb-device-credentials',
@@ -91,7 +101,9 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
 
   private propagateChange = (v: any) => {};
 
-  constructor(public fb: FormBuilder) {
+  constructor(public fb: FormBuilder,
+              private translate: TranslateService,
+              private dialog: MatDialog) {
     this.deviceCredentialsFormGroup = this.fb.group({
       credentialsType: [DeviceCredentialsType.ACCESS_TOKEN],
       credentialsId: [null],
@@ -205,6 +217,13 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
         this.deviceCredentialsFormGroup.get('credentialsId').updateValueAndValidity({emitEvent: false});
         this.deviceCredentialsFormGroup.get('credentialsBasic').disable({emitEvent: false});
         break;
+      case DeviceCredentialsType.LWM2M_CREDENTIALS:
+        this.deviceCredentialsFormGroup.get('credentialsValue').setValidators([Validators.required, this.jsonValidator]);
+        this.deviceCredentialsFormGroup.get('credentialsValue').updateValueAndValidity({emitEvent: false});
+        this.deviceCredentialsFormGroup.get('credentialsId').setValidators([]);
+        this.deviceCredentialsFormGroup.get('credentialsId').updateValueAndValidity({emitEvent: false});
+        this.deviceCredentialsFormGroup.get('credentialsBasic').disable({emitEvent: false});
+        break;
       case DeviceCredentialsType.MQTT_BASIC:
         this.deviceCredentialsFormGroup.get('credentialsBasic').enable({emitEvent: false});
         this.deviceCredentialsFormGroup.get('credentialsBasic').updateValueAndValidity({emitEvent: false});
@@ -212,6 +231,7 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
         this.deviceCredentialsFormGroup.get('credentialsId').updateValueAndValidity({emitEvent: false});
         this.deviceCredentialsFormGroup.get('credentialsValue').setValidators([]);
         this.deviceCredentialsFormGroup.get('credentialsValue').updateValueAndValidity({emitEvent: false});
+        break;
     }
   }
 
@@ -237,5 +257,49 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
       emitEvent: false,
       onlySelf: true
     });
+  }
+
+  openSecurityInfoLwM2mDialog($event: Event): void {
+    if ($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+    }
+    let credentialsValue = this.deviceCredentialsFormGroup.get('credentialsValue').value;
+    if (credentialsValue === null || credentialsValue.length === 0) {
+      credentialsValue = getDefaultSecurityConfig();
+    } else {
+      try {
+        credentialsValue = JSON.parse(credentialsValue);
+      } catch (e) {
+        credentialsValue = getDefaultSecurityConfig();
+      }
+    }
+    const credentialsId = this.deviceCredentialsFormGroup.get('credentialsId').value || DEFAULT_END_POINT;
+    this.dialog.open<SecurityConfigComponent, DeviceCredentialsDialogLwm2mData, object>(SecurityConfigComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        jsonAllConfig: credentialsValue,
+        endPoint: credentialsId
+      }
+    }).afterClosed().subscribe(
+      (res) => {
+        if (res) {
+          this.deviceCredentialsFormGroup.patchValue({
+            credentialsValue: this.isDefautLw2mResponse(res[JSON_ALL_CONFIG]) ? null : JSON.stringify(res[JSON_ALL_CONFIG]),
+            credentialsId: this.isDefautLw2mResponse(res[END_POINT]) ? null : JSON.stringify(res[END_POINT]).split('\"').join('')
+          });
+          this.deviceCredentialsFormGroup.get('credentialsValue').markAsDirty();
+        }
+      }
+    );
+  }
+
+  private isDefautLw2mResponse(response: object): boolean {
+    return Object.keys(response).length === 0 || JSON.stringify(response) === '[{}]';
+  }
+
+  private jsonValidator(control: FormControl) {
+    return validateSecurityConfig(control.value) ? null: {jsonError: {parsedJson: "error"}};
   }
 }

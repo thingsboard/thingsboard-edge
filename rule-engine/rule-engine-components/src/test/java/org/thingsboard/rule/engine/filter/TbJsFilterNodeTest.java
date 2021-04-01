@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,10 +37,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -81,7 +80,6 @@ public class TbJsFilterNodeTest {
     public void falseEvaluationDoNotSendMsg() throws TbNodeException, ScriptException {
         initWithScript();
         TbMsg msg = TbMsg.newMsg("USER", null, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
-        mockJsExecutor();
         when(scriptEngine.executeFilterAsync(msg)).thenReturn(Futures.immediateFuture(false));
 
         node.onMsg(ctx, msg);
@@ -94,7 +92,6 @@ public class TbJsFilterNodeTest {
         initWithScript();
         TbMsgMetaData metaData = new TbMsgMetaData();
         TbMsg msg = TbMsg.newMsg("USER", null, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
-        mockJsExecutor();
         when(scriptEngine.executeFilterAsync(msg)).thenReturn(Futures.immediateFailedFuture(new ScriptException("error")));
 
 
@@ -107,7 +104,6 @@ public class TbJsFilterNodeTest {
         initWithScript();
         TbMsgMetaData metaData = new TbMsgMetaData();
         TbMsg msg = TbMsg.newMsg("USER", null, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
-        mockJsExecutor();
         when(scriptEngine.executeFilterAsync(msg)).thenReturn(Futures.immediateFuture(true));
 
         node.onMsg(ctx, msg);
@@ -125,18 +121,6 @@ public class TbJsFilterNodeTest {
 
         node = new TbJsFilterNode();
         node.init(ctx, nodeConfiguration);
-    }
-
-    private void mockJsExecutor() {
-        when(ctx.getJsExecutor()).thenReturn(executor);
-        doAnswer((Answer<ListenableFuture<Boolean>>) invocationOnMock -> {
-            try {
-                Callable task = (Callable) (invocationOnMock.getArguments())[0];
-                return Futures.immediateFuture((Boolean) task.call());
-            } catch (Throwable th) {
-                return Futures.immediateFailedFuture(th);
-            }
-        }).when(executor).executeAsync(Matchers.any(Callable.class));
     }
 
     private void verifyError(TbMsg msg, String message, Class expectedClass) {

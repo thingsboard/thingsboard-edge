@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -84,6 +84,8 @@ export class HomeDialogsService {
         return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'device.import', 'device.device-file');
       case EntityType.ASSET:
         return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'asset.import', 'asset.asset-file');
+      case EntityType.EDGE:
+        return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'edge.import', 'edge.edge-file');
     }
   }
 

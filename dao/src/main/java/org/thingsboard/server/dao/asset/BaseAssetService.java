@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -90,8 +91,10 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class BaseAssetService extends AbstractEntityService implements AssetService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ASSET_ID = "Incorrect assetId ";
+    public static final String TB_SERVICE_QUEUE = "TbServiceQueue";
 
     @Autowired
     private AssetDao assetDao;
@@ -101,6 +104,9 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private EntityService entityService;
 
     @Autowired
     private EntityViewService entityViewService;
@@ -292,12 +298,12 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         ListenableFuture<List<EntitySubtype>> tenantAssetTypes = assetDao.findTenantAssetTypesAsync(tenantId.getId());
         return Futures.transform(tenantAssetTypes,
-                assetTypes -> {
-                    if (assetTypes != null) {
-                        assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                    }
-                    return assetTypes;
-                }, MoreExecutors.directExecutor());
+            assetTypes -> {
+                if (assetTypes != null) {
+                    assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                }
+                return assetTypes;
+            }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -332,8 +338,10 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                 protected void validateCreate(TenantId tenantId, Asset asset) {
                     DefaultTenantProfileConfiguration profileConfiguration =
                             (DefaultTenantProfileConfiguration)tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-                    long maxAssets = profileConfiguration.getMaxAssets();
-                    validateNumberOfEntitiesPerTenant(tenantId, assetDao, maxAssets, EntityType.ASSET);
+                    if (!TB_SERVICE_QUEUE.equals(asset.getType())) {
+                        long maxAssets = profileConfiguration.getMaxAssets();
+                        validateNumberOfEntitiesPerTenant(tenantId, assetDao, maxAssets, EntityType.ASSET);
+                    }
                 }
 
                 @Override

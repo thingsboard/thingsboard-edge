@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,10 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,15 +46,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HomeDashboard;
+import org.thingsboard.server.common.data.HomeDashboardInfo;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -61,6 +70,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -71,13 +81,15 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
-
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 public class DashboardController extends BaseController {
 
     public static final String DASHBOARD_ID = "dashboardId";
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Value("${dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
@@ -139,12 +151,15 @@ public class DashboardController extends BaseController {
         try {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), dashboardId);
+
             dashboardService.deleteDashboard(getCurrentUser().getTenantId(), dashboardId);
             logEntityAction(dashboardId, dashboard,
                     null,
                     ActionType.DELETED, null, strDashboardId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), dashboardId, ActionType.DELETED);
+            sendDeleteNotificationMsg(getTenantId(), dashboardId, relatedEdgeIds);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DASHBOARD),
                     null,
@@ -342,5 +357,165 @@ public class DashboardController extends BaseController {
                 return false;
             }
         }).collect(Collectors.toList());
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/dashboard/home", method = RequestMethod.GET)
+    @ResponseBody
+    public HomeDashboard getHomeDashboard() throws ThingsboardException {
+        try {
+            SecurityUser securityUser = getCurrentUser();
+            if (securityUser.isSystemAdmin()) {
+                return null;
+            }
+            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+            JsonNode additionalInfo;
+            HomeDashboard homeDashboard = null;
+
+            boolean ownerWhiteLabelingAllowed = whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), user.getOwnerId());
+
+            if (ownerWhiteLabelingAllowed) {
+                additionalInfo = user.getAdditionalInfo();
+                homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
+            }
+            if (homeDashboard == null) {
+                if (securityUser.isCustomerUser() && ownerWhiteLabelingAllowed) {
+                    Customer customer = customerService.findCustomerById(securityUser.getTenantId(), securityUser.getCustomerId());
+                    additionalInfo = customer.getAdditionalInfo();
+                    homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
+                }
+                if (homeDashboard == null && ((securityUser.isTenantAdmin() && ownerWhiteLabelingAllowed) ||
+                        (securityUser.isCustomerUser() && whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), getTenantId())))) {
+                    Tenant tenant = tenantService.findTenantById(securityUser.getTenantId());
+                    additionalInfo = tenant.getAdditionalInfo();
+                    homeDashboard = extractHomeDashboardFromAdditionalInfo(additionalInfo);
+                }
+            }
+            return homeDashboard;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/tenant/dashboard/home/info", method = RequestMethod.GET)
+    @ResponseBody
+    public HomeDashboardInfo getTenantHomeDashboardInfo() throws ThingsboardException {
+        try {
+            checkWhiteLabelingPermissions(Operation.READ);
+            Tenant tenant = tenantService.findTenantById(getTenantId());
+            JsonNode additionalInfo = tenant.getAdditionalInfo();
+            DashboardId dashboardId = null;
+            boolean hideDashboardToolbar = true;
+            if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID) && !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {
+                String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                dashboardId = new DashboardId(toUUID(strDashboardId));
+                if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                    hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                }
+            }
+            return new HomeDashboardInfo(dashboardId, hideDashboardToolbar);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/dashboard/home/info", method = RequestMethod.GET)
+    @ResponseBody
+    public HomeDashboardInfo getCustomerHomeDashboardInfo() throws ThingsboardException {
+        try {
+            checkWhiteLabelingPermissions(Operation.READ);
+            Customer customer = customerService.findCustomerById(getTenantId(), getCurrentUser().getCustomerId());
+            JsonNode additionalInfo = customer.getAdditionalInfo();
+            DashboardId dashboardId = null;
+            boolean hideDashboardToolbar = true;
+            if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID) && !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {
+                String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                dashboardId = new DashboardId(toUUID(strDashboardId));
+                if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                    hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                }
+            }
+            return new HomeDashboardInfo(dashboardId, hideDashboardToolbar);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/tenant/dashboard/home/info", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void setTenantHomeDashboardInfo(@RequestBody HomeDashboardInfo homeDashboardInfo) throws ThingsboardException {
+        try {
+            checkWhiteLabelingPermissions(Operation.WRITE);
+            if (homeDashboardInfo.getDashboardId() != null) {
+                checkDashboardId(homeDashboardInfo.getDashboardId(), Operation.READ);
+            }
+            Tenant tenant = tenantService.findTenantById(getTenantId());
+            JsonNode additionalInfo = tenant.getAdditionalInfo();
+            if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
+                additionalInfo = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            }
+            if (homeDashboardInfo.getDashboardId() != null) {
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, homeDashboardInfo.getDashboardId().getId().toString());
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, homeDashboardInfo.isHideDashboardToolbar());
+            } else {
+                ((ObjectNode) additionalInfo).remove(HOME_DASHBOARD_ID);
+                ((ObjectNode) additionalInfo).remove(HOME_DASHBOARD_HIDE_TOOLBAR);
+            }
+            tenant.setAdditionalInfo(additionalInfo);
+            tenantService.saveTenant(tenant);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/dashboard/home/info", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void setCustomerHomeDashboardInfo(@RequestBody HomeDashboardInfo homeDashboardInfo) throws ThingsboardException {
+        try {
+            checkWhiteLabelingPermissions(Operation.WRITE);
+            if (homeDashboardInfo.getDashboardId() != null) {
+                checkDashboardId(homeDashboardInfo.getDashboardId(), Operation.READ);
+            }
+            Customer customer = customerService.findCustomerById(getTenantId(), getCurrentUser().getCustomerId());
+            JsonNode additionalInfo = customer.getAdditionalInfo();
+            if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
+                additionalInfo = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            }
+            if (homeDashboardInfo.getDashboardId() != null) {
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, homeDashboardInfo.getDashboardId().getId().toString());
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, homeDashboardInfo.isHideDashboardToolbar());
+            } else {
+                ((ObjectNode) additionalInfo).remove(HOME_DASHBOARD_ID);
+                ((ObjectNode) additionalInfo).remove(HOME_DASHBOARD_HIDE_TOOLBAR);
+            }
+            customer.setAdditionalInfo(additionalInfo);
+            customerService.saveCustomer(customer);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private HomeDashboard extractHomeDashboardFromAdditionalInfo(JsonNode additionalInfo) {
+        try {
+            if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID) && !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {
+                String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
+                Dashboard dashboard = checkDashboardId(dashboardId, Operation.READ);
+                boolean hideDashboardToolbar = true;
+                if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                    hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                }
+                return new HomeDashboard(dashboard, hideDashboardToolbar);
+            }
+        } catch (Exception e) {}
+        return null;
+    }
+
+    private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, operation);
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.io.Serializable;
+
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
@@ -43,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = NumericFilterPredicate.class, name = "NUMERIC"),
         @JsonSubTypes.Type(value = BooleanFilterPredicate.class, name = "BOOLEAN"),
         @JsonSubTypes.Type(value = ComplexFilterPredicate.class, name = "COMPLEX")})
-public interface KeyFilterPredicate {
+public interface KeyFilterPredicate extends Serializable {
 
     @JsonIgnore
     FilterPredicateType getType();

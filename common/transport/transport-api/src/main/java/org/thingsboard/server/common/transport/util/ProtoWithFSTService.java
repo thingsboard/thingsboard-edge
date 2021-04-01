@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,6 @@ package org.thingsboard.server.common.transport.util;
 import lombok.extern.slf4j.Slf4j;
 import org.nustaq.serialization.FSTConfiguration;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.msg.TbActorMsg;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 
 import java.util.Optional;
 
@@ -47,8 +45,9 @@ public class ProtoWithFSTService implements DataDecodingEncodingService {
     @Override
     public <T> Optional<T> decode(byte[] byteArray) {
         try {
-            T msg = (T) config.asObject(byteArray);
-            return Optional.of(msg);
+            @SuppressWarnings("unchecked")
+            T msg = byteArray != null && byteArray.length > 0 ? (T) config.asObject(byteArray) : null;
+            return Optional.ofNullable(msg);
         } catch (IllegalArgumentException e) {
             log.error("Error during deserialization message, [{}]", e.getMessage());
             return Optional.empty();

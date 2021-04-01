@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,7 +67,6 @@ public class DefaultTbRuleEngineRpcService implements TbRuleEngineDeviceRpcServi
     private final PartitionService partitionService;
     private final TbClusterService clusterService;
     private final TbServiceInfoProvider serviceInfoProvider;
-
 
     private final ConcurrentMap<UUID, Consumer<FromDeviceRpcResponse>> toDeviceRpcRequests = new ConcurrentHashMap<>();
 
@@ -177,8 +176,7 @@ public class DefaultTbRuleEngineRpcService implements TbRuleEngineDeviceRpcServi
         }
     }
 
-    @Override
-    public void sendRpcResponseToTbCore(String originServiceId, FromDeviceRpcResponse response) {
+    private void sendRpcResponseToTbCore(String originServiceId, FromDeviceRpcResponse response) {
         if (serviceId.equals(originServiceId)) {
             if (tbCoreRpcService.isPresent()) {
                 tbCoreRpcService.get().processRpcResponseFromRuleEngine(response);

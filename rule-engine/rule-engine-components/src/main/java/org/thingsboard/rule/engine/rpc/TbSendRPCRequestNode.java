@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,18 +51,10 @@ import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +73,6 @@ import java.util.concurrent.TimeUnit;
 )
 public class TbSendRPCRequestNode implements TbNode {
 
-    private static final ObjectMapper json = new ObjectMapper();
     private Random random = new Random();
     private Gson gson = new Gson();
     private JsonParser jsonParser = new JsonParser();
@@ -138,57 +129,17 @@ public class TbSendRPCRequestNode implements TbNode {
                     .restApiCall(restApiCall)
                     .build();
 
-            EdgeId edgeId = findRelatedEdgeId(ctx, msg);
-            if (edgeId != null) {
-                sendRpcRequestToEdgeDevice(ctx, msg, edgeId, request);
-            } else {
-                ctx.getRpcService().sendRpcRequestToDevice(request, ruleEngineDeviceRpcResponse -> {
-                    if (!ruleEngineDeviceRpcResponse.getError().isPresent()) {
-                        TbMsg next = ctx.newMsg(msg.getQueueName(), msg.getType(), msg.getOriginator(), msg.getMetaData(), ruleEngineDeviceRpcResponse.getResponse().orElse("{}"));
-                        ctx.enqueueForTellNext(next, TbRelationTypes.SUCCESS);
-                    } else {
-                        TbMsg next = ctx.newMsg(msg.getQueueName(), msg.getType(), msg.getOriginator(), msg.getMetaData(), wrap("error", ruleEngineDeviceRpcResponse.getError().get().name()));
-                        ctx.tellFailure(next, new RuntimeException(ruleEngineDeviceRpcResponse.getError().get().name()));
-                    }
-                });
-            }
+            ctx.getRpcService().sendRpcRequestToDevice(request, ruleEngineDeviceRpcResponse -> {
+                if (!ruleEngineDeviceRpcResponse.getError().isPresent()) {
+                    TbMsg next = ctx.newMsg(msg.getQueueName(), msg.getType(), msg.getOriginator(), msg.getMetaData(), ruleEngineDeviceRpcResponse.getResponse().orElse("{}"));
+                    ctx.enqueueForTellNext(next, TbRelationTypes.SUCCESS);
+                } else {
+                    TbMsg next = ctx.newMsg(msg.getQueueName(), msg.getType(), msg.getOriginator(), msg.getMetaData(), wrap("error", ruleEngineDeviceRpcResponse.getError().get().name()));
+                    ctx.tellFailure(next, new RuntimeException(ruleEngineDeviceRpcResponse.getError().get().name()));
+                }
+            });
             ctx.ack(msg);
         }
-    }
-
-    private EdgeId findRelatedEdgeId(TbContext ctx, TbMsg msg) {
-        List<EntityRelation> result =
-                ctx.getRelationService().findByToAndType(ctx.getTenantId(), msg.getOriginator(), EntityRelation.EDGE_TYPE, RelationTypeGroup.COMMON);
-        if (result != null && result.size() > 0) {
-            EntityRelation relationToEdge = result.get(0);
-            if (relationToEdge.getFrom() != null && relationToEdge.getFrom().getId() != null) {
-                return new EdgeId(relationToEdge.getFrom().getId());
-            }
-        }
-        return null;
-    }
-
-    private void sendRpcRequestToEdgeDevice(TbContext ctx, TbMsg msg, EdgeId edgeId, RuleEngineDeviceRpcRequest request) {
-        EdgeEvent edgeEvent = new EdgeEvent();
-        edgeEvent.setTenantId(ctx.getTenantId());
-        edgeEvent.setAction(ActionType.RPC_CALL.name());
-        edgeEvent.setEntityId(request.getDeviceId().getId());
-        edgeEvent.setType(EdgeEventType.DEVICE);
-        edgeEvent.setBody(json.valueToTree(request));
-        edgeEvent.setEdgeId(edgeId);
-        ListenableFuture<EdgeEvent> saveFuture = ctx.getEdgeEventService().saveAsync(edgeEvent);
-        Futures.addCallback(saveFuture, new FutureCallback<EdgeEvent>() {
-            @Override
-            public void onSuccess(@Nullable EdgeEvent event) {
-                ctx.tellSuccess(msg);
-            }
-
-            @Override
-            public void onFailure(Throwable th) {
-                log.error("Could not save edge event", th);
-                ctx.tellFailure(msg, th);
-            }
-        }, ctx.getDbCallbackExecutor());
     }
 
     @Override

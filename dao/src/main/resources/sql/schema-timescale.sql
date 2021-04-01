@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -106,8 +106,8 @@ $$
 DECLARE
     tenant_cursor CURSOR FOR select tenant.id as tenant_id
                              from tenant;
-    tenant_id_record     varchar;
-    customer_id_record   varchar;
+    tenant_id_record     uuid;
+    customer_id_record   uuid;
     tenant_ttl           bigint;
     customer_ttl         bigint;
     deleted_for_entities bigint;

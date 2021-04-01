@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,18 +30,16 @@
  */
 package org.thingsboard.server.queue.discovery;
 
-import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
+import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -49,7 +47,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 
 import javax.annotation.PostConstruct;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,7 +58,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -141,7 +137,7 @@ public class HashPartitionService implements PartitionService {
     }
 
     @Override
-    public void recalculatePartitions(ServiceInfo currentService, List<ServiceInfo> otherServices) {
+    public synchronized void recalculatePartitions(ServiceInfo currentService, List<ServiceInfo> otherServices) {
         logServiceInfo(currentService);
         otherServices.forEach(this::logServiceInfo);
         Map<ServiceQueueKey, List<ServiceInfo>> queueServicesMap = new HashMap<>();
@@ -149,7 +145,7 @@ public class HashPartitionService implements PartitionService {
         for (ServiceInfo other : otherServices) {
             addNode(queueServicesMap, other);
         }
-        queueServicesMap.values().forEach(list -> list.sort((a, b) -> a.getServiceId().compareTo(b.getServiceId())));
+        queueServicesMap.values().forEach(list -> list.sort(Comparator.comparing(ServiceInfo::getServiceId)));
 
         ConcurrentMap<ServiceQueueKey, List<Integer>> oldPartitions = myPartitions;
         TenantId myIsolatedOrSystemTenantId = getSystemOrIsolatedTenantId(currentService);
@@ -210,9 +206,11 @@ public class HashPartitionService implements PartitionService {
         if (current.getServiceTypesList().contains(serviceType.name())) {
             result.add(current.getServiceId());
         }
-        for (ServiceInfo serviceInfo : currentOtherServices) {
-            if (serviceInfo.getServiceTypesList().contains(serviceType.name())) {
-                result.add(serviceInfo.getServiceId());
+        if (currentOtherServices != null) {
+            for (ServiceInfo serviceInfo : currentOtherServices) {
+                if (serviceInfo.getServiceTypesList().contains(serviceType.name())) {
+                    result.add(serviceInfo.getServiceId());
+                }
             }
         }
         return result;

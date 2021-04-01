@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,13 @@ package org.thingsboard.rule.engine.telemetry;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -46,10 +48,12 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RuleNode(
@@ -65,10 +69,20 @@ import java.util.Map;
 public class TbMsgTimeseriesNode implements TbNode {
 
     private TbMsgTimeseriesNodeConfiguration config;
+    private TbContext ctx;
+    private long tenantProfileDefaultStorageTtl;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgTimeseriesNodeConfiguration.class);
+        this.ctx = ctx;
+        ctx.addTenantProfileListener(this::onTenantProfileUpdate);
+        onTenantProfileUpdate(ctx.getTenantProfile());
+    }
+
+    void onTenantProfileUpdate(TenantProfile tenantProfile) {
+        DefaultTenantProfileConfiguration configuration = (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
+        tenantProfileDefaultStorageTtl = TimeUnit.DAYS.toSeconds(configuration.getDefaultStorageTtlDays());
     }
 
     @Override
@@ -92,6 +106,9 @@ public class TbMsgTimeseriesNode implements TbNode {
         }
         String ttlValue = msg.getMetaData().getValue("TTL");
         long ttl = !StringUtils.isEmpty(ttlValue) ? Long.parseLong(ttlValue) : config.getDefaultTTL();
+        if (ttl == 0L) {
+            ttl = tenantProfileDefaultStorageTtl;
+        }
         ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg));
     }
 
@@ -111,6 +128,7 @@ public class TbMsgTimeseriesNode implements TbNode {
 
     @Override
     public void destroy() {
+        ctx.removeListeners();
     }
 
 }

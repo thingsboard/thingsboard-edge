@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,6 +67,8 @@ public class DefaultDeviceAuthService implements DeviceAuthService {
                         // primitive case;
                         return DeviceAuthResult.of(credentials.getDeviceId());
                     case X509_CERTIFICATE:
+                        return DeviceAuthResult.of(credentials.getDeviceId());
+                    case LWM2M_CREDENTIALS:
                         return DeviceAuthResult.of(credentials.getDeviceId());
                     default:
                         return DeviceAuthResult.of("Credentials Type is not supported yet!");

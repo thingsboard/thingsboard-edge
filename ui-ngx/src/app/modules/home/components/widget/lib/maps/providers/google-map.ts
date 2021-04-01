@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 
 import L from 'leaflet';
 import LeafletMap from '../leaflet-map';
-import { UnitedMapSettings } from '../map-models';
+import { DEFAULT_ZOOM_LEVEL, UnitedMapSettings } from '../map-models';
 import 'leaflet.gridlayer.googlemutant';
 import { ResourcesService } from '@core/services/resources.service';
 import { WidgetContext } from '@home/models/widget-component.models';
@@ -54,7 +54,7 @@ export class GoogleMap extends LeafletMap {
       const map = L.map($container, {
         attributionControl: false,
         editable: !!options.editablePolygon
-      }).setView(options?.defaultCenterPosition, options?.defaultZoomLevel);
+      }).setView(options?.defaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
       (L.gridLayer as any).googleMutant({
         type: options?.gmDefaultMapType || 'roadmap'
       }).addTo(map);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -67,6 +67,8 @@ export class ComplexFilterPredicateComponent implements ControlValueAccessor, On
 
   @Input() allowUserDynamicSource = true;
 
+  @Input() onlyUserDynamicSource = false;
+
   private propagateChange = null;
 
   private complexFilterPredicate: ComplexFilterPredicateInfo;
@@ -92,7 +94,7 @@ export class ComplexFilterPredicateComponent implements ControlValueAccessor, On
     this.complexFilterPredicate = predicate;
   }
 
-  private openComplexFilterDialog() {
+  public openComplexFilterDialog() {
     this.dialog.open<ComplexFilterPredicateDialogComponent, ComplexFilterPredicateDialogData,
       ComplexFilterPredicateInfo>(ComplexFilterPredicateDialogComponent, {
       disableClose: true,
@@ -104,7 +106,8 @@ export class ComplexFilterPredicateComponent implements ControlValueAccessor, On
         isAdd: false,
         key: this.key,
         displayUserParameters: this.displayUserParameters,
-        allowUserDynamicSource: this.allowUserDynamicSource
+        allowUserDynamicSource: this.allowUserDynamicSource,
+        onlyUserDynamicSource: this.onlyUserDynamicSource
       }
     }).afterClosed().subscribe(
       (result) => {

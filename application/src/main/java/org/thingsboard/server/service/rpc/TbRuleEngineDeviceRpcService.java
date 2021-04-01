@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,14 +43,4 @@ public interface TbRuleEngineDeviceRpcService extends RuleEngineRpcService {
      * @param response the RPC response
      */
     void processRpcResponseFromDevice(FromDeviceRpcResponse response);
-
-
-    /**
-     * Sends Rpc response from the Device to TB Core.
-     *
-     * @param originServiceId Service ID of the origin component
-     * @param response the RPC response
-     */
-    void sendRpcResponseToTbCore(String originServiceId, FromDeviceRpcResponse response);
-
 }

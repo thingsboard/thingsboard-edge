@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,7 +102,7 @@ public class TbSnsNode implements TbNode {
     }
 
     private TbMsg publishMessage(TbContext ctx, TbMsg msg) {
-        String topicArn = TbNodeUtils.processPattern(this.config.getTopicArnPattern(), msg.getMetaData());
+        String topicArn = TbNodeUtils.processPattern(this.config.getTopicArnPattern(), msg);
         PublishRequest publishRequest = new PublishRequest()
                 .withTopicArn(topicArn)
                 .withMessage(msg.getData());

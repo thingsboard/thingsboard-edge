@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -137,6 +137,14 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  isEdgeScope() {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.isEdgeScope;
+    } else {
+      return false;
+    }
   }
 
 }

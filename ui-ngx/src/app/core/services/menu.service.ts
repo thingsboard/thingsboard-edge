@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { ActivationEnd, Params, Router } from '@angular/router';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Resource } from '@shared/models/security.models';
+import { Operation, Resource } from '@shared/models/security.models';
 import { AuthState } from '@core/auth/auth.models';
 import { CustomMenuItem } from '@shared/models/custom-menu.models';
 import { guid } from '@core/utils';
@@ -199,6 +199,14 @@ export class MenuService {
       },
       {
         id: guid(),
+        name: 'admin.sms-provider',
+        type: 'link',
+        path: '/settings/sms-provider',
+        icon: 'sms',
+        disabled: disabledItems.indexOf('sms_provider') > -1
+      },
+      {
+        id: guid(),
         name: 'white-labeling.white-labeling',
         type: 'link',
         path: '/settings/whiteLabel',
@@ -315,6 +323,12 @@ export class MenuService {
             disabled: disabledItems.indexOf('mail_templates') > -1
           },
           {
+            name: 'admin.sms-provider',
+            icon: 'sms',
+            path: '/settings/sms-provider',
+            disabled: disabledItems.indexOf('sms_provider') > -1
+          },
+          {
             name: 'admin.security-settings',
             icon: 'security',
             path: '/settings/security-settings',
@@ -380,37 +394,19 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
-      const pages: Array<MenuSection> = [
-        {
-          id: guid(),
-          name: 'rulechain.core-rulechains',
-          type: 'link',
-          path: '/ruleChains/core',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('core_rule_chains') > -1 //TODO deaflynx verify
-        },
-        {
-          id: guid(),
-          name: 'rulechain.edge-rulechains',
-          type: 'link',
-          path: '/ruleChains/edge',
-          icon: 'router',
-          disabled: disabledItems.indexOf('edge_rule_chains') > -1  //TODO deaflynx verify
-        }
-      ]
       sections.push(
         {
           id: guid(),
           name: 'rulechain.rulechains',
-          type: 'toggle',
+          type: 'link',
           path: '/ruleChains',
           icon: 'settings_ethernet',
-          pages,
-          asyncPages: of(pages)
+          disabled: disabledItems.indexOf('rule_chains') > -1
         }
       );
     }
@@ -490,8 +486,31 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+      const pages: Array<MenuSection> = [];
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.rulechain-templates',
+          type: 'link',
+          path: '/edges/ruleChains',
+          icon: 'settings_ethernet',
+          disabled: disabledItems.indexOf('rulechain_templates') > -1
+        }
+      );
       sections.push(this.createEntityGroupSection(EntityType.EDGE));
+      sections.push(
+        {
+          id: guid(),
+          name: 'edge.management',
+          type: 'toggle',
+          path: '/edges',
+          icon: 'settings_input_antenna',
+          pages,
+          asyncPages: of(pages)
+        }
+      );
+      sections.push();
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       sections.push(
@@ -524,6 +543,14 @@ export class MenuService {
       const pages: Array<MenuSection> = [
         {
           id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
+        {
+          id: guid(),
           name: 'admin.outgoing-mail',
           type: 'link',
           path: '/settings/outgoing-mail',
@@ -537,6 +564,14 @@ export class MenuService {
           path: '/settings/mail-template',
           icon: 'format_shapes',
           disabled: disabledItems.indexOf('mail_templates') > -1
+        },
+        {
+          id: guid(),
+          name: 'admin.sms-provider',
+          type: 'link',
+          path: '/settings/sms-provider',
+          icon: 'sms',
+          disabled: disabledItems.indexOf('sms_provider') > -1
         },
         {
           id: guid(),
@@ -600,6 +635,20 @@ export class MenuService {
           path: '/auditLogs',
           icon: 'track_changes',
           disabled: disabledItems.indexOf('audit_log') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'api-usage.api-usage',
+          type: 'link',
+          path: '/usage',
+          icon: 'insert_chart',
+          notExact: true,
+          disabled: disabledItems.indexOf('api_usage') > -1
         }
       );
     }
@@ -763,15 +812,21 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
           name: 'edge.management',
           places: [
             {
-              name: 'edge.edges',
+              name: 'edge.edge-instances',
               icon: 'router',
               path: '/edgeGroups',
+              disabled: disabledItems.indexOf('edge_groups') > -1
+            },
+            {
+              name: 'edge.rulechain-templates',
+              icon: 'settings_ethernet',
+              path: '/edges/ruleChains',
               disabled: disabledItems.indexOf('edge_groups') > -1
             }
           ]
@@ -829,6 +884,12 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
+            {
               name: 'admin.outgoing-mail',
               icon: 'mail',
               path: '/settings/outgoing-mail',
@@ -839,6 +900,12 @@ export class MenuService {
               icon: 'format_shapes',
               path: '/settings/mail-template',
               disabled: disabledItems.indexOf('mail_templates') > -1
+            },
+            {
+              name: 'admin.sms-provider',
+              icon: 'sms',
+              path: '/settings/sms-provider',
+              disabled: disabledItems.indexOf('sms_provider') > -1
             },
             {
               name: 'white-labeling.white-labeling',
@@ -882,20 +949,38 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
+      (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+      this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
+
+      const audit: HomeSection = {
+        name: 'audit-log.audit',
+        places: []
+      };
       homeSections.push(
-        {
-          name: 'audit-log.audit',
-          places: [
-            {
-              name: 'audit-log.audit-logs',
-              icon: 'track_changes',
-              path: '/auditLogs',
-              disabled: disabledItems.indexOf('audit_log') > -1
-            }
-          ]
-        }
+        audit
       );
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
+        audit.places.push(
+          {
+            name: 'audit-log.audit-logs',
+            icon: 'track_changes',
+            path: '/auditLogs',
+            disabled: disabledItems.indexOf('audit_log') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+        audit.places.push(
+          {
+            name: 'api-usage.api-usage',
+            icon: 'insert_chart',
+            path: '/usage',
+            disabled: disabledItems.indexOf('api_usage') > -1
+          }
+        );
+      }
     }
     return homeSections;
   }
@@ -909,6 +994,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -951,7 +1037,7 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.EDGE));
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
@@ -971,6 +1057,14 @@ export class MenuService {
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
         {
           id: guid(),
           name: 'custom-translation.custom-translation',
@@ -1129,13 +1223,13 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
           name: 'edge.management',
           places: [
             {
-              name: 'edge.edges',
+              name: 'edge.edge-instances',
               icon: 'router',
               path: '/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
@@ -1177,6 +1271,12 @@ export class MenuService {
         {
           name: 'white-labeling.white-labeling',
           places: [
+            {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
             {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',
@@ -1247,11 +1347,14 @@ export class MenuService {
         name: customMenuItem.name,
         icon: customMenuItem.materialIcon,
         iconUrl: customMenuItem.iconUrl,
+        notExact: true,
         path: '/iframeView'
       } as MenuSection;
       customMenuSection.queryParams = {
         stateId,
         iframeUrl: customMenuItem.iframeUrl,
+        dashboardId: customMenuItem.dashboardId,
+        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
         setAccessToken: customMenuItem.setAccessToken
       };
       if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
@@ -1268,14 +1371,19 @@ export class MenuService {
             type: 'link',
             icon: customMenuChildItem.materialIcon,
             iconUrl: customMenuChildItem.iconUrl,
+            notExact: true,
             path: '/iframeView/child'
           };
           customMenuChildSection.queryParams = {
             stateId,
             iframeUrl: customMenuItem.iframeUrl,
+            dashboardId: customMenuItem.dashboardId,
+            hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
             setAccessToken: customMenuItem.setAccessToken,
             childStateId,
             childIframeUrl: customMenuChildItem.iframeUrl,
+            childDashboardId: customMenuChildItem.dashboardId,
+            childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
             childSetAccessToken: customMenuChildItem.setAccessToken
           };
           pages.push(customMenuChildSection);

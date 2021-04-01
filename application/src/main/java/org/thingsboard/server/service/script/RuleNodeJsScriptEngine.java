@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,9 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import javax.script.ScriptException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -129,24 +131,34 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     }
 
     @Override
-    public TbMsg executeUpdate(TbMsg msg) throws ScriptException {
+    public List<TbMsg> executeUpdate(TbMsg msg) throws ScriptException {
         JsonNode result = executeScript(msg);
-        if (!result.isObject()) {
+        if (result.isObject()) {
+            return Collections.singletonList(unbindMsg(result, msg));
+        } else if (result.isArray()){
+            List<TbMsg> res = new ArrayList<>(result.size());
+            result.forEach(jsonObject -> res.add(unbindMsg(jsonObject, msg)));
+            return res;
+        } else {
             log.warn("Wrong result type: {}", result.getNodeType());
             throw new ScriptException("Wrong result type: " + result.getNodeType());
         }
-        return unbindMsg(result, msg);
     }
 
     @Override
-    public ListenableFuture<TbMsg> executeUpdateAsync(TbMsg msg) {
+    public ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg) {
         ListenableFuture<JsonNode> result = executeScriptAsync(msg);
         return Futures.transformAsync(result, json -> {
-            if (!json.isObject()) {
+            if (json.isObject()) {
+                return Futures.immediateFuture(Collections.singletonList(unbindMsg(json, msg)));
+            } else if (json.isArray()){
+                List<TbMsg> res = new ArrayList<>(json.size());
+                json.forEach(jsonObject -> res.add(unbindMsg(jsonObject, msg)));
+                return Futures.immediateFuture(res);
+            }
+            else{
                 log.warn("Wrong result type: {}", json.getNodeType());
                 return Futures.immediateFailedFuture(new ScriptException("Wrong result type: " + json.getNodeType()));
-            } else {
-                return Futures.immediateFuture(unbindMsg(json, msg));
             }
         }, MoreExecutors.directExecutor());
     }

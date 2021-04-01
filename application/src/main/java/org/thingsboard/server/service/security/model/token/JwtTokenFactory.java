@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,9 +31,14 @@
 package org.thingsboard.server.service.security.model.token;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,7 +48,9 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.config.JwtSettings;
+import org.thingsboard.server.service.security.exception.JwtExpiredTokenException;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
@@ -56,6 +63,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class JwtTokenFactory {
 
     private static final String SCOPES = "scopes";
@@ -116,9 +124,10 @@ public class JwtTokenFactory {
     }
 
     public SecurityUser parseAccessJwtToken(RawAccessJwtToken rawAccessToken) {
-        Jws<Claims> jwsClaims = rawAccessToken.parseClaims(settings.getTokenSigningKey());
+        Jws<Claims> jwsClaims = parseTokenClaims(rawAccessToken);
         Claims claims = jwsClaims.getBody();
         String subject = claims.getSubject();
+        @SuppressWarnings("unchecked")
         List<String> scopes = claims.get(SCOPES, List.class);
         if (scopes == null || scopes.isEmpty()) {
             throw new IllegalArgumentException("JWT Token doesn't have any scopes");
@@ -176,9 +185,10 @@ public class JwtTokenFactory {
     }
 
     public SecurityUser parseRefreshToken(RawAccessJwtToken rawAccessToken) {
-        Jws<Claims> jwsClaims = rawAccessToken.parseClaims(settings.getTokenSigningKey());
+        Jws<Claims> jwsClaims = parseTokenClaims(rawAccessToken);
         Claims claims = jwsClaims.getBody();
         String subject = claims.getSubject();
+        @SuppressWarnings("unchecked")
         List<String> scopes = claims.get(SCOPES, List.class);
         if (scopes == null || scopes.isEmpty()) {
             throw new IllegalArgumentException("Refresh Token doesn't have any scopes");
@@ -193,4 +203,17 @@ public class JwtTokenFactory {
         return securityUser;
     }
 
+    public Jws<Claims> parseTokenClaims(JwtToken token) {
+        try {
+            return Jwts.parser()
+                    .setSigningKey(settings.getTokenSigningKey())
+                    .parseClaimsJws(token.getToken());
+        } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+            log.debug("Invalid JWT Token", ex);
+            throw new BadCredentialsException("Invalid JWT token: ", ex);
+        } catch (ExpiredJwtException expiredEx) {
+            log.debug("JWT Token is expired", expiredEx);
+            throw new JwtExpiredTokenException(token, "JWT Token expired", expiredEx);
+        }
+    }
 }

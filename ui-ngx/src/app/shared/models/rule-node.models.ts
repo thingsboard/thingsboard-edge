@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import { AfterViewInit, EventEmitter, Inject, OnInit, Directive } from '@angular
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AbstractControl, FormGroup } from '@angular/forms';
+import { RuleChainType } from '@shared/models/rule-chain.models';
 
 export interface RuleNodeConfiguration {
   [key: string]: any;
@@ -340,6 +341,7 @@ export interface FcRuleNode extends FcRuleNodeType {
   error?: string;
   highlighted?: boolean;
   componentClazz?: string;
+  ruleChainType?: RuleChainType;
 }
 
 export interface FcRuleEdge extends FcEdge {
@@ -376,6 +378,8 @@ export enum MessageType {
   ENTITY_UNASSIGNED = 'ENTITY_UNASSIGNED',
   ATTRIBUTES_UPDATED = 'ATTRIBUTES_UPDATED',
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
+  TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
+  TIMESERIES_DELETED = 'TIMESERIES_DELETED',
   ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
   REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
   REST_API_REQUEST = 'REST_API_REQUEST',
@@ -399,6 +403,8 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ENTITY_UNASSIGNED, 'Entity Unassigned'],
     [MessageType.ATTRIBUTES_UPDATED, 'Attributes Updated'],
     [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
+    [MessageType.TIMESERIES_UPDATED, 'Timeseries Updated'],
+    [MessageType.TIMESERIES_DELETED, 'Timeseries Deleted'],
     [MessageType.ADDED_TO_ENTITY_GROUP, 'Added to Group'],
     [MessageType.REMOVED_FROM_ENTITY_GROUP, 'Removed from Group'],
     [MessageType.REST_API_REQUEST, 'REST API request'],
@@ -452,10 +458,14 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.rabbitmq.TbRabbitMqNode': 'ruleNodeRabbitMq',
   'org.thingsboard.rule.engine.rest.TbRestApiCallNode': 'ruleNodeRestApiCall',
   'org.thingsboard.rule.engine.mail.TbSendEmailNode': 'ruleNodeSendEmail',
+  'org.thingsboard.rule.engine.sms.TbSendSmsNode': 'ruleNodeSendSms',
+  'org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode': 'ruleNodePushToCloud',
+  'org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode': 'ruleNodePushToEdge',
   'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
   'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
   'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',
   'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode': 'ruleNodeDuplicateToGroup',
+  'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode': 'ruleNodeDuplicateToGroupByName',
   'org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode': 'ruleNodeDuplicateToRelated',
   'org.thingsboard.rule.engine.action.TbChangeOwnerNode': 'ruleNodeChangeOwner',
   'org.thingsboard.rule.engine.report.TbGenerateReportNode': 'ruleNodeGenerateReport',

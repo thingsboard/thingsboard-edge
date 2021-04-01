@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,7 @@
 package org.thingsboard.rule.engine.mqtt.azure;
 
 import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.mqtt.TbMqttNodeConfiguration;
-import org.thingsboard.rule.engine.mqtt.credentials.AnonymousCredentials;
-import org.thingsboard.rule.engine.mqtt.credentials.MqttClientCredentials;
 
 @Data
 public class TbAzureIotHubNodeConfiguration extends TbMqttNodeConfiguration {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -108,6 +108,14 @@ export class TableColumnsAssignmentComponent implements OnInit, ControlValueAcce
           { value: ImportEntityColumnType.timeseries }
         );
         break;
+      case EntityType.EDGE:
+        this.columnTypes.push(
+          { value: ImportEntityColumnType.edgeLicenseKey },
+          { value: ImportEntityColumnType.cloudEndpoint },
+          { value: ImportEntityColumnType.routingKey },
+          { value: ImportEntityColumnType.secret }
+        );
+        break;
     }
   }
 
@@ -133,6 +141,10 @@ export class TableColumnsAssignmentComponent implements OnInit, ControlValueAcce
     const isSelectCredentials = this.columns.findIndex((column) => column.type === ImportEntityColumnType.accessToken) > -1;
     const isSelectGateway = this.columns.findIndex((column) => column.type === ImportEntityColumnType.isGateway) > -1;
     const isSelectDescription = this.columns.findIndex((column) => column.type === ImportEntityColumnType.description) > -1;
+    const isSelectEdgeLicenseKey = this.columns.findIndex((column) => column.type === ImportEntityColumnType.edgeLicenseKey) > -1;
+    const isSelectCloudEndpoint = this.columns.findIndex((column) => column.type === ImportEntityColumnType.cloudEndpoint) > -1;
+    const isSelectRoutingKey = this.columns.findIndex((column) => column.type === ImportEntityColumnType.routingKey) > -1;
+    const isSelectSecret = this.columns.findIndex((column) => column.type === ImportEntityColumnType.secret) > -1;
     const hasInvalidColumn = this.columns.findIndex((column) => !this.columnValid(column)) > -1;
 
     this.valid = isSelectName && isSelectType && !hasInvalidColumn;
@@ -149,6 +161,22 @@ export class TableColumnsAssignmentComponent implements OnInit, ControlValueAcce
     const accessTokenColumnType = this.columnTypes.find((columnType) => columnType.value === ImportEntityColumnType.accessToken);
     if (accessTokenColumnType) {
       accessTokenColumnType.disabled = isSelectCredentials;
+    }
+    const edgeLicenseKeyColumnType = this.columnTypes.find((columnType) => columnType.value === ImportEntityColumnType.edgeLicenseKey);
+    if (edgeLicenseKeyColumnType) {
+      edgeLicenseKeyColumnType.disabled = isSelectEdgeLicenseKey;
+    }
+    const cloudEndpointColumnType = this.columnTypes.find((columnType) => columnType.value === ImportEntityColumnType.cloudEndpoint);
+    if (cloudEndpointColumnType) {
+      cloudEndpointColumnType.disabled = isSelectCloudEndpoint;
+    }
+    const routingKeyColumnType = this.columnTypes.find((columnType) => columnType.value === ImportEntityColumnType.routingKey);
+    if (routingKeyColumnType) {
+      routingKeyColumnType.disabled = isSelectRoutingKey;
+    }
+    const secretColumnType = this.columnTypes.find((columnType) => columnType.value === ImportEntityColumnType.secret);
+    if (secretColumnType) {
+      secretColumnType.disabled = isSelectSecret;
     }
     if (this.propagateChange) {
       this.propagateChange(this.columns);

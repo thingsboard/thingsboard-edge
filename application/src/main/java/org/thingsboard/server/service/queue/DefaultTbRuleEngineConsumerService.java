@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -155,11 +155,11 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
     }
 
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
-        if (partitionChangeEvent.getServiceType().equals(getServiceType())) {
-            ServiceQueue serviceQueue = partitionChangeEvent.getServiceQueueKey().getServiceQueue();
-            log.info("[{}] Subscribing to partitions: {}", serviceQueue.getQueue(), partitionChangeEvent.getPartitions());
-            consumers.get(serviceQueue.getQueue()).subscribe(partitionChangeEvent.getPartitions());
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        if (event.getServiceType().equals(getServiceType())) {
+            ServiceQueue serviceQueue = event.getServiceQueueKey().getServiceQueue();
+            log.info("[{}] Subscribing to partitions: {}", serviceQueue.getQueue(), event.getPartitions());
+            consumers.get(serviceQueue.getQueue()).subscribe(event.getPartitions());
         }
     }
 
@@ -196,7 +196,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
                                     new TbMsgPackCallback(id, tenantId, ctx, stats.getTimer(tenantId, SUCCESSFUL_STATUS), stats.getTimer(tenantId, FAILED_STATUS)) :
                                     new TbMsgPackCallback(id, tenantId, ctx);
                             try {
-                                if (toRuleEngineMsg.getTbMsg() != null && !toRuleEngineMsg.getTbMsg().isEmpty()) {
+                                if (!toRuleEngineMsg.getTbMsg().isEmpty()) {
                                     forwardToRuleEngineActor(configuration.getName(), tenantId, toRuleEngineMsg, callback);
                                 } else {
                                     callback.onSuccess();
@@ -224,6 +224,9 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
                         if (statsEnabled) {
                             stats.log(result, decision.isCommit());
                         }
+
+                        ctx.cleanup();
+
                         if (decision.isCommit()) {
                             submitStrategy.stop();
                             break;

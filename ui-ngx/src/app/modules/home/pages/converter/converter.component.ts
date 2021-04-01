@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -117,6 +117,8 @@ export class ConverterComponent extends EntityComponent<Converter> {
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
       form.get('type').patchValue(ConverterType.UPLINK, {emitEvent: true});
+    } else {
+      form.get('type').disable({emitEvent: false});
     }
   }
 
@@ -192,10 +194,13 @@ export class ConverterComponent extends EntityComponent<Converter> {
       .afterClosed().subscribe((result) => {
         if (result !== null) {
           if (isDecoder) {
-            this.entityForm.get('configuration').get('decoder').patchValue(result);
+            this.entityForm.get('configuration.decoder').patchValue(result);
+            this.entityForm.get('configuration.decoder').markAsDirty();
           } else {
-            this.entityForm.get('configuration').get('encoder').patchValue(result);
+            this.entityForm.get('configuration.encoder').patchValue(result);
+            this.entityForm.get('configuration.encoder').markAsDirty();
           }
+          this.entityForm.updateValueAndValidity();
         }
     });
   }

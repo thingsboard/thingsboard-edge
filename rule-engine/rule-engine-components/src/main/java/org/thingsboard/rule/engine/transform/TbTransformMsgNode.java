@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,8 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
+import java.util.List;
+
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "script",
@@ -67,7 +69,7 @@ public class TbTransformMsgNode extends TbAbstractTransformNode {
     }
 
     @Override
-    protected ListenableFuture<TbMsg> transform(TbContext ctx, TbMsg msg) {
+    protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
         ctx.logJsEvalRequest();
         return jsEngine.executeUpdateAsync(msg);
     }

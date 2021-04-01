@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import { DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/
 import { guid } from '@core/utils';
 import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { EntityId } from '@shared/models/id/entity-id';
 
 @Component({
   selector: 'tb-device-profile-alarms',
@@ -82,6 +83,9 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  deviceProfileId: EntityId;
 
   private valueChangeSubscription: Subscription = null;
 

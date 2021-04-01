@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -545,12 +545,12 @@ function cleanupThemeStyle(isLoginTheme: boolean) {
 }
 
 function applyThemeStyle(themeCss: string, isLoginTheme: boolean) {
-  const favicon = $('link[rel="icon"]');
+  const initialStyle = $('style#initial');
   const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
   let targetStyle = $(`#${target}`);
   if (!targetStyle.length) {
     targetStyle = $(`<style id="${target}"></style>`);
-    let afterStyle = favicon.next('style, link');
+    let afterStyle = initialStyle.next('style, link');
     if (isLoginTheme) {
       afterStyle = afterStyle.next('style, link');
       if (afterStyle.attr('id') === 'tb-app-theme') {

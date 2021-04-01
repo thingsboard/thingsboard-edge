@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -112,11 +112,11 @@ public class TbRabbitMqNode implements TbNode {
     private TbMsg publishMessage(TbContext ctx, TbMsg msg) throws Exception {
         String exchangeName = "";
         if (!StringUtils.isEmpty(this.config.getExchangeNamePattern())) {
-            exchangeName = TbNodeUtils.processPattern(this.config.getExchangeNamePattern(), msg.getMetaData());
+            exchangeName = TbNodeUtils.processPattern(this.config.getExchangeNamePattern(), msg);
         }
         String routingKey = "";
         if (!StringUtils.isEmpty(this.config.getRoutingKeyPattern())) {
-            routingKey = TbNodeUtils.processPattern(this.config.getRoutingKeyPattern(), msg.getMetaData());
+            routingKey = TbNodeUtils.processPattern(this.config.getRoutingKeyPattern(), msg);
         }
         AMQP.BasicProperties properties = null;
         if (!StringUtils.isEmpty(this.config.getMessageProperties())) {

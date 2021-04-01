@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -70,11 +70,15 @@ import { EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { DialogService } from '@core/services/dialog.service';
 import { AddEntityDialogComponent } from './add-entity-dialog.component';
 import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
-import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
+import {
+  calculateIntervalStartEndTime,
+  HistoryWindowType,
+  Timewindow
+} from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { isDefined, isUndefined } from '@core/utils';
-import { HasUUID } from '../../../../shared/models/id/has-uuid';
+import { HasUUID } from '@shared/models/id/has-uuid';
 
 @Component({
   selector: 'tb-entities-table',
@@ -217,7 +221,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
 
     if (this.entitiesTableConfig.useTimePageLink) {
-      this.timewindow = historyInterval(DAY);
+      this.timewindow = this.entitiesTableConfig.defaultTimewindowInterval;
       const currentTime = Date.now();
       this.pageLink = new TimePageLink(10, 0, null, sortOrder,
         currentTime - this.timewindow.history.timewindowMs, currentTime);
@@ -282,6 +286,10 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     return this.entitiesTableConfig.addEnabled;
   }
 
+  assignEnabled() {
+    return this.entitiesTableConfig.assignEnabled;
+  }
+
   clearSelection() {
     this.dataSource.selection.clear();
     this.cd.detectChanges();
@@ -311,6 +319,10 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
         const currentTime = Date.now();
         timePageLink.startTime = currentTime - this.timewindow.history.timewindowMs;
         timePageLink.endTime = currentTime;
+      } else if (this.timewindow.history.historyType === HistoryWindowType.INTERVAL) {
+        const startEndTime = calculateIntervalStartEndTime(this.timewindow.history.quickInterval);
+        timePageLink.startTime = startEndTime[0];
+        timePageLink.endTime = startEndTime[1];
       } else {
         timePageLink.startTime = this.timewindow.history.fixedTimewindow.startTimeMs;
         timePageLink.endTime = this.timewindow.history.fixedTimewindow.endTimeMs;
@@ -461,7 +473,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   resetSortAndFilter(update: boolean = true, preserveTimewindow: boolean = false) {
     this.pageLink.textSearch = null;
     if (this.entitiesTableConfig.useTimePageLink && !preserveTimewindow) {
-      this.timewindow = historyInterval(DAY);
+      this.timewindow = this.entitiesTableConfig.defaultTimewindowInterval;
     }
     if (this.displayPagination) {
       this.paginator.pageIndex = 0;
@@ -586,6 +598,21 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
 
   trackByEntityId(index: number, entity: BaseData<HasId>) {
     return entity.id.id;
+  }
+
+  assignEntityGroupsToEdge($event: Event) {
+    let entity$: Observable<BaseData<HasId>>;
+    if (this.entitiesTableConfig.assignEntity) {
+      entity$ = this.entitiesTableConfig.assignEntity();
+    }
+    entity$.subscribe(
+      (entity) => {
+        if (entity) {
+          this.updateData();
+          this.entitiesTableConfig.entityAssigned(entity);
+        }
+      }
+    );
   }
 
 }

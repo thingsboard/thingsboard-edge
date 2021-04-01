@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@ package org.thingsboard.rule.engine.mqtt;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.rule.engine.mqtt.credentials.AnonymousCredentials;
-import org.thingsboard.rule.engine.mqtt.credentials.MqttClientCredentials;
+import org.thingsboard.rule.engine.credentials.AnonymousCredentials;
+import org.thingsboard.rule.engine.credentials.ClientCredentials;
 
 @Data
 public class TbMqttNodeConfiguration implements NodeConfiguration<TbMqttNodeConfiguration> {
@@ -46,7 +46,7 @@ public class TbMqttNodeConfiguration implements NodeConfiguration<TbMqttNodeConf
 
     private boolean cleanSession;
     private boolean ssl;
-    private MqttClientCredentials credentials;
+    private ClientCredentials credentials;
 
     @Override
     public TbMqttNodeConfiguration defaultConfiguration() {

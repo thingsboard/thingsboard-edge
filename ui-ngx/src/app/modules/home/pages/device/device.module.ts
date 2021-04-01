@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,9 @@ import { DeviceComponent } from '@modules/home/pages/device/device.component';
 import { DeviceCredentialsDialogComponent } from '@modules/home/pages/device/device-credentials-dialog.component';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
+import { SecurityConfigComponent } from '@home/pages/device/lwm2m/security-config.component';
+import { SecurityConfigServerComponent } from '@home/pages/device/lwm2m/security-config-server.component';
 import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
 import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { DefaultDeviceConfigurationComponent } from './data/default-device-configuration.component';
@@ -45,6 +48,7 @@ import { DefaultDeviceTransportConfigurationComponent } from './data/default-dev
 import { DeviceTransportConfigurationComponent } from './data/device-transport-configuration.component';
 import { MqttDeviceTransportConfigurationComponent } from './data/mqtt-device-transport-configuration.component';
 import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-transport-configuration.component';
+import { CoapDeviceTransportConfigurationComponent } from './data/coap-device-transport-configuration.component';
 
 @NgModule({
   declarations: [
@@ -53,10 +57,14 @@ import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-
     DefaultDeviceTransportConfigurationComponent,
     MqttDeviceTransportConfigurationComponent,
     Lwm2mDeviceTransportConfigurationComponent,
+    CoapDeviceTransportConfigurationComponent,
     DeviceTransportConfigurationComponent,
     DeviceDataComponent,
     DeviceComponent,
-    DeviceCredentialsDialogComponent
+    DeviceTabsComponent,
+    DeviceCredentialsDialogComponent,
+    SecurityConfigComponent,
+    SecurityConfigServerComponent
   ],
   imports: [
     CommonModule,

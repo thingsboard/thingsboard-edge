@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ import java.util.UUID;
 public class RelationProcessor extends BaseProcessor {
 
     public ListenableFuture<Void> onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
-        log.info("onRelationUpdate {}", relationUpdateMsg);
+        log.trace("[{}] onRelationUpdate [{}]", tenantId, relationUpdateMsg);
         try {
             EntityRelation entityRelation = new EntityRelation();
 

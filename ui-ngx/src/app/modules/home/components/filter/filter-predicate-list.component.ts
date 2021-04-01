@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -80,6 +80,8 @@ export class FilterPredicateListComponent implements ControlValueAccessor, OnIni
   @Input() displayUserParameters = true;
 
   @Input() allowUserDynamicSource = true;
+
+  @Input() onlyUserDynamicSource = false;
 
   filterListFormGroup: FormGroup;
 
@@ -174,7 +176,8 @@ export class FilterPredicateListComponent implements ControlValueAccessor, OnIni
         key: this.key,
         isAdd: true,
         displayUserParameters: this.displayUserParameters,
-        allowUserDynamicSource: this.allowUserDynamicSource
+        allowUserDynamicSource: this.allowUserDynamicSource,
+        onlyUserDynamicSource: this.onlyUserDynamicSource
       }
     }).afterClosed().pipe(
       map((result) => {

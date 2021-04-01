@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,11 +47,15 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { CustomActionDescriptor } from '@shared/models/widget.models';
-import * as ace from 'ace-builds';
+import { Ace } from 'ace-builds';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
-import { css_beautify, html_beautify } from 'js-beautify';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { CustomPrettyActionEditorCompleter } from '@home/components/widget/action/custom-action.models';
+import { Observable } from 'rxjs/internal/Observable';
+import { forkJoin, from } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { getAce } from '@shared/models/ace/ace.models';
+import { beautifyCss, beautifyHtml } from '@shared/models/beautify.models';
 
 @Component({
   selector: 'tb-custom-action-pretty-resources-tabs',
@@ -79,11 +83,11 @@ export class CustomActionPrettyResourcesTabsComponent extends PageComponent impl
   htmlFullscreen = false;
   cssFullscreen = false;
 
-  aceEditors: ace.Ace.Editor[] = [];
+  aceEditors: Ace.Editor[] = [];
   editorsResizeCafs: {[editorId: string]: CancelAnimationFrame} = {};
   aceResize$: ResizeObserver;
-  htmlEditor: ace.Ace.Editor;
-  cssEditor: ace.Ace.Editor;
+  htmlEditor: Ace.Editor;
+  cssEditor: Ace.Editor;
   setValuesPending = false;
 
   customPrettyActionEditorCompleter = CustomPrettyActionEditorCompleter;
@@ -95,11 +99,12 @@ export class CustomActionPrettyResourcesTabsComponent extends PageComponent impl
   }
 
   ngOnInit(): void {
-    this.initAceEditors();
-    if (this.setValuesPending) {
-      this.setAceEditorValues();
-      this.setValuesPending = false;
-    }
+    this.initAceEditors().subscribe(() => {
+      if (this.setValuesPending) {
+        this.setAceEditorValues();
+        this.setValuesPending = false;
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -109,7 +114,7 @@ export class CustomActionPrettyResourcesTabsComponent extends PageComponent impl
   ngOnChanges(changes: SimpleChanges): void {
     for (const propName of Object.keys(changes)) {
       if (propName === 'action') {
-        if (this.aceEditors.length) {
+        if (this.aceEditors.length === 2) {
           this.setAceEditorValues();
         } else {
           this.setValuesPending = true;
@@ -150,51 +155,69 @@ export class CustomActionPrettyResourcesTabsComponent extends PageComponent impl
   }
 
   public beautifyCss(): void {
-    const res = css_beautify(this.action.customCss, {indent_size: 4});
-    if (this.action.customCss !== res) {
-      this.action.customCss = res;
-      this.cssEditor.setValue(this.action.customCss ? this.action.customCss : '', -1);
-      this.notifyActionUpdated();
-    }
+    beautifyCss(this.action.customCss, {indent_size: 4}).subscribe(
+      (res) => {
+        if (this.action.customCss !== res) {
+          this.action.customCss = res;
+          this.cssEditor.setValue(this.action.customCss ? this.action.customCss : '', -1);
+          this.notifyActionUpdated();
+        }
+      }
+    );
   }
 
   public beautifyHtml(): void {
-    const res = html_beautify(this.action.customHtml, {indent_size: 4, wrap_line_length: 60});
-    if (this.action.customHtml !== res) {
-      this.action.customHtml = res;
-      this.htmlEditor.setValue(this.action.customHtml ? this.action.customHtml : '', -1);
-      this.notifyActionUpdated();
-    }
+    beautifyHtml(this.action.customHtml, {indent_size: 4, wrap_line_length: 60}).subscribe(
+      (res) => {
+        if (this.action.customHtml !== res) {
+          this.action.customHtml = res;
+          this.htmlEditor.setValue(this.action.customHtml ? this.action.customHtml : '', -1);
+          this.notifyActionUpdated();
+        }
+      }
+    );
   }
 
-  private initAceEditors() {
+  private initAceEditors(): Observable<any> {
     this.aceResize$ = new ResizeObserver((entries) => {
       entries.forEach((entry) => {
         const editor = this.aceEditors.find(aceEditor => aceEditor.container === entry.target);
         this.onAceEditorResize(editor);
       });
     });
-    this.htmlEditor = this.createAceEditor(this.htmlInputElmRef, 'html');
-    this.htmlEditor.on('input', () => {
-      const editorValue = this.htmlEditor.getValue();
-      if (this.action.customHtml !== editorValue) {
-        this.action.customHtml = editorValue;
-        this.notifyActionUpdated();
-      }
-    });
-    this.cssEditor = this.createAceEditor(this.cssInputElmRef, 'css');
-    this.cssEditor.on('input', () => {
-      const editorValue = this.cssEditor.getValue();
-      if (this.action.customCss !== editorValue) {
-        this.action.customCss = editorValue;
-        this.notifyActionUpdated();
-      }
-    });
+    const editorsObservables: Observable<any>[] = [];
+
+    editorsObservables.push(this.createAceEditor(this.htmlInputElmRef, 'html').pipe(
+      tap((editor) => {
+        this.htmlEditor = editor;
+        this.htmlEditor.on('input', () => {
+          const editorValue = this.htmlEditor.getValue();
+          if (this.action.customHtml !== editorValue) {
+            this.action.customHtml = editorValue;
+            this.notifyActionUpdated();
+          }
+        });
+      })
+    ));
+
+    editorsObservables.push(this.createAceEditor(this.cssInputElmRef, 'css').pipe(
+      tap((editor) => {
+        this.cssEditor = editor;
+        this.cssEditor.on('input', () => {
+          const editorValue = this.cssEditor.getValue();
+          if (this.action.customCss !== editorValue) {
+            this.action.customCss = editorValue;
+            this.notifyActionUpdated();
+          }
+        });
+      })
+    ));
+    return forkJoin(editorsObservables);
   }
 
-  private createAceEditor(editorElementRef: ElementRef, mode: string): ace.Ace.Editor {
+  private createAceEditor(editorElementRef: ElementRef, mode: string): Observable<Ace.Editor> {
     const editorElement = editorElementRef.nativeElement;
-    let editorOptions: Partial<ace.Ace.EditorOptions> = {
+    let editorOptions: Partial<Ace.EditorOptions> = {
       mode: `ace/mode/${mode}`,
       showGutter: true,
       showPrintMargin: true
@@ -205,11 +228,15 @@ export class CustomActionPrettyResourcesTabsComponent extends PageComponent impl
       enableLiveAutocompletion: true
     };
     editorOptions = {...editorOptions, ...advancedOptions};
-    const aceEditor = ace.edit(editorElement, editorOptions);
-    aceEditor.session.setUseWrapMode(true);
-    this.aceEditors.push(aceEditor);
-    this.aceResize$.observe(editorElement);
-    return aceEditor;
+    return getAce().pipe(
+      map((ace) => {
+        const aceEditor = ace.edit(editorElement, editorOptions);
+        aceEditor.session.setUseWrapMode(true);
+        this.aceEditors.push(aceEditor);
+        this.aceResize$.observe(editorElement);
+        return aceEditor;
+      })
+    );
   }
 
   private setAceEditorValues() {
@@ -217,7 +244,7 @@ export class CustomActionPrettyResourcesTabsComponent extends PageComponent impl
     this.cssEditor.setValue(this.action.customCss ? this.action.customCss : '', -1);
   }
 
-  private onAceEditorResize(aceEditor: ace.Ace.Editor) {
+  private onAceEditorResize(aceEditor: Ace.Editor) {
     if (this.editorsResizeCafs[aceEditor.id]) {
       this.editorsResizeCafs[aceEditor.id]();
       delete this.editorsResizeCafs[aceEditor.id];

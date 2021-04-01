@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,16 +49,19 @@ public class TbTimeseriesSubscription extends TbSubscription<TelemetrySubscripti
     private final long startTime;
     @Getter
     private final long endTime;
+    @Getter
+    private final boolean latestValues;
 
     @Builder
     public TbTimeseriesSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
                                     BiConsumer<String, TelemetrySubscriptionUpdate> updateConsumer,
-                                    boolean allKeys, Map<String, Long> keyStates, long startTime, long endTime) {
+                                    boolean allKeys, Map<String, Long> keyStates, long startTime, long endTime, boolean latestValues) {
         super(serviceId, sessionId, subscriptionId, tenantId, entityId, TbSubscriptionType.TIMESERIES, updateConsumer);
         this.allKeys = allKeys;
         this.keyStates = keyStates;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.latestValues = latestValues;
     }
 
     @Override

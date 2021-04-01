@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,8 @@ CREATE INDEX IF NOT EXISTS idx_device_customer_id_and_type ON device(tenant_id, 
 
 CREATE INDEX IF NOT EXISTS idx_device_type ON device(tenant_id, type);
 
+CREATE INDEX IF NOT EXISTS idx_device_device_profile_id ON device(tenant_id, device_profile_id);
+
 CREATE INDEX IF NOT EXISTS idx_asset_customer_id ON asset(tenant_id, customer_id);
 
 CREATE INDEX IF NOT EXISTS idx_asset_customer_id_and_type ON asset(tenant_id, customer_id, type);
@@ -56,5 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_customer_id_and_type ON asset(tenant_id, cu
 CREATE INDEX IF NOT EXISTS idx_asset_type ON asset(tenant_id, type);
 
 CREATE INDEX IF NOT EXISTS idx_attribute_kv_by_key_and_last_update_ts ON attribute_kv(entity_id, attribute_key, last_update_ts desc);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_id_and_created_time ON audit_log(tenant_id, created_time);
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);

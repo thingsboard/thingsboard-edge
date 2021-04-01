@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,8 @@ import java.util.Arrays;
         "org.thingsboard.server.dao",
         "org.thingsboard.js",
         "org.thingsboard.integration",
-        "org.thingsboard.server.common.stats"})
+        "org.thingsboard.server.common.stats",
+        "org.thingsboard.server.cache"})
 public class ThingsboardInstallApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,10 +64,8 @@ public class CassandraTsDatabaseUpgradeService extends AbstractCassandraDatabase
                 log.info("Schema updated.");
                 break;
             case "2.5.0":
-            case "2.5.4":
-            case "2.5.5":
-            case "2.6.0":
             case "3.1.1":
+            case "3.2.1":
                 break;
             default:
                 throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);

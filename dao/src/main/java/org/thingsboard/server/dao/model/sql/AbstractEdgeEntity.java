@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,10 +102,6 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
     private String cloudEndpoint;
 
     @Type(type = "json")
-    @Column(name = ModelConstants.EDGE_CONFIGURATION_PROPERTY)
-    private JsonNode configuration;
-
-    @Type(type = "json")
     @Column(name = ModelConstants.EDGE_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
@@ -134,12 +130,12 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
         this.secret = edge.getSecret();
         this.edgeLicenseKey = edge.getEdgeLicenseKey();
         this.cloudEndpoint = edge.getCloudEndpoint();
-        this.configuration = edge.getConfiguration();
         this.additionalInfo = edge.getAdditionalInfo();
     }
 
     public AbstractEdgeEntity(EdgeEntity edgeEntity) {
         this.setId(edgeEntity.getId());
+        this.setCreatedTime(edgeEntity.getCreatedTime());
         this.tenantId = edgeEntity.getTenantId();
         this.customerId = edgeEntity.getCustomerId();
         this.rootRuleChainId = edgeEntity.getRootRuleChainId();
@@ -151,7 +147,6 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
         this.secret = edgeEntity.getSecret();
         this.edgeLicenseKey = edgeEntity.getEdgeLicenseKey();
         this.cloudEndpoint = edgeEntity.getCloudEndpoint();
-        this.configuration = edgeEntity.getConfiguration();
         this.additionalInfo = edgeEntity.getAdditionalInfo();
     }
 
@@ -171,7 +166,7 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
 
     protected Edge toEdge() {
         Edge edge = new Edge(new EdgeId(getUuid()));
-        edge.setCreatedTime(Uuids.unixTimestamp(getUuid()));
+        edge.setCreatedTime(createdTime);
         if (tenantId != null) {
             edge.setTenantId(new TenantId(tenantId));
         }
@@ -188,7 +183,6 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
         edge.setSecret(secret);
         edge.setEdgeLicenseKey(edgeLicenseKey);
         edge.setCloudEndpoint(cloudEndpoint);
-        edge.setConfiguration(configuration);
         edge.setAdditionalInfo(additionalInfo);
         return edge;
     }

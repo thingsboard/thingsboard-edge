@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.queue;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -49,7 +51,9 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
@@ -99,6 +103,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -173,12 +178,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
-        if (partitionChangeEvent.getServiceType().equals(getServiceType())) {
-            log.info("Subscribing to partitions: {}", partitionChangeEvent.getPartitions());
-            this.mainConsumer.subscribe(partitionChangeEvent.getPartitions());
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        if (event.getServiceType().equals(getServiceType())) {
+            log.info("Subscribing to partitions: {}", event.getPartitions());
+            this.mainConsumer.subscribe(event.getPartitions());
             this.usageStatsConsumer.subscribe(
-                    partitionChangeEvent
+                    event
                             .getPartitions()
                             .stream()
                             .map(tpi -> tpi.newByTopic(usageStatsConsumer.getTopic()))
@@ -200,48 +205,57 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
                     TbPackProcessingContext<TbProtoQueueMsg<ToCoreMsg>> ctx = new TbPackProcessingContext<>(
                             processingTimeoutLatch, pendingMap, new ConcurrentHashMap<>());
-                    pendingMap.forEach((id, msg) -> {
-                        log.trace("[{}] Creating main callback for message: {}", id, msg.getValue());
-                        TbCallback callback = new TbPackCallback<>(id, ctx);
-                        try {
-                            ToCoreMsg toCoreMsg = msg.getValue();
-                            if (toCoreMsg.hasToSubscriptionMgrMsg()) {
-                                log.trace("[{}] Forwarding message to subscription manager service {}", id, toCoreMsg.getToSubscriptionMgrMsg());
-                                forwardToSubMgrService(toCoreMsg.getToSubscriptionMgrMsg(), callback);
-                            } else if (toCoreMsg.hasToDeviceActorMsg()) {
-                                log.trace("[{}] Forwarding message to device actor {}", id, toCoreMsg.getToDeviceActorMsg());
-                                forwardToDeviceActor(toCoreMsg.getToDeviceActorMsg(), callback);
-                            } else if (toCoreMsg.hasDeviceStateServiceMsg()) {
-                                log.trace("[{}] Forwarding message to state service {}", id, toCoreMsg.getDeviceStateServiceMsg());
-                                forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);
-                            } else if (toCoreMsg.hasSchedulerServiceMsg()) {
-                                log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
-                                forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
-                            } else if (toCoreMsg.hasIntegrationDownlinkMsg()) {
-                                log.trace("[{}] Forwarding message to integration service {}", id, toCoreMsg.getIntegrationDownlinkMsg());
-                                forwardToIntegrationService(toCoreMsg.getIntegrationDownlinkMsg(), callback);
-                            } else if (toCoreMsg.hasEdgeNotificationMsg()) {
-                                log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
-                                forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);
-                            } else if (toCoreMsg.getToDeviceActorNotificationMsg() != null && !toCoreMsg.getToDeviceActorNotificationMsg().isEmpty()) {
-                                Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreMsg.getToDeviceActorNotificationMsg().toByteArray());
-                                if (actorMsg.isPresent()) {
-                                    TbActorMsg tbActorMsg = actorMsg.get();
-                                    if (tbActorMsg.getMsgType().equals(MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG)) {
-                                        tbCoreDeviceRpcService.forwardRpcRequestToDeviceActor((ToDeviceRpcRequestActorMsg) tbActorMsg);
-                                    } else {
-                                        log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                                        actorContext.tell(actorMsg.get());
+                    PendingMsgHolder pendingMsgHolder = new PendingMsgHolder();
+                    Future<?> packSubmitFuture = consumersExecutor.submit(() -> {
+                        pendingMap.forEach((id, msg) -> {
+                            log.trace("[{}] Creating main callback for message: {}", id, msg.getValue());
+                            TbCallback callback = new TbPackCallback<>(id, ctx);
+                            try {
+                                ToCoreMsg toCoreMsg = msg.getValue();
+                                pendingMsgHolder.setToCoreMsg(toCoreMsg);
+                                if (toCoreMsg.hasToSubscriptionMgrMsg()) {
+                                    log.trace("[{}] Forwarding message to subscription manager service {}", id, toCoreMsg.getToSubscriptionMgrMsg());
+                                    forwardToSubMgrService(toCoreMsg.getToSubscriptionMgrMsg(), callback);
+                                } else if (toCoreMsg.hasToDeviceActorMsg()) {
+                                    log.trace("[{}] Forwarding message to device actor {}", id, toCoreMsg.getToDeviceActorMsg());
+                                    forwardToDeviceActor(toCoreMsg.getToDeviceActorMsg(), callback);
+                                } else if (toCoreMsg.hasDeviceStateServiceMsg()) {
+                                    log.trace("[{}] Forwarding message to state service {}", id, toCoreMsg.getDeviceStateServiceMsg());
+                                    forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);
+                                } else if (toCoreMsg.hasSchedulerServiceMsg()) {
+                                    log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
+                                    forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
+                                } else if (toCoreMsg.hasIntegrationDownlinkMsg()) {
+                                    log.trace("[{}] Forwarding message to integration service {}", id, toCoreMsg.getIntegrationDownlinkMsg());
+                                    forwardToIntegrationService(toCoreMsg.getIntegrationDownlinkMsg(), callback);
+                                } else if (toCoreMsg.hasEdgeNotificationMsg()) {
+                                    log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
+                                    forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);
+                                } else if (toCoreMsg.getToDeviceActorNotificationMsg() != null && !toCoreMsg.getToDeviceActorNotificationMsg().isEmpty()) {
+                                    Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreMsg.getToDeviceActorNotificationMsg().toByteArray());
+                                    if (actorMsg.isPresent()) {
+                                        TbActorMsg tbActorMsg = actorMsg.get();
+                                        if (tbActorMsg.getMsgType().equals(MsgType.DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG)) {
+                                            tbCoreDeviceRpcService.forwardRpcRequestToDeviceActor((ToDeviceRpcRequestActorMsg) tbActorMsg);
+                                        } else {
+                                            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+                                            actorContext.tell(actorMsg.get());
+                                        }
                                     }
+                                    callback.onSuccess();
                                 }
-                                callback.onSuccess();
+                            } catch (Throwable e) {
+                                log.warn("[{}] Failed to process message: {}", id, msg, e);
+                                callback.onFailure(e);
                             }
-                        } catch (Throwable e) {
-                            log.warn("[{}] Failed to process message: {}", id, msg, e);
-                            callback.onFailure(e);
-                        }
+                        });
                     });
                     if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {
+                        if (!packSubmitFuture.isDone()) {
+                            packSubmitFuture.cancel(true);
+                            ToCoreMsg lastSubmitMsg = pendingMsgHolder.getToCoreMsg();
+                            log.info("Timeout to process message: {}", lastSubmitMsg);
+                        }
                         ctx.getAckMap().forEach((id, msg) -> log.debug("[{}] Timeout to process message: {}", id, msg.getValue()));
                         ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process message: {}", id, msg.getValue()));
                     }
@@ -259,6 +273,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             }
             log.info("TB Core Consumer stopped.");
         });
+    }
+
+    private static class PendingMsgHolder {
+        @Getter
+        @Setter
+        private volatile ToCoreMsg toCoreMsg;
     }
 
     @Override
@@ -294,6 +314,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
+        } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray());
+            if (actorMsg.isPresent()) {
+                log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+                actorContext.tellWithHighPriority(actorMsg.get());
+            }
+            callback.onSuccess();
         }
         if (statsEnabled) {
             stats.logToCoreNotification();
@@ -319,7 +346,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                         try {
                             handleUsageStats(msg, callback);
                         } catch (Throwable e) {
-                            log.warn("[{}] Failed to process usge stats: {}", id, msg, e);
+                            log.warn("[{}] Failed to process usage stats: {}", id, msg, e);
                             callback.onFailure(e);
                         }
                     });

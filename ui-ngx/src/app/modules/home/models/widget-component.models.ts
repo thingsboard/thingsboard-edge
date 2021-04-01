@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import {
   WidgetType,
   widgetType,
   WidgetTypeDescriptor,
+  WidgetTypeDetails,
   WidgetTypeParameters,
   WidgetExportType
 } from '@shared/models/widget.models';
@@ -94,7 +95,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { SortOrder } from '@shared/models/page/sort-order';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { EdgeService } from "@core/http/edge.service";
+import { EdgeService } from '@core/http/edge.service';
 
 export interface IWidgetAction {
   name: string;
@@ -370,6 +371,8 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   alias: string;
   typeSettingsSchema?: string | any;
   typeDataKeySettingsSchema?: string | any;
+  image?: string;
+  description?: string;
   componentFactory?: ComponentFactory<IDynamicWidgetComponent>;
 }
 
@@ -398,6 +401,8 @@ export const MissingWidgetType: WidgetInfo = {
   controllerScript: 'self.onInit = function() {}',
   settingsSchema: '{}\n',
   dataKeySettingsSchema: '{}\n',
+  image: null,
+  description: null,
   defaultConfig: '{\n' +
     '"title": "Widget type not found",\n' +
     '"datasources": [],\n' +
@@ -421,6 +426,8 @@ export const ErrorWidgetType: WidgetInfo = {
   controllerScript: 'self.onInit = function() {}',
   settingsSchema: '{}\n',
   dataKeySettingsSchema: '{}\n',
+  image: null,
+  description: null,
   defaultConfig: '{\n' +
     '"title": "Widget failed to load",\n' +
     '"datasources": [],\n' +
@@ -444,6 +451,13 @@ export interface WidgetTypeInstance {
   onDestroy?: () => void;
 }
 
+export function detailsToWidgetInfo(widgetTypeDetailsEntity: WidgetTypeDetails): WidgetInfo {
+  const widgetInfo = toWidgetInfo(widgetTypeDetailsEntity);
+  widgetInfo.image = widgetTypeDetailsEntity.image;
+  widgetInfo.description = widgetTypeDetailsEntity.description;
+  return widgetInfo;
+}
+
 export function toWidgetInfo(widgetTypeEntity: WidgetType): WidgetInfo {
   return {
     widgetName: widgetTypeEntity.name,
@@ -461,7 +475,18 @@ export function toWidgetInfo(widgetTypeEntity: WidgetType): WidgetInfo {
   };
 }
 
-export function toWidgetType(widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId, bundleAlias: string): WidgetType {
+export function toWidgetTypeDetails(widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
+                                    bundleAlias: string, createdTime: number): WidgetTypeDetails {
+  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, bundleAlias, createdTime);
+  const widgetTypeDetails: WidgetTypeDetails = {...widgetTypeEntity,
+    description: widgetInfo.description,
+    image: widgetInfo.image
+  };
+  return widgetTypeDetails;
+}
+
+export function toWidgetType(widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
+                             bundleAlias: string, createdTime: number): WidgetType {
   const descriptor: WidgetTypeDescriptor = {
     type: widgetInfo.type,
     sizeX: widgetInfo.sizeX,
@@ -477,6 +502,7 @@ export function toWidgetType(widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
   return {
     id,
     tenantId,
+    createdTime,
     bundleAlias,
     alias: widgetInfo.alias,
     name: widgetInfo.widgetName,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -52,6 +53,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
+import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -65,6 +67,7 @@ import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
 import org.thingsboard.integration.http.loriot.LoriotIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
@@ -84,6 +87,7 @@ import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
@@ -93,8 +97,10 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
@@ -116,8 +122,6 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.transport.service.DefaultTransportService;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -141,14 +145,18 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
+import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -175,7 +183,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 @Service
 @Data
-public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -243,6 +251,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private TbApiUsageReportClient apiUsageReportClient;
 
+    @Autowired
+    private DefaultTbDeviceProfileCache deviceProfileCache;
+
     @Value("${transport.rate_limits.enabled}")
     private boolean rateLimitEnabled;
 
@@ -279,6 +290,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private final ConcurrentMap<IntegrationId, ComponentLifecycleEvent> integrationEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<IntegrationId, Pair<ThingsboardPlatformIntegration<?>, IntegrationContext>> integrationsByIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, ThingsboardPlatformIntegration<?>> integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
+    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
+    private volatile Set<TopicPartitionInfo> myPartitions = ConcurrentHashMap.newKeySet();
 
     private ConcurrentMap<TenantId, TbRateLimits> perTenantLimits = new ConcurrentHashMap<>();
     private ConcurrentMap<DeviceId, TbRateLimits> perDeviceLimits = new ConcurrentHashMap<>();
@@ -287,15 +300,18 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
 
+
+
     @PostConstruct
     public void init() {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         this.callbackExecutor = Executors.newWorkStealingPool(20);
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultPlatformIntegrationService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
-            reinitExecutorService.scheduleAtFixedRate(this::reinitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
+            reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -395,6 +411,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public ListenableFuture<Void> deleteIntegration(IntegrationId integrationId) {
+        return stopIntegration(integrationId, ComponentLifecycleEvent.DELETED);
+    }
+
+    private ListenableFuture<Void> stopIntegration(IntegrationId integrationId, ComponentLifecycleEvent event) {
         return refreshExecutorService.submit(() -> {
             Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.remove(integrationId);
             integrationEvents.remove(integrationId);
@@ -403,9 +423,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 try {
                     integrationsByRoutingKeyMap.remove(configuration.getRoutingKey());
                     integration.getFirst().destroy();
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.DELETED, null);
+                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, null);
                 } catch (Exception e) {
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.DELETED, e);
+                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, e);
                     throw e;
                 }
             }
@@ -496,9 +516,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));
                 statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_errorsCount", statistics.getErrorsOccurred())));
                 statsTs.add(new BasicTsKvEntry(ts, new StringDataEntry(serviceId + "_state", latestEvent != null ? latestEvent.name() : "N/A")));
-                telemetrySubscriptionService.saveAndNotify(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Void>() {
+                telemetrySubscriptionService.saveAndNotifyInternal(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Integer>() {
                     @Override
-                    public void onSuccess(@Nullable Void result) {
+                    public void onSuccess(@Nullable Integer result) {
                         log.trace("[{}] Persisted statistics telemetry: {}", id, statistics);
                     }
 
@@ -535,23 +555,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private volatile boolean clusterUpdatePending = false;
-    private volatile Set<TopicPartitionInfo> myPartitions = ConcurrentHashMap.newKeySet();
-
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            myPartitions.clear();
-            myPartitions.addAll(partitionChangeEvent.getPartitions());
-            synchronized (this) {
-                if (!clusterUpdatePending) {
-                    clusterUpdatePending = true;
-                    refreshExecutorService.submit(() -> {
-                        clusterUpdatePending = false;
-                        refreshAllIntegrations();
-                    });
-                }
-            }
+            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }
     }
 
@@ -572,8 +579,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 metaData.putValue("deviceType", sessionInfo.getDeviceType());
                 metaData.putValue("ts", tsKv.getTs() + "");
                 JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), deviceId, metaData, gson.toJson(json));
-                sendToRuleEngine(tenantId, tbMsg, packCallback);
+                sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, SessionMsgType.POST_TELEMETRY_REQUEST, packCallback);
             }
         }
     }
@@ -588,8 +594,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("deviceName", sessionInfo.getDeviceName());
             metaData.putValue("deviceType", sessionInfo.getDeviceType());
-            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), deviceId, metaData, gson.toJson(json));
-            sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, msg.getKvList().size(), callback)));
+            sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, SessionMsgType.POST_ATTRIBUTES_REQUEST,
+                    new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, msg.getKvList().size(), callback)));
         }
     }
 
@@ -826,8 +832,31 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), null);
     }
 
-    protected void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tenantId, tbMsg.getOriginator());
+    private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
+                                    TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
+        DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
+
+        DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
+        RuleChainId ruleChainId;
+        String queueName;
+
+        if (deviceProfile == null) {
+            log.warn("[{}] Device profile is null!", deviceProfileId);
+            ruleChainId = null;
+            queueName = ServiceQueue.MAIN;
+        } else {
+            ruleChainId = deviceProfile.getDefaultRuleChainId();
+            String defaultQueueName = deviceProfile.getDefaultQueueName();
+            queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+        }
+
+        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, metaData, gson.toJson(json), ruleChainId, null);
+
+        sendToRuleEngine(tenantId, tbMsg, callback);
+    }
+
+    private void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, tbMsg.getOriginator());
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();
@@ -882,14 +911,17 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
     }
 
-    private synchronized void refreshAllIntegrations() {
+    private synchronized void refreshAllIntegrations(Set<TopicPartitionInfo> partitions) {
+        Set<TopicPartitionInfo> newPartitions = ConcurrentHashMap.newKeySet();
+        newPartitions.addAll(partitions);
+        myPartitions = newPartitions;
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
             Integration integration = integrationsByIdMap.get(integrationId).getFirst().getConfiguration();
             if (integration.getType().isSingleton()) {
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
                 if (!myPartitions.contains(tpi)) {
-                    deleteIntegration(integrationId);
+                    stopIntegration(integrationId, ComponentLifecycleEvent.STOPPED);
                 }
             }
         }
@@ -922,7 +954,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         initialized = true;
     }
 
-    private void reinitIntegrations() {
+    private void reInitIntegrations() {
         if (initialized) {
             integrationsByIdMap.forEach((integrationId, integration) -> {
                 if (integrationEvents.getOrDefault(integrationId, ComponentLifecycleEvent.STARTED).equals(ComponentLifecycleEvent.FAILED)) {
@@ -989,6 +1021,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TMobileIotCdpIntegration();
             case MQTT:
                 return new BasicMqttIntegration();
+            case PUB_SUB:
+                return new PubSubIntegration();
             case AWS_IOT:
                 return new AwsIotIntegration();
             case AWS_SQS:
@@ -998,6 +1032,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case TTN:
             case TTI:
                 return new TtnIntegration();
+            case CHIRPSTACK:
+                return new ChirpStackIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
             case AZURE_IOT_HUB:

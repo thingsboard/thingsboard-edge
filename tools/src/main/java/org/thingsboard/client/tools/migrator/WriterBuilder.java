@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,6 +46,7 @@ public class WriterBuilder {
             "    str_v text,\n" +
             "    long_v bigint,\n" +
             "    dbl_v double,\n" +
+            "    json_v text,\n" +
             "    PRIMARY KEY (( entity_type, entity_id, key, partition ), ts)\n" +
             ");";
 
@@ -58,6 +59,7 @@ public class WriterBuilder {
             "    str_v text,\n" +
             "    long_v bigint,\n" +
             "    dbl_v double,\n" +
+            "    json_v text,\n" +
             "    PRIMARY KEY (( entity_type, entity_id ), key)\n" +
             ") WITH compaction = { 'class' :  'LeveledCompactionStrategy'  };";
 
@@ -74,8 +76,8 @@ public class WriterBuilder {
         return CQLSSTableWriter.builder()
                 .inDirectory(dir)
                 .forTable(tsSchema)
-                .using("INSERT INTO thingsboard.ts_kv_cf (entity_type, entity_id, key, partition, ts, bool_v, str_v, long_v, dbl_v) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                .using("INSERT INTO thingsboard.ts_kv_cf (entity_type, entity_id, key, partition, ts, bool_v, str_v, long_v, dbl_v, json_v) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                 .build();
     }
 
@@ -83,8 +85,8 @@ public class WriterBuilder {
         return CQLSSTableWriter.builder()
                 .inDirectory(dir)
                 .forTable(latestSchema)
-                .using("INSERT INTO thingsboard.ts_kv_latest_cf (entity_type, entity_id, key, ts, bool_v, str_v, long_v, dbl_v) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+                .using("INSERT INTO thingsboard.ts_kv_latest_cf (entity_type, entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
                 .build();
     }
 

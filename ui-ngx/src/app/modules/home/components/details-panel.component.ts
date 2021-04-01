@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,8 @@ export class DetailsPanelComponent extends PageComponent {
   @Input() headerSubtitle = '';
   @Input() isReadOnly = false;
   @Input() isAlwaysEdit = false;
+  @Input() isShowSearch = false;
+  @Input() backgroundColor = '#FFF';
 
   theFormValue: FormGroup;
 
@@ -65,8 +67,11 @@ export class DetailsPanelComponent extends PageComponent {
   toggleDetailsEditMode = new EventEmitter<boolean>();
   @Output()
   applyDetails = new EventEmitter<void>();
+  @Output()
+  closeSearch = new EventEmitter<void>();
 
   isEditValue = false;
+  showSearchPane = false;
 
   @Output()
   isEditChange = new EventEmitter<boolean>();
@@ -103,4 +108,10 @@ export class DetailsPanelComponent extends PageComponent {
     }
   }
 
+  onToggleSearch() {
+    this.showSearchPane = !this.showSearchPane;
+    if (!this.showSearchPane) {
+      this.closeSearch.emit();
+    }
+  }
 }

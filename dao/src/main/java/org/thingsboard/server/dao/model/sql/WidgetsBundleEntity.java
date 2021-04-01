@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,12 @@ public final class WidgetsBundleEntity extends BaseSqlEntity<WidgetsBundle> impl
     @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
     private String searchText;
 
+    @Column(name = ModelConstants.WIDGETS_BUNDLE_IMAGE_PROPERTY)
+    private String image;
+
+    @Column(name = ModelConstants.WIDGETS_BUNDLE_DESCRIPTION)
+    private String description;
+
     public WidgetsBundleEntity() {
         super();
     }
@@ -77,6 +83,8 @@ public final class WidgetsBundleEntity extends BaseSqlEntity<WidgetsBundle> impl
         }
         this.alias = widgetsBundle.getAlias();
         this.title = widgetsBundle.getTitle();
+        this.image = widgetsBundle.getImage();
+        this.description = widgetsBundle.getDescription();
     }
 
     @Override
@@ -98,6 +106,8 @@ public final class WidgetsBundleEntity extends BaseSqlEntity<WidgetsBundle> impl
         }
         widgetsBundle.setAlias(alias);
         widgetsBundle.setTitle(title);
+        widgetsBundle.setImage(image);
+        widgetsBundle.setDescription(description);
         return widgetsBundle;
     }
 }

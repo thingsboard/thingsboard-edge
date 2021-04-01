@@ -1,0 +1,95 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import '../../../../../scss/constants';
+
+:host{
+  min-width: 100%;
+  min-height: 100%;
+  position: absolute;
+  background-color: #cfd8dc;
+
+  .widget-select {
+    padding: 12px 0 12px 12px;
+    background-color: #cfd8dc;
+
+    .mat-card-container {
+      flex: 0 0 100%;
+      max-width: 100%;
+
+      &:hover {
+        .mat-card {
+          box-shadow: 0 2px 6px 6px rgb(0 0 0 / 20%), 0 1px 4px 2px rgb(0 0 0 / 14%), 0 1px 6px 0 rgb(0 0 0 / 12%)
+        }
+      }
+
+      .mat-card {
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+
+        .preview-container {
+          text-align: center;
+          margin: auto 0;
+        }
+
+        .preview {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+
+        .mat-card-title {
+          font-size: 20px;
+        }
+
+        .mat-card-content {
+          font-size: 14px;
+          line-height: 18px;
+          color: #666;
+        }
+      }
+    }
+
+    @media #{$mat-gt-xs} {
+      .mat-card-container {
+        flex: 0 0 50%;
+        max-width: 50%;
+      }
+    }
+
+    @media screen and (min-width: 2000px) {
+      .mat-card-container {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+      }
+    }
+  }
+}
+

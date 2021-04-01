@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,8 @@
 package org.thingsboard.server.actors;
 
 public class TbActorException extends Exception {
+
+    private static final long serialVersionUID = 8209771144711980882L;
 
     public TbActorException(String message, Throwable cause) {
         super(message, cause);

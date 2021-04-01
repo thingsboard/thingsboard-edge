@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -57,7 +57,8 @@ export class LoginComponent extends PageComponent implements OnInit {
     password: ''
   });
   oauth2Clients: Array<OAuth2ClientInfo> = null;
-
+  hidePassword = true;
+  
   constructor(protected store: Store<AppState>,
               private authService: AuthService,
               public wl: WhiteLabelingService,

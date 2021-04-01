@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,7 +61,6 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     private String secret;
     private String edgeLicenseKey;
     private String cloudEndpoint;
-    private transient JsonNode configuration;
 
     public Edge() {
         super();
@@ -82,7 +80,6 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         this.secret = edge.getSecret();
         this.edgeLicenseKey = edge.getEdgeLicenseKey();
         this.cloudEndpoint = edge.getCloudEndpoint();
-        this.configuration = edge.getConfiguration();
         this.rootRuleChainId = edge.getRootRuleChainId();
     }
 

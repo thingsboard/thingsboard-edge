@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,18 +31,27 @@
 
 import { Inject, Injectable, NgZone } from '@angular/core';
 import {
-  AlarmDataCmd, AlarmDataUnsubscribeCmd,
+  AlarmDataCmd,
+  AlarmDataUnsubscribeCmd,
   AlarmDataUpdate,
-  AttributesSubscriptionCmd, EntityDataCmd, EntityDataUnsubscribeCmd, EntityDataUpdate,
-  GetHistoryCmd, isAlarmDataUpdateMsg, isEntityDataUpdateMsg,
+  AttributesSubscriptionCmd,
+  EntityCountCmd, EntityCountUnsubscribeCmd,
+  EntityCountUpdate,
+  EntityDataCmd,
+  EntityDataUnsubscribeCmd,
+  EntityDataUpdate,
+  GetHistoryCmd,
+  isAlarmDataUpdateMsg,
+  isEntityCountUpdateMsg,
+  isEntityDataUpdateMsg,
   SubscriptionCmd,
   SubscriptionUpdate,
-  SubscriptionUpdateMsg,
   TelemetryFeature,
   TelemetryPluginCmdsWrapper,
   TelemetryService,
   TelemetrySubscriber,
-  TimeseriesSubscriptionCmd, WebsocketDataMsg
+  TimeseriesSubscriptionCmd,
+  WebsocketDataMsg
 } from '@app/shared/models/telemetry/telemetry.models';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -126,6 +135,8 @@ export class TelemetryWebsocketService implements TelemetryService {
           this.cmdsWrapper.entityDataCmds.push(subscriptionCommand);
         } else if (subscriptionCommand instanceof AlarmDataCmd) {
           this.cmdsWrapper.alarmDataCmds.push(subscriptionCommand);
+        } else if (subscriptionCommand instanceof EntityCountCmd) {
+          this.cmdsWrapper.entityCountCmds.push(subscriptionCommand);
         }
       }
     );
@@ -173,6 +184,10 @@ export class TelemetryWebsocketService implements TelemetryService {
             const alarmDataUnsubscribeCmd = new AlarmDataUnsubscribeCmd();
             alarmDataUnsubscribeCmd.cmdId = subscriptionCommand.cmdId;
             this.cmdsWrapper.alarmDataUnsubscribeCmds.push(alarmDataUnsubscribeCmd);
+          } else if (subscriptionCommand instanceof EntityCountCmd) {
+            const entityCountUnsubscribeCmd = new EntityCountUnsubscribeCmd();
+            entityCountUnsubscribeCmd.cmdId = subscriptionCommand.cmdId;
+            this.cmdsWrapper.entityCountUnsubscribeCmds.push(entityCountUnsubscribeCmd);
           }
           const cmdId = subscriptionCommand.cmdId;
           if (cmdId) {
@@ -268,7 +283,7 @@ export class TelemetryWebsocketService implements TelemetryService {
       {
         url: uri,
         openObserver: {
-          next: (e: Event) => {
+          next: () => {
             this.onOpen();
           }
         },
@@ -325,6 +340,11 @@ export class TelemetryWebsocketService implements TelemetryService {
         subscriber = this.subscribersMap.get(message.cmdId);
         if (subscriber) {
           subscriber.onAlarmData(new AlarmDataUpdate(message));
+        }
+      } else if (isEntityCountUpdateMsg(message)) {
+        subscriber = this.subscribersMap.get(message.cmdId);
+        if (subscriber) {
+          subscriber.onEntityCount(new EntityCountUpdate(message));
         }
       } else if (message.subscriptionId) {
         subscriber = this.subscribersMap.get(message.subscriptionId);

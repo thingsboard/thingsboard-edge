@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.transport.TransportContext;
-import org.thingsboard.server.transport.coap.adaptors.CoapTransportAdaptor;
+import org.thingsboard.server.transport.coap.efento.adaptor.EfentoCoapAdaptor;
+import org.thingsboard.server.transport.coap.adaptors.JsonCoapAdaptor;
+import org.thingsboard.server.transport.coap.adaptors.ProtoCoapAdaptor;
+
 
 /**
  * Created by ashvayka on 18.10.18.
@@ -61,6 +64,14 @@ public class CoapTransportContext extends TransportContext {
 
     @Getter
     @Autowired
-    private CoapTransportAdaptor adaptor;
+    private JsonCoapAdaptor jsonCoapAdaptor;
+
+    @Getter
+    @Autowired
+    private ProtoCoapAdaptor protoCoapAdaptor;
+
+    @Getter
+    @Autowired
+    private EfentoCoapAdaptor efentoCoapAdaptor;
 
 }

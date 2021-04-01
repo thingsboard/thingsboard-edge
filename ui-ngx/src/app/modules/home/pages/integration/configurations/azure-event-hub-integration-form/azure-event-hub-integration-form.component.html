@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -47,28 +47,10 @@
         <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.connection-parameters' | translate }}
         </div>
         <mat-form-field class="mat-block">
-            <mat-label translate>integration.service-bus-namespace-name</mat-label>
-            <input matInput required formControlName="namespaceName">
-            <mat-error translate *ngIf="form.get('namespaceName').hasError('required')">
-                integration.service-bus-namespace-name-required</mat-error>
-        </mat-form-field>
-        <mat-form-field class="mat-block">
-            <mat-label translate>integration.event-hub-name</mat-label>
-            <input matInput required formControlName="eventHubName">
-            <mat-error translate *ngIf="form.get('eventHubName').hasError('required')">
-                integration.event-hub-name-required</mat-error>
-        </mat-form-field>
-        <mat-form-field class="mat-block">
-            <mat-label translate>integration.sas-key-name</mat-label>
-            <input matInput required formControlName="sasKeyName" autocomplete="new-key">
-            <mat-error translate *ngIf="form.get('sasKeyName').hasError('required')">integration.sas-key-name-required
-            </mat-error>
-        </mat-form-field>
-        <mat-form-field class="mat-block">
-            <mat-label translate>integration.sas-key</mat-label>
-            <input matInput type="password" autocomplete="new-password" required formControlName="sasKey">
-            <mat-error translate *ngIf="form.get('sasKey').hasError('required')">integration.sas-key-required
-            </mat-error>
+            <mat-label translate>integration.connection-string</mat-label>
+            <input matInput required formControlName="connectionString">
+            <mat-error translate *ngIf="form.get('connectionString').hasError('required')">
+                integration.connection-string-required</mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.iot-hub-name</mat-label>

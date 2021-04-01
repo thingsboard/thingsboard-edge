@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import delight.nashornsandbox.NashornSandbox;
 import delight.nashornsandbox.NashornSandboxes;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,6 +47,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,6 +56,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeService {
@@ -72,6 +73,8 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     private final AtomicInteger jsTimeoutMsgs = new AtomicInteger(0);
     private final FutureCallback<UUID> evalCallback = new JsStatCallback<>(jsEvalMsgs, jsTimeoutMsgs, jsFailedMsgs);
     private final FutureCallback<Object> invokeCallback = new JsStatCallback<>(jsInvokeMsgs, jsTimeoutMsgs, jsFailedMsgs);
+
+    private final ReentrantLock evalLock = new ReentrantLock();
 
     @Value("${js.local.max_requests_timeout:0}")
     private long maxRequestsTimeout;
@@ -114,8 +117,8 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
             sandbox.allowLoadFunctions(true);
             sandbox.setMaxPreparedStatements(30);
         } else {
-            NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-            engine = factory.getScriptEngine(new String[]{"--no-java"});
+            ScriptEngineManager factory = new ScriptEngineManager();
+            engine = factory.getEngineByName("nashorn");
         }
     }
 
@@ -143,10 +146,15 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
         jsPushedMsgs.incrementAndGet();
         ListenableFuture<UUID> result = jsExecutor.submit(() -> {
             try {
-                if (useJsSandbox()) {
-                    sandbox.eval(jsScript);
-                } else {
-                    engine.eval(jsScript);
+                evalLock.lock();
+                try {
+                    if (useJsSandbox()) {
+                        sandbox.eval(jsScript);
+                    } else {
+                        engine.eval(jsScript);
+                    }
+                } finally {
+                    evalLock.unlock();
                 }
                 scriptIdToNameMap.put(scriptId, functionName);
                 return scriptId;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,11 +39,12 @@ import { TranslateService } from '@ngx-translate/core';
 import { ContactBasedComponent } from '../../components/entity/contact-based.component';
 import { isDefined } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-tenant',
   templateUrl: './tenant.component.html',
-  styleUrls: []
+  styleUrls: ['./tenant.component.scss']
 })
 export class TenantComponent extends ContactBasedComponent<TenantInfo> {
 
@@ -75,7 +76,10 @@ export class TenantComponent extends ContactBasedComponent<TenantInfo> {
                      && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true],
             allowCustomerWhiteLabeling: [entity && entity.additionalInfo
                     && isDefined(entity.additionalInfo.allowCustomerWhiteLabeling) ?
-                        entity.additionalInfo.allowCustomerWhiteLabeling : true]
+                        entity.additionalInfo.allowCustomerWhiteLabeling : true],
+            homeDashboardId: [entity && entity.additionalInfo ? entity.additionalInfo.homeDashboardId : null],
+            homeDashboardHideToolbar: [entity && entity.additionalInfo &&
+            isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true]
           }
         )
       }
@@ -91,7 +95,10 @@ export class TenantComponent extends ContactBasedComponent<TenantInfo> {
         && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true,
       allowCustomerWhiteLabeling: entity.additionalInfo
         && isDefined(entity.additionalInfo.allowCustomerWhiteLabeling) ?
-          entity.additionalInfo.allowCustomerWhiteLabeling : true
+          entity.additionalInfo.allowCustomerWhiteLabeling : true,
+      homeDashboardId: entity.additionalInfo ? entity.additionalInfo.homeDashboardId : null,
+      homeDashboardHideToolbar: entity.additionalInfo &&
+        isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true
     }});
   }
 

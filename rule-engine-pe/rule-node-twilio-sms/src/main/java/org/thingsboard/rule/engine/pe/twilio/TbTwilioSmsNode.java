@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,7 +58,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         configClazz = TbTwilioSmsNodeConfiguration.class,
         nodeDescription = "Sends SMS message via Twilio.",
         nodeDetails = "Will send message payload as SMS message via Twilio.",
-        uiResources = {"static/rulenode/twilio-sms-config.js"},
+        uiResources = {"static/rulenode/twilio-config.js"},
         configDirective = "tbActionNodeTwilioSmsConfig",
         icon = "sms",
         docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-sms-node"
@@ -85,8 +85,8 @@ public class TbTwilioSmsNode implements TbNode {
     }
 
     private void sendSms(TbContext ctx, TbMsg msg) throws Exception {
-        String numberFrom = TbNodeUtils.processPattern(this.config.getNumberFrom(), msg.getMetaData());
-        String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersTo(), msg.getMetaData());
+        String numberFrom = TbNodeUtils.processPattern(this.config.getNumberFrom(), msg);
+        String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersTo(), msg);
         String[] numbersToList = numbersTo.split(",");
         if (numbersToList.length == 0) {
             throw new IllegalArgumentException("To numbers list is empty!");

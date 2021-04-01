@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,8 +91,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         Consumer<DownlinkMsg> onDownlink,
                         Consumer<Exception> onError) {
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)
-                .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS)
-                .usePlaintext();
+                .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS);
         if (sslEnabled) {
             try {
                 builder.sslContext(GrpcSslContexts.forClient().trustManager(new File(Resources.getResource(certResource).toURI())).build());
@@ -100,6 +99,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                 log.error("Failed to initialize channel!", e);
                 throw new RuntimeException(e);
             }
+        } else {
+            builder.usePlaintext();
         }
         channel = builder.build();
         EdgeRpcServiceGrpc.EdgeRpcServiceStub stub = EdgeRpcServiceGrpc.newStub(channel);

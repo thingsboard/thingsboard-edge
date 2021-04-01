@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.entity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -85,13 +86,10 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.reflect.Type;
+import java.util.*;
 import java.util.function.Function;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -105,9 +103,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
-
-    private static final JavaType assignedCustomersType =
-            JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Autowired
     private AssetService assetService;
@@ -186,6 +181,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByTenantId(EntityType entityType, String type, TenantId tenantId, PageLink pageLink) {
         switch (entityType) {
             case DEVICE:
@@ -227,6 +223,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
             EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink) {
         if (type != null && type.trim().length() == 0) {
@@ -377,7 +374,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 String assignedCustomersStr = assignedCustomers.toString();
                 if (!StringUtils.isEmpty(assignedCustomersStr)) {
                     try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, assignedCustomersType));
+                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {}));
                     } catch (IllegalArgumentException e) {
                         log.warn("Unable to parse assigned customers!", e);
                     }
@@ -466,6 +463,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         };
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByGroupIds(EntityType entityType, String type,
                                                                                                 List<EntityGroupId> groupIds, PageLink pageLink) {
         if (!groupIds.isEmpty()) {

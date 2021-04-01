@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import { AssetService } from '@core/http/asset.service';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
+import { EdgeService } from '@core/http/edge.service';
 
 export interface AssignToCustomerDialogData {
   entityIds: Array<EntityId>;
@@ -72,6 +73,7 @@ export class AssignToCustomerDialogComponent extends
               @Inject(MAT_DIALOG_DATA) public data: AssignToCustomerDialogData,
               private deviceService: DeviceService,
               private assetService: AssetService,
+              private edgeService: EdgeService,
               private entityViewService: EntityViewService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<AssignToCustomerDialogComponent, boolean>,
@@ -137,6 +139,8 @@ export class AssignToCustomerDialogComponent extends
         return this.assetService.assignAssetToCustomer(customerId, entityId);
       case EntityType.ENTITY_VIEW:
         return this.entityViewService.assignEntityViewToCustomer(customerId, entityId);
+      case EntityType.EDGE:
+        return this.edgeService.assignEdgeToCustomer(customerId, entityId);
         break;
     }*/
     return of(null);

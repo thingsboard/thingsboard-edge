@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -44,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = SimpleAlarmConditionSpec.class, name = "SIMPLE"),
         @JsonSubTypes.Type(value = DurationAlarmConditionSpec.class, name = "DURATION"),
         @JsonSubTypes.Type(value = RepeatingAlarmConditionSpec.class, name = "REPEATING")})
-public interface AlarmConditionSpec {
+public interface AlarmConditionSpec extends Serializable {
 
     @JsonIgnore
     AlarmConditionSpecType getType();

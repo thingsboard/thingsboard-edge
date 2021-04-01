@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,6 +60,13 @@ export interface ImportEntityData {
   timeseries: AttributeData[];
 }
 
+export interface EdgeImportEntityData extends ImportEntityData {
+  secret: string;
+  routingKey: string;
+  cloudEndpoint: string;
+  edgeLicenseKey: string;
+}
+
 export interface ImportEntitiesResultInfo {
   create?: {
     entity: number;
@@ -77,6 +84,12 @@ export interface EntityField {
   value: string;
   name: string;
   time?: boolean;
+}
+
+export interface EntitiesKeysByQuery {
+  attribute: Array<string>;
+  timeseries: Array<string>;
+  entityTypes: EntityType[];
 }
 
 export const entityFields: {[fieldName: string]: EntityField} = {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,9 @@ import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.compone
 import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
 import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settings.component';
+import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
+import { SendTestSmsDialogComponent } from '@home/pages/admin/send-test-sms-dialog.component';
+import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 
 @NgModule({
   declarations:
@@ -54,6 +57,8 @@ import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settin
       GeneralSettingsComponent,
       MailServerComponent,
       MailTemplatesComponent,
+      SmsProviderComponent,
+      SendTestSmsDialogComponent,
       CustomTranslationComponent,
       CustomMenuComponent,
       WhiteLabelingComponent,
@@ -63,7 +68,8 @@ import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settin
       CustomCssDialogComponent,
       SelfRegistrationComponent,
       SecuritySettingsComponent,
-      OAuth2SettingsComponent
+      OAuth2SettingsComponent,
+      HomeSettingsComponent
     ],
   imports: [
     CommonModule,

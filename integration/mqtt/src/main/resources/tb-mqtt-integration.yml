@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -57,7 +57,7 @@ executors:
   reconnect_timeout: "${EXECUTORS_RECONNECT_TIMEOUT:3000}" # in milliseconds
 
 rpc:
-  host: "${PRC_HOST:cloud.thingsboard.io}"
+  host: "${RPC_HOST:cloud.thingsboard.io}"
   port: "${RPC_PORT:9090}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
   client_id: "${RPC_CLIENT_ID:remote}"

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerService } from '@core/http/customer.service';
 import { EntityGroupsTableConfig } from './entity-groups-table-config';
 import { MatDialog } from '@angular/material/dialog';
-import { EdgeService } from "@core/http/edge.service";
+import { EdgeService } from '@core/http/edge.service';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTableConfig> {
@@ -86,17 +86,17 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       params
     );
 
-    if (config.customerId && resolveCustomer) {
+    if (config.customerId && resolveCustomer && !config.edgeId) {
       return this.customerService.getShortCustomerInfo(config.customerId).pipe(
         map((info) => {
           config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
           return config;
         })
       );
-    } else if (config.customerId && customerTitle){
+    } else if (config.customerId && customerTitle && !config.edgeId){
       config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
       return config;
-    } else if (config.edgeId && resolveCustomer) { //TODO deaflynx add getShortEdgeInfo class
+    } else if (config.edgeId && resolveCustomer) {
       return this.edgeService.getEdge(config.edgeId).pipe(
         map((info) => {
           config.tableTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));

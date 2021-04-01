@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -282,6 +282,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
     getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {

@@ -1,6 +1,6 @@
 ${owner} ("COMPANY") CONFIDENTIAL
 
-Copyright © ${project.inceptionYear}-2020 ${owner} All Rights Reserved.
+Copyright © ${project.inceptionYear}-2021 ${owner} All Rights Reserved.
 
 NOTICE: All information contained herein is, and remains
 the property of ${owner} and its suppliers,

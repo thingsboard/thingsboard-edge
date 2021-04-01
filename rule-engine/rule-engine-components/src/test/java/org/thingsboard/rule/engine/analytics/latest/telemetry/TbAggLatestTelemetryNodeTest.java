@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,10 +42,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.thingsboard.common.util.ListeningExecutor;
@@ -60,8 +61,6 @@ import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
@@ -69,7 +68,7 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -81,6 +80,7 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import javax.script.ScriptException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,7 +89,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -134,6 +134,7 @@ public class TbAggLatestTelemetryNodeTest {
     private int scheduleCount = 0;
 
     @Before
+    @SuppressWarnings("unchecked")
     public void init() {
 
         TbAggLatestTelemetryNodeConfiguration config = new TbAggLatestTelemetryNodeConfiguration();
@@ -146,8 +147,8 @@ public class TbAggLatestTelemetryNodeTest {
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(String.class), Matchers.any(EntityId.class),
-                Matchers.any(TbMsgMetaData.class), Matchers.any(String.class));
+        }).when(ctx).newMsg(ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+                ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;
 
@@ -158,11 +159,11 @@ public class TbAggLatestTelemetryNodeTest {
                 node.onMsg(ctx, msg);
             }
             return null;
-        }).when(ctx).tellSelf(Matchers.any(TbMsg.class), Matchers.anyLong());
+        }).when(ctx).tellSelf(ArgumentMatchers.any(TbMsg.class), ArgumentMatchers.anyLong());
 
         when(ctx.getPeContext()).thenReturn(peCtx);
 
-        when(peCtx.isLocalEntity(Matchers.any(EntityId.class))).thenReturn(true);
+        when(peCtx.isLocalEntity(ArgumentMatchers.any(EntityId.class))).thenReturn(true);
 
         when(ctx.getJsExecutor()).thenReturn(executor);
         when(ctx.getDbCallbackExecutor()).thenReturn(executor);
@@ -184,19 +185,17 @@ public class TbAggLatestTelemetryNodeTest {
             }
         });
 
-        executorAnswer.when(executor).executeAsync(Matchers.any(Callable.class));
-        executorAnswer.when(executor).execute(Matchers.any(Runnable.class));
+        executorAnswer.when(executor).execute(ArgumentMatchers.any(Runnable.class));
 
         when(ctx.getRelationService()).thenReturn(relationService);
         when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
-        when(ctx.getAttributesService()).thenReturn(attributesService);
 
         String attributesFilterScript = "return Number(attributes['temperature']) > 21;";
 
         when(peCtx.createAttributesJsScriptEngine(attributesFilterScript)).thenReturn(scriptEngine);
 
         try {
-            when(scriptEngine.executeAttributesFilter(Matchers.anyMap())).then(
+            when(scriptEngine.executeAttributesFilter(ArgumentMatchers.anyMap())).then(
                     (Answer<Boolean>) invocation -> {
                         Map<String, String> attributes = (Map<String, String>) (invocation.getArguments())[0];
                         if (attributes.containsKey("temperature")) {
@@ -217,7 +216,7 @@ public class TbAggLatestTelemetryNodeTest {
         relationsQuery = new RelationsQuery();
         relationsQuery.setDirection(EntitySearchDirection.FROM);
         relationsQuery.setMaxLevel(1);
-        EntityTypeFilter entityTypeFilter = new EntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
+        RelationEntityTypeFilter entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
         relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
 
         rootEntityId = new TenantId(Uuids.timeBased());
@@ -294,7 +293,7 @@ public class TbAggLatestTelemetryNodeTest {
                         expectedDeviceCount++;
                     }
                 }
-                when(timeseriesService.findLatest(Matchers.any(), Matchers.eq(childEntityId), Matchers.eq(Collections.singletonList("temperature")))).thenReturn(
+                when(timeseriesService.findLatest(ArgumentMatchers.any(), ArgumentMatchers.eq(childEntityId), ArgumentMatchers.eq(Collections.singletonList("temperature")))).thenReturn(
                         Futures.immediateFuture(kvEntry != null ? Collections.singletonList(kvEntry) : Collections.emptyList())
                 );
 
@@ -308,12 +307,12 @@ public class TbAggLatestTelemetryNodeTest {
             expectedDeviceCountMap.put(parentEntityId, expectedDeviceCount);
 
             expectedAvgTempMap.put(parentEntityId,
-                    sum.divide(BigDecimal.valueOf(childCount), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
+                    sum.divide(BigDecimal.valueOf(childCount), 2, RoundingMode.HALF_UP).doubleValue());
 
-            when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
+            when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
         }
 
-        when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
+        when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
 
         node.init(ctx, nodeConfiguration);
 
@@ -372,7 +371,7 @@ public class TbAggLatestTelemetryNodeTest {
                 }
 
                 TsKvEntry kvEntry = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry("temperature", temperatureString));
-                when(timeseriesService.findLatest(Matchers.any(), Matchers.eq(childEntityId), Matchers.eq(Collections.singletonList("temperature")))).thenReturn(
+                when(timeseriesService.findLatest(ArgumentMatchers.any(), ArgumentMatchers.eq(childEntityId), ArgumentMatchers.eq(Collections.singletonList("temperature")))).thenReturn(
                         Futures.immediateFuture(Collections.singletonList(kvEntry))
                 );
 
@@ -381,12 +380,12 @@ public class TbAggLatestTelemetryNodeTest {
             expectedDeviceCountMap.put(parentEntityId, expectedDeviceCount);
 
             expectedAvgTempMap.put(parentEntityId,
-                    sum.divide(BigDecimal.valueOf(childCount), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
+                    sum.divide(BigDecimal.valueOf(childCount), 2, RoundingMode.HALF_UP).doubleValue());
 
-            when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
+            when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
         }
 
-        when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
+        when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
 
         node.init(ctx, nodeConfiguration);
 

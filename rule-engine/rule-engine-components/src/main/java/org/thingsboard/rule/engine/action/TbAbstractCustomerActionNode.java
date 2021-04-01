@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,7 +63,7 @@ public abstract class TbAbstractCustomerActionNode<C extends TbAbstractCustomerA
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = loadCustomerNodeActionConfig(configuration);
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+        CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
         if (this.config.getCustomerCacheExpiration() > 0) {
             cacheBuilder.expireAfterWrite(this.config.getCustomerCacheExpiration(), TimeUnit.SECONDS);
         }
@@ -94,7 +94,7 @@ public abstract class TbAbstractCustomerActionNode<C extends TbAbstractCustomerA
     protected abstract void doProcessCustomerAction(TbContext ctx, TbMsg msg, CustomerId customerId);
 
     protected ListenableFuture<CustomerId> getCustomer(TbContext ctx, TbMsg msg) {
-        String customerTitle = TbNodeUtils.processPattern(this.config.getCustomerNamePattern(), msg.getMetaData());
+        String customerTitle = TbNodeUtils.processPattern(this.config.getCustomerNamePattern(), msg);
         CustomerKey key = new CustomerKey(customerTitle);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             Optional<CustomerId> customerId = customerIdCache.get(key);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.sql.rule;
 import org.springframework.data.repository.CrudRepository;
 import org.thingsboard.server.dao.model.sql.RuleNodeEntity;
 
-public interface RuleNodeRepository extends CrudRepository<RuleNodeEntity, String> {
+import java.util.UUID;
+
+public interface RuleNodeRepository extends CrudRepository<RuleNodeEntity, UUID> {
 
 }

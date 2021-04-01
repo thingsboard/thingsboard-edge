@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,8 @@ import org.thingsboard.server.service.telemetry.cmd.v1.GetHistoryCmd;
 import org.thingsboard.server.service.telemetry.cmd.v1.TimeseriesSubscriptionCmd;
 import org.thingsboard.server.service.telemetry.cmd.v2.AlarmDataCmd;
 import org.thingsboard.server.service.telemetry.cmd.v2.AlarmDataUnsubscribeCmd;
+import org.thingsboard.server.service.telemetry.cmd.v2.EntityCountCmd;
+import org.thingsboard.server.service.telemetry.cmd.v2.EntityCountUnsubscribeCmd;
 import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataCmd;
 import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUnsubscribeCmd;
 
@@ -60,5 +62,9 @@ public class TelemetryPluginCmdsWrapper {
     private List<AlarmDataCmd> alarmDataCmds;
 
     private List<AlarmDataUnsubscribeCmd> alarmDataUnsubscribeCmds;
+
+    private List<EntityCountCmd> entityCountCmds;
+
+    private List<EntityCountUnsubscribeCmd> entityCountUnsubscribeCmds;
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.common.data;
 
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 
+@Slf4j
 public final class EdgeUtils {
 
     private EdgeUtils() {
@@ -43,6 +45,8 @@ public final class EdgeUtils {
                 return EdgeEventType.EDGE;
             case DEVICE:
                 return EdgeEventType.DEVICE;
+            case DEVICE_PROFILE:
+                return EdgeEventType.DEVICE_PROFILE;
             case ASSET:
                 return EdgeEventType.ASSET;
             case ENTITY_VIEW:
@@ -72,6 +76,7 @@ public final class EdgeUtils {
             case GROUP_PERMISSION:
                 return EdgeEventType.GROUP_PERMISSION;
             default:
+                log.warn("Unsupported entity type [{}]", entityType);
                 return null;
         }
     }

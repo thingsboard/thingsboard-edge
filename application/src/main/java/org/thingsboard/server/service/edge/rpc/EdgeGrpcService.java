@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -51,27 +52,35 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.gen.edge.EdgeRpcServiceGrpc;
 import org.thingsboard.server.gen.edge.RequestMsg;
 import org.thingsboard.server.gen.edge.ResponseMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-@ConditionalOnProperty(prefix = "edges.rpc", value = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "edges", value = "enabled", havingValue = "true")
+@TbCoreComponent
 public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase implements EdgeRpcService {
 
-    private final Map<EdgeId, EdgeGrpcSession> sessions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<EdgeId, EdgeGrpcSession> sessions = new ConcurrentHashMap<>();
+    private final ConcurrentMap<EdgeId, Boolean> sessionNewEvents = new ConcurrentHashMap<>();
+    private final ConcurrentMap<EdgeId, ScheduledFuture<?>> sessionEdgeEventChecks = new ConcurrentHashMap<>();
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${edges.rpc.port}")
@@ -87,6 +96,9 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     @Value("${edges.rpc.client_max_keep_alive_time_sec}")
     private int clientMaxKeepAliveTimeSec;
 
+    @Value("${edges.scheduler_pool_size}")
+    private int schedulerPoolSize;
+
     @Autowired
     private EdgeContextComponent ctx;
 
@@ -95,7 +107,7 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
 
     private Server server;
 
-    private ExecutorService executor;
+    private ScheduledExecutorService scheduler;
 
     @PostConstruct
     public void init() {
@@ -121,15 +133,25 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
             log.error("Failed to start Edge RPC server!", e);
             throw new RuntimeException("Failed to start Edge RPC server!");
         }
+        this.scheduler = Executors.newScheduledThreadPool(schedulerPoolSize, ThingsBoardThreadFactory.forName("edge-scheduler"));
         log.info("Edge RPC service initialized!");
-        executor = Executors.newSingleThreadExecutor();
-        processHandleMessages();
     }
 
     @PreDestroy
     public void destroy() {
         if (server != null) {
             server.shutdownNow();
+        }
+        for (Map.Entry<EdgeId, ScheduledFuture<?>> entry : sessionEdgeEventChecks.entrySet()) {
+            EdgeId edgeId = entry.getKey();
+            ScheduledFuture<?> sessionEdgeEventCheck = entry.getValue();
+            if (sessionEdgeEventCheck != null && !sessionEdgeEventCheck.isCancelled() && !sessionEdgeEventCheck.isDone()) {
+                sessionEdgeEventCheck.cancel(true);
+                sessionEdgeEventChecks.remove(edgeId);
+            }
+        }
+        if (scheduler != null) {
+            scheduler.shutdownNow();
         }
     }
 
@@ -142,7 +164,10 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     public void updateEdge(Edge edge) {
         EdgeGrpcSession session = sessions.get(edge.getId());
         if (session != null && session.isConnected()) {
+            log.debug("[{}] Updating configuration for edge [{}] [{}]", edge.getTenantId(), edge.getName(), edge.getId());
             session.onConfigurationUpdate(edge);
+        } else {
+            log.debug("[{}] Session doesn't exist for edge [{}] [{}]", edge.getTenantId(), edge.getName(), edge.getId());
         }
     }
 
@@ -150,57 +175,89 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     public void deleteEdge(EdgeId edgeId) {
         EdgeGrpcSession session = sessions.get(edgeId);
         if (session != null && session.isConnected()) {
+            log.info("Closing and removing session for edge [{}]", edgeId);
             session.close();
             sessions.remove(edgeId);
+            sessionNewEvents.remove(edgeId);
+            cancelScheduleEdgeEventsCheck(edgeId);
+        }
+    }
+
+    @Override
+    public void onEdgeEvent(EdgeId edgeId) {
+        log.trace("[{}] onEdgeEvent", edgeId.getId());
+        if (!sessionNewEvents.get(edgeId)) {
+            log.trace("[{}] set session new events flag to true", edgeId.getId());
+            sessionNewEvents.put(edgeId, true);
         }
     }
 
     private void onEdgeConnect(EdgeId edgeId, EdgeGrpcSession edgeGrpcSession) {
+        log.info("[{}] edge [{}] connected successfully.", edgeGrpcSession.getSessionId(), edgeId);
         sessions.put(edgeId, edgeGrpcSession);
+        sessionNewEvents.put(edgeId, false);
         save(edgeId, DefaultDeviceStateService.ACTIVITY_STATE, true);
         save(edgeId, DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
+        cancelScheduleEdgeEventsCheck(edgeId);
+        scheduleEdgeEventsCheck(edgeGrpcSession);
     }
 
-    public EdgeGrpcSession getEdgeGrpcSessionById(EdgeId edgeId) {
+    public EdgeGrpcSession getEdgeGrpcSessionById(TenantId tenantId, EdgeId edgeId) {
         EdgeGrpcSession session = sessions.get(edgeId);
         if (session != null && session.isConnected()) {
             return session;
         } else {
+            log.error("[{}] Edge is not connected [{}]", tenantId, edgeId);
             throw new RuntimeException("Edge is not connected");
         }
     }
 
-    private void processHandleMessages() {
-        executor.submit(() -> {
-            while (!Thread.interrupted()) {
+    private void scheduleEdgeEventsCheck(EdgeGrpcSession session) {
+        EdgeId edgeId = session.getEdge().getId();
+        UUID tenantId = session.getEdge().getTenantId().getId();
+        if (sessions.containsKey(edgeId)) {
+            ScheduledFuture<?> schedule = scheduler.schedule(() -> {
                 try {
-                    if (sessions.size() > 0) {
-                        for (EdgeGrpcSession session : sessions.values()) {
-                            session.processHandleMessages();
-                        }
-                    } else {
-                        log.trace("No sessions available, sleep for the next run");
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignore) {}
+                    if (sessionNewEvents.get(edgeId)) {
+                        log.trace("[{}] Set session new events flag to false", edgeId.getId());
+                        sessionNewEvents.put(edgeId, false);
+                        session.processEdgeEvents();
                     }
                 } catch (Exception e) {
-                    log.warn("Failed to process messages handling!", e);
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignore) {}
+                    log.warn("[{}] Failed to process edge events for edge [{}]!", tenantId, session.getEdge().getId().getId(), e);
                 }
+                scheduleEdgeEventsCheck(session);
+            }, ctx.getEdgeEventStorageSettings().getNoRecordsSleepInterval(), TimeUnit.MILLISECONDS);
+            sessionEdgeEventChecks.put(edgeId, schedule);
+            log.trace("[{}] Check edge event scheduled for edge [{}]", tenantId, edgeId.getId());
+        } else {
+            log.debug("[{}] Session was removed and edge event check schedule must not be started [{}]",
+                    tenantId, edgeId.getId());
+        }
+    }
+
+    private void cancelScheduleEdgeEventsCheck(EdgeId edgeId) {
+        log.trace("[{}] cancelling edge event check for edge", edgeId);
+        if (sessionEdgeEventChecks.containsKey(edgeId)) {
+            ScheduledFuture<?> sessionEdgeEventCheck = sessionEdgeEventChecks.get(edgeId);
+            if (sessionEdgeEventCheck != null && !sessionEdgeEventCheck.isCancelled() && !sessionEdgeEventCheck.isDone()) {
+                sessionEdgeEventCheck.cancel(true);
+                sessionEdgeEventChecks.remove(edgeId);
             }
-        });
+        }
     }
 
     private void onEdgeDisconnect(EdgeId edgeId) {
+        log.info("[{}] edge disconnected!", edgeId);
         sessions.remove(edgeId);
+        sessionNewEvents.remove(edgeId);
         save(edgeId, DefaultDeviceStateService.ACTIVITY_STATE, false);
         save(edgeId, DefaultDeviceStateService.LAST_DISCONNECT_TIME, System.currentTimeMillis());
+        cancelScheduleEdgeEventsCheck(edgeId);
     }
 
     private void save(EdgeId edgeId, String key, long value) {
+        log.debug("[{}] Updating long edge telemetry [{}] [{}]", edgeId, key, value);
         if (persistToTelemetry) {
             tsSubService.saveAndNotify(
                     TenantId.SYS_TENANT_ID, edgeId,
@@ -212,6 +269,7 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     }
 
     private void save(EdgeId edgeId, String key, boolean value) {
+        log.debug("[{}] Updating boolean edge telemetry [{}] [{}]", edgeId, key, value);
         if (persistToTelemetry) {
             tsSubService.saveAndNotify(
                     TenantId.SYS_TENANT_ID, edgeId,
@@ -234,7 +292,7 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
         }
 
         @Override
-        public void onSuccess(@javax.annotation.Nullable Void result) {
+        public void onSuccess(@Nullable Void result) {
             log.trace("[{}] Successfully updated attribute [{}] with value [{}]", edgeId, key, value);
         }
 

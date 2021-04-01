@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,8 @@ export class FilterPredicateComponent implements ControlValueAccessor, OnInit {
   @Input() displayUserParameters = true;
 
   @Input() allowUserDynamicSource = true;
+
+  @Input() onlyUserDynamicSource = false;
 
   filterPredicateFormGroup: FormGroup;
 

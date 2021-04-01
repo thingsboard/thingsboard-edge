@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -62,12 +62,18 @@ export class WidgetsBundleComponent extends EntityComponent<WidgetsBundle> {
   buildForm(entity: WidgetsBundle): FormGroup {
     return this.fb.group(
       {
-        title: [entity ? entity.title : '', [Validators.required]]
+        title: [entity ? entity.title : '', [Validators.required]],
+        image: [entity ? entity.image : ''],
+        description: [entity  ? entity.description : '', Validators.maxLength(255)]
       }
     );
   }
 
   updateForm(entity: WidgetsBundle) {
-    this.entityForm.patchValue({title: entity.title});
+    this.entityForm.patchValue({
+      title: entity.title,
+      image: entity.image,
+      description: entity.description
+    });
   }
 }

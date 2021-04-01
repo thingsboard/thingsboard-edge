@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -98,7 +99,6 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
@@ -115,7 +115,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Service
 @Profile("install")
@@ -192,10 +192,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.4.0 to 2.0.0 ...");
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
-            case "2.5.5":
-                log.info("Updating data from version 2.5.5 to 2.6.0 ...");
-                tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
-                break;
             case "3.0.1":
                 log.info("Updating data from version 3.0.1 to 3.1.0 ...");
                 tenantsEntityViewsUpdater.updateEntities(null);
@@ -204,8 +200,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.1.1 to 3.2.0 ...");
                 tenantsRootRuleChainUpdater.updateEntities(null);
                 break;
-            case "3.2.0":
-                log.info("Updating data from version 3.2.0 to 3.2.0PE ...");
+            case "3.2.2":
+                log.info("Updating data from version 3.2.2 to 3.3.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);
@@ -223,6 +219,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
+
+                // TODO: voba - verify this
+                tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -271,7 +270,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        RuleChain defaultEdgeRuleChain = ruleChainService.getDefaultRootEdgeRuleChain(tenant.getId());
+                        RuleChain defaultEdgeRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenant.getId());
                         if (defaultEdgeRuleChain == null) {
                             installScripts.createDefaultEdgeRuleChains(tenant.getId());
                         }
@@ -1044,6 +1043,4 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
 
     }
-
-
 }

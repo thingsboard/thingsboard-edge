@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -85,7 +85,7 @@ public interface RuleChainService {
 
     RuleChainData exportTenantRuleChains(TenantId tenantId, PageLink pageLink) throws ThingsboardException;
 
-    List<RuleChainImportResult> importTenantRuleChains(TenantId tenantId, RuleChainData ruleChainData, boolean overwrite, RuleChainType type);
+    List<RuleChainImportResult> importTenantRuleChains(TenantId tenantId, RuleChainData ruleChainData, RuleChainType type, boolean overwrite);
 
     RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId);
 
@@ -93,14 +93,14 @@ public interface RuleChainService {
 
     PageData<RuleChain> findRuleChainsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 
-    RuleChain getDefaultRootEdgeRuleChain(TenantId tenantId);
+    RuleChain getEdgeTemplateRootRuleChain(TenantId tenantId);
 
-    boolean setDefaultRootEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
+    boolean setEdgeTemplateRootRuleChain(TenantId tenantId, RuleChainId ruleChainId);
 
-    boolean addDefaultEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
+    boolean setAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
 
-    boolean removeDefaultEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
+    boolean unsetAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
 
-    ListenableFuture<List<RuleChain>> findDefaultEdgeRuleChainsByTenantId(TenantId tenantId);
+    ListenableFuture<List<RuleChain>> findAutoAssignToEdgeRuleChainsByTenantId(TenantId tenantId);
 
 }

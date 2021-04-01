@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -99,11 +99,12 @@ BEGIN
                                 END IF;
                             END IF;
                         END IF;
-                    END IF;
-                    IF partition_to_delete IS NOT NULL THEN
-                        RAISE NOTICE 'Partition to delete by max ttl: %', partition_to_delete;
-                        EXECUTE format('DROP TABLE %I', partition_to_delete);
-                        deleted := deleted + 1;
+                        IF partition_to_delete IS NOT NULL THEN
+                            RAISE NOTICE 'Partition to delete by max ttl: %', partition_to_delete;
+                            EXECUTE format('DROP TABLE IF EXISTS %I', partition_to_delete);
+                            partition_to_delete := NULL;
+                            deleted := deleted + 1;
+                        END IF;
                     END IF;
                 END LOOP;
         END IF;

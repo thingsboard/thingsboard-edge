@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Created by ashvayka on 13.06.18.
@@ -67,7 +68,7 @@ public class TbAvgIntervalState extends TbBaseIntervalState {
     @Override
     public String toValueJson(Gson gson, String outputValueKey) {
         JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
+        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP).doubleValue());
         return gson.toJson(json);
     }
 

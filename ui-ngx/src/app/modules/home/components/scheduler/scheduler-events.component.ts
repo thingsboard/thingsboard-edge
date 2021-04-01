@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation, OnChanges, SimpleChanges } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -42,7 +42,8 @@ import {
   SchedulerEvent,
   SchedulerEventWithCustomerInfo,
   SchedulerRepeatType,
-  schedulerRepeatTypeToUnitMap, schedulerTimeUnitRepeatTranslationMap,
+  schedulerRepeatTypeToUnitMap,
+  schedulerTimeUnitRepeatTranslationMap,
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
@@ -93,6 +94,13 @@ import { EventSourceError, EventSourceInput } from '@fullcalendar/core/structs/e
 import * as _moment from 'moment';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
+import { getUserZone } from '@shared/models/time/time.models';
+import { ActivatedRoute } from "@angular/router";
+import {
+  AddEntitiesToEdgeDialogComponent,
+  AddEntitiesToEdgeDialogData
+} from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -100,7 +108,7 @@ import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
   styleUrls: ['./scheduler-events.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit {
+export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit, OnChanges {
 
   @ViewChild('searchInput') searchInputField: ElementRef;
 
@@ -116,11 +124,15 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   @Input()
   ctx: WidgetContext;
 
+  @Input()
+  edgeId: string = this.route.snapshot.params.edgeId;
+
   settings: SchedulerEventsWidgetSettings;
 
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
+  assignToEdgeEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ) && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
 
   authUser = getCurrentAuthUser(this.store);
 
@@ -175,7 +187,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private schedulerEventService: SchedulerEventService,
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private route: ActivatedRoute) {
     super(store);
   }
 
@@ -196,7 +209,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
-      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
+      if (this.edgeId) {
+        this.deleteEnabled = false;
+        this.editEnabled = false;
+      }
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.previousValue && change.currentValue !== change.previousValue) {
+        if (propName === 'edgeId') {
+          this.reloadSchedulerEvents();
+        }
+      }
     }
   }
 
@@ -277,7 +305,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       }
     ];
-    this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+    this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
     this.dataSource.selection.changed.subscribe(() => {
       const hideTitlePanel = !this.dataSource.selection.isEmpty() || this.textSearchMode;
       if (this.ctx.hideTitlePanel !== hideTitlePanel) {
@@ -341,6 +369,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     }
     this.pageLink.sortOrder.property = this.sort.active;
     this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
+    this.dataSource.edgeId = this.edgeId;
     this.dataSource.loadEntities(this.pageLink, this.defaultEventType, reload).subscribe(
       (data) => {
         this.updateCalendarEvents(data.data);
@@ -425,7 +454,11 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   addSchedulerEvent($event: Event) {
-    this.openSchedulerEventDialog($event);
+      this.openSchedulerEventDialog($event);
+  }
+
+  assignToEdgeSchedulerEvent($event: Event) {
+    this.openAssignSchedulerEventToEdgeDialog($event);
   }
 
   editSchedulerEvent($event, schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo) {
@@ -488,6 +521,27 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     );
   }
 
+  openAssignSchedulerEventToEdgeDialog($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
+      boolean>(AddEntitiesToEdgeDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        edgeId: this.edgeId,
+        entityType: EntityType.SCHEDULER_EVENT
+      }
+    }).afterClosed().subscribe(
+      (res) => {
+        if (res) {
+          this.reloadSchedulerEvents();
+        }
+      }
+    );
+  }
+
   triggerResize() {
     setTimeout(() => {
       this.calendarComponent.getApi().updateSize();
@@ -530,7 +584,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   onEventClick(arg: EventHandlerArg<'eventClick'>) {
-    const schedulerEvent = this.schedulerEvents.find(schedulerEvent => schedulerEvent.id.id === arg.event.id);
+    const schedulerEvent = this.schedulerEvents.find(event => event.id.id === arg.event.id);
     if (schedulerEvent) {
       this.openSchedulerEventContextMenu(arg.jsEvent, schedulerEvent);
     }
@@ -569,7 +623,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   onEventDrop(arg: EventHandlerArg<'eventDrop'>) {
-    const schedulerEvent = this.schedulerEvents.find(schedulerEvent => schedulerEvent.id.id === arg.event.id);
+    const schedulerEvent = this.schedulerEvents.find(event => event.id.id === arg.event.id);
     if (schedulerEvent) {
       this.moveEvent(schedulerEvent, arg.delta, arg.revert);
     }
@@ -597,38 +651,42 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   eventRender(arg: EventHandlerArg<'eventRender'>) {
     const props: {name: string, type: string, info: string, htmlTitle: string} = arg.event.extendedProps;
     if (props.htmlTitle) {
-      if(arg.el.getElementsByClassName('fc-title').length > 0) {
+      if (arg.el.getElementsByClassName('fc-title').length > 0) {
         arg.el.getElementsByClassName('fc-title')[0].innerHTML = props.htmlTitle;
       }
-      if(arg.el.getElementsByClassName('fc-list-item-title').length > 0) {
+      if (arg.el.getElementsByClassName('fc-list-item-title').length > 0) {
         arg.el.getElementsByClassName('fc-list-item-title')[0].innerHTML = props.htmlTitle;
       }
     }
     const element = $(arg.el);
-    element.tooltipster(
-      {
-        theme: 'tooltipster-shadow',
-        delay: 100,
-        trigger: 'hover',
-        triggerOpen: {
-          click: false,
-          tap: false
-        },
-        triggerClose: {
-          click: true,
-          tap: true,
-          scroll: true
-        },
-        side: 'top',
-        trackOrigin: true
+    import('tooltipster').then(
+      () => {
+        element.tooltipster(
+          {
+            theme: 'tooltipster-shadow',
+            delay: 100,
+            trigger: 'hover',
+            triggerOpen: {
+              click: false,
+              tap: false
+            },
+            triggerClose: {
+              click: true,
+              tap: true,
+              scroll: true
+            },
+            side: 'top',
+            trackOrigin: true
+          }
+        );
+        const tooltip = element.tooltipster('instance');
+        tooltip.content($(
+          '<div class="tb-scheduler-tooltip-title">' + props.name + '</div>' +
+          '<div class="tb-scheduler-tooltip-content"><b>' + this.translate.instant('scheduler.event-type') + ':</b> ' + props.type + '</div>' +
+          '<div class="tb-scheduler-tooltip-content">' + props.info + '</div>'
+        ));
       }
     );
-    const tooltip = element.tooltipster('instance');
-    tooltip.content($(
-      '<div class="tb-scheduler-tooltip-title">' + props.name + '</div>' +
-      '<div class="tb-scheduler-tooltip-content"><b>' + this.translate.instant('scheduler.event-type') + ':</b> ' + props.type + '</div>' +
-      '<div class="tb-scheduler-tooltip-content">' + props.info + '</div>'
-    ));
   }
 
   updateCalendarEvents(schedulerEvents: Array<SchedulerEventWithCustomerInfo>) {
@@ -642,12 +700,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     start: Date;
     end: Date;
     timeZone: string;
-  }, successCallback: (events: EventInput[]) => void, failureCallback: (error: EventSourceError) => void) {
+  },                  successCallback: (events: EventInput[]) => void, failureCallback: (error: EventSourceError) => void) {
     const events: EventInput[] = [];
     if (this.schedulerEvents && this.schedulerEvents.length) {
       const start = toMoment(arg.start, this.calendarApi);
       const end = toMoment(arg.end, this.calendarApi);
-      const userZone = _moment.tz.zone(_moment.tz.guess());
+      const userZone = getUserZone();
       const rangeStart = start.local();
       const rangeEnd = end.local();
       this.schedulerEvents.forEach((event) => {
@@ -682,7 +740,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
                     currentTime = rangeStart.clone();
                     currentTime.hours(eventStart.hours());
                     currentTime.minutes(eventStart.minutes());
-                    currentTime.seconds(eventStart.seconds())
+                    currentTime.seconds(eventStart.seconds());
                 }
               }
               let eventEnd;
@@ -717,8 +775,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
           }
         }
       });
+      successCallback(events);
+    } else {
+      successCallback(events);
     }
-    successCallback(events);
   }
 
   private toCalendarEvent(event: SchedulerEventWithCustomerInfo, start: _moment.Moment, end?: _moment.Moment): EventInput {
@@ -762,7 +822,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       } else if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
           const repeatInterval = this.translate.instant(schedulerTimeUnitRepeatTranslationMap.get(event.schedule.repeat.timeUnit),
             {count: event.schedule.repeat.repeatInterval});
-        info += repeatInterval + ', ';
+          info += repeatInterval + ', ';
       } else {
         info += this.translate.instant('scheduler.weekly') + ' ' + this.translate.instant('scheduler.on') + ' ';
         event.schedule.repeat.repeatOn.forEach((day) => {
@@ -772,6 +832,49 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       info += this.translate.instant('scheduler.until') + ' ';
       info += _moment.utc(event.schedule.repeat.endsOn).local().format('MMM DD, YYYY');
       return info;
+    }
+  }
+
+  unassignFromEdge($event: Event, schedulerEvent: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const title = this.translate.instant('edge.unassign-scheduler-event-from-edge-title', {schedulerEventName: schedulerEvent.name});
+    const content = this.translate.instant('edge.unassign-scheduler-event-from-edge-text');
+    this.dialogService.confirm(title, content,
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes')).subscribe((result) => {
+      if (result) {
+        this.schedulerEventService.unassignSchedulerEventFromEdge(this.edgeId, schedulerEvent.id.id).subscribe(
+          () => {
+            this.reloadSchedulerEvents();
+          }
+        );
+      }
+    });
+  }
+
+  unassignFromEdgeSchedulerEvents($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const selectedSchedulerEvents = this.dataSource.selection.selected;
+    if (selectedSchedulerEvents && selectedSchedulerEvents.length) {
+      const title = this.translate.instant('edge.unassign-scheduler-events-from-edge-title', {count: selectedSchedulerEvents.length});
+      const content = this.translate.instant('edge.unassign-scheduler-events-from-edge-text');
+      this.dialogService.confirm(title, content,
+        this.translate.instant('action.no'),
+        this.translate.instant('action.yes')).subscribe((result) => {
+        if (result) {
+          const tasks = selectedSchedulerEvents.map((schedulerEvent) =>
+            this.schedulerEventService.unassignSchedulerEventFromEdge(this.edgeId, schedulerEvent.id.id));
+          forkJoin(tasks).subscribe(
+            () => {
+              this.reloadSchedulerEvents();
+            }
+          );
+        }
+      });
     }
   }
 
@@ -790,8 +893,11 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
 
   public dataLoading = true;
 
+  public edgeId: string;
+
   constructor(private schedulerEventService: SchedulerEventService,
-              private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType}) {
+              private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType},
+              private route: ActivatedRoute) {
   }
 
   connect(collectionViewer: CollectionViewer):
@@ -842,12 +948,18 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
     return this.getAllEntities(eventType).pipe(
       map((data) => allPageLinkData.filterData(data)),
       map((data) => [pageLink.filterData(data.data), data])
-    )
+    );
   }
 
   getAllEntities(eventType: string): Observable<Array<SchedulerEventWithCustomerInfo>> {
     if (!this.allEntities) {
-      this.allEntities = this.schedulerEventService.getSchedulerEvents(eventType).pipe(
+      let fetchObservable: Observable<Array<SchedulerEventWithCustomerInfo>>;
+      if (this.edgeId) {
+        fetchObservable = this.schedulerEventService.getEdgeSchedulerEvents(this.edgeId);
+      } else {
+        fetchObservable = this.schedulerEventService.getSchedulerEvents(eventType);
+      }
+      this.allEntities = fetchObservable.pipe(
         map((schedulerEvents) => {
           schedulerEvents.forEach((schedulerEvent) => {
             let typeName = schedulerEvent.type;

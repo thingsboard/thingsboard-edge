@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ import { ActivatedRoute } from '@angular/router';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, resourceByEntityType } from '@shared/models/security.models';
+import { DAY, historyInterval } from '@shared/models/time/time.models';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -58,6 +59,7 @@ export type EntityByIdOperation<T extends BaseData<HasId>> = (id: HasUUID) => Ob
 export type EntityIdOneWayOperation = (id: HasUUID) => Observable<any>;
 export type EntityActionFunction<T extends BaseData<HasId>> = (action: EntityAction<T>) => boolean;
 export type CreateEntityOperation<T extends BaseData<HasId>> = () => Observable<T>;
+export type AssignEntityOperation<T extends BaseData<HasId>> = () => Observable<T>;
 export type EntityRowClickFunction<T extends BaseData<HasId>> = (event: Event, entity: T) => boolean;
 
 export type CellContentFunction<T extends BaseData<HasId>> = (entity: T, key: string) => string;
@@ -152,11 +154,13 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   onLoadAction: (route: ActivatedRoute) => void = null;
   table: EntitiesTableComponent = null;
   useTimePageLink = false;
+  defaultTimewindowInterval = historyInterval(DAY);
   entityType: EntityType = null;
   tableTitle = '';
   selectionEnabled = true;
   searchEnabled = true;
   addEnabled = true;
+  assignEnabled = false;
   entitiesDeleteEnabled = true;
   detailsPanelEnabled = true;
   hideDetailsTabsOnEdit = true;
@@ -176,10 +180,11 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   addActionDescriptors: Array<HeaderActionDescriptor> = [];
   headerComponent: Type<EntityTableHeaderComponent<T, P, L>>;
   addEntity: CreateEntityOperation<T> = null;
+  assignEntity: AssignEntityOperation<T> = null;
   dataSource: (dataLoadedFunction: (col?: number, row?: number) => void)
     => EntitiesDataSource<L> = (dataLoadedFunction: (col?: number, row?: number) => void) => {
     return new EntitiesDataSource(this.entitiesFetchFunction, this.entitySelectionEnabled, dataLoadedFunction);
-  };
+  }
   detailsReadonly: EntityBooleanFunction<T> = () => false;
   entitySelectionEnabled: EntityBooleanFunction<L> = () => true;
   deleteEnabled: EntityBooleanFunction<T | L> = () => true;
@@ -195,6 +200,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   handleRowClick: EntityRowClickFunction<L> = () => false;
   entityTitle: EntityStringFunction<T> = (entity) => entity?.name;
   entityAdded: EntityVoidFunction<T> = () => {};
+  entityAssigned: EntityVoidFunction<T> = () => {};
   entityUpdated: EntityVoidFunction<T> = () => {};
   entitiesDeleted: EntityIdsVoidFunction<T> = () => {};
 }

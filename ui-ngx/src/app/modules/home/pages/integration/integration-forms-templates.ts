@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -141,6 +141,8 @@ export function updateIntegrationFormState(type: IntegrationType, info: Integrat
       integrationForm.get('httpEndpoint').disable({emitEvent: false});
     } else if (type === IntegrationType.TTN) {
       integrationForm.get('topicFilters').disable({emitEvent: false});
+    } else if (type === IntegrationType.CHIRPSTACK) {
+      integrationForm.get('clientConfiguration.httpEndpoint').disable({emitEvent: false});
     }
   }
 }
@@ -214,9 +216,9 @@ export const templates = {
       server: [Validators.required],
       appId: [Validators.required],
       token: [Validators.required],
-      'credentials.email': [Validators.required],
-      'credentials.password': [Validators.required],
-      'credentials.token': [Validators.required]
+      'credentials.email': [],
+      'credentials.password': [],
+      'credentials.token': []
     }
   },
   [IntegrationType.MQTT]: {
@@ -391,6 +393,19 @@ export const templates = {
       topicFilters: [Validators.required]
     }
   },
+  [IntegrationType.CHIRPSTACK]: {
+    clientConfiguration: {
+      baseUrl: baseUrl(),
+      applicationServerUrl: '',
+      replaceNoContentToOk: true,
+      applicationServerAPIToken: '',
+      httpEndpoint: ''
+    },
+    fieldValidators: {
+      'clientConfiguration.baseUrl': [Validators.required],
+      'clientConfiguration.applicationServerAPIToken': [Validators.required],
+    }
+  },
   [IntegrationType.TTN]: {
     clientConfiguration: {
       host: '',
@@ -448,18 +463,12 @@ export const templates = {
   [IntegrationType.AZURE_EVENT_HUB]: {
     clientConfiguration: {
       connectTimeoutSec: 10,
-      namespaceName: '',
-      eventHubName: '',
-      sasKeyName: '',
-      sasKey: '',
+      connectionString: '',
       iotHubName: ''
     },
     fieldValidators: {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
-      'clientConfiguration.namespaceName': [Validators.required],
-      'clientConfiguration.eventHubName': [Validators.required],
-      'clientConfiguration.sasKeyName': [Validators.required],
-      'clientConfiguration.sasKey': [Validators.required]
+      'clientConfiguration.connectionString': [Validators.required]
     }
   },
   [IntegrationType.OPC_UA]: {
@@ -509,6 +518,8 @@ export const templates = {
       port: 11560,
       soBroadcast: true,
       soRcvBuf: 64,
+      cacheSize: 1000,
+      timeToLiveInMinutes: 1440,
       handlerConfiguration: {
         handlerType: handlerConfigurationTypes.binary.value,
         charsetName: 'UTF-8',
@@ -520,7 +531,9 @@ export const templates = {
       'clientConfiguration.soRcvBuf': [Validators.required, Validators.min(1), Validators.max(65535)],
       'clientConfiguration.handlerConfiguration.handlerType': [Validators.required],
       'clientConfiguration.handlerConfiguration.charsetName': [Validators.required],
-      'clientConfiguration.handlerConfiguration.maxFrameLength': [Validators.required, Validators.min(1), Validators.max(65535)]
+      'clientConfiguration.handlerConfiguration.maxFrameLength': [Validators.required, Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.cacheSize': [Validators.min(0)],
+      'clientConfiguration.timeToLiveInMinutes': [Validators.min(0), Validators.max(525600)]
     }
   },
   [IntegrationType.TCP]: {
@@ -531,6 +544,8 @@ export const templates = {
       soSndBuf: 64,
       soKeepaliveOption: false,
       tcpNoDelay: true,
+      cacheSize: 1000,
+      timeToLiveInMinutes: 1440,
       handlerConfiguration: {
         handlerType: handlerConfigurationTypes.binary.value,
         byteOrder: tcpBinaryByteOrder.littleEndian.value,
@@ -554,7 +569,9 @@ export const templates = {
       'clientConfiguration.handlerConfiguration.lengthFieldOffset': [Validators.required, Validators.min(0), Validators.max(8)],
       'clientConfiguration.handlerConfiguration.lengthFieldLength': [Validators.required, Validators.min(0), Validators.max(8)],
       'clientConfiguration.handlerConfiguration.lengthAdjustment': [Validators.required, Validators.min(0), Validators.max(8)],
-      'clientConfiguration.handlerConfiguration.initialBytesToStrip': [Validators.required, Validators.min(0), Validators.max(8)]
+      'clientConfiguration.handlerConfiguration.initialBytesToStrip': [Validators.required, Validators.min(0), Validators.max(8)],
+      'clientConfiguration.cacheSize': [Validators.min(0)],
+      'clientConfiguration.timeToLiveInMinutes': [Validators.min(0), Validators.max(525600)]
     }
   },
   [IntegrationType.KAFKA]: {
@@ -625,16 +642,18 @@ export const templates = {
     }
   },
 
-  [IntegrationType.LORIOT]: {
+  [IntegrationType.PUB_SUB]: {
     clientConfiguration: {
-      serviceUrl: '',
-      credentials: {
-        type: apachePulsarCredentialsTypes.anonymous.value,
-        token: ''
-      }
+      projectId: '',
+      subscriptionId: '',
+      serviceAccountKey: '',
+      serviceAccountKeyFileName: ''
     },
     fieldValidators: {
-      'clientConfiguration.serviceUrl': [Validators.required],
+      'clientConfiguration.projectId': [Validators.required],
+      'clientConfiguration.subscriptionId': [Validators.required],
+      'clientConfiguration.serviceAccountKey': [Validators.required],
+      'clientConfiguration.serviceAccountKeyFileName': [Validators.required]
     }
   },
 

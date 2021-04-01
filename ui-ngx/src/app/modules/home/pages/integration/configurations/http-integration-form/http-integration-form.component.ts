@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { disableFields, enableFields } from '../../integration-utils';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 import { loriotCredentialType, loriotCredentialTypes } from '@home/pages/integration/integration-forms-templates';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, Validators } from '@angular/forms';
+import { merge } from 'rxjs';
 
 @Component({
   selector: 'tb-http-integration-form',
@@ -100,10 +101,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       this.form.get('server').valueChanges.subscribe((val) => {
         this.form.get('loriotDownlinkUrl').setValue(`https://${val}.loriot.io/1/rest`);
       });
-      this.form.get('sendDownlink').valueChanges.subscribe(() => {
-        this.loriotEnableFields();
-      });
-      this.form.get('createLoriotOutput').valueChanges.subscribe(() => {
+      merge(this.form.get('sendDownlink').valueChanges, this.form.get('createLoriotOutput').valueChanges).subscribe(() => {
         this.loriotEnableFields();
       });
       this.form.get('credentials.type').valueChanges.subscribe((type) => {
@@ -127,8 +125,14 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       if (!headersFilter.value) {
         headersFilter.patchValue({});
       }
+      if (this.integrationTypeLoriot) {
+        enableFields(this.form, ['headersFilter']);
+      }
     } else {
       headersFilter.patchValue({});
+      if (this.integrationTypeLoriot) {
+        disableFields(this.form, ['headersFilter']);
+      }
     }
   }
 
@@ -155,7 +159,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     }
   }
 
-  loriotEnableFields() {
+  private loriotEnableFields() {
     const fields = ['appId',  'server'];
     const createAppFields = ['credentials.email', 'credentials.password', 'credentials.token'];
     const downlinkFields = ['loriotDownlinkUrl', 'token'];
@@ -165,11 +169,11 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     if (createLoriotOutput || sendDownlink) {
       enableFields(this.form, fields);
     } else {
-      disableFields(this.form, fields);
+      disableFields(this.form, fields, false);
     }
 
-    createLoriotOutput ? enableFields(this.form, createAppFields) : disableFields(this.form, createAppFields);
-    sendDownlink ? enableFields(this.form, downlinkFields) : disableFields(this.form, downlinkFields);
+    createLoriotOutput ? enableFields(this.form, createAppFields) : disableFields(this.form, createAppFields, false);
+    sendDownlink ? enableFields(this.form, downlinkFields) : disableFields(this.form, downlinkFields, false);
   }
 
   onHttpEndpointCopied() {
@@ -191,19 +195,22 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     this.form.get('httpEndpoint').patchValue(url);
   }
 
-  loriotCredentialsTypeChanged(type: loriotCredentialType) {
+  private loriotCredentialsTypeChanged(type: loriotCredentialType) {
     const form = this.form.get('credentials') as FormGroup;
-    const token = ['token'];
-    const basic = ['email', 'password'];
     switch (type) {
       case 'basic':
-        disableFields(form, token);
-        enableFields(form, basic);
+        form.get('token').clearValidators();
+        form.get('email').setValidators(Validators.required);
+        form.get('password').setValidators(Validators.required);
         break;
       case 'token':
-        disableFields(form, basic);
-        enableFields(form, token);
+        form.get('token').setValidators(Validators.required);
+        form.get('email').clearValidators();
+        form.get('password').clearValidators();
         break;
     }
+    form.get('token').updateValueAndValidity();
+    form.get('email').updateValueAndValidity();
+    form.get('password').updateValueAndValidity();
   }
 }

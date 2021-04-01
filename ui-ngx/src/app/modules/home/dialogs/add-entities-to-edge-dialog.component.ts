@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,21 +29,19 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, Inject, OnInit, SkipSelf} from '@angular/core';
-import {ErrorStateMatcher} from '@angular/material/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {DeviceService} from '@core/http/device.service';
-import {EntityType} from '@shared/models/entity-type.models';
-import {forkJoin, Observable, of} from 'rxjs';
-import {AssetService} from '@core/http/asset.service';
-import {EntityViewService} from '@core/http/entity-view.service';
-import {DashboardService} from '@core/http/dashboard.service';
-import {DialogComponent} from '@shared/components/dialog.component';
-import {Router} from '@angular/router';
-import {EdgeRuleChainService} from "@core/http/edge-rule-chain.service";
+import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { EntityType } from '@shared/models/entity-type.models';
+import { forkJoin, Observable } from 'rxjs';
+import { DialogComponent } from '@shared/components/dialog.component';
+import { Router } from '@angular/router';
+import { RuleChainType } from '@shared/models/rule-chain.models';
+import { RuleChainService } from '@core/http/rule-chain.service';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
 
 export interface AddEntitiesToEdgeDialogData {
   edgeId: string;
@@ -56,14 +54,14 @@ export interface AddEntitiesToEdgeDialogData {
   providers: [{provide: ErrorStateMatcher, useExisting: AddEntitiesToEdgeDialogComponent}],
   styleUrls: []
 })
-export class AddEntitiesToEdgeDialogComponent extends
-  DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
 
   addEntitiesToEdgeFormGroup: FormGroup;
 
   submitted = false;
 
   entityType: EntityType;
+  subType: string;
   edgeId: string;
 
   assignToEdgeTitle: string;
@@ -72,7 +70,8 @@ export class AddEntitiesToEdgeDialogComponent extends
   constructor(protected store: Store<AppState>,
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: AddEntitiesToEdgeDialogData,
-              private edgeRuleChainService: EdgeRuleChainService,
+              private ruleChainService: RuleChainService,
+              private schedulerEventService: SchedulerEventService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, boolean>,
               public fb: FormBuilder) {
@@ -85,8 +84,17 @@ export class AddEntitiesToEdgeDialogComponent extends
     this.addEntitiesToEdgeFormGroup = this.fb.group({
       entityIds: [null, [Validators.required]]
     });
-    this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
-    this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
+    switch (this.entityType) {
+      case EntityType.RULE_CHAIN:
+        this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
+        this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        this.assignToEdgeTitle = 'rulechain.assign-scheduler-event-to-edge-title';
+        this.assignToEdgeText = 'rulechain.assign-scheduler-event-to-edge-text';
+        break;
+    }
+    this.subType = RuleChainType.EDGE;
   }
 
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -105,7 +113,14 @@ export class AddEntitiesToEdgeDialogComponent extends
     const tasks: Observable<any>[] = [];
     entityIds.forEach(
       (entityId) => {
-        tasks.push(this.edgeRuleChainService.assignRuleChainToEdge(this.edgeId, entityId));
+        switch (this.entityType) {
+          case EntityType.RULE_CHAIN:
+            tasks.push(this.ruleChainService.assignRuleChainToEdge(this.edgeId, entityId));
+            break;
+          case EntityType.SCHEDULER_EVENT:
+            tasks.push(this.schedulerEventService.assignSchedulerEventToEdge(this.edgeId, entityId));
+            break;
+        }
       }
     );
     forkJoin(tasks).subscribe(

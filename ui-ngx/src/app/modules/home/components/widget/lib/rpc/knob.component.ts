@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { isDefined, isNumber } from '@core/utils';
-import { CanvasDigitalGauge, CanvasDigitalGaugeOptions } from '@home/components/widget/lib/canvas-digital-gauge';
+import { CanvasDigitalGaugeOptions } from '@home/components/widget/lib/canvas-digital-gauge';
 import * as tinycolor_ from 'tinycolor2';
 import { ResizeObserver } from '@juggle/resize-observer';
 import GenericOptions = CanvasGauges.GenericOptions;
@@ -117,7 +117,7 @@ export class KnobComponent extends PageComponent implements OnInit, OnDestroy {
   private textMeasure: JQuery<HTMLElement>;
   private canvasBarElement: HTMLElement;
 
-  private canvasBar: CanvasDigitalGauge;
+  private canvasBar: any; // CanvasDigitalGauge;
 
   private knobResize$: ResizeObserver;
 
@@ -180,7 +180,6 @@ export class KnobComponent extends PageComponent implements OnInit, OnDestroy {
       animation: false
     };
 
-    this.canvasBar = new CanvasDigitalGauge(canvasBarData).draw();
 
     this.knob.on('click', (e) => {
       if (this.moving) {
@@ -292,9 +291,6 @@ export class KnobComponent extends PageComponent implements OnInit, OnDestroy {
 
     });
 
-    const initialValue = isDefined(settings.initialValue) ? settings.initialValue : this.minValue;
-    this.setValue(initialValue);
-
     const subscription = this.ctx.defaultSubscription;
     const rpcEnabled = subscription.rpcEnabled;
 
@@ -312,13 +308,22 @@ export class KnobComponent extends PageComponent implements OnInit, OnDestroy {
     if (settings.setValueMethod && settings.setValueMethod.length) {
       this.setValueMethod = settings.setValueMethod;
     }
-    if (!rpcEnabled) {
-      this.onError('Target device is not set!');
-    } else {
-      if (!this.isSimulated) {
-        this.rpcRequestValue();
+
+    import('@home/components/widget/lib/canvas-digital-gauge').then(
+      (gauge) => {
+        this.canvasBar = new gauge.CanvasDigitalGauge(canvasBarData).draw();
+        const initialValue = isDefined(settings.initialValue) ? settings.initialValue : this.minValue;
+        this.setValue(initialValue);
+        if (!rpcEnabled) {
+          this.onError('Target device is not set!');
+        } else {
+          if (!this.isSimulated) {
+            this.rpcRequestValue();
+          }
+        }
       }
-    }
+    );
+
   }
 
   private degreeToRatio(degree: number): number {
@@ -343,7 +348,9 @@ export class KnobComponent extends PageComponent implements OnInit, OnDestroy {
     const height = this.knobContainer.height();
     const size = Math.min(width, height);
     this.knob.css({width: size, height: size});
-    this.canvasBar.update({width: size, height: size} as GenericOptions);
+    if (this.canvasBar) {
+      this.canvasBar.update({width: size, height: size} as GenericOptions);
+    }
     this.setFontSize(this.knobTitle, this.title, this.knobTitleContainer.height(), this.knobTitleContainer.width());
     this.setFontSize(this.knobError, this.error, this.knobErrorContainer.height(), this.knobErrorContainer.width());
     const minmaxHeight = this.knobMinmaxContainer.height();

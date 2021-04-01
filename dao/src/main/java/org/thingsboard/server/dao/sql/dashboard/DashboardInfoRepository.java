@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,13 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
     Page<DashboardInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
+
+    @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId AND di.customerId = :customerId " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<DashboardInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                          @Param("customerId") UUID customerId,
+                                                          @Param("searchText") String searchText,
+                                                          Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di, " +
             "RelationEntity re " +

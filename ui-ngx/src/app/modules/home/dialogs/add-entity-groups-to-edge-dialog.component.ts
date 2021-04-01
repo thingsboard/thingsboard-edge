@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,30 +34,27 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm } from '@angular/forms';
 import { EntityId } from '@shared/models/id/entity-id';
-import {forkJoin, Observable} from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import {EntityType} from "@shared/models/entity-type.models";
-import {UserPermissionsService} from "@core/http/user-permissions.service";
-import {EntityGroupService} from "@core/http/entity-group.service";
-import {BroadcastService} from "@core/services/broadcast.service";
-import {Operation} from "@shared/models/security.models";
-import {EntityGroup, EntityGroupInfo} from "@shared/models/entity-group.models";
-import {
-  SelectEntityGroupDialogData,
-  SelectEntityGroupDialogResult
-} from "@home/dialogs/select-entity-group-dialog.component";
+import { EntityType } from "@shared/models/entity-type.models";
+import { UserPermissionsService } from "@core/http/user-permissions.service";
+import { EntityGroupService } from "@core/http/entity-group.service";
+import { BroadcastService } from "@core/services/broadcast.service";
+import { EntityGroupInfo } from "@shared/models/entity-group.models";
 
 export interface AddEntityGroupsToEdgeDialogData {
   ownerId: EntityId;
-  childGroupType: EntityType;
+  groupType: EntityType;
   edgeId: string;
   addEntityGroupsToEdgeTitle: string;
   confirmSelectTitle: string;
   notFoundText: string;
   requiredText: string;
+  customerId?: string;
+  groupScope?: string;
 }
 
 @Component({
@@ -75,9 +72,9 @@ export class AddEntityGroupsToEdgeDialogComponent extends
 
   entityType = EntityType;
 
-  ownerId: EntityId;
-  childGroupType: EntityType;
+  groupType: EntityType;
   edgeId: string;
+  customerId: string;
   childGroupId: string;
   addEntityGroupsToEdgeTitle: string;
   confirmSelectTitle: string;
@@ -96,8 +93,7 @@ export class AddEntityGroupsToEdgeDialogComponent extends
               public dialogRef: MatDialogRef<AddEntityGroupsToEdgeDialogComponent>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
-    this.ownerId = data.ownerId;
-    this.childGroupType = data.childGroupType;
+    this.groupType = data.groupType;
     this.edgeId = data.edgeId;
     this.addEntityGroupsToEdgeTitle = data.addEntityGroupsToEdgeTitle;
     this.confirmSelectTitle = data.confirmSelectTitle;
@@ -128,7 +124,7 @@ export class AddEntityGroupsToEdgeDialogComponent extends
     const tasks: Observable<any>[] = [];
     edgeEntityGroupIds.forEach(
       (entityGroupId) => {
-        tasks.push(this.entityGroupService.assignEntityGroupToEdge(this.edgeId, entityGroupId, this.childGroupType));
+        tasks.push(this.entityGroupService.assignEntityGroupToEdge(this.edgeId, entityGroupId, this.groupType));
       }
     );
     forkJoin(tasks).subscribe(

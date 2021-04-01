@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ public class HttpClientTest extends AbstractContainerTest {
         restClient.login("tenant@thingsboard.org", "tenant");
 
         Device device = createDevice("http_");
-        DeviceCredentials deviceCredentials = restClient.getCredentials(device.getId());
+        DeviceCredentials deviceCredentials = restClient.getDeviceCredentialsByDeviceId(device.getId()).get();
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity deviceTelemetryResponse = restClient.getRestTemplate()
@@ -88,7 +88,7 @@ public class HttpClientTest extends AbstractContainerTest {
         TB_TOKEN = restClient.getToken();
 
         Device device = createDevice("test");
-        String accessToken = restClient.getCredentials(device.getId()).getCredentialsId();
+        String accessToken = restClient.getDeviceCredentialsByDeviceId(device.getId()).get().getCredentialsId();
         assertNotNull(accessToken);
 
         ResponseEntity deviceSharedAttributes = restClient.getRestTemplate()
@@ -107,6 +107,7 @@ public class HttpClientTest extends AbstractContainerTest {
 
         TimeUnit.SECONDS.sleep(3);
 
+        @SuppressWarnings("deprecation")
         Optional<JsonNode> allOptional = restClient.getAttributes(accessToken, null, null);
         assertTrue(allOptional.isPresent());
 
@@ -116,6 +117,7 @@ public class HttpClientTest extends AbstractContainerTest {
         assertEquals(mapper.readTree(createPayload().toString()), all.get("shared"));
         assertEquals(mapper.readTree(createPayload().toString()), all.get("client"));
 
+        @SuppressWarnings("deprecation")
         Optional<JsonNode> sharedOptional = restClient.getAttributes(accessToken, null, "stringKey");
         assertTrue(sharedOptional.isPresent());
 
@@ -123,6 +125,7 @@ public class HttpClientTest extends AbstractContainerTest {
         assertEquals(shared.get("shared").get("stringKey"), mapper.readTree(createPayload().get("stringKey").toString()));
         assertFalse(shared.has("client"));
 
+        @SuppressWarnings("deprecation")
         Optional<JsonNode> clientOptional = restClient.getAttributes(accessToken, "longKey,stringKey", null);
         assertTrue(clientOptional.isPresent());
 

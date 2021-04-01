@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,8 @@ import {
   AggregationType,
   DAY,
   HistoryWindowType,
+  quickTimeIntervalPeriod,
+  RealtimeWindowType,
   Timewindow,
   TimewindowType
 } from '@shared/models/time/time.models';
@@ -51,6 +53,7 @@ export interface TimewindowPanelData {
   historyOnly: boolean;
   timewindow: Timewindow;
   aggregation: boolean;
+  timezone: boolean;
   isEdit: boolean;
 }
 
@@ -65,6 +68,8 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
 
   aggregation = false;
 
+  timezone = false;
+
   isEdit = false;
 
   timewindow: Timewindow;
@@ -74,6 +79,8 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
   timewindowForm: FormGroup;
 
   historyTypes = HistoryWindowType;
+
+  realtimeTypes = RealtimeWindowType;
 
   timewindowTypes = TimewindowType;
 
@@ -93,6 +100,7 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
     this.historyOnly = data.historyOnly;
     this.timewindow = data.timewindow;
     this.aggregation = data.aggregation;
+    this.timezone = data.timezone;
     this.isEdit = data.isEdit;
   }
 
@@ -100,10 +108,16 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
     const hideInterval = this.timewindow.hideInterval || false;
     const hideAggregation = this.timewindow.hideAggregation || false;
     const hideAggInterval = this.timewindow.hideAggInterval || false;
+    const hideTimezone = this.timewindow.hideTimezone || false;
 
     this.timewindowForm = this.fb.group({
         realtime: this.fb.group(
           {
+            realtimeType: this.fb.control({
+              value: this.timewindow.realtime && typeof this.timewindow.realtime.realtimeType !== 'undefined'
+                ? this.timewindow.realtime.realtimeType : RealtimeWindowType.LAST_INTERVAL,
+              disabled: hideInterval
+            }),
             timewindowMs: [
               this.timewindow.realtime && typeof this.timewindow.realtime.timewindowMs !== 'undefined'
                 ? this.timewindow.realtime.timewindowMs : null
@@ -111,7 +125,12 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
             interval: [
               this.timewindow.realtime && typeof this.timewindow.realtime.interval !== 'undefined'
                 ? this.timewindow.realtime.interval : null
-            ]
+            ],
+            quickInterval: this.fb.control({
+              value: this.timewindow.realtime && typeof this.timewindow.realtime.quickInterval !== 'undefined'
+                ? this.timewindow.realtime.quickInterval : null,
+              disabled: hideInterval
+            })
           }
         ),
         history: this.fb.group(
@@ -134,6 +153,11 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
               value: this.timewindow.history && typeof this.timewindow.history.fixedTimewindow !== 'undefined'
                 ? this.timewindow.history.fixedTimewindow : null,
               disabled: hideInterval
+            }),
+            quickInterval: this.fb.control({
+              value: this.timewindow.history && typeof this.timewindow.history.quickInterval !== 'undefined'
+                ? this.timewindow.history.quickInterval : null,
+              disabled: hideInterval
             })
           }
         ),
@@ -150,27 +174,38 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
               disabled: hideAggInterval
             }, [Validators.min(this.minDatapointsLimit()), Validators.max(this.maxDatapointsLimit())])
           }
-        )
+        ),
+        timezone: this.fb.control({
+          value: this.timewindow.timezone !== 'undefined'
+            ? this.timewindow.timezone : null,
+          disabled: hideTimezone
+        })
     });
   }
 
   update() {
     const timewindowFormValue = this.timewindowForm.getRawValue();
     this.timewindow.realtime = {
+      realtimeType: timewindowFormValue.realtime.realtimeType,
       timewindowMs: timewindowFormValue.realtime.timewindowMs,
+      quickInterval: timewindowFormValue.realtime.quickInterval,
       interval: timewindowFormValue.realtime.interval
     };
     this.timewindow.history = {
       historyType: timewindowFormValue.history.historyType,
       timewindowMs: timewindowFormValue.history.timewindowMs,
       interval: timewindowFormValue.history.interval,
-      fixedTimewindow: timewindowFormValue.history.fixedTimewindow
+      fixedTimewindow: timewindowFormValue.history.fixedTimewindow,
+      quickInterval: timewindowFormValue.history.quickInterval,
     };
     if (this.aggregation) {
       this.timewindow.aggregation = {
         type: timewindowFormValue.aggregation.type,
         limit: timewindowFormValue.aggregation.limit
       };
+    }
+    if (this.timezone) {
+      this.timewindow.timezone = timewindowFormValue.timezone;
     }
     this.result = this.timewindow;
     this.overlayRef.dispose();
@@ -189,11 +224,23 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
   }
 
   minRealtimeAggInterval() {
-    return this.timeService.minIntervalLimit(this.timewindowForm.get('realtime.timewindowMs').value);
+    return this.timeService.minIntervalLimit(this.currentRealtimeTimewindow());
   }
 
   maxRealtimeAggInterval() {
-    return this.timeService.maxIntervalLimit(this.timewindowForm.get('realtime.timewindowMs').value);
+    return this.timeService.maxIntervalLimit(this.currentRealtimeTimewindow());
+  }
+
+  currentRealtimeTimewindow(): number {
+    const timeWindowFormValue = this.timewindowForm.getRawValue();
+    switch (timeWindowFormValue.realtime.realtimeType) {
+      case RealtimeWindowType.LAST_INTERVAL:
+        return timeWindowFormValue.realtime.timewindowMs;
+      case RealtimeWindowType.INTERVAL:
+        return quickTimeIntervalPeriod(timeWindowFormValue.realtime.quickInterval);
+      default:
+        return DAY;
+    }
   }
 
   minHistoryAggInterval() {
@@ -208,6 +255,8 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
     const timewindowFormValue = this.timewindowForm.getRawValue();
     if (timewindowFormValue.history.historyType === HistoryWindowType.LAST_INTERVAL) {
       return timewindowFormValue.history.timewindowMs;
+    } else if (timewindowFormValue.history.historyType === HistoryWindowType.INTERVAL) {
+      return quickTimeIntervalPeriod(timewindowFormValue.history.quickInterval);
     } else if (timewindowFormValue.history.fixedTimewindow) {
       return timewindowFormValue.history.fixedTimewindow.endTimeMs -
         timewindowFormValue.history.fixedTimewindow.startTimeMs;
@@ -221,10 +270,18 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
       this.timewindowForm.get('history.historyType').disable({emitEvent: false});
       this.timewindowForm.get('history.timewindowMs').disable({emitEvent: false});
       this.timewindowForm.get('history.fixedTimewindow').disable({emitEvent: false});
+      this.timewindowForm.get('history.quickInterval').disable({emitEvent: false});
+      this.timewindowForm.get('realtime.realtimeType').disable({emitEvent: false});
+      this.timewindowForm.get('realtime.timewindowMs').disable({emitEvent: false});
+      this.timewindowForm.get('realtime.quickInterval').disable({emitEvent: false});
     } else {
       this.timewindowForm.get('history.historyType').enable({emitEvent: false});
       this.timewindowForm.get('history.timewindowMs').enable({emitEvent: false});
       this.timewindowForm.get('history.fixedTimewindow').enable({emitEvent: false});
+      this.timewindowForm.get('history.quickInterval').enable({emitEvent: false});
+      this.timewindowForm.get('realtime.realtimeType').enable({emitEvent: false});
+      this.timewindowForm.get('realtime.timewindowMs').enable({emitEvent: false});
+      this.timewindowForm.get('realtime.quickInterval').enable({emitEvent: false});
     }
     this.timewindowForm.markAsDirty();
   }
@@ -243,6 +300,15 @@ export class TimewindowPanelComponent extends PageComponent implements OnInit {
       this.timewindowForm.get('aggregation.limit').disable({emitEvent: false});
     } else {
       this.timewindowForm.get('aggregation.limit').enable({emitEvent: false});
+    }
+    this.timewindowForm.markAsDirty();
+  }
+
+  onHideTimezoneChanged() {
+    if (this.timewindow.hideTimezone) {
+      this.timewindowForm.get('timezone').disable({emitEvent: false});
+    } else {
+      this.timewindowForm.get('timezone').enable({emitEvent: false});
     }
     this.timewindowForm.markAsDirty();
   }

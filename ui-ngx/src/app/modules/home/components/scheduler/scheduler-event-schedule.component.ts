@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,7 @@ import {
   schedulerTimeUnitTranslationMap
 } from '@shared/models/scheduler-event.models';
 import * as _moment from 'moment';
+import * as momentTz from 'moment-timezone';
 import { isDefined } from '@core/utils';
 
 interface SchedulerEventScheduleConfig {
@@ -93,8 +94,6 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   @Input()
   disabled: boolean;
-
-  defaultTimezone = _moment.tz.guess();
 
   private lastAppliedTimezone: string;
 
@@ -235,12 +234,12 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private toSchedulerEventScheduleConfig(value: SchedulerEventSchedule): SchedulerEventScheduleConfig {
     if (value) {
-      const timezone = value.timezone || this.defaultTimezone;
+      const timezone = value.timezone || momentTz.tz.guess();
       const config: SchedulerEventScheduleConfig = {
         timezone,
         startDate: this.dateFromUtcTime(value.startTime, timezone)
       };
-      if (value.repeat && value.repeat !== null) {
+      if (value.repeat) {
         config.repeat = true;
         config.repeatType = value.repeat.type;
         if (value.repeat.type === SchedulerRepeatType.WEEKLY && value.repeat.repeatOn) {
@@ -293,7 +292,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private createDefaultSchedulerEventScheduleConfig(): SchedulerEventScheduleConfig {
     const scheduleConfig: SchedulerEventScheduleConfig = {
-      timezone: this.defaultTimezone
+      timezone: momentTz.tz.guess()
     };
     const date = new Date();
     scheduleConfig.startDate = new Date(
@@ -331,7 +330,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   }
 
   private dateFromUtcTime(time: number, timezone: string): Date {
-    const offset = _moment.tz.zone(timezone).utcOffset(time) * 60 * 1000;
+    const offset = momentTz.tz.zone(timezone).utcOffset(time) * 60 * 1000;
     return new Date(time - offset + new Date(time).getTimezoneOffset() * 60 * 1000);
   }
 
@@ -345,7 +344,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       date.getSeconds(),
       date.getMilliseconds()
     ).getTime();
-    const offset = _moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
+    const offset = momentTz.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
     return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
   }
 
@@ -355,7 +354,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       date.getMonth(),
       date.getDate()
     ).getTime();
-    const offset = _moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
+    const offset = momentTz.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
     return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
   }
 

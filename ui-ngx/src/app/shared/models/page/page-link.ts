@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -123,7 +123,8 @@ export class PageLink {
   public toQuery(): string {
     let query = `?pageSize=${this.pageSize}&page=${this.page}`;
     if (this.textSearch && this.textSearch.length) {
-      query += `&textSearch=${this.textSearch}`;
+      const textSearch = encodeURIComponent(this.textSearch);
+      query += `&textSearch=${textSearch}`;
     }
     if (this.sortOrder) {
       query += `&sortProperty=${this.sortOrder.property}&sortOrder=${this.sortOrder.direction}`;

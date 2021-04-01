@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -78,6 +78,17 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.label = device.getLabel();
         this.deviceProfileId = device.getDeviceProfileId();
         this.setDeviceData(device.getDeviceData());
+    }
+
+    public Device updateDevice(Device device) {
+        this.tenantId = device.getTenantId();
+        this.customerId = device.getCustomerId();
+        this.name = device.getName();
+        this.type = device.getType();
+        this.label = device.getLabel();
+        this.deviceProfileId = device.getDeviceProfileId();
+        this.setDeviceData(device.getDeviceData());
+        return this;
     }
 
     public TenantId getTenantId() {

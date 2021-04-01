@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -298,6 +298,13 @@ export class PhotoCameraInputWidgetComponent extends PageComponent implements On
       window.navigator.mediaDevices.getUserMedia(videoTrackConstraints).then((stream: MediaStream) => {
         if (init) {
           this.isShowCamera = true;
+          if (this.availableVideoInputs.find((device) => device.deviceId === '')) {
+            PhotoCameraInputWidgetComponent.getAvailableVideoInputs().then((devices) => {
+              this.singleDevice = devices.length < 2;
+              this.availableVideoInputs = devices;
+              this.ctx.detectChanges();
+            });
+          }
         }
         this.mediaStream = stream;
         this.videoElement.srcObject = stream;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -395,7 +395,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(device.getId(), shortEntityView.getId());
         Assert.assertEquals(device.getCreatedTime() + "", shortEntityView.properties().get(EntityField.CREATED_TIME.name().toLowerCase()));
         Assert.assertEquals(device.getName(), shortEntityView.properties().get(EntityField.NAME.name().toLowerCase()));
-        Assert.assertEquals(device.getType(), shortEntityView.properties().get(EntityField.TYPE.name().toLowerCase()));
+        Assert.assertEquals(device.getType(), shortEntityView.properties().get(EntityField.DEVICE_PROFILE.name().toLowerCase()));
         Assert.assertEquals(device.getLabel(), shortEntityView.properties().get(EntityField.LABEL.name().toLowerCase()));
         Assert.assertEquals("serverValue1_1", shortEntityView.properties().get("server_serverAttr1"));
         Assert.assertEquals("1", shortEntityView.properties().get("server_serverAttr2"));

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -122,5 +122,5 @@ public interface AssetRepository extends PagingAndSortingRepository<AssetEntity,
     @Query("SELECT DISTINCT a.type FROM AssetEntity a WHERE a.tenantId = :tenantId")
     List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
 
-    Long countByTenantId(UUID tenantId);
+    Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesQuery;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -158,7 +159,8 @@ public class TbSimpleAggMsgNode implements TbNode {
         EntityId entityId = msg.getOriginator();
         long ts = extractTs(msg);
         JsonElement value = extractValue(msg);
-        TbIntervalState state = intervals.getByEntityIdAndTs(entityId, ts);
+        Pair<Long, TbIntervalState> statePair = intervals.getByEntityIdAndTs(entityId, ts);
+        TbIntervalState state = statePair.getSecond();
         state.update(value);
 
         log.trace("Data Msg received: {}", msg);
@@ -175,6 +177,11 @@ public class TbSimpleAggMsgNode implements TbNode {
         } else {
             ctx.getPeContext().ack(msg);
         }
+
+        if (state.hasChangesToReport() && intervalPersistPolicy == IntervalPersistPolicy.ON_EACH_MESSAGE) {
+            reportInterval(ctx, entityId, statePair.getFirst(), state);
+            state.clearChangesToReport();
+        }
     }
 
     private void onIntervalTickMsg(TbContext ctx, TbMsg msg) {
@@ -184,14 +191,18 @@ public class TbSimpleAggMsgNode implements TbNode {
         scheduleReportTickMsg(ctx);
         log.trace("Reporting intervals!");
         intervals.getStatesToReport(intervalPersistPolicy).forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
-            log.trace("Reporting interval: [{}][{}]", ts, interval);
-            TbMsgMetaData metaData = new TbMsgMetaData();
-            metaData.putValue("ts", Long.toString(ts));
-            ctx.enqueueForTellNext(TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
-                    interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
+            reportInterval(ctx, entityId, ts, interval);
         }));
 
         intervals.cleanupStatesUsingTTL();
+    }
+
+    private void reportInterval(TbContext ctx, EntityId entityId, Long ts, TbIntervalState interval) {
+        log.trace("Reporting interval: [{}][{}]", ts, interval);
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("ts", Long.toString(ts));
+        ctx.enqueueForTellNext(TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
+                interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
     }
 
     private void onPersistTickMsg(TbContext ctx, TbMsg msg) {

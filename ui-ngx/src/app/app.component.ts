@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,7 +60,9 @@ export class AppComponent implements OnInit {
               private domSanitizer: DomSanitizer,
               private authService: AuthService) {
 
-    console.log(`ThingsBoard Version: ${env.tbVersion}`);
+    if (!env.production) {
+      console.log(`ThingsBoard Version: ${env.tbVersion}`);
+    }
 
     this.matIconRegistry.addSvgIconSetInNamespace('mdi',
       this.domSanitizer.bypassSecurityTrustResourceUrl('./assets/mdi.svg'));
@@ -77,7 +79,7 @@ export class AppComponent implements OnInit {
     this.matIconRegistry.addSvgIconLiteral(
       'alpha-e-circle-outline',
       this.domSanitizer.bypassSecurityTrustHtml(
-        '<svg viewBox="0 0 24 24"><path d="M9,7H15V9H11V11H15V13H11V15H15V17H9V7M12,2A10,10 0 0,'+
+        '<svg viewBox="0 0 24 24"><path d="M9,7H15V9H11V11H15V13H11V15H15V17H9V7M12,2A10,10 0 0,' +
         '1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 ' +
         '0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z" /></svg>'
       )
@@ -139,5 +141,11 @@ export class AppComponent implements OnInit {
   ngOnInit() {
   }
 
-}
+  onActivateComponent($event: any) {
+    const loadingElement = $('div#tb-loading-spinner');
+    if (loadingElement.length) {
+      loadingElement.remove();
+    }
+  }
 
+}

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,13 +67,15 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -104,7 +106,7 @@ import static org.thingsboard.server.common.data.DataConstants.SERVER_SCOPE;
 @Service
 @TbCoreComponent
 @Slf4j
-public class DefaultDeviceStateService implements DeviceStateService {
+public class DefaultDeviceStateService extends TbApplicationEventListener<PartitionChangeEvent> implements DeviceStateService {
 
     public static final String ACTIVITY_STATE = "active";
     public static final String LAST_CONNECT_TIME = "lastConnectTime";
@@ -141,13 +143,13 @@ public class DefaultDeviceStateService implements DeviceStateService {
     @Getter
     private int initFetchPackSize;
 
-    private volatile boolean clusterUpdatePending = false;
-
     private ListeningScheduledExecutorService queueExecutor;
     private final ConcurrentMap<TopicPartitionInfo, Set<DeviceId>> partitionedDevices = new ConcurrentHashMap<>();
     private final ConcurrentMap<DeviceId, DeviceStateData> deviceStates = new ConcurrentHashMap<>();
     private final ConcurrentMap<DeviceId, Long> deviceLastReportedActivity = new ConcurrentHashMap<>();
     private final ConcurrentMap<DeviceId, Long> deviceLastSavedActivity = new ConcurrentHashMap<>();
+    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
+
 
     public DefaultDeviceStateService(TenantService tenantService, DeviceService deviceService,
                                      AttributesService attributesService, TimeseriesService tsService,
@@ -170,6 +172,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("device-state")));
         queueExecutor.scheduleAtFixedRate(this::updateState, new Random().nextInt(defaultStateCheckIntervalInSec), defaultStateCheckIntervalInSec, TimeUnit.SECONDS);
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultDeviceStateService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 
     @PreDestroy
@@ -219,7 +222,6 @@ public class DefaultDeviceStateService implements DeviceStateService {
                 if (!state.isActive()) {
                     state.setActive(true);
                     save(deviceId, ACTIVITY_STATE, state.isActive());
-                    stateData.getMetaData().putValue("scope", SERVER_SCOPE);
                     pushRuleEngineMessage(stateData, ACTIVITY_EVENT);
                 }
             }
@@ -307,25 +309,14 @@ public class DefaultDeviceStateService implements DeviceStateService {
         }
     }
 
-    volatile Set<TopicPartitionInfo> pendingPartitions;
-
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            synchronized (this) {
-                pendingPartitions = partitionChangeEvent.getPartitions();
-                if (!clusterUpdatePending) {
-                    clusterUpdatePending = true;
-                    queueExecutor.submit(() -> {
-                        clusterUpdatePending = false;
-                        initStateFromDB();
-                    });
-                }
-            }
+            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }
     }
 
-    private void initStateFromDB() {
+    private void initStateFromDB(Set<TopicPartitionInfo> pendingPartitions) {
         try {
             log.info("CURRENT PARTITIONS: {}", partitionedDevices.keySet());
             log.info("NEW PARTITIONS: {}", pendingPartitions);
@@ -471,7 +462,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
     }
 
     private <T extends KvEntry> Function<List<T>, DeviceStateData> extractDeviceStateData(Device device) {
-        return new Function<List<T>, DeviceStateData>() {
+        return new Function<>() {
             @Nullable
             @Override
             public DeviceStateData apply(@Nullable List<T> data) {
@@ -527,7 +518,11 @@ public class DefaultDeviceStateService implements DeviceStateService {
             } else {
                 data = JacksonUtil.toString(state);
             }
-            TbMsg tbMsg = TbMsg.newMsg(msgType, stateData.getDeviceId(), stateData.getMetaData().copy(), TbMsgDataType.JSON, data);
+            TbMsgMetaData md = stateData.getMetaData().copy();
+            if(!persistToTelemetry){
+                md.putValue(DataConstants.SCOPE, SERVER_SCOPE);
+            }
+            TbMsg tbMsg = TbMsg.newMsg(msgType, stateData.getDeviceId(), md, TbMsgDataType.JSON, data);
             clusterService.pushMsgToRuleEngine(stateData.getTenantId(), stateData.getDeviceId(), tbMsg, null);
         } catch (Exception e) {
             log.warn("[{}] Failed to push inactivity alarm: {}", stateData.getDeviceId(), state, e);
@@ -536,27 +531,27 @@ public class DefaultDeviceStateService implements DeviceStateService {
 
     private void save(DeviceId deviceId, String key, long value) {
         if (persistToTelemetry) {
-            tsSubService.saveAndNotify(
+            tsSubService.saveAndNotifyInternal(
                     TenantId.SYS_TENANT_ID, deviceId,
                     Collections.singletonList(new BasicTsKvEntry(System.currentTimeMillis(), new LongDataEntry(key, value))),
-                    new AttributeSaveCallback(deviceId, key, value));
+                    new AttributeSaveCallback<>(deviceId, key, value));
         } else {
-            tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(deviceId, key, value));
+            tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback<>(deviceId, key, value));
         }
     }
 
     private void save(DeviceId deviceId, String key, boolean value) {
         if (persistToTelemetry) {
-            tsSubService.saveAndNotify(
+            tsSubService.saveAndNotifyInternal(
                     TenantId.SYS_TENANT_ID, deviceId,
                     Collections.singletonList(new BasicTsKvEntry(System.currentTimeMillis(), new BooleanDataEntry(key, value))),
-                    new AttributeSaveCallback(deviceId, key, value));
+                    new AttributeSaveCallback<>(deviceId, key, value));
         } else {
-            tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(deviceId, key, value));
+            tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, deviceId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback<>(deviceId, key, value));
         }
     }
 
-    private static class AttributeSaveCallback implements FutureCallback<Void> {
+    private static class AttributeSaveCallback<T> implements FutureCallback<T> {
         private final DeviceId deviceId;
         private final String key;
         private final Object value;
@@ -568,7 +563,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
         }
 
         @Override
-        public void onSuccess(@Nullable Void result) {
+        public void onSuccess(@Nullable T result) {
             log.trace("[{}] Successfully updated attribute [{}] with value [{}]", deviceId, key, value);
         }
 

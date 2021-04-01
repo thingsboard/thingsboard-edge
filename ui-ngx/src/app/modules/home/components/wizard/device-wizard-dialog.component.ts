@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -53,8 +53,8 @@ import { MatHorizontalStepper } from '@angular/material/stepper';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityId } from '@shared/models/id/entity-id';
-import { Observable, of, Subscription } from 'rxjs';
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { Observable, of, Subscription, throwError } from 'rxjs';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { DeviceService } from '@core/http/device.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
@@ -133,6 +133,7 @@ export class DeviceWizardDialogComponent extends
         name: ['', Validators.required],
         label: [''],
         gateway: [false],
+        overwriteActivityTime: [false],
         transportType: [DeviceTransportType.DEFAULT, Validators.required],
         addProfileType: [0],
         deviceProfileId: [null, Validators.required],
@@ -332,6 +333,7 @@ export class DeviceWizardDialogComponent extends
       deviceProfileId: profileId,
       additionalInfo: {
         gateway: this.deviceWizardFormGroup.get('gateway').value,
+        overwriteActivityTime: this.deviceWizardFormGroup.get('overwriteActivityTime').value,
         description: this.deviceWizardFormGroup.get('description').value
       },
       customerId: null
@@ -349,7 +351,15 @@ export class DeviceWizardDialogComponent extends
         mergeMap(
           (deviceCredentials) => {
             const deviceCredentialsValue = {...deviceCredentials, ...this.credentialsFormGroup.value.credential};
-            return this.deviceService.saveDeviceCredentials(deviceCredentialsValue);
+            return this.deviceService.saveDeviceCredentials(deviceCredentialsValue).pipe(
+              catchError(e => {
+                return this.deviceService.deleteDevice(device.id.id).pipe(
+                  mergeMap(() => {
+                    return throwError(e);
+                  }
+                ));
+              })
+            );
           }
         ),
         map(() => device));

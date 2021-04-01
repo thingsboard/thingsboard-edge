@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -238,8 +238,8 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
         Thread.sleep(1000);
 
-        List<Map<String, Object>> values = doGetAsync("/api/plugins/telemetry/ENTITY_VIEW/" + savedView.getId().getId().toString() +
-                "/values/attributes?keys=" + String.join(",", actualAttributesSet), List.class);
+        List<Map<String, Object>> values = doGetAsyncTyped("/api/plugins/telemetry/ENTITY_VIEW/" + savedView.getId().getId().toString() +
+                "/values/attributes?keys=" + String.join(",", actualAttributesSet), new TypeReference<>() {});
 
         assertEquals("value1", getValue(values, "caKey1"));
         assertEquals(true, getValue(values, "caKey2"));
@@ -255,8 +255,8 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         Set<String> expectedActualAttributesSet = new HashSet<>(Arrays.asList("caKey1", "caKey2", "caKey3", "caKey4"));
         assertTrue(actualAttributesSet.containsAll(expectedActualAttributesSet));
 
-        List<Map<String, Object>> valueTelemetryOfDevices = doGetAsync("/api/plugins/telemetry/DEVICE/" + testDevice.getId().getId().toString() +
-                "/values/attributes?keys=" + String.join(",", actualAttributesSet), List.class);
+        List<Map<String, Object>> valueTelemetryOfDevices = doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + testDevice.getId().getId().toString() +
+                "/values/attributes?keys=" + String.join(",", actualAttributesSet), new TypeReference<>() {});
 
         EntityView view = new EntityView();
         view.setEntityId(testDevice.getId());
@@ -270,8 +270,8 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
         Thread.sleep(1000);
 
-        List<Map<String, Object>> values = doGetAsync("/api/plugins/telemetry/ENTITY_VIEW/" + savedView.getId().getId().toString() +
-                "/values/attributes?keys=" + String.join(",", actualAttributesSet), List.class);
+        List<Map<String, Object>> values = doGetAsyncTyped("/api/plugins/telemetry/ENTITY_VIEW/" + savedView.getId().getId().toString() +
+                "/values/attributes?keys=" + String.join(",", actualAttributesSet), new TypeReference<>() {});
         assertEquals(0, values.size());
     }
 
@@ -340,12 +340,12 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     }
 
     private Set<String> getTelemetryKeys(String type, String id) throws Exception {
-        return new HashSet<>(doGetAsync("/api/plugins/telemetry/" + type + "/" + id + "/keys/timeseries", List.class));
+        return new HashSet<>(doGetAsyncTyped("/api/plugins/telemetry/" + type + "/" + id + "/keys/timeseries", new TypeReference<>() {}));
     }
 
     private Map<String, List<Map<String, String>>> getTelemetryValues(String type, String id, Set<String> keys, Long startTs, Long endTs) throws Exception {
-        return doGetAsync("/api/plugins/telemetry/" + type + "/" + id +
-                "/values/timeseries?keys=" + String.join(",", keys) + "&startTs=" + startTs + "&endTs=" + endTs, Map.class);
+        return doGetAsyncTyped("/api/plugins/telemetry/" + type + "/" + id +
+                "/values/timeseries?keys=" + String.join(",", keys) + "&startTs=" + startTs + "&endTs=" + endTs, new TypeReference<>() {});
     }
 
     private Set<String> getAttributesByKeys(String stringKV) throws Exception {
@@ -370,7 +370,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         client.publish("v1/devices/me/attributes", message);
         Thread.sleep(1000);
         client.disconnect();
-        return new HashSet<>(doGetAsync("/api/plugins/telemetry/DEVICE/" + viewDeviceId + "/keys/attributes", List.class));
+        return new HashSet<>(doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + viewDeviceId + "/keys/attributes", new TypeReference<>() {}));
     }
 
     private Object getValue(List<Map<String, Object>> values, String stringValue) {

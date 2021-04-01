@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -69,6 +69,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -101,6 +102,8 @@ import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
+import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
@@ -122,6 +125,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -168,6 +172,7 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.edge.rpc.EdgeGrpcService;
 import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
+import org.thingsboard.server.service.lwm2m.LwM2MModelsRepository;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -187,11 +192,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -202,6 +209,12 @@ public abstract class BaseController {
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
+
+    protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
+    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
+
+    protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String HOME_DASHBOARD = "homeDashboardId";
 
     private static final ObjectMapper json = new ObjectMapper();
 
@@ -334,6 +347,9 @@ public abstract class BaseController {
     @Autowired
     protected TbDeviceProfileCache deviceProfileCache;
 
+    @Autowired
+    protected LwM2MModelsRepository lwM2MModelsRepository;
+
     @Autowired(required = false)
     protected EdgeService edgeService;
 
@@ -350,9 +366,9 @@ public abstract class BaseController {
     @Getter
     private boolean logControllerErrorStackTrace;
 
-    @Value("${edges.rpc.enabled}")
+    @Value("${edges.enabled}")
     @Getter
-    private boolean edgesSupportEnabled;
+    protected boolean edgesEnabled;
 
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
@@ -603,7 +619,8 @@ public abstract class BaseController {
                         savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
 
-                sendNotificationMsgToEdgeService(getTenantId(), savedEntity.getId(), ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,
@@ -611,8 +628,7 @@ public abstract class BaseController {
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
             if (entity.getId() != null) {
-                sendNotificationMsgToEdgeService(savedEntity.getTenantId(), savedEntity.getId(),
-                        ActionType.UPDATED);
+                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
             }
 
             return savedEntity;
@@ -861,13 +877,13 @@ public abstract class BaseController {
         }
     }
 
-    WidgetType checkWidgetTypeId(WidgetTypeId widgetTypeId, Operation operation) throws ThingsboardException {
+    WidgetTypeDetails checkWidgetTypeId(WidgetTypeId widgetTypeId, Operation operation) throws ThingsboardException {
         try {
             validateId(widgetTypeId, "Incorrect widgetTypeId " + widgetTypeId);
-            WidgetType widgetType = widgetTypeService.findWidgetTypeById(getCurrentUser().getTenantId(), widgetTypeId);
-            checkNotNull(widgetType);
-            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, operation, widgetTypeId, widgetType);
-            return widgetType;
+            WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(getCurrentUser().getTenantId(), widgetTypeId);
+            checkNotNull(widgetTypeDetails);
+            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, operation, widgetTypeId, widgetTypeDetails);
+            return widgetTypeDetails;
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -1017,6 +1033,7 @@ public abstract class BaseController {
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
+    @SuppressWarnings("unchecked")
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
@@ -1058,6 +1075,9 @@ public abstract class BaseController {
             case ASSIGNED_TO_CUSTOMER:
                 msgType = DataConstants.ENTITY_ASSIGNED;
                 break;
+            case CHANGE_OWNER:
+                msgType = DataConstants.OWNER_CHANGED;
+                break;
             case UNASSIGNED_FROM_CUSTOMER:
                 msgType = DataConstants.ENTITY_UNASSIGNED;
                 break;
@@ -1090,6 +1110,12 @@ public abstract class BaseController {
                 break;
             case PROVISION_FAILURE:
                 msgType = DataConstants.PROVISION_FAILURE;
+                break;
+            case TIMESERIES_UPDATED:
+                msgType = DataConstants.TIMESERIES_UPDATED;
+                break;
+            case TIMESERIES_DELETED:
+                msgType = DataConstants.TIMESERIES_DELETED;
                 break;
             case ASSIGNED_TO_EDGE:
                 msgType = DataConstants.ENTITY_ASSIGNED_TO_EDGE;
@@ -1136,24 +1162,20 @@ public abstract class BaseController {
                     String strTenantName = extractParameter(String.class, 1, additionalInfo);
                     metaData.putValue("assignedToTenantId", strTenantId);
                     metaData.putValue("assignedToTenantName", strTenantName);
+                } else if (actionType == ActionType.CHANGE_OWNER) {
+                    EntityId targetOwnerId = extractParameter(EntityId.class, 0, additionalInfo);
+                    metaData.putValue("targetOwnerId", targetOwnerId.toString());
+                    metaData.putValue("targetOwnerType", targetOwnerId.getEntityType().name());
                 } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
-                    String strEntityId = extractParameter(String.class, 0, additionalInfo);
-                    String strEntityName = extractParameter(String.class, 1, additionalInfo);
-                    String assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
-                    String assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
-                    metaData.putValue("entityId", strEntityId);
-                    metaData.putValue("entityName", strEntityName);
-                    metaData.putValue("assignedEdgeId", assignedEdgeId);
-                    metaData.putValue("assignedEdgeName", assignedEdgeName);
+                    String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                    String strEdgeName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("assignedEdgeId", strEdgeId);
+                    metaData.putValue("assignedEdgeName", strEdgeName);
                 } else if (actionType == ActionType.UNASSIGNED_FROM_EDGE) {
-                    String strEntityId = extractParameter(String.class, 0, additionalInfo);
-                    String strEntityName = extractParameter(String.class, 1, additionalInfo);
-                    String assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
-                    String assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
-                    metaData.putValue("entityId", strEntityId);
-                    metaData.putValue("entityName", strEntityName);
-                    metaData.putValue("unassignedEdgeId", assignedEdgeId);
-                    metaData.putValue("unassignedEdgeName", assignedEdgeName);
+                    String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                    String strEdgeName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("unassignedEdgeId", strEdgeId);
+                    metaData.putValue("unassignedEdgeName", strEdgeName);
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
@@ -1165,31 +1187,36 @@ public abstract class BaseController {
                     entityNode = json.createObjectNode();
                     if (actionType == ActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
+                        @SuppressWarnings("unchecked")
                         List<AttributeKvEntry> attributes = extractParameter(List.class, 1, additionalInfo);
-                        metaData.putValue("scope", scope);
+                        metaData.putValue(DataConstants.SCOPE, scope);
                         if (attributes != null) {
                             for (AttributeKvEntry attr : attributes) {
-                                if (attr.getDataType() == DataType.BOOLEAN) {
-                                    entityNode.put(attr.getKey(), attr.getBooleanValue().get());
-                                } else if (attr.getDataType() == DataType.DOUBLE) {
-                                    entityNode.put(attr.getKey(), attr.getDoubleValue().get());
-                                } else if (attr.getDataType() == DataType.LONG) {
-                                    entityNode.put(attr.getKey(), attr.getLongValue().get());
-                                } else if (attr.getDataType() == DataType.JSON) {
-                                    entityNode.set(attr.getKey(), json.readTree(attr.getJsonValue().get()));
-                                } else {
-                                    entityNode.put(attr.getKey(), attr.getValueAsString());
-                                }
+                                addKvEntry(entityNode, attr);
                             }
                         }
                     } else if (actionType == ActionType.ATTRIBUTES_DELETED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
+                        @SuppressWarnings("unchecked")
                         List<String> keys = extractParameter(List.class, 1, additionalInfo);
-                        metaData.putValue("scope", scope);
+                        metaData.putValue(DataConstants.SCOPE, scope);
                         ArrayNode attrsArrayNode = entityNode.putArray("attributes");
                         if (keys != null) {
                             keys.forEach(attrsArrayNode::add);
                         }
+                    } else if (actionType == ActionType.TIMESERIES_UPDATED) {
+                        @SuppressWarnings("unchecked")
+                        List<TsKvEntry> timeseries = extractParameter(List.class, 0, additionalInfo);
+                        addTimeseries(entityNode, timeseries);
+                    } else if (actionType == ActionType.TIMESERIES_DELETED) {
+                        @SuppressWarnings("unchecked")
+                        List<String> keys = extractParameter(List.class, 0, additionalInfo);
+                        if (keys != null) {
+                            ArrayNode timeseriesArrayNode = entityNode.putArray("timeseries");
+                            keys.forEach(timeseriesArrayNode::add);
+                        }
+                        entityNode.put("startTs", extractParameter(Long.class, 1, additionalInfo));
+                        entityNode.put("endTs", extractParameter(Long.class, 2, additionalInfo));
                     }
                 }
                 TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, metaData, TbMsgDataType.JSON, json.writeValueAsString(entityNode));
@@ -1203,6 +1230,22 @@ public abstract class BaseController {
             } catch (Exception e) {
                 log.warn("[{}] Failed to push entity action to rule engine: {}", entityId, actionType, e);
             }
+        }
+    }
+
+    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
+        if (kvEntry.getDataType() == DataType.BOOLEAN) {
+            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
+            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.LONG) {
+            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.JSON) {
+            if (kvEntry.getJsonValue().isPresent()) {
+                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
+            }
+        } else {
+            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
         }
     }
 
@@ -1284,62 +1327,87 @@ public abstract class BaseController {
         return null;
     }
 
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityRelation relation, ActionType action) {
-        if (!edgesSupportEnabled) {
-            return;
+    private void addTimeseries(ObjectNode entityNode, List<TsKvEntry> timeseries) throws Exception {
+        if (timeseries != null && !timeseries.isEmpty()) {
+            ArrayNode result = entityNode.putArray("timeseries");
+            Map<Long, List<TsKvEntry>> groupedTelemetry = timeseries.stream()
+                    .collect(Collectors.groupingBy(TsKvEntry::getTs));
+            for (Map.Entry<Long, List<TsKvEntry>> entry : groupedTelemetry.entrySet()) {
+                ObjectNode element = json.createObjectNode();
+                element.put("ts", entry.getKey());
+                ObjectNode values = element.putObject("values");
+                for (TsKvEntry tsKvEntry : entry.getValue()) {
+                    addKvEntry(values, tsKvEntry);
+                }
+                result.add(element);
+            }
         }
+    }
+
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
+        try {
+            sendNotificationMsgToEdgeService(tenantId, null, entityId,
+                    json.writeValueAsString(previousOwnerId), EdgeEventActionType.CHANGE_OWNER);
+        } catch (Exception e) {
+            log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
+        }
+    }
+
+    protected void sendRelationNotificationMsg(TenantId tenantId, EntityRelation relation, EdgeEventActionType action) {
         try {
             if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
                     !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
-                sendNotificationMsgToEdgeService(tenantId, null, null,
-                        json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
+                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
             }
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
         }
     }
 
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, ActionType edgeEventAction) {
-        sendNotificationMsgToEdgeService(tenantId, entityId, edgeEventAction, null);
-    }
-
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, ActionType edgeEventAction) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, edgeEventAction, null);
-    }
-
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, ActionType edgeEventAction, EntityGroupId entityGroupId) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, edgeEventAction, entityGroupId);
-    }
-
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId,
-                                                    ActionType action, EntityGroupId entityGroupId) {
-        if (!edgesSupportEnabled) {
-            return;
-        }
-        EdgeEventType type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
-        if (type != null) {
-            sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, type, action, null, entityGroupId);
-        }
-    }
-
-    protected void sendChangeOwnerNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
-        if (!edgesSupportEnabled) {
-            return;
-        }
-        try {
-            EdgeEventType type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
-            if (type != null) {
-                sendNotificationMsgToEdgeService(tenantId, null, entityId,
-                        json.writeValueAsString(previousOwnerId), type, ActionType.CHANGE_OWNER, null, null);
+    protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
+        if (edgeIds != null && !edgeIds.isEmpty()) {
+            for (EdgeId edgeId : edgeIds) {
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, EdgeEventActionType.DELETED);
             }
-        } catch (Exception e) {
-            log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
         }
+    }
+
+    protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
+    }
+
+    protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
+    }
+
+    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
+                                                EntityGroupId entityGroupId) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
     private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                                  EdgeEventType type, ActionType action,
+                                                  EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
+    }
+
+    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                                  EdgeEventType type, EdgeEventActionType action,
                                                   EntityType entityGroupType, EntityGroupId entityGroupId) {
+        if (!edgesEnabled) {
+            return;
+        }
+        if (type == null) {
+            if (entityId != null) {
+                type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
+            } else {
+                log.trace("[{}] entity id and type are null. Ignoring this notification", tenantId);
+                return;
+            }
+            if (type == null) {
+                log.trace("[{}] edge event type is null. Ignoring this notification [{}]", tenantId, entityId);
+                return;
+            }
+        }
         TransportProtos.EdgeNotificationMsgProto.Builder builder = TransportProtos.EdgeNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
@@ -1365,8 +1433,31 @@ public abstract class BaseController {
             builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         TransportProtos.EdgeNotificationMsgProto msg = builder.build();
+        log.trace("[{}] sending notification to edge service {}", tenantId.getId(), msg);
         tbClusterService.pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
                 TransportProtos.ToCoreMsg.newBuilder().setEdgeNotificationMsg(msg).build(), null);
+    }
+
+    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        if (!edgesEnabled) {
+            return null;
+        }
+        List<EdgeId> result = null;
+        try {
+            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, null).get();
+        } catch (Exception e) {
+            log.error("[{}] can't find related edge ids for entity [{}]", tenantId, entityId, e);
+        }
+        return result;
+    }
+
+    protected void processDashboardIdFromAdditionalInfo(ObjectNode additionalInfo, String requiredFields) throws ThingsboardException {
+        String dashboardId = additionalInfo.has(requiredFields) ? additionalInfo.get(requiredFields).asText() : null;
+        if(dashboardId != null && !dashboardId.equals("null")) {
+            if(dashboardService.findDashboardById(getTenantId(), new DashboardId(UUID.fromString(dashboardId))) == null) {
+                additionalInfo.remove(requiredFields);
+            }
+        }
     }
 
 }

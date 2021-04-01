@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,15 @@
 ///
 
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AuthService } from '@core/auth/auth.service';
-import { Subscription } from 'rxjs';
+import { of, Subscription } from 'rxjs';
+import { HomeDashboard } from '@shared/models/dashboard.models';
+import { Observable } from 'rxjs/internal/Observable';
+import { isDefinedAndNotNull } from '@core/utils';
+import { map } from 'rxjs/operators';
+import { DashboardService } from '@core/http/dashboard.service';
 
 @Component({
   selector: 'tb-iframe-view',
@@ -45,35 +50,82 @@ export class IFrameViewComponent implements OnInit, OnDestroy {
   @HostBinding('style.height') public height = '100%';
 
   safeIframeUrl: SafeResourceUrl;
+  dashboard: HomeDashboard;
+  loading = true;
 
   private sub: Subscription;
 
   constructor(private sanitizer: DomSanitizer,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private dashboardService: DashboardService) {
   }
 
   ngOnInit(): void {
     this.sub = this.route.queryParams.subscribe((queryParams) => {
-      let iframeUrl: string;
-      let setAccessToken: string;
-      if (queryParams.childIframeUrl) {
-        iframeUrl = queryParams.childIframeUrl;
-        setAccessToken = queryParams.childSetAccessToken;
+      this.safeIframeUrl = null;
+      this.dashboard = null;
+      this.loading = true;
+      if (this.isDashboard(queryParams)) {
+        this.resolveDashboard(queryParams).subscribe((dashboard) => {
+          this.dashboard = dashboard;
+          this.loading = false;
+        });
       } else {
-        iframeUrl = queryParams.iframeUrl;
-        setAccessToken = queryParams.setAccessToken;
-      }
-      if (setAccessToken === 'true') {
-        const accessToken = AuthService.getJwtToken();
-        if (iframeUrl.indexOf('?') > -1) {
-          iframeUrl += '&';
+        let iframeUrl: string;
+        let setAccessToken: string;
+        if (queryParams.childIframeUrl) {
+          iframeUrl = queryParams.childIframeUrl;
+          setAccessToken = queryParams.childSetAccessToken;
         } else {
-          iframeUrl += '?';
+          iframeUrl = queryParams.iframeUrl;
+          setAccessToken = queryParams.setAccessToken;
         }
-        iframeUrl += `accessToken=${accessToken}`;
+        if (setAccessToken === 'true') {
+          const accessToken = AuthService.getJwtToken();
+          if (iframeUrl.indexOf('?') > -1) {
+            iframeUrl += '&';
+          } else {
+            iframeUrl += '?';
+          }
+          iframeUrl += `accessToken=${accessToken}`;
+        }
+        this.safeIframeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(iframeUrl);
+        this.loading = false;
       }
-      this.safeIframeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(iframeUrl);
     });
+  }
+
+  private isDashboard(queryParams: Params): boolean {
+    if (queryParams.childDashboardId) {
+      return true;
+    } else if (queryParams.childIframeUrl) {
+      return false;
+    } else if (queryParams.dashboardId) {
+      return true;
+    }
+    return false;
+  }
+
+  private resolveDashboard(queryParams: Params): Observable<HomeDashboard> {
+    let dashboardId;
+    let hideDashboardToolbar;
+    if (queryParams.childDashboardId) {
+      dashboardId = queryParams.childDashboardId;
+      hideDashboardToolbar = isDefinedAndNotNull(queryParams.childHideDashboardToolbar) ?
+        queryParams.childHideDashboardToolbar === 'true' : true;
+    } else if (queryParams.dashboardId) {
+      dashboardId = queryParams.dashboardId;
+      hideDashboardToolbar = isDefinedAndNotNull(queryParams.hideDashboardToolbar) ? queryParams.hideDashboardToolbar === 'true' : true;
+    }
+    if (dashboardId) {
+      return this.dashboardService.getDashboard(dashboardId).pipe(
+        map((dashboard) => {
+          return {...dashboard, hideDashboardToolbar};
+        })
+      );
+    } else {
+      return of(null);
+    }
   }
 
   ngOnDestroy(): void {

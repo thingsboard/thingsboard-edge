@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,36 +29,39 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Observable, of} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {UtilsService} from '@core/services/utils.service';
+import { Observable, of } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 import {
   EntityGroupStateConfigFactory,
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import {Injectable} from '@angular/core';
-import {EntityType} from '@shared/models/entity-type.models';
-import {tap} from 'rxjs/operators';
-import {BroadcastService} from '@core/services/broadcast.service';
-import {EntityAction} from '@home/models/entity/entity-component.models';
-import {MatDialog} from '@angular/material/dialog';
-import {UserPermissionsService} from '@core/http/user-permissions.service';
-import {EntityGroupParams, ShortEntityView} from '@shared/models/entity-group.models';
-import {HomeDialogsService} from '@home/dialogs/home-dialogs.service';
-import {CustomerId} from '@shared/models/id/customer-id';
-import {GroupConfigTableConfigService} from '@home/components/group/group-config-table-config.service';
-import {Operation, Resource} from '@shared/models/security.models';
-import {Edge} from "@shared/models/edge.models";
-import {EdgeService} from "@core/http/edge.service";
-import {EdgeComponent} from "@home/pages/edge/edge.component";
-import {Router} from "@angular/router";
+import { Injectable } from '@angular/core';
+import { EntityType } from '@shared/models/entity-type.models';
+import { tap } from 'rxjs/operators';
+import { BroadcastService } from '@core/services/broadcast.service';
+import { EntityAction } from '@home/models/entity/entity-component.models';
+import { MatDialog } from '@angular/material/dialog';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { CustomerId } from '@shared/models/id/customer-id';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import { Edge } from "@shared/models/edge.models";
+import { EdgeService } from "@core/http/edge.service";
+import { EdgeComponent } from "@home/pages/edge/edge.component";
+import { Router } from "@angular/router";
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
 
   constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Edge>,
               private userPermissionsService: UserPermissionsService,
+              private store: Store<AppState>,
               private translate: TranslateService,
               private utils: UtilsService,
               private dialog: MatDialog,
@@ -70,6 +73,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
     const config = new GroupEntityTableConfig<Edge>(entityGroup, params);
+    let ownerId = this.userPermissionsService.getUserOwnerId();
+    const manageRuleChainsEnabled = this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && ownerId.entityType !== EntityType.CUSTOMER;
 
     config.entityComponent = EdgeComponent;
 
@@ -91,6 +96,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
 
     config.onEntityAction = action => this.onEdgeAction(action, config, params);
+
+    if (params.hierarchyView) {
+      config.entityAdded = edge => {
+        params.hierarchyCallbacks.edgeAdded(params.nodeId, edge);
+      };
+      config.entityUpdated = edge => {
+        params.hierarchyCallbacks.edgeUpdated(edge);
+      };
+      config.entitiesDeleted = edgeIds => {
+        params.hierarchyCallbacks.edgesDeleted(edgeIds.map(id => id.id));
+      };
+    }
 
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(
@@ -140,14 +157,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
           icon: 'schedule',
           isEnabled: config.manageSchedulerEventsEnabled,
           onAction: ($event, entity) => this.manageSchedulerEvents($event, entity, config, params)
-        },
-        {
-          name: this.translate.instant('edge.manage-edge-rule-chains'),
-          icon: 'settings_ethernet',
-          isEnabled: config.manageRuleChainsEnabled,
-          onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
         }
-      )
+      );
+      if (manageRuleChainsEnabled) {
+        config.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('edge.manage-edge-rule-chains'),
+            icon: 'settings_ethernet',
+            isEnabled: () => true,
+            onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
+          }
+        );
+      }
     }
 
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
@@ -202,6 +223,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.USER);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/userGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/userGroups`);
     }
@@ -214,6 +237,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ASSET);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/assetGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
     }
@@ -226,7 +251,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
-    } else {
+    } else if (config.groupParams.groupType === EntityType.CUSTOMER) { //TODO deaflynx: define else if statement and if needed to change other manage-buttons
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`);
+    } else if (config.groupParams.groupType === EntityType.EDGE) {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
     }
   }
@@ -238,6 +265,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ENTITY_VIEW);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/entityViewGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/entityViewGroups`);
     }
@@ -250,6 +279,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/dashboardGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
     }
@@ -262,6 +293,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/scheduler`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/scheduler`);
     }
@@ -274,6 +307,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.RULE_CHAIN);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/ruleChains`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
     }

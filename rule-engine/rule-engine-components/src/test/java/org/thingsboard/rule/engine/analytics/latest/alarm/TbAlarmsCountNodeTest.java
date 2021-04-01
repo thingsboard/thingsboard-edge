@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,36 +43,63 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.internal.matchers.Any;
 import org.mockito.internal.verification.Times;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.thingsboard.common.util.ListeningExecutor;
-import org.thingsboard.rule.engine.api.*;
-import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
-import org.thingsboard.server.common.data.alarm.*;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbPeContext;
+import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmQuery;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.relation.*;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.relation.RelationService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -113,6 +140,7 @@ public class TbAlarmsCountNodeTest {
     private Set<Long> alarmCreatedTimes;
 
     @Before
+    @SuppressWarnings("unchecked")
     public void init() {
         TbAlarmsCountNodeConfiguration config = new TbAlarmsCountNodeConfiguration();
         node = new TbAlarmsCountNode();
@@ -124,8 +152,8 @@ public class TbAlarmsCountNodeTest {
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(queueName, type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(String.class), Matchers.any(EntityId.class),
-                Matchers.any(TbMsgMetaData.class), Matchers.any(String.class));
+        }).when(ctx).newMsg(ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+                ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;
 
@@ -136,11 +164,11 @@ public class TbAlarmsCountNodeTest {
                 node.onMsg(ctx, msg);
             }
             return null;
-        }).when(ctx).tellSelf(Matchers.any(TbMsg.class), Matchers.anyLong());
+        }).when(ctx).tellSelf(ArgumentMatchers.any(TbMsg.class), ArgumentMatchers.anyLong());
 
         when(ctx.getPeContext()).thenReturn(peCtx);
 
-        when(peCtx.isLocalEntity(Matchers.any(EntityId.class))).thenReturn(true);
+        when(peCtx.isLocalEntity(ArgumentMatchers.any(EntityId.class))).thenReturn(true);
         when(ctx.getDbCallbackExecutor()).thenReturn(executor);
 
         Stubber executorAnswer = doAnswer(invocationOnMock -> {
@@ -160,8 +188,7 @@ public class TbAlarmsCountNodeTest {
             }
         });
 
-        executorAnswer.when(executor).executeAsync(Matchers.any(Callable.class));
-        executorAnswer.when(executor).execute(Matchers.any(Runnable.class));
+        executorAnswer.when(executor).execute(ArgumentMatchers.any(Runnable.class));
 
         when(ctx.getRelationService()).thenReturn(relationService);
 
@@ -169,14 +196,14 @@ public class TbAlarmsCountNodeTest {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
             List<AlarmFilter> filters = (List<AlarmFilter>) (invocationOnMock.getArguments())[2];
             return findAlarmCounts(alarmService, query, filters);
-        }).when(alarmService).findAlarmCounts(Matchers.any(), Matchers.any(AlarmQuery.class), Matchers.any(List.class));
+        }).when(alarmService).findAlarmCounts(ArgumentMatchers.any(), ArgumentMatchers.any(AlarmQuery.class), ArgumentMatchers.any(List.class));
 
         when(ctx.getAlarmService()).thenReturn(alarmService);
 
         relationsQuery = new RelationsQuery();
         relationsQuery.setDirection(EntitySearchDirection.FROM);
         relationsQuery.setMaxLevel(1);
-        EntityTypeFilter entityTypeFilter = new EntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
+        RelationEntityTypeFilter entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
         relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
 
         rootEntityId = new TenantId(Uuids.timeBased());
@@ -249,7 +276,7 @@ public class TbAlarmsCountNodeTest {
 
             if (shouldFail) {
                 failureCount++;
-                when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).
+                when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(parentEntityId, relationsQuery)))).
                         thenReturn(Futures.immediateFailedFuture(new RuntimeException("Failed to fetch entities!")));
             } else {
                 List<EntityRelation> childRelations = new ArrayList<>();
@@ -266,14 +293,14 @@ public class TbAlarmsCountNodeTest {
                     expectedLastDayAlarmsCountMap.put(childEntityId, countLastDay(alarms));
                     childAlarms.addAll(alarms);
                 }
-                when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
+                when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
             }
             List<AlarmInfo> alarms = generateAlarms(parentEntityId, childAlarms);
             expectedAllAlarmsCountMap.put(parentEntityId, alarms.size());
             expectedActiveAlarmsCountMap.put(parentEntityId, countActive(alarms));
             expectedLastDayAlarmsCountMap.put(parentEntityId, countLastDay(alarms));
         }
-        when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
+        when(relationService.findByQuery(ArgumentMatchers.any(), ArgumentMatchers.eq(buildQuery(rootEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(parentEntityRelations));
 
         node.init(ctx, nodeConfiguration);
 
@@ -348,14 +375,8 @@ public class TbAlarmsCountNodeTest {
         for (int i=0;i<childAlarms.size();i++) {
             alarmRelations.add(createAlarmRelation(entityId, childAlarms.get(i).getId()));
         }
-        when(relationService.findByFromAsync(Matchers.any(), Matchers.eq(entityId), Matchers.eq(RelationTypeGroup.ALARM))).thenReturn(Futures.immediateFuture(alarmRelations));
         PageData<AlarmInfo> pageData = new PageData<>(alarms, 1, alarms.size(), false);
-        when(alarmService.findAlarms(Matchers.any(), argThat(new ArgumentMatcher<AlarmQuery>() {
-                                                 @Override
-                                                 public boolean matches(Object query) {
-                                                     return query != null && ((AlarmQuery) query).getAffectedEntityId().equals(entityId);
-                                                 }
-                                             }))).thenReturn(Futures.immediateFuture(pageData));
+        when(alarmService.findAlarms(ArgumentMatchers.any(), argThat(query -> query != null && query.getAffectedEntityId().equals(entityId)))).thenReturn(Futures.immediateFuture(pageData));
         alarms.addAll(childAlarms);
         return alarms;
     }

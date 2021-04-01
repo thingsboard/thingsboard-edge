@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -88,7 +88,10 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       maxREExecutions: [null, [Validators.required, Validators.min(0)]],
       maxJSExecutions: [null, [Validators.required, Validators.min(0)]],
       maxDPStorageDays: [null, [Validators.required, Validators.min(0)]],
-      maxRuleNodeExecutionsPerMessage: [null, [Validators.required, Validators.min(0)]]
+      maxRuleNodeExecutionsPerMessage: [null, [Validators.required, Validators.min(0)]],
+      maxEmails: [null, [Validators.required, Validators.min(0)]],
+      maxSms: [null, [Validators.required, Validators.min(0)]],
+      defaultStorageTtlDays: [null, [Validators.required, Validators.min(0)]]
     });
     this.defaultTenantProfileConfigurationFormGroup.valueChanges.subscribe(() => {
       this.updateModel();

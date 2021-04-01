@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,14 +49,15 @@ import { WidgetsBundleComponent } from '@modules/home/pages/widget/widgets-bundl
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { getCurrentAuthUser } from '@app/core/auth/auth.selectors';
+import { getCurrentAuthState, getCurrentAuthUser } from '@app/core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { DialogService } from '@core/services/dialog.service';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { Direction } from '@shared/models/page/sort-order';
+import { map } from 'rxjs/operators';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Direction } from "@shared/models/page/sort-order";
 
 @Injectable()
 export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableConfig<WidgetsBundle>> {
@@ -127,7 +128,6 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.deleteEntitiesTitle = count => this.translate.instant('widgets-bundle.delete-widgets-bundles-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('widgets-bundle.delete-widgets-bundles-text');
 
-    this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink);
     this.config.loadEntity = id => this.widgetsService.getWidgetsBundle(id.id);
     this.config.saveEntity = widgetsBundle => this.widgetsService.saveWidgetsBundle(widgetsBundle);
     this.config.deleteEntity = id => this.widgetsService.deleteWidgetsBundle(id.id);
@@ -144,6 +144,15 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
       this.isWidgetsBundleEditable(widgetsBundle, authUser.authority) &&
       this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.DELETE);
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
+    const authState = getCurrentAuthState(this.store);
+    this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink).pipe(
+      map((widgetBundles) => {
+        if (!authState.edgesSupportEnabled) {
+          widgetBundles.data = widgetBundles.data.filter(widgetBundle => widgetBundle.alias !== 'edge_widgets');
+        }
+        return widgetBundles;
+      })
+    );
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }

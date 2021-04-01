@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -75,6 +75,7 @@ export const HelpLinks = {
   linksMap: {
     docs: helpBaseUrl + '/docs',
     outgoingMailSettings: helpBaseUrl + '/docs/user-guide/ui/mail-settings',
+    smsProviderSettings: helpBaseUrl + '/docs/user-guide/ui/sms-provider-settings',
     securitySettings: helpBaseUrl + '/docs/user-guide/ui/security-settings',
     oauth2Settings: helpBaseUrl + '/docs/user-guide/oauth-2-support/',
     ruleEngine: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/overview/',
@@ -123,10 +124,12 @@ export const HelpLinks = {
     ruleNodeRabbitMq: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#rabbitmq-node',
     ruleNodeRestApiCall: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#rest-api-call-node',
     ruleNodeSendEmail: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
+    ruleNodeSendSms: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node',
     ruleNodeDuplicateToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node',
+    ruleNodeDuplicateToGroupByName: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node-by-name',
     ruleNodeDuplicateToRelated: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-related-node',
     ruleNodeChangeOwner: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#change-owner-node',
     ruleNodeGenerateReport: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#generate-report-node',
@@ -140,6 +143,7 @@ export const HelpLinks = {
     users: helpBaseUrl + '/docs/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/user-guide/ui/devices',
     deviceProfiles: helpBaseUrl + '/docs/user-guide/ui/device-profiles',
+    edges: helpBaseUrl + '/docs/user-guide/ui/edges',
     assets: helpBaseUrl + '/docs/user-guide/ui/assets',
     entityViews: helpBaseUrl + '/docs/user-guide/ui/entity-views',
     entitiesImport: helpBaseUrl + '/docs/user-guide/bulk-provisioning',
@@ -152,6 +156,8 @@ export const HelpLinks = {
     widgetsConfigRpc: helpBaseUrl +  '/docs/user-guide/ui/dashboards#rpc',
     widgetsConfigAlarm: helpBaseUrl +  '/docs/user-guide/ui/dashboards#alarm',
     widgetsConfigStatic: helpBaseUrl +  '/docs/user-guide/ui/dashboards#static',
+    ruleNodePushToCloud: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/action-nodes/#push-to-cloud',
+    ruleNodePushToEdge: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/action-nodes/#push-to-edge',
     converters: helpBaseUrl +  '/docs/user-guide/integrations/#data-converters',
     uplinkConverters: helpBaseUrl +  '/docs/user-guide/integrations/#uplink-data-converter',
     downlinkConverters: helpBaseUrl +  '/docs/user-guide/integrations/#downlink-data-converter',
@@ -161,14 +167,26 @@ export const HelpLinks = {
     integrationSigFox: helpBaseUrl +  '/docs/user-guide/integrations/sigfox',
     integrationThingPark: helpBaseUrl +  '/docs/user-guide/integrations/thingpark',
     integrationThingParkEnterprise: helpBaseUrl +  '/docs/samples/abeeway/tracker',
+    integrationTMobileIotCdp: helpBaseUrl +  '/docs/user-guide/integrations/t-mobile-iot-cdp',
+    integrationLoriot: helpBaseUrl +  '/docs/user-guide/integrations/loriot',
     integrationMqtt: helpBaseUrl +  '/docs/user-guide/integrations/mqtt',
     integrationAwsIoT: helpBaseUrl +  '/docs/user-guide/integrations/aws-iot',
+    integrationAwsSQS: helpBaseUrl +  '/docs/user-guide/integrations/aws-sqs',
     integrationAwsKinesis:  helpBaseUrl +  '/docs/user-guide/integrations/aws-kinesis',
     integrationIbmWatsonIoT: helpBaseUrl +  '/docs/user-guide/integrations/ibm-watson-iot',
     integrationTheThingsNetwork: helpBaseUrl +  '/docs/user-guide/integrations/ttn',
     integrationTheThingsIndustries: helpBaseUrl +  '/docs/user-guide/integrations/tti',
+    integrationChirpStack: helpBaseUrl +  '/docs/user-guide/integrations/chirpstack',
     integrationAzureEventHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-event-hub',
+    integrationAzureIoTHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-iot-hub',
     integrationOpcUa:  helpBaseUrl +  '/docs/user-guide/integrations/opc-ua',
+    integrationUdp:  helpBaseUrl +  '/docs/user-guide/integrations/udp',
+    integrationTcp:  helpBaseUrl +  '/docs/user-guide/integrations/tcp',
+    integrationKafka:  helpBaseUrl +  '/docs/user-guide/integrations/kafka',
+    integrationRabbitmq:  helpBaseUrl +  '/docs/user-guide/integrations/rabbitmq',
+    integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
+    integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
+    integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/user-guide/groups',
     customTranslation: helpBaseUrl +  '/docs/user-guide/custom-translation',

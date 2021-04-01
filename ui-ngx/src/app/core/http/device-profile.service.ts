@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,9 @@ import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { DeviceProfile, DeviceProfileInfo, DeviceTransportType } from '@shared/models/device.models';
-import { isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull, isEmptyStr } from '@core/utils';
+import { ObjectLwM2M, ServerSecurityConfig } from '@home/components/profile/device/lwm2m/profile-config.models';
+import { SortOrder } from '@shared/models/page/sort-order';
 
 @Injectable({
   providedIn: 'root'
@@ -45,7 +47,8 @@ export class DeviceProfileService {
 
   constructor(
     private http: HttpClient
-  ) { }
+  ) {
+  }
 
   public getDeviceProfiles(pageLink: PageLink, config?: RequestConfig): Observable<PageData<DeviceProfile>> {
     return this.http.get<PageData<DeviceProfile>>(`/api/deviceProfiles${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
@@ -53,6 +56,33 @@ export class DeviceProfileService {
 
   public getDeviceProfile(deviceProfileId: string, config?: RequestConfig): Observable<DeviceProfile> {
     return this.http.get<DeviceProfile>(`/api/deviceProfile/${deviceProfileId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getLwm2mObjects(sortOrder: SortOrder, objectIds?: number[], searchText?: string, config?: RequestConfig):
+    Observable<Array<ObjectLwM2M>> {
+    let url = `/api/lwm2m/deviceProfile/?sortProperty=${sortOrder.property}&sortOrder=${sortOrder.direction}`;
+    if (isDefinedAndNotNull(objectIds) && objectIds.length > 0) {
+      url += `&objectIds=${objectIds}`;
+    }
+    if (isDefinedAndNotNull(searchText) && !isEmptyStr(searchText)) {
+      url += `&searchText=${searchText}`;
+    }
+    return this.http.get<Array<ObjectLwM2M>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getLwm2mBootstrapSecurityInfo(securityMode: string, bootstrapServerIs: boolean,
+                                       config?: RequestConfig): Observable<ServerSecurityConfig> {
+    return this.http.get<ServerSecurityConfig>(
+      `/api/lwm2m/deviceProfile/bootstrap/${securityMode}/${bootstrapServerIs}`,
+      defaultHttpOptionsFromConfig(config)
+    );
+  }
+
+  public getLwm2mObjectsPage(pageLink: PageLink, config?: RequestConfig): Observable<PageData<ObjectLwM2M>> {
+    return this.http.get<PageData<ObjectLwM2M>>(
+      `/api/lwm2m/deviceProfile/objects${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config)
+    );
   }
 
   public saveDeviceProfile(deviceProfile: DeviceProfile, config?: RequestConfig): Observable<DeviceProfile> {
@@ -82,6 +112,22 @@ export class DeviceProfileService {
       url += `&transportType=${transportType}`;
     }
     return this.http.get<PageData<DeviceProfileInfo>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceProfileDevicesAttributesKeys(deviceProfileId?: string, config?: RequestConfig): Observable<Array<string>> {
+    let url = `/api/deviceProfile/devices/keys/attributes`;
+    if (isDefinedAndNotNull(deviceProfileId)) {
+      url += `?deviceProfileId=${deviceProfileId}`;
+    }
+    return this.http.get<Array<string>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceProfileDevicesTimeseriesKeys(deviceProfileId?: string, config?: RequestConfig): Observable<Array<string>> {
+    let url = `/api/deviceProfile/devices/keys/timeseries`;
+    if (isDefinedAndNotNull(deviceProfileId)) {
+      url += `?deviceProfileId=${deviceProfileId}`;
+    }
+    return this.http.get<Array<string>>(url, defaultHttpOptionsFromConfig(config));
   }
 
 }

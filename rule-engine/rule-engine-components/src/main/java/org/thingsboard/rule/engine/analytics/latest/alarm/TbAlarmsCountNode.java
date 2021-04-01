@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ import java.util.function.Predicate;
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
-        name = "alarms count",
+        name = "alarms count (deprecated)",
         configClazz = TbAlarmsCountNodeConfiguration.class,
         nodeDescription = "Periodically counts alarms for entities",
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +

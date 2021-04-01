@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,12 +36,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.ClusterTopologyChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
@@ -49,9 +43,9 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.queue.TbClusterService;
-import org.thingsboard.server.service.telemetry.DefaultTelemetryWebSocketService;
 import org.thingsboard.server.service.telemetry.sub.AlarmSubscriptionUpdate;
 import org.thingsboard.server.service.telemetry.sub.TelemetrySubscriptionUpdate;
 
@@ -64,7 +58,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @Slf4j
 @TbCoreComponent
@@ -73,9 +66,6 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
 
     private final Set<TopicPartitionInfo> currentPartitions = ConcurrentHashMap.newKeySet();
     private final Map<String, Map<Integer, TbSubscription>> subscriptionsBySessionId = new ConcurrentHashMap<>();
-
-    @Autowired
-    private EntityViewService entityViewService;
 
     @Autowired
     private PartitionService partitionService;
@@ -87,44 +77,58 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
     @Lazy
     private SubscriptionManagerService subscriptionManagerService;
 
-    private ExecutorService wsCallBackExecutor;
+    private ExecutorService subscriptionUpdateExecutor;
+    
+    private TbApplicationEventListener<PartitionChangeEvent> partitionChangeListener = new TbApplicationEventListener<>() {
+        @Override
+        protected void onTbApplicationEvent(PartitionChangeEvent event) {
+            if (ServiceType.TB_CORE.equals(event.getServiceType())) {
+                currentPartitions.clear();
+                currentPartitions.addAll(event.getPartitions());
+            }
+        }
+    };
+
+    private TbApplicationEventListener<ClusterTopologyChangeEvent> clusterTopologyChangeListener = new TbApplicationEventListener<>() {
+        @Override
+        protected void onTbApplicationEvent(ClusterTopologyChangeEvent event) {
+            if (event.getServiceQueueKeys().stream().anyMatch(key -> ServiceType.TB_CORE.equals(key.getServiceType()))) {
+                /*
+                 * If the cluster topology has changed, we need to push all current subscriptions to SubscriptionManagerService again.
+                 * Otherwise, the SubscriptionManagerService may "forget" those subscriptions in case of restart.
+                 * Although this is resource consuming operation, it is cheaper than sending ping/pong commands periodically
+                 * It is also cheaper then caching the subscriptions by entity id and then lookup of those caches every time we have new telemetry in SubscriptionManagerService.
+                 * Even if we cache locally the list of active subscriptions by entity id, it is still time consuming operation to get them from cache
+                 * Since number of subscriptions is usually much less then number of devices that are pushing data.
+                 */
+                subscriptionsBySessionId.values().forEach(map -> map.values()
+                        .forEach(sub -> pushSubscriptionToManagerService(sub, true)));
+            }
+        }
+    };
 
     @PostConstruct
     public void initExecutor() {
-        wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ws-sub-callback"));
+        subscriptionUpdateExecutor = Executors.newWorkStealingPool(20);
     }
 
     @PreDestroy
     public void shutdownExecutor() {
-        if (wsCallBackExecutor != null) {
-            wsCallBackExecutor.shutdownNow();
+        if (subscriptionUpdateExecutor != null) {
+            subscriptionUpdateExecutor.shutdownNow();
         }
     }
 
     @Override
     @EventListener(PartitionChangeEvent.class)
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
-        if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            currentPartitions.clear();
-            currentPartitions.addAll(partitionChangeEvent.getPartitions());
-        }
+    public void onApplicationEvent(PartitionChangeEvent event) {
+        partitionChangeListener.onApplicationEvent(event);
     }
 
     @Override
     @EventListener(ClusterTopologyChangeEvent.class)
     public void onApplicationEvent(ClusterTopologyChangeEvent event) {
-        if (event.getServiceQueueKeys().stream().anyMatch(key -> ServiceType.TB_CORE.equals(key.getServiceType()))) {
-            /*
-             * If the cluster topology has changed, we need to push all current subscriptions to SubscriptionManagerService again.
-             * Otherwise, the SubscriptionManagerService may "forget" those subscriptions in case of restart.
-             * Although this is resource consuming operation, it is cheaper than sending ping/pong commands periodically
-             * It is also cheaper then caching the subscriptions by entity id and then lookup of those caches every time we have new telemetry in SubscriptionManagerService.
-             * Even if we cache locally the list of active subscriptions by entity id, it is still time consuming operation to get them from cache
-             * Since number of subscriptions is usually much less then number of devices that are pushing data.
-             */
-            subscriptionsBySessionId.values().forEach(map -> map.values()
-                    .forEach(sub -> pushSubscriptionToManagerService(sub, true)));
-        }
+        clusterTopologyChangeListener.onApplicationEvent(event);
     }
 
     //TODO 3.1: replace null callbacks with callbacks from websocket service.
@@ -149,6 +153,7 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onSubscriptionUpdate(String sessionId, TelemetrySubscriptionUpdate update, TbCallback callback) {
         TbSubscription subscription = subscriptionsBySessionId
                 .getOrDefault(sessionId, Collections.emptyMap()).get(update.getSubscriptionId());
@@ -163,17 +168,18 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
                     update.getLatestValues().forEach((key, value) -> attrSub.getKeyStates().put(key, value));
                     break;
             }
-            subscription.getUpdateConsumer().accept(sessionId, update);
+            subscriptionUpdateExecutor.submit(() -> subscription.getUpdateConsumer().accept(sessionId, update));
         }
         callback.onSuccess();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onSubscriptionUpdate(String sessionId, AlarmSubscriptionUpdate update, TbCallback callback) {
         TbSubscription subscription = subscriptionsBySessionId
                 .getOrDefault(sessionId, Collections.emptyMap()).get(update.getSubscriptionId());
         if (subscription != null && subscription.getType() == TbSubscriptionType.ALARMS) {
-            subscription.getUpdateConsumer().accept(sessionId, update);
+            subscriptionUpdateExecutor.submit(() -> subscription.getUpdateConsumer().accept(sessionId, update));
         }
         callback.onSuccess();
     }

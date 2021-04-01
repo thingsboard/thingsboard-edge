@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,8 @@ package org.thingsboard.server.dao.service;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,12 +42,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -62,6 +66,8 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.AssetSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
+import org.thingsboard.server.common.data.query.EdgeSearchQueryFilter;
+import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -76,16 +82,15 @@ import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.StringFilterPredicate;
+import org.thingsboard.server.common.data.query.StringFilterPredicate.StringOperation;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
-import org.thingsboard.server.dao.util.DaoTestUtil;
-import org.thingsboard.server.dao.util.SqlDbType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,6 +103,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.assertEquals;
 
 public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
@@ -110,7 +118,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     private TimeseriesService timeseriesService;
 
     private TenantId tenantId;
-    
+
     private MergedUserPermissions mergedUserPermissions;
 
     @Autowired
@@ -281,13 +289,13 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
         Assert.assertEquals(30, count);
 
-        filter.setFilters(Collections.singletonList(new EntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
+        filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
         count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
         Assert.assertEquals(25, count);
 
         filter.setRootEntity(devices.get(0).getId());
         filter.setDirection(EntitySearchDirection.TO);
-        filter.setFilters(Collections.singletonList(new EntityTypeFilter("Manages", Collections.singletonList(EntityType.TENANT))));
+        filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Manages", Collections.singletonList(EntityType.TENANT))));
         count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
         Assert.assertEquals(1, count);
 
@@ -330,7 +338,89 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         Assert.assertEquals(0, count);
     }
 
-    
+    @Test
+    public void testCountEdgeEntitiesByQuery() throws InterruptedException {
+        List<Edge> edges = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Edge edge = createEdge(i, "default");
+            edges.add(edgeService.saveEdge(edge));
+        }
+
+        EdgeTypeFilter filter = new EdgeTypeFilter();
+        filter.setEdgeType("default");
+        filter.setEdgeNameFilter("");
+
+        EntityCountQuery countQuery = new EntityCountQuery(filter);
+
+        long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(97, count);
+
+        filter.setEdgeType("unknown");
+        count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(0, count);
+
+        filter.setEdgeType("default");
+        filter.setEdgeNameFilter("Edge1");
+        count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(11, count);
+
+        EntityListFilter entityListFilter = new EntityListFilter();
+        entityListFilter.setEntityType(EntityType.EDGE);
+        entityListFilter.setEntityList(edges.stream().map(Edge::getId).map(EdgeId::toString).collect(Collectors.toList()));
+
+        countQuery = new EntityCountQuery(entityListFilter);
+        count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(97, count);
+
+        edgeService.deleteEdgesByTenantId(tenantId);
+        count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(0, count);
+    }
+
+    @Test
+    public void testCountHierarchicalEntitiesByEdgeSearchQuery() throws InterruptedException {
+        for (int i = 0; i < 5; i++) {
+            Edge edge = createEdge(i, "type" + i);
+            edge = edgeService.saveEdge(edge);
+            //TO make sure devices have different created time
+            Thread.sleep(1);
+
+            EntityRelation er = new EntityRelation();
+            er.setFrom(tenantId);
+            er.setTo(edge.getId());
+            er.setType("Manages");
+            er.setTypeGroup(RelationTypeGroup.COMMON);
+            relationService.saveRelation(tenantId, er);
+        }
+
+        EdgeSearchQueryFilter filter = new EdgeSearchQueryFilter();
+        filter.setRootEntity(tenantId);
+        filter.setDirection(EntitySearchDirection.FROM);
+        filter.setRelationType("Manages");
+
+        EntityCountQuery countQuery = new EntityCountQuery(filter);
+
+        long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(5, count);
+
+        filter.setEdgeTypes(Arrays.asList("type0", "type1"));
+        count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, countQuery);
+        Assert.assertEquals(2, count);
+    }
+
+    private Edge createEdge(int i, String type) {
+        Edge edge = new Edge();
+        edge.setTenantId(tenantId);
+        edge.setName("Edge" + i);
+        edge.setType(type);
+        edge.setLabel("EdgeLabel" + i);
+        edge.setSecret(RandomStringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setCloudEndpoint("http://localhost:8080");
+        return edge;
+    }
+
     @Test
     public void testHierarchicalFindEntityDataWithAttributesByQuery() throws ExecutionException, InterruptedException {
         List<Asset> assets = new ArrayList<>();
@@ -349,7 +439,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         RelationsQueryFilter filter = new RelationsQueryFilter();
         filter.setRootEntity(tenantId);
         filter.setDirection(EntitySearchDirection.FROM);
-        filter.setFilters(Collections.singletonList(new EntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
+        filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
 
         EntityDataSortOrder sortOrder = new EntityDataSortOrder(
                 new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
@@ -663,6 +753,155 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void testFindEntityDataByQuery_operationEqual_emptySearchQuery() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.EQUAL, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationNotEqual() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = devices.get(2).getLabel();
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.NOT_EQUAL, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size() - 1, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationNotEqual_emptySearchQuery() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.NOT_EQUAL, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationStartsWith_emptySearchQuery() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.STARTS_WITH, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationEndsWith_emptySearchQuery() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.ENDS_WITH, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationContains_emptySearchQuery() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.CONTAINS, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationNotContains() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "label-";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.NOT_CONTAINS, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(2, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_operationNotContains_emptySearchQuery() {
+        List<Device> devices = createMockDevices(10);
+        devices.get(0).setLabel("");
+        devices.get(1).setLabel(null);
+        devices.forEach(deviceService::saveDevice);
+
+        String searchQuery = "";
+        EntityDataQuery query = createDeviceSearchQuery("label", StringOperation.NOT_CONTAINS, searchQuery);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    private PageData<EntityData> searchEntities(EntityDataQuery query) {
+        return entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, query);
+    }
+
+    private EntityDataQuery createDeviceSearchQuery(String deviceField, StringOperation operation, String searchQuery) {
+        DeviceTypeFilter deviceTypeFilter = new DeviceTypeFilter();
+        deviceTypeFilter.setDeviceType("default");
+        deviceTypeFilter.setDeviceNameFilter("");
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, sortOrder);
+        List<EntityKey> entityFields = Arrays.asList(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name"),
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "label")
+        );
+
+        List<KeyFilter> keyFilters = createStringKeyFilters(deviceField, EntityKeyType.ENTITY_FIELD, operation, searchQuery);
+
+        return new EntityDataQuery(deviceTypeFilter, pageLink, entityFields, null, keyFilters);
+    }
+
+    private List<Device> createMockDevices(int count) {
+        return Stream.iterate(1, i -> i + 1)
+                .map(i -> {
+                    Device device = new Device();
+                    device.setTenantId(tenantId);
+                    device.setName("Device " + i);
+                    device.setType("default");
+                    device.setLabel("label-" + RandomUtils.nextInt(100, 10000));
+                    return device;
+                })
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+    @Test
     public void testFindEntityDataByQueryWithAttributes() throws ExecutionException, InterruptedException {
 
         List<EntityKeyType> attributesEntityTypes = new ArrayList<>(Arrays.asList(EntityKeyType.CLIENT_ATTRIBUTE, EntityKeyType.SHARED_ATTRIBUTE, EntityKeyType.SERVER_ATTRIBUTE));
@@ -968,10 +1207,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
                     .getLatest().get(EntityKeyType.TIME_SERIES).get("temperature").getValue());
         }
         List<String> deviceTemperatures = temperatures.stream().map(aDouble -> Double.toString(aDouble)).collect(Collectors.toList());
-        if (DaoTestUtil.getSqlDbType(template) == SqlDbType.H2) {
-            // in H2 double values are stored with E0 in the end of the string
-            loadedTemperatures = loadedTemperatures.stream().map(s -> s.substring(0, s.length() - 2)).collect(Collectors.toList());
-        }
+
         Assert.assertEquals(deviceTemperatures, loadedTemperatures);
 
         pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
@@ -999,10 +1235,6 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
                 entityData.getLatest().get(EntityKeyType.TIME_SERIES).get("temperature").getValue()).collect(Collectors.toList());
         List<String> deviceHighTemperatures = highTemperatures.stream().map(aDouble -> Double.toString(aDouble)).collect(Collectors.toList());
 
-        if (DaoTestUtil.getSqlDbType(template) == SqlDbType.H2) {
-            // in H2 double values are stored with E0 in the end of the string
-            loadedHighTemperatures = loadedHighTemperatures.stream().map(s -> s.substring(0, s.length() - 2)).collect(Collectors.toList());
-        }
         Assert.assertEquals(deviceHighTemperatures, loadedHighTemperatures);
 
         deviceService.deleteDevicesByTenantId(tenantId);
@@ -1341,7 +1573,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
         EntityDataPageLink pageLink = new EntityDataPageLink(100, 0, null, sortOrder);
         EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, deviceTypeFilters);
-        PageData data = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, query);
+        PageData<EntityData> data = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, query);
         List<EntityData> loadedEntities = getLoadedEntities(data, query);
         Assert.assertEquals(devices.size(), loadedEntities.size());
 
@@ -1368,7 +1600,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         return A.containsAll(B) && B.containsAll(A);
     }
 
-    private List<EntityData> getLoadedEntities(PageData data, EntityDataQuery query) {
+    private List<EntityData> getLoadedEntities(PageData<EntityData> data, EntityDataQuery query) {
         List<EntityData> loadedEntities = new ArrayList<>(data.getData());
 
         while (data.hasNext()) {

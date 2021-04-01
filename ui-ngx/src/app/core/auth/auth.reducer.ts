@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ const emptyUserAuthState: AuthPayload = {
   userDetails: null,
   userTokenAccessEnabled: false,
   forceFullscreen: false,
+  edgesSupportEnabled: false,
   whiteLabelingAllowed: false,
   customerWhiteLabelingAllowed: false,
   allowedDashboardIds: []

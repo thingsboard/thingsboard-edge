@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import L, { PolylineDecoratorOptions } from 'leaflet';
 import 'leaflet-polylinedecorator';
 
 import { FormattedData, PolylineSettings } from './map-models';
-import { functionValueCalculator, safeExecute } from '@home/components/widget/lib/maps/maps-utils';
+import { functionValueCalculator } from '@home/components/widget/lib/maps/common-maps-utils';
 
 export class Polyline {
 

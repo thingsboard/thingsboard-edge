@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -139,6 +139,7 @@ class DraggableChip {
     if (this.preventDrag) {
       event.preventDefault();
     } else {
+      event.stopPropagation();
       this.dragging = true;
       globalDraggingChipListId = this.chipListElement.id;
       this.chipListElement.classList.add(draggingClassName);
@@ -174,6 +175,7 @@ class DraggableChip {
   }
 
   private onDragEnd(event: Event | any) {
+    event.stopPropagation();
     this.dragging = false;
     globalDraggingChipListId = null;
     this.chipListElement.classList.remove(draggingClassName);

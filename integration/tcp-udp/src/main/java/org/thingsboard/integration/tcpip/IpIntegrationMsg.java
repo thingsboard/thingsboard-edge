@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,13 +36,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 
 @Data
 public class IpIntegrationMsg {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    private final SocketAddress address;
     private final byte[] payload;
+
 
     public JsonNode toJson() {
         ObjectNode json = mapper.createObjectNode();

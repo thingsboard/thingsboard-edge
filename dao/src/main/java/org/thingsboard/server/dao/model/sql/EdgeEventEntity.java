@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EdgeEventId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -85,8 +86,9 @@ public class EdgeEventEntity extends BaseSqlEntity<EdgeEvent> implements BaseEnt
     @Column(name = EDGE_EVENT_TYPE_PROPERTY)
     private EdgeEventType edgeEventType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = EDGE_EVENT_ACTION_PROPERTY)
-    private String edgeEventAction;
+    private EdgeEventActionType edgeEventAction;
 
     @Type(type = "json")
     @Column(name = EDGE_EVENT_BODY_PROPERTY)

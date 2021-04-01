@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,7 +43,6 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -111,12 +110,12 @@ public class TbMsgToEmailNode implements TbNode {
         }
         Date currentDate = new Date();
         EmailPojo.EmailPojoBuilder builder = EmailPojo.builder();
-        builder.from(fromTemplate(this.config.getFromTemplate(), msg.getMetaData()));
-        builder.to(fromTemplate(this.config.getToTemplate(), msg.getMetaData()));
-        builder.cc(fromTemplate(this.config.getCcTemplate(), msg.getMetaData()));
-        builder.bcc(fromTemplate(this.config.getBccTemplate(), msg.getMetaData()));
-        builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg.getMetaData(), currentDate, tz));
-        builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg.getMetaData(), currentDate, tz));
+        builder.from(fromTemplate(this.config.getFromTemplate(), msg));
+        builder.to(fromTemplate(this.config.getToTemplate(), msg));
+        builder.cc(fromTemplate(this.config.getCcTemplate(), msg));
+        builder.bcc(fromTemplate(this.config.getBccTemplate(), msg));
+        builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg, currentDate, tz));
+        builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg, currentDate, tz));
         List<BlobEntityId> attachments = new ArrayList<>();
         String attachmentsStr = msg.getMetaData().getValue(ATTACHMENTS);
         if (!StringUtils.isEmpty(attachmentsStr)) {
@@ -129,17 +128,17 @@ public class TbMsgToEmailNode implements TbNode {
         return builder.build();
     }
 
-    private String fromTemplate(String template, TbMsgMetaData metaData) {
+    private String fromTemplate(String template, TbMsg msg) {
         if (!StringUtils.isEmpty(template)) {
-            return TbNodeUtils.processPattern(template, metaData);
+            return TbNodeUtils.processPattern(template, msg);
         } else {
             return null;
         }
     }
 
-    private String fromTemplateWithDate(String template, TbMsgMetaData metaData, Date currentDate, TimeZone tz) {
+    private String fromTemplateWithDate(String template, TbMsg msg, Date currentDate, TimeZone tz) {
         if (!StringUtils.isEmpty(template)) {
-            return processDatePatterns(TbNodeUtils.processPattern(template, metaData), currentDate, tz);
+            return processDatePatterns(TbNodeUtils.processPattern(template, msg), currentDate, tz);
         } else {
             return null;
         }

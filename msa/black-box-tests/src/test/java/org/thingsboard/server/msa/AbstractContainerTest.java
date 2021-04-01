@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -129,14 +130,17 @@ public abstract class AbstractContainerTest {
     }
 
     protected Device createDevice(String name) {
-        return restClient.createDevice(name + RandomStringUtils.randomAlphanumeric(7), "DEFAULT");
+        Device device = new Device();
+        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        device.setType("DEFAULT");
+        return restClient.saveDevice(device);
     }
 
     protected WsClient subscribeToWebSocket(DeviceId deviceId, String scope, CmdsType property) throws Exception {
         WsClient wsClient = new WsClient(new URI(WSS_URL + "/api/ws/plugins/telemetry?token=" + restClient.getToken()));
         SSLContextBuilder builder = SSLContexts.custom();
         builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        wsClient.setSocket(builder.build().getSocketFactory().createSocket());
+        wsClient.setSocketFactory(builder.build().getSocketFactory());
         wsClient.connectBlocking();
 
         JsonObject cmdsObject = new JsonObject();
@@ -233,24 +237,7 @@ public abstract class AbstractContainerTest {
         SSLContextBuilder builder = SSLContexts.custom();
         builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
         SSLContext sslContext = builder.build();
-        SSLConnectionSocketFactory sslSelfSigned = new SSLConnectionSocketFactory(sslContext, new X509HostnameVerifier() {
-            @Override
-            public void verify(String host, SSLSocket ssl) {
-            }
-
-            @Override
-            public void verify(String host, X509Certificate cert) {
-            }
-
-            @Override
-            public void verify(String host, String[] cns, String[] subjectAlts) {
-            }
-
-            @Override
-            public boolean verify(String s, SSLSession sslSession) {
-                return true;
-            }
-        });
+        SSLConnectionSocketFactory sslSelfSigned = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
                 .<ConnectionSocketFactory>create()

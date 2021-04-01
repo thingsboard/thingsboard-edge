@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
@@ -86,7 +87,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
     private ObjectMapper mapper = new ObjectMapper();
 
     private boolean isInstall() {
-        return environment.acceptsProfiles("install");
+        return environment.acceptsProfiles(Profiles.of("install"));
     }
 
     @PostConstruct
@@ -130,11 +131,24 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
     }
 
     private void putComponentIntoMaps(ComponentType type, RuleNode ruleNodeAnnotation, ComponentDescriptor component) {
-        if (ruleChainTypeContainsArray(RuleChainType.CORE, ruleNodeAnnotation.ruleChainTypes())) {
-            coreComponentsMap.computeIfAbsent(type, k -> new ArrayList<>()).add(component);
+        boolean ruleChainTypesMethodAvailable;
+        try {
+            ruleNodeAnnotation.getClass().getMethod("ruleChainTypes");
+            ruleChainTypesMethodAvailable = true;
+        } catch (NoSuchMethodException exception) {
+            log.warn("[{}] does not have ruleChainTypes. Probably extension class compiled before 3.3 release. " +
+                    "Please update your extensions and compile using latest 3.3 release dependency", ruleNodeAnnotation.name());
+            ruleChainTypesMethodAvailable = false;
         }
-        if (ruleChainTypeContainsArray(RuleChainType.EDGE, ruleNodeAnnotation.ruleChainTypes())) {
-            edgeComponentsMap.computeIfAbsent(type, k -> new ArrayList<>()).add(component);
+        if (ruleChainTypesMethodAvailable) {
+            if (ruleChainTypeContainsArray(RuleChainType.CORE, ruleNodeAnnotation.ruleChainTypes())) {
+                coreComponentsMap.computeIfAbsent(type, k -> new ArrayList<>()).add(component);
+            }
+            if (ruleChainTypeContainsArray(RuleChainType.EDGE, ruleNodeAnnotation.ruleChainTypes())) {
+                edgeComponentsMap.computeIfAbsent(type, k -> new ArrayList<>()).add(component);
+            }
+        } else {
+            coreComponentsMap.computeIfAbsent(type, k -> new ArrayList<>()).add(component);
         }
     }
 
@@ -203,7 +217,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
         nodeDefinition.setRelationTypes(getRelationTypesWithFailureRelation(nodeAnnotation));
         nodeDefinition.setCustomRelations(nodeAnnotation.customRelations());
         Class<? extends NodeConfiguration> configClazz = nodeAnnotation.configClazz();
-        NodeConfiguration config = configClazz.newInstance();
+        NodeConfiguration config = configClazz.getDeclaredConstructor().newInstance();
         NodeConfiguration defaultConfiguration = config.defaultConfiguration();
         nodeDefinition.setDefaultConfiguration(mapper.valueToTree(defaultConfiguration));
         nodeDefinition.setUiResources(nodeAnnotation.uiResources());

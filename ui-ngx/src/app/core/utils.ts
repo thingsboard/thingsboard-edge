@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,8 @@ import { Observable, Subject } from 'rxjs';
 import { finalize, share } from 'rxjs/operators';
 import { Type } from '@angular/core';
 import { Datasource } from '@app/shared/models/widget.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 const varsRegex = /\${([^}]*)}/g;
 
@@ -106,6 +108,10 @@ export function isDefinedAndNotNull(value: any): boolean {
 
 export function isEmptyStr(value: any): boolean {
   return value === '';
+}
+
+export function isNotEmptyStr(value: any): boolean {
+  return value !== null && typeof value === 'string' && value.trim().length > 0;
 }
 
 export function isFunction(value: any): boolean {
@@ -368,6 +374,9 @@ export function snakeCase(name: string, separator: string): string {
 }
 
 export function getDescendantProp(obj: any, path: string): any {
+  if (obj.hasOwnProperty(path)) {
+    return obj[path];
+  }
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
@@ -431,24 +440,26 @@ export function padValue(val: any, dec: number): string {
 
 export function removeEmptyObjects(obj: object): object {
   for (const key of Object.keys(obj)) {
-    if (obj[key] === null || obj[key] === undefined || obj[key] === ' ') delete obj[key]
-    else
-      if (Array.isArray(obj[key]))
-        obj[key] = obj[key].filter(el => !!removeEmptyObjects(el))
-      else
-        if (typeof (obj[key]) === 'object')
-          removeEmptyObjects(obj[key]);
+    if (obj[key] === null || obj[key] === undefined) {
+      delete obj[key];
+    } else if (Array.isArray(obj[key])) {
+        obj[key] = obj[key].filter(el => !!removeEmptyObjects(el));
+    } else if (typeof (obj[key]) === 'object') {
+        removeEmptyObjects(obj[key]);
+    }
   }
-  if (Object.keys(obj).length)
+  if (Object.keys(obj).length) {
     return obj;
-  else return null;
+  } else {
+    return null;
+  }
 }
 
 
 export function baseUrl(): string {
   let url = window.location.protocol + '//' + window.location.hostname;
   const port = window.location.port;
-  if (port !== '80' && port !== '443') {
+  if (port && port.length > 0 && port !== '80' && port !== '443') {
     url += ':' + port;
   }
   return url;
@@ -498,4 +509,8 @@ export function generateSecret(length?: number): string {
     return str;
   }
   return str.concat(generateSecret(length - str.length));
+}
+
+export function validateEntityId(entityId: EntityId): boolean {
+  return isDefinedAndNotNull(entityId.id) && entityId.id !== NULL_UUID && isDefinedAndNotNull(entityId.entityType);
 }

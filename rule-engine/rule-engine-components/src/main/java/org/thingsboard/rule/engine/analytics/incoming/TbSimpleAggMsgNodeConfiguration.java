@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,16 +30,16 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 
-import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfiguration {
 
     private String mathFunction;
@@ -55,9 +55,6 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
     private String intervalPersistencePolicy;
     private String intervalCheckTimeUnit;
     private int intervalCheckValue;
-
-    private String intervalTtlTimeUnit;
-    private int intervalTtlValue;
 
     private String inputValueKey;
     private String outputValueKey;
@@ -85,9 +82,6 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         configuration.setIntervalPersistencePolicy(IntervalPersistPolicy.ON_EACH_CHECK_AFTER_INTERVAL_END.name());
         configuration.setIntervalCheckTimeUnit(TimeUnit.MINUTES.name());
         configuration.setIntervalCheckValue(1);
-
-        configuration.setIntervalTtlTimeUnit(TimeUnit.DAYS.name());
-        configuration.setIntervalTtlValue(1);
 
         configuration.setInputValueKey("temperature");
         configuration.setOutputValueKey("avgHourlyTemperature");

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -66,8 +66,15 @@ import {
   AddEntitiesToCustomerDialogData
 } from '../../dialogs/add-entities-to-customer-dialog.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { Edge, EdgeInfo } from '@shared/models/edge.models';
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeComponent } from '@home/pages/edge/edge.component';
+import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
+import { EdgeId } from '@shared/models/id/edge-id';
+import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Edge } from "@shared/models/edge.models";
-import { EdgeService } from "@core/http/edge.service";
+import { EdgeService } from '@core/http/edge.service';
 import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
 import { EdgeId } from "@shared/models/id/edge-id";
 import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";
@@ -123,7 +130,8 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<Edge>> {
     const routeParams = route.params;
     this.config.componentsData = {
-      edgeScope: route.data.edgesType
+      edgeScope: route.data.edgesType,
+      edgeType: ''
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -141,10 +149,10 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           if (parentCustomer.additionalInfo && parentCustomer.additionalInfo.isPublic) {
             this.config.tableTitle = this.translate.instant('customer.public-edges');
           } else {
-            this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('edge.edges');
+            this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('edge.edge-instances');
           }
         } else {
-          this.config.tableTitle = this.translate.instant('edge.edges');
+          this.config.tableTitle = this.translate.instant('edge.edge-instances');
         }
         this.config.columns = this.configureColumns(this.config.componentsData.edgeScope);
         this.configureEntityFunctions(this.config.componentsData.edgeScope);
@@ -168,11 +176,11 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     ];
     // if (edgeScope === 'tenant') {
     //   columns.push(
-    //     new EntityTableColumn<Edge>('customerTitle', 'customer.customer', '25%'),
-    //     new EntityTableColumn<Edge>('customerIsPublic', 'edge.public', '60px',
+    //     new EntityTableColumn<EdgeInfo>('customerTitle', 'customer.customer', '25%'),
+    //     new EntityTableColumn<EdgeInfo>('customerIsPublic', 'edge.public', '60px',
     //       entity => {
     //         return checkBoxCell(entity.customerIsPublic);
-    //       }, () => ({}), false),
+    //       }, () => ({}), false)
     //   );
     // }
     return columns;
@@ -181,12 +189,17 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
   configureEntityFunctions(edgeScope: string): void {
     if (edgeScope === 'tenant') {
       this.config.entitiesFetchFunction = pageLink =>
-        this.edgeService.getTenantEdgeInfos(pageLink);
+        this.edgeService.getTenantEdgeInfos(pageLink, this.config.componentsData.edgeType);
       this.config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
     }
     if (edgeScope === 'customer') {
       this.config.entitiesFetchFunction = pageLink =>
-        this.edgeService.getCustomerEdgeInfos(this.customerId, pageLink);
+        this.edgeService.getCustomerEdgeInfos(this.customerId, pageLink, this.config.componentsData.edgeType);
+      this.config.deleteEntity = id => this.edgeService.unassignEdgeFromCustomer(id.id);
+    }
+    if (edgeScope === 'customer_user') {
+      this.config.entitiesFetchFunction = pageLink =>
+        this.edgeService.getCustomerEdgeInfos(this.customerId, pageLink, this.config.componentsData.edgeType);
       this.config.deleteEntity = id => this.edgeService.unassignEdgeFromCustomer(id.id);
     }
   }
@@ -239,7 +252,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           },
           icon: 'domain',
           isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.manageEdgeAssets($event, entity)
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
         },
         {
           name: this.translate.instant('edge.manage-edge-devices'),
@@ -250,7 +263,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           },
           icon: 'devices_other',
           isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.manageEdgeDevices($event, entity)
+          onAction: ($event,entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
         },
         {
           name: this.translate.instant('edge.manage-edge-entity-views'),
@@ -261,7 +274,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           },
           icon: 'view_quilt',
           isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.manageEdgeEntityViews($event, entity)
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
         },
         {
           name: this.translate.instant('edge.manage-edge-dashboards'),
@@ -272,13 +285,13 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           },
           icon: 'dashboard',
           isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.manageEdgeDashboards($event, entity)
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
         },
         {
           name: this.translate.instant('edge.manage-edge-rulechains'),
           icon: 'settings_ethernet',
           isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.manageEdgeRuleChains($event, entity)
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.RULE_CHAIN)
         }
       )
     }
@@ -298,6 +311,35 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         // },
       );
     }
+
+    // if (edgeScope === 'customer_user') {
+    //   actions.push(
+    //     {
+    //       name: this.translate.instant('edge.manage-edge-assets'),
+    //       icon: 'domain',
+    //       isEnabled: (entity) => true,
+    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
+    //     },
+    //     {
+    //       name: this.translate.instant('edge.manage-edge-devices'),
+    //       icon: 'devices_other',
+    //       isEnabled: (entity) => true,
+    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
+    //     },
+    //     {
+    //       name: this.translate.instant('edge.manage-edge-entity-views'),
+    //       icon: 'view_quilt',
+    //       isEnabled: (entity) => true,
+    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
+    //     },
+    //     {
+    //       name: this.translate.instant('edge.manage-edge-dashboards'),
+    //       icon: 'dashboard',
+    //       isEnabled: (entity) => true,
+    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
+    //     }
+    //   );
+    // }
     return actions;
   }
 
@@ -408,6 +450,34 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     );
   }
 
+  openEdgeEntitiesByType($event: Event, edge: Edge, entityType: EntityType) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    let suffix: string;
+    switch (entityType) {
+      case EntityType.DEVICE:
+        suffix = 'devices';
+        break;
+      case EntityType.ASSET:
+        suffix = 'assets';
+        break;
+      case EntityType.EDGE:
+        suffix = 'assets';
+        break;
+      case EntityType.ENTITY_VIEW:
+        suffix = 'entityViews';
+        break;
+      case EntityType.DASHBOARD:
+        suffix = 'dashboards';
+        break;
+      case EntityType.RULE_CHAIN:
+        suffix = 'ruleChains';
+        break;
+    }
+    this.router.navigateByUrl(`edges/${edge.id.id}/${suffix}`);
+  }
+
   assignToCustomer($event: Event, edgesIds: Array<EdgeId>) {
     if ($event) {
       $event.stopPropagation();
@@ -488,35 +558,53 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     );
   }*/
 
-  onEdgeAction(action: EntityAction<Edge>): boolean {
-  switch (action.action) {
-    // case 'makePublic':
-    //   this.makePublic(action.event, action.entity);
-    // return true;
-    // case 'assignToCustomer':
-    //   this.assignToCustomer(action.event, [action.entity.id]);
-    // return true;
-    // case 'unassignFromCustomer':
-    //   this.unassignFromCustomer(action.event, action.entity);
-    // return true;
-    case 'openEdgeUsers':
-      this.manageEdgeUsers(action.event, action.entity);
-      return true;
-    case 'openEdgeAssets':
-      this.manageEdgeAssets(action.event, action.entity);
-    return true;
-    case 'openEdgeDevices':
-      this.manageEdgeDevices(action.event, action.entity);
-    return true;
-    case 'openEdgeEntityViews':
-      this.manageEdgeEntityViews(action.event, action.entity);
-    return true;
-    case 'openEdgeDashboards':
-      this.manageEdgeDashboards(action.event, action.entity);
-    return true;
-    case 'openEdgeRuleChains':
-      this.manageEdgeRuleChains(action.event, action.entity);
-    return true;
+  syncEdge($event, edge) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.edgeService.syncEdge(edge.id.id).subscribe(
+      () => {
+        this.store.dispatch(new ActionNotificationShow(
+          {
+            message: this.translate.instant('edge.sync-process-started-successfully'),
+            type: 'success',
+            duration: 750,
+            verticalPosition: 'bottom',
+            horizontalPosition: 'right'
+          }));
+      }
+    );
+  }
+
+  onEdgeAction(action: EntityAction<EdgeInfo>): boolean {
+    switch (action.action) {
+      // case 'makePublic':
+      //   this.makePublic(action.event, action.entity);
+      //   return true;
+      // case 'assignToCustomer':
+      //   this.assignToCustomer(action.event, [action.entity.id]);
+      //   return true;
+      // case 'unassignFromCustomer':
+      //   this.unassignFromCustomer(action.event, action.entity);
+      //   return true;
+      case 'openEdgeAssets':
+        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ASSET);
+        return true;
+      case 'openEdgeDevices':
+        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.DEVICE);
+        return true;
+      case 'openEdgeEntityViews':
+        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ENTITY_VIEW);
+        return true;
+      case 'openEdgeDashboards':
+        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.DASHBOARD);
+        return true;
+      case 'openEdgeRuleChains':
+        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.RULE_CHAIN);
+        return true;
+      case 'syncEdge':
+        this.syncEdge(action.event, action.entity);
+        return true;
     }
     return true;
   }

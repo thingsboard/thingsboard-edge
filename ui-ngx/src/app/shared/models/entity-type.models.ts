@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -97,6 +97,7 @@ export interface EntityTypeTranslation {
   group?: string;
   groupList?: string;
   groupNameStartsWith?: string;
+  assign?: string;
 }
 
 export interface EntityTypeResource<T> {
@@ -332,7 +333,8 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'entity-group.add',
         noEntities: 'entity-group.no-entity-groups-text',
         search: 'entity-group.search',
-        selectedEntities: 'entity-group.selected-entity-groups'
+        selectedEntities: 'entity-group.selected-entity-groups',
+        assign: 'edge.assign-to-edge'
       }
     ],
     [

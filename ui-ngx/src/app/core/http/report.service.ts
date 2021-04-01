@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,9 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { UtilsService } from '@core/services/utils.service';
 import { ReportParams, ReportType } from '@shared/models/report.models';
-import { Timewindow } from '@shared/models/time/time.models';
-import * as _moment from 'moment';
-import 'moment-timezone';
+import { getDefaultTimezone, Timewindow } from '@shared/models/time/time.models';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 
@@ -71,9 +69,10 @@ export class ReportService {
 
   public downloadDashboardReport(dashboardId: string, reportType: ReportType, state?: string, timewindow?: Timewindow): Observable<any> {
     const url = `/api/report/${dashboardId}/download`;
+    const defaultTz = getDefaultTimezone();
     const reportParams: ReportParams = {
       type: reportType,
-      timezone: _moment.tz.guess()
+      timezone: defaultTz
     };
     if (state) {
       reportParams.state = state;

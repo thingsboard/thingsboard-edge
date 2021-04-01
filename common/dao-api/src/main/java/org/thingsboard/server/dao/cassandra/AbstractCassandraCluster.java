@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.thingsboard.server.dao.cassandra.guava.GuavaSession;
 import org.thingsboard.server.dao.cassandra.guava.GuavaSessionBuilder;
 import org.thingsboard.server.dao.cassandra.guava.GuavaSessionUtils;
@@ -92,7 +93,7 @@ public abstract class AbstractCassandraCluster {
     }
 
     private boolean isInstall() {
-        return environment.acceptsProfiles("install");
+        return environment.acceptsProfiles(Profiles.of("install"));
     }
 
     private void initSession() {

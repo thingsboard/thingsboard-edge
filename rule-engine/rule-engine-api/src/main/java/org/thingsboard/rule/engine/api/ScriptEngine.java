@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,13 +36,14 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
 import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 public interface ScriptEngine {
 
-    TbMsg executeUpdate(TbMsg msg) throws ScriptException;
+    List<TbMsg> executeUpdate(TbMsg msg) throws ScriptException;
 
-    ListenableFuture<TbMsg> executeUpdateAsync(TbMsg msg);
+    ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
 
     TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
 

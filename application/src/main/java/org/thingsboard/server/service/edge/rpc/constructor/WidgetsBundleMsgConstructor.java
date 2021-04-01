@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,16 +31,18 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import com.google.protobuf.ByteString;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import java.nio.charset.StandardCharsets;
 
 @Component
-@Slf4j
+@TbCoreComponent
 public class WidgetsBundleMsgConstructor {
 
     public WidgetsBundleUpdateMsg constructWidgetsBundleUpdateMsg(UpdateMsgType msgType, WidgetsBundle widgetsBundle) {
@@ -51,7 +53,7 @@ public class WidgetsBundleMsgConstructor {
                 .setTitle(widgetsBundle.getTitle())
                 .setAlias(widgetsBundle.getAlias());
         if (widgetsBundle.getImage() != null) {
-            builder.setImage(ByteString.copyFrom(widgetsBundle.getImage()));
+            builder.setImage(ByteString.copyFrom(widgetsBundle.getImage().getBytes(StandardCharsets.UTF_8)));
         }
         if (widgetsBundle.getTenantId().equals(TenantId.SYS_TENANT_ID)) {
             builder.setIsSystem(true);

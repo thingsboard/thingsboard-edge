@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,17 +35,6 @@ import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { DashboardFormComponent } from '@modules/home/pages/dashboard/dashboard-form.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';
-import { DashboardToolbarComponent } from './dashboard-toolbar.component';
-import { StatesControllerModule } from '@home/pages/dashboard/states/states-controller.module';
-import { DashboardLayoutComponent } from './layout/dashboard-layout.component';
-import { EditWidgetComponent } from './edit-widget.component';
-import { DashboardWidgetSelectComponent } from './dashboard-widget-select.component';
-import { AddWidgetDialogComponent } from './add-widget-dialog.component';
-import { ManageDashboardLayoutsDialogComponent } from './layout/manage-dashboard-layouts-dialog.component';
-import { DashboardSettingsDialogComponent } from './dashboard-settings-dialog.component';
-import { ManageDashboardStatesDialogComponent } from './states/manage-dashboard-states-dialog.component';
-import { DashboardStateDialogComponent } from './states/dashboard-state-dialog.component';
 import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
 import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
@@ -53,16 +42,6 @@ import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-gro
 @NgModule({
   declarations: [
     DashboardFormComponent,
-    DashboardToolbarComponent,
-    DashboardPageComponent,
-    DashboardLayoutComponent,
-    EditWidgetComponent,
-    DashboardWidgetSelectComponent,
-    AddWidgetDialogComponent,
-    ManageDashboardLayoutsDialogComponent,
-    DashboardSettingsDialogComponent,
-    ManageDashboardStatesDialogComponent,
-    DashboardStateDialogComponent,
     PublicDashboardLinkDialogComponent
   ],
   imports: [
@@ -70,7 +49,6 @@ import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-gro
     SharedModule,
     HomeComponentsModule,
     HomeDialogsModule,
-    StatesControllerModule
   ],
   providers: [
     {

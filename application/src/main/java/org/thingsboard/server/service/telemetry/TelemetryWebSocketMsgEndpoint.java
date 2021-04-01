@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,8 @@ import java.io.IOException;
 public interface TelemetryWebSocketMsgEndpoint {
 
     void send(TelemetryWebSocketSessionRef sessionRef, int subscriptionId, String msg) throws IOException;
+
+    void sendPing(TelemetryWebSocketSessionRef sessionRef, long currentTime) throws IOException;
 
     void close(TelemetryWebSocketSessionRef sessionRef, CloseStatus withReason) throws IOException;
 }

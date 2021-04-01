@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.thingsboard.rule.engine.api.RpcError;
 
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,7 +44,7 @@ import java.util.UUID;
  */
 @RequiredArgsConstructor
 @ToString
-public class FromDeviceRpcResponse {
+public class FromDeviceRpcResponse implements Serializable {
     @Getter
     private final UUID id;
     private final String response;

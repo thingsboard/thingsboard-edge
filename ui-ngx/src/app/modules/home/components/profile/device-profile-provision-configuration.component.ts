@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,10 @@ import {
   deviceProvisionTypeTranslationMap
 } from '@shared/models/device.models';
 import { generateSecret, isDefinedAndNotNull } from '@core/utils';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'tb-device-profile-provision-configuration',
@@ -88,7 +92,9 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(protected store: Store<AppState>,
+              private fb: FormBuilder,
+              private translate: TranslateService) {
   }
 
   ngOnInit(): void {
@@ -163,5 +169,16 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
       deviceProvisionConfiguration = this.provisionConfigurationFormGroup.getRawValue();
     }
     this.propagateChange(deviceProvisionConfiguration);
+  }
+
+  onProvisionCopied(isKey: boolean) {
+    this.store.dispatch(new ActionNotificationShow(
+      {
+        message: this.translate.instant(isKey ? 'device-profile.provision-key-copied-message' : 'device-profile.provision-secret-copied-message'),
+        type: 'success',
+        duration: 1200,
+        verticalPosition: 'bottom',
+        horizontalPosition: 'right'
+      }));
   }
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,11 @@
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { map, mergeMap, startWith, tap } from 'rxjs/operators';
-import { PageData } from '@shared/models/page/page-data';
+import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { Store } from '@ngrx/store';
@@ -43,6 +43,8 @@ import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -71,6 +73,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   @Input()
   userId: string;
+
+  @Input()
+  tenantId: string;
 
   @Input()
   operation: Operation;
@@ -156,7 +161,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
     this.searchText = '';
     if (value != null) {
       if (typeof value === 'string') {
-        this.dashboardService.getDashboardInfo(value).subscribe(
+        this.dashboardService.getDashboardInfo(value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (dashboard) => {
             this.modelValue = this.useIdValue ? dashboard.id.id : dashboard;
             this.selectDashboardFormGroup.get('dashboard').patchValue(dashboard, {emitEvent: true});
@@ -198,7 +203,20 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   }
 
   getDashboards(pageLink: PageLink): Observable<PageData<DashboardInfo>> {
-    return this.dashboardService.getUserDashboards(this.userId, this.operation, pageLink, {ignoreLoading: true});
+    let dashboardsObservable: Observable<PageData<DashboardInfo>>;
+    const authUser = getCurrentAuthUser(this.store);
+    if (authUser.authority === Authority.SYS_ADMIN && this.tenantId) {
+      dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
+        {ignoreLoading: true});
+    } else {
+      let userId = this.userId;
+      if (!userId) {
+        userId = authUser.userId;
+      }
+      dashboardsObservable = this.dashboardService.getUserDashboards(userId, this.operation, pageLink,
+        {ignoreLoading: true});
+    }
+    return dashboardsObservable;
   }
 
   clear() {

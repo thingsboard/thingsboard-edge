@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ public enum EntityFilterType {
     ENTITY_GROUP("entityGroup"),
     ENTITY_LIST("entityList"),
     ENTITY_NAME("entityName"),
+    ENTITY_TYPE("entityType"),
     ENTITY_GROUP_LIST("entityGroupList"),
     ENTITY_GROUP_NAME("entityGroupName"),
     ENTITIES_BY_GROUP_NAME("entitiesByGroupName"),
@@ -47,6 +48,7 @@ public enum EntityFilterType {
     ASSET_SEARCH_QUERY("assetSearchQuery"),
     DEVICE_SEARCH_QUERY("deviceSearchQuery"),
     ENTITY_VIEW_SEARCH_QUERY("entityViewSearchQuery"),
+    EDGE_SEARCH_QUERY("edgeSearchQuery"),
     API_USAGE_STATE("apiUsageState");
 
     private final String label;

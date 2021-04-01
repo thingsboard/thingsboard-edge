@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import { Inject, Injectable, NgZone } from '@angular/core';
 import { WINDOW } from '@core/services/window.service';
 import { ExceptionData } from '@app/shared/models/error.models';
 import {
+  baseUrl,
   createLabelFromDatasource,
   deepClone,
   deleteNullProperties,
@@ -452,7 +453,7 @@ export class UtilsService {
   }
 
   public updateQueryParam(name: string, value: string | null) {
-    const baseUrl = [this.window.location.protocol, '//', this.window.location.host, this.window.location.pathname].join('');
+    const baseUrlPart = [baseUrl(), this.window.location.pathname].join('');
     const urlQueryString = this.window.location.search;
     let newParam = '';
     let params = '';
@@ -472,16 +473,11 @@ export class UtilsService {
     } else if (newParam) {
       params = '?' + newParam;
     }
-    this.window.history.replaceState({}, '', baseUrl + params);
+    this.window.history.replaceState({}, '', baseUrlPart + params);
   }
 
   public baseUrl(): string {
-    let url = this.window.location.protocol + '//' + this.window.location.hostname;
-    const port = this.window.location.port;
-    if (port !== '80' && port !== '443') {
-      url += ':' + port;
-    }
-    return url;
+    return baseUrl();
   }
 
   public deepClone<T>(target: T, ignoreFields?: string[]): T {
@@ -506,7 +502,7 @@ export class UtilsService {
 
   public translateText(text: string): string {
     if (text.startsWith('${') && text.endsWith('}')) {
-      return this.translate.instant(text.substring(2, text.length - 1))
+      return this.translate.instant(text.substring(2, text.length - 1));
     } else {
       return text;
     }

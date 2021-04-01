@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Inject, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  forwardRef,
+  Inject,
+  Injector,
+  Input,
+  OnInit,
+  StaticProvider,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
@@ -45,7 +55,7 @@ import { CdkOverlayOrigin, ConnectedPosition, Overlay, OverlayConfig, OverlayRef
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { DOCUMENT } from '@angular/common';
 import { WINDOW } from '@core/services/window.service';
-import { ComponentPortal, PortalInjector } from '@angular/cdk/portal';
+import { ComponentPortal } from '@angular/cdk/portal';
 import {
   DASHBOARD_SELECT_PANEL_DATA,
   DashboardSelectPanelComponent,
@@ -205,12 +215,12 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
     return this.utils.customTranslation(title, title);
   }
 
-  private _createDashboardSelectPanelInjector(overlayRef: OverlayRef, data: DashboardSelectPanelData): PortalInjector {
-    const injectionTokens = new WeakMap<any, any>([
-      [DASHBOARD_SELECT_PANEL_DATA, data],
-      [OverlayRef, overlayRef]
-    ]);
-    return new PortalInjector(this.viewContainerRef.injector, injectionTokens);
+  private _createDashboardSelectPanelInjector(overlayRef: OverlayRef, data: DashboardSelectPanelData): Injector {
+    const providers: StaticProvider[] = [
+      {provide: DASHBOARD_SELECT_PANEL_DATA, useValue: data},
+      {provide: OverlayRef, useValue: overlayRef}
+    ];
+    return Injector.create({parent: this.viewContainerRef.injector, providers});
   }
 
   private updateView() {

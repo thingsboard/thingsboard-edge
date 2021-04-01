@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,10 +42,10 @@ import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { AssetService } from '@core/http/asset.service';
 import { DeviceService } from '@core/http/device.service';
+import { EdgeService } from '@core/http/edge.service';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
-import { EdgeService } from "@core/http/edge.service";
 
 @Component({
   selector: 'tb-entity-subtype-list',
@@ -156,6 +156,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
           this.entitySubtypes = null;
         });
         break;
+
       case EntityType.ENTITY_VIEW:
         this.placeholder = this.required ? this.translate.instant('entity-view.enter-entity-view-type')
           : this.translate.instant('entity-view.any-entity-view');

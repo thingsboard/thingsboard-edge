@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -62,7 +62,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
 
   adminSettings: AdminSettings<MailTemplatesSettings>;
 
-  mailTemplateTypes = Object.keys(MailTemplate);
+  mailTemplateTypes = [];
   mailTemplateTranslationsMap = mailTemplateTranslations;
 
   mailTemplate: MailTemplate = MailTemplate.test;
@@ -117,6 +117,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.branding = false;
     }
     this.adminSettings = this.route.snapshot.data.adminSettings;
+    this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.adminSettings.jsonValue).includes(type));
     if (this.isTenantAdmin()) {
       this.useSystemMailSettings = this.adminSettings.jsonValue.useSystemMailSettings;
     }

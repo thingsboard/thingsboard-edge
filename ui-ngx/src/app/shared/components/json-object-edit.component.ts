@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,15 @@
 
 import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
-import * as ace from 'ace-builds';
+import { Ace } from 'ace-builds';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
-import { guid } from '@core/utils';
+import { guid, isUndefined } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { getAce } from '@shared/models/ace/ace.models';
 
 @Component({
   selector: 'tb-json-object-edit',
@@ -62,7 +63,7 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
   @ViewChild('jsonEditor', {static: true})
   jsonEditorElmRef: ElementRef;
 
-  private jsonEditor: ace.Ace.Editor;
+  private jsonEditor: Ace.Editor;
   private editorsResizeCaf: CancelAnimationFrame;
   private editorResize$: ResizeObserver;
 
@@ -74,21 +75,27 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
 
   @Input() fillHeight: boolean;
 
-  @Input() editorStyle: {[klass: string]: any};
+  @Input() editorStyle: { [klass: string]: any };
+
+  @Input() sort: (key: string, value: any) => any;
 
   private requiredValue: boolean;
+
   get required(): boolean {
     return this.requiredValue;
   }
+
   @Input()
   set required(value: boolean) {
     this.requiredValue = coerceBooleanProperty(value);
   }
 
   private readonlyValue: boolean;
+
   get readonly(): boolean {
     return this.readonlyValue;
   }
+
   @Input()
   set readonly(value: boolean) {
     this.readonlyValue = coerceBooleanProperty(value);
@@ -117,7 +124,7 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
 
   ngOnInit(): void {
     const editorElement = this.jsonEditorElmRef.nativeElement;
-    let editorOptions: Partial<ace.Ace.EditorOptions> = {
+    let editorOptions: Partial<Ace.EditorOptions> = {
       mode: 'ace/mode/json',
       showGutter: true,
       showPrintMargin: false,
@@ -131,19 +138,24 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
     };
 
     editorOptions = {...editorOptions, ...advancedOptions};
-    this.jsonEditor = ace.edit(editorElement, editorOptions);
-    this.jsonEditor.session.setUseWrapMode(false);
-    this.jsonEditor.setValue(this.contentValue ? this.contentValue : '', -1);
-    this.jsonEditor.on('change', () => {
-      if (!this.ignoreChange) {
-        this.cleanupJsonErrors();
-        this.updateView();
+    getAce().subscribe(
+      (ace) => {
+        this.jsonEditor = ace.edit(editorElement, editorOptions);
+        this.jsonEditor.session.setUseWrapMode(false);
+        this.jsonEditor.setValue(this.contentValue ? this.contentValue : '', -1);
+        this.jsonEditor.setReadOnly(this.disabled || this.readonly);
+        this.jsonEditor.on('change', () => {
+          if (!this.ignoreChange) {
+            this.cleanupJsonErrors();
+            this.updateView();
+          }
+        });
+        this.editorResize$ = new ResizeObserver(() => {
+          this.onAceEditorResize();
+        });
+        this.editorResize$.observe(editorElement);
       }
-    });
-    this.editorResize$ = new ResizeObserver(() => {
-      this.onAceEditorResize();
-    });
-    this.editorResize$.observe(editorElement);
+    );
   }
 
   ngOnDestroy(): void {
@@ -233,8 +245,12 @@ export class JsonObjectEditComponent implements OnInit, ControlValueAccessor, Va
     this.contentValue = '';
     this.objectValid = false;
     try {
+
       if (this.modelValue) {
-        this.contentValue = JSON.stringify(this.modelValue, undefined, 2);
+        this.contentValue = JSON.stringify(this.modelValue, isUndefined(this.sort) ? undefined :
+          (key, objectValue) => {
+            return this.sort(key, objectValue);
+          }, 2);
         this.objectValid = true;
       } else {
         this.objectValid = !this.required;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -88,7 +88,7 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
         if (this.isTenantAdmin()) {
           this.mailSettings.get('useSystemMailSettings').setValue(
             isDefined(this.adminSettings.jsonValue.useSystemMailSettings) ?
-              this.adminSettings.jsonValue.useSystemMailSettings: true, {emitEvent: false}
+              this.adminSettings.jsonValue.useSystemMailSettings : true, {emitEvent: false}
           );
         }
         this.updateValidators();

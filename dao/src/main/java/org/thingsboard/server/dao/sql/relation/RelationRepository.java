@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,7 @@ public interface RelationRepository
                                                     String fromType);
 
     @Transactional
-    RelationEntity save(RelationEntity entity);
+    <S extends RelationEntity> S save(S entity);
 
     @Transactional
     void deleteById(RelationCompositeKey id);

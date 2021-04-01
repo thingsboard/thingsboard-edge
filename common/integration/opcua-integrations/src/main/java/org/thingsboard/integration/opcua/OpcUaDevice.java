@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -89,7 +89,9 @@ public class OpcUaDevice {
 
     public void updateTag(NodeId tagId, DataValue dataValue) {
         String tag = tagIdsMap.get(tagId);
-        tagValues.put(tag, dataValue.getValue().getValue().toString());
+        if (dataValue != null && dataValue.getValue() != null && dataValue.getValue().getValue() != null) {
+            tagValues.put(tag, dataValue.getValue().getValue().toString());
+        }
     }
 
     public void updateScanTs() {

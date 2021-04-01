@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,12 @@ package org.thingsboard.server.service.queue;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.Resource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -87,4 +90,15 @@ public interface TbClusterService {
     void onTenantDelete(Tenant tenant, TbQueueCallback callback);
 
     void onApiStateChange(ApiUsageState apiUsageState, TbQueueCallback callback);
+
+    void onDeviceChange(Device device, TbQueueCallback callback);
+
+    void onDeviceDeleted(Device device, TbQueueCallback callback);
+
+    void onResourceChange(Resource resource, TbQueueCallback callback);
+
+    void onResourceDeleted(Resource resource, TbQueueCallback callback);
+
+    void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
+
 }

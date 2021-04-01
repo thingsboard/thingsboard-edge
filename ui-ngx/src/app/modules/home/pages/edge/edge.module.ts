@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,14 +32,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from "@home/dialogs/home-dialogs.module";
-import { HomeComponentsModule } from "@home/components/home-components.module";
-import { EdgeRoutingModule } from "@home/pages/edge/edge-routing.module";
-import { EdgeComponent } from '@modules/home/pages/edge/edge.component';
-import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
-import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";
-import { EDGE_GROUP_CONFIG_FACTORY } from "@home/models/group/group-entities-table-config.models";
-import { EdgeGroupConfigFactory } from "@home/pages/edge/edge-group-config.factory";
+import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
+import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
+import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { EdgeComponent } from './edge.component';
+import { EDGE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
+import { EdgeGroupConfigFactory } from '@home/pages/edge/edge-group-config.factory';
 
 @NgModule({
   declarations: [
@@ -50,9 +49,8 @@ import { EdgeGroupConfigFactory } from "@home/pages/edge/edge-group-config.facto
   imports: [
     CommonModule,
     SharedModule,
-    HomeDialogsModule,
     HomeComponentsModule,
-    EdgeRoutingModule
+    HomeDialogsModule
   ],
   providers: [
     {

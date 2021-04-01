@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,9 @@ import { CustomerComponent } from '@home/pages/customer/customer.component';
 import { Router } from '@angular/router';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Injectable()
 export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<Customer> {
@@ -61,10 +64,12 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private customerService: CustomerService,
-              private router: Router) {
+              private router: Router,
+              private store: Store<AppState>) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Customer>): Observable<GroupEntityTableConfig<Customer>> {
+    const authState = getCurrentAuthState(this.store);
     const config = new GroupEntityTableConfig<Customer>(entityGroup, params);
 
     config.entityComponent = CustomerComponent;
@@ -150,6 +155,17 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
+      config.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('customer.manage-customer-edge-groups'),
+          icon: 'router',
+          isEnabled: config.manageEdgesEnabled,
+          onAction: ($event, entity) => this.manageEdges($event, entity, config, params)
+        }
+      );
+    }
+
     if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
@@ -224,6 +240,18 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
+  manageEdges($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+                    params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.EDGE);
+    } else {
+      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/edgeGroups`);
+    }
+  }
+
   manageDashboards($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
                    params: EntityGroupParams) {
     if ($event) {
@@ -252,6 +280,9 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
         return true;
       case 'manageEntityViews':
         this.manageEntityViews(action.event, action.entity, config, params);
+        return true;
+      case 'manageEdges':
+        this.manageEdges(action.event, action.entity, config, params);
         return true;
       case 'manageDashboards':
         this.manageDashboards(action.event, action.entity, config, params);

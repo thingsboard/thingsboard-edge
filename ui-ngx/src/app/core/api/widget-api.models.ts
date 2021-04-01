@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,6 +69,7 @@ import { EntityDataService } from '@core/api/entity-data.service';
 import { PageData } from '@shared/models/page/page-data';
 import { TranslateService } from '@ngx-translate/core';
 import { AlarmDataService } from '@core/api/alarm-data.service';
+import { IDashboardController } from '@home/components/dashboard-page/dashboard-page.models';
 
 export interface TimewindowFunctions {
   onUpdateTimewindow: (startTimeMs: number, endTimeMs: number, interval?: number) => void;
@@ -154,6 +155,7 @@ export interface StateParams {
 export type StateControllerHolder = () => IStateController;
 
 export interface IStateController {
+  dashboardCtrl: IDashboardController;
   getStateParams(): StateParams;
   getStateParamsByStateId(stateId: string): StateParams;
   openState(id: string, params?: StateParams, openRightLayout?: boolean): void;
@@ -216,7 +218,7 @@ export class WidgetSubscriptionContext {
 export type SubscriptionMessageSeverity = 'info' | 'warn' | 'error' | 'success';
 
 export interface SubscriptionMessage {
-  severity: SubscriptionMessageSeverity,
+  severity: SubscriptionMessageSeverity;
   message: string;
 }
 
@@ -225,6 +227,7 @@ export interface WidgetSubscriptionCallbacks {
   onDataUpdateError?: (subscription: IWidgetSubscription, e: any) => void;
   onSubscriptionMessage?: (subscription: IWidgetSubscription, message: SubscriptionMessage) => void;
   onInitialPageDataChanged?: (subscription: IWidgetSubscription, nextPageData: PageData<EntityData>) => void;
+  forceReInit?: () => void;
   dataLoading?: (subscription: IWidgetSubscription) => void;
   legendDataUpdated?: (subscription: IWidgetSubscription, detectChanges: boolean) => void;
   timeWindowUpdated?: (subscription: IWidgetSubscription, timeWindowConfig: Timewindow) => void;
@@ -242,6 +245,7 @@ export interface WidgetSubscriptionOptions {
   hasDataPageLink?: boolean;
   singleEntity?: boolean;
   warnOnPageDataOverflow?: boolean;
+  ignoreDataUpdateOnIntervalTick?: boolean;
   targetDeviceAliasIds?: Array<string>;
   targetDeviceIds?: Array<string>;
   useDashboardTimewindow?: boolean;
@@ -284,6 +288,7 @@ export interface IWidgetSubscription {
   hiddenData?: Array<{data: DataSet}>;
   timeWindowConfig?: Timewindow;
   timeWindow?: WidgetTimewindow;
+  comparisonEnabled?: boolean;
   comparisonTimeWindow?: WidgetTimewindow;
 
   alarms?: PageData<AlarmData>;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -119,7 +119,11 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
       tap((authUser) => {
         if (authUser.authority === Authority.CUSTOMER_USER) {
-          this.config.componentsData.assetScope = 'customer_user';
+          if (route.data.assetsType === 'edge') {
+            this.config.componentsData.assetScope = 'edge_customer_user';
+          } else {
+            this.config.componentsData.assetScope = 'customer_user';
+          }
           this.customerId = authUser.customerId;
         }
       }),
@@ -173,7 +177,12 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
       this.config.entitiesFetchFunction = pageLink =>
         this.assetService.getTenantAssets(pageLink, this.config.componentsData.assetType);
       this.config.deleteEntity = id => this.assetService.deleteAsset(id.id);
-    } else {
+    }
+    /* else if (assetScope === 'edge' || assetScope === 'edge_customer_user') {
+      this.config.entitiesFetchFunction = pageLink =>
+        this.assetService.getEdgeAssets(this.config.componentsData.edgeId, pageLink, this.config.componentsData.assetType);
+    }*/
+    else {
       this.config.entitiesFetchFunction = pageLink =>
         this.assetService.getCustomerAssets(this.customerId, pageLink, this.config.componentsData.assetType);
     //  this.config.deleteEntity = id => this.assetService.unassignAssetFromCustomer(id.id);
@@ -225,7 +234,18 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
-    }*/
+    }
+    if (assetScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('edge.unassign-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.unassignFromEdge($event, entity)
+        }
+      );
+    }
+    */
     return actions;
   }
 
@@ -250,7 +270,18 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event, entities) => this.unassignAssetsFromCustomer($event, entities)
         }
       );
-    }*/
+    }
+    if (assetScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('asset.unassign-assets-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: true,
+          onAction: ($event, entities) => this.unassignAssetsFromEdge($event, entities)
+        }
+      );
+    }
+    */
     return actions;
   }
 
@@ -426,6 +457,9 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         return true;
       case 'unassignFromCustomer':
         this.unassignFromCustomer(action.event, action.entity);
+        return true;
+      case 'unassignFromEdge':
+        this.unassignFromEdge(action.event, action.entity);
         return true;*/
     }
     return false;

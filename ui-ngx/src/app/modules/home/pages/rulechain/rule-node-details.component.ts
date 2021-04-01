@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import { Subscription } from 'rxjs';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleNodeConfigComponent } from './rule-node-config.component';
 import { Router } from '@angular/router';
+import { RuleChainType } from '@app/shared/models/rule-chain.models';
 
 @Component({
   selector: 'tb-rule-node',
@@ -55,6 +56,9 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
 
   @Input()
   ruleChainId: string;
+
+  @Input()
+  ruleChainType: RuleChainType;
 
   @Input()
   isEdit: boolean;
@@ -162,7 +166,11 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
       $event.stopPropagation();
     }
     if (this.ruleNode.targetRuleChainId) {
-      this.router.navigateByUrl(`/ruleChains/${this.ruleNode.targetRuleChainId}`);
+      if (this.ruleChainType === RuleChainType.EDGE) {
+        this.router.navigateByUrl(`/edges/ruleChains/${this.ruleNode.targetRuleChainId}`);
+      } else {
+        this.router.navigateByUrl(`/ruleChains/${this.ruleNode.targetRuleChainId}`);
+      }
     }
   }
 }

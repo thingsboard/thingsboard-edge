@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,13 +46,15 @@ import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -71,7 +73,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -89,6 +90,7 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -111,6 +113,7 @@ import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.queue.TbClusterService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,6 +130,8 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    private static final int DEFAULT_LIMIT = 100;
+
     @Autowired
     private EdgeEventService edgeEventService;
 
@@ -141,6 +146,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
 
     @Autowired
     private AssetService assetService;
@@ -184,27 +192,35 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
+    @Autowired
+    private TbClusterService tbClusterService;
+
     @Override
-    public void sync(Edge edge) {
+    public void sync(TenantId tenantId, Edge edge) {
+        log.trace("[{}][{}] Staring edge sync process", tenantId, edge.getId());
         try {
-            syncEdgeOwner(edge);
-            syncRoles(edge);
-            syncWidgetsBundleAndWidgetTypes(edge);
-            syncLoginWhiteLabeling(edge);
-            syncWhiteLabeling(edge);
-            syncCustomTranslation(edge);
-            syncRuleChains(edge);
-            syncEntityGroups(edge);
-            syncSchedulerEvents(edge);
-            syncAdminSettings(edge);
+
+            syncEdgeOwner(tenantId, edge);
+            syncRoles(tenantId, edge);
+            syncWidgetsBundles(tenantId, edge);
+            syncDeviceProfiles(tenantId, edge);
+            syncLoginWhiteLabeling(tenantId, edge);
+            syncWhiteLabeling(tenantId, edge);
+            syncCustomTranslation(tenantId, edge);
+            // TODO: voba - implement this
+            // syncAdminSettings(tenantId, edge);
+            syncRuleChains(tenantId, edge);
+            syncEntityGroups(tenantId, edge);
+            syncSchedulerEvents(tenantId, edge);
+            syncWidgetsTypes(tenantId, edge);
         } catch (Exception e) {
-            log.error("Exception during sync process", e);
+            log.error("[{}][{}] Exception during sync process", tenantId, edge.getId(), e);
         }
     }
 
-    private void syncRoles(Edge edge) {
+    private void syncRoles(TenantId tenantId, Edge edge) {
         processRolesData(TenantId.SYS_TENANT_ID, edge);
-        processRolesData(edge.getTenantId(), edge);
+        processRolesData(tenantId, edge);
     }
 
     private void processRolesData(TenantId tenantId, Edge edge) {
@@ -213,44 +229,12 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         if (!rolesData.getData().isEmpty()) {
             for (Role role : rolesData.getData()) {
                 saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                        EdgeEventType.ROLE, ActionType.ADDED, role.getId(), null, null);
+                        EdgeEventType.ROLE, EdgeEventActionType.ADDED, role.getId(), null, null);
             }
         }
     }
 
-    @Override
-    public void syncEdgeOwner(Edge edge) {
-        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-            saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                    EdgeEventType.CUSTOMER, ActionType.ADDED, edge.getOwnerId(), null, null);
-            PageData<Role> rolesData =
-                    roleService.findRolesByTenantIdAndCustomerId(edge.getTenantId(),
-                            new CustomerId(edge.getOwnerId().getId()), new PageLink(Integer.MAX_VALUE));
-            if (!rolesData.getData().isEmpty()) {
-                for (Role role : rolesData.getData()) {
-                    saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                            EdgeEventType.ROLE, ActionType.ADDED, role.getId(), null, null);
-                }
-            }
-        }
-    }
-
-    private void syncRuleChains(Edge edge) {
-        try {
-            PageData<RuleChain> pageData =
-                    ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-                for (RuleChain ruleChain : pageData.getData()) {
-                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.RULE_CHAIN, ActionType.ADDED, ruleChain.getId(), null, null);
-                }
-            }
-        } catch (Exception e) {
-            log.error("Exception during loading edge rule chain(s) on sync!", e);
-        }
-    }
-
-    private void syncEntityGroups(Edge edge) {
+    private void syncEntityGroups(TenantId tenantId, Edge edge) {
         try {
             List<ListenableFuture<List<EntityGroup>>> futures = new ArrayList<>();
             futures.add(entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DEVICE));
@@ -269,7 +253,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                             if (entityGroups != null && !entityGroups.isEmpty()) {
                                 for (EntityGroup entityGroup : entityGroups) {
                                     if (!entityGroup.isEdgeGroupAll()) {
-                                        saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_GROUP, ActionType.ADDED, entityGroup.getId(), null, null);
+                                        saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ADDED, entityGroup.getId(), null, null);
                                     }
                                 }
                             }
@@ -287,7 +271,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncSchedulerEvents(Edge edge) {
+    private void syncSchedulerEvents(TenantId tenantId, Edge edge) {
         try {
             ListenableFuture<List<SchedulerEvent>> schedulerEventsFuture =
                     schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId());
@@ -297,7 +281,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (schedulerEvents != null && !schedulerEvents.isEmpty()) {
                         log.trace("[{}] [{}] scheduler events(s) are going to be pushed to edge.", edge.getId(), schedulerEvents.size());
                         for (SchedulerEvent schedulerEvent : schedulerEvents) {
-                            saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.SCHEDULER_EVENT, ActionType.ADDED, schedulerEvent.getId(), null, null);
+                            saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.SCHEDULER_EVENT, EdgeEventActionType.ADDED, schedulerEvent.getId(), null, null);
                         }
                     }
                 }
@@ -312,7 +296,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncLoginWhiteLabeling(Edge edge) {
+    private void syncLoginWhiteLabeling(TenantId tenantId, Edge edge) {
         try {
             EntityId ownerId = edge.getOwnerId();
             String domainName = "localhost";
@@ -327,7 +311,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                 saveEdgeEvent(edge.getTenantId(),
                         edge.getId(),
                         EdgeEventType.LOGIN_WHITE_LABELING,
-                        ActionType.UPDATED,
+                        EdgeEventActionType.UPDATED,
                         null,
                         mapper.valueToTree(loginWhiteLabelingParams),
                         null);
@@ -337,7 +321,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncWhiteLabeling(Edge edge) {
+    private void syncWhiteLabeling(TenantId tenantId, Edge edge) {
         try {
             EntityId ownerId = edge.getOwnerId();
             WhiteLabelingParams whiteLabelingParams = null;
@@ -352,7 +336,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                 saveEdgeEvent(edge.getTenantId(),
                         edge.getId(),
                         EdgeEventType.WHITE_LABELING,
-                        ActionType.UPDATED,
+                        EdgeEventActionType.UPDATED,
                         null,
                         mapper.valueToTree(whiteLabelingParams),
                         null);
@@ -362,7 +346,77 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncCustomTranslation(Edge edge) {
+
+    @Override
+    public void syncEdgeOwner(TenantId tenantId, Edge edge) {
+        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+            saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                    EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null, null);
+
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+            PageData<Role> rolesData;
+            do {
+                rolesData = roleService.findRolesByTenantIdAndCustomerId(tenantId,
+                        new CustomerId(edge.getOwnerId().getId()), pageLink);
+                if (rolesData != null && rolesData.getData() != null && !rolesData.getData().isEmpty()) {
+                    for (Role role : rolesData.getData()) {
+                        saveEdgeEvent(tenantId, edge.getId(),
+                                EdgeEventType.ROLE, EdgeEventActionType.ADDED, role.getId(), null, null);
+                    }
+                    if (rolesData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                }
+            } while (rolesData != null && rolesData.hasNext());
+        }
+    }
+
+
+    private void syncRuleChains(TenantId tenantId, Edge edge) {
+        log.trace("[{}] syncRuleChains [{}]", tenantId, edge.getName());
+        try {
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+            PageData<RuleChain> pageData;
+            do {
+                pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
+                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                    log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
+                    for (RuleChain ruleChain : pageData.getData()) {
+                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.RULE_CHAIN, EdgeEventActionType.ADDED, ruleChain.getId(), null);
+                    }
+                    if (pageData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                }
+            } while (pageData != null && pageData.hasNext());
+        } catch (Exception e) {
+            log.error("Exception during loading edge rule chain(s) on sync!", e);
+        }
+    }
+
+    private void syncDeviceProfiles(TenantId tenantId, Edge edge) {
+        log.trace("[{}] syncDeviceProfiles [{}]", tenantId, edge.getName());
+        try {
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+            PageData<DeviceProfile> pageData;
+            do {
+                pageData = deviceProfileService.findDeviceProfiles(tenantId, pageLink);
+                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                    log.trace("[{}] [{}] user(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
+                    for (DeviceProfile deviceProfile : pageData.getData()) {
+                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE_PROFILE, EdgeEventActionType.ADDED, deviceProfile.getId(), null);
+                    }
+                    if (pageData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                }
+            } while (pageData != null && pageData.hasNext());
+        } catch (Exception e) {
+            log.error("Exception during loading device profile(s) on sync!", e);
+        }
+    }
+
+    private void syncCustomTranslation(TenantId tenantId, Edge edge) {
         try {
             EntityId ownerId = edge.getOwnerId();
             CustomTranslation customTranslation = null;
@@ -377,7 +431,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                 saveEdgeEvent(edge.getTenantId(),
                         edge.getId(),
                         EdgeEventType.CUSTOM_TRANSLATION,
-                        ActionType.UPDATED,
+                        EdgeEventActionType.UPDATED,
                         null,
                         mapper.valueToTree(customTranslation),
                         null);
@@ -387,7 +441,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncAdminSettings(Edge edge) {
+    private void syncAdminSettings(TenantId tenantId, Edge edge) {
         try {
             List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
             for (String key : adminSettingsKeys) {
@@ -412,37 +466,84 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         saveEdgeEvent(edge.getTenantId(),
                 edge.getId(),
                 EdgeEventType.ADMIN_SETTINGS,
-                ActionType.UPDATED,
+                EdgeEventActionType.UPDATED,
                 null,
                 mapper.valueToTree(adminSettings),
                 null);
     }
 
-    private void syncWidgetsBundleAndWidgetTypes(Edge edge) {
-        List<WidgetsBundle> widgetsBundlesToPush = new ArrayList<>();
-        List<WidgetType> widgetTypesToPush = new ArrayList<>();
-        widgetsBundlesToPush.addAll(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(edge.getTenantId()));
-        widgetsBundlesToPush.addAll(widgetsBundleService.findSystemWidgetsBundles(edge.getTenantId()));
-        try {
-            for (WidgetsBundle widgetsBundle : widgetsBundlesToPush) {
-                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.WIDGETS_BUNDLE, ActionType.ADDED, widgetsBundle.getId(), null, null);
-                widgetTypesToPush.addAll(widgetTypeService.findWidgetTypesByTenantIdAndBundleAlias(widgetsBundle.getTenantId(), widgetsBundle.getAlias()));
-            }
-            for (WidgetType widgetType : widgetTypesToPush) {
-                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.WIDGET_TYPE, ActionType.ADDED, widgetType.getId(), null, null);
-            }
-        } catch (Exception e) {
-            log.error("Exception during loading widgets bundle(s) and widget type(s) on sync!", e);
+    private void syncCustomerUsers(TenantId tenantId, Edge edge) {
+        if (edge.getCustomerId() != null && !EntityId.NULL_UUID.equals(edge.getCustomerId().getId())) {
+            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getCustomerId(), null);
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+            PageData<User> pageData;
+            do {
+                pageData = userService.findCustomerUsers(tenantId, edge.getCustomerId(), pageLink);
+                pushUsersToEdge(tenantId, pageData, edge);
+                if (pageData != null && pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            } while (pageData != null && pageData.hasNext());
         }
     }
 
+    private void pushUsersToEdge(TenantId tenantId, PageData<User> pageData, Edge edge) {
+        if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+            log.trace("[{}] [{}] user(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
+            for (User user : pageData.getData()) {
+                saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.USER, EdgeEventActionType.ADDED, user.getId(), null);
+            }
+        }
+    }
+
+    private void syncWidgetsBundles(TenantId tenantId, Edge edge) {
+        log.trace("[{}] syncWidgetsBundles [{}]", tenantId, edge.getName());
+        List<WidgetsBundle> widgetsBundlesToPush = new ArrayList<>();
+        widgetsBundlesToPush.addAll(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));
+        widgetsBundlesToPush.addAll(widgetsBundleService.findSystemWidgetsBundles(tenantId));
+        try {
+            for (WidgetsBundle widgetsBundle : widgetsBundlesToPush) {
+                saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.WIDGETS_BUNDLE, EdgeEventActionType.ADDED, widgetsBundle.getId(), null);
+            }
+        } catch (Exception e) {
+            log.error("Exception during loading widgets bundle(s) on sync!", e);
+        }
+    }
+
+    private void syncWidgetsTypes(TenantId tenantId, Edge edge) {
+        log.trace("[{}] syncWidgetsTypes [{}]", tenantId, edge.getName());
+        List<WidgetsBundle> widgetsBundlesToPush = new ArrayList<>();
+        widgetsBundlesToPush.addAll(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));
+        widgetsBundlesToPush.addAll(widgetsBundleService.findSystemWidgetsBundles(tenantId));
+        try {
+            for (WidgetsBundle widgetsBundle : widgetsBundlesToPush) {
+                List<WidgetType> widgetTypesToPush =
+                        widgetTypeService.findWidgetTypesByTenantIdAndBundleAlias(widgetsBundle.getTenantId(), widgetsBundle.getAlias());
+                for (WidgetType widgetType : widgetTypesToPush) {
+                    saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.WIDGET_TYPE, EdgeEventActionType.ADDED, widgetType.getId(), null);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Exception during loading widgets type(s) on sync!", e);
+        }
+    }
+
+    private AdminSettings convertToTenantAdminSettings(String key, ObjectNode jsonValue) {
+        AdminSettings tenantMailSettings = new AdminSettings();
+        jsonValue.put("useSystemMailSettings", true);
+        tenantMailSettings.setJsonValue(jsonValue);
+        tenantMailSettings.setKey(key);
+        return tenantMailSettings;
+    }
+
     @Override
-    public ListenableFuture<Void> processRuleChainMetadataRequestMsg(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg) {
+    public ListenableFuture<Void> processRuleChainMetadataRequestMsg(TenantId tenantId, Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg) {
+        log.trace("[{}] processRuleChainMetadataRequestMsg [{}][{}]", tenantId, edge.getName(), ruleChainMetadataRequestMsg);
         SettableFuture<Void> futureToSet = SettableFuture.create();
         if (ruleChainMetadataRequestMsg.getRuleChainIdMSB() != 0 && ruleChainMetadataRequestMsg.getRuleChainIdLSB() != 0) {
             RuleChainId ruleChainId =
                     new RuleChainId(new UUID(ruleChainMetadataRequestMsg.getRuleChainIdMSB(), ruleChainMetadataRequestMsg.getRuleChainIdLSB()));
-            ListenableFuture<EdgeEvent> future = saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.RULE_CHAIN_METADATA, ActionType.ADDED, ruleChainId, null, null);
+            ListenableFuture<EdgeEvent> future = saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.RULE_CHAIN_METADATA, EdgeEventActionType.ADDED, ruleChainId, null);
             Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
                 @Override
                 public void onSuccess(@Nullable EdgeEvent result) {
@@ -460,133 +561,138 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     @Override
-    public ListenableFuture<Void> processAttributesRequestMsg(Edge edge, AttributesRequestMsg attributesRequestMsg) {
+    public ListenableFuture<Void> processAttributesRequestMsg(TenantId tenantId, Edge edge, AttributesRequestMsg attributesRequestMsg) {
+        log.trace("[{}] processAttributesRequestMsg [{}][{}]", tenantId, edge.getName(), attributesRequestMsg);
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(
                 EntityType.valueOf(attributesRequestMsg.getEntityType()),
                 new UUID(attributesRequestMsg.getEntityIdMSB(), attributesRequestMsg.getEntityIdLSB()));
-        final EdgeEventType type = getEdgeQueueTypeByEntityType(entityId.getEntityType());
+        final EdgeEventType type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
         if (type != null) {
             SettableFuture<Void> futureToSet = SettableFuture.create();
-            ListenableFuture<List<AttributeKvEntry>> ssAttrFuture = attributesService.findAll(edge.getTenantId(), entityId, DataConstants.SERVER_SCOPE);
+            String scope = attributesRequestMsg.getScope();
+            ListenableFuture<List<AttributeKvEntry>> ssAttrFuture = attributesService.findAll(tenantId, entityId, scope);
             Futures.addCallback(ssAttrFuture, new FutureCallback<List<AttributeKvEntry>>() {
-                        @Override
-                        public void onSuccess(@Nullable List<AttributeKvEntry> ssAttributes) {
-                            if (ssAttributes != null && !ssAttributes.isEmpty()) {
-                                try {
-                                    Map<String, Object> entityData = new HashMap<>();
-                                    ObjectNode attributes = mapper.createObjectNode();
-                                    for (AttributeKvEntry attr : ssAttributes) {
-                                        if (attr.getDataType() == DataType.BOOLEAN && attr.getBooleanValue().isPresent()) {
-                                            attributes.put(attr.getKey(), attr.getBooleanValue().get());
-                                        } else if (attr.getDataType() == DataType.DOUBLE && attr.getDoubleValue().isPresent()) {
-                                            attributes.put(attr.getKey(), attr.getDoubleValue().get());
-                                        } else if (attr.getDataType() == DataType.LONG && attr.getLongValue().isPresent()) {
-                                            attributes.put(attr.getKey(), attr.getLongValue().get());
-                                        } else {
-                                            attributes.put(attr.getKey(), attr.getValueAsString());
-                                        }
-                                    }
-                                    entityData.put("kv", attributes);
-                                    entityData.put("scope", DataConstants.SERVER_SCOPE);
-                                    JsonNode body = mapper.valueToTree(entityData);
-                                    log.debug("Sending attributes data msg, entityId [{}], attributes [{}]", entityId, body);
-                                    saveEdgeEvent(edge.getTenantId(),
-                                            edge.getId(),
-                                            type,
-                                            ActionType.ATTRIBUTES_UPDATED,
-                                            entityId,
-                                            body,
-                                            null);
-                                } catch (Exception e) {
-                                    log.error("[{}] Failed to send attribute updates to the edge", edge.getName(), e);
-                                    throw new RuntimeException("[" + edge.getName() + "] Failed to send attribute updates to the edge", e);
+                @Override
+                public void onSuccess(@Nullable List<AttributeKvEntry> ssAttributes) {
+                    if (ssAttributes != null && !ssAttributes.isEmpty()) {
+                        try {
+                            Map<String, Object> entityData = new HashMap<>();
+                            ObjectNode attributes = mapper.createObjectNode();
+                            for (AttributeKvEntry attr : ssAttributes) {
+                                if (attr.getDataType() == DataType.BOOLEAN && attr.getBooleanValue().isPresent()) {
+                                    attributes.put(attr.getKey(), attr.getBooleanValue().get());
+                                } else if (attr.getDataType() == DataType.DOUBLE && attr.getDoubleValue().isPresent()) {
+                                    attributes.put(attr.getKey(), attr.getDoubleValue().get());
+                                } else if (attr.getDataType() == DataType.LONG && attr.getLongValue().isPresent()) {
+                                    attributes.put(attr.getKey(), attr.getLongValue().get());
+                                } else {
+                                    attributes.put(attr.getKey(), attr.getValueAsString());
                                 }
                             }
-                            futureToSet.set(null);
+                            entityData.put("kv", attributes);
+                            entityData.put("scope", scope);
+                            JsonNode body = mapper.valueToTree(entityData);
+                            log.debug("Sending attributes data msg, entityId [{}], attributes [{}]", entityId, body);
+                            saveEdgeEvent(tenantId,
+                                    edge.getId(),
+                                    type,
+                                    EdgeEventActionType.ATTRIBUTES_UPDATED,
+                                    entityId,
+                                    body,
+                                    null);
+                        } catch (Exception e) {
+                            log.error("[{}] Failed to send attribute updates to the edge", edge.getName(), e);
+                            throw new RuntimeException("[" + edge.getName() + "] Failed to send attribute updates to the edge", e);
                         }
+                    } else {
+                        log.trace("[{}][{}] No attributes found for entity {} [{}]", tenantId,
+                                edge.getName(),
+                                entityId.getEntityType(),
+                                entityId.getId());
+                    }
+                    futureToSet.set(null);
+                }
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            log.error("Can't save attributes [{}]", attributesRequestMsg, t);
-                            futureToSet.setException(t);
-                        }
-                    }, dbCallbackExecutorService);
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't save attributes [{}]", attributesRequestMsg, t);
+                    futureToSet.setException(t);
+                }
+            }, dbCallbackExecutorService);
             return futureToSet;
-            // TODO: voba - push shared attributes to edge?
-            // ListenableFuture<List<AttributeKvEntry>> shAttrFuture = attributesService.findAll(edge.getTenantId(), entityId, DataConstants.SHARED_SCOPE);
-            // ListenableFuture<List<AttributeKvEntry>> clAttrFuture = attributesService.findAll(edge.getTenantId(), entityId, DataConstants.CLIENT_SCOPE);
         } else {
+            log.warn("[{}] Type doesn't supported {}", tenantId, entityId.getEntityType());
             return Futures.immediateFuture(null);
         }
     }
 
-    private EdgeEventType getEdgeQueueTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return EdgeEventType.DEVICE;
-            case ASSET:
-                return EdgeEventType.ASSET;
-            case ENTITY_VIEW:
-                return EdgeEventType.ENTITY_VIEW;
-            default:
-                return null;
-        }
-    }
-
     @Override
-    public ListenableFuture<Void> processRelationRequestMsg(Edge edge, RelationRequestMsg relationRequestMsg) {
+    public ListenableFuture<Void> processRelationRequestMsg(TenantId tenantId, Edge edge, RelationRequestMsg relationRequestMsg) {
+        log.trace("[{}] processRelationRequestMsg [{}][{}]", tenantId, edge.getName(), relationRequestMsg);
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(
                 EntityType.valueOf(relationRequestMsg.getEntityType()),
                 new UUID(relationRequestMsg.getEntityIdMSB(), relationRequestMsg.getEntityIdLSB()));
 
         List<ListenableFuture<List<EntityRelation>>> futures = new ArrayList<>();
-        futures.add(findRelationByQuery(edge, entityId, EntitySearchDirection.FROM));
-        futures.add(findRelationByQuery(edge, entityId, EntitySearchDirection.TO));
+        futures.add(findRelationByQuery(tenantId, edge, entityId, EntitySearchDirection.FROM));
+        futures.add(findRelationByQuery(tenantId, edge, entityId, EntitySearchDirection.TO));
         ListenableFuture<List<List<EntityRelation>>> relationsListFuture = Futures.allAsList(futures);
-        return Futures.transform(relationsListFuture, relationsList -> {
-            try {
-                if (relationsList != null && !relationsList.isEmpty()) {
-                    for (List<EntityRelation> entityRelations : relationsList) {
-                        log.trace("[{}] [{}] [{}] relation(s) are going to be pushed to edge.", edge.getId(), entityId, entityRelations.size());
-                        for (EntityRelation relation : entityRelations) {
-                            try {
-                                if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
-                                        !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
-                                    saveEdgeEvent(edge.getTenantId(),
-                                            edge.getId(),
-                                            EdgeEventType.RELATION,
-                                            ActionType.ADDED,
-                                            null,
-                                            mapper.valueToTree(relation),
-                                            null);
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        Futures.addCallback(relationsListFuture, new FutureCallback<List<List<EntityRelation>>>() {
+            @Override
+            public void onSuccess(@Nullable List<List<EntityRelation>> relationsList) {
+                try {
+                    if (relationsList != null && !relationsList.isEmpty()) {
+                        for (List<EntityRelation> entityRelations : relationsList) {
+                            log.trace("[{}] [{}] [{}] relation(s) are going to be pushed to edge.", edge.getId(), entityId, entityRelations.size());
+                            for (EntityRelation relation : entityRelations) {
+                                try {
+                                    if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
+                                            !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
+                                        saveEdgeEvent(tenantId,
+                                                edge.getId(),
+                                                EdgeEventType.RELATION,
+                                                EdgeEventActionType.ADDED,
+                                                null,
+                                                mapper.valueToTree(relation));
+                                    }
+                                } catch (Exception e) {
+                                    log.error("Exception during loading relation [{}] to edge on sync!", relation, e);
+                                    futureToSet.setException(e);
+                                    return;
                                 }
-                            } catch (Exception e) {
-                                log.error("Exception during loading relation [{}] to edge on sync!", relation, e);
                             }
                         }
                     }
+                    futureToSet.set(null);
+                } catch (Exception e) {
+                    log.error("Exception during loading relation(s) to edge on sync!", e);
+                    futureToSet.setException(e);
                 }
-            } catch (Exception e) {
-                log.error("Exception during loading relation(s) to edge on sync!", e);
-                throw new RuntimeException("Exception during loading relation(s) to edge on sync!", e);
             }
-            return null;
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[{}] Can't find relation by query. Entity id [{}]", tenantId, entityId, t);
+                futureToSet.setException(t);
+            }
         }, dbCallbackExecutorService);
+        return futureToSet;
     }
 
-    private ListenableFuture<List<EntityRelation>> findRelationByQuery(Edge edge, EntityId entityId, EntitySearchDirection direction) {
+    private ListenableFuture<List<EntityRelation>> findRelationByQuery(TenantId tenantId, Edge edge, EntityId entityId, EntitySearchDirection direction) {
         EntityRelationsQuery query = new EntityRelationsQuery();
         query.setParameters(new RelationsSearchParameters(entityId, direction, -1, false));
-        return relationService.findByQuery(edge.getTenantId(), query);
+        return relationService.findByQuery(tenantId, query);
     }
 
     @Override
-    public ListenableFuture<Void> processDeviceCredentialsRequestMsg(Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
+    public ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
+        log.trace("[{}] processDeviceCredentialsRequestMsg [{}][{}]", tenantId, edge.getName(), deviceCredentialsRequestMsg);
         SettableFuture<Void> futureToSet = SettableFuture.create();
         if (deviceCredentialsRequestMsg.getDeviceIdMSB() != 0 && deviceCredentialsRequestMsg.getDeviceIdLSB() != 0) {
             DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
-            ListenableFuture<EdgeEvent> future =
-                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null, null);
+            ListenableFuture<EdgeEvent> future = saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null);
             Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
                 @Override
                 public void onSuccess(@Nullable EdgeEvent result) {
@@ -604,12 +710,12 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     @Override
-    public ListenableFuture<Void> processUserCredentialsRequestMsg(Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg) {
+    public ListenableFuture<Void> processUserCredentialsRequestMsg(TenantId tenantId, Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg) {
+        log.trace("[{}] processUserCredentialsRequestMsg [{}][{}]", tenantId, edge.getName(), userCredentialsRequestMsg);
         SettableFuture<Void> futureToSet = SettableFuture.create();
         if (userCredentialsRequestMsg.getUserIdMSB() != 0 && userCredentialsRequestMsg.getUserIdLSB() != 0) {
             UserId userId = new UserId(new UUID(userCredentialsRequestMsg.getUserIdMSB(), userCredentialsRequestMsg.getUserIdLSB()));
-            ListenableFuture<EdgeEvent> future =
-                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, ActionType.CREDENTIALS_UPDATED, userId, null, null);
+            ListenableFuture<EdgeEvent> future = saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.USER, EdgeEventActionType.CREDENTIALS_UPDATED, userId, null);
             Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
                 @Override
                 public void onSuccess(@Nullable EdgeEvent result) {
@@ -627,10 +733,10 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     @Override
-    public ListenableFuture<Void> processEntityGroupEntitiesRequest(Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
+    public ListenableFuture<Void> processEntityGroupEntitiesRequest(TenantId tenantId, Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
         if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
-            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                 EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
                 switch (groupType) {
@@ -653,7 +759,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     @Override
-    public ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
+    public ListenableFuture<Void> processEntityGroupPermissionsRequest(TenantId tenantId, Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
         try {
             if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
                 EntityGroupId userGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
@@ -675,7 +781,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private ListenableFuture<Void> processUserGroupPermissionsRequest(Edge edge, EntityGroupId userGroupId) {
         PageData<GroupPermission> groupPermissionsData =
-                groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), userGroupId, new TimePageLink(Integer.MAX_VALUE));
+                groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), userGroupId, new PageLink(Integer.MAX_VALUE));
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
@@ -684,7 +790,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (role != null) {
                         if (RoleType.GENERIC.equals(role.getType())) {
                             return Futures.transform(saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                    EdgeEventType.GROUP_PERMISSION, ActionType.ADDED,
+                                    EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
                                     groupPermission.getId(), null, null), edgeEvent -> null, dbCallbackExecutorService);
                         } else {
                             ListenableFuture<Boolean> checkFuture =
@@ -693,7 +799,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                                 if (Boolean.TRUE.equals(exists)) {
                                     return Futures.transform(
                                             saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                                    EdgeEventType.GROUP_PERMISSION, ActionType.ADDED,
+                                                    EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
                                                     groupPermission.getId(), null, null),
                                             edgeEvent -> null, dbCallbackExecutorService);
                                 } else {
@@ -714,7 +820,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType) {
         PageData<GroupPermission> groupPermissionsData =
-                groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
@@ -724,7 +830,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (Boolean.TRUE.equals(exists)) {
                         return Futures.transform(
                                 saveEdgeEvent(edge.getTenantId(), edge.getId(),
-                                        EdgeEventType.GROUP_PERMISSION, ActionType.ADDED,
+                                        EdgeEventType.GROUP_PERMISSION, EdgeEventActionType.ADDED,
                                         groupPermission.getId(), null, null),
                                 edgeEvent -> null, dbCallbackExecutorService);
                     } else {
@@ -748,7 +854,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (devices != null && !devices.isEmpty()) {
                         log.trace("[{}] [{}] device(s) are going to be pushed to edge.", edge.getId(), devices.size());
                         for (Device device : devices) {
-                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DEVICE, ActionType.ADDED, device.getId(), null, entityGroupId));
+                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.ADDED, device.getId(), null, entityGroupId));
                         }
                     }
                     return Futures.allAsList(result);
@@ -772,7 +878,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (assets != null && !assets.isEmpty()) {
                         log.trace("[{}] [{}] asset(s) are going to be pushed to edge.", edge.getId(), assets.size());
                         for (Asset asset : assets) {
-                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ASSET, ActionType.ADDED, asset.getId(), null, entityGroupId));
+                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ASSET, EdgeEventActionType.ADDED, asset.getId(), null, entityGroupId));
                         }
                     }
                     return Futures.allAsList(result);
@@ -796,7 +902,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (entityViews != null && !entityViews.isEmpty()) {
                         log.trace("[{}] [{}] entity view(s) are going to be pushed to edge.", edge.getId(), entityViews.size());
                         for (EntityView entityView : entityViews) {
-                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_VIEW, ActionType.ADDED, entityView.getId(), null, entityGroupId));
+                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_VIEW, EdgeEventActionType.ADDED, entityView.getId(), null, entityGroupId));
                         }
                     }
                     return Futures.allAsList(result);
@@ -820,7 +926,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (dashboardInfos != null && !dashboardInfos.isEmpty()) {
                         log.trace("[{}] [{}] dashboard(s) are going to be pushed to edge.", edge.getId(), dashboardInfos.size());
                         for (DashboardInfo dashboardInfo : dashboardInfos) {
-                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DASHBOARD, ActionType.ADDED, dashboardInfo.getId(), null, entityGroupId));
+                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DASHBOARD, EdgeEventActionType.ADDED, dashboardInfo.getId(), null, entityGroupId));
                         }
                     }
                     return Futures.allAsList(result);
@@ -844,7 +950,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     if (users != null && !users.isEmpty()) {
                         log.trace("[{}] [{}] user(s) are going to be pushed to edge.", edge.getId(), users.size());
                         for (User user : users) {
-                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, ActionType.ADDED, user.getId(), null, entityGroupId));
+                            result.add(saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, EdgeEventActionType.ADDED, user.getId(), null, entityGroupId));
                         }
                     }
                     return Futures.allAsList(result);
@@ -859,20 +965,29 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     private ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
-                               EdgeId edgeId,
-                               EdgeEventType type,
-                               ActionType action,
-                               EntityId entityId,
-                               JsonNode body,
-                               EntityId entityGroupId) {
-        log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}]",
+                                                      EdgeId edgeId,
+                                                      EdgeEventType type,
+                                                      EdgeEventActionType action,
+                                                      EntityId entityId,
+                                                      JsonNode body) {
+        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
+    }
+
+    private ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
+                                                      EdgeId edgeId,
+                                                      EdgeEventType type,
+                                                      EdgeEventActionType action,
+                                                      EntityId entityId,
+                                                      JsonNode body,
+                                                      EntityId entityGroupId) {
+        log.trace("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}]",
                 tenantId, edgeId, type, action, entityId, body);
 
         EdgeEvent edgeEvent = new EdgeEvent();
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setEdgeId(edgeId);
         edgeEvent.setType(type);
-        edgeEvent.setAction(action.name());
+        edgeEvent.setAction(action);
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
         }
@@ -880,6 +995,18 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             edgeEvent.setEntityGroupId(entityGroupId.getId());
         }
         edgeEvent.setBody(body);
-        return edgeEventService.saveAsync(edgeEvent);
+        ListenableFuture<EdgeEvent> future = edgeEventService.saveAsync(edgeEvent);
+        Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
+            @Override
+            public void onSuccess(@Nullable EdgeEvent result) {
+                tbClusterService.onEdgeEventUpdate(tenantId, edgeId);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Can't save edge event [{}] for edge [{}]", tenantId.getId(), edgeEvent, edgeId.getId(), t);
+            }
+        }, dbCallbackExecutorService);
+        return future;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final static String POSTGRES_DATA_VOLUME = "tb-postgres-test-data-volume";
     private final static String TB_LOG_VOLUME = "tb-log-test-volume";
     private final static String TB_COAP_TRANSPORT_LOG_VOLUME = "tb-coap-transport-log-test-volume";
+    private final static String TB_LWM2M_TRANSPORT_LOG_VOLUME = "tb-lwm2m-transport-log-test-volume";
     private final static String TB_HTTP_TRANSPORT_LOG_VOLUME = "tb-http-transport-log-test-volume";
     private final static String TB_MQTT_TRANSPORT_LOG_VOLUME = "tb-mqtt-transport-log-test-volume";
 
@@ -52,6 +53,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final String postgresDataVolume;
     private final String tbLogVolume;
     private final String tbCoapTransportLogVolume;
+    private final String tbLwm2mTransportLogVolume;
     private final String tbHttpTransportLogVolume;
     private final String tbMqttTransportLogVolume;
     private final Map<String, String> env;
@@ -67,6 +69,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
         tbLogVolume = project + "_" + TB_LOG_VOLUME;
         tbCoapTransportLogVolume = project + "_" + TB_COAP_TRANSPORT_LOG_VOLUME;
+        tbLwm2mTransportLogVolume = project + "_" + TB_LWM2M_TRANSPORT_LOG_VOLUME;
         tbHttpTransportLogVolume = project + "_" + TB_HTTP_TRANSPORT_LOG_VOLUME;
         tbMqttTransportLogVolume = project + "_" + TB_MQTT_TRANSPORT_LOG_VOLUME;
 
@@ -76,6 +79,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
         env.put("TB_LOG_VOLUME", tbLogVolume);
         env.put("TB_COAP_TRANSPORT_LOG_VOLUME", tbCoapTransportLogVolume);
+        env.put("TB_LWM2M_TRANSPORT_LOG_VOLUME", tbLwm2mTransportLogVolume);
         env.put("TB_HTTP_TRANSPORT_LOG_VOLUME", tbHttpTransportLogVolume);
         env.put("TB_MQTT_TRANSPORT_LOG_VOLUME", tbMqttTransportLogVolume);
         env.put("DOCKER_REPO", "thingsboard");
@@ -98,6 +102,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.invokeDocker();
 
             dockerCompose.withCommand("volume create " + tbCoapTransportLogVolume);
+            dockerCompose.invokeDocker();
+
+            dockerCompose.withCommand("volume create " + tbLwm2mTransportLogVolume);
             dockerCompose.invokeDocker();
 
             dockerCompose.withCommand("volume create " + tbHttpTransportLogVolume);
@@ -124,11 +131,12 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     protected void after() {
         copyLogs(tbLogVolume, "./target/tb-logs/");
         copyLogs(tbCoapTransportLogVolume, "./target/tb-coap-transport-logs/");
+        copyLogs(tbLwm2mTransportLogVolume, "./target/tb-lwm2m-transport-logs/");
         copyLogs(tbHttpTransportLogVolume, "./target/tb-http-transport-logs/");
         copyLogs(tbMqttTransportLogVolume, "./target/tb-mqtt-transport-logs/");
 
         dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume +
-                " " + tbCoapTransportLogVolume + " " + tbHttpTransportLogVolume + " " + tbMqttTransportLogVolume);
+                " " + tbCoapTransportLogVolume + " " + tbLwm2mTransportLogVolume + " " + tbHttpTransportLogVolume + " " + tbMqttTransportLogVolume);
         dockerCompose.invokeDocker();
     }
 
