@@ -261,12 +261,11 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
     const entityGroupsObservable: Array<Observable<any>> = this.getEntityGroupsObservable();
     return forkJoin(entityGroupsObservable)
       .pipe(map(data => {
-          const entityGroups = data[0].concat(data[1]);
+          const entityGroups = [...data[0]||[], ...data[1]||[]];
           if (entityGroups) {
             if (this.excludeGroupAll) {
               return entityGroups.filter(group => !group.groupAll);
-            }
-            else {
+            } else {
               return entityGroups;
             }
           } else {
