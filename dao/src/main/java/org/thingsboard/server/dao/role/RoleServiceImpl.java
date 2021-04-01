@@ -330,7 +330,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
                     }
 
                     Role before = findRoleById(tenantId, role.getId());
-                    if (role.getType() != before.getType()) {
+                    if (before != null && role.getType() != before.getType()) {
                         throw new DataValidationException("Role type cannot be changed after role creation");
                     }
                 }
