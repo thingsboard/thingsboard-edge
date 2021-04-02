@@ -183,14 +183,14 @@ public abstract class AbstractOAuth2ClientMapper {
             } finally {
                 userCreationLock.unlock();
             }
-        }
 
-        try {
-            ListenableFuture<Void> future = addUserToUserGroups(oauth2User, user);
-            future.get();
-        } catch (Exception e) {
-            log.error("Error while adding user to entity groups", e);
-            throw new RuntimeException("Error while adding user to entity groups", e);
+            try {
+                ListenableFuture<Void> future = addUserToUserGroups(oauth2User, user);
+                future.get();
+            } catch (Exception e) {
+                log.error("Error while adding user to entity groups", e);
+                throw new RuntimeException("Error while adding user to entity groups", e);
+            }
         }
 
         SecurityUser securityUser;
