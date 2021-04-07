@@ -31,7 +31,7 @@
 
 import { Injectable, Input, SimpleChanges } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Resolve, Router, UrlTree } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
@@ -68,6 +68,7 @@ import { PageData } from '@shared/models/page/page-data';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { EntityGroupParams } from '@shared/models/entity-group.models';
 
 @Injectable()
 export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
@@ -133,10 +134,10 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     return this.config;
   }
 
-  resolveRuleChainsTableConfig(params: any): EntityTableConfig<RuleChain> {
+  resolveRuleChainsTableConfig(params: EntityGroupParams): EntityTableConfig<RuleChain> {
     const edgeId = params?.edgeId;
     const edge = params?.edge;
-    var ruleChainScope = params.data?.ruleChainsType ? params.data?.ruleChainsType : 'tenant';
+    var ruleChainScope = 'tenant';
     if (params.hierarchyView && params.groupType === EntityType.EDGE) {
       ruleChainScope = 'edge';
     }
@@ -154,7 +155,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     this.config.entitiesFetchFunction = this.configureEntityFunctions(ruleChainScope, edgeId);
     this.config.groupActionDescriptors = this.configureGroupActions(ruleChainScope);
     this.config.addActionDescriptors = this.configureAddActions(ruleChainScope);
-    this.config.cellActionDescriptors = this.configureCellActions(ruleChainScope);
+    this.config.cellActionDescriptors = this.configureCellActions(ruleChainScope, params);
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
@@ -261,14 +262,14 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     return actions;
   }
 
-  configureCellActions(ruleChainScope: string): Array<CellActionDescriptor<RuleChain>> {
+  configureCellActions(ruleChainScope: string, params?: EntityGroupParams): Array<CellActionDescriptor<RuleChain>> {
     const actions: Array<CellActionDescriptor<RuleChain>> = [];
     actions.push(
       {
         name: this.translate.instant('rulechain.open-rulechain'),
         icon: 'settings_ethernet',
         isEnabled: () => true,
-        onAction: ($event, entity) => this.openRuleChain($event, entity)
+        onAction: ($event, entity) => this.openRuleChain($event, entity, params)
       },
       {
         name: this.translate.instant('rulechain.export'),
@@ -344,13 +345,20 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     });
   }
 
-  openRuleChain($event: Event, ruleChain: RuleChain) {
+  openRuleChain($event: Event, ruleChain: RuleChain, params?: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (this.config.componentsData.ruleChainScope === 'edge') {
-      const url = this.router.createUrlTree([ruleChain.id.id], {relativeTo: this.config.table.route});
-      this.router.navigateByUrl(url);
+      var url: UrlTree;
+      if (params && params.hierarchyView) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+                    'edgeGroups', params.entityGroupId, params.edgeId, 'ruleChains', ruleChain.id.id]);
+        window.open(window.location.origin + url, '_blank');
+      } else {
+        url = this.router.createUrlTree([ruleChain.id.id], { relativeTo: this.config.table.route });
+        this.router.navigateByUrl(url);
+      }
     } else if (this.config.componentsData.ruleChainScope === 'edges') {
       this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
     } else {

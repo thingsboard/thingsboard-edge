@@ -51,7 +51,7 @@ import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, UrlTree } from '@angular/router';
 import {
   PublicDashboardLinkDialogComponent,
   PublicDashboardLinkDialogData
@@ -151,8 +151,14 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      const url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-        params.customerId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
+      var url: UrlTree;
+      if (params.groupScope === 'edge') {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
+      }
       this.window.open(window.location.origin + url, '_blank');
     } else {
       const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: config.table.route});

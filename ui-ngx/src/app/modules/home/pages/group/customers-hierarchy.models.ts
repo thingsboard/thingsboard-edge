@@ -35,10 +35,11 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { NavTreeNode } from '@shared/components/nav-tree.component';
 import { Edge } from '@shared/models/edge.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 export type CustomersHierarchyViewMode = 'groups' | 'group' | 'schedulerEvents';
 
-export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups';
+export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups' | 'edgeGroup';
 
 export interface BaseCustomersHierarchyNodeData {
   type: CustomersHierarchyNodeType;
@@ -49,6 +50,7 @@ export interface BaseCustomersHierarchyNodeData {
 export interface EntityGroupNodeData extends BaseCustomersHierarchyNodeData {
   type: 'group';
   entity: EntityGroupInfo;
+  ownerId: EntityId;
 }
 
 export interface EntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
@@ -62,21 +64,33 @@ export interface CustomerNodeData extends BaseCustomersHierarchyNodeData {
   entity: Customer;
 }
 
-export interface EdgeNodeData extends BaseCustomersHierarchyNodeData {
-  type: 'edge';
-  entity: Edge;
+export interface EdgeNodeCustomerData {
+  customerGroupId?: string;
+  customerId?: string;
 }
 
-export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
-  type: 'edgeGroups';
+interface BaseEdgeNodeData {
   edge: Edge;
-  groupScope: string;
-  customerId: string;
-  groupsType?: EntityType;
-  entityType?: EntityType;
+  edgeId?: Edge;
+  customerData?: EdgeNodeCustomerData;
 }
 
-export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData | EdgeNodeData | EdgeEntityGroupsNodeData;
+export interface EdgeNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
+  type: 'edge';
+}
+
+export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
+  type: 'edgeGroups';
+  groupsType: EntityType;
+}
+
+export interface EdgeEntityGroupNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
+  type: 'edgeGroup';
+  entityGroup: EntityGroupInfo;
+}
+
+export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData |
+                                         EdgeNodeData | EdgeEntityGroupsNodeData | EdgeEntityGroupNodeData;
 
 export interface CustomersHierarchyNode extends NavTreeNode {
   data?: CustomersHierarchyNodeData;

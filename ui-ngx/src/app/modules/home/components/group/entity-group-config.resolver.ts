@@ -55,7 +55,7 @@ export class EntityGroupConfigResolver {
   }
 
   public constructGroupConfigByStateParams<T>(params: EntityGroupParams): Observable<EntityGroupStateInfo<T>> {
-    const entityGroupId: string = params.grandChildEntityGroupId || params.childEntityGroupId || params.entityGroupId;
+    const entityGroupId: string = params.grandChildGroupId || params.childEntityGroupId || params.entityGroupId;
     if (entityGroupId) {
       return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
         mergeMap((entityGroup) => {
@@ -87,7 +87,7 @@ export class EntityGroupConfigResolver {
 
   private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
     if (params.customerId) {
-      const groupType: EntityType = params.childGroupType || params.groupType;
+      const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
       if (this.entityGroupHasEdgeScope(params)) {
         entityGroup = this.resolveEdgeGroupInfo(params, entityGroup);
       }
