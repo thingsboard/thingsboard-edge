@@ -379,6 +379,11 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               params.hierarchyCallbacks.refreshCustomerGroups([result.groupId]);
             }
           }
+          if (config.entityGroup.type === EntityType.EDGE) {
+            if (params.hierarchyView) {
+              params.hierarchyCallbacks.refreshEdgeGroups([result.groupId]);
+            }
+          }
           return true;
         })
       );

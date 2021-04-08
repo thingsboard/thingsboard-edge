@@ -111,6 +111,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     customerGroupsSelected: this.onCustomerGroupsSelected.bind(this),
     refreshEntityGroups: this.refreshEntityGroups.bind(this),
     refreshCustomerGroups: this.refreshCustomerGroups.bind(this),
+    refreshEdgeGroups: this.refreshEdgeGroups.bind(this),
     groupUpdated: this.groupUpdated.bind(this),
     groupDeleted: this.groupDeleted.bind(this),
     groupAdded: this.groupAdded.bind(this),
@@ -846,6 +847,19 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     if (!this.nodeEditCallbacks.nodeIsOpen(nodeId)) {
       this.nodeEditCallbacks.openNode(nodeId, openCb);
     }
+  }
+
+  private refreshEdgeGroups(edgeGroupIds: string[]) {
+    edgeGroupIds.forEach((groupId) => {
+      const nodeIds = this.internalIdToNodeIds[groupId];
+      if (nodeIds) {
+        nodeIds.forEach((nodeId) => {
+          if (this.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
+            this.nodeEditCallbacks.refreshNode(nodeId);
+          }
+        });
+      }
+    });
   }
 
   private edgeAdded(parentNodeId: string, edge: Edge) {

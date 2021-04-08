@@ -476,15 +476,16 @@ export function entityGroupsTitle(groupType: EntityType) {
 export interface HierarchyCallbacks {
   groupSelected?: (parentNodeId: string, groupId: string) => void;
   customerGroupsSelected?: (parentNodeId: string, customerId: string, groupsType: EntityType) => void;
-  edgeGroupsSelected?: (parentNodeId: string, edgeId: string, groupsType: EntityType) => void;
   refreshEntityGroups?: (internalId: string) => void;
   refreshCustomerGroups?: (customerGroupIds: string[]) => void;
+  refreshEdgeGroups?: (edgeGroupIds: string[]) => void;
   groupUpdated?: (entityGroup: EntityGroupInfo) => void;
   groupDeleted?: (groupNodeId: string, entityGroupId: string) => void;
   groupAdded?: (entityGroup: EntityGroupInfo, existingGroupId: string) => void;
   customerAdded?: (parentNodeId: string, customer: Customer) => void;
   customerUpdated?: (customer: Customer) => void;
   customersDeleted?: (customerIds: string[]) => void;
+  edgeGroupsSelected?: (parentNodeId: string, edgeId: string, groupsType: EntityType) => void;
   edgeAdded?: (parentNodeId: string, edge: Edge) => void;
   edgeUpdated?: (edge: Edge) => void;
   edgesDeleted?: (edgeIds: string[]) => void;
