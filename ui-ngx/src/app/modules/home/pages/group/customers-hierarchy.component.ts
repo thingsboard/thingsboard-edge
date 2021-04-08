@@ -215,7 +215,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           cb(this.loadNodesForEdge(node.id, parentEntityGroupId, edge, customerData));
         } else {
           this.entityGroupService.getEdgeEntityGroups(node.data.edge.id.id, node.data.groupsType, {ignoreLoading: true}).subscribe((entityGroups) => {
-            cb(this.edgeEntityGroupsToNodes(node.id, parentEntityGroupId, customerData, entityGroups));
+            cb(this.edgeEntityGroupsToNodes(node.id, parentEntityGroupId, customerData, edge, entityGroups));
           });
         }
       }
@@ -288,16 +288,17 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         entityGroupParams.internalId = node.data.internalId;
         entityGroupParams.groupScope = 'edge';
         entityGroupParams.entityGroupId = node.data.parentEntityGroupId;
+        entityGroupParams.edgeId = node.data.edge.id.id;
         if (node.data.type === 'edgeGroups') {
           entityGroupParams.groupType = EntityType.EDGE;
           entityGroupParams.childGroupType = node.data.groupsType;
-          entityGroupParams.edgeId = node.data.edge.id.id;
           this.edgeId = node.data.edge.id.id;
           this.updateViewByEntityType(node.data.groupsType, entityGroupParams, node.data.edge);
         } else {
           const entityGroup = node.data.entityGroup;
           entityGroupParams.childEntityGroupId = entityGroup.id.id;
           entityGroupParams.grandChildGroupType = entityGroup.type;
+          entityGroupParams.childGroupType = entityGroup.type;
           this.updateGroupView(entityGroupParams, entityGroup);
         }
       }
@@ -423,12 +424,12 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   }
 
   private edgeEntityGroupsToNodes(parentNodeId: string, parentEntityGroupId: string,
-                                  customerData: EdgeNodeCustomerData, entityGroups: EntityGroupInfo[]): CustomersHierarchyNode[] {
+                                  customerData: EdgeNodeCustomerData, edge: Edge, entityGroups: EntityGroupInfo[]): CustomersHierarchyNode[] {
     const nodes: CustomersHierarchyNode[] = [];
     this.entityGroupNodesMap[parentNodeId] = {};
     if (entityGroups) {
       entityGroups.forEach((entityGroup) => {
-        const node = this.createEdgeEntityGroupNode(parentNodeId, entityGroup, parentEntityGroupId, customerData);
+        const node = this.createEdgeEntityGroupNode(parentNodeId, entityGroup, parentEntityGroupId, edge, customerData);
         nodes.push(node);
         if (entityGroup.groupAll) {
           this.parentIdToGroupAllNodeId[parentNodeId] = node.id;
@@ -439,7 +440,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   }
 
   private createEdgeEntityGroupNode(parentNodeId: string, entityGroup: EntityGroupInfo, parentEntityGroupId: string,
-                                    customerData: EdgeNodeCustomerData): CustomersHierarchyNode {
+                                    edge: Edge, customerData: EdgeNodeCustomerData): CustomersHierarchyNode {
     let nodesMap = this.entityGroupNodesMap[parentNodeId];
     if (!nodesMap) {
       nodesMap = {};
@@ -454,6 +455,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         type: 'edgeGroup',
         entityGroup: entityGroup,
         parentEntityGroupId,
+        edge,
         customerData,
         internalId: entityGroup.id.id
       } as EdgeEntityGroupNodeData

@@ -87,9 +87,9 @@ export class EntityGroupConfigResolver {
 
   private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
     if (params.customerId) {
-      const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
-      if (this.entityGroupHasEdgeScope(params)) {
-        entityGroup = this.resolveEdgeGroupInfo(params, entityGroup);
+      const groupType: EntityType = params.childGroupType || params.groupType;
+      if (params.groupScope === 'edge' && params.edgeId) {
+        entityGroup = this.resolveEdgeGroupName(params, entityGroup);
       }
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
@@ -128,22 +128,13 @@ export class EntityGroupConfigResolver {
     }
   }
 
-  private resolveEdgeGroupInfo(params, entityGroup) {
+  private resolveEdgeGroupName(params, entityGroup) {
     this.entityGroupService.getEntityGroup(params.childEntityGroupId).subscribe(
       (parentEntityGroup => {
         entityGroup.edgeGroupName = parentEntityGroup.name;
       })
     );
-    this.edgeService.getEdge(params.edgeId).subscribe(
-      (info) => {
-        entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType));
-      }
-    )
     return entityGroup;
-  }
-
-  private entityGroupHasEdgeScope(params) {
-    return params.groupScope === 'edge' && params.edgeId;
   }
 
 }

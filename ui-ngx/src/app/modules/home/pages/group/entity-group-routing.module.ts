@@ -337,7 +337,7 @@ const SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
-  grandChildGroupType: EntityType.SCHEDULER_EVENT,
+    grandChildGroupType: EntityType.SCHEDULER_EVENT,
     groupScope: 'edge',
     groupType: EntityType.SCHEDULER_EVENT,
     auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
@@ -611,9 +611,7 @@ const routes: Routes = [
                         groupScope: 'edge',
                         groupType: EntityType.USER,
                         breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
+                          label: 'entity-group.user-groups',
                           icon: 'account_circle'
                         }
                       }
@@ -626,9 +624,7 @@ const routes: Routes = [
                         groupScope: 'edge',
                         groupType: EntityType.ASSET,
                         breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
+                          label: 'entity-group.asset-groups',
                           icon: 'domain'
                         }
                       }
@@ -641,9 +637,7 @@ const routes: Routes = [
                         groupScope: 'edge',
                         groupType: EntityType.DEVICE,
                         breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
+                          label: 'entity-group.device-groups',
                           icon: 'devices_other'
                         }
                       }
@@ -656,9 +650,7 @@ const routes: Routes = [
                         groupScope: 'edge',
                         groupType: EntityType.ENTITY_VIEW,
                         breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
+                          label: 'entity-group.entity-view-groups',
                           icon: 'view_quilt'
                         }
                       }
@@ -671,16 +663,36 @@ const routes: Routes = [
                         groupScope: 'edge',
                         groupType: EntityType.DASHBOARD,
                         breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
+                          label: 'entity-group.dashboard-groups',
                           icon: 'dashboard'
                         }
                       }
                     }
                   },
-                  {...SCHEDULER_ROUTE},
-                  {...RULE_CHAINS_ROUTE}
+                  {...SCHEDULER_ROUTE, ...{
+                      data: {
+                        grandChildGroupType: EntityType.SCHEDULER_EVENT,
+                        groupScope: 'edge',
+                        groupType: EntityType.SCHEDULER_EVENT,
+                        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                        breadcrumb: {
+                          label: 'scheduler.scheduler',
+                          icon: 'schedule'
+                        }
+                      }
+                    }
+                  },
+                  {...RULE_CHAINS_ROUTE, ...{
+                      data: {
+                        grandChildGroupType: EntityType.RULE_CHAIN,
+                        groupScope: 'edge',
+                        breadcrumb: {
+                          label: 'edge.rulechains',
+                          icon: 'settings_ethernet'
+                        }
+                      }
+                    }
+                  }
                 ]
               }
             ]
