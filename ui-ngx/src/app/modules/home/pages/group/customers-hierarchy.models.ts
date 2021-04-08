@@ -37,7 +37,7 @@ import { NavTreeNode } from '@shared/components/nav-tree.component';
 import { Edge } from '@shared/models/edge.models';
 import { EntityId } from '@shared/models/id/entity-id';
 
-export type CustomersHierarchyViewMode = 'groups' | 'group' | 'schedulerEvents';
+export type CustomersHierarchyViewMode = 'groups' | 'group' | 'scheduler';
 
 export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups' | 'edgeGroup';
 

@@ -378,8 +378,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             if (params.hierarchyView) {
               params.hierarchyCallbacks.refreshCustomerGroups([result.groupId]);
             }
-          }
-          if (config.entityGroup.type === EntityType.EDGE) {
+          } else if (config.entityGroup.type === EntityType.EDGE) {
             if (params.hierarchyView) {
               params.hierarchyCallbacks.refreshEdgeGroups([result.groupId]);
             }
@@ -428,6 +427,10 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             if (params.hierarchyView) {
               params.hierarchyCallbacks.refreshCustomerGroups([config.entityGroup.id.id, result.groupId]);
             }
+          } else if (config.entityGroup.type === EntityType.EDGE) {
+            if (params.hierarchyView) {
+              params.hierarchyCallbacks.refreshEdgeGroups([config.entityGroup.id.id, result.groupId]);
+            }
           }
           return true;
         })
@@ -470,6 +473,10 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               if (config.entityGroup.type === EntityType.CUSTOMER) {
                 if (params.hierarchyView) {
                   params.hierarchyCallbacks.refreshCustomerGroups([config.entityGroup.id.id]);
+                }
+              } else if (config.entityGroup.type === EntityType.EDGE) {
+                if (params.hierarchyView) {
+                  params.hierarchyCallbacks.refreshEdgeGroups([config.entityGroup.id.id]);
                 }
               }
             }
