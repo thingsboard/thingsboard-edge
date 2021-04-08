@@ -266,7 +266,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         this.translate.instant('entity-group.confirm-change-owner-text')).pipe(
         mergeMap((res) => {
             if (res) {
-              const isHierarchyCustomerView = config.entityGroup.type === EntityType.CUSTOMER &&
+              const isHierarchyCustomerView = (config.entityGroup.type === EntityType.CUSTOMER || config.entityGroup.type === EntityType.EDGE) &&
                 params.hierarchyView;
               const refreshEntityGroupIds: string[] = [];
               let groupIdsObservable: Observable<any>;
