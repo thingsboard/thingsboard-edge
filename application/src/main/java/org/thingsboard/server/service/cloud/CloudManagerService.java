@@ -391,13 +391,20 @@ public class CloudManagerService {
 
     @PreDestroy
     public void destroy() throws InterruptedException {
-        edgeRpcClient.disconnect(false);
+        String edgeId = edgeSettings != null ? edgeSettings.getEdgeId() : "";
+        log.info("[{}] Starting destroying process", edgeId);
+        try {
+            edgeRpcClient.disconnect(false);
+        } catch (Exception e) {
+            log.error("Exception during disconnect", e);
+        }
         if (executor != null) {
             executor.shutdownNow();
         }
         if (reconnectScheduler != null) {
             reconnectScheduler.shutdownNow();
         }
+        log.info("[{}] Destroy was successful", edgeId);
     }
 
     private void processHandleMessages() {
