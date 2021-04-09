@@ -109,7 +109,7 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   edgeId: string;
   tenantId: string;
   customerId: string;
-  groupScope: string;
+  childGroupScope: string;
 
   searchText = '';
 
@@ -128,7 +128,7 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
     this.edgeId = this.data.edgeId;
     this.customerId = this.data.customerId;
     this.groupType = this.data.groupType;
-    this.groupScope = this.data.groupScope;
+    this.childGroupScope = this.data.childGroupScope;
     this.edgeEntityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
       entityGroup: [null]

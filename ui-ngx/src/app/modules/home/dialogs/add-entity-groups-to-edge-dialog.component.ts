@@ -43,7 +43,6 @@ import { EntityType } from "@shared/models/entity-type.models";
 import { UserPermissionsService } from "@core/http/user-permissions.service";
 import { EntityGroupService } from "@core/http/entity-group.service";
 import { BroadcastService } from "@core/services/broadcast.service";
-import { EntityGroupInfo } from "@shared/models/entity-group.models";
 
 export interface AddEntityGroupsToEdgeDialogData {
   ownerId: EntityId;
@@ -54,7 +53,7 @@ export interface AddEntityGroupsToEdgeDialogData {
   notFoundText: string;
   requiredText: string;
   customerId?: string;
-  groupScope?: string;
+  childGroupScope?: string;
 }
 
 @Component({

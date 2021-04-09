@@ -49,7 +49,6 @@ import {
   EntityNodeDatasource,
   entityNodeText
 } from '@home/components/widget/lib/edges-overview-widget.models';
-import { EdgeService } from '@core/http/edge.service';
 import { EntityService } from '@core/http/entity.service';
 import { TranslateService } from '@ngx-translate/core';
 import { PageLink } from '@shared/models/page/page-link';
@@ -89,7 +88,6 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   private nodeIdCounter = 0;
 
   constructor(protected store: Store<AppState>,
-              private edgeService: EdgeService, //TODO deaflynx: delete unused
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               private translateService: TranslateService,

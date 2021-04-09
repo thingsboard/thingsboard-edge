@@ -85,10 +85,12 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.customerId = params.customerId;
     this.edgeId = params.edgeId;
-    if (params.grandChildGroupType) {
-      this.groupType = params.grandChildGroupType;
-    } else if ((this.customerId || this.edgeId) && params.childGroupType) {
-      this.groupType = params.childGroupType;
+    if ((this.customerId || this.edgeId) && params.childGroupType) {
+      if (params.grandChildGroupType) {
+        this.groupType = params.grandChildGroupType;
+      } else {
+        this.groupType = params.childGroupType;
+      }
     } else {
       this.groupType = params.groupType;
     }
@@ -439,8 +441,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     return false;
   }
 
-  private entityGroupsHasEdgeScope() {
-    return this.params.groupScope === 'edge';
+  private entityGroupsHasEdgeScope(): boolean {
+    return this.params.childGroupScope && (this.params.childGroupScope === 'customer' || this.params.childGroupScope === 'edge');
   }
 
 }

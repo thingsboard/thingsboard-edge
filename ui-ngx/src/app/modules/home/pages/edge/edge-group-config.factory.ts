@@ -223,7 +223,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.USER);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/userGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/userGroups`);
@@ -237,7 +237,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ASSET);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/assetGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
@@ -251,9 +251,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
-    } else if (config.groupParams.groupType === EntityType.CUSTOMER) { //TODO deaflynx: define else if statement and if needed to change other manage-buttons
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`);
-    } else if (config.groupParams.groupType === EntityType.EDGE) {
+    } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
     }
   }
@@ -265,7 +265,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ENTITY_VIEW);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/entityViewGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/entityViewGroups`);
@@ -279,7 +279,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/dashboardGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
@@ -293,7 +293,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/scheduler`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/scheduler`);
@@ -307,11 +307,15 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.RULE_CHAIN);
-    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+    } else if (this.isCustomerScope(params)) {
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/ruleChains`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
     }
+  }
+
+  private isCustomerScope(params: EntityGroupParams): boolean {
+    return params.childGroupScope === 'customer';
   }
 
 }

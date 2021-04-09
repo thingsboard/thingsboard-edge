@@ -504,7 +504,7 @@ export interface EntityGroupParams {
   hierarchyCallbacks?: HierarchyCallbacks;
   edge?: Edge;
   edgeId?: string;
-  groupScope?: string;
+  childGroupScope?: string;
   grandChildGroupType?: EntityType;
   grandChildGroupId?: string;
 }
@@ -521,7 +521,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
   let routeParams = {...route.params};
   let routeData = {...route.data};
   var grandChildGroupId;
-  if (routeData.groupScope && routeData.groupScope === 'edge') {
+  if (routeData.childGroupScope && routeData.childGroupScope === 'customer') {
     grandChildGroupId = routeParams.entityGroupId;
   }
   while (route.parent !== null) {
@@ -543,7 +543,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
     edgeId: routeParams.edgeId,
-    groupScope: routeData.groupScope,
+    childGroupScope: routeData.childGroupScope,
     grandChildGroupType: routeData.grandChildGroupType,
     grandChildGroupId: grandChildGroupId
   }

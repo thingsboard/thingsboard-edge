@@ -337,8 +337,6 @@ const SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
-    grandChildGroupType: EntityType.SCHEDULER_EVENT,
-    groupScope: 'edge',
     groupType: EntityType.SCHEDULER_EVENT,
     auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
     breadcrumb: {
@@ -356,8 +354,7 @@ const SCHEDULER_ROUTE: Route = {
 const RULE_CHAINS_ROUTE: Route = {
   path: ':edgeId/ruleChains',
   data: {
-    grandChildGroupType: EntityType.RULE_CHAIN,
-    groupScope: 'edge',
+    groupType: EntityType.RULE_CHAIN,
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
         return data.entityGroup.edgeGroupsTitle;
@@ -586,6 +583,7 @@ const routes: Routes = [
                 data: {
                   title: 'entity-group.edge-group',
                   groupType: EntityType.EDGE,
+                  childGroupScope: 'customer',
                   breadcrumb: {
                     labelFunction: (route, translate, component, data) => {
                       return data.entityGroup.edgeGroupName ? data.entityGroup.edgeGroupName : data.entityGroup.name;
@@ -608,10 +606,11 @@ const routes: Routes = [
                       path: ':edgeId/userGroups',
                       data: {
                         grandChildGroupType: EntityType.USER,
-                        groupScope: 'edge',
                         groupType: EntityType.USER,
                         breadcrumb: {
-                          label: 'entity-group.user-groups',
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
                           icon: 'account_circle'
                         }
                       }
@@ -621,10 +620,11 @@ const routes: Routes = [
                       path: ':edgeId/assetGroups',
                       data: {
                         grandChildGroupType: EntityType.ASSET,
-                        groupScope: 'edge',
                         groupType: EntityType.ASSET,
                         breadcrumb: {
-                          label: 'entity-group.asset-groups',
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
                           icon: 'domain'
                         }
                       }
@@ -634,10 +634,11 @@ const routes: Routes = [
                       path: ':edgeId/deviceGroups',
                       data: {
                         grandChildGroupType: EntityType.DEVICE,
-                        groupScope: 'edge',
                         groupType: EntityType.DEVICE,
                         breadcrumb: {
-                          label: 'entity-group.device-groups',
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
                           icon: 'devices_other'
                         }
                       }
@@ -647,10 +648,11 @@ const routes: Routes = [
                       path: ':edgeId/entityViewGroups',
                       data: {
                         grandChildGroupType: EntityType.ENTITY_VIEW,
-                        groupScope: 'edge',
                         groupType: EntityType.ENTITY_VIEW,
                         breadcrumb: {
-                          label: 'entity-group.entity-view-groups',
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
                           icon: 'view_quilt'
                         }
                       }
@@ -660,34 +662,36 @@ const routes: Routes = [
                       path: ':edgeId/dashboardGroups',
                       data: {
                         grandChildGroupType: EntityType.DASHBOARD,
-                        groupScope: 'edge',
                         groupType: EntityType.DASHBOARD,
                         breadcrumb: {
-                          label: 'entity-group.dashboard-groups',
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
                           icon: 'dashboard'
                         }
                       }
                     }
                   },
                   {...SCHEDULER_ROUTE, ...{
-                      data: {
-                        grandChildGroupType: EntityType.SCHEDULER_EVENT,
-                        groupScope: 'edge',
-                        groupType: EntityType.SCHEDULER_EVENT,
-                        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-                        breadcrumb: {
-                          label: 'scheduler.scheduler',
-                          icon: 'schedule'
-                        }
+                        data: {
+                          grandChildGroupType: EntityType.SCHEDULER_EVENT,
+                          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                          breadcrumb: {
+                            labelFunction: (route, translate, component, data) => {
+                              return data.entityGroup.edgeGroupsTitle;
+                            },
+                            icon: 'schedule'
+                          }
+                        },
                       }
-                    }
-                  },
+                    },
                   {...RULE_CHAINS_ROUTE, ...{
                       data: {
                         grandChildGroupType: EntityType.RULE_CHAIN,
-                        groupScope: 'edge',
                         breadcrumb: {
-                          label: 'edge.rulechains',
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
                           icon: 'settings_ethernet'
                         }
                       }
@@ -726,6 +730,7 @@ const routes: Routes = [
       {
         path: ':entityGroupId',
         data: {
+          childGroupScope: 'edge',
           groupType: EntityType.EDGE,
           breadcrumb: {
             icon: 'router',
@@ -795,7 +800,6 @@ const routes: Routes = [
           { ...USER_GROUPS_ROUTE, ...{
               path: ':edgeId/userGroups',
               data: {
-                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -808,7 +812,6 @@ const routes: Routes = [
           { ...ASSET_GROUPS_ROUTE, ...{
               path: ':edgeId/assetGroups',
               data: {
-                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -821,7 +824,6 @@ const routes: Routes = [
           { ...DEVICE_GROUPS_ROUTE, ...{
               path: ':edgeId/deviceGroups',
               data: {
-                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -834,7 +836,6 @@ const routes: Routes = [
           { ...ENTITY_VIEW_GROUPS_ROUTE, ...{
               path: ':edgeId/entityViewGroups',
               data: {
-                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -847,7 +848,6 @@ const routes: Routes = [
           { ...DASHBOARD_GROUPS_ROUTE, ...{
               path: ':edgeId/dashboardGroups',
               data: {
-                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;

@@ -88,8 +88,8 @@ export class EntityGroupConfigResolver {
   private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
     if (params.customerId) {
       const groupType: EntityType = params.childGroupType || params.groupType;
-      if (params.groupScope === 'edge' && params.edgeId) {
-        entityGroup = this.resolveEdgeGroupName(params, entityGroup);
+      if (params.childGroupScope === 'customer' && params.edgeId) {
+        entityGroup = this.resolveEdgeGroupInfo(params, entityGroup);
       }
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
@@ -106,7 +106,7 @@ export class EntityGroupConfigResolver {
             }
           }
         ));
-    } else if (params.edgeId && !params.customerId) {
+    } else if (params.edgeId) {
       const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
       return this.edgeService.getEdge(params.edgeId).pipe(
         mergeMap((info) => {
@@ -128,12 +128,17 @@ export class EntityGroupConfigResolver {
     }
   }
 
-  private resolveEdgeGroupName(params, entityGroup) {
+  private resolveEdgeGroupInfo(params, entityGroup) {
     this.entityGroupService.getEntityGroup(params.childEntityGroupId).subscribe(
       (parentEntityGroup => {
         entityGroup.edgeGroupName = parentEntityGroup.name;
       })
     );
+    this.edgeService.getEdge(params.edgeId).subscribe(
+      (info) => {
+        entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType));
+      }
+    )
     return entityGroup;
   }
 
