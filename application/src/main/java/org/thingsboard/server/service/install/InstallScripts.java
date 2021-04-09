@@ -49,29 +49,26 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.Resource;
 import org.thingsboard.server.common.data.ResourceType;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
-import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.resource.TbResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -146,7 +143,7 @@ public class InstallScripts {
     private OAuth2ConfigTemplateService oAuth2TemplateService;
 
     @Autowired
-    private ResourceService resourceService;
+    private TbResourceService resourceService;
 
     public Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -257,13 +254,11 @@ public class InstallScripts {
                         path -> {
                             try {
                                 byte[] fileBytes = Files.readAllBytes(path);
-                                String source = new String(fileBytes);
-                                Resource resource = new Resource();
+                                TbResource resource = new TbResource();
+                                resource.setFileName(path.getFileName().toString());
                                 resource.setTenantId(TenantId.SYS_TENANT_ID);
                                 resource.setResourceType(ResourceType.LWM2M_MODEL);
-                                resource.setResourceId(getValueByTeg(source, "ObjectID") + "_" + getValueByTeg(source, "ObjectVersion"));
-                                resource.setTextSearch(resource.getResourceId() + ":" + getValueByTeg(source, "Name"));
-                                resource.setValue(Base64.getEncoder().encodeToString(fileBytes));
+                                resource.setData(Base64.getEncoder().encodeToString(fileBytes));
                                 resourceService.saveResource(resource);
                             } catch (Exception e) {
                                 throw new DataValidationException(String.format("Could not parse the XML of objectModel with name %s", path.toString()));
@@ -271,53 +266,6 @@ public class InstallScripts {
                         }
                 );
             }
-        }
-
-        Path jksPath = Paths.get(getDataDir(), CREDENTIALS_DIR, "serverKeyStore.jks");
-        try {
-            Resource resource = new Resource();
-            resource.setTenantId(TenantId.SYS_TENANT_ID);
-            resource.setResourceType(ResourceType.JKS);
-            resource.setResourceId(jksPath.getFileName().toString());
-            resource.setTextSearch(jksPath.getFileName().toString());
-            resource.setValue(Base64.getEncoder().encodeToString(Files.readAllBytes(jksPath)));
-            resourceService.saveResource(resource);
-        } catch (Exception e) {
-            log.error("Unable to load lwm2m serverKeyStore [{}]", jksPath.toString());
-            throw new RuntimeException("Unable to load l2m2m serverKeyStore", e);
-        }
-    }
-
-    private String getValueByTeg(String source, String tagHtml) {
-        int lenTag = ("<" + tagHtml + ">").length();
-        int indStart = source.indexOf("<" + tagHtml + ">");
-        int indEnd = source.indexOf("</" + tagHtml + ">");
-        return (indStart > 0 && indEnd > 0) ? source.substring(indStart + lenTag, indEnd) : null;
-
-    }
-
-    private ObjectModel getObjectModelLwm2mValid(byte[] xmlByte, String streamName, DefaultDDFFileValidator ddfValidator) {
-        try {
-            DDFFileParser ddfFileParser = new DDFFileParser(ddfValidator);
-            return ddfFileParser.parseEx(new ByteArrayInputStream(xmlByte), streamName).get(0);
-        } catch (IOException | InvalidDDFFileException e) {
-            log.error("Could not parse the XML file [{}]", streamName, e);
-            return null;
-        }
-
-    }
-
-    private void removeFile(Path modelsDir, String nameFile, byte[] fileBytes) {
-        String path = "/home/nick/Igor_project/thingsboard_ce_3_2_docker/thingsboard/common/transport/lwm2m/src/main/resources/models/";
-        File file = new File(path + nameFile);
-        if (!file.isDirectory()) {
-            try {
-                Files.write(Paths.get(path + "server/" + nameFile), fileBytes);
-                file.delete();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
         }
     }
 

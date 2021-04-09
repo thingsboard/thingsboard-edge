@@ -116,6 +116,9 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
   @Input()
   existingFileName: string;
 
+  @Input()
+  convertToBase64 = false;
+
   @Output()
   fileNameChanged = new EventEmitter<string>();
 
@@ -143,7 +146,7 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
           const reader = new FileReader();
           reader.onload = (loadEvent) => {
             if (typeof reader.result === 'string') {
-              const fileContent = reader.result;
+              const fileContent = this.convertToBase64 ? window.btoa(reader.result) : reader.result;
               if (fileContent && fileContent.length > 0) {
                 if (this.contentConvertFunction) {
                   this.fileContent = this.contentConvertFunction(fileContent);
@@ -159,7 +162,11 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
               }
             }
           };
-          reader.readAsText(file.file);
+          if (this.convertToBase64) {
+            reader.readAsBinaryString(file.file);
+          } else {
+            reader.readAsText(file.file);
+          }
         }
       }
     });
@@ -174,7 +181,9 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
   }
 
   ngOnDestroy() {
-    this.autoUploadSubscription.unsubscribe();
+    if (this.autoUploadSubscription) {
+      this.autoUploadSubscription.unsubscribe();
+    }
   }
 
   registerOnChange(fn: any): void {

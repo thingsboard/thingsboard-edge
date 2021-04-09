@@ -31,72 +31,57 @@
 package org.thingsboard.server.dao.sql.resource;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.common.data.Resource;
 import org.thingsboard.server.common.data.ResourceType;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.model.sql.ResourceCompositeKey;
-import org.thingsboard.server.dao.model.sql.ResourceEntity;
-import org.thingsboard.server.dao.resource.ResourceDao;
+import org.thingsboard.server.dao.model.sql.TbResourceEntity;
+import org.thingsboard.server.dao.resource.TbResourceDao;
+import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Component
-public class ResourceDaoImpl implements ResourceDao {
+public class JpaTbResourceDao extends JpaAbstractSearchTextDao<TbResourceEntity, TbResource> implements TbResourceDao {
 
-    private final ResourceRepository resourceRepository;
+    private final TbResourceRepository resourceRepository;
 
-    public ResourceDaoImpl(ResourceRepository resourceRepository) {
+    public JpaTbResourceDao(TbResourceRepository resourceRepository) {
         this.resourceRepository = resourceRepository;
     }
 
     @Override
-    @Transactional
-    public Resource saveResource(Resource resource) {
-        return DaoUtil.getData(resourceRepository.save(new ResourceEntity(resource)));
+    protected Class<TbResourceEntity> getEntityClass() {
+        return TbResourceEntity.class;
     }
 
     @Override
-    public Resource getResource(TenantId tenantId, ResourceType resourceType, String resourceId) {
-        ResourceCompositeKey key = new ResourceCompositeKey();
-        key.setTenantId(tenantId.getId());
-        key.setResourceType(resourceType.name());
-        key.setResourceId(resourceId);
-
-        return DaoUtil.getData(resourceRepository.findById(key));
+    protected CrudRepository<TbResourceEntity, UUID> getCrudRepository() {
+        return resourceRepository;
     }
 
     @Override
-    @Transactional
-    public void deleteResource(TenantId tenantId, ResourceType resourceType, String resourceId) {
-        ResourceCompositeKey key = new ResourceCompositeKey();
-        key.setTenantId(tenantId.getId());
-        key.setResourceType(resourceType.name());
-        key.setResourceId(resourceId);
+    public TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceKey) {
 
-        resourceRepository.deleteById(key);
+        return DaoUtil.getData(resourceRepository.findByTenantIdAndResourceTypeAndResourceKey(tenantId.getId(), resourceType.name(), resourceKey));
     }
 
     @Override
-    public PageData<Resource> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
+    public PageData<TbResource> findAllByTenantId(TenantId tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(resourceRepository.findAllByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public List<Resource> findAllByTenantIdAndResourceType(TenantId tenantId, ResourceType resourceType) {
-        return DaoUtil.convertDataList(resourceRepository.findAllByTenantIdAndResourceType(tenantId.getId(), resourceType.name()));
-    }
-
-    @Override
-    public PageData<Resource> findResourcesByTenantIdAndResourceType(TenantId tenantId,
-                                                                     ResourceType resourceType,
-                                                                     PageLink pageLink) {
+    public PageData<TbResource> findResourcesByTenantIdAndResourceType(TenantId tenantId,
+                                                                       ResourceType resourceType,
+                                                                       PageLink pageLink) {
         return DaoUtil.toPageData(resourceRepository.findResourcesPage(
                 tenantId.getId(),
                 TenantId.SYS_TENANT_ID.getId(),
@@ -107,9 +92,9 @@ public class ResourceDaoImpl implements ResourceDao {
     }
 
     @Override
-    public List<Resource> findResourcesByTenantIdAndResourceType(TenantId tenantId, ResourceType resourceType,
-                                                                 String[] objectIds,
-                                                                 String searchText) {
+    public List<TbResource> findResourcesByTenantIdAndResourceType(TenantId tenantId, ResourceType resourceType,
+                                                                   String[] objectIds,
+                                                                   String searchText) {
         return objectIds == null ?
                 DaoUtil.convertDataList(resourceRepository.findResources(
                         tenantId.getId(),
@@ -122,8 +107,4 @@ public class ResourceDaoImpl implements ResourceDao {
                         resourceType.name(), objectIds));
     }
 
-    @Override
-    public void removeAllByTenantId(TenantId tenantId) {
-        resourceRepository.removeAllByTenantId(tenantId.getId());
-    }
 }

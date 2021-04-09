@@ -73,7 +73,8 @@ public enum Resource {
     GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
     WHITE_LABELING(),
     AUDIT_LOG(),
-    API_USAGE_STATE(EntityType.API_USAGE_STATE);
+    API_USAGE_STATE(EntityType.API_USAGE_STATE),
+    TB_RESOURCE(EntityType.TB_RESOURCE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -122,6 +123,7 @@ public enum Resource {
         operationsByResource.put(Resource.USER, userOperations);
         operationsByResource.put(Resource.WIDGETS_BUNDLE, Operation.crudOperations);
         operationsByResource.put(Resource.WIDGET_TYPE, Operation.crudOperations);
+        operationsByResource.put(Resource.TB_RESOURCE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.CONVERTER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.INTEGRATION, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.SCHEDULER_EVENT, Operation.defaultEntityOperations);
@@ -151,7 +153,8 @@ public enum Resource {
                 Resource.ROLE,
                 Resource.WHITE_LABELING,
                 Resource.OAUTH2_CONFIGURATION_INFO,
-                Resource.OAUTH2_CONFIGURATION_TEMPLATE)));
+                Resource.OAUTH2_CONFIGURATION_TEMPLATE,
+                Resource.TB_RESOURCE)));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -182,7 +185,8 @@ public enum Resource {
                 Resource.ENTITY_VIEW_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
-                Resource.AUDIT_LOG)));
+                Resource.AUDIT_LOG,
+                Resource.TB_RESOURCE)));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,

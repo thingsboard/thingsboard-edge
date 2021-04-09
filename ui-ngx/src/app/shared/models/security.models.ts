@@ -104,7 +104,8 @@ export enum Resource {
   GROUP_PERMISSION = 'GROUP_PERMISSION',
   WHITE_LABELING = 'WHITE_LABELING',
   AUDIT_LOG = 'AUDIT_LOG',
-  API_USAGE_STATE = 'API_USAGE_STATE'
+  API_USAGE_STATE = 'API_USAGE_STATE',
+  TB_RESOURCE = 'TB_RESOURCE'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
@@ -133,7 +134,8 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.SCHEDULER_EVENT, Resource.SCHEDULER_EVENT],
     [EntityType.BLOB_ENTITY, Resource.BLOB_ENTITY],
     [EntityType.ROLE, Resource.ROLE],
-    [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION]
+    [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION],
+    [EntityType.TB_RESOURCE, Resource.TB_RESOURCE]
   ]
 );
 

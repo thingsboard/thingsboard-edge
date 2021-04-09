@@ -28,51 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.lwm2m;
+package org.thingsboard.server.transport.coap;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.stream.Stream;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+@Slf4j
 @Data
-@AllArgsConstructor
-public class LwM2mResource {
-    int id;
-    String name;
-    boolean observe;
-    boolean attribute;
-    boolean telemetry;
-    String keyName;
+public class TbCoapDtlsSessionInMemoryStorage {
 
-    public LwM2mResource(int id, String name, boolean observe, boolean attribute, boolean telemetry) {
-        this.id = id;
-        this.name = name;
-        this.observe = observe;
-        this.attribute = attribute;
-        this.telemetry = telemetry;
-        this.keyName = getCamelCase (this.name);
+    private final ConcurrentMap<String, TbCoapDtlsSessionInfo> dtlsSessionIdMap = new ConcurrentHashMap<>();
+    private long dtlsSessionInactivityTimeout;
+    private long dtlsSessionReportTimeout;
+
+
+    public TbCoapDtlsSessionInMemoryStorage(long dtlsSessionInactivityTimeout, long dtlsSessionReportTimeout) {
+        this.dtlsSessionInactivityTimeout = dtlsSessionInactivityTimeout;
+        this.dtlsSessionReportTimeout = dtlsSessionReportTimeout;
     }
 
-    private String getCamelCase (String name) {
-        name = name.replaceAll("-", " ");
-        name = name.replaceAll("_", " ");
-        String [] nameCamel1 = name.split(" ");
-        String [] nameCamel2 = new String[nameCamel1.length];
-        int[] idx = { 0 };
-        Stream.of(nameCamel1).forEach((s -> {
-            nameCamel2[idx[0]] = toProperCase(idx[0]++,  s);
-        }));
-        return String.join("", nameCamel2);
+    public void put(String dtlsSessionId, TbCoapDtlsSessionInfo dtlsSessionInfo) {
+        log.trace("DTLS session added to in-memory store: [{}] timestamp: [{}]", dtlsSessionId, dtlsSessionInfo.getLastActivityTime());
+        dtlsSessionIdMap.putIfAbsent(dtlsSessionId, dtlsSessionInfo);
     }
 
-    private String toProperCase(int idx, String s) {
-        if (!s.isEmpty() && s.length()> 0) {
-            String s1 = (idx == 0) ? s.substring(0, 1).toLowerCase() : s.substring(0, 1).toUpperCase();
-            String s2 = "";
-            if (s.length()> 1) s2 = s.substring(1).toLowerCase();
-            s = s1 + s2;
-        }
-        return s;
+    public void evictTimeoutSessions() {
+        long expTime = System.currentTimeMillis() - dtlsSessionInactivityTimeout;
+        dtlsSessionIdMap.entrySet().removeIf(entry -> {
+            if (entry.getValue().getLastActivityTime() < expTime) {
+                log.trace("DTLS session was removed from in-memory store: [{}]", entry.getKey());
+                return true;
+            } else {
+                return false;
+            }
+        });
     }
+
 }

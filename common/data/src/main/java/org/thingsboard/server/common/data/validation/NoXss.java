@@ -28,32 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.common.data.validation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.Resource;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import javax.persistence.Transient;
-import java.io.Serializable;
-import java.util.UUID;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@Constraint(validatedBy = {})
+public @interface NoXss {
+    String message() default "field value is malformed";
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-public class ResourceCompositeKey implements Serializable {
+    Class<?>[] groups() default {};
 
-    @Transient
-    private static final long serialVersionUID = -3789469030818742769L;
-
-    private UUID tenantId;
-    private String resourceType;
-    private String resourceId;
-
-    public ResourceCompositeKey(Resource resource) {
-        this.tenantId = resource.getTenantId().getId();
-        this.resourceType = resource.getResourceType().name();
-        this.resourceId = resource.getResourceId();
-    }
+    Class<? extends Payload>[] payload() default {};
 }

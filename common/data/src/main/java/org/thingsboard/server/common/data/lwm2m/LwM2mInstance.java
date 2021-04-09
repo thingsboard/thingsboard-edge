@@ -35,6 +35,6 @@ import lombok.Data;
 @Data
 public class LwM2mInstance {
     int id;
-    LwM2mResource [] resources;
+    LwM2mResourceObserve[] resources;
 
 }

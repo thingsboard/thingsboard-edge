@@ -1050,11 +1050,11 @@
         "lwm2m-key-required": "LwM2M Security config key is required.",
         "lwm2m-value": "LwM2M Security config",
         "lwm2m-value-required": "LwM2M Security config value is required.",
-        "lwm2m-value-json-error": "LwM2M Security config value is not json format.",
+        "lwm2m-value-format-error": "Security config value must be in LwM2M Security config format.",
         "lwm2m-endpoint": "Client endpoint/identity",
         "lwm2m-security-info": "Security Config Info",
         "lwm2m-value-edit": "Edit Security config",
-        "lwm2m-value-edit-tip": "Edit security config json editor",
+        "lwm2m-credentials-value-tip": "Edit security config json editor",
         "lwm2m-security-config": {
           "identity": "Client Identity",
           "client-key": "Client Key",
@@ -2695,6 +2695,31 @@
         "invalid-additional-info": "Unable to parse additional info json.",
         "no-relations-text": "No relations found"
     },
+    "resource": {
+        "add": "Add Resource",
+        "delete": "Delete resource",
+        "delete-resource-text": "Be careful, after the confirmation the resource will become unrecoverable.",
+        "delete-resource-title": "Are you sure you want to delete the resource '{{resourceTitle}}'?",
+        "delete-resources-action-title": "Delete { count, plural, 1 {1 resource} other {# resources} }",
+        "delete-resources-text": "Be careful, after the confirmation all selected resources will be removed.",
+        "delete-resources-title": "Are you sure you want to delete { count, plural, 1 {1 resource} other {# resources} }?",
+        "drop-file": "Drop a resource file or click to select a file to upload.",
+        "empty": "Resource is empty",
+        "export": "Export resource",
+        "management": "Resource management",
+        "no-resource-matching": "No resource matching '{{widgetsBundle}}' were found.",
+        "no-resource-text": "No resources found",
+        "open-widgets-bundle": "Open widgets bundle",
+        "resource": "Resource",
+        "resource-library-details": "Resource library details",
+        "resource-type": "Resource type",
+        "resources-library": "Resources library",
+        "search": "Search resources",
+        "selected-resources": "{ count, plural, 1 {1 resource} other {# resources} } selected",
+        "system": "System",
+        "title": "Title",
+        "title-required": "Title is required."
+    },
     "rulechain": {
         "rulechain": "Rule chain",
         "rulechains": "Rule chains",
@@ -2915,7 +2940,8 @@
                 "GROUP_PERMISSION": "Group Permission",
                 "WHITE_LABELING": "White Labeling",
                 "AUDIT_LOG": "Audit Log",
-                "API_USAGE_STATE": "API Usage State"
+                "API_USAGE_STATE": "API Usage State",
+                "TB_RESOURCE": "Resource"
             }
         },
         "operation": {

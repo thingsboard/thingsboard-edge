@@ -74,7 +74,7 @@ export const SECURITY_CONFIG_MODE_NAMES = new Map<SECURITY_CONFIG_MODE, string>(
 );
 
 export interface ModelValue {
-  objectIds: string[] | null,
+  objectIds: string[],
   objectsList: ObjectLwM2M[]
 }
 
@@ -113,7 +113,7 @@ export interface ProfileConfigModels {
 }
 
 export interface ClientLwM2mSettings {
-  clientOnlyObserveAfterConnect: boolean;
+  clientOnlyObserveAfterConnect: number;
 }
 export interface ObservableAttributes {
   observe: string[];
@@ -172,7 +172,7 @@ function getDefaultProfileObserveAttrConfig(): ObservableAttributes {
 
 function getDefaultProfileClientLwM2mSettingsConfig(): ClientLwM2mSettings {
   return {
-    clientOnlyObserveAfterConnect: true
+    clientOnlyObserveAfterConnect: 1
   };
 }
 

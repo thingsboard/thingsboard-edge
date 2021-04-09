@@ -48,10 +48,7 @@ import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpe
 import org.thingsboard.server.common.data.device.profile.SpecificTimeSchedule;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
 import org.thingsboard.server.common.data.query.ComplexFilterPredicate;
-import org.thingsboard.server.common.data.query.EntityKey;
-import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
-import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.KeyFilterPredicate;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.StringFilterPredicate;
@@ -290,7 +287,7 @@ class AlarmRuleState {
             if (value == null) {
                 return false;
             }
-            eval = eval && eval(data, value, filter.getPredicate());
+            eval = eval && eval(data, value, filter.getPredicate(), filter);
         }
         return eval;
     }
@@ -315,33 +312,33 @@ class AlarmRuleState {
         return value;
     }
 
-    private boolean eval(DataSnapshot data, EntityKeyValue value, KeyFilterPredicate predicate) {
+    private boolean eval(DataSnapshot data, EntityKeyValue value, KeyFilterPredicate predicate, AlarmConditionFilter filter) {
         switch (predicate.getType()) {
             case STRING:
-                return evalStrPredicate(data, value, (StringFilterPredicate) predicate);
+                return evalStrPredicate(data, value, (StringFilterPredicate) predicate, filter);
             case NUMERIC:
-                return evalNumPredicate(data, value, (NumericFilterPredicate) predicate);
+                return evalNumPredicate(data, value, (NumericFilterPredicate) predicate, filter);
             case BOOLEAN:
-                return evalBoolPredicate(data, value, (BooleanFilterPredicate) predicate);
+                return evalBoolPredicate(data, value, (BooleanFilterPredicate) predicate, filter);
             case COMPLEX:
-                return evalComplexPredicate(data, value, (ComplexFilterPredicate) predicate);
+                return evalComplexPredicate(data, value, (ComplexFilterPredicate) predicate, filter);
             default:
                 return false;
         }
     }
 
-    private boolean evalComplexPredicate(DataSnapshot data, EntityKeyValue ekv, ComplexFilterPredicate predicate) {
+    private boolean evalComplexPredicate(DataSnapshot data, EntityKeyValue ekv, ComplexFilterPredicate predicate, AlarmConditionFilter filter) {
         switch (predicate.getOperation()) {
             case OR:
                 for (KeyFilterPredicate kfp : predicate.getPredicates()) {
-                    if (eval(data, ekv, kfp)) {
+                    if (eval(data, ekv, kfp, filter)) {
                         return true;
                     }
                 }
                 return false;
             case AND:
                 for (KeyFilterPredicate kfp : predicate.getPredicates()) {
-                    if (!eval(data, ekv, kfp)) {
+                    if (!eval(data, ekv, kfp, filter)) {
                         return false;
                     }
                 }
@@ -351,12 +348,15 @@ class AlarmRuleState {
         }
     }
 
-    private boolean evalBoolPredicate(DataSnapshot data, EntityKeyValue ekv, BooleanFilterPredicate predicate) {
+    private boolean evalBoolPredicate(DataSnapshot data, EntityKeyValue ekv, BooleanFilterPredicate predicate, AlarmConditionFilter filter) {
         Boolean val = getBoolValue(ekv);
         if (val == null) {
             return false;
         }
-        Boolean predicateValue = getPredicateValue(data, predicate.getValue(), AlarmRuleState::getBoolValue);
+        Boolean predicateValue = getPredicateValue(data, predicate.getValue(), filter, AlarmRuleState::getBoolValue);
+        if (predicateValue == null) {
+            return false;
+        }
         switch (predicate.getOperation()) {
             case EQUAL:
                 return val.equals(predicateValue);
@@ -367,12 +367,15 @@ class AlarmRuleState {
         }
     }
 
-    private boolean evalNumPredicate(DataSnapshot data, EntityKeyValue ekv, NumericFilterPredicate predicate) {
+    private boolean evalNumPredicate(DataSnapshot data, EntityKeyValue ekv, NumericFilterPredicate predicate, AlarmConditionFilter filter) {
         Double val = getDblValue(ekv);
         if (val == null) {
             return false;
         }
-        Double predicateValue = getPredicateValue(data, predicate.getValue(), AlarmRuleState::getDblValue);
+        Double predicateValue = getPredicateValue(data, predicate.getValue(), filter, AlarmRuleState::getDblValue);
+        if (predicateValue == null) {
+            return false;
+        }
         switch (predicate.getOperation()) {
             case NOT_EQUAL:
                 return !val.equals(predicateValue);
@@ -391,12 +394,15 @@ class AlarmRuleState {
         }
     }
 
-    private boolean evalStrPredicate(DataSnapshot data, EntityKeyValue ekv, StringFilterPredicate predicate) {
+    private boolean evalStrPredicate(DataSnapshot data, EntityKeyValue ekv, StringFilterPredicate predicate, AlarmConditionFilter filter) {
         String val = getStrValue(ekv);
         if (val == null) {
             return false;
         }
-        String predicateValue = getPredicateValue(data, predicate.getValue(), AlarmRuleState::getStrValue);
+        String predicateValue = getPredicateValue(data, predicate.getValue(), filter, AlarmRuleState::getStrValue);
+        if (predicateValue == null) {
+            return false;
+        }
         if (predicate.isIgnoreCase()) {
             val = val.toLowerCase();
             predicateValue = predicateValue.toLowerCase();
@@ -419,7 +425,7 @@ class AlarmRuleState {
         }
     }
 
-    private <T> T getPredicateValue(DataSnapshot data, FilterPredicateValue<T> value, Function<EntityKeyValue, T> transformFunction) {
+    private <T> T getPredicateValue(DataSnapshot data, FilterPredicateValue<T> value, AlarmConditionFilter filter, Function<EntityKeyValue, T> transformFunction) {
         EntityKeyValue ekv = getDynamicPredicateValue(data, value);
         if (ekv != null) {
             T result = transformFunction.apply(ekv);
@@ -427,7 +433,11 @@ class AlarmRuleState {
                 return result;
             }
         }
-        return value.getDefaultValue();
+        if (filter.getKey().getType() != AlarmConditionKeyType.CONSTANT) {
+            return value.getDefaultValue();
+        } else {
+            return null;
+        }
     }
 
     private <T> EntityKeyValue getDynamicPredicateValue(DataSnapshot data, FilterPredicateValue<T> value) {
