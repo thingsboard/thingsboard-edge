@@ -54,7 +54,6 @@ import { DeviceProfileTabsComponent } from './device-profile-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { UtilsService } from '@core/services/utils.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import {
   AddDeviceProfileDialogComponent,
@@ -164,8 +163,8 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     return actions;
   }
 
-  addDeviceProfile(): Observable<DeviceProfile> {
-    return this.dialog.open<AddDeviceProfileDialogComponent, AddDeviceProfileDialogData,
+  addDeviceProfile() {
+    this.dialog.open<AddDeviceProfileDialogComponent, AddDeviceProfileDialogData,
       DeviceProfile>(AddDeviceProfileDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
@@ -173,7 +172,13 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
         deviceProfileName: null,
         transportType: null
       }
-    }).afterClosed();
+    }).afterClosed().subscribe(
+      (res) => {
+        if (res) {
+          this.config.table.updateData();
+        }
+      }
+    );
   }
 
   setDefaultDeviceProfile($event: Event, deviceProfile: DeviceProfile) {

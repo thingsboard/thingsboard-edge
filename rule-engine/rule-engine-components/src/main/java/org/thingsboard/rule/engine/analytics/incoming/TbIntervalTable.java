@@ -260,6 +260,8 @@ class TbIntervalTable {
                     return zdt.truncatedTo(ChronoUnit.DAYS).toInstant().toEpochMilli();
                 case WEEK:
                     return zdt.truncatedTo(ChronoUnit.DAYS).with(DayOfWeek.MONDAY).toInstant().toEpochMilli();
+                case WEEK_SUN_SAT:
+                    return zdt.truncatedTo(ChronoUnit.DAYS).with(DayOfWeek.SUNDAY).toInstant().toEpochMilli();
                 case MONTH:
                     return zdt.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1).toInstant().toEpochMilli();
                 case YEAR:
@@ -277,6 +279,7 @@ class TbIntervalTable {
             case DAY:
                 return TimeUnit.DAYS.toMillis(1);
             case WEEK:
+            case WEEK_SUN_SAT:
                 return TimeUnit.DAYS.toMillis(7);
             case MONTH:
                 return TimeUnit.DAYS.toMillis(30);
