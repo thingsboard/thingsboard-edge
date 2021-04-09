@@ -142,7 +142,7 @@
                       matTooltipPosition="above">
                 <mat-icon svgIcon="mdi:file-export"></mat-icon>
               </button>
-              <mat-menu #widgetDataExportMenu="matMenu" xPosition="before" yPosition="below">
+              <mat-menu #widgetDataExportMenu="matMenu" xPosition="before" yPosition="below" class="export-menu">
                 <button mat-menu-item
                         (click)="widget.exportWidgetData($event, widgetExportType.csv)">
                   <mat-icon svgIcon="mdi:file-delimited"></mat-icon>
