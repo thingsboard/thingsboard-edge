@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, Input, SimpleChanges } from '@angular/core';
+import { Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Resolve, Router, UrlTree } from '@angular/router';
 import {
@@ -135,27 +135,22 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
   }
 
   resolveRuleChainsTableConfig(params: EntityGroupParams): EntityTableConfig<RuleChain> {
-    const edgeId = params?.edgeId;
-    const edge = params?.edge;
-    var ruleChainScope = 'tenant';
-    if (params.hierarchyView && params.groupType === EntityType.EDGE) {
-      ruleChainScope = 'edge';
-    }
+    const edgeId = params.edgeId;
+    const edge = params.edge;
+    const ruleChainScope = 'edge';
     this.config.componentsData = {
-      ruleChainScope,
       edgeId,
-      edge
+      edge,
+      ruleChainScope
     };
-    if (ruleChainScope === 'edge') {
-      this.config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
-      this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
-      this.config.entitiesDeleteEnabled = false;
-    }
     this.config.columns = this.configureEntityTableColumns(ruleChainScope);
     this.config.entitiesFetchFunction = this.configureEntityFunctions(ruleChainScope, edgeId);
     this.config.groupActionDescriptors = this.configureGroupActions(ruleChainScope);
     this.config.addActionDescriptors = this.configureAddActions(ruleChainScope);
     this.config.cellActionDescriptors = this.configureCellActions(ruleChainScope, params);
+    this.config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
+    this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
+    this.config.entitiesDeleteEnabled = false;
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }

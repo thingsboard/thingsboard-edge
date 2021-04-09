@@ -68,8 +68,8 @@ import { Edge, edgeEntityGroupTypes } from '@shared/models/edge.models';
 import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
 import { Authority } from "@shared/models/authority.enum";
-import { EntityId } from '@shared/models/id/entity-id';
 import { EdgeService } from '@core/http/edge.service';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -129,15 +129,14 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     hierarchyView: true,
     hierarchyCallbacks: this.hierarchyCallbacks
   };
-  entityGroupsTableConfig: EntityGroupsTableConfig = this.resolveEntityGroupTableConfig(this.entityGroupParams);
+  entityGroupsTableConfig: EntityGroupsTableConfig | EntityTableConfig<BaseData<HasId>> = this.resolveEntityGroupTableConfig(this.entityGroupParams);
   entityGroupStateInfo: EntityGroupStateInfo<BaseData<HasId>> = null;
-  ruleChainsTableConfig: EntityGroupsTableConfig = this.resolveRuleChainsTableConfig(this.entityGroupParams);
 
   public edgeId: string = '';
 
   public nodeEditCallbacks: NavTreeEditCallbacks = {};
 
-  private customerData: EdgeNodeCustomerData;
+  private customerData: EdgeNodeCustomerData = {};
 
   private allowedGroupTypes = groupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
@@ -291,7 +290,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         if (node.data.type === 'edgeGroups') {
           entityGroupParams.groupType = EntityType.EDGE;
           entityGroupParams.childGroupType = node.data.groupsType;
-          this.edgeId = node.data.edge.id.id;
           this.updateViewByEntityType(node.data.groupsType, entityGroupParams, node.data.edge);
         } else {
           const entityGroup = node.data.entityGroup;
@@ -302,45 +300,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         }
       }
     }
-  }
-
-  private updateViewByEntityType(groupsType: EntityType, entityGroupParams: EntityGroupParams, entity: Edge) {
-    switch (groupsType) {
-      case EntityType.USER:
-      case EntityType.ASSET:
-      case EntityType.DEVICE:
-      case EntityType.ENTITY_VIEW:
-      case EntityType.DASHBOARD:
-        this.updateEdgeGroupsView(entityGroupParams, entity);
-        break;
-      case EntityType.SCHEDULER_EVENT:
-        this.updateSchedulerView('scheduler');
-        break;
-      case EntityType.RULE_CHAIN:
-        this.updateRuleChains(entityGroupParams);
-        break;
-    }
-  }
-
-  private updateEdgeGroupsView(entityGroupParams: EntityGroupParams, edge: Edge) {
-    const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, edge.name);
-    this.updateView('groups', entityGroupParams, entityGroupsTableConfig, null);
-  }
-
-  private updateSchedulerView(viewMode: CustomersHierarchyViewMode) {
-    this.viewMode = viewMode;
-  }
-
-  private updateRuleChains(entityGroupParams: EntityGroupParams) {
-    this.edgeService.getEdge(entityGroupParams.edgeId).subscribe((edge) => {
-      entityGroupParams.edge = edge;
-      const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(entityGroupParams);
-      this.updateView('groups', entityGroupParams, ruleChainsTableConfig, null);
-    });
-  }
-
-   private resolveRuleChainsTableConfig(ruleChainsParams: any): any {
-    return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainsParams);
   }
 
   private updateGroupsView(entityGroupParams: EntityGroupParams, customer?: Customer) {
@@ -358,7 +317,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   private updateView(viewMode: CustomersHierarchyViewMode,
                      entityGroupParams: EntityGroupParams,
-                     entityGroupsTableConfig: EntityGroupsTableConfig,
+                     entityGroupsTableConfig: EntityGroupsTableConfig | EntityTableConfig<BaseData<HasId>>,
                      entityGroupStateInfo: EntityGroupStateInfo<BaseData<HasId>>) {
     setTimeout(() => {
       this.viewMode = viewMode;
@@ -372,6 +331,47 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   private resolveEntityGroupTableConfig(entityGroupParams: EntityGroupParams, customerTitle?: string): EntityGroupsTableConfig {
     return this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(entityGroupParams,
         false, customerTitle) as EntityGroupsTableConfig;
+  }
+
+  private updateViewByEntityType(groupsType: EntityType, entityGroupParams: EntityGroupParams, edge: Edge) {
+    switch (groupsType) {
+      case EntityType.USER:
+      case EntityType.ASSET:
+      case EntityType.DEVICE:
+      case EntityType.ENTITY_VIEW:
+      case EntityType.DASHBOARD:
+        this.updateEdgeGroupsView(entityGroupParams, edge);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        this.updateSchedulerView('scheduler', edge);
+        break;
+      case EntityType.RULE_CHAIN:
+        this.updateRuleChains(entityGroupParams, edge);
+        break;
+    }
+  }
+
+  private updateEdgeGroupsView(entityGroupParams: EntityGroupParams, edge: Edge) {
+    const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, edge.name);
+    this.updateView('groups', entityGroupParams, entityGroupsTableConfig, null);
+  }
+
+  private updateSchedulerView(viewMode: CustomersHierarchyViewMode, edge: Edge) {
+    this.edgeId = edge.id.id;
+    this.viewMode = viewMode;
+  }
+
+  private updateRuleChains(entityGroupParams: EntityGroupParams, edge: Edge) {
+    this.edgeService.getEdge(edge.id.id).subscribe((edge) => {
+      this.edgeId = edge.id.id;
+      entityGroupParams.edge = edge;
+      const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(entityGroupParams);
+      this.updateView('groups', entityGroupParams, ruleChainsTableConfig, null);
+    });
+  }
+
+  private resolveRuleChainsTableConfig(ruleChainsParams: EntityGroupParams): EntityTableConfig<BaseData<HasId>> {
+    return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainsParams);
   }
 
   selectRootNode() {
@@ -449,7 +449,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       children: false,
       data: {
         type: 'edgeGroup',
-        entityGroup: entityGroup,
+        entityGroup,
         parentEntityGroupId,
         edge,
         customerData,
