@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap;
+package org.thingsboard.server.coapserver;
 
 import com.google.common.io.Resources;
 import lombok.extern.slf4j.Slf4j;
@@ -54,15 +54,15 @@ import java.util.Collections;
 import java.util.Optional;
 
 @Slf4j
+@ConditionalOnExpression("'${transport.coap.enabled}'=='true'")
 @ConditionalOnProperty(prefix = "transport.coap.dtls", value = "enabled", havingValue = "true", matchIfMissing = false)
-@ConditionalOnExpression("'${transport.type:null}'=='null' || ('${transport.type}'=='local' && '${transport.coap.enabled}'=='true')")
 @Component
 public class TbCoapDtlsSettings {
 
-    @Value("${transport.coap.bind_address}")
+    @Value("${transport.coap.dtls.bind_address}")
     private String host;
 
-    @Value("${transport.coap.bind_port}")
+    @Value("${transport.coap.dtls.bind_port}")
     private Integer port;
 
     @Value("${transport.coap.dtls.mode}")
