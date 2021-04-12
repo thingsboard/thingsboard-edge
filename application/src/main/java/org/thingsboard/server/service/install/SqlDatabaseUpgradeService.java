@@ -486,6 +486,18 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3003000;");
                         installScripts.loadSystemLwm2mResources();
+
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.2", SCHEMA_UPDATE_SQL);
+                        loadSql(schemaUpdateFile, conn);
+                        try {
+                            conn.createStatement().execute("ALTER TABLE rule_chain ADD COLUMN type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception ignored) {}
+
+                        log.info("Load Edge TTL functions ...");
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.2", "schema_update_ttl.sql");
+                        loadSql(schemaUpdateFile, conn);
+                        log.info("Edge TTL functions successfully loaded!");
+
                     } catch (Exception e) {
                         log.error("Failed updating schema!!!", e);
                     }
@@ -539,6 +551,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     } catch (Exception e) {}
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
 
                     integrationRepository.findAll().forEach(integration -> {

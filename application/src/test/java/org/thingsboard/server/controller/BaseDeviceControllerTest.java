@@ -37,13 +37,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -53,7 +50,6 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
-import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -402,7 +398,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
         pageLink = new PageLink(4, 0, title1);
-        pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
+        pageData = doGetTypedWithPageLink("/api/tenant/devices?",
                 new TypeReference<PageData<Device>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -412,7 +408,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
         pageLink = new PageLink(4, 0, title2);
-        pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
+        pageData = doGetTypedWithPageLink("/api/tenant/devices?",
                 new TypeReference<PageData<Device>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

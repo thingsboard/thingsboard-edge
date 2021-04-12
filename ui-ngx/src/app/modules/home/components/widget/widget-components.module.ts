@@ -52,6 +52,7 @@ import { GatewayFormComponent } from './lib/gateway/gateway-form.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { NavigationCardsWidgetComponent } from '@home/components/widget/lib/navigation-cards-widget.component';
 import { NavigationCardWidgetComponent } from '@home/components/widget/lib/navigation-card-widget.component';
+import { EdgesOverviewWidgetComponent } from '@home/components/widget/lib/edges-overview-widget.component';
 
 @NgModule({
   declarations:
@@ -62,6 +63,7 @@ import { NavigationCardWidgetComponent } from '@home/components/widget/lib/navig
       AlarmsTableWidgetComponent,
       TimeseriesTableWidgetComponent,
       EntitiesHierarchyWidgetComponent,
+      EdgesOverviewWidgetComponent,
       DateRangeNavigatorWidgetComponent,
       DateRangeNavigatorPanelComponent,
       MultipleInputWidgetComponent,
@@ -82,6 +84,7 @@ import { NavigationCardWidgetComponent } from '@home/components/widget/lib/navig
     AlarmsTableWidgetComponent,
     TimeseriesTableWidgetComponent,
     EntitiesHierarchyWidgetComponent,
+    EdgesOverviewWidgetComponent,
     RpcWidgetsModule,
     SharedHomeComponentsModule,
     DateRangeNavigatorWidgetComponent,

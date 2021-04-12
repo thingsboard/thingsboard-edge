@@ -42,18 +42,20 @@ import {
   groupConfigFactoryTokenMap
 } from '@home/models/group/group-entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
+import { EdgeService } from '@core/http/edge.service';
 
 @Injectable()
 export class EntityGroupConfigResolver {
 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
+              private edgeService: EdgeService,
               private translate: TranslateService,
               private injector: Injector) {
   }
 
   public constructGroupConfigByStateParams<T>(params: EntityGroupParams): Observable<EntityGroupStateInfo<T>> {
-    const entityGroupId: string = params.childEntityGroupId || params.entityGroupId;
+    const entityGroupId: string = params.grandChildGroupId || params.childEntityGroupId || params.entityGroupId;
     if (entityGroupId) {
       return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
         mergeMap((entityGroup) => {
@@ -86,6 +88,9 @@ export class EntityGroupConfigResolver {
   private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
     if (params.customerId) {
       const groupType: EntityType = params.childGroupType || params.groupType;
+      if (params.childGroupScope === 'customer' && params.edgeId) {
+        entityGroup = this.resolveEdgeGroupInfo(params, entityGroup);
+      }
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
             entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(groupType));
@@ -101,9 +106,40 @@ export class EntityGroupConfigResolver {
             }
           }
         ));
+    } else if (params.edgeId) {
+      const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
+      return this.edgeService.getEdge(params.edgeId).pipe(
+        mergeMap((info) => {
+            entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(groupType));
+            if (params.childEntityGroupId) {
+              return this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
+                map(parentEntityGroup => {
+                  entityGroup.parentEntityGroup = parentEntityGroup;
+                  return entityGroup;
+                })
+              );
+            } else {
+              return of(entityGroup);
+            }
+          }
+        ));
     } else {
       return of(entityGroup);
     }
+  }
+
+  private resolveEdgeGroupInfo(params, entityGroup) {
+    this.entityGroupService.getEntityGroup(params.childEntityGroupId).subscribe(
+      (parentEntityGroup => {
+        entityGroup.edgeGroupName = parentEntityGroup.name;
+      })
+    );
+    this.edgeService.getEdge(params.edgeId).subscribe(
+      (info) => {
+        entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType));
+      }
+    )
+    return entityGroup;
   }
 
 }

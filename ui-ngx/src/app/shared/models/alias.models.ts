@@ -48,11 +48,13 @@ export enum AliasFilterType {
   assetType = 'assetType',
   deviceType = 'deviceType',
   entityViewType = 'entityViewType',
+  edgeType = 'edgeType',
   apiUsageState = 'apiUsageState',
   relationsQuery = 'relationsQuery',
   assetSearchQuery = 'assetSearchQuery',
   deviceSearchQuery = 'deviceSearchQuery',
-  entityViewSearchQuery = 'entityViewSearchQuery'
+  entityViewSearchQuery = 'entityViewSearchQuery',
+  edgeSearchQuery = 'edgeSearchQuery',
 }
 
 export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
@@ -70,11 +72,13 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.assetType, 'alias.filter-type-asset-type' ],
     [ AliasFilterType.deviceType, 'alias.filter-type-device-type' ],
     [ AliasFilterType.entityViewType, 'alias.filter-type-entity-view-type' ],
+    [ AliasFilterType.edgeType, 'alias.filter-type-edge-type' ],
     [ AliasFilterType.apiUsageState, 'alias.filter-type-apiUsageState' ],
     [ AliasFilterType.relationsQuery, 'alias.filter-type-relations-query' ],
     [ AliasFilterType.assetSearchQuery, 'alias.filter-type-asset-search-query' ],
     [ AliasFilterType.deviceSearchQuery, 'alias.filter-type-device-search-query' ],
-    [ AliasFilterType.entityViewSearchQuery, 'alias.filter-type-entity-view-search-query' ]
+    [ AliasFilterType.entityViewSearchQuery, 'alias.filter-type-entity-view-search-query' ],
+    [ AliasFilterType.edgeSearchQuery, 'alias.filter-type-edge-search-query' ],
   ]
 );
 
@@ -148,6 +152,11 @@ export interface EntityViewFilter {
   entityViewNameFilter?: string;
 }
 
+export interface EdgeTypeFilter {
+  edgeType?: string;
+  edgeNameFilter?: string;
+}
+
 export interface RelationsQueryFilter {
   rootStateEntity?: boolean;
   stateEntityParamName?: string;
@@ -187,6 +196,10 @@ export interface EntityViewSearchQueryFilter extends EntitySearchQueryFilter {
   entityViewTypes?: string[];
 }
 
+export interface EdgeSearchQueryFilter extends EntitySearchQueryFilter {
+  edgeTypes?: string[];
+}
+
 export type EntityFilters =
   SingleEntityFilter &
   EntityGroupFilter &
@@ -201,11 +214,13 @@ export type EntityFilters =
   AssetTypeFilter &
   DeviceTypeFilter &
   EntityViewFilter &
+  EdgeTypeFilter &
   RelationsQueryFilter &
   AssetSearchQueryFilter &
   DeviceSearchQueryFilter &
   EntityViewSearchQueryFilter &
-  EntitySearchQueryFilter;
+  EntitySearchQueryFilter &
+  EdgeSearchQueryFilter;
 
 export interface EntityAliasFilter extends EntityFilters {
   type?: AliasFilterType;

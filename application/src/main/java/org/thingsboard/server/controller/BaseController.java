@@ -49,6 +49,8 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -69,6 +71,8 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -80,6 +84,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -113,9 +118,11 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
@@ -137,6 +144,7 @@ import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -159,11 +167,15 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.edge.EdgeNotificationService;
+import org.thingsboard.server.service.edge.rpc.EdgeGrpcService;
+import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
 import org.thingsboard.server.service.lwm2m.LwM2MModelsRepository;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
@@ -345,10 +357,25 @@ public abstract class BaseController {
     @Autowired
     protected LwM2MModelsRepository lwM2MModelsRepository;
 
+    @Autowired(required = false)
+    protected EdgeService edgeService;
+
+    @Autowired(required = false)
+    protected EdgeNotificationService edgeNotificationService;
+
+    @Autowired(required = false)
+    protected SyncEdgeService syncEdgeService;
+
+    @Autowired(required = false)
+    protected EdgeGrpcService edgeGrpcService;
+
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
     private boolean logControllerErrorStackTrace;
 
+    @Value("${edges.enabled}")
+    @Getter
+    protected boolean edgesEnabled;
 
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
@@ -440,7 +467,8 @@ public abstract class BaseController {
         }
         if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET
                 && groupType != EntityType.DEVICE && groupType != EntityType.USER
-                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE
+                && groupType != EntityType.DASHBOARD) {
             throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
@@ -461,7 +489,7 @@ public abstract class BaseController {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
-            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
             throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
@@ -597,11 +625,18 @@ public abstract class BaseController {
                 logEntityAction(savedEntity.getId(), savedEntity,
                         savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
+
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (entity.getId() != null) {
+                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
+            }
 
             return savedEntity;
 
@@ -681,6 +716,9 @@ public abstract class BaseController {
                     return;
                 case ENTITY_VIEW:
                     checkEntityViewId(new EntityViewId(entityId.getId()), operation);
+                    return;
+                case EDGE:
+                    checkEdgeId(new EdgeId(entityId.getId()), operation);
                     return;
                 case ROLE:
                     checkRoleId(new RoleId(entityId.getId()), operation);
@@ -873,6 +911,18 @@ public abstract class BaseController {
         }
     }
 
+    Edge checkEdgeId(EdgeId edgeId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(edgeId, "Incorrect edgeId " + edgeId);
+            Edge edge = edgeService.findEdgeById(getTenantId(), edgeId);
+            checkNotNull(edge);
+            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation, edgeId, edge);
+            return edge;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
     DashboardInfo checkDashboardInfoId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
         try {
             validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
@@ -894,19 +944,19 @@ public abstract class BaseController {
         }
     }
 
-    List<ComponentDescriptor> checkComponentDescriptorsByType(ComponentType type) throws ThingsboardException {
+    List<ComponentDescriptor> checkComponentDescriptorsByType(ComponentType type, RuleChainType ruleChainType) throws ThingsboardException {
         try {
             log.debug("[{}] Lookup component descriptors", type);
-            return componentDescriptorService.getComponents(type);
+            return componentDescriptorService.getComponents(type, ruleChainType);
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    List<ComponentDescriptor> checkComponentDescriptorsByTypes(Set<ComponentType> types) throws ThingsboardException {
+    List<ComponentDescriptor> checkComponentDescriptorsByTypes(Set<ComponentType> types, RuleChainType ruleChainType) throws ThingsboardException {
         try {
             log.debug("[{}] Lookup component descriptors", types);
-            return componentDescriptorService.getComponents(types);
+            return componentDescriptorService.getComponents(types, ruleChainType);
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -1101,6 +1151,12 @@ public abstract class BaseController {
             case TIMESERIES_DELETED:
                 msgType = DataConstants.TIMESERIES_DELETED;
                 break;
+            case ASSIGNED_TO_EDGE:
+                msgType = DataConstants.ENTITY_ASSIGNED_TO_EDGE;
+                break;
+            case UNASSIGNED_FROM_EDGE:
+                msgType = DataConstants.ENTITY_UNASSIGNED_FROM_EDGE;
+                break;
         }
         if (!StringUtils.isEmpty(msgType)) {
             try {
@@ -1144,6 +1200,16 @@ public abstract class BaseController {
                     EntityId targetOwnerId = extractParameter(EntityId.class, 0, additionalInfo);
                     metaData.putValue("targetOwnerId", targetOwnerId.toString());
                     metaData.putValue("targetOwnerType", targetOwnerId.getEntityType().name());
+                } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
+                    String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                    String strEdgeName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("assignedEdgeId", strEdgeId);
+                    metaData.putValue("assignedEdgeName", strEdgeName);
+                } else if (actionType == ActionType.UNASSIGNED_FROM_EDGE) {
+                    String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                    String strEdgeName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("unassignedEdgeId", strEdgeId);
+                    metaData.putValue("unassignedEdgeName", strEdgeName);
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
@@ -1310,6 +1376,113 @@ public abstract class BaseController {
                 result.add(element);
             }
         }
+    }
+
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
+        try {
+            sendNotificationMsgToEdgeService(tenantId, null, entityId,
+                    json.writeValueAsString(previousOwnerId), EdgeEventActionType.CHANGE_OWNER);
+        } catch (Exception e) {
+            log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
+        }
+    }
+
+    protected void sendRelationNotificationMsg(TenantId tenantId, EntityRelation relation, EdgeEventActionType action) {
+        try {
+            if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
+                    !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
+                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to push relation to core: {}", relation, e);
+        }
+    }
+
+    protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
+        if (edgeIds != null && !edgeIds.isEmpty()) {
+            for (EdgeId edgeId : edgeIds) {
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, EdgeEventActionType.DELETED);
+            }
+        }
+    }
+
+    protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
+    }
+
+    protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
+    }
+
+    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
+                                                EntityGroupId entityGroupId) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+    }
+
+    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                                  EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
+    }
+
+    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                                  EdgeEventType type, EdgeEventActionType action,
+                                                  EntityType entityGroupType, EntityGroupId entityGroupId) {
+        if (!edgesEnabled) {
+            return;
+        }
+        if (type == null) {
+            if (entityId != null) {
+                type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
+            } else {
+                log.trace("[{}] entity id and type are null. Ignoring this notification", tenantId);
+                return;
+            }
+            if (type == null) {
+                log.trace("[{}] edge event type is null. Ignoring this notification [{}]", tenantId, entityId);
+                return;
+            }
+        }
+        TransportProtos.EdgeNotificationMsgProto.Builder builder = TransportProtos.EdgeNotificationMsgProto.newBuilder();
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setType(type.name());
+        builder.setAction(action.name());
+        if (entityId != null) {
+            builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
+            builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
+            builder.setEntityType(entityId.getEntityType().name());
+        }
+        if (edgeId != null) {
+            builder.setEdgeIdMSB(edgeId.getId().getMostSignificantBits());
+            builder.setEdgeIdLSB(edgeId.getId().getLeastSignificantBits());
+        }
+        if (body != null) {
+            builder.setBody(body);
+        }
+        if (entityGroupType != null) {
+            builder.setEntityGroupType(entityGroupType.name());
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        TransportProtos.EdgeNotificationMsgProto msg = builder.build();
+        log.trace("[{}] sending notification to edge service {}", tenantId.getId(), msg);
+        tbClusterService.pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
+                TransportProtos.ToCoreMsg.newBuilder().setEdgeNotificationMsg(msg).build(), null);
+    }
+
+    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        if (!edgesEnabled) {
+            return null;
+        }
+        List<EdgeId> result = null;
+        try {
+            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, null).get();
+        } catch (Exception e) {
+            log.error("[{}] can't find related edge ids for entity [{}]", tenantId, entityId, e);
+        }
+        return result;
     }
 
     protected void processDashboardIdFromAdditionalInfo(ObjectNode additionalInfo, String requiredFields) throws ThingsboardException {

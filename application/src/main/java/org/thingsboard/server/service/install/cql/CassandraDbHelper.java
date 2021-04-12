@@ -52,7 +52,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -195,6 +194,8 @@ public class CassandraDbHelper {
                     str = Float.valueOf(row.getFloat(index)).toString();
                 } else if (type.getProtocolCode() == ProtocolConstants.DataType.TIMESTAMP) {
                     str = ""+row.getInstant(index).toEpochMilli();
+                } else if (type.getProtocolCode() == ProtocolConstants.DataType.BOOLEAN) {
+                    str = new Boolean(row.getBoolean(index)).toString();
                 } else {
                     str = row.getString(index);
                 }
@@ -243,6 +244,8 @@ public class CassandraDbHelper {
             boundStatementBuilder.setFloat(column, Float.valueOf(value));
         } else if (type.getProtocolCode() == ProtocolConstants.DataType.TIMESTAMP) {
             boundStatementBuilder.setInstant(column, Instant.ofEpochMilli(Long.valueOf(value)));
+        } else if (type.getProtocolCode() == ProtocolConstants.DataType.BOOLEAN) {
+            boundStatementBuilder.setBoolean(column, Boolean.valueOf(value));
         } else {
             boundStatementBuilder.setString(column, value);
         }

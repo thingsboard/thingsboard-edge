@@ -64,6 +64,8 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -161,6 +163,12 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    protected EdgeService edgeService;
+
+    @Autowired
+    protected EdgeEventService edgeEventService;
 
     @Autowired
     private ComponentDescriptorService componentDescriptorService;

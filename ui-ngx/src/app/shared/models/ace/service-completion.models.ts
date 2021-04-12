@@ -77,7 +77,7 @@ export const aggregationTypeHref = '<a href="https://github.com/thingsboard/thin
 
 export const dataSortOrderHref = '<a href="https://github.com/thingsboard/thingsboard/blob/627c0577b08452308f925cecb3860e35292c649e/ui-ngx/src/app/shared/models/telemetry/telemetry.models.ts#L95">Data Sort Order</a>';
 
-export  const  userHref = '<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/shared/models/user.model.ts#L23">User</a>';
+export const userHref = '<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/shared/models/user.model.ts#L23">User</a>';
 
 export const entityDataHref = '<a href="https://github.com/thingsboard/thingsboard/blob/master/ui-ngx/src/app/shared/models/query/query.models.ts#L567">Entity data</a>';
 

@@ -833,6 +833,7 @@
                             <exclude>src/.browserslistrc</exclude>
                             <exclude>**/yarn.lock</exclude>
                             <exclude>**/*.raw</exclude>
+                            <exclude>.run/**</exclude>
                             <exclude>docker/**</exclude>
                             <exclude>**/apache/cassandra/io/**</exclude>
                             <exclude>.run/**</exclude>
@@ -1022,6 +1023,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>edge-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>dao</artifactId>
                 <version>${project.version}</version>
@@ -1034,6 +1040,11 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>stats</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>coap-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

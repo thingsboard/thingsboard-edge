@@ -69,6 +69,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.CUSTOMER, tenantGroupEntityPermissionChecker);
         put(Resource.DASHBOARD, tenantGroupEntityPermissionChecker);
         put(Resource.ENTITY_VIEW, tenantGroupEntityPermissionChecker);
+        put(Resource.EDGE, tenantGroupEntityPermissionChecker);
         put(Resource.ROLE, tenantStandaloneEntityPermissionChecker);
         put(Resource.TENANT, tenantStandaloneEntityPermissionChecker);
         put(Resource.RULE_CHAIN, tenantStandaloneEntityPermissionChecker);
@@ -84,6 +85,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.ASSET_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.USER_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.ENTITY_VIEW_GROUP, tenantEntityGroupPermissionChecker);
+        put(Resource.EDGE_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.DASHBOARD_GROUP, tenantEntityGroupPermissionChecker);
         put(Resource.WHITE_LABELING, tenantWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
@@ -91,6 +93,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.DEVICE_PROFILE, tenantStandaloneEntityPermissionChecker);
         put(Resource.API_USAGE_STATE, tenantStandaloneEntityPermissionChecker);
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
+
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {

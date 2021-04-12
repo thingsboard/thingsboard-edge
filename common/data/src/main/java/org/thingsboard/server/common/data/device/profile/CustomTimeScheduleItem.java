@@ -32,10 +32,10 @@ package org.thingsboard.server.common.data.device.profile;
 
 import lombok.Data;
 
-import java.util.List;
+import java.io.Serializable;
 
 @Data
-public class CustomTimeScheduleItem {
+public class CustomTimeScheduleItem implements Serializable {
 
     private boolean enabled;
     private int dayOfWeek;

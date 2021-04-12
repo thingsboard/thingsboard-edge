@@ -36,11 +36,10 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Customer } from '@shared/models/customer.model';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { GroupContactBasedComponent } from '@home/components/group/group-contact-based.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { isDefined } from '@core/utils';
-import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-customer',
@@ -53,6 +52,7 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
 
   allowCustomerWhiteLabeling = getCurrentAuthState(this.store).customerWhiteLabelingAllowed;
   whiteLabelingAllowed = getCurrentAuthState(this.store).whiteLabelingAllowed;
+  edgesSupportEnabled = getCurrentAuthState(this.store).edgesSupportEnabled;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -110,6 +110,14 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     }
   }
 
+  hideManageEdges() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageEdgesEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
   hideManageDashboards() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
@@ -159,5 +167,4 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
         horizontalPosition: 'right'
       }));
   }
-
 }

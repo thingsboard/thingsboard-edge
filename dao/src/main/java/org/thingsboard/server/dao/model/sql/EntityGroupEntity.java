@@ -91,11 +91,11 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Column(name = ENTITY_GROUP_CONFIGURATION_PROPERTY)
     private JsonNode configuration;
 
-    public EntityGroupEntity () {
+    public EntityGroupEntity() {
         super();
     }
 
-    public EntityGroupEntity (EntityGroup entityGroup) {
+    public EntityGroupEntity(EntityGroup entityGroup) {
         if (entityGroup.getId() != null) {
             this.setUuid(entityGroup.getId().getId());
         }

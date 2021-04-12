@@ -83,6 +83,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
+
 /**
  * Created by Victor Basanets on 8/28/2017.
  */

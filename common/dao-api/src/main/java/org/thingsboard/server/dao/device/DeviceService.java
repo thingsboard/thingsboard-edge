@@ -91,5 +91,4 @@ public interface DeviceService {
     Device assignDeviceToTenant(TenantId tenantId, Device device);
 
     Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
-
 }

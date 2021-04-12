@@ -31,7 +31,7 @@
 
 import {Component, forwardRef, Input} from '@angular/core';
 import {ControlValueAccessor, FormArray, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {ResourceLwM2M} from '@home/components/profile/device/lwm2m/profile-config.models';
+import {ResourceLwM2M, RESOURCES} from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
 import {Store} from '@ngrx/store';
 import {AppState} from '@core/core.state';
 import _ from 'lodash';
@@ -40,6 +40,7 @@ import {coerceBooleanProperty} from '@angular/cdk/coercion';
 @Component({
   selector: 'tb-profile-lwm2m-observe-attr-telemetry-resource',
   templateUrl: './lwm2m-observe-attr-telemetry-resource.component.html',
+  styleUrls: ['./lwm2m-attributes.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -88,7 +89,7 @@ export class Lwm2mObserveAttrTelemetryResourceComponent implements ControlValueA
   }
 
   get resourceFormArray(): FormArray{
-    return this.resourceFormGroup.get('resources') as FormArray;
+    return this.resourceFormGroup.get(RESOURCES) as FormArray;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -104,6 +105,14 @@ export class Lwm2mObserveAttrTelemetryResourceComponent implements ControlValueA
     this.resourceFormArray.at(index).patchValue({keyName: _.camelCase((event.target as HTMLInputElement).value)});
   }
 
+  updateAttributeLwm2m = (event: Event, index: number): void => {
+    this.resourceFormArray.at(index).patchValue({attributeLwm2m: event});
+  }
+
+  getNameResourceLwm2m = (resourceLwM2M: ResourceLwM2M): string => {
+    return  '<' + resourceLwM2M.id +'> ' + resourceLwM2M.name;
+  }
+
   createResourceLwM2M(resourcesLwM2M: ResourceLwM2M[]): void {
     if (resourcesLwM2M.length === this.resourceFormArray.length) {
       this.resourceFormArray.patchValue(resourcesLwM2M, {emitEvent: false});
@@ -116,7 +125,8 @@ export class Lwm2mObserveAttrTelemetryResourceComponent implements ControlValueA
           observe: resourceLwM2M.observe,
           attribute: resourceLwM2M.attribute,
           telemetry: resourceLwM2M.telemetry,
-          keyName: [resourceLwM2M.keyName, Validators.required]
+          keyName: [resourceLwM2M.keyName, Validators.required],
+          attributeLwm2m: [resourceLwM2M.attributeLwm2m]
         }));
       });
     }
@@ -143,6 +153,11 @@ export class Lwm2mObserveAttrTelemetryResourceComponent implements ControlValueA
   updateObserve = (index: number):  void =>{
     if (this.resourceFormArray.at(index).value.attribute === false && this.resourceFormArray.at(index).value.telemetry === false) {
       this.resourceFormArray.at(index).patchValue({observe: false});
+      this.resourceFormArray.at(index).patchValue({attributeLwm2m: {}});
     }
+  }
+
+  disableObserve = (index: number):  boolean =>{
+    return !this.resourceFormArray.at(index).value.telemetry && !this.resourceFormArray.at(index).value.attribute;
   }
 }

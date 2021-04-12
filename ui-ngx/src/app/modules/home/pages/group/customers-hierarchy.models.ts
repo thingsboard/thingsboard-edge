@@ -34,10 +34,12 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { NavTreeNode } from '@shared/components/nav-tree.component';
+import { Edge } from '@shared/models/edge.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
-export type CustomersHierarchyViewMode = 'groups' | 'group';
+export type CustomersHierarchyViewMode = 'groups' | 'group' | 'scheduler';
 
-export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer';
+export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups' | 'edgeGroup';
 
 export interface BaseCustomersHierarchyNodeData {
   type: CustomersHierarchyNodeType;
@@ -48,6 +50,7 @@ export interface BaseCustomersHierarchyNodeData {
 export interface EntityGroupNodeData extends BaseCustomersHierarchyNodeData {
   type: 'group';
   entity: EntityGroupInfo;
+  ownerId: EntityId;
 }
 
 export interface EntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
@@ -61,7 +64,33 @@ export interface CustomerNodeData extends BaseCustomersHierarchyNodeData {
   entity: Customer;
 }
 
-export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData;
+export interface EdgeNodeCustomerData {
+  customerGroupId?: string;
+  customerId?: string;
+}
+
+interface BaseEdgeNodeData {
+  edge: Edge;
+  edgeId?: Edge;
+  customerData?: EdgeNodeCustomerData;
+}
+
+export interface EdgeNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
+  type: 'edge';
+}
+
+export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
+  type: 'edgeGroups';
+  groupsType: EntityType;
+}
+
+export interface EdgeEntityGroupNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
+  type: 'edgeGroup';
+  entityGroup: EntityGroupInfo;
+}
+
+export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData |
+                                         EdgeNodeData | EdgeEntityGroupsNodeData | EdgeEntityGroupNodeData;
 
 export interface CustomersHierarchyNode extends NavTreeNode {
   data?: CustomersHierarchyNodeData;
@@ -77,9 +106,20 @@ export function customerNodeText(customer: Customer): string {
   return nodeIcon + customer.title;
 }
 
+export function edgeNodeText(edge: Edge): string {
+  const nodeIcon = materialIconByEntityType(EntityType.EDGE);
+  return nodeIcon + edge.name;
+}
+
 export function entityGroupsNodeText(translate: TranslateService, groupType: EntityType) {
   const nodeIcon = materialIconByEntityType(groupType);
   const nodeText = textForGroupType(translate, groupType);
+  return nodeIcon + nodeText;
+}
+
+export function entitiesNodeText(translate: TranslateService, entityType: EntityType, name: string) {
+  const nodeIcon = materialIconByEntityType(entityType);
+  const nodeText = translate.instant(name);
   return nodeIcon + nodeText;
 }
 
@@ -95,6 +135,8 @@ function textForGroupType(translate: TranslateService, groupType: EntityType): s
       return translate.instant('entity-group.device-groups');
     case EntityType.ENTITY_VIEW:
       return translate.instant('entity-group.entity-view-groups');
+    case EntityType.EDGE:
+      return translate.instant('entity-group.edge-groups');
     case EntityType.DASHBOARD:
       return translate.instant('entity-group.dashboard-groups');
   }
@@ -121,6 +163,15 @@ function materialIconByEntityType (entityType: EntityType): string {
       break;
     case EntityType.ENTITY_VIEW:
       materialIcon = 'view_quilt';
+      break;
+    case EntityType.EDGE:
+      materialIcon = 'router';
+      break;
+    case EntityType.SCHEDULER_EVENT:
+      materialIcon = 'schedule';
+      break;
+    case EntityType.RULE_CHAIN:
+      materialIcon = 'settings_ethernet';
       break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';

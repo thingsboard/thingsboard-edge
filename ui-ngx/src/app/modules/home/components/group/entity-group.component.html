@@ -40,26 +40,32 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          [fxShow]="!hideDelete() && !isEdit">
+          [fxShow]="!hideDelete() && !isEdit && !isEdgeScope()">
     {{'entity-group.delete' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'share')"
-          [fxShow]="!isEdit && shareEnabled">
+          [fxShow]="!isEdit && shareEnabled && !isEdgeScope()">
     {{'entity-group.share' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePublic')"
-          [fxShow]="!isEdit && makePublicEnabled">
+          [fxShow]="!isEdit && makePublicEnabled && !isEdgeScope()">
     {{'entity-group.make-public' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePrivate')"
-          [fxShow]="!isEdit && makePrivateEnabled">
+          [fxShow]="!isEdit && makePrivateEnabled && !isEdgeScope()">
     {{'entity-group.make-private' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'unassign')"
+          [fxShow]="!isEdit && isEdgeScope()">
+    {{'edge.unassign-entity-group-from-edge' | translate }}
   </button>
   <div fxLayout="row" fxLayout.xs="column">
     <button mat-raised-button

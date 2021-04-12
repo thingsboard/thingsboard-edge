@@ -42,6 +42,7 @@ import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { AssetService } from '@core/http/asset.service';
 import { DeviceService } from '@core/http/device.service';
+import { EdgeService } from '@core/http/edge.service';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
@@ -112,6 +113,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
               private assetService: AssetService,
               private deviceService: DeviceService,
               private entityViewService: EntityViewService,
+              private edgeService: EdgeService,
               private fb: FormBuilder) {
     this.entitySubtypeListFormGroup = this.fb.group({
       entitySubtypeList: [this.entitySubtypeList, this.required ? [Validators.required] : []],
@@ -154,6 +156,7 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
           this.entitySubtypes = null;
         });
         break;
+
       case EntityType.ENTITY_VIEW:
         this.placeholder = this.required ? this.translate.instant('entity-view.enter-entity-view-type')
           : this.translate.instant('entity-view.any-entity-view');
@@ -161,6 +164,16 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
         this.noSubtypesMathingText = 'entity-view.no-entity-view-types-matching';
         this.subtypeListEmptyText = 'entity-view.entity-view-type-list-empty';
         this.broadcastSubscription = this.broadcast.on('entityViewSaved', () => {
+          this.entitySubtypes = null;
+        });
+        break;
+      case EntityType.EDGE:
+        this.placeholder = this.required ? this.translate.instant('edge.enter-edge-type')
+          : this.translate.instant('edge.any-edge');
+        this.secondaryPlaceholder = '+' + this.translate.instant('edge.edge-type');
+        this.noSubtypesMathingText = 'edge.no-edge-types-matching';
+        this.subtypeListEmptyText = 'edge.edge-type-list-empty';
+        this.broadcastSubscription = this.broadcast.on('edgeSaved', () => {
           this.entitySubtypes = null;
         });
         break;
@@ -277,6 +290,9 @@ export class EntitySubTypeListComponent implements ControlValueAccessor, OnInit,
           break;
         case EntityType.ENTITY_VIEW:
           subTypesObservable = this.entityViewService.getEntityViewTypes({ignoreLoading: true});
+          break;
+        case EntityType.EDGE:
+          subTypesObservable = this.edgeService.getEdgeTypes({ignoreLoading: true});
           break;
       }
       if (subTypesObservable) {

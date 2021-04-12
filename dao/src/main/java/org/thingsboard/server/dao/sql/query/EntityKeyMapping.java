@@ -105,6 +105,7 @@ public class EntityKeyMapping {
     static {
         allowedEntityFieldMap.put(EntityType.DEVICE, new HashSet<>(labeledEntityFields));
         allowedEntityFieldMap.put(EntityType.ASSET, new HashSet<>(labeledEntityFields));
+        allowedEntityFieldMap.put(EntityType.EDGE, new HashSet<>(labeledEntityFields));
         allowedEntityFieldMap.put(EntityType.ENTITY_VIEW, new HashSet<>(typedEntityFields));
 
         allowedEntityFieldMap.put(EntityType.TENANT, new HashSet<>(contactBasedEntityFields));
@@ -157,6 +158,7 @@ public class EntityKeyMapping {
         aliases.put(EntityType.DEVICE, commonEntityAliases);
         aliases.put(EntityType.ASSET, commonEntityAliases);
         aliases.put(EntityType.ENTITY_VIEW, commonEntityAliases);
+        aliases.put(EntityType.EDGE, commonEntityAliases);
         aliases.put(EntityType.WIDGETS_BUNDLE, commonEntityAliases);
         aliases.put(EntityType.ENTITY_GROUP, commonEntityAliases);
 
