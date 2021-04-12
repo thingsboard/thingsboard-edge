@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.common.adaptor;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -88,6 +90,9 @@ public class ProtoConverter {
     }
 
     public static TransportProtos.ClaimDeviceMsg convertToClaimDeviceProto(DeviceId deviceId, byte[] bytes) throws InvalidProtocolBufferException {
+        if (bytes == null) {
+            return buildClaimDeviceMsg(deviceId, DataConstants.DEFAULT_SECRET_KEY, 0);
+        }
         TransportApiProtos.ClaimDevice proto = TransportApiProtos.ClaimDevice.parseFrom(bytes);
         String secretKey = proto.getSecretKey() != null ? proto.getSecretKey() : DataConstants.DEFAULT_SECRET_KEY;
         long durationMs = proto.getDurationMs();
@@ -178,5 +183,28 @@ public class ProtoConverter {
             }
         });
         return kvList;
+    }
+
+    public static byte[] convertToRpcRequest(TransportProtos.ToDeviceRpcRequestMsg toDeviceRpcRequestMsg) {
+        TransportProtos.ToDeviceRpcRequestMsg.Builder toDeviceRpcRequestMsgBuilder = toDeviceRpcRequestMsg.newBuilderForType();
+        toDeviceRpcRequestMsgBuilder.mergeFrom(toDeviceRpcRequestMsg);
+        toDeviceRpcRequestMsgBuilder.setParams(parseParams(toDeviceRpcRequestMsg));
+        TransportProtos.ToDeviceRpcRequestMsg result = toDeviceRpcRequestMsgBuilder.build();
+        return result.toByteArray();
+    }
+
+    private static String parseParams(TransportProtos.ToDeviceRpcRequestMsg toDeviceRpcRequestMsg) {
+        String params = toDeviceRpcRequestMsg.getParams();
+        JsonElement jsonElementParams = JSON_PARSER.parse(params);
+        if (!jsonElementParams.isJsonPrimitive()) {
+            return params;
+        } else {
+            JsonPrimitive primitiveParams = jsonElementParams.getAsJsonPrimitive();
+            if (jsonElementParams.getAsJsonPrimitive().isString()) {
+                return primitiveParams.getAsString();
+            } else {
+                return params;
+            }
+        }
     }
 }

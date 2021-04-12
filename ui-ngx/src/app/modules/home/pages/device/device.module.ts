@@ -38,6 +38,8 @@ import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
 import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
+import { SecurityConfigComponent } from '@home/pages/device/lwm2m/security-config.component';
+import { SecurityConfigServerComponent } from '@home/pages/device/lwm2m/security-config-server.component';
 import { DefaultDeviceConfigurationComponent } from './data/default-device-configuration.component';
 import { DeviceConfigurationComponent } from './data/device-configuration.component';
 import { DeviceDataComponent } from './data/device-data.component';
@@ -45,6 +47,7 @@ import { DefaultDeviceTransportConfigurationComponent } from './data/default-dev
 import { DeviceTransportConfigurationComponent } from './data/device-transport-configuration.component';
 import { MqttDeviceTransportConfigurationComponent } from './data/mqtt-device-transport-configuration.component';
 import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-transport-configuration.component';
+import { CoapDeviceTransportConfigurationComponent } from './data/coap-device-transport-configuration.component';
 
 @NgModule({
   declarations: [
@@ -53,10 +56,13 @@ import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-
     DefaultDeviceTransportConfigurationComponent,
     MqttDeviceTransportConfigurationComponent,
     Lwm2mDeviceTransportConfigurationComponent,
+    CoapDeviceTransportConfigurationComponent,
     DeviceTransportConfigurationComponent,
     DeviceDataComponent,
     DeviceComponent,
-    DeviceCredentialsDialogComponent
+    DeviceCredentialsDialogComponent,
+    SecurityConfigComponent,
+    SecurityConfigServerComponent
   ],
   imports: [
     CommonModule,

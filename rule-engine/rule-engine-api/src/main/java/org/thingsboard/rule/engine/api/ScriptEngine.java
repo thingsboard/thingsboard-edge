@@ -41,7 +41,7 @@ import java.util.Set;
 
 public interface ScriptEngine {
 
-    TbMsg executeUpdate(TbMsg msg) throws ScriptException;
+    List<TbMsg> executeUpdate(TbMsg msg) throws ScriptException;
 
     ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
 

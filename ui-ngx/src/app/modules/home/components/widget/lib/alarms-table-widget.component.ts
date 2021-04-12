@@ -64,6 +64,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   CellContentInfo,
   CellStyleInfo,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,
@@ -191,6 +192,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private columnWidth: {[key: string]: string} = {};
   private columnDefaultVisibility: {[key: string]: boolean} = {};
   private columnSelectionAvailability: {[key: string]: boolean} = {};
+  private columnExportParameters: {[key: string]: columnExportOptions} = {};
 
   private rowStylesInfo: RowStyleInfo;
 
@@ -424,6 +426,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
         this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings);
         this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
+        this.columnExportParameters[dataKey.def] = keySettings.columnExportOption;
         this.columns.push(dataKey);
 
         if (dataKey.type !== DataKeyType.alarm) {
@@ -960,7 +963,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         pageLink
       };
       const exportedColumns = this.columns.filter(
-        c => this.displayedColumns.indexOf(c.def) > -1 && c.entityKey);
+        c => this.includeColumnInExport(c) && c.entityKey);
       query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
         entityFields[c.entityKey.key]).map(c => c.entityKey);
       query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
@@ -987,13 +990,24 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       alarmsToExport.forEach((alarm) => {
         const dataObj: {[key: string]: any} = {};
         this.columns.forEach((column) => {
-          if (this.displayedColumns.indexOf(column.def) > -1) {
+          if (this.includeColumnInExport(column)) {
             dataObj[column.title] = this.cellContent(alarm, column, false);
           }
         });
         exportedData.push(dataObj);
       });
       return exportedData;
+    }
+  }
+
+  private includeColumnInExport(column: EntityColumn): boolean {
+    switch (this.columnExportParameters[column.def]) {
+      case columnExportOptions.always:
+        return true;
+      case columnExportOptions.never:
+        return false;
+      default:
+        return this.displayedColumns.indexOf(column.def) > -1;
     }
   }
 

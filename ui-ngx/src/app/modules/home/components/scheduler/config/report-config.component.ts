@@ -195,40 +195,31 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
   writeValue(value: ReportConfig | null): void {
     this.modelValue = value;
     if (!this.modelValue) {
-      this.createDefaultReportConfig().subscribe(
-        (reportConfig) => {
-          this.modelValue = reportConfig;
-          this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
-          this.updateEnabledState();
-          setTimeout(() => {
-            this.updateModel();
-          }, 0);
-        }
-      );
+      this.modelValue = this.createDefaultReportConfig();
+      this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
+      this.updateEnabledState();
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
     } else {
       this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
       this.updateEnabledState();
     }
   }
 
-  private createDefaultReportConfig(): Observable<ReportConfig> {
-    return getDefaultTimezone().pipe(
-      map(defaultTz => {
-        const reportConfig: ReportConfig = {
-          baseUrl: this.utils.baseUrl(),
-          useDashboardTimewindow: true,
-          timewindow: historyInterval(DAY),
-          namePattern: 'report-%d{yyyy-MM-dd_HH:mm:ss}',
-          type: 'pdf',
-          timezone: defaultTz,
-          useCurrentUserCredentials: true,
-          userId: this.authUser.userId,
-          dashboardId: null,
-          state: ''
-        };
-        return reportConfig;
-      })
-    );
+  private createDefaultReportConfig(): ReportConfig {
+    return {
+      baseUrl: this.utils.baseUrl(),
+      useDashboardTimewindow: true,
+      timewindow: historyInterval(DAY),
+      namePattern: 'report-%d{yyyy-MM-dd_HH:mm:ss}',
+      type: 'pdf',
+      timezone: getDefaultTimezone(),
+      useCurrentUserCredentials: true,
+      userId: this.authUser.userId,
+      dashboardId: null,
+      state: ''
+    };
   }
 
   private updateModel() {

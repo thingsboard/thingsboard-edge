@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
+import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
@@ -87,7 +88,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -189,7 +190,38 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return doSaveDevice(device, null);
     }
 
+    @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
+    @Override
+    public Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials) {
+        if (device.getId() == null) {
+            Device deviceWithName = this.findDeviceByTenantIdAndName(device.getTenantId(), device.getName());
+            device = deviceWithName == null ? device : deviceWithName.updateDevice(device);
+        }
+        Device savedDevice = this.saveDeviceWithoutCredentials(device);
+        deviceCredentials.setDeviceId(savedDevice.getId());
+        if (device.getId() == null) {
+            deviceCredentials = deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+        }
+        else {
+            deviceCredentials.setId(deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), savedDevice.getId()).getId());
+            deviceCredentials = deviceCredentialsService.updateDeviceCredentials(device.getTenantId(), deviceCredentials);
+        }
+        return savedDevice;
+    }
+
     private Device doSaveDevice(Device device, String accessToken) {
+        Device savedDevice = this.saveDeviceWithoutCredentials(device);
+        if (device.getId() == null) {
+            DeviceCredentials deviceCredentials = new DeviceCredentials();
+            deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
+            deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
+            deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
+            deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
+        }
+        return savedDevice;
+    }
+
+    private Device saveDeviceWithoutCredentials(Device device) {
         log.trace("Executing saveDevice [{}]", device);
         deviceValidator.validate(device, Device::getTenantId);
         Device savedDevice;
@@ -210,7 +242,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             }
             device.setType(deviceProfile.getName());
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
-
             savedDevice = deviceDao.save(device.getTenantId(), device);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
@@ -223,11 +254,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             }
         }
         if (device.getId() == null) {
-            DeviceCredentials deviceCredentials = new DeviceCredentials();
-            deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
-            deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
-            deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
-            deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
             entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         return savedDevice;
@@ -254,6 +280,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     break;
                 case LWM2M:
                     deviceData.setTransportConfiguration(new Lwm2mDeviceTransportConfiguration());
+                    break;
+                case COAP:
+                    deviceData.setTransportConfiguration(new CoapDeviceTransportConfiguration());
                     break;
             }
         }
@@ -487,6 +516,8 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 case X509_CERTIFICATE:
                     deviceCredentials.setCredentialsValue(provisionRequest.getCredentialsData().getX509CertHash());
                     break;
+                case LWM2M_CREDENTIALS:
+                    break;
             }
             try {
                 deviceCredentialsService.updateDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
@@ -503,7 +534,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 @Override
                 protected void validateCreate(TenantId tenantId, Device device) {
                     DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration)tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
+                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
                     long maxDevices = profileConfiguration.getMaxDevices();
                     validateNumberOfEntitiesPerTenant(tenantId, deviceDao, maxDevices, EntityType.DEVICE);
                 }

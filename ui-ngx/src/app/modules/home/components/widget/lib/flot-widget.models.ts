@@ -35,6 +35,7 @@
 import { DataKey, Datasource, DatasourceData, JsonSettingsSchema } from '@shared/models/widget.models';
 import * as moment_ from 'moment';
 import { DataKeyType } from "@shared/models/telemetry/telemetry.models";
+import { ComparisonDuration } from '@shared/models/time/time.models';
 
 export declare type ChartType = 'line' | 'pie' | 'bar' | 'state' | 'graph';
 
@@ -157,7 +158,7 @@ export interface TbFlotBaseSettings {
 
 export interface TbFlotComparisonSettings {
   comparisonEnabled: boolean;
-  timeForComparison: moment_.unitOfTime.DurationConstructor;
+  timeForComparison: ComparisonDuration;
   xaxisSecond: TbFlotSecondXAxisSettings;
 }
 
@@ -558,7 +559,7 @@ const chartSettingsSchemaForComparison: JsonSettingsSchema = {
       timeForComparison: {
         title: 'Time to show historical data',
         type: 'string',
-        default: 'months'
+        default: 'previousInterval'
       },
       xaxisSecond: {
         title: 'Second X axis',
@@ -592,6 +593,10 @@ const chartSettingsSchemaForComparison: JsonSettingsSchema = {
       multiple: false,
       items: [
         {
+          value: 'previousInterval',
+          label: 'Previous interval (default)'
+        },
+        {
           value: 'days',
           label: 'Day ago'
         },
@@ -601,7 +606,7 @@ const chartSettingsSchemaForComparison: JsonSettingsSchema = {
         },
         {
           value: 'months',
-          label: 'Month ago (default)'
+          label: 'Month ago'
         },
         {
           value: 'years',

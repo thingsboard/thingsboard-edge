@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -286,6 +287,33 @@ public class DefaultTbClusterService implements TbClusterService {
         onEntityDelete(entity.getTenantId(), entity.getId(), entity.getName(), callback);
     }
 
+    @Override
+    public void onResourceChange(TbResource resource, TbQueueCallback callback) {
+        TenantId tenantId = resource.getTenantId();
+        log.trace("[{}][{}][{}] Processing change resource", tenantId, resource.getResourceType(), resource.getResourceKey());
+        TransportProtos.ResourceUpdateMsg resourceUpdateMsg = TransportProtos.ResourceUpdateMsg.newBuilder()
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setResourceType(resource.getResourceType().name())
+                .setResourceKey(resource.getResourceKey())
+                .build();
+        ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setResourceUpdateMsg(resourceUpdateMsg).build();
+        broadcast(transportMsg, callback);
+    }
+
+    @Override
+    public void onResourceDeleted(TbResource resource, TbQueueCallback callback) {
+        log.trace("[{}] Processing delete resource", resource);
+        TransportProtos.ResourceDeleteMsg resourceUpdateMsg = TransportProtos.ResourceDeleteMsg.newBuilder()
+                .setTenantIdMSB(resource.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(resource.getTenantId().getId().getLeastSignificantBits())
+                .setResourceType(resource.getResourceType().name())
+                .setResourceKey(resource.getResourceKey())
+                .build();
+        ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setResourceDeleteMsg(resourceUpdateMsg).build();
+        broadcast(transportMsg, callback);
+    }
+
     public <T> void onEntityChange(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {
         String entityName = (entity instanceof HasName) ? ((HasName) entity).getName() : entity.getClass().getName();
         log.trace("[{}][{}][{}] Processing [{}] change event", tenantId, entityid.getEntityType(), entityid.getId(), entityName);
@@ -322,15 +350,17 @@ public class DefaultTbClusterService implements TbClusterService {
         byte[] msgBytes = encodingService.encode(msg);
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
         Set<String> tbRuleEngineServices = new HashSet<>(partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE));
-        boolean toCore = msg.getEntityId().getEntityType().equals(EntityType.TENANT) ||
-                msg.getEntityId().getEntityType().equals(EntityType.TENANT_PROFILE) ||
-                msg.getEntityId().getEntityType().equals(EntityType.DEVICE_PROFILE) ||
-                msg.getEntityId().getEntityType().equals(EntityType.CONVERTER) ||
-                msg.getEntityId().getEntityType().equals(EntityType.INTEGRATION) ||
-                msg.getEntityId().getEntityType().equals(EntityType.API_USAGE_STATE);
+        EntityType entityType = msg.getEntityId().getEntityType();
+        boolean toCore = entityType.equals(EntityType.TENANT) ||
+                entityType.equals(EntityType.TENANT_PROFILE) ||
+                entityType.equals(EntityType.DEVICE_PROFILE) ||
+                entityType.equals(EntityType.CONVERTER) ||
+                entityType.equals(EntityType.INTEGRATION) ||
+                entityType.equals(EntityType.API_USAGE_STATE) ||
+                (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED);
 
-        boolean toRuleEngine = !msg.getEntityId().getEntityType().equals(EntityType.CONVERTER) &&
-                !msg.getEntityId().getEntityType().equals(EntityType.INTEGRATION);
+        boolean toRuleEngine = !entityType.equals(EntityType.CONVERTER) &&
+                !entityType.equals(EntityType.INTEGRATION);
 
         if (toCore) {
             TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toCoreNfProducer = producerProvider.getTbCoreNotificationsMsgProducer();

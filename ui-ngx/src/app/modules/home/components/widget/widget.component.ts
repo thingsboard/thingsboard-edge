@@ -880,6 +880,9 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       onInitialPageDataChanged: (subscription, nextPageData) => {
         this.reInit();
       },
+      forceReInit: () => {
+        this.reInit();
+      },
       dataLoading: (subscription) => {
         if (this.loadingData !== subscription.loadingData) {
           this.loadingData = subscription.loadingData;

@@ -32,12 +32,14 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
@@ -52,7 +54,6 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -89,11 +90,11 @@ public class TbAlarmsCountNodeV2 implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) {
         String msgType = msg.getType();
         EntityType entityType = msg.getOriginator().getEntityType();
-        if ((msgType.equals("ENTITY_CREATED") && entityType.equals(EntityType.ALARM))
-                || (msgType.equals("ENTITY_UPDATED") && entityType.equals(EntityType.ALARM))
-                || msgType.equals("ALARM")
-                || msgType.equals("ALARM_ACK")
-                || msgType.equals("ALARM_CLEAR")) {
+        if ((msgType.equals(DataConstants.ENTITY_CREATED) && entityType.equals(EntityType.ALARM))
+                || (msgType.equals(DataConstants.ENTITY_UPDATED) && entityType.equals(EntityType.ALARM))
+                || msgType.equals(DataConstants.ALARM)
+                || msgType.equals(DataConstants.ALARM_ACK)
+                || msgType.equals(DataConstants.ALARM_CLEAR)) {
             process(ctx, msg);
         } else {
             ctx.tellSuccess(msg);

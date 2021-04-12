@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.transport.coap.adaptors;
 
+import com.google.protobuf.Descriptors;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.thingsboard.server.common.adaptor.AdaptorException;
@@ -45,15 +46,14 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseM
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceRequestMsg;
-import org.thingsboard.server.transport.coap.CoapTransportResource;
 
 import java.util.UUID;
 
 public interface CoapTransportAdaptor {
 
-    PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound) throws AdaptorException;
+    PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound, Descriptors.Descriptor telemetryMsgDescriptor) throws AdaptorException;
 
-    PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound) throws AdaptorException;
+    PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound, Descriptors.Descriptor attributesMsgDescriptor) throws AdaptorException;
 
     GetAttributeRequestMsg convertToGetAttributes(UUID sessionId, Request inbound) throws AdaptorException;
 
@@ -63,13 +63,13 @@ public interface CoapTransportAdaptor {
 
     ClaimDeviceMsg convertToClaimDevice(UUID sessionId, Request inbound, SessionInfoProto sessionInfo) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener session, GetAttributeResponseMsg responseMsg) throws AdaptorException;
+    Response convertToPublish(GetAttributeResponseMsg responseMsg) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener session, AttributeUpdateNotificationMsg notificationMsg) throws AdaptorException;
+    Response convertToPublish(boolean isConfirmable, AttributeUpdateNotificationMsg notificationMsg) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener session, ToDeviceRpcRequestMsg rpcRequest) throws AdaptorException;
+    Response convertToPublish(boolean isConfirmable, ToDeviceRpcRequestMsg rpcRequest) throws AdaptorException;
 
-    Response convertToPublish(CoapTransportResource.CoapSessionListener coapSessionListener, ToServerRpcResponseMsg msg) throws AdaptorException;
+    Response convertToPublish(ToServerRpcResponseMsg msg) throws AdaptorException;
 
     ProvisionDeviceRequestMsg convertToProvisionRequestMsg(UUID sessionId, Request inbound) throws AdaptorException;
 

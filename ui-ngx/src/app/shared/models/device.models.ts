@@ -50,12 +50,18 @@ export enum DeviceProfileType {
 export enum DeviceTransportType {
   DEFAULT = 'DEFAULT',
   MQTT = 'MQTT',
-  // LWM2M = 'LWM2M'
+  COAP = 'COAP',
+  LWM2M = 'LWM2M'
 }
 
-export enum MqttTransportPayloadType {
+export enum TransportPayloadType {
   JSON = 'JSON',
   PROTOBUF = 'PROTOBUF'
+}
+
+export enum CoapTransportDeviceType {
+  DEFAULT = 'DEFAULT',
+  EFENTO = 'EFENTO'
 }
 
 export enum DeviceProvisionType {
@@ -91,7 +97,8 @@ export const deviceTransportTypeTranslationMap = new Map<DeviceTransportType, st
   [
     [DeviceTransportType.DEFAULT, 'device-profile.transport-type-default'],
     [DeviceTransportType.MQTT, 'device-profile.transport-type-mqtt'],
-    // [DeviceTransportType.LWM2M, 'device-profile.transport-type-lwm2m']
+    [DeviceTransportType.COAP, 'device-profile.transport-type-coap'],
+    [DeviceTransportType.LWM2M, 'device-profile.transport-type-lwm2m']
   ]
 );
 
@@ -108,14 +115,50 @@ export const deviceTransportTypeHintMap = new Map<DeviceTransportType, string>(
   [
     [DeviceTransportType.DEFAULT, 'device-profile.transport-type-default-hint'],
     [DeviceTransportType.MQTT, 'device-profile.transport-type-mqtt-hint'],
-    // [DeviceTransportType.LWM2M, 'device-profile.transport-type-lwm2m-hint']
+    [DeviceTransportType.COAP, 'device-profile.transport-type-coap-hint'],
+    [DeviceTransportType.LWM2M, 'device-profile.transport-type-lwm2m-hint']
   ]
 );
 
-export const mqttTransportPayloadTypeTranslationMap = new Map<MqttTransportPayloadType, string>(
+export const transportPayloadTypeTranslationMap = new Map<TransportPayloadType, string>(
   [
-    [MqttTransportPayloadType.JSON, 'device-profile.mqtt-device-payload-type-json'],
-    [MqttTransportPayloadType.PROTOBUF, 'device-profile.mqtt-device-payload-type-proto']
+    [TransportPayloadType.JSON, 'device-profile.transport-device-payload-type-json'],
+    [TransportPayloadType.PROTOBUF, 'device-profile.transport-device-payload-type-proto']
+  ]
+);
+
+export const defaultTelemetrySchema =
+  'syntax ="proto3";\n' +
+  'package telemetry;\n' +
+  '\n' +
+  'message SensorDataReading {\n' +
+  '\n' +
+  '  double temperature = 1;\n' +
+  '  double humidity = 2;\n' +
+  '  InnerObject innerObject = 3;\n' +
+  '\n' +
+  '  message InnerObject {\n' +
+  '    string key1 = 1;\n' +
+  '    bool key2 = 2;\n' +
+  '    double key3 = 3;\n' +
+  '    int32 key4 = 4;\n' +
+  '    string key5 = 5;\n' +
+  '  }\n' +
+  '}\n';
+
+export const defaultAttributesSchema =
+  'syntax ="proto3";\n' +
+  'package attributes;\n' +
+  '\n' +
+  'message SensorConfiguration {\n' +
+  '  string firmwareVersion = 1;\n' +
+  '  string serialNumber = 2;\n' +
+  '}';
+
+export const coapDeviceTypeTranslationMap = new Map<CoapTransportDeviceType, string>(
+  [
+    [CoapTransportDeviceType.DEFAULT, 'device-profile.coap-device-type-default'],
+    [CoapTransportDeviceType.EFENTO, 'device-profile.coap-device-type-efento']
   ]
 );
 
@@ -136,13 +179,20 @@ export const deviceTransportTypeConfigurationInfoMap = new Map<DeviceTransportTy
         hasDeviceConfiguration: false,
       }
     ],
-    /*[
+    [
+      DeviceTransportType.COAP,
+      {
+        hasProfileConfiguration: true,
+        hasDeviceConfiguration: false,
+      }
+    ],
+    [
       DeviceTransportType.LWM2M,
       {
         hasProfileConfiguration: true,
         hasDeviceConfiguration: false,
       }
-    ]*/
+    ]
   ]
 );
 
@@ -164,9 +214,19 @@ export interface MqttDeviceProfileTransportConfiguration {
   deviceTelemetryTopic?: string;
   deviceAttributesTopic?: string;
   transportPayloadTypeConfiguration?: {
-    transportPayloadType?: MqttTransportPayloadType;
+    transportPayloadType?: TransportPayloadType;
   };
   [key: string]: any;
+}
+
+export interface CoapDeviceProfileTransportConfiguration {
+  coapDeviceTypeConfiguration?: {
+    coapDeviceType?: CoapTransportDeviceType;
+    transportPayloadTypeConfiguration?: {
+      transportPayloadType?: TransportPayloadType;
+      [key: string]: any;
+    };
+  };
 }
 
 export interface Lwm2mDeviceProfileTransportConfiguration {
@@ -175,6 +235,7 @@ export interface Lwm2mDeviceProfileTransportConfiguration {
 
 export type DeviceProfileTransportConfigurations = DefaultDeviceProfileTransportConfiguration &
                                                    MqttDeviceProfileTransportConfiguration &
+                                                   CoapDeviceProfileTransportConfiguration &
                                                    Lwm2mDeviceProfileTransportConfiguration;
 
 export interface DeviceProfileTransportConfiguration extends DeviceProfileTransportConfigurations {
@@ -225,14 +286,21 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
         const mqttTransportConfiguration: MqttDeviceProfileTransportConfiguration = {
           deviceTelemetryTopic: 'v1/devices/me/telemetry',
           deviceAttributesTopic: 'v1/devices/me/attributes',
-          transportPayloadTypeConfiguration: {transportPayloadType: MqttTransportPayloadType.JSON}
+          transportPayloadTypeConfiguration: {transportPayloadType: TransportPayloadType.JSON}
         };
         transportConfiguration = {...mqttTransportConfiguration, type: DeviceTransportType.MQTT};
         break;
-      /*case DeviceTransportType.LWM2M:
+      case DeviceTransportType.COAP:
+        const coapTransportConfiguration: CoapDeviceProfileTransportConfiguration = {
+          coapDeviceTypeConfiguration: {coapDeviceType: CoapTransportDeviceType.DEFAULT,
+            transportPayloadTypeConfiguration: {transportPayloadType: TransportPayloadType.JSON}}
+        };
+        transportConfiguration = {...coapTransportConfiguration, type: DeviceTransportType.COAP};
+        break;
+      case DeviceTransportType.LWM2M:
         const lwm2mTransportConfiguration: Lwm2mDeviceProfileTransportConfiguration = {};
         transportConfiguration = {...lwm2mTransportConfiguration, type: DeviceTransportType.LWM2M};
-        break;*/
+        break;
     }
   }
   return transportConfiguration;
@@ -250,10 +318,14 @@ export function createDeviceTransportConfiguration(type: DeviceTransportType): D
         const mqttTransportConfiguration: MqttDeviceTransportConfiguration = {};
         transportConfiguration = {...mqttTransportConfiguration, type: DeviceTransportType.MQTT};
         break;
-      /* case DeviceTransportType.LWM2M:
+      case DeviceTransportType.COAP:
+        const coapTransportConfiguration: CoapDeviceTransportConfiguration = {};
+        transportConfiguration = {...coapTransportConfiguration, type: DeviceTransportType.COAP};
+        break;
+      case DeviceTransportType.LWM2M:
         const lwm2mTransportConfiguration: Lwm2mDeviceTransportConfiguration = {};
         transportConfiguration = {...lwm2mTransportConfiguration, type: DeviceTransportType.LWM2M};
-        break;*/
+        break;
     }
   }
   return transportConfiguration;
@@ -414,12 +486,17 @@ export interface MqttDeviceTransportConfiguration {
   [key: string]: any;
 }
 
+export interface CoapDeviceTransportConfiguration {
+  [key: string]: any;
+}
+
 export interface Lwm2mDeviceTransportConfiguration {
   [key: string]: any;
 }
 
 export type DeviceTransportConfigurations = DefaultDeviceTransportConfiguration &
   MqttDeviceTransportConfiguration &
+  CoapDeviceTransportConfiguration &
   Lwm2mDeviceTransportConfiguration;
 
 export interface DeviceTransportConfiguration extends DeviceTransportConfigurations {
@@ -451,14 +528,16 @@ export interface Device extends BaseData<DeviceId> {
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',
   X509_CERTIFICATE = 'X509_CERTIFICATE',
-  MQTT_BASIC = 'MQTT_BASIC'
+  MQTT_BASIC = 'MQTT_BASIC',
+  LWM2M_CREDENTIALS = 'LWM2M_CREDENTIALS'
 }
 
 export const credentialTypeNames = new Map<DeviceCredentialsType, string>(
   [
     [DeviceCredentialsType.ACCESS_TOKEN, 'Access token'],
-    [DeviceCredentialsType.X509_CERTIFICATE, 'MQTT X.509'],
-    [DeviceCredentialsType.MQTT_BASIC, 'MQTT Basic']
+    [DeviceCredentialsType.X509_CERTIFICATE, 'X.509'],
+    [DeviceCredentialsType.MQTT_BASIC, 'MQTT Basic'],
+    [DeviceCredentialsType.LWM2M_CREDENTIALS, 'LwM2M Credentials']
   ]
 );
 

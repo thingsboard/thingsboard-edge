@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.alarm;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.id.EntityId;

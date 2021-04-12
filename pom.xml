@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.2.2PE-SNAPSHOT</version>
+    <version>3.3.0PE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard PE</name>
@@ -54,7 +54,7 @@
         <javax-annotation.version>1.3.2</javax-annotation.version>
         <jakarta.xml.bind-api.version>2.3.2</jakarta.xml.bind-api.version>
         <jaxb-runtime.version>2.3.2</jaxb-runtime.version>
-        <spring-boot.version>2.3.5.RELEASE</spring-boot.version>
+        <spring-boot.version>2.3.9.RELEASE</spring-boot.version>
         <spring.version>5.2.10.RELEASE</spring.version>
         <spring-security.version>5.4.1</spring-security.version>
         <spring-data-redis.version>2.4.1</spring-data-redis.version>
@@ -62,6 +62,7 @@
         <jjwt.version>0.7.0</jjwt.version>
         <json-path.version>2.2.0</json-path.version>
         <junit.version>4.12</junit.version>
+        <jupiter.version>5.7.1</jupiter.version>
         <slf4j.version>1.7.7</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <mockito.version>3.3.3</mockito.version>
@@ -69,7 +70,8 @@
         <cassandra.version>4.10.0</cassandra.version>
         <metrics.version>4.0.5</metrics.version>
         <cassandra-unit.version>4.3.1.0</cassandra-unit.version>
-        <cassandra-all.version>3.11.9</cassandra-all.version>
+        <cassandra-all.version>3.11.10</cassandra-all.version>
+        <cassandra-driver-core.version>3.11.0</cassandra-driver-core.version>
         <takari-cpsuite.version>1.2.7</takari-cpsuite.version>
         <guava.version>28.2-jre</guava.version>
         <caffeine.version>2.6.1</caffeine.version>
@@ -82,7 +84,10 @@
         <jackson-annotations.version>2.12.1</jackson-annotations.version>
         <jackson-core.version>2.12.1</jackson-core.version>
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
-        <californium.version>1.0.2</californium.version>
+        <californium.version>2.6.1</californium.version>
+        <leshan-server.version>1.3.1</leshan-server.version>
+        <leshan-core.version>1.3.1</leshan-core.version>
+        <leshan-client.version>1.3.1</leshan-client.version>
         <milo.client.version>0.2.4</milo.client.version>
         <gson.version>2.6.2</gson.version>
         <freemarker.version>2.3.30</freemarker.version>
@@ -93,7 +98,7 @@
         <grpc.version>1.22.1</grpc.version>
         <lombok.version>1.18.18</lombok.version>
         <paho.client.version>1.2.4</paho.client.version>
-        <netty.version>4.1.53.Final</netty.version>
+        <netty.version>4.1.60.Final</netty.version>
         <os-maven-plugin.version>1.5.0</os-maven-plugin.version>
         <rabbitmq.version>4.8.0</rabbitmq.version>
         <surfire.version>2.19.1</surfire.version>
@@ -109,7 +114,7 @@
         <dbunit.version>2.5.3</dbunit.version>
         <spring-test-dbunit.version>1.2.1</spring-test-dbunit.version>
         <postgresql.driver.version>42.2.16</postgresql.driver.version>
-        <azure-eventhubs.version>3.2.2</azure-eventhubs.version>
+        <azure-messaging-eventhubs.version>5.5.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
             org/thingsboard/server/extensions/core/plugin/telemetry/gen/**/*
@@ -138,6 +143,10 @@
         <protobuf-dynamic.version>1.0.2TB</protobuf-dynamic.version>
         <wire-schema.version>3.4.0</wire-schema.version>
         <twilio.version>7.54.2</twilio.version>
+        <hibernate-validator.version>6.0.13.Final</hibernate-validator.version>
+        <javax.el.version>3.0.0</javax.el.version>
+        <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
+        <antisamy.version>1.6.2</antisamy.version>
     </properties>
 
     <modules>
@@ -285,7 +294,8 @@
                                             </resource>
                                         </resources>
                                         <filters>
-                                            <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties</filter>
+                                            <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties
+                                            </filter>
                                         </filters>
                                     </configuration>
                                 </execution>
@@ -346,7 +356,8 @@
                                             </resource>
                                         </resources>
                                         <filters>
-                                            <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties</filter>
+                                            <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties
+                                            </filter>
                                         </filters>
                                     </configuration>
                                 </execution>
@@ -368,7 +379,8 @@
                                             </resource>
                                         </resources>
                                         <filters>
-                                            <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties</filter>
+                                            <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties
+                                            </filter>
                                         </filters>
                                     </configuration>
                                 </execution>
@@ -392,9 +404,39 @@
                                                 </includes>
                                                 <filtering>false</filtering>
                                             </resource>
+                                            <resource>
+                                                <directory>../common/transport/lwm2m/src/main/resources</directory>
+                                                <includes>
+                                                    <include>**/*.xml</include>
+                                                    <include>**/*.jks</include>
+                                                </includes>
+                                                <filtering>false</filtering>
+                                            </resource>
                                         </resources>
                                     </configuration>
                                 </execution>
+                                <execution>
+                                    <id>copy-lwm2m-resources</id>
+                                    <phase>${pkg.process-resources.phase}</phase>
+                                    <goals>
+                                        <goal>copy-resources</goal>
+                                    </goals>
+                                    <configuration>
+                                        <outputDirectory>../transport/lwm2m/src/main/data</outputDirectory>
+                                        <resources>
+                                            <resource>
+                                                <directory>../common/transport/lwm2m/src/main/resources</directory>
+                                                <includes>
+                                                    <include>**/*.xml</include>
+                                                    <include>**/*.jks</include>
+                                                </includes>
+                                                <filtering>false</filtering>
+                                            </resource>
+                                        </resources>
+
+                                    </configuration>
+                                </execution>
+
                                 <execution>
                                     <id>copy-docker-config</id>
                                     <phase>${pkg.process-resources.phase}</phase>
@@ -612,11 +654,6 @@
                     <version>3.0.0</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
-                </plugin>
-                <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <version>${spring-boot.version}</version>
@@ -639,6 +676,11 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
                     <version>3.0.0-M1</version>
                 </plugin>
                 <plugin>
@@ -783,6 +825,10 @@
                             <exclude>docker/haproxy/**</exclude>
                             <exclude>docker/tb-node/**</exclude>
                             <exclude>src/browserslist</exclude>
+                            <exclude>src/main/resources/models/*.xml</exclude>
+                            <exclude>src/main/resources/credentials/*.jks</exclude>
+                            <exclude>src/main/resources/credentials/shell/*.jks</exclude>
+                            <exclude>src/main/resources/credentials/shell/*.jks.old</exclude>
                             <exclude>ui/**</exclude>
                             <exclude>src/.browserslistrc</exclude>
                             <exclude>**/yarn.lock</exclude>
@@ -847,6 +893,11 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>proto</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>cache</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -963,6 +1014,11 @@
             <dependency>
                 <groupId>org.thingsboard.common.transport</groupId>
                 <artifactId>coap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.transport</groupId>
+                <artifactId>lwm2m</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1199,6 +1255,11 @@
                 <version>${cassandra.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+                <artifactId>cassandra-driver-core</artifactId>
+                <version>${cassandra-driver-core.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jmx</artifactId>
                 <version>${metrics.version}</version>
@@ -1250,6 +1311,33 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.leshan</groupId>
+                <artifactId>leshan-server-cf</artifactId>
+                <version>${leshan-server.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.leshan</groupId>
+                <artifactId>leshan-client-cf</artifactId>
+                <version>${leshan-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.leshan</groupId>
+                <artifactId>leshan-server-redis</artifactId>
+                <version>${leshan-server.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.leshan</groupId>
+                <artifactId>leshan-core</artifactId>
+                <version>${leshan-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.californium</groupId>
+                <artifactId>californium-core</artifactId>
+                <version>${californium.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.eclipse.californium</groupId>
                 <artifactId>californium-core</artifactId>
                 <version>${californium.version}</version>
@@ -1258,6 +1346,18 @@
                 <groupId>org.eclipse.milo</groupId>
                 <artifactId>sdk-client</artifactId>
                 <version>${milo.client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.californium</groupId>
+                <artifactId>element-connector</artifactId>
+                <version>${californium.version}</version>
+                <type>test-jar</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.californium</groupId>
+                <artifactId>scandium</artifactId>
+                <version>${californium.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -1364,6 +1464,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.dbunit</groupId>
                 <artifactId>dbunit</artifactId>
                 <version>${dbunit.version}</version>
@@ -1440,9 +1546,15 @@
                 <version>${netty-mqtt-client.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-eventhubs</artifactId>
-                <version>${azure-eventhubs.version}</version>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-messaging-eventhubs</artifactId>
+                <version>${azure-messaging-eventhubs.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.dataformat</groupId>
+                        <artifactId>jackson-dataformat-xml</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure.sdk.iot</groupId>
@@ -1609,6 +1721,36 @@
                     <exclusion>
                         <groupId>io.jsonwebtoken</groupId>
                         <artifactId>jjwt-impl</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.el</artifactId>
+                <version>${javax.el.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${javax.validation-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.owasp.antisamy</groupId>
+                <artifactId>antisamy</artifactId>
+                <version>${antisamy.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-annotations</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

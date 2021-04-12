@@ -55,6 +55,8 @@ import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantInfo;
@@ -85,6 +87,7 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -146,6 +149,7 @@ import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.TbResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -160,6 +164,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.lwm2m.LwM2MModelsRepository;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -320,6 +325,9 @@ public abstract class BaseController {
     protected TbServiceInfoProvider serviceInfoProvider;
 
     @Autowired
+    protected TbResourceService resourceService;
+
+    @Autowired
     protected TbQueueProducerProvider producerProvider;
 
     @Autowired
@@ -333,6 +341,9 @@ public abstract class BaseController {
 
     @Autowired
     protected TbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
+    protected LwM2MModelsRepository lwM2MModelsRepository;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -683,6 +694,9 @@ public abstract class BaseController {
                 case GROUP_PERMISSION:
                     checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
                     return;
+                case TB_RESOURCE:
+                    checkResourceId(new TbResourceId(entityId.getId()), operation);
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -972,6 +986,30 @@ public abstract class BaseController {
         checkNotNull(ruleNode);
         checkRuleChain(ruleNode.getRuleChainId(), operation);
         return ruleNode;
+    }
+
+    TbResource checkResourceId(TbResourceId resourceId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(resourceId, "Incorrect resourceId " + resourceId);
+            TbResource resource = resourceService.findResourceById(getCurrentUser().getTenantId(), resourceId);
+            checkNotNull(resource);
+            accessControlService.checkPermission(getCurrentUser(), Resource.TB_RESOURCE, operation, resourceId, resource);
+            return resource;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    TbResourceInfo checkResourceInfoId(TbResourceId resourceId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(resourceId, "Incorrect resourceId " + resourceId);
+            TbResourceInfo resourceInfo = resourceService.findResourceInfoById(getCurrentUser().getTenantId(), resourceId);
+            checkNotNull(resourceInfo);
+            accessControlService.checkPermission(getCurrentUser(), Resource.TB_RESOURCE, operation, resourceId, resourceInfo);
+            return resourceInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
     }
 
     protected ThingsboardException permissionDenied() {
@@ -1276,8 +1314,8 @@ public abstract class BaseController {
 
     protected void processDashboardIdFromAdditionalInfo(ObjectNode additionalInfo, String requiredFields) throws ThingsboardException {
         String dashboardId = additionalInfo.has(requiredFields) ? additionalInfo.get(requiredFields).asText() : null;
-        if(dashboardId != null && !dashboardId.equals("null")) {
-            if(dashboardService.findDashboardById(getTenantId(), new DashboardId(UUID.fromString(dashboardId))) == null) {
+        if (dashboardId != null && !dashboardId.equals("null")) {
+            if (dashboardService.findDashboardById(getTenantId(), new DashboardId(UUID.fromString(dashboardId))) == null) {
                 additionalInfo.remove(requiredFields);
             }
         }

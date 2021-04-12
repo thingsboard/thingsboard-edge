@@ -145,6 +145,7 @@ export class AlarmDataSubscription {
         this.alarmDataCommand.query.pageLink.timeWindow = this.subsTw.realtimeWindowMs;
       }
 
+      this.subscriber.setTsOffset(this.subsTw.tsOffset);
       this.subscriber.subscriptionCommands.push(this.alarmDataCommand);
 
       this.subscriber.alarmData$.subscribe((alarmDataUpdate) => {
@@ -158,8 +159,11 @@ export class AlarmDataSubscription {
       this.subscriber.subscribe();
 
     } else if (this.datasourceType === DatasourceType.function) {
+      const alarm = deepClone(simulatedAlarm);
+      alarm.createdTime += this.subsTw.tsOffset;
+      alarm.startTs += this.subsTw.tsOffset;
       const pageData: PageData<AlarmData> = {
-        data: [{...simulatedAlarm, entityId: '1', latest: {}}],
+        data: [{...alarm, entityId: '1', latest: {}}],
         hasNext: false,
         totalElements: 1,
         totalPages: 1

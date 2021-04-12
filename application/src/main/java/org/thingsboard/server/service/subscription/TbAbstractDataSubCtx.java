@@ -131,10 +131,18 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         }
     }
 
-    public void createSubscriptions(List<EntityKey> keys, boolean resultToLatestValues) {
+    public void createLatestValuesSubscriptions(List<EntityKey> keys) {
+        createSubscriptions(keys, true, 0, 0);
+    }
+
+    public void createTimeseriesSubscriptions(List<EntityKey> keys, long startTs, long endTs) {
+        createSubscriptions(keys, false, startTs, endTs);
+    }
+
+    private void createSubscriptions(List<EntityKey> keys, boolean latestValues, long startTs, long endTs) {
         Map<EntityKeyType, List<EntityKey>> keysByType = getEntityKeyByTypeMap(keys);
         for (EntityData entityData : data.getData()) {
-            List<TbSubscription> entitySubscriptions = addSubscriptions(entityData, keysByType, resultToLatestValues);
+            List<TbSubscription> entitySubscriptions = addSubscriptions(entityData, keysByType, latestValues, startTs, endTs);
             entitySubscriptions.forEach(localSubscriptionService::addSubscription);
         }
     }
@@ -145,7 +153,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         return keysByType;
     }
 
-    protected List<TbSubscription> addSubscriptions(EntityData entityData, Map<EntityKeyType, List<EntityKey>> keysByType, boolean resultToLatestValues) {
+    protected List<TbSubscription> addSubscriptions(EntityData entityData, Map<EntityKeyType, List<EntityKey>> keysByType, boolean latestValues, long startTs, long endTs) {
         List<TbSubscription> subscriptionList = new ArrayList<>();
         keysByType.forEach((keysType, keysList) -> {
             int subIdx = sessionRef.getSessionSubIdSeq().incrementAndGet();
@@ -153,7 +161,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
             switch (keysType) {
                 case TIME_SERIES:
                     if (entityData.isReadTs()) {
-                        subscriptionList.add(createTsSub(entityData, subIdx, keysList, resultToLatestValues));
+                        subscriptionList.add(createTsSub(entityData, subIdx, keysList, latestValues, startTs, endTs));
                     }
                     break;
                 case CLIENT_ATTRIBUTE:
@@ -197,9 +205,9 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
                 .build();
     }
 
-    private TbSubscription createTsSub(EntityData entityData, int subIdx, List<EntityKey> subKeys, boolean resultToLatestValues) {
+    private TbSubscription createTsSub(EntityData entityData, int subIdx, List<EntityKey> subKeys, boolean latestValues, long startTs, long endTs) {
         Map<String, Long> keyStates = buildKeyStats(entityData, EntityKeyType.TIME_SERIES, subKeys);
-        if (entityData.getTimeseries() != null) {
+        if (!latestValues && entityData.getTimeseries() != null) {
             entityData.getTimeseries().forEach((k, v) -> {
                 long ts = Arrays.stream(v).map(TsValue::getTs).max(Long::compareTo).orElse(0L);
                 log.trace("[{}][{}] Updating key: {} with ts: {}", serviceId, cmdId, k, ts);
@@ -213,9 +221,12 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
                 .subscriptionId(subIdx)
                 .tenantId(sessionRef.getSecurityCtx().getTenantId())
                 .entityId(entityData.getEntityId())
-                .updateConsumer((sessionId, subscriptionUpdate) -> sendWsMsg(sessionId, subscriptionUpdate, EntityKeyType.TIME_SERIES, resultToLatestValues))
+                .updateConsumer((sessionId, subscriptionUpdate) -> sendWsMsg(sessionId, subscriptionUpdate, EntityKeyType.TIME_SERIES, latestValues))
                 .allKeys(false)
                 .keyStates(keyStates)
+                .latestValues(latestValues)
+                .startTime(startTs)
+                .endTime(endTs)
                 .build();
     }
 

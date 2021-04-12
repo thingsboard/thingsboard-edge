@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<anti-samy-rules>
+
+    <directives>
+        <directive name="omitXmlDeclaration" value="true"/>
+        <directive name="omitDoctypeDeclaration" value="false"/>
+        <directive name="maxInputSize" value="100000"/>
+        <directive name="embedStyleSheets" value="false"/>
+        <directive name="useXHTML" value="true"/>
+        <directive name="formatOutput" value="true"/>
+    </directives>
+
+    <common-regexps>
+
+        <!--
+            From W3C:
+            This attribute assigns a class name or set of class names to an
+            element. Any number of elements may be assigned the same class
+            name or names. Multiple class names must be separated by white
+            space characters.
+        -->
+        <regexp name="htmlTitle" value="[a-zA-Z0-9\s\-_',:\[\]!\./\\\(\)&amp;]*"/>
+
+        <!--  force non-empty with a '+' at the end instead of '*'
+        -->
+        <regexp name="onsiteURL" value="([\p{L}\p{N}\p{Zs}/\.\?=&amp;\-~])+"/>
+
+        <!--  ([\w\\/\.\?=&amp;;\#-~]+|\#(\w)+)
+        -->
+
+        <!--  ([\p{L}/ 0-9&amp;\#-.?=])*
+        -->
+        <regexp name="offsiteURL"
+                value="(\s)*((ht|f)tp(s?)://|mailto:)[A-Za-z0-9]+[~a-zA-Z0-9-_\.@\#\$%&amp;;:,\?=/\+!\(\)]*(\s)*"/>
+    </common-regexps>
+
+    <common-attributes>
+
+        <attribute name="lang"
+                   description="The 'lang' attribute tells the browser what language the element's attribute values and content are written in">
+
+            <regexp-list>
+                <regexp value="[a-zA-Z]{2,20}"/>
+            </regexp-list>
+        </attribute>
+
+        <attribute name="title"
+                   description="The 'title' attribute provides text that shows up in a 'tooltip' when a user hovers their mouse over the element">
+
+            <regexp-list>
+                <regexp name="htmlTitle"/>
+            </regexp-list>
+        </attribute>
+
+        <attribute name="href" onInvalid="filterTag">
+
+            <regexp-list>
+                <regexp name="onsiteURL"/>
+                <regexp name="offsiteURL"/>
+            </regexp-list>
+        </attribute>
+
+        <attribute name="align"
+                   description="The 'align' attribute of an HTML element is a direction word, like 'left', 'right' or 'center'">
+
+            <literal-list>
+                <literal value="center"/>
+                <literal value="left"/>
+                <literal value="right"/>
+                <literal value="justify"/>
+                <literal value="char"/>
+            </literal-list>
+        </attribute>
+        <attribute name="style"
+                   description="The 'style' attribute provides the ability for users to change many attributes of the tag's contents using a strict syntax"/>
+    </common-attributes>
+
+    <global-tag-attributes>
+        <attribute name="title"/>
+        <attribute name="lang"/>
+        <attribute name="style"/>
+    </global-tag-attributes>
+
+    <tags-to-encode>
+        <tag>g</tag>
+        <tag>grin</tag>
+    </tags-to-encode>
+
+    <tag-rules>
+
+        <tag name="script" action="remove"/>
+        <tag name="noscript" action="remove"/>
+        <tag name="iframe" action="remove"/>
+        <tag name="frameset" action="remove"/>
+        <tag name="frame" action="remove"/>
+        <tag name="noframes" action="remove"/>
+        <tag name="head" action="remove"/>
+        <tag name="title" action="remove"/>
+        <tag name="base" action="remove"/>
+        <tag name="style" action="remove"/>
+        <tag name="link" action="remove"/>
+        <tag name="input" action="remove"/>
+        <tag name="textarea" action="remove"/>
+
+        <tag name="br" action="remove"/>
+
+        <tag name="p" action="remove"/>
+        <tag name="div" action="remove"/>
+        <tag name="span" action="remove"/>
+        <tag name="i" action="remove"/>
+        <tag name="b" action="remove"/>
+        <tag name="strong" action="remove"/>
+        <tag name="s" action="remove"/>
+        <tag name="strike" action="remove"/>
+        <tag name="u" action="remove"/>
+        <tag name="em" action="remove"/>
+        <tag name="blockquote" action="remove"/>
+        <tag name="tt" action="remove"/>
+
+        <tag name="a" action="remove"/>
+
+        <tag name="ul" action="remove"/>
+        <tag name="ol" action="remove"/>
+        <tag name="li" action="remove"/>
+        <tag name="dl" action="remove"/>
+        <tag name="dt" action="remove"/>
+        <tag name="dd" action="remove"/>
+    </tag-rules>
+
+    <css-rules>
+        <property name="text-decoration" default="none"
+                  description="">
+
+            <category-list>
+                <category value="visual"/>
+            </category-list>
+
+            <literal-list>
+                <literal value="underline"/>
+                <literal value="overline"/>
+                <literal value="line-through"/>
+            </literal-list>
+        </property>
+    </css-rules>
+</anti-samy-rules>

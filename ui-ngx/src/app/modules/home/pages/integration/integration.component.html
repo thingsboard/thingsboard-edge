@@ -165,6 +165,9 @@
         <tb-azure-event-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
         [downlinkConverterIdControl]="entityForm.get('downlinkConverterId')">
         </tb-azure-event-hub-integration-form>
+        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+          {{ 'integration.check-connection' | translate }}
+        </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.AZURE_IOT_HUB">
         <tb-azure-iot-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
