@@ -210,13 +210,6 @@ public class PsqlTsDatabaseUpgradeService extends AbstractSqlTsDatabaseUpgradeSe
                     executeQuery(conn, "UPDATE tb_schema_settings SET schema_version = 2005001");
                 }
                 break;
-                // TODO: voba - verify this
-//            case "2.5.5":
-//                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-//                    log.info("Load Edge TTL functions ...");
-//                    loadSql(conn, "2.6.0", LOAD_TTL_FUNCTIONS_SQL);
-//                }
-//                break;
             case "3.1.1":
             case "3.2.1":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {

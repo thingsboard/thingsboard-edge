@@ -221,15 +221,7 @@ public class InstallScripts {
 
     public void createDefaultEdgeRuleChains(TenantId tenantId) throws IOException {
         Path edgeChainsDir = getEdgeRuleChainsDir();
-        loadRuleChainsFromPath(tenantId, edgeChainsDir);
-    }
-
-    private void loadRuleChainsFromPath(TenantId tenantId, Path ruleChainsPath) throws IOException {
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
-            dirStream.forEach(
-                    path -> loadRuleChainFromFile(tenantId, path)
-            );
-        }
+        loadAdditionalTenantRuleChains(tenantId, edgeChainsDir);
     }
 
     public void loadSystemWidgets() throws Exception {
@@ -361,13 +353,8 @@ public class InstallScripts {
         try {
             createDefaultRuleChains(tenantId);
             createDefaultRuleChain(tenantId, "Thermostat");
-
-
-            // TODO: voba - verify this
-            loadEdgeDemoRuleChains(tenantId);
         } catch (Exception e) {
-            // TODO: voba DASHBOARD?
-            log.error("Unable to load dashboard from json", e);
+            log.error("Unable to load rule chains from json", e);
             throw new RuntimeException("Unable to load dashboard from json", e);
         }
     }
@@ -380,33 +367,6 @@ public class InstallScripts {
         }
         JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
-    }
-
-    private void loadEdgeDemoRuleChains(TenantId tenantId) throws Exception {
-        Path edgeRuleChainsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
-        try {
-            loadRuleChainFromFile(tenantId, edgeRuleChainsDir.resolve("edge_root_rule_chain.json"));
-        } catch (Exception e) {
-            log.error("Unable to load dashboard from json", e);
-            throw new RuntimeException("Unable to load dashboard from json", e);
-        }
-    }
-
-    private void loadRuleChainFromFile(TenantId tenantId, Path ruleChainPath) {
-        try {
-            JsonNode ruleChainJson = objectMapper.readTree(ruleChainPath.toFile());
-            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
-            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
-
-            ruleChain.setTenantId(tenantId);
-            ruleChain = ruleChainService.saveRuleChain(ruleChain);
-
-            ruleChainMetaData.setRuleChainId(ruleChain.getId());
-            ruleChainService.saveRuleChainMetaData(new TenantId(EntityId.NULL_UUID), ruleChainMetaData);
-        } catch (Exception e) {
-            log.error("Unable to load rule chain from json: [{}]", ruleChainPath.toString());
-            throw new RuntimeException("Unable to load rule chain from json", e);
-        }
     }
 
     private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {

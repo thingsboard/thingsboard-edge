@@ -284,20 +284,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.info("Schema updated.");
                 }
                 break;
-            // TODO: voba - this is required?
-            case "2.5.5":
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    log.info("Updating schema ...");
-                    // TODO: should be 2.6.0 ???
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.0", SCHEMA_UPDATE_SQL);
-                    loadSql(schemaUpdateFile, conn);
-
-                    try {
-                        conn.createStatement().execute("ALTER TABLE rule_chain ADD COLUMN type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
-                    log.info("Schema updated.");
-                }
-                break;
             case "3.0.1":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
@@ -500,6 +486,18 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3003000;");
                         installScripts.loadSystemLwm2mResources();
+
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.2", SCHEMA_UPDATE_SQL);
+                        loadSql(schemaUpdateFile, conn);
+                        try {
+                            conn.createStatement().execute("ALTER TABLE rule_chain ADD COLUMN type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception ignored) {}
+
+                        log.info("Load Edge TTL functions ...");
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.2", "schema_update_ttl.sql");
+                        loadSql(schemaUpdateFile, conn);
+                        log.info("Edge TTL functions successfully loaded!");
+
                     } catch (Exception e) {
                         log.error("Failed updating schema!!!", e);
                     }
@@ -554,6 +552,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
 
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
@@ -579,46 +580,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed to update schema!!!");
                 }
                 break;
-            // TODO: voba - validate upgrade
-//            case "3.2.2":
-//                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-//                    log.info("Updating schema ...");
-//                    try {
-//                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.2", SCHEMA_UPDATE_SQL);
-//                        loadSql(schemaUpdateFile, conn);
-//                        try {
-//                            conn.createStatement().execute("ALTER TABLE rule_chain ADD COLUMN type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-//                        } catch (Exception e) {
-//                        }
-//
-//                        conn.createStatement().execute("CREATE TABLE IF NOT EXISTS resource (" +
-//                                " tenant_id uuid NOT NULL," +
-//                                " resource_type varchar(32) NOT NULL," +
-//                                " resource_id varchar(255) NOT NULL," +
-//                                " resource_value varchar," +
-//                                " CONSTRAINT resource_unq_key UNIQUE (tenant_id, resource_type, resource_id)" +
-//                                " );");
-//
-//                        conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3003000;");
-//                        installScripts.loadSystemLwm2mResources();
-//                    } catch (Exception e) {
-//                        log.error("Failed updating schema!!!", e);
-//                    }
-//                    log.info("Schema updated.");
-//                }
-//                break;
-            // TODO: voba - verify this upgrade
-//            case "3.3.0":
-//                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-//                    log.info("Updating schema ...");
-//                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.1", SCHEMA_UPDATE_SQL);
-//                    loadSql(schemaUpdateFile, conn);
-//                    try {
-//                        conn.createStatement().execute("ALTER TABLE rule_chain ADD type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-//                    } catch (Exception e) {}
-//                    log.info("Schema updated.");
-//                }
-//                break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }
