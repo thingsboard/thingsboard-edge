@@ -77,7 +77,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -350,13 +349,8 @@ public class InstallScripts {
     }
 
     public void loadDemoRuleChains(TenantId tenantId) throws Exception {
-        try {
-            createDefaultRuleChains(tenantId);
-            createDefaultRuleChain(tenantId, "Thermostat");
-        } catch (Exception e) {
-            log.error("Unable to load rule chains from json", e);
-            throw new RuntimeException("Unable to load dashboard from json", e);
-        }
+        createDefaultRuleChains(tenantId);
+        createDefaultRuleChain(tenantId, "Thermostat");
     }
 
     private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
