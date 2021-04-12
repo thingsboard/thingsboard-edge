@@ -246,7 +246,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             }
             device.setType(deviceProfile.getName());
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
-
             savedDevice = deviceDao.save(device.getTenantId(), device);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
@@ -258,7 +257,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 throw t;
             }
         }
-
+        if (device.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+        }
         return savedDevice;
     }
 

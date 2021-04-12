@@ -28,27 +28,61 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.resource;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.Resource;
-import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.TbResourceId;
 
-import java.util.List;
+@Slf4j
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class TbResource extends TbResourceInfo {
 
+    private static final long serialVersionUID = 7379609705527272306L;
 
-public interface ResourceService {
-    Resource saveResource(Resource resource);
+    private String fileName;
 
-    Resource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    private String data;
 
-    PageData<Resource> findResourcesByTenantId(TenantId tenantId, PageLink pageLink);
+    public TbResource() {
+        super();
+    }
 
-    List<Resource> findResourcesByTenantIdResourceType(TenantId tenantId, ResourceType resourceType);
+    public TbResource(TbResourceId id) {
+        super(id);
+    }
 
-    void deleteResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    public TbResource(TbResourceInfo resourceInfo) {
+        super(resourceInfo);
+    }
 
-    void deleteResourcesByTenantId(TenantId tenantId);
+    public TbResource(TbResource resource) {
+        super(resource);
+        this.data = resource.getData();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Resource [tenantId=");
+        builder.append(getTenantId());
+        builder.append(", id=");
+        builder.append(getUuidId());
+        builder.append(", createdTime=");
+        builder.append(createdTime);
+        builder.append(", title=");
+        builder.append(getTitle());
+        builder.append(", resourceType=");
+        builder.append(getResourceType());
+        builder.append(", resourceKey=");
+        builder.append(getResourceKey());
+        builder.append(", fileName=");
+        builder.append(fileName);
+        builder.append(", data=");
+        builder.append(data);
+        builder.append("]");
+        return builder.toString();
+    }
 }

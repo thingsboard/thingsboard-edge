@@ -198,7 +198,6 @@ public class AuthController extends BaseController {
             String baseUrl = systemSecurityService.getBaseUrl(user.getAuthority(), user.getTenantId(), user.getCustomerId(), request);
             String resetUrl = String.format("%s/api/noauth/resetPassword?resetToken=%s", baseUrl,
                     userCredentials.getResetToken());
-
             mailService.sendResetPasswordEmail(user.getTenantId(), resetUrl, email);
         } catch (Exception e) {
             throw handleException(e);

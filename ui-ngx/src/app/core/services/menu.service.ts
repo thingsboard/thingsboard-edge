@@ -169,6 +169,14 @@ export class MenuService {
         path: '/widgets-bundles',
         icon: 'now_widgets',
         disabled: disabledItems.indexOf('widget_library') > -1
+      },
+      {
+        id: guid(),
+        name: 'resource.resources-library',
+        type: 'link',
+        path: '/resources-library',
+        icon: 'folder',
+        disabled: disabledItems.indexOf('resources_library') > -1
       }
     );
 
@@ -298,6 +306,17 @@ export class MenuService {
             icon: 'now_widgets',
             path: '/widgets-bundles',
             disabled: disabledItems.indexOf('widget_library') > -1
+          }
+        ]
+      },
+      {
+        name: 'resource.management',
+        places: [
+          {
+            name: 'resource.resources-library',
+            icon: 'folder',
+            path: '/resources-library',
+            disabled: disabledItems.indexOf('resources_library') > -1
           }
         ]
       },
@@ -526,6 +545,18 @@ export class MenuService {
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'resource.resources-library',
+          type: 'link',
+          path: '/resources-library',
+          icon: 'folder',
+          disabled: disabledItems.indexOf('resources_library') > -1
+        }
+      );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
@@ -828,6 +859,21 @@ export class MenuService {
               icon: 'settings_ethernet',
               path: '/edges/ruleChains',
               disabled: disabledItems.indexOf('edge_groups') > -1
+            }
+          ]
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+      homeSections.push(
+        {
+          name: 'resource.management',
+          places: [
+            {
+              name: 'resource.resources-library',
+              icon: 'folder',
+              path: '/resources-library',
+              disabled: disabledItems.indexOf('resources_library') > -1
             }
           ]
         }

@@ -28,32 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.transport.coap;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.Resource;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Transient;
-import java.io.Serializable;
-import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@Slf4j
 @Data
-public class ResourceCompositeKey implements Serializable {
+public class TbCoapDtlsSessionInMemoryStorage {
 
-    @Transient
-    private static final long serialVersionUID = -3789469030818742769L;
+    private final ConcurrentMap<String, TbCoapDtlsSessionInfo> dtlsSessionIdMap = new ConcurrentHashMap<>();
+    private long dtlsSessionInactivityTimeout;
+    private long dtlsSessionReportTimeout;
 
-    private UUID tenantId;
-    private String resourceType;
-    private String resourceId;
 
-    public ResourceCompositeKey(Resource resource) {
-        this.tenantId = resource.getTenantId().getId();
-        this.resourceType = resource.getResourceType().name();
-        this.resourceId = resource.getResourceId();
+    public TbCoapDtlsSessionInMemoryStorage(long dtlsSessionInactivityTimeout, long dtlsSessionReportTimeout) {
+        this.dtlsSessionInactivityTimeout = dtlsSessionInactivityTimeout;
+        this.dtlsSessionReportTimeout = dtlsSessionReportTimeout;
     }
+
+    public void put(String dtlsSessionId, TbCoapDtlsSessionInfo dtlsSessionInfo) {
+        log.trace("DTLS session added to in-memory store: [{}] timestamp: [{}]", dtlsSessionId, dtlsSessionInfo.getLastActivityTime());
+        dtlsSessionIdMap.putIfAbsent(dtlsSessionId, dtlsSessionInfo);
+    }
+
+    public void evictTimeoutSessions() {
+        long expTime = System.currentTimeMillis() - dtlsSessionInactivityTimeout;
+        dtlsSessionIdMap.entrySet().removeIf(entry -> {
+            if (entry.getValue().getLastActivityTime() < expTime) {
+                log.trace("DTLS session was removed from in-memory store: [{}]", entry.getKey());
+                return true;
+            } else {
+                return false;
+            }
+        });
+    }
+
 }

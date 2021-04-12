@@ -36,11 +36,13 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 public class Customer extends ContactBased<CustomerId> implements GroupEntity<CustomerId> {
 
     private static final long serialVersionUID = -1599722990298929275L;
-    
+
+    @NoXss
     private String title;
     private TenantId tenantId;
     private CustomerId parentCustomerId;

@@ -92,6 +92,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.AUDIT_LOG, genericPermissionChecker);
         put(Resource.DEVICE_PROFILE, tenantStandaloneEntityPermissionChecker);
         put(Resource.API_USAGE_STATE, tenantStandaloneEntityPermissionChecker);
+        put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -245,4 +246,28 @@ public class TenantAdminPermissions extends AbstractPermissions {
         }
 
     };
+
+    private static final PermissionChecker tbResourcePermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+            if (entity.getTenantId() == null || entity.getTenantId().isNullUid()) {
+                if (operation != Operation.READ) {
+                    return false;
+                }
+            } else if (!user.getTenantId().equals(entity.getTenantId())) {
+                return false;
+            }
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            // This entity does not have groups, so we are checking only generic level permissions
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+    };
+
 }

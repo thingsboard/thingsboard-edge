@@ -28,29 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.service.sql;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.service.BaseTbResourceServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.io.Serializable;
-
-@Data
-public class Resource implements HasTenantId, Serializable {
-
-    private static final long serialVersionUID = 7379609705527272306L;
-
-    private TenantId tenantId;
-    private ResourceType resourceType;
-    private String resourceId;
-    private String value;
-
-    @Override
-    public String toString() {
-        return "Resource{" +
-                "tenantId=" + tenantId +
-                ", resourceType=" + resourceType +
-                ", resourceId='" + resourceId + '\'' +
-                '}';
-    }
+@DaoSqlTest
+public class TbResourceServiceSqlTest extends BaseTbResourceServiceTest {
 }

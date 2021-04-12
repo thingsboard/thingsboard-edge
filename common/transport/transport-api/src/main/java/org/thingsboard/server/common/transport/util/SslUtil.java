@@ -28,51 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.lwm2m;
+package org.thingsboard.server.common.transport.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Base64Utils;
+import org.thingsboard.server.common.msg.EncryptionUtil;
 
-import java.util.stream.Stream;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 
-@Data
-@AllArgsConstructor
-public class LwM2mResource {
-    int id;
-    String name;
-    boolean observe;
-    boolean attribute;
-    boolean telemetry;
-    String keyName;
+/**
+ * @author Valerii Sosliuk
+ */
+@Slf4j
+public class SslUtil {
 
-    public LwM2mResource(int id, String name, boolean observe, boolean attribute, boolean telemetry) {
-        this.id = id;
-        this.name = name;
-        this.observe = observe;
-        this.attribute = attribute;
-        this.telemetry = telemetry;
-        this.keyName = getCamelCase (this.name);
+    private SslUtil() {
     }
 
-    private String getCamelCase (String name) {
-        name = name.replaceAll("-", " ");
-        name = name.replaceAll("_", " ");
-        String [] nameCamel1 = name.split(" ");
-        String [] nameCamel2 = new String[nameCamel1.length];
-        int[] idx = { 0 };
-        Stream.of(nameCamel1).forEach((s -> {
-            nameCamel2[idx[0]] = toProperCase(idx[0]++,  s);
-        }));
-        return String.join("", nameCamel2);
-    }
-
-    private String toProperCase(int idx, String s) {
-        if (!s.isEmpty() && s.length()> 0) {
-            String s1 = (idx == 0) ? s.substring(0, 1).toLowerCase() : s.substring(0, 1).toUpperCase();
-            String s2 = "";
-            if (s.length()> 1) s2 = s.substring(1).toLowerCase();
-            s = s1 + s2;
-        }
-        return s;
+    public static String getCertificateString(Certificate cert)
+            throws CertificateEncodingException {
+        return EncryptionUtil.trimNewLines(Base64Utils.encodeToString(cert.getEncoded()));
     }
 }

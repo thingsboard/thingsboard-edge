@@ -40,6 +40,8 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotifica
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportUpdateCredentialsProto;
+import org.thingsboard.server.gen.transport.TransportProtos.ResourceUpdateMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ResourceDeleteMsg;
 
 import java.util.Optional;
 
@@ -60,9 +62,12 @@ public interface SessionMsgListener {
 
     default void onToTransportUpdateCredentials(ToTransportUpdateCredentialsProto toTransportUpdateCredentials){}
 
-    default void onDeviceProfileUpdate(TransportProtos.SessionInfoProto newSessionInfo, DeviceProfile deviceProfile) {
-    }
+    default void onDeviceProfileUpdate(SessionInfoProto newSessionInfo, DeviceProfile deviceProfile) {}
 
-    default void onDeviceUpdate(SessionInfoProto sessionInfo, Device device, Optional<DeviceProfile> deviceProfileOpt) {
-    }
+    default void onDeviceUpdate(SessionInfoProto sessionInfo, Device device,
+                                Optional<DeviceProfile> deviceProfileOpt) {}
+
+    default void onResourceUpdate(Optional<ResourceUpdateMsg> resourceUpdateMsgOpt) {}
+
+    default void onResourceDelete(Optional<ResourceDeleteMsg> resourceUpdateMsgOpt) {}
 }

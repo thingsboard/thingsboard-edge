@@ -29,6 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+export const PAGE_SIZE_LIMIT = 50;
 export const INSTANCES = 'instances';
 export const RESOURCES = 'resources';
 export const CLIENT_LWM2M = 'clientLwM2M';
@@ -73,7 +74,7 @@ export const SECURITY_CONFIG_MODE_NAMES = new Map<SECURITY_CONFIG_MODE, string>(
 );
 
 export interface ModelValue {
-  objectIds: number[] | null,
+  objectIds: string[],
   objectsList: ObjectLwM2M[]
 }
 
@@ -112,7 +113,7 @@ export interface ProfileConfigModels {
 }
 
 export interface ClientLwM2mSettings {
-  clientOnlyObserveAfterConnect: boolean;
+  clientOnlyObserveAfterConnect: number;
 }
 export interface ObservableAttributes {
   observe: string[];
@@ -171,7 +172,7 @@ function getDefaultProfileObserveAttrConfig(): ObservableAttributes {
 
 function getDefaultProfileClientLwM2mSettingsConfig(): ClientLwM2mSettings {
   return {
-    clientOnlyObserveAfterConnect: true
+    clientOnlyObserveAfterConnect: 1
   };
 }
 
@@ -205,6 +206,7 @@ export interface Instance {
  */
 export interface ObjectLwM2M {
   id: number;
+  keyId: string;
   name: string;
   multiple?: boolean;
   mandatory?: boolean;

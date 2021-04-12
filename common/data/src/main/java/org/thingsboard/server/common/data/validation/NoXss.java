@@ -28,23 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.resource;
+package org.thingsboard.server.common.data.validation;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.CrudRepository;
-import org.thingsboard.server.dao.model.sql.ResourceCompositeKey;
-import org.thingsboard.server.dao.model.sql.ResourceEntity;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.List;
-import java.util.UUID;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@Constraint(validatedBy = {})
+public @interface NoXss {
+    String message() default "field value is malformed";
 
-public interface ResourceRepository extends CrudRepository<ResourceEntity, ResourceCompositeKey> {
+    Class<?>[] groups() default {};
 
-    Page<ResourceEntity> findAllByTenantId(UUID tenantId, Pageable pageable);
-
-
-    List<ResourceEntity> findAllByTenantIdAndResourceType(UUID tenantId, String resourceType);
-
-    void removeAllByTenantId(UUID tenantId);
+    Class<? extends Payload>[] payload() default {};
 }

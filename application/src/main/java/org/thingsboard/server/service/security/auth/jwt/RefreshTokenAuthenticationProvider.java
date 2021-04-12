@@ -52,7 +52,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.auth.TokenOutdatingService;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.RefreshAuthenticationToken;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -67,10 +66,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RefreshTokenAuthenticationProvider implements AuthenticationProvider {
     private final JwtTokenFactory tokenFactory;
-    private final UserService userService;
-    private final EntityGroupService entityGroupService;
-    private final CustomerService customerService;
     private final UserPermissionsService userPermissionsService;
+    private final UserService userService;
+    private final CustomerService customerService;
     private final TokenOutdatingService tokenOutdatingService;
 
     @Override

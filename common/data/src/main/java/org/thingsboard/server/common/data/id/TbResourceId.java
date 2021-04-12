@@ -28,25 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.transport.resource;
+package org.thingsboard.server.common.data.id;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.id.TenantId;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.thingsboard.server.common.data.EntityType;
 
-@Data
-public class Resource implements HasTenantId {
-    private TenantId tenantId;
-    private ResourceType resourceType;
-    private String resourceId;
-    private String value;
+import java.util.UUID;
 
+public class TbResourceId extends UUIDBased implements EntityId {
+
+    private static final long serialVersionUID = 1L;
+
+    @JsonCreator
+    public TbResourceId(@JsonProperty("id") UUID id) {
+        super(id);
+    }
+
+    @JsonIgnore
     @Override
-    public String toString() {
-        return "Resource{" +
-                "tenantId=" + tenantId +
-                ", resourceType=" + resourceType +
-                ", resourceId='" + resourceId + '\'' +
-                '}';
+    public EntityType getEntityType() {
+        return EntityType.TB_RESOURCE;
     }
 }

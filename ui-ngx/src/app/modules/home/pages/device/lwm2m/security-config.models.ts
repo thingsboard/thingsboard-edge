@@ -63,31 +63,12 @@ export const SECURITY_CONFIG_MODE_NAMES = new Map<SECURITY_CONFIG_MODE, string>(
   ]
 );
 
-export type ClientSecurityConfigType =
-  ClientSecurityConfigPSK
-  | ClientSecurityConfigRPK
-  | ClientSecurityConfigX509
-  | ClientSecurityConfigNoSEC;
-
-export interface ClientSecurityConfigPSK {
+export interface ClientSecurityConfig {
   securityConfigClientMode: string;
   endpoint: string;
   identity: string;
   key: string;
-}
-
-export interface ClientSecurityConfigRPK {
-  securityConfigClientMode: string;
-  key: string;
-}
-
-export interface ClientSecurityConfigX509 {
-  securityConfigClientMode: string;
   x509: boolean;
-}
-
-export interface ClientSecurityConfigNoSEC {
-  securityConfigClientMode: string;
 }
 
 export interface ServerSecurityConfig {
@@ -102,41 +83,34 @@ interface BootstrapSecurityConfig {
 }
 
 export interface SecurityConfigModels {
-  client: ClientSecurityConfigType;
+  client: ClientSecurityConfig;
   bootstrap: BootstrapSecurityConfig;
 }
 
-export function getDefaultClientSecurityConfigType(securityConfigMode: SECURITY_CONFIG_MODE, endPoint?: string): ClientSecurityConfigType {
-  let security: ClientSecurityConfigType;
+export function getClientSecurityConfig(securityConfigMode: SECURITY_CONFIG_MODE, endPoint?: string): ClientSecurityConfig {
+  let security = getDefaultClientSecurityConfig();
+  security.securityConfigClientMode = securityConfigMode.toString();
   switch (securityConfigMode) {
     case SECURITY_CONFIG_MODE.PSK:
-      security = {
-        securityConfigClientMode: '',
-        endpoint: endPoint,
-        identity: endPoint,
-        key: ''
-      };
-      break;
-    case SECURITY_CONFIG_MODE.RPK:
-      security = {
-        securityConfigClientMode: '',
-        key: ''
-      };
+      security.endpoint =  endPoint;
+      security.identity =  endPoint;
       break;
     case SECURITY_CONFIG_MODE.X509:
-      security = {
-        securityConfigClientMode: '',
-        x509: true
-      };
-      break;
-    case SECURITY_CONFIG_MODE.NO_SEC:
-      security = {
-        securityConfigClientMode: ''
-      };
+      security.x509 = true;
       break;
   }
-  security.securityConfigClientMode = securityConfigMode.toString();
+
   return security;
+}
+
+export function getDefaultClientSecurityConfig(): ClientSecurityConfig {
+  return {
+    securityConfigClientMode: SECURITY_CONFIG_MODE.NO_SEC.toString(),
+    endpoint: '',
+    identity: '',
+    key: '',
+    x509: false
+  };
 }
 
 export function getDefaultServerSecurityConfig(): ServerSecurityConfig {
@@ -156,7 +130,7 @@ function getDefaultBootstrapSecurityConfig(): BootstrapSecurityConfig {
 
 export function getDefaultSecurityConfig(): SecurityConfigModels {
   const securityConfigModels = {
-    client: getDefaultClientSecurityConfigType(SECURITY_CONFIG_MODE.NO_SEC),
+    client: getClientSecurityConfig(SECURITY_CONFIG_MODE.NO_SEC),
     bootstrap: getDefaultBootstrapSecurityConfig()
   };
   return securityConfigModels;
@@ -168,7 +142,7 @@ const isSecurityConfigModels = (p: any): p is SecurityConfigModels =>
   p.hasOwnProperty('bootstrap') &&
     isBootstrapSecurityConfig(p['bootstrap']);
 
-const isClientSecurityConfigType = (p: any): p is ClientSecurityConfigType =>
+const isClientSecurityConfigType = (p: any): p is ClientSecurityConfig =>
   p.hasOwnProperty('securityConfigClientMode') &&
   p.hasOwnProperty('endpoint') &&
   p.hasOwnProperty('identity') &&

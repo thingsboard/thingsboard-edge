@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @EqualsAndHashCode(callSuper = true)
 public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId> {
@@ -48,7 +49,9 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
     private CustomerId customerId;
     private String email;
     private Authority authority;
+    @NoXss
     private String firstName;
+    @NoXss
     private String lastName;
 
     public User() {

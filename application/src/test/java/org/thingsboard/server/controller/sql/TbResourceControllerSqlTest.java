@@ -28,27 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.util;
+package org.thingsboard.server.controller.sql;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
-import org.thingsboard.server.common.msg.EncryptionUtil;
+import org.thingsboard.server.controller.BaseTbResourceControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.io.IOException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
-
-/**
- * @author Valerii Sosliuk
- */
-@Slf4j
-public class SslUtil {
-
-    private SslUtil() {
-    }
-
-    public static String getCertificateString(Certificate cert)
-            throws CertificateEncodingException {
-        return EncryptionUtil.trimNewLines(Base64Utils.encodeToString(cert.getEncoded()));
-    }
+@DaoSqlTest
+public class TbResourceControllerSqlTest extends BaseTbResourceControllerTest {
 }

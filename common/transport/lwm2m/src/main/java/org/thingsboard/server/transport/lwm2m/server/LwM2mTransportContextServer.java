@@ -29,21 +29,6 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.lwm2m.server;
-/**
- * Copyright © 2016-2020 The Thingsboard Authors
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -104,12 +89,12 @@ public class LwM2mTransportContextServer extends TransportContext {
     }
 
     /**
-     * Sent to Thingsboard Attribute || Telemetry
+     * send to Thingsboard Attribute || Telemetry
      *
      * @param msg   - JsonObject: [{name: value}]
      * @return - dummy
      */
-    private <T> TransportServiceCallback<Void> getPubAckCallbackSentAttrTelemetry(final T msg) {
+    private <T> TransportServiceCallback<Void> getPubAckCallbackSendAttrTelemetry(final T msg) {
         return new TransportServiceCallback<>() {
             @Override
             public void onSuccess(Void dummy) {
@@ -123,16 +108,16 @@ public class LwM2mTransportContextServer extends TransportContext {
         };
     }
 
-    public void sentParametersOnThingsboard(JsonElement msg, String topicName, SessionInfoProto sessionInfo) {
+    public void sendParametersOnThingsboard(JsonElement msg, String topicName, SessionInfoProto sessionInfo) {
         try {
             if (topicName.equals(LwM2mTransportHandler.DEVICE_ATTRIBUTES_TOPIC)) {
                 PostAttributeMsg postAttributeMsg = adaptor.convertToPostAttributes(msg);
-                TransportServiceCallback call = this.getPubAckCallbackSentAttrTelemetry(postAttributeMsg);
-                transportService.process(sessionInfo, postAttributeMsg, this.getPubAckCallbackSentAttrTelemetry(call));
+                TransportServiceCallback call = this.getPubAckCallbackSendAttrTelemetry(postAttributeMsg);
+                transportService.process(sessionInfo, postAttributeMsg, this.getPubAckCallbackSendAttrTelemetry(call));
             } else if (topicName.equals(LwM2mTransportHandler.DEVICE_TELEMETRY_TOPIC)) {
                 PostTelemetryMsg postTelemetryMsg = adaptor.convertToPostTelemetry(msg);
-                TransportServiceCallback call = this.getPubAckCallbackSentAttrTelemetry(postTelemetryMsg);
-                transportService.process(sessionInfo, postTelemetryMsg, this.getPubAckCallbackSentAttrTelemetry(call));
+                TransportServiceCallback call = this.getPubAckCallbackSendAttrTelemetry(postTelemetryMsg);
+                transportService.process(sessionInfo, postTelemetryMsg, this.getPubAckCallbackSendAttrTelemetry(call));
             }
         } catch (AdaptorException e) {
             log.error("[{}] Failed to process publish msg [{}]", topicName, e);

@@ -107,6 +107,7 @@ export enum Resource {
   WHITE_LABELING = 'WHITE_LABELING',
   AUDIT_LOG = 'AUDIT_LOG',
   API_USAGE_STATE = 'API_USAGE_STATE',
+  TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
   EDGE_GROUP = 'EDGE_GROUP'
 }
@@ -138,7 +139,8 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.BLOB_ENTITY, Resource.BLOB_ENTITY],
     [EntityType.ROLE, Resource.ROLE],
     [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION],
-    [EntityType.EDGE, Resource.EDGE],
+    [EntityType.TB_RESOURCE, Resource.TB_RESOURCE],
+    [EntityType.EDGE, Resource.EDGE]
   ]
 );
 

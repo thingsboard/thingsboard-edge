@@ -38,6 +38,7 @@ import org.springframework.security.authentication.CredentialsExpiredException;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -58,7 +59,11 @@ import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.model.token.RawAccessJwtToken;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -86,13 +91,19 @@ public class TokenOutdatingTest {
     private UserId userId;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws ThingsboardException {
         jwtSettings = new JwtSettings();
         jwtSettings.setTokenIssuer("test.io");
         jwtSettings.setTokenExpirationTime((int) MINUTES.toSeconds(10));
         jwtSettings.setRefreshTokenExpTime((int) DAYS.toSeconds(7));
         jwtSettings.setTokenSigningKey("secret");
-        tokenFactory = new JwtTokenFactory(jwtSettings, mock(UserPermissionsService.class));
+
+        UserPermissionsService userPermissionsService = mock(UserPermissionsService.class);
+        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
+        MergedUserPermissions mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
+        when(userPermissionsService.getMergedPermissions(any(), eq(false))).thenReturn(mergedUserPermissions);
+
+        tokenFactory = new JwtTokenFactory(jwtSettings, userPermissionsService);
 
         cacheManager = new ConcurrentMapCacheManager();
         tokenOutdatingService = new TokenOutdatingService(cacheManager, tokenFactory, jwtSettings);
@@ -113,7 +124,7 @@ public class TokenOutdatingTest {
         when(userService.findUserCredentialsByUserId(any(), eq(userId))).thenReturn(userCredentials);
 
         accessTokenAuthenticationProvider = new JwtAuthenticationProvider(tokenFactory, tokenOutdatingService);
-        refreshTokenAuthenticationProvider = new RefreshTokenAuthenticationProvider(tokenFactory, userService, mock(EntityGroupService.class), mock(CustomerService.class), mock(UserPermissionsService.class), tokenOutdatingService);
+        refreshTokenAuthenticationProvider = new RefreshTokenAuthenticationProvider(tokenFactory, userPermissionsService, userService, mock(CustomerService.class), tokenOutdatingService);
     }
 
     @Test
