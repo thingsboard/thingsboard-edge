@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 public class BaseWidgetType extends BaseData<WidgetTypeId> implements TenantEntity {
@@ -44,8 +45,11 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements TenantEnti
     private static final long serialVersionUID = 8388684344603660756L;
 
     private TenantId tenantId;
+    @NoXss
     private String bundleAlias;
+    @NoXss
     private String alias;
+    @NoXss
     private String name;
 
     public BaseWidgetType() {

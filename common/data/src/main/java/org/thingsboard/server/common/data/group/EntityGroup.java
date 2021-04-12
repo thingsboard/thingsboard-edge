@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 @NoArgsConstructor
@@ -71,6 +72,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     private EntityType type;
 
     @ApiModelProperty(required = true)
+    @NoXss
     private String name;
 
     private EntityId ownerId;

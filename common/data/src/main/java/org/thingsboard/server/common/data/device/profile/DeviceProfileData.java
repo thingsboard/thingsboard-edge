@@ -39,6 +39,7 @@ import java.util.List;
 public class DeviceProfileData {
 
     private DeviceProfileConfiguration configuration;
+    @Valid
     private DeviceProfileTransportConfiguration transportConfiguration;
     private DeviceProfileProvisionConfiguration provisionConfiguration;
     @Valid
