@@ -65,23 +65,41 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-            "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%'))" +
-            "OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%'))" +
-            "OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%')))",
-            countQuery = "SELECT count(a) FROM AlarmEntity a " +
-                    "LEFT JOIN RelationEntity re ON a.id = re.toId " +
+            "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
+            "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
+            "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) "
+            ,
+            countQuery = "" +
+                    "SELECT count(a) + " + //alarms with relations only
+                    " (SELECT count(a) FROM AlarmEntity a " + //alarms WITHOUT any relations
+                    "    LEFT JOIN RelationEntity re ON a.id = re.toId " +
+                    "    AND re.relationTypeGroup = 'ALARM' " +
+                    "    AND re.toType = 'ALARM' " +
+                    "    AND re.fromId = :affectedEntityId " +
+                    "    AND re.fromType = :affectedEntityType " +
+                    "    WHERE a.tenantId = :tenantId " +
+                    "    AND (a.originatorId = :affectedEntityId) " +
+                    "    AND (re.fromId IS NULL) " + //anti join
+                    "    AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
+                    "    AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
+                    "    AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
+                    "    AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
+                    "    OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
+                    "    OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) " +
+                    " )" +
+                    "FROM AlarmEntity a " +
+                    "INNER JOIN RelationEntity re ON a.id = re.toId " +
                     "AND re.relationTypeGroup = 'ALARM' " +
                     "AND re.toType = 'ALARM' " +
                     "AND re.fromId = :affectedEntityId " +
                     "AND re.fromType = :affectedEntityType " +
                     "WHERE a.tenantId = :tenantId " +
-                    "AND (a.originatorId = :affectedEntityId or re.fromId IS NOT NULL) " +
                     "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
                     "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
                     "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-                    "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%'))" +
-                    "OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%'))" +
-                    "OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%')))")
+                    "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
+                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
+                    "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) ")
     Page<AlarmInfoEntity> findAlarms(@Param("tenantId") UUID tenantId,
                                      @Param("affectedEntityId") UUID affectedEntityId,
                                      @Param("affectedEntityType") String affectedEntityType,
@@ -105,14 +123,29 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                                            @Param("affectedEntityType") String affectedEntityType,
                                            @Param("alarmStatuses") Set<AlarmStatus> alarmStatuses);
 
-    @Query("SELECT COUNT(a) FROM AlarmEntity a " +
-            "LEFT JOIN RelationEntity re ON a.id = re.toId " +
+    @Query("SELECT COUNT(a) + " + //alarms WITH relations only      PLUS
+            " (SELECT COUNT(a) FROM AlarmEntity a " + //alarms WITHOUT any relations
+            "    LEFT JOIN RelationEntity re ON a.id = re.toId " +
+            "    AND re.relationTypeGroup = 'ALARM' " +
+            "    AND re.toType = 'ALARM' " +
+            "    AND re.fromId = :affectedEntityId " +
+            "    AND re.fromType = :affectedEntityType " +
+            "    WHERE a.tenantId = :tenantId " +
+            "    AND a.originatorId = :affectedEntityId " +
+            "    AND re.fromId IS NULL " + //anti join
+            "    AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
+            "    AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
+            "    AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
+            "    AND ((:severityList) IS NULL OR a.severity in (:severityList)) " +
+            "    AND ((:statusList) IS NULL OR a.status in (:statusList))" +
+            " )" +
+            "FROM AlarmEntity a " +
+            "INNER JOIN RelationEntity re ON a.id = re.toId " +
             "AND re.relationTypeGroup = 'ALARM' " +
             "AND re.toType = 'ALARM' " +
             "AND re.fromId = :affectedEntityId " +
             "AND re.fromType = :affectedEntityType " +
             "WHERE a.tenantId = :tenantId " +
-            "AND (a.originatorId = :affectedEntityId or re.fromId IS NOT NULL) " +
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
