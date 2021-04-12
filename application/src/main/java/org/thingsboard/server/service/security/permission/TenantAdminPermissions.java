@@ -93,6 +93,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.DEVICE_PROFILE, tenantStandaloneEntityPermissionChecker);
         put(Resource.API_USAGE_STATE, tenantStandaloneEntityPermissionChecker);
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
+
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {

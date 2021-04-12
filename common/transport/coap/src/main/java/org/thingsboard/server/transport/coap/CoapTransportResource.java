@@ -99,7 +99,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
     private static final int REQUEST_ID_POSITION_CERTIFICATE_REQUEST = 4;
     private static final String DTLS_SESSION_ID_KEY = "DTLS_SESSION_ID";
 
-    private final ConcurrentMap<String, SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TransportProtos.SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, AtomicInteger> tokenToNotificationCounterMap = new ConcurrentHashMap<>();
     private final Set<UUID> rpcSubscriptions = ConcurrentHashMap.newKeySet();
     private final Set<UUID> attributeSubscriptions = ConcurrentHashMap.newKeySet();
@@ -354,7 +354,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
     }
 
-    private SessionInfoProto lookupAsyncSessionInfo(String token) {
+    private TransportProtos.SessionInfoProto lookupAsyncSessionInfo(String token) {
         tokenToNotificationCounterMap.remove(token);
         return tokenToSessionIdMap.remove(token);
     }
