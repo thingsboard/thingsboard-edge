@@ -97,7 +97,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private lastAppliedTimezone: string;
 
-  private propagateChange = (v: any) => { };
+  private propagateChange = (v: any) => {
+  };
 
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder) {
@@ -332,14 +333,23 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return weeklyRepeat;
   }
 
-  private updateModel(momentTz: moment.MomentTimezone) {
-    if (this.scheduleConfigFormGroup.valid) {
+  private updateModelEvent(momentTz, check){
+    if (check) {
       this.modelValue = this.scheduleConfigFormGroup.value;
       this.propagateChange(this.fromSchedulerEventScheduleConfig(momentTz, this.modelValue));
     } else {
       this.propagateChange(null);
     }
   }
+
+  private updateModel(momentTz: moment.MomentTimezone) {
+    if (this.scheduleConfigFormGroup.get('repeat').value) {
+      this.updateModelEvent(momentTz,this.scheduleConfigFormGroup.get('startDate').value.getTime() < this.scheduleConfigFormGroup.get('endsOnDate').value.getTime() && this.scheduleConfigFormGroup.valid);
+    } else{
+      this.updateModelEvent(momentTz, this.scheduleConfigFormGroup.valid);
+    }
+  }
+
 
   private dateFromUtcTime(momentTz: moment.MomentTimezone, time: number, timezone: string): Date {
     const offset = momentTz.zone(timezone).utcOffset(time) * 60 * 1000;
