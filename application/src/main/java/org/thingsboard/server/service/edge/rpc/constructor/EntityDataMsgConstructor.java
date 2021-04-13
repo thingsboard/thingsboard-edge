@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -96,7 +97,7 @@ public class EntityDataMsgConstructor {
                     AttributeDeleteMsg.Builder attributeDeleteMsg = AttributeDeleteMsg.newBuilder();
                     attributeDeleteMsg.setScope(entityData.getAsJsonObject().getAsJsonPrimitive("scope").getAsString());
                     JsonArray jsonArray = entityData.getAsJsonObject().getAsJsonArray("keys");
-                    List<String> keys = new Gson().fromJson(jsonArray.toString(), List.class);
+                    List<String> keys = new Gson().fromJson(jsonArray.toString(), new TypeToken<>(){}.getType());
                     attributeDeleteMsg.addAllAttributeNames(keys);
                     attributeDeleteMsg.build();
                     builder.setAttributeDeleteMsg(attributeDeleteMsg);

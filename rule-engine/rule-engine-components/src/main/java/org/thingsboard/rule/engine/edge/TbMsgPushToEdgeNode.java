@@ -31,13 +31,14 @@
 package org.thingsboard.rule.engine.edge;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -101,8 +102,6 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 public class TbMsgPushToEdgeNode implements TbNode {
 
     private EmptyNodeConfiguration config;
-
-    private static final ObjectMapper json = new ObjectMapper();
 
     private static final String SCOPE = "scope";
 
@@ -215,7 +214,7 @@ public class TbMsgPushToEdgeNode implements TbNode {
             EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msgType);
             Map<String, Object> entityBody = new HashMap<>();
             Map<String, String> metadata = msg.getMetaData().getData();
-            JsonNode dataJson = json.readTree(msg.getData());
+            JsonNode dataJson = JacksonUtil.toJsonNode(msg.getData());
             switch (actionType) {
                 case ATTRIBUTES_UPDATED:
                 case POST_ATTRIBUTES:
@@ -223,7 +222,7 @@ public class TbMsgPushToEdgeNode implements TbNode {
                     entityBody.put(SCOPE, getScope(metadata));
                     break;
                 case ATTRIBUTES_DELETED:
-                    List<String> keys = json.treeToValue(dataJson.get("attributes"), List.class);
+                    List<String> keys = JacksonUtil.convertValue(dataJson.get("attributes"), new TypeReference<>() {});
                     entityBody.put("keys", keys);
                     entityBody.put(SCOPE, getScope(metadata));
                     break;
@@ -232,7 +231,7 @@ public class TbMsgPushToEdgeNode implements TbNode {
                     entityBody.put("ts", metadata.get("ts"));
                     break;
             }
-            return buildEdgeEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), edgeEventTypeByEntityType, json.valueToTree(entityBody));
+            return buildEdgeEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), edgeEventTypeByEntityType, JacksonUtil.valueToTree(entityBody));
         }
     }
 
@@ -255,9 +254,9 @@ public class TbMsgPushToEdgeNode implements TbNode {
         return edgeEvent;
     }
 
-    private UUID getUUIDFromMsgData(TbMsg msg) throws JsonProcessingException {
-        JsonNode data = json.readTree(msg.getData()).get("id");
-        String id = json.treeToValue(data.get("id"), String.class);
+    private UUID getUUIDFromMsgData(TbMsg msg) {
+        JsonNode data = JacksonUtil.toJsonNode(msg.getData()).get("id");
+        String id = JacksonUtil.convertValue(data.get("id"), String.class);
         return UUID.fromString(id);
     }
 
