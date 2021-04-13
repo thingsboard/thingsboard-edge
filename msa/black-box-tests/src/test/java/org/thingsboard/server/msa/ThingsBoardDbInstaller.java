@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.msa;
 
+import io.github.cdimascio.dotenv.DotenvEntry;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
 import java.util.Arrays;
@@ -75,7 +77,12 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
+        Dotenv dotenv = Dotenv.configure().directory("./../../docker").filename(".env").load();
+
         env = new HashMap<>();
+        for (DotenvEntry entry : dotenv.entries()) {
+            env.put(entry.getKey(), entry.getValue());
+        }
         env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
         env.put("TB_LOG_VOLUME", tbLogVolume);
         env.put("TB_COAP_TRANSPORT_LOG_VOLUME", tbCoapTransportLogVolume);
