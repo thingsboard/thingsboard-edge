@@ -53,7 +53,10 @@ import org.thingsboard.server.common.data.query.AssetSearchQueryFilter;
 import org.thingsboard.server.common.data.query.AssetTypeFilter;
 import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
+import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
+import org.thingsboard.server.common.data.query.EdgeSearchQueryFilter;
+import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -85,6 +88,7 @@ import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 import org.thingsboard.server.dao.model.sql.DashboardEntity;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
+import org.thingsboard.server.dao.model.sql.EdgeEntity;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.model.sql.EntityViewEntity;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
@@ -96,6 +100,7 @@ import org.thingsboard.server.dao.sql.blob.BlobEntityRepository;
 import org.thingsboard.server.dao.sql.customer.CustomerRepository;
 import org.thingsboard.server.dao.sql.dashboard.DashboardRepository;
 import org.thingsboard.server.dao.sql.device.DeviceRepository;
+import org.thingsboard.server.dao.sql.edge.EdgeRepository;
 import org.thingsboard.server.dao.sql.entityview.EntityViewRepository;
 import org.thingsboard.server.dao.sql.group.EntityGroupRepository;
 import org.thingsboard.server.dao.sql.role.RoleRepository;
@@ -175,6 +180,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select customer_id from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select customer_id from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select customer_id from edge where id = entity_id)" +
             " END as customer_id";
     private static final String SELECT_TENANT_ID = "SELECT CASE" +
             " WHEN entity.entity_type = 'TENANT' THEN entity_id" +
@@ -200,6 +207,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select tenant_id from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select tenant_id from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select tenant_id from edge where id = entity_id)" +
             " END as tenant_id";
     private static final String SELECT_CREATED_TIME = " CASE" +
             " WHEN entity.entity_type = 'TENANT'" +
@@ -226,6 +235,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select created_time from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select created_time from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select created_time from edge where id = entity_id)" +
             " END as created_time";
     private static final String SELECT_NAME = " CASE" +
             " WHEN entity.entity_type = 'TENANT'" +
@@ -252,6 +263,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select name from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select name from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select name from edge where id = entity_id)" +
             " END as name";
     private static final String SELECT_TYPE = " CASE" +
             " WHEN entity.entity_type = 'USER'" +
@@ -262,6 +275,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select type from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select type from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select type from edge where id = entity_id)" +
             " WHEN entity.entity_type = 'SCHEDULER_EVENT'" +
             " THEN (select type from scheduler_event where id = entity_id)" +
             " WHEN entity.entity_type = 'BLOB_ENTITY'" +
@@ -288,6 +303,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select label from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select name from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select label from edge where id = entity_id)" +
             " END as label";
     private static final String SELECT_ADDITIONAL_INFO = " CASE" +
             " WHEN entity.entity_type = 'TENANT'" +
@@ -304,6 +321,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " THEN (select additional_info from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select additional_info from entity_view where id = entity_id)" +
+            " WHEN entity.entity_type = 'EDGE'" +
+            " THEN (select additional_info from edge where id = entity_id)" +
             " END as additional_info";
 
     public static final String ATTR_READ_FLAG = "attr_read";
@@ -326,11 +345,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.BLOB_ENTITY, "blob_entity");
         entityTableMap.put(EntityType.ROLE, "role");
         entityTableMap.put(EntityType.API_USAGE_STATE, SELECT_API_USAGE_STATE);
+        entityTableMap.put(EntityType.EDGE, "edge");
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
             EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.ASSET, EntityType.DEVICE,
-            EntityType.CONVERTER, EntityType.INTEGRATION, EntityType.ENTITY_VIEW, EntityType.ROLE, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY};
+            EntityType.CONVERTER, EntityType.INTEGRATION, EntityType.ENTITY_VIEW, EntityType.EDGE, EntityType.ROLE, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY};
 
     private static final String HIERARCHICAL_GROUPS_QUERY = "select id from entity_group where owner_id in (" +
             " (WITH RECURSIVE customers_ids(id) AS" +
@@ -376,6 +396,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private final CustomerRepository customerRepository;
     private final DeviceRepository deviceRepository;
     private final EntityViewRepository entityViewRepository;
+    private final EdgeRepository edgeRepository;
     private final UserRepository userRepository;
     private final DashboardRepository dashboardRepository;
     private final EntityGroupRepository entityGroupRepository;
@@ -389,6 +410,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     public DefaultEntityQueryRepository(NamedParameterJdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate,
                                         AssetRepository assetRepository, CustomerRepository customerRepository,
                                         DeviceRepository deviceRepository, EntityViewRepository entityViewRepository,
+                                        EdgeRepository edgeRepository,
                                         UserRepository userRepository, DashboardRepository dashboardRepository,
                                         EntityGroupRepository entityGroupRepository, SchedulerEventRepository schedulerEventRepository,
                                         RoleRepository roleRepository, AlarmRepository alarmRepository, BlobEntityRepository blobEntityRepository
@@ -399,6 +421,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         this.customerRepository = customerRepository;
         this.deviceRepository = deviceRepository;
         this.entityViewRepository = entityViewRepository;
+        this.edgeRepository = edgeRepository;
         this.userRepository = userRepository;
         this.dashboardRepository = dashboardRepository;
         this.entityGroupRepository = entityGroupRepository;
@@ -770,6 +793,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 EntityViewEntity entityView = entityViewRepository.findById(stateEntityId.getId()).orElse(null);
                 if (entityView != null) {
                     return getOwnerId(entityView.getTenantId(), entityView.getCustomerId());
+                }
+                break;
+            case EDGE:
+                EdgeEntity edgeEntity = edgeRepository.findById(stateEntityId.getId()).orElse(null);
+                if (edgeEntity != null) {
+                    return getOwnerId(edgeEntity.getTenantId(), edgeEntity.getCustomerId());
                 }
                 break;
             case USER:
@@ -1385,6 +1414,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case EDGE_SEARCH_QUERY:
             case ENTITY_GROUP:
             case ENTITY_GROUP_NAME:
                 return this.defaultPermissionQuery(ctx);
@@ -1425,6 +1455,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ASSET_TYPE:
             case DEVICE_TYPE:
             case ENTITY_VIEW_TYPE:
+            case EDGE_TYPE:
                 return this.typeQuery(ctx, entityFilter);
             case STATE_ENTITY_OWNER:
                 return this.singleEntityByStateOwner(ctx);
@@ -1435,6 +1466,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case EDGE_SEARCH_QUERY:
             case API_USAGE_STATE:
             case ENTITY_TYPE:
                 return "";
@@ -1470,6 +1502,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_VIEW_SEARCH_QUERY:
                 EntityViewSearchQueryFilter entityViewQuery = (EntityViewSearchQueryFilter) entityFilter;
                 return entitySearchQuery(ctx, entityViewQuery, EntityType.ENTITY_VIEW, entityViewQuery.getEntityViewTypes());
+            case EDGE_SEARCH_QUERY:
+                EdgeSearchQueryFilter edgeQuery = (EdgeSearchQueryFilter) entityFilter;
+                return entitySearchQuery(ctx, edgeQuery, EntityType.EDGE, edgeQuery.getEdgeTypes());
             default:
                 return entityTableMap.get(ctx.getEntityType());
         }
@@ -1794,6 +1829,10 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 type = ((EntityViewTypeFilter) filter).getEntityViewType();
                 name = ((EntityViewTypeFilter) filter).getEntityViewNameFilter();
                 break;
+            case EDGE_TYPE:
+                type = ((EdgeTypeFilter) filter).getEdgeType();
+                name = ((EdgeTypeFilter) filter).getEdgeNameFilter();
+                break;
             default:
                 throw new RuntimeException("Not supported!");
         }
@@ -1835,6 +1874,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_VIEW_TYPE:
             case ENTITY_VIEW_SEARCH_QUERY:
                 return EntityType.ENTITY_VIEW;
+            case EDGE_TYPE:
+            case EDGE_SEARCH_QUERY:
+                return EntityType.EDGE;
             case RELATIONS_QUERY:
                 return ((RelationsQueryFilter) entityFilter).getRootEntity().getEntityType();
             case API_USAGE_STATE:

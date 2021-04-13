@@ -126,24 +126,11 @@ public class TbResourceController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/resource", method = RequestMethod.POST)
     @ResponseBody
-    public List<TbResource> saveResources(@RequestBody List<TbResource> resources) throws ThingsboardException {
+    public TbResource saveResource(@RequestBody TbResource resource) throws ThingsboardException {
         try {
-            List<TbResource> addResources = new ArrayList<>();
-            StringJoiner noSaveResources = new StringJoiner("; ");
-            resources.forEach(resource -> {
-                try {
-                    resource.setTenantId(getTenantId());
-                    checkEntity(resource.getId(), resource, Resource.TB_RESOURCE, null);
-                    addResources.add(addResource(resource));
-                } catch (Exception e) {
-                    noSaveResources.add(resource.getFileName());
-                    log.warn("Fail save resource: [{}]", resource.getFileName(), e);
-                }
-            });
-            if (noSaveResources.length() > 0) {
-                throw new ThingsboardException(String.format("Fail save resource: %s", noSaveResources.toString()), ThingsboardErrorCode.INVALID_ARGUMENTS);
-            }
-            return addResources;
+            resource.setTenantId(getTenantId());
+            checkEntity(resource.getId(), resource, Resource.TB_RESOURCE, null);
+            return addResource(resource);
         } catch (Exception e) {
             throw handleException(e);
         }

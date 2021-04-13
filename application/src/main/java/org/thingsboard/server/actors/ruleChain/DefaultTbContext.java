@@ -52,6 +52,7 @@ import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.actors.TbActorRef;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
@@ -64,6 +65,8 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -86,6 +89,8 @@ import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -351,6 +356,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return entityActionMsg(alarm, alarm.getId(), ruleNodeId, action, queueName, ruleChainId);
     }
 
+    @Override
+    public void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId) {
+        mainCtx.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
+    }
+
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action) {
         return entityActionMsg(entity, id, ruleNodeId, action, ServiceQueue.MAIN, null);
     }
@@ -512,6 +522,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineDeviceProfileCache getDeviceProfileCache() {
         return mainCtx.getDeviceProfileCache();
+    }
+
+    @Override
+    public EdgeService getEdgeService() {
+        return mainCtx.getEdgeService();
+    }
+
+    @Override
+    public EdgeEventService getEdgeEventService() {
+        return mainCtx.getEdgeEventService();
     }
 
     @Override

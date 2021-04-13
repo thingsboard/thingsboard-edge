@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.msa;
 
+import io.github.cdimascio.dotenv.DotenvEntry;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
 import java.util.Arrays;
@@ -59,9 +61,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
-        List<File> composeFiles = Arrays.asList(new File("./../../docker/docker-compose.yml"),
-                new File("./../../docker/docker-compose.postgres.yml"),
-                new File("./../../docker/docker-compose.postgres.volumes.yml"));
+        List<File> composeFiles = Arrays.asList(new File("./../../docker/advanced/docker-compose.yml"),
+                new File("./../../docker/advanced/docker-compose.postgres.yml"),
+                new File("./../../docker/advanced/docker-compose.postgres.volumes.yml"));
 
         String identifier = Base58.randomString(6).toLowerCase();
         String project = identifier + Base58.randomString(6).toLowerCase();
@@ -75,7 +77,12 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
+        Dotenv dotenv = Dotenv.configure().directory("./../../docker").filename(".env").load();
+
         env = new HashMap<>();
+        for (DotenvEntry entry : dotenv.entries()) {
+            env.put(entry.getKey(), entry.getValue());
+        }
         env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
         env.put("TB_LOG_VOLUME", tbLogVolume);
         env.put("TB_COAP_TRANSPORT_LOG_VOLUME", tbCoapTransportLogVolume);

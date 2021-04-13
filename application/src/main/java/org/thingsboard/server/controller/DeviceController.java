@@ -59,11 +59,13 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -149,6 +151,9 @@ public class DeviceController extends BaseController {
         try {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             Device device = checkDeviceId(deviceId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), deviceId);
+
             deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
 
             tbClusterService.onDeviceDeleted(device, null);
@@ -157,6 +162,8 @@ public class DeviceController extends BaseController {
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
+
+            sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
 
             deviceStateService.onDeviceDeleted(device);
         } catch (Exception e) {
@@ -198,6 +205,9 @@ public class DeviceController extends BaseController {
             Device device = checkDeviceId(deviceCredentials.getDeviceId(), Operation.WRITE_CREDENTIALS);
             DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId(), result), null);
+
+            sendEntityNotificationMsg(getTenantId(), device.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
+
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);

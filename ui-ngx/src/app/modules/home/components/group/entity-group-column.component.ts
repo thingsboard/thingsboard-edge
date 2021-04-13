@@ -112,11 +112,11 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
     this.columnFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
-
     switch (this.entityType) {
       case EntityType.USER:
       case EntityType.CUSTOMER:
       case EntityType.ASSET:
+      case EntityType.EDGE:
       case EntityType.DASHBOARD:
         this.columnTypes.push(EntityGroupColumnType.SERVER_ATTRIBUTE);
         this.columnTypes.push(EntityGroupColumnType.TIMESERIES);
@@ -152,6 +152,9 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
         break;
       case EntityType.DASHBOARD:
         entityFieldKeys = ['title'];
+        break;
+      case EntityType.EDGE:
+        entityFieldKeys = ['name', 'type', 'label']
         break;
     }
     for (const fieldKey of entityFieldKeys) {

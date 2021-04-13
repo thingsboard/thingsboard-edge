@@ -53,6 +53,7 @@
         <testcontainers.version>1.9.1</testcontainers.version>
         <zeroturnaround.version>1.10</zeroturnaround.version>
         <httpclient.version>4.5.13</httpclient.version>
+        <dotenv-java.version>2.2.0</dotenv-java.version>
     </properties>
 
     <dependencies>
@@ -65,6 +66,11 @@
             <groupId>org.zeroturnaround</groupId>
             <artifactId>zt-exec</artifactId>
             <version>${zeroturnaround.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>${dotenv-java.version}</version>
         </dependency>
         <dependency>
             <groupId>org.java-websocket</groupId>

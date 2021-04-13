@@ -30,13 +30,11 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,7 +46,6 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;

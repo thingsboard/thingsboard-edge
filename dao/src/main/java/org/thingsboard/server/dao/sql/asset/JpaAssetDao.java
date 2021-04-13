@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
@@ -58,6 +59,7 @@ import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE
  * Created by Valerii Sosliuk on 5/19/2017.
  */
 @Component
+@Slf4j
 public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> implements AssetDao {
 
     @Autowired

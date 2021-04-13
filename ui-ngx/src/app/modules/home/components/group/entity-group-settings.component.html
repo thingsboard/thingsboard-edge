@@ -96,8 +96,31 @@
       <mat-checkbox fxFlex formControlName="enableEntityViewsManagement" style="padding-bottom: 16px;">
         {{ 'entity-group.enable-entity-views-management' | translate }}
       </mat-checkbox>
+      <mat-checkbox fxFlex formControlName="enableEdgesManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-edges-management' | translate }}
+      </mat-checkbox>
       <mat-checkbox fxFlex formControlName="enableDashboardsManagement" style="padding-bottom: 16px;">
         {{ 'entity-group.enable-dashboards-management' | translate }}
+      </mat-checkbox>
+    </section>
+    <section *ngIf="entityType === entityTypes.EDGE" fxLayout="column">
+      <mat-checkbox fxFlex formControlName="enableUsersManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-users-management' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex formControlName="enableAssetsManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-assets-management' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex formControlName="enableDevicesManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-devices-management' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-entity-views-management' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex formControlName="enableDashboardsManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-dashboards-management' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex formControlName="enableSchedulerEventsManagement" style="padding-bottom: 16px;">
+        {{ 'entity-group.enable-scheduler-events-management' | translate }}
       </mat-checkbox>
     </section>
   </fieldset>

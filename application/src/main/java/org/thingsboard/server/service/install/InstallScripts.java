@@ -111,6 +111,7 @@ public class InstallScripts {
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
     public static final String MODELS_DIR = "models";
     public static final String CREDENTIALS_DIR = "credentials";
+    public static final String EDGE_MANAGEMENT = "edge_management";
 
     public static final String JSON_EXT = ".json";
     public static final String XML_EXT = ".xml";
@@ -145,7 +146,7 @@ public class InstallScripts {
     @Autowired
     private TbResourceService resourceService;
 
-    public Path getTenantRuleChainsDir() {
+    private Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
 
@@ -153,8 +154,12 @@ public class InstallScripts {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, ROOT_RULE_CHAIN_DIR, ROOT_RULE_CHAIN_JSON);
     }
 
-    public Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
+    private Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DEVICE_PROFILE_DIR, "rule_chain_template.json");
+    }
+
+    private Path getEdgeRuleChainsDir() {
+        return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
     }
 
     public String getDataDir() {
@@ -213,6 +218,10 @@ public class InstallScripts {
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }
 
+    public void createDefaultEdgeRuleChains(TenantId tenantId) throws IOException {
+        Path edgeChainsDir = getEdgeRuleChainsDir();
+        loadAdditionalTenantRuleChains(tenantId, edgeChainsDir);
+    }
 
     public void loadSystemWidgets() throws Exception {
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);

@@ -266,7 +266,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         this.translate.instant('entity-group.confirm-change-owner-text')).pipe(
         mergeMap((res) => {
             if (res) {
-              const isHierarchyCustomerView = config.entityGroup.type === EntityType.CUSTOMER &&
+              const isHierarchyCustomerView = (config.entityGroup.type === EntityType.CUSTOMER || config.entityGroup.type === EntityType.EDGE) &&
                 params.hierarchyView;
               const refreshEntityGroupIds: string[] = [];
               let groupIdsObservable: Observable<any>;
@@ -378,6 +378,10 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             if (params.hierarchyView) {
               params.hierarchyCallbacks.refreshCustomerGroups([result.groupId]);
             }
+          } else if (config.entityGroup.type === EntityType.EDGE) {
+            if (params.hierarchyView) {
+              params.hierarchyCallbacks.refreshEdgeGroups([result.groupId]);
+            }
           }
           return true;
         })
@@ -423,6 +427,10 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             if (params.hierarchyView) {
               params.hierarchyCallbacks.refreshCustomerGroups([config.entityGroup.id.id, result.groupId]);
             }
+          } else if (config.entityGroup.type === EntityType.EDGE) {
+            if (params.hierarchyView) {
+              params.hierarchyCallbacks.refreshEdgeGroups([config.entityGroup.id.id, result.groupId]);
+            }
           }
           return true;
         })
@@ -465,6 +473,10 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               if (config.entityGroup.type === EntityType.CUSTOMER) {
                 if (params.hierarchyView) {
                   params.hierarchyCallbacks.refreshCustomerGroups([config.entityGroup.id.id]);
+                }
+              } else if (config.entityGroup.type === EntityType.EDGE) {
+                if (params.hierarchyView) {
+                  params.hierarchyCallbacks.refreshEdgeGroups([config.entityGroup.id.id]);
                 }
               }
             }

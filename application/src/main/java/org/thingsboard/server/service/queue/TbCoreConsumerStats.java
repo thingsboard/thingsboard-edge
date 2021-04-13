@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.stats.StatsCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
@@ -56,6 +57,7 @@ public class TbCoreConsumerStats {
     public static final String SUBSCRIPTION_MSGS = "subMsgs";
     public static final String TO_CORE_NOTIFICATIONS = "coreNfs";
     public static final String SCHEDULER = "scheduler";
+    public static final String EDGE_NOTIFICATIONS = "edgeNfs";
 
     private final StatsCounter totalCounter;
     private final StatsCounter sessionEventCounter;
@@ -70,6 +72,7 @@ public class TbCoreConsumerStats {
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter toCoreNotificationsCounter;
+    private final StatsCounter edgeNotificationsCounter;
 
     private final List<StatsCounter> counters = new ArrayList<>();
 
@@ -88,6 +91,7 @@ public class TbCoreConsumerStats {
         this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
         this.toCoreNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS));
         this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
+        this.edgeNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS));
     }
 
     private StatsCounter register(StatsCounter counter){
@@ -128,6 +132,11 @@ public class TbCoreConsumerStats {
     public void log(SubscriptionMgrMsgProto msg) {
         totalCounter.increment();
         subscriptionMsgCounter.increment();
+    }
+
+    public void log(TransportProtos.EdgeNotificationMsgProto msg) {
+        totalCounter.increment();
+        edgeNotificationsCounter.increment();
     }
 
     public void log(SchedulerServiceMsgProto schedulerServiceMsg) {

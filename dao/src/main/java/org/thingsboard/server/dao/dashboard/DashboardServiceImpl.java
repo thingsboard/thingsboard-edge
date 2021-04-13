@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -76,7 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -100,6 +101,9 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private EdgeDao edgeDao;
 
     @Autowired
     @Lazy
@@ -164,7 +168,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         if (dashboard.addAssignedCustomer(customer)) {
             try {
                 createRelation(tenantId, new EntityRelation(customerId, dashboardId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.DASHBOARD));
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (Exception e) {
                 log.warn("[{}] Failed to create dashboard relation. Customer Id: [{}]", dashboardId, customerId);
                 throw new RuntimeException(e);
             }
@@ -184,7 +188,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         if (dashboard.removeAssignedCustomer(customer)) {
             try {
                 deleteRelation(tenantId, new EntityRelation(customerId, dashboardId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.DASHBOARD));
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (Exception e) {
                 log.warn("[{}] Failed to delete dashboard relation. Customer Id: [{}]", dashboardId, customerId);
                 throw new RuntimeException(e);
             }
@@ -192,16 +196,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         } else {
             return dashboard;
         }
-    }
-
-    private void deleteRelation(TenantId tenantId, EntityRelation dashboardRelation) throws ExecutionException, InterruptedException {
-        log.debug("Deleting Dashboard relation: {}", dashboardRelation);
-        relationService.deleteRelationAsync(tenantId, dashboardRelation).get();
-    }
-
-    private void createRelation(TenantId tenantId, EntityRelation dashboardRelation) throws ExecutionException, InterruptedException {
-        log.debug("Creating Dashboard relation: {}", dashboardRelation);
-        relationService.saveRelationAsync(tenantId, dashboardRelation).get();
     }
 
     @Override
@@ -451,4 +445,5 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
         return dashboards;
     }
+
 }

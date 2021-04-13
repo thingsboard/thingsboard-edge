@@ -32,6 +32,7 @@ package org.thingsboard.server.common.transport;
 
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;

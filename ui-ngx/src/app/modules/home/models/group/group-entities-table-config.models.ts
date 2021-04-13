@@ -51,10 +51,12 @@ import { EntityView } from '@shared/models/entity-view.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
 import { Customer } from '@shared/models/customer.model';
+import { Edge } from "@shared/models/edge.models";
 
 export const ASSET_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Asset>>(EntityType.ASSET);
 export const DEVICE_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Device>>(EntityType.DEVICE);
 export const ENTITY_VIEW_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<EntityView>>(EntityType.ENTITY_VIEW);
+export const EDGE_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Edge>>(EntityType.EDGE);
 export const DASHBOARD_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Dashboard>>(EntityType.DASHBOARD);
 export const USER_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<User>>(EntityType.USER);
 export const CUSTOMER_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Customer>>(EntityType.CUSTOMER);
@@ -64,6 +66,7 @@ export const groupConfigFactoryTokenMap = new Map<EntityType, InjectionToken<Ent
     [EntityType.ASSET, ASSET_GROUP_CONFIG_FACTORY],
     [EntityType.DEVICE, DEVICE_GROUP_CONFIG_FACTORY],
     [EntityType.ENTITY_VIEW, ENTITY_VIEW_GROUP_CONFIG_FACTORY],
+    [EntityType.EDGE, EDGE_GROUP_CONFIG_FACTORY],
     [EntityType.DASHBOARD, DASHBOARD_GROUP_CONFIG_FACTORY],
     [EntityType.USER, USER_GROUP_CONFIG_FACTORY],
     [EntityType.CUSTOMER, CUSTOMER_GROUP_CONFIG_FACTORY]
@@ -79,6 +82,7 @@ export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityG
   customerGroupsTitle?: string;
   parentEntityGroup?: EntityGroupInfo;
   entityGroupConfig?: GroupEntityTableConfig<T>;
+  edgeGroupsTitle?: string;
 }
 
 export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTableConfig<T, PageLink, ShortEntityView> {
@@ -98,7 +102,9 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
   manageAssetsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableAssetsManagement;
   manageDevicesEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableDevicesManagement;
   manageEntityViewsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableEntityViewsManagement;
+  manageEdgesEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableEdgesManagement;
   manageDashboardsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableDashboardsManagement;
+  manageSchedulerEventsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableSchedulerEventsManagement;
 
   constructor(public entityGroup: EntityGroupStateInfo<T>,
               public groupParams: EntityGroupParams) {

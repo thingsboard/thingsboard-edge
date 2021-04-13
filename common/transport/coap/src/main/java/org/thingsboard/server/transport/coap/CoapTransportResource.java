@@ -45,6 +45,8 @@ import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.eclipse.californium.core.server.resources.ResourceObserver;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.coapserver.TbCoapDtlsSessionInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
@@ -62,6 +64,7 @@ import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.coap.adaptors.CoapTransportAdaptor;
 
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
@@ -96,18 +99,20 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
     private static final int REQUEST_ID_POSITION_CERTIFICATE_REQUEST = 4;
     private static final String DTLS_SESSION_ID_KEY = "DTLS_SESSION_ID";
 
-    private final ConcurrentMap<String, SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, TransportProtos.SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, AtomicInteger> tokenToNotificationCounterMap = new ConcurrentHashMap<>();
     private final Set<UUID> rpcSubscriptions = ConcurrentHashMap.newKeySet();
     private final Set<UUID> attributeSubscriptions = ConcurrentHashMap.newKeySet();
 
     private ConcurrentMap<String, TbCoapDtlsSessionInfo> dtlsSessionIdMap;
+    private long timeout;
 
-    public CoapTransportResource(CoapTransportContext coapTransportContext, ConcurrentMap<String, TbCoapDtlsSessionInfo> dtlsSessionIdMap, String name) {
+    public CoapTransportResource(CoapTransportContext coapTransportContext, CoapServerService coapServerService, String name) {
         super(coapTransportContext, name);
         this.setObservable(true); // enable observing
         this.addObserver(new CoapResourceObserver());
-        this.dtlsSessionIdMap = dtlsSessionIdMap;
+        this.dtlsSessionIdMap = coapServerService.getDtlsSessionsMap();
+        this.timeout = coapServerService.getTimeout();
 //        this.setObservable(false); // disable observing
 //        this.setObserveType(CoAP.Type.CON); // configure the notification type to CONs
 //        this.getAttributes().setObservable(); // mark observable in the Link-Format
@@ -331,13 +336,13 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
                             new CoapOkCallback(exchange, CoAP.ResponseCode.CREATED, CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
                     break;
                 case TO_SERVER_RPC_REQUEST:
-                    transportService.registerSyncSession(sessionInfo, getCoapSessionListener(exchange, coapTransportAdaptor), transportContext.getTimeout());
+                    transportService.registerSyncSession(sessionInfo, getCoapSessionListener(exchange, coapTransportAdaptor), timeout);
                     transportService.process(sessionInfo,
                             coapTransportAdaptor.convertToServerRpcRequest(sessionId, request),
                             new CoapNoOpCallback(exchange));
                     break;
                 case GET_ATTRIBUTES_REQUEST:
-                    transportService.registerSyncSession(sessionInfo, getCoapSessionListener(exchange, coapTransportAdaptor), transportContext.getTimeout());
+                    transportService.registerSyncSession(sessionInfo, getCoapSessionListener(exchange, coapTransportAdaptor), timeout);
                     transportService.process(sessionInfo,
                             coapTransportAdaptor.convertToGetAttributes(sessionId, request),
                             new CoapNoOpCallback(exchange));
@@ -349,7 +354,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
     }
 
-    private SessionInfoProto lookupAsyncSessionInfo(String token) {
+    private TransportProtos.SessionInfoProto lookupAsyncSessionInfo(String token) {
         tokenToNotificationCounterMap.remove(token);
         return tokenToSessionIdMap.remove(token);
     }
@@ -454,7 +459,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
 
         @Override
-        public void onGetAttributesResponse(GetAttributeResponseMsg msg) {
+        public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg msg) {
             try {
                 exchange.respond(coapTransportAdaptor.convertToPublish(msg));
             } catch (AdaptorException e) {
@@ -464,7 +469,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
 
         @Override
-        public void onAttributeUpdate(AttributeUpdateNotificationMsg msg) {
+        public void onAttributeUpdate(TransportProtos.AttributeUpdateNotificationMsg msg) {
             try {
                 exchange.respond(coapTransportAdaptor.convertToPublish(isConRequest(), msg));
             } catch (AdaptorException e) {
@@ -479,7 +484,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
 
         @Override
-        public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg msg) {
+        public void onToDeviceRpcRequest(TransportProtos.ToDeviceRpcRequestMsg msg) {
             try {
                 exchange.respond(coapTransportAdaptor.convertToPublish(isConRequest(), msg));
             } catch (AdaptorException e) {
@@ -489,7 +494,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         }
 
         @Override
-        public void onToServerRpcResponse(ToServerRpcResponseMsg msg) {
+        public void onToServerRpcResponse(TransportProtos.ToServerRpcResponseMsg msg) {
             try {
                 exchange.respond(coapTransportAdaptor.convertToPublish(msg));
             } catch (AdaptorException e) {

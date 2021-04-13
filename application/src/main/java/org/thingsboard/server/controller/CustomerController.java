@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -58,6 +59,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -162,12 +165,16 @@ public class CustomerController extends BaseController {
         try {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             Customer customer = checkCustomerId(customerId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), customerId);
+
             customerService.deleteCustomer(getTenantId(), customerId);
 
             logEntityAction(customerId, customer,
                     customer.getId(),
                     ActionType.DELETED, null, strCustomerId);
 
+            sendDeleteNotificationMsg(getTenantId(), customerId, relatedEdgeIds);
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.CUSTOMER),

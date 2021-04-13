@@ -44,7 +44,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
@@ -54,6 +53,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
@@ -64,8 +64,8 @@ import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfig
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -91,6 +91,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.common.util.JacksonUtil;
 
 import javax.annotation.Nullable;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -116,6 +117,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_DEVICE_ID = "Incorrect deviceId ";
+
     @Autowired
     private DeviceDao deviceDao;
 

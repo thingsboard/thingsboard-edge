@@ -55,7 +55,8 @@ export enum EntityType {
   ROLE = 'ROLE',
   GROUP_PERMISSION = 'GROUP_PERMISSION',
   API_USAGE_STATE = 'API_USAGE_STATE',
-  TB_RESOURCE = 'TB_RESOURCE'
+  TB_RESOURCE = 'TB_RESOURCE',
+  EDGE = 'EDGE'
 }
 
 export enum AliasEntityType {
@@ -81,6 +82,7 @@ export interface EntityTypeTranslation {
   group?: string;
   groupList?: string;
   groupNameStartsWith?: string;
+  assign?: string;
 }
 
 export interface EntityTypeResource<T> {
@@ -233,6 +235,26 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.EDGE,
+      {
+        type: 'entity.type-edge',
+        typePlural: 'entity.type-edges',
+        list: 'entity.list-of-edges',
+        nameStartsWith: 'entity.edge-name-starts-with',
+        details: 'edge.edge-details',
+        add: 'edge.add',
+        noEntities: 'edge.no-edges-text',
+        search: 'edge.search',
+        selectedEntities: 'edge.selected-edges',
+        selectGroupToAdd: 'edge.select-group-to-add',
+        selectGroupToMove: 'edge.select-group-to-move',
+        removeFromGroup: 'edge.remove-edges-from-group',
+        group: 'edge.group',
+        groupList: 'edge.list-of-groups',
+        groupNameStartsWith: 'edge.group-name-starts-with'
+      }
+    ],
+    [
       EntityType.RULE_CHAIN,
       {
         type: 'entity.type-rulechain',
@@ -296,7 +318,8 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'entity-group.add',
         noEntities: 'entity-group.no-entity-groups-text',
         search: 'entity-group.search',
-        selectedEntities: 'entity-group.selected-entity-groups'
+        selectedEntities: 'entity-group.selected-entity-groups',
+        assign: 'edge.assign-to-edge'
       }
     ],
     [
@@ -470,6 +493,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.ENTITY_VIEW,
       {
         helpLinkId: 'entityViews'
+      }
+    ],
+    [
+      EntityType.EDGE,
+      {
+        helpLinkId: 'edges'
       }
     ],
     [

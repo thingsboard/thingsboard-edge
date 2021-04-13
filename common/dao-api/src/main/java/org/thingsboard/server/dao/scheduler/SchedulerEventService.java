@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.scheduler;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -69,5 +70,13 @@ public interface SchedulerEventService {
     void deleteSchedulerEventsByTenantId(TenantId tenantId);
 
     void deleteSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
+    SchedulerEventInfo assignSchedulerEventToEdge(TenantId tenantId, SchedulerEventId schedulerEventId, EdgeId edgeId);
+
+    SchedulerEventInfo unassignSchedulerEventFromEdge(TenantId tenantId, SchedulerEventId schedulerEventId, EdgeId edgeId);
+
+    ListenableFuture<List<SchedulerEvent>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
+
+    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
 
 }

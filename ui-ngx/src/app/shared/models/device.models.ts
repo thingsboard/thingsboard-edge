@@ -180,13 +180,6 @@ export const deviceTransportTypeConfigurationInfoMap = new Map<DeviceTransportTy
       }
     ],
     [
-      DeviceTransportType.COAP,
-      {
-        hasProfileConfiguration: true,
-        hasDeviceConfiguration: false,
-      }
-    ],
-    [
       DeviceTransportType.LWM2M,
       {
         hasProfileConfiguration: true,

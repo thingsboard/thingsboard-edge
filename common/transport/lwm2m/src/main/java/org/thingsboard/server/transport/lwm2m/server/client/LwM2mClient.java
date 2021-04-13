@@ -118,9 +118,9 @@ public class LwM2mClient implements Cloneable {
      * @param modelProvider -
      */
     public void deleteResources(String pathIdVer, LwM2mModelProvider modelProvider) {
-        Set key = getKeysEqualsIdVer(pathIdVer);
+        Set<String> key = getKeysEqualsIdVer(pathIdVer);
         key.forEach(pathRez -> {
-            LwM2mPath pathIds = new LwM2mPath(convertToObjectIdFromIdVer(pathRez.toString()));
+            LwM2mPath pathIds = new LwM2mPath(convertToObjectIdFromIdVer(pathRez));
             ResourceModel resourceModel = modelProvider.getObjectModel(registration).getResourceModel(pathIds.getObjectId(), pathIds.getResourceId());
             if (resourceModel != null) {
                 this.resources.get(pathRez).setResourceModel(resourceModel);
@@ -137,8 +137,8 @@ public class LwM2mClient implements Cloneable {
      * @param modelProvider -
      */
     public void updateResourceModel(String idVer, LwM2mModelProvider modelProvider) {
-        Set key = getKeysEqualsIdVer(idVer);
-        key.forEach(k -> this.saveResourceModel(k.toString(), modelProvider));
+        Set<String> key = getKeysEqualsIdVer(idVer);
+        key.forEach(k -> this.saveResourceModel(k, modelProvider));
     }
 
     private void saveResourceModel(String pathRez, LwM2mModelProvider modelProvider) {
@@ -147,7 +147,7 @@ public class LwM2mClient implements Cloneable {
         this.resources.get(pathRez).setResourceModel(resourceModel);
     }
 
-    private Set getKeysEqualsIdVer(String idVer) {
+    private Set<String> getKeysEqualsIdVer(String idVer) {
         return this.resources.keySet()
                 .stream()
                 .filter(e -> idVer.equals(e.split(LWM2M_SEPARATOR_PATH)[1]))

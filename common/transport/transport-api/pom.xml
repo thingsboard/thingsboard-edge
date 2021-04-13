@@ -53,10 +53,6 @@
     <dependencies>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
-            <artifactId>proto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
             <artifactId>queue</artifactId>
         </dependency>
         <dependency>
@@ -144,4 +140,14 @@
             <artifactId>leshan-server-cf</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

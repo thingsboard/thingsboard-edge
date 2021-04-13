@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { EntityType } from '@shared/models/entity-type.models';
-import { EntityId } from '@shared/models/id/entity-id';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
+import {EntityType} from '@shared/models/entity-type.models';
+import {EntityId} from '@shared/models/id/entity-id';
+import {EntityGroupId} from '@shared/models/id/entity-group-id';
 
 export enum RoleType {
   GENERIC = 'GENERIC',
@@ -64,7 +64,9 @@ export enum Operation {
   IMPERSONATE = 'IMPERSONATE',
   CLAIM_DEVICES = 'CLAIM_DEVICES',
   SHARE_GROUP = 'SHARE_GROUP',
-  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT'
+  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT',
+  ASSIGN_TO_EDGE = 'ASSIGN_TO_EDGE',
+  UNASSIGN_FROM_EDGE = 'UNASSIGN_FROM_EDGE'
 }
 
 const operationTypeTranslations = new Map<Operation, string>();
@@ -105,7 +107,9 @@ export enum Resource {
   WHITE_LABELING = 'WHITE_LABELING',
   AUDIT_LOG = 'AUDIT_LOG',
   API_USAGE_STATE = 'API_USAGE_STATE',
-  TB_RESOURCE = 'TB_RESOURCE'
+  TB_RESOURCE = 'TB_RESOURCE',
+  EDGE = 'EDGE',
+  EDGE_GROUP = 'EDGE_GROUP'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
@@ -135,7 +139,8 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.BLOB_ENTITY, Resource.BLOB_ENTITY],
     [EntityType.ROLE, Resource.ROLE],
     [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION],
-    [EntityType.TB_RESOURCE, Resource.TB_RESOURCE]
+    [EntityType.TB_RESOURCE, Resource.TB_RESOURCE],
+    [EntityType.EDGE, Resource.EDGE]
   ]
 );
 
@@ -146,7 +151,8 @@ export const groupResourceByGroupType = new Map<EntityType, Resource>(
     [EntityType.ASSET, Resource.ASSET_GROUP],
     [EntityType.USER, Resource.USER_GROUP],
     [EntityType.ENTITY_VIEW, Resource.ENTITY_VIEW_GROUP],
-    [EntityType.DASHBOARD, Resource.DASHBOARD_GROUP]
+    [EntityType.DASHBOARD, Resource.DASHBOARD_GROUP],
+    [EntityType.EDGE, Resource.EDGE_GROUP],
   ]
 );
 
@@ -156,7 +162,8 @@ export const sharableGroupTypes = new Set<EntityType>(
     EntityType.ASSET,
     EntityType.DEVICE,
     EntityType.ENTITY_VIEW,
-    EntityType.DASHBOARD
+    EntityType.DASHBOARD,
+    EntityType.EDGE
   ]
 );
 
@@ -165,7 +172,8 @@ export const publicGroupTypes = new Set<EntityType>(
     EntityType.ASSET,
     EntityType.DEVICE,
     EntityType.ENTITY_VIEW,
-    EntityType.DASHBOARD
+    EntityType.DASHBOARD,
+    EntityType.EDGE
   ]
 );
 

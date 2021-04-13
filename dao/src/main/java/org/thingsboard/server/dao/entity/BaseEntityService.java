@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.entity;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,6 +43,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -56,6 +58,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -84,6 +87,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -110,9 +114,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
-
-    private static final JavaType assignedCustomersType =
-            JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Autowired
     private AssetService assetService;
@@ -158,6 +159,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @Autowired
     private EntityQueryDao entityQueryDao;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
@@ -209,6 +213,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 } else {
                     return (PageData<T>) entityViewService.findEntityViewByTenantId(tenantId, pageLink);
                 }
+            case EDGE:
+                if (type != null && type.trim().length() > 0) {
+                    return (PageData<T>) edgeService.findEdgesByTenantIdAndType(tenantId, type, pageLink);
+                } else {
+                    return (PageData<T>) edgeService.findEdgesByTenantId(tenantId, pageLink);
+                }
             case DASHBOARD:
                 return (PageData<T>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
             case CUSTOMER:
@@ -249,6 +259,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case USER:
                 mappingFunction = getUserMapping();
+                break;
+            case EDGE:
+                mappingFunction = getEdgeMapping();
                 break;
             default:
                 mappingFunction = null;
@@ -336,6 +349,30 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         };
     }
 
+    private Function<Map<String, Object>, Edge> getEdgeMapping() {
+        return row -> {
+            Edge edge = new Edge();
+            edge.setId(new EdgeId((UUID) row.get("id")));
+            edge.setCreatedTime((Long) row.get("created_time"));
+            edge.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            edge.setName(row.get("name").toString());
+            edge.setType(row.get("type").toString());
+            Object label = row.get("label");
+            if (label != null) {
+                edge.setLabel(label.toString());
+            }
+            Object customerId = row.get("customer_id");
+            if (customerId != null) {
+                edge.setCustomerId(new CustomerId((UUID) customerId));
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                edge.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return edge;
+        };
+    }
+
     private Function<Map<String, Object>, DashboardInfo> getDashboardMapping() {
         return row -> {
             DashboardInfo dashboard = new DashboardInfo();
@@ -348,7 +385,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 String assignedCustomersStr = assignedCustomers.toString();
                 if (!StringUtils.isEmpty(assignedCustomersStr)) {
                     try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, assignedCustomersType));
+                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {}));
                     } catch (IllegalArgumentException e) {
                         log.warn("Unable to parse assigned customers!", e);
                     }
@@ -540,6 +577,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case ENTITY_GROUP:
                 hasName = entityGroupService.findEntityGroupByIdAsync(tenantId, new EntityGroupId(entityId.getId()));
+                break;
+            case EDGE:
+                hasName = edgeService.findEdgeByIdAsync(tenantId, new EdgeId(entityId.getId()));
                 break;
             default:
                 throw new IllegalStateException("Not Implemented!");

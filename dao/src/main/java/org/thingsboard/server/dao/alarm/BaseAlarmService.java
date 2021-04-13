@@ -355,16 +355,6 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         return alarmSeverities.stream().min(AlarmSeverity::compareTo).orElse(null);
     }
 
-    private void deleteRelation(TenantId tenantId, EntityRelation alarmRelation) {
-        log.debug("Deleting Alarm relation: {}", alarmRelation);
-        relationService.deleteRelation(tenantId, alarmRelation);
-    }
-
-    private void createRelation(TenantId tenantId, EntityRelation alarmRelation) {
-        log.debug("Creating Alarm relation: {}", alarmRelation);
-        relationService.saveRelation(tenantId, alarmRelation);
-    }
-
     private Alarm merge(Alarm existing, Alarm alarm) {
         if (alarm.getStartTs() > existing.getEndTs()) {
             existing.setEndTs(alarm.getStartTs());

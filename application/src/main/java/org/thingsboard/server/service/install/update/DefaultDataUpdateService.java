@@ -42,14 +42,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
+import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
-import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
@@ -76,6 +76,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
@@ -85,8 +87,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -166,6 +167,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private EntityViewService entityViewService;
 
     @Autowired
+    private EdgeService edgeService;
+
+    @Autowired
     private SystemDataLoaderService systemDataLoaderService;
 
     @Autowired
@@ -196,6 +200,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.1.1 to 3.2.0 ...");
                 tenantsRootRuleChainUpdater.updateEntities(null);
                 break;
+            case "3.2.2":
+                log.info("Updating data from version 3.2.2 to 3.3.0 ...");
+                tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
+                break;
             case "3.3.0":
                 log.info("Updating data from version 3.3.0 to 3.3.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
@@ -215,6 +223,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
+
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -240,6 +249,32 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         RuleChain ruleChain = ruleChainService.getRootTenantRuleChain(tenant.getId());
                         if (ruleChain == null) {
                             installScripts.createDefaultRuleChains(tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
+
+    private PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
+            new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants default edge rule chain updater";
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        RuleChain defaultEdgeRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenant.getId());
+                        if (defaultEdgeRuleChain == null) {
+                            installScripts.createDefaultEdgeRuleChains(tenant.getId());
                         }
                     } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
@@ -377,7 +412,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW};
+                        EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                         for (EntityType groupType : entityGroupTypes) {
                             EntityGroup entityGroup;
                             Optional<EntityGroup> entityGroupOptional =
@@ -409,6 +444,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     break;
                                 case ENTITY_VIEW:
                                     new EntityViewGroupAllUpdater(entityViewService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
+                                    break;
+                                case EDGE:
+                                    new EdgesGroupAllUpdater(edgeService, customerService, entityGroupService, entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
                                     break;
                                 case DASHBOARD:
                                     new DashboardsGroupAllUpdater(entityGroup, fetchAllTenantEntities).updateEntities(tenant.getId());
@@ -547,7 +585,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     entityGroup.setOwnerId(customer.getId());
                     entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
                 }
-                EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW};
+                EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                 for (EntityType groupType : entityGroupTypes) {
                     Optional<EntityGroup> entityGroupOptional =
                             entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();

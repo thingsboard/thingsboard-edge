@@ -187,6 +187,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
@@ -209,6 +210,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
+        edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
         converterService.deleteConvertersByTenantId(tenantId);
@@ -216,7 +218,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         schedulerEventService.deleteSchedulerEventsByTenantId(tenantId);
         blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
         deleteEntityGroups(tenantId, tenantId);
-        deleteEntityRelations(tenantId,tenantId);
+        deleteEntityRelations(tenantId, tenantId);
         groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
         roleService.deleteRolesByTenantId(tenantId);
         apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);

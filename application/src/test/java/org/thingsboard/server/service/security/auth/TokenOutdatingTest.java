@@ -30,11 +30,13 @@
  */
 package org.thingsboard.server.service.security.auth;
 
+import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.UserId;
@@ -46,6 +48,7 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.config.JwtSettings;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.jwt.JwtAuthenticationProvider;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenAuthenticationProvider;

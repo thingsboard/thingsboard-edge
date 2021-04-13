@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,7 @@ import java.util.UUID;
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 @Component
+@Slf4j
 public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device> implements DeviceDao {
 
     @Autowired

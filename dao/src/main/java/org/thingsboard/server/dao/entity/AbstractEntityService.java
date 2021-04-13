@@ -34,8 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.Optional;
@@ -43,11 +45,27 @@ import java.util.Optional;
 @Slf4j
 public abstract class AbstractEntityService {
 
+    public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
+    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
+
     @Autowired
     protected RelationService relationService;
 
     @Autowired
     protected EntityGroupService entityGroupService;
+
+    @Autowired(required = false)
+    protected EdgeService edgeService;
+
+    protected void createRelation(TenantId tenantId, EntityRelation relation) {
+        log.debug("Creating relation: {}", relation);
+        relationService.saveRelation(tenantId, relation);
+    }
+
+    protected void deleteRelation(TenantId tenantId, EntityRelation relation) {
+        log.debug("Deleting relation: {}", relation);
+        relationService.deleteRelation(tenantId, relation);
+    }
 
     protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);

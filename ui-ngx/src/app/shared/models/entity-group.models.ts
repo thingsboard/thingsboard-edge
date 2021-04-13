@@ -40,6 +40,7 @@ import { Customer } from '@shared/models/customer.model';
 import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { RoleId } from '@shared/models/id/role-id';
+import { Edge } from '@shared/models/edge.models';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -47,7 +48,8 @@ export const entityGroupTypes: EntityType[] = [
   EntityType.DEVICE,
   EntityType.USER,
   EntityType.ENTITY_VIEW,
-  EntityType.DASHBOARD
+  EntityType.DASHBOARD,
+  EntityType.EDGE
 ];
 
 export const entityGroupActionTypes: WidgetActionType[] = [
@@ -103,6 +105,8 @@ export interface EntityGroupSettings {
   enableDevicesManagement: boolean;
   enableEntityViewsManagement: boolean;
   enableDashboardsManagement: boolean;
+  enableEdgesManagement: boolean;
+  enableSchedulerEventsManagement: boolean;
 }
 
 export enum EntityGroupSortOrder {
@@ -428,7 +432,19 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
         enableAssetsManagement: true,
         enableDevicesManagement: true,
         enableEntityViewsManagement: true,
-        enableDashboardsManagement: true
+        enableDashboardsManagement: true,
+        enableEdgesManagement: true
+      }, ...settings};
+  }
+
+  if (entityType === EntityType.EDGE) {
+    settings = {...{
+        enableUsersManagement: true,
+        enableAssetsManagement: true,
+        enableDevicesManagement: true,
+        enableEntityViewsManagement: true,
+        enableDashboardsManagement: true,
+        enableSchedulerEventsManagement: true
       }, ...settings};
   }
   return settings;
@@ -448,6 +464,12 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.entity-view-groups';
     case EntityType.DASHBOARD:
       return 'entity-group.dashboard-groups';
+    case EntityType.EDGE:
+      return 'entity-group.edge-groups';
+    case EntityType.SCHEDULER_EVENT:
+      return 'scheduler.scheduler';
+    case EntityType.RULE_CHAIN:
+      return 'edge.rulechains';
   }
 }
 
@@ -456,16 +478,22 @@ export interface HierarchyCallbacks {
   customerGroupsSelected?: (parentNodeId: string, customerId: string, groupsType: EntityType) => void;
   refreshEntityGroups?: (internalId: string) => void;
   refreshCustomerGroups?: (customerGroupIds: string[]) => void;
+  refreshEdgeGroups?: (edgeGroupIds: string[]) => void;
   groupUpdated?: (entityGroup: EntityGroupInfo) => void;
   groupDeleted?: (groupNodeId: string, entityGroupId: string) => void;
   groupAdded?: (entityGroup: EntityGroupInfo, existingGroupId: string) => void;
   customerAdded?: (parentNodeId: string, customer: Customer) => void;
   customerUpdated?: (customer: Customer) => void;
   customersDeleted?: (customerIds: string[]) => void;
+  edgeGroupsSelected?: (parentNodeId: string, edgeId: string, groupsType: EntityType) => void;
+  edgeAdded?: (parentNodeId: string, edge: Edge) => void;
+  edgeUpdated?: (edge: Edge) => void;
+  edgesDeleted?: (edgeIds: string[]) => void;
 }
 
 export interface EntityGroupParams {
   customerId?: string;
+  customerGroupId?: string;
   entityGroupId?: string;
   childEntityGroupId?: string;
   groupType?: EntityType;
@@ -474,6 +502,11 @@ export interface EntityGroupParams {
   nodeId?: string;
   internalId?: string;
   hierarchyCallbacks?: HierarchyCallbacks;
+  edge?: Edge;
+  edgeId?: string;
+  childGroupScope?: string;
+  grandChildGroupType?: EntityType;
+  grandChildGroupId?: string;
 }
 
 export interface ShareGroupRequest {
@@ -487,6 +520,10 @@ export interface ShareGroupRequest {
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
   let routeParams = {...route.params};
   let routeData = {...route.data};
+  var grandChildGroupId;
+  if (routeData.childGroupScope && routeData.childGroupScope === 'customer') {
+    grandChildGroupId = routeParams.entityGroupId;
+  }
   while (route.parent !== null) {
     route = route.parent;
     if (routeParams.entityGroupId && route.params.entityGroupId &&
@@ -504,6 +541,10 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     entityGroupId: routeParams.entityGroupId,
     groupType: routeData.groupType,
     childEntityGroupId: routeParams.childEntityGroupId,
-    childGroupType: routeData.childGroupType
+    childGroupType: routeData.childGroupType,
+    edgeId: routeParams.edgeId,
+    childGroupScope: routeData.childGroupScope,
+    grandChildGroupType: routeData.grandChildGroupType,
+    grandChildGroupId: grandChildGroupId
   }
 }

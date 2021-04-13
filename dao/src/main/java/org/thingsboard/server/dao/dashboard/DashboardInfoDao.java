@@ -75,6 +75,4 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
     PageData<DashboardInfo> findDashboardsByEntityGroupId(UUID groupId, PageLink pageLink);
 
     PageData<DashboardInfo> findDashboardsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
-
-
 }

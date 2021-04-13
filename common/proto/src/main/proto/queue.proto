@@ -604,6 +604,24 @@ message FromDeviceRPCResponseProto {
   int32 error = 4;
 }
 
+message EdgeNotificationMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 edgeIdMSB = 3;
+  int64 edgeIdLSB = 4;
+  string type = 5;
+  string action = 6;
+  int64 entityIdMSB = 7;
+  int64 entityIdLSB = 8;
+  string entityType = 9;
+  string body = 10;
+  PostTelemetryMsg postTelemetryMsg = 11;
+  PostAttributeMsg postAttributesMsg = 12;
+  int64 entityGroupIdMSB = 13;
+  int64 entityGroupIdLSB = 14;
+  string entityGroupType = 15;
+}
+
 /**
  * Main messages;
  */
@@ -639,6 +657,7 @@ message ToCoreMsg {
   bytes toDeviceActorNotificationMsg = 4;
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
   IntegrationDownlinkMsgProto integrationDownlinkMsg = 6;
+  EdgeNotificationMsgProto edgeNotificationMsg = 7;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -646,8 +665,9 @@ message ToCoreNotificationMsg {
   LocalSubscriptionServiceMsgProto toLocalSubscriptionServiceMsg = 1;
   FromDeviceRPCResponseProto fromDeviceRpcResponse = 2;
   bytes componentLifecycleMsg = 3;
-  IntegrationDownlinkMsgProto integrationDownlinkMsg = 4;
-  RestApiCallResponseMsgProto restApiCallResponseMsg = 5;
+  bytes edgeEventUpdateMsg = 4;
+  IntegrationDownlinkMsgProto integrationDownlinkMsg = 5;
+  RestApiCallResponseMsgProto restApiCallResponseMsg = 6;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

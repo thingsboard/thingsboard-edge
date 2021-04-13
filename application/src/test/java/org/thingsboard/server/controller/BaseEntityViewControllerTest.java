@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -42,15 +41,17 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.objects.AttributesEntityView;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +65,6 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;

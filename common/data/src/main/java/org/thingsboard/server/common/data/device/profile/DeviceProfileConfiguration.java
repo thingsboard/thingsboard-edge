@@ -36,6 +36,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.server.common.data.DeviceProfileType;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -43,7 +45,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
         property = "type")
 @JsonSubTypes({
          @JsonSubTypes.Type(value = DefaultDeviceProfileConfiguration.class, name = "DEFAULT")})
-public interface DeviceProfileConfiguration {
+public interface DeviceProfileConfiguration extends Serializable {
 
     @JsonIgnore
     DeviceProfileType getType();

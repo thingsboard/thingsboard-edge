@@ -45,7 +45,9 @@ import java.util.Set;
 public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
 
     private TenantId tenantId;
+
     private CustomerId customerId;
+
     @NoXss
     private String title;
     @Valid
