@@ -59,9 +59,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
-        List<File> composeFiles = Arrays.asList(new File("./../../docker/docker-compose.yml"),
-                new File("./../../docker/docker-compose.postgres.yml"),
-                new File("./../../docker/docker-compose.postgres.volumes.yml"));
+        List<File> composeFiles = Arrays.asList(new File("./../../docker/advanced/docker-compose.yml"),
+                new File("./../../docker/advanced/docker-compose.postgres.yml"),
+                new File("./../../docker/advanced/docker-compose.postgres.volumes.yml"));
 
         String identifier = Base58.randomString(6).toLowerCase();
         String project = identifier + Base58.randomString(6).toLowerCase();
