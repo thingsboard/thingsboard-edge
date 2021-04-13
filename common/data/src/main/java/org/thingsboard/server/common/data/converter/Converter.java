@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @EqualsAndHashCode(callSuper = true)
 public class Converter extends SearchTextBased<ConverterId> implements HasName, TenantEntity {
@@ -46,6 +47,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private static final long serialVersionUID = -1541581333235769915L;
 
     private TenantId tenantId;
+    @NoXss
     private String name;
     private ConverterType type;
     private boolean debugMode;

@@ -38,8 +38,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-import java.util.Arrays;
-
 public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity {
 
     private static final long serialVersionUID = -7627368878362410489L;
