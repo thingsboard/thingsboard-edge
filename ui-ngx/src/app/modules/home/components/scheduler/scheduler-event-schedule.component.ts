@@ -321,7 +321,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return weeklyRepeat;
   }
 
-  private updateModelEvent(momentTz, check){
+  private updateModelEvent(check){
     if (check) {
       this.modelValue = this.scheduleConfigFormGroup.value;
       this.propagateChange(this.fromSchedulerEventScheduleConfig(this.modelValue));
@@ -330,11 +330,11 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     }
   }
 
-  private updateModel(momentTz: moment.MomentTimezone) {
+  private updateModel() {
     if (this.scheduleConfigFormGroup.get('repeat').value) {
-      this.updateModelEvent(momentTz,this.scheduleConfigFormGroup.get('startDate').value.getTime() < this.scheduleConfigFormGroup.get('endsOnDate').value.getTime() && this.scheduleConfigFormGroup.valid);
+      this.updateModelEvent(this.scheduleConfigFormGroup.get('startDate').value.getTime() < this.scheduleConfigFormGroup.get('endsOnDate').value.getTime() && this.scheduleConfigFormGroup.valid);
     } else{
-      this.updateModelEvent(momentTz, this.scheduleConfigFormGroup.valid);
+      this.updateModelEvent(this.scheduleConfigFormGroup.valid);
     }
   }
 
