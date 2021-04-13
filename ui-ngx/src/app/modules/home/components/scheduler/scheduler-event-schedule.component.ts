@@ -32,9 +32,11 @@
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
+  NgForm,
   FormArray,
   FormBuilder,
   FormControl,
+  FormGroupDirective,
   FormGroup,
   NG_VALUE_ACCESSOR,
   Validators
@@ -66,6 +68,17 @@ interface SchedulerEventScheduleConfig {
   };
 }
 
+import { ErrorStateMatcher } from '@angular/material/core';
+
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+    const invalidCtrl = !!(control && control.invalid);
+    const invalidParent = !!(control && control.parent && control.parent.invalid);
+
+    return (invalidCtrl || invalidParent);
+  }
+}
+
 @Component({
   selector: 'tb-scheduler-event-schedule',
   templateUrl: './scheduler-event-schedule.component.html',
@@ -79,7 +92,7 @@ interface SchedulerEventScheduleConfig {
 export class SchedulerEventScheduleComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
   modelValue: SchedulerEventScheduleConfig | null;
-
+  matcher = new MyErrorStateMatcher();
   scheduleConfigFormGroup: FormGroup;
 
   schedulerRepeatTypes = Object.keys(SchedulerRepeatType);
@@ -116,7 +129,10 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
           timeUnit: [null, [Validators.required]]
         }
       )
-    });
+    }, {validator: this.endsOnDateValidator('startDate', 'endsOnDate')});
+
+
+
 
     this.scheduleConfigFormGroup.get('timezone').valueChanges.subscribe((timezone: string) => {
       if (timezone !== this.lastAppliedTimezone && timezone) {
@@ -164,6 +180,17 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     this.scheduleConfigFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
+  }
+
+  private endsOnDateValidator(startDate:string, endsOnDate:string) {
+    return (group: FormGroup): {[key: string]: any} => {
+      if(group.controls[endsOnDate].status === 'VALID') {
+        if (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime()) {
+          return {'endsOnDateValidator': true};
+        }
+      }
+      return null;
+    }
   }
 
   weeklyRepeatControl(index: number): FormControl {
@@ -321,20 +348,12 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return weeklyRepeat;
   }
 
-  private updateModelEvent(check){
-    if (check) {
+  private updateModel() {
+    if (this.scheduleConfigFormGroup.valid) {
       this.modelValue = this.scheduleConfigFormGroup.value;
       this.propagateChange(this.fromSchedulerEventScheduleConfig(this.modelValue));
     } else {
       this.propagateChange(null);
-    }
-  }
-
-  private updateModel() {
-    if (this.scheduleConfigFormGroup.get('repeat').value) {
-      this.updateModelEvent(this.scheduleConfigFormGroup.get('startDate').value.getTime() < this.scheduleConfigFormGroup.get('endsOnDate').value.getTime() && this.scheduleConfigFormGroup.valid);
-    } else{
-      this.updateModelEvent(this.scheduleConfigFormGroup.valid);
     }
   }
 

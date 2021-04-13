@@ -3078,7 +3078,8 @@
         "time-unit-required": "Time unit is required",
         "every-hour": "every { count, plural, 1 {hour} other {# hours} }",
         "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
-        "every-second": "every { count, plural, 1 {second} other {# seconds} }"
+        "every-second": "every { count, plural, 1 {second} other {# seconds} }",
+        "invalid-time": "Invalid time"
     },
     "report": {
         "report-config": "Report configuration",
