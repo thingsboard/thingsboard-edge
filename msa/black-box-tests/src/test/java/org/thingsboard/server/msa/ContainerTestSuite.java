@@ -59,10 +59,10 @@ public class ContainerTestSuite {
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
             testContainer = new DockerComposeContainer<>(
-                    new File("./../../docker/docker-compose.yml"),
-                    new File("./../../docker/docker-compose.postgres.yml"),
-                    new File("./../../docker/docker-compose.postgres.volumes.yml"),
-                    new File("./../../docker/docker-compose.kafka.yml"))
+                    new File("./../../docker/advanced/docker-compose.yml"),
+                    new File("./../../docker/advanced/docker-compose.postgres.yml"),
+                    new File("./../../docker/advanced/docker-compose.postgres.volumes.yml"),
+                    new File("./../../docker/advanced/docker-compose.kafka.yml"))
                     .withPull(false)
                     .withLocalCompose(true)
                     .withTailChildContainers(!skipTailChildContainers)
