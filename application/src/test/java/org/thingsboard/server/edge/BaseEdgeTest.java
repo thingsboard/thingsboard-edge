@@ -45,6 +45,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.adaptor.JsonConverter;
@@ -181,6 +182,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
 
     @Test
+    @Ignore
     public void test() throws Exception {
         testReceivedInitialData();
         testDevices();
