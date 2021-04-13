@@ -203,7 +203,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         deviceCredentials.setDeviceId(savedDevice.getId());
         if (device.getId() == null) {
             deviceCredentials = deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
-            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         else {
             deviceCredentials.setId(deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), savedDevice.getId()).getId());
@@ -220,7 +219,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
             deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
             deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
-            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         return savedDevice;
     }
