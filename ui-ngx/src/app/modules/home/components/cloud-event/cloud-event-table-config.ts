@@ -79,11 +79,8 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
               private edgeService: EdgeService,
               private store: Store<AppState>,
               private attributeService: AttributeService,
-              private entityService: EntityService,
-              updateOnInit = true) {
+              private entityService: EntityService) {
     super();
-    this.loadEdgeStatus();
-    this.loadDataOnInit = updateOnInit;
     this.tableTitle = '';
     this.useTimePageLink = true;
     this.detailsPanelEnabled = false;
@@ -91,15 +88,10 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     this.searchEnabled = false;
     this.addEnabled = false;
     this.entitiesDeleteEnabled = false;
-    this.entityTranslations = {
-      noEntities: 'cloud-event.no-cloud-events-prompt'
-    };
-    this.entityResources = {
-    } as EntityTypeResource<CloudEvent>;
+    this.defaultSortOrder = { property: 'createdTime', direction: Direction.DESC };
+    this.entityTranslations = { noEntities: 'cloud-event.no-cloud-events-prompt' };
 
     this.entitiesFetchFunction = pageLink => this.edgeService.getCloudEvents(pageLink);
-
-    this.defaultSortOrder = { property: 'createdTime', direction: Direction.DESC };
 
     this.columns.push(
       new DateEntityTableColumn<CloudEvent>('createdTime', 'cloud-event.created-time', this.datePipe, '150px'),
@@ -127,6 +119,8 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
         },
         '10%')
       );
+
+    this.loadEdgeStatus();
   }
 
   prepareCloudEventContent(entity: CloudEvent): Observable<any> {
@@ -163,8 +157,9 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
   }
 
   isCloudEventHasData(entity): boolean {
-    return !(entity.cloudEventType === CloudEventType.EDGE   ||
-             entity.cloudEventAction === CloudEventActionType.DELETED)
+    return !(entity.cloudEventType === CloudEventType.EDGE ||
+             entity.cloudEventAction === CloudEventActionType.DELETED ||
+             entity.cloudEventAction === CloudEventActionType.ADDED)
   }
 
   loadEdgeStatus(): void {
@@ -174,7 +169,10 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
       entityType: EntityType.TENANT
     }
     this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
-      .subscribe(attributes => this.queueStartTs = attributes[0].lastUpdateTs);
+      .subscribe(attributes => {
+        this.queueStartTs = attributes[0].lastUpdateTs;
+        this.table.updateData();
+      });
   }
 
   showEntityNotFoundError() {

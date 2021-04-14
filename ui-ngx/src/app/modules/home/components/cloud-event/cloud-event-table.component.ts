@@ -81,9 +81,7 @@ export class CloudEventTableComponent implements OnInit {
   }
 
   ngOnInit() {
-    let updateOnInit = this.activeValue;
     this.dirtyValue = !this.activeValue;
-    updateOnInit = true;
     this.cloudEventTableConfig = new CloudEventTableConfig(
       this.translate,
       this.utils,
@@ -92,8 +90,7 @@ export class CloudEventTableComponent implements OnInit {
       this.edgeService,
       this.store,
       this.attributeService,
-      this.entityService,
-      updateOnInit
+      this.entityService
     );
   }
 
