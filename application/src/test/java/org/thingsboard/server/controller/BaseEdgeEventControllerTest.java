@@ -60,7 +60,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class BaseEdgeEventControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
-    private TenantId tenantId;
     private User tenantAdmin;
 
     @Before
@@ -70,7 +69,6 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
         savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        tenantId = savedTenant.getId();
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -81,6 +79,10 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+        // sleep 1 seconds to avoid CREDENTIALS updated message for the user
+        // user credentials is going to be stored and updated event pushed to edge notification service
+        // while service will be processing this event edge could be already added and additional message will be pushed
+        Thread.sleep(1000);
     }
 
     @After
@@ -93,7 +95,6 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
 
     @Test
     public void testGetEdgeEvents() throws Exception {
-        Thread.sleep(500);
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
 
@@ -102,10 +103,9 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         Device device = constructDevice("TestDevice", "default");
         Device savedDevice =
                 doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
-        Thread.sleep(1000);
 
         doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
-        Thread.sleep(500);
+
 
         Device device2 = constructDevice("TestDevice2", "default");
         doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
@@ -113,44 +113,43 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         Asset asset = constructAsset("TestAsset", "default");
         Asset savedAsset = doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
-        Thread.sleep(500);
 
         doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
-        Thread.sleep(1000);
 
         Asset asset2 = constructAsset("TestAsset2", "default");
         doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
         EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
         doPost("/api/relation", relation);
-        Thread.sleep(500);
 
-        List<EdgeEvent> edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
-                new TypeReference<PageData<EdgeEvent>>() {
-                }, new TimePageLink(10)).getData();
 
-        Assert.assertFalse(edgeEvents.isEmpty());
-
+        // wait while edge event for the relation entity persisted to DB
+        Thread.sleep(100);
+        List<EdgeEvent> edgeEvents;
+        int attempt = 1;
+        do {
+            edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
+                    new TypeReference<PageData<EdgeEvent>>() {}, new TimePageLink(4)).getData();
+            attempt++;
+            Thread.sleep(100);
+        } while (edgeEvents.size() != 6 || attempt < 5);
         Assert.assertEquals(6, edgeEvents.size());
 
-        Assert.assertEquals(EdgeEventType.RULE_CHAIN, edgeEvents.get(0).getType());
-        Assert.assertEquals(EdgeEventActionType.UPDATED, edgeEvents.get(0).getAction());
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())
+                && EdgeEventActionType.UPDATED.equals(ee.getAction())));
 
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(1).getType());
-        Assert.assertEquals(EdgeEventActionType.ASSIGNED_TO_EDGE, edgeEvents.get(1).getAction());
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ENTITY_GROUP.equals(ee.getType())
+                && EdgeEventActionType.ASSIGNED_TO_EDGE.equals(ee.getAction())));
 
-        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(2).getType());
-        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(2).getAction());
-        Assert.assertEquals(savedDeviceEntityGroup.getUuidId(), edgeEvents.get(2).getEntityGroupId());
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.DEVICE.equals(ee.getType())
+                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
+                && savedDeviceEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
 
-        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(3).getType());
-        Assert.assertEquals(EdgeEventActionType.ASSIGNED_TO_EDGE, edgeEvents.get(3).getAction());
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ASSET.equals(ee.getType())
+                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
+                && savedAssetEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
 
-        Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(4).getType());
-        Assert.assertEquals(EdgeEventActionType.ADDED_TO_ENTITY_GROUP, edgeEvents.get(4).getAction());
-        Assert.assertEquals(savedAssetEntityGroup.getUuidId(), edgeEvents.get(4).getEntityGroupId());
-
-        Assert.assertEquals(EdgeEventType.RELATION, edgeEvents.get(5).getType());
-        Assert.assertEquals(EdgeEventActionType.RELATION_ADD_OR_UPDATE, edgeEvents.get(5).getAction());
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RELATION.equals(ee.getType())
+                && EdgeEventActionType.RELATION_ADD_OR_UPDATE.equals(ee.getAction())));
     }
 
     private EntityGroup constructEntityGroup(String name, EntityType type) {

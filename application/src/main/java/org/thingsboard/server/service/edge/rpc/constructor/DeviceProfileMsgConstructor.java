@@ -55,8 +55,6 @@ public class DeviceProfileMsgConstructor {
                 .setName(deviceProfile.getName())
                 .setDefault(deviceProfile.isDefault())
                 .setType(deviceProfile.getType().name())
-                .setTransportType(deviceProfile.getTransportType().name())
-                .setProvisionType(deviceProfile.getProvisionType().name())
                 .setProfileDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(deviceProfile.getProfileData())));
 
         /* TODO: voba - support of rule chain and queue name on the edge planned for next releases
@@ -71,6 +69,12 @@ public class DeviceProfileMsgConstructor {
 
         if (deviceProfile.getDescription() != null) {
             builder.setDescription(deviceProfile.getDescription());
+        }
+        if (deviceProfile.getTransportType() != null) {
+            builder.setTransportType(deviceProfile.getTransportType().name());
+        }
+        if (deviceProfile.getProvisionType() != null) {
+            builder.setProvisionType(deviceProfile.getProvisionType().name());
         }
         if (deviceProfile.getProvisionDeviceKey() != null) {
             builder.setProvisionDeviceKey(deviceProfile.getProvisionDeviceKey());
