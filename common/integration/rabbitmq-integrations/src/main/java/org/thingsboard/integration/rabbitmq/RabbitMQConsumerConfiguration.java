@@ -53,4 +53,7 @@ public class RabbitMQConsumerConfiguration {
     private int connectionTimeout;
     private int handshakeTimeout;
     private long pollPeriod;
+    private Boolean durable;
+    private Boolean exclusive;
+    private Boolean autoDelete;
 }
