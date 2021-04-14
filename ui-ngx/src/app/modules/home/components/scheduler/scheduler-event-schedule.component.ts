@@ -124,7 +124,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       endsOnDate: [null, [Validators.required]],
       timerRepeat: this.fb.group(
         {
-          repeatInterval: [null, [Validators.required]],
+          repeatInterval: [null, [Validators.required, Validators.min(0)]],
           timeUnit: [null, [Validators.required]]
         }
       )
