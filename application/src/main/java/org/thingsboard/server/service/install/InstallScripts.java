@@ -209,6 +209,21 @@ public class InstallScripts {
         }
     }
 
+    private void loadRuleChainsFromPath(TenantId tenantId, Path ruleChainsPath) throws IOException {
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            dirStream.forEach(
+                    path -> {
+                        try {
+                            createRuleChainFromFile(tenantId, path, null);
+                        } catch (Exception e) {
+                            log.error("Unable to load rule chain from json: [{}]", path.toString());
+                            throw new RuntimeException("Unable to load rule chain from json", e);
+                        }
+                    }
+            );
+        }
+    }
+
     public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) throws IOException {
         return createRuleChainFromFile(tenantId, getDeviceProfileDefaultRuleChainTemplateFilePath(), ruleChainName);
     }
@@ -351,6 +366,12 @@ public class InstallScripts {
     public void loadDemoRuleChains(TenantId tenantId) throws Exception {
         createDefaultRuleChains(tenantId);
         createDefaultRuleChain(tenantId, "Thermostat");
+        loadEdgeDemoRuleChains(tenantId);
+    }
+
+    private void loadEdgeDemoRuleChains(TenantId tenantId) throws Exception {
+        Path edgeDemoRuleChainsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
+        loadRuleChainsFromPath(tenantId, edgeDemoRuleChainsDir);
     }
 
     private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
