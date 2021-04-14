@@ -39,7 +39,7 @@ import { Router } from '@angular/router';
 import { CloudEvent } from "@shared/models/edge.models";
 
 export interface CloudEventDetailsDialogData {
-  cloudEvent: CloudEvent;
+  content: string;
 }
 
 @Component({
@@ -53,7 +53,6 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
   actionDataEditorElmRef: ElementRef;
   private actionDataEditor: ace.Ace.Editor;
 
-  cloudEvent: CloudEvent;
   actionData: string;
 
   constructor(protected store: Store<AppState>,
@@ -65,18 +64,8 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
   }
 
   ngOnInit(): void {
-    this.cloudEvent = this.data.cloudEvent;
-    this.actionData = this.prepareEdgeEventContent(this.cloudEvent);
+    this.actionData = JSON.stringify(this.data.content);
     this.actionDataEditor = this.createEditor(this.actionDataEditorElmRef, this.actionData);
-  }
-
-  prepareEdgeEventContent(entity) {
-    // TODO: voba - extend this function with different cases based on action and entity type
-    // TODO: voba - add proper action data based on the cloud event type
-    switch (entity.type) {
-      default:
-        return JSON.stringify(entity, null, 2);
-    }
   }
 
   createEditor(editorElementRef: ElementRef, content: string): ace.Ace.Editor {
