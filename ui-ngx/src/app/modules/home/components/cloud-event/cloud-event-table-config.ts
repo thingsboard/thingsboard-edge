@@ -30,7 +30,8 @@
 ///
 
 import {
-  DateEntityTableColumn, EntityActionTableColumn,
+  DateEntityTableColumn,
+  EntityActionTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -46,8 +47,8 @@ import { EdgeService } from "@core/http/edge.service";
 import {
   CloudEvent,
   CloudEventActionType,
-  CloudEventType,
   cloudEventActionTypeTranslations,
+  CloudEventType,
   cloudEventTypeTranslations,
   EdgeEventStatus,
   edgeEventStatusColor
@@ -64,7 +65,8 @@ import {
 import { EntityService } from '@core/http/entity.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { ContentType } from "@shared/models/constants";
+import { map } from "rxjs/operators";
 
 export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePageLink> {
 
@@ -80,6 +82,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
               private entityService: EntityService,
               updateOnInit = true) {
     super();
+    this.loadEdgeStatus();
     this.loadDataOnInit = updateOnInit;
     this.tableTitle = '';
     this.useTimePageLink = true;
@@ -88,10 +91,8 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     this.searchEnabled = false;
     this.addEnabled = false;
     this.entitiesDeleteEnabled = false;
-    this.actionsColumnTitle = 'cloud-event.details';
     this.entityTranslations = {
-      noEntities: 'cloud-event.no-cloud-events-prompt',
-      search: 'cloud-event.search'
+      noEntities: 'cloud-event.no-cloud-events-prompt'
     };
     this.entityResources = {
     } as EntityTypeResource<CloudEvent>;
@@ -112,34 +113,29 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
         entity => ({
           color: this.isPending(entity.createdTime) ? edgeEventStatusColor.get(EdgeEventStatus.PENDING) : edgeEventStatusColor.get(EdgeEventStatus.DEPLOYED)
         }), false),
-      new EntityActionTableColumn<CloudEvent>('details', 'cloud-event.details', {
+      new EntityActionTableColumn<CloudEvent>('data', 'event.data', {
           name: this.translate.instant('cloud-event.details'),
           icon: 'more_horiz',
           isEnabled: (entity) => this.isCloudEventHasData(entity),
           onAction: ($event, entity) =>
           {
             this.prepareCloudEventContent(entity).subscribe(
-              (content) => {
-                return this.showCloudEventDetails($event, content)
-              },
-              () => {
-                return this.showEntityNotFoundError()
-              }
+              (content) => this.showCloudEventDetails($event, content, 'event.data'),
+              () => this.showEntityNotFoundError()
             )
           }
         },
         '10%')
       );
-
-    this.loadEdgeStatus();
   }
 
   prepareCloudEventContent(entity: CloudEvent): Observable<any> {
     return this.entityService.getCloudEventByType(entity).pipe(
-      map((data) => data));
+      map((result) => JSON.stringify(result))
+    );
   }
 
-  showCloudEventDetails($event: MouseEvent, content: string): void {
+  showCloudEventDetails($event: MouseEvent, content: string, title: string): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -147,7 +143,9 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        content
+        content,
+        title,
+        contentType: ContentType.JSON
       }
     });
   }

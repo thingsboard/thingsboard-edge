@@ -1613,7 +1613,7 @@ export class EntityService {
         entityObservable = this.ruleChainService.getRuleChainMetadata(entityId);
         break;
       case CloudEventType.RELATION:
-        entityObservable = of(entity.body);
+        entityObservable = of(entity.entityBody);
         break;
     }
     return entityObservable;
