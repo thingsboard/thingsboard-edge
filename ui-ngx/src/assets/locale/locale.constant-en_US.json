@@ -2532,6 +2532,9 @@
         "routing-keys-required": "Routing key is required.",
         "queues": "Queues",
         "queues-required": "Queue name is required.",
+        "durable": "Durable",
+        "exclusive": "Exclusive",
+        "autoDelete": "Auto delete",
         "exchange-name": "Exchange name",
         "exchange-name-required": "Exchange name is required.",
         "downlink-topic": "Downlink topic",
@@ -3349,7 +3352,8 @@
         "time-unit-required": "Time unit is required",
         "every-hour": "every { count, plural, 1 {hour} other {# hours} }",
         "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
-        "every-second": "every { count, plural, 1 {second} other {# seconds} }"
+        "every-second": "every { count, plural, 1 {second} other {# seconds} }",
+        "invalid-time": "Invalid time"
     },
     "report": {
         "report-config": "Report configuration",

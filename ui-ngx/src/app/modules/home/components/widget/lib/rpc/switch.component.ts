@@ -136,7 +136,7 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
 
     this.switchResize$ = new ResizeObserver(() => {
       this.resize();
-    })
+    });
     this.switchResize$.observe(this.switchContainerRef.nativeElement);
     this.init();
   }
@@ -217,13 +217,13 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
     let width = this.switchContainer.width();
     let height = this.switchContainer.height();
     if (this.showOnOffLabels) {
-      height = height*2/3;
+      height = height * 2 / 3;
     }
-    const ratio = width/height;
+    const ratio = width / height;
     if (ratio > switchAspectRation) {
-      width = height*switchAspectRation;
+      width = height * switchAspectRation;
     } else {
-      height = width/switchAspectRation;
+      height = width / switchAspectRation;
     }
     this.switchElement.css({width, height});
     this.matSlideToggle.css({width, height, minWidth: width});
@@ -247,11 +247,11 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
       fontSize--;
       textWidth = this.measureTextWidth(text, fontSize);
     }
-    element.css({fontSize: fontSize+'px', lineHeight: fontSize+'px'});
+    element.css({fontSize: fontSize + 'px', lineHeight: fontSize + 'px'});
   }
 
   private measureTextWidth(text: string, fontSize: number): number {
-    this.textMeasure.css({fontSize: fontSize+'px', lineHeight: fontSize+'px'});
+    this.textMeasure.css({fontSize: fontSize + 'px', lineHeight: fontSize + 'px'});
     this.textMeasure.text(text);
     return this.textMeasure.width();
   }
@@ -275,6 +275,7 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
     this.ctx.controlApi.sendTwoWayCommand(this.getValueMethod, null, this.requestTimeout).subscribe(
       (responseBody) => {
         this.setValue(this.parseValueFunction(responseBody));
+        this.ctx.detectChanges();
       },
       () => {
         const errorText = this.ctx.defaultSubscription.rpcErrorText;

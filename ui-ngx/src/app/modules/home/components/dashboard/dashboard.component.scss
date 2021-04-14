@@ -165,3 +165,7 @@ div.tb-widget {
 .tb-dashboard-context-menu-items {
   min-width: 256px;
 }
+
+::ng-deep .export-menu{
+  max-width: 336px;
+}

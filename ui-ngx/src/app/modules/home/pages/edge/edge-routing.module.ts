@@ -77,21 +77,6 @@ const routes: Routes = [
         }
       },
       {
-        path: ':edgeId/ruleChains',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN],
-          ruleChainsType: 'edge',
-          breadcrumb: {
-            label: 'edge.edge-rulechains',
-            icon: 'settings_ethernet'
-          },
-        },
-        resolve: {
-          entitiesTableConfig: RuleChainsTableConfigResolver
-        }
-      },
-      {
         path: ':edgeId/assets',
         component: EntitiesTableComponent,
         data: {
@@ -170,6 +155,50 @@ const routes: Routes = [
             },
             resolve: {
               dashboard: DashboardResolver
+            }
+          }
+        ]
+      },
+      {
+        path: ':edgeId/ruleChains',
+        data: {
+          breadcrumb: {
+            label: 'edge.edge-rulechains',
+            icon: 'settings_ethernet'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN],
+              title: 'edge.rulechains',
+              ruleChainsType: 'edge'
+            },
+            resolve: {
+              entitiesTableConfig: RuleChainsTableConfigResolver
+            }
+          },
+          {
+            path: ':ruleChainId',
+            component: RuleChainPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: ruleChainBreadcumbLabelFunction,
+                icon: 'settings_ethernet'
+              } as BreadCrumbConfig<RuleChainPageComponent>,
+              auth: [Authority.TENANT_ADMIN],
+              title: 'rulechain.edge-rulechain',
+              import: false,
+              ruleChainType: RuleChainType.EDGE
+            },
+            resolve: {
+              ruleChain: RuleChainResolver,
+              ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+              ruleNodeComponents: RuleNodeComponentsResolver,
+              tooltipster: TooltipsterResolver
             }
           }
         ]

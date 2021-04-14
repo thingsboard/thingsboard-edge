@@ -28,70 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../scss/constants";
-
-:host {
+.tb-json-input {
   width: 100%;
   height: 100%;
-  form,
-  fieldset {
+  padding: 5px;
+
+  &__form {
+    overflow: auto;
     height: 100%;
   }
 
-  .mat-content {
-    overflow: hidden;
-    background-color: #fff;
+  &__error {
+    text-align: center;
+    font-size: 18px;
+    color: #a0a0a0;
   }
-
-  .mat-padding {
-    padding: 0 16px;
-  }
-
-  .hide-label {
-    margin-bottom: 5px;
-    margin-right: 5px;
-  }
-
-  tb-timeinterval[ng-reflect-fx-show="true"] {
-    margin-bottom: -16px;
-  }
-
-  .limit-slider-container {
-    .limit-slider-value {
-      margin-left: 16px;
-      min-width: 25px;
-      max-width: 80px;
-    }
-    mat-form-field input[type=number] {
-      text-align: center;
-    }
-  }
-
-  @media #{$mat-gt-sm} {
-    .history-time-input {
-      min-width: 364px;
-    }
-    .limit-slider-container {
-      > label {
-        margin-right: 16px;
-        width: min-content;
-        max-width: 40%;
-      }
-    }
-  }
-
 }
 
-:host ::ng-deep {
-  mat-radio-button {
-    display: block;
-    margin-bottom: 16px;
-    .mat-radio-label {
-      width: 100%;
-      align-items: start;
-      .mat-radio-label-content {
-        width: 100%;
-      }
-    }
-  }
+.tb-toast {
+  font-size: 14px!important;
 }

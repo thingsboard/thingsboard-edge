@@ -10,6 +10,7 @@ To run the black box tests with using Docker, the local Docker images of Thingsb
 As result, in REPOSITORY column, next images should be present:
         
         thingsboard/tb-pe-coap-transport
+        thingsboard/tb-pe-lwm2m-transport
         thingsboard/tb-pe-http-transport
         thingsboard/tb-pe-mqtt-transport
         thingsboard/tb-pe-node

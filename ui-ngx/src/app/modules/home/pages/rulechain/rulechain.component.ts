@@ -126,16 +126,4 @@ export class RuleChainComponent extends EntityComponent<RuleChain> {
       return false;
     }
   }
-
-  isTenantScope() {
-    return this.ruleChainScope === 'tenant';
-  }
-
-  isEdgeScope() {
-    return this.ruleChainScope === 'edge';
-  }
-
-  isTemplateScope() {
-    return this.ruleChainScope === 'edges';
-  }
 }

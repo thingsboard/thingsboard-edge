@@ -607,12 +607,14 @@ export const templates = {
       connectionTimeout: 60000,
       handshakeTimeout: 10000,
       pollPeriod: 5000,
+      durable: false,
+      exclusive: true,
+      autoDelete: true,
     },
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.required, Validators.min(1), Validators.max(65535)],
       'clientConfiguration.queues': [Validators.required],
-      'clientConfiguration.routingKeys': [Validators.required],
       'clientConfiguration.connectionTimeout': [Validators.min(0)],
       'clientConfiguration.handshakeTimeout': [Validators.min(0)],
       'clientConfiguration.pollPeriod': [Validators.min(0)]

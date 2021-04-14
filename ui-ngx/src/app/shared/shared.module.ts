@@ -173,6 +173,7 @@ import { GroupPermissionsComponent } from '@shared/components/role/group-permiss
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
 import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-entity-group-list.component';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
 
 @NgModule({
   providers: [
@@ -193,6 +194,10 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
     {
       provide: TINYMCE_SCRIPT_SRC,
       useValue: 'assets/tinymce/tinymce.min.js'
+    },
+    {
+      provide: MAT_DATE_LOCALE,
+      useValue: 'en-GB'
     }
   ],
   declarations: [
