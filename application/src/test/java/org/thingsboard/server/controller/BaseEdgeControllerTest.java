@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RoleProto;
@@ -420,11 +421,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.expectMessageAmount(11);
+        edgeImitator.expectMessageAmount(13);
         edgeImitator.connect();
-        edgeImitator.waitForMessages();
+        Assert.assertTrue(edgeImitator.waitForMessages());
 
-        Assert.assertEquals(11, edgeImitator.getDownlinkMsgs().size());
+        Assert.assertEquals(13, edgeImitator.getDownlinkMsgs().size());
         Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
@@ -434,17 +435,19 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         edgeImitator.getDownlinkMsgs().clear();
 
-        edgeImitator.expectMessageAmount(8);
-        doPost("/api/edge/sync/" + edge.getId());
-        edgeImitator.waitForMessages();
+        edgeImitator.expectMessageAmount(10);
 
-        Assert.assertEquals(8, edgeImitator.getDownlinkMsgs().size());
+        doPost("/api/edge/sync/" + edge.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        Assert.assertEquals(10, edgeImitator.getDownlinkMsgs().size());
         Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
         Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
+        Assert.assertTrue(edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class).isPresent());
 
         edgeImitator.allowIgnoredTypes();
         edgeImitator.disconnect();
