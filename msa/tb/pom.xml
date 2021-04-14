@@ -52,7 +52,7 @@
         <pkg.name>thingsboard</pkg.name>
         <tb.docker.name>tb-pe</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <pkg.upgradeVersion>2.4.2</pkg.upgradeVersion>
+        <pkg.upgradeVersion>3.3.0</pkg.upgradeVersion>
     </properties>
 
     <dependencies>
