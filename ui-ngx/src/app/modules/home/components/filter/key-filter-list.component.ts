@@ -37,7 +37,10 @@ import {
   FormBuilder,
   FormControl,
   FormGroup,
+  NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
   Validators
 } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
@@ -61,10 +64,15 @@ import { EntityId } from '@shared/models/id/entity-id';
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => KeyFilterListComponent),
       multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => KeyFilterListComponent),
+      multi: true
     }
   ]
 })
-export class KeyFilterListComponent implements ControlValueAccessor, OnInit {
+export class KeyFilterListComponent implements ControlValueAccessor, Validator, OnInit {
 
   @Input() disabled: boolean;
 
@@ -117,6 +125,12 @@ export class KeyFilterListComponent implements ControlValueAccessor, OnInit {
       this.keyFilterListFormGroup.enable({emitEvent: false});
       this.keyFiltersControl.enable({emitEvent: false});
     }
+  }
+
+  validate(): ValidationErrors | null {
+    return this.keyFilterListFormGroup.valid && this.keyFiltersControl.valid ? null : {
+      keyFilterList: {valid: false}
+    };
   }
 
   writeValue(keyFilters: Array<KeyFilterInfo>): void {

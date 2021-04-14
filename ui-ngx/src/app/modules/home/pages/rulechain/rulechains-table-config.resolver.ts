@@ -283,33 +283,39 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event, entity) => this.setRootRuleChain($event, entity)
         }
       );
-    } else if (ruleChainScope === 'edges') {
+    }
+    if (ruleChainScope === 'edges') {
       actions.push(
         {
           name: this.translate.instant('rulechain.set-edge-template-root-rulechain'),
           icon: 'flag',
-          isEnabled: (entity) => this.isNonRootRuleChain(entity),
+          isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
+            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
           onAction: ($event, entity) => this.setEdgeTemplateRootRuleChain($event, entity)
         },
         {
           name: this.translate.instant('rulechain.set-auto-assign-to-edge'),
           icon: 'bookmark_outline',
-          isEnabled: (entity) => this.isNotAutoAssignToEdgeRuleChain(entity),
+          isEnabled: (entity) => this.isNotAutoAssignToEdgeRuleChain(entity) &&
+            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
           onAction: ($event, entity) => this.setAutoAssignToEdgeRuleChain($event, entity)
         },
         {
           name: this.translate.instant('rulechain.unset-auto-assign-to-edge'),
           icon: 'bookmark',
-          isEnabled: (entity) => this.isAutoAssignToEdgeRuleChain(entity),
+          isEnabled: (entity) => this.isAutoAssignToEdgeRuleChain(entity) &&
+            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
           onAction: ($event, entity) => this.unsetAutoAssignToEdgeRuleChain($event, entity)
         }
       );
-    } else if (ruleChainScope === 'edge') {
+    }
+    if (ruleChainScope === 'edge') {
       actions.push(
         {
           name: this.translate.instant('rulechain.set-root'),
           icon: 'flag',
-          isEnabled: (entity) => this.isNonRootRuleChain(entity),
+          isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
+            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
           onAction: ($event, entity) => this.setRootRuleChain($event, entity)
         },
         {
@@ -356,6 +362,8 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       }
     } else if (this.config.componentsData.ruleChainScope === 'edges') {
       this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
+    } else if (this.config.componentsData.ruleChainScope === 'edge') {
+      this.router.navigateByUrl(`edges/${this.config.componentsData.edgeId}/ruleChains/${ruleChain.id.id}`);
     } else {
       this.router.navigateByUrl(`ruleChains/${ruleChain.id.id}`);
     }

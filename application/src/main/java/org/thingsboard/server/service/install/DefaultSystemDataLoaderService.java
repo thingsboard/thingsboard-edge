@@ -162,9 +162,6 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     @Autowired
     private RuleChainService ruleChainService;
 
-    @Value("${edges.enabled}")
-    private boolean edgesEnabled;
-
     @Bean
     protected BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -275,9 +272,6 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         demoTenant.setTitle("Tenant");
         demoTenant = tenantService.saveTenant(demoTenant);
         installScripts.loadDemoRuleChains(demoTenant.getId());
-        if (edgesEnabled) {
-            installScripts.createDefaultEdgeRuleChains(demoTenant.getId());
-        }
         createUser(Authority.TENANT_ADMIN, demoTenant.getId(), null, "tenant@thingsboard.org", "tenant");
 
         Customer customerA = new Customer();

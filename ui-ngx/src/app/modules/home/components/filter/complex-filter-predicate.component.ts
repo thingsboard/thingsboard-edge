@@ -31,11 +31,7 @@
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import {
-  ComplexFilterPredicate,
-  ComplexFilterPredicateInfo,
-  EntityKeyValueType
-} from '@shared/models/query/query.models';
+import { ComplexFilterPredicateInfo, EntityKeyValueType } from '@shared/models/query/query.models';
 import { MatDialog } from '@angular/material/dialog';
 import {
   ComplexFilterPredicateDialogComponent,
@@ -86,7 +82,7 @@ export class ComplexFilterPredicateComponent implements ControlValueAccessor, On
   registerOnTouched(fn: any): void {
   }
 
-  setDisabledState?(isDisabled: boolean): void {
+  setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
 
