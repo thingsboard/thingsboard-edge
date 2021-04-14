@@ -32,11 +32,9 @@
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  NgForm,
   FormArray,
   FormBuilder,
   FormControl,
-  FormGroupDirective,
   FormGroup,
   NG_VALUE_ACCESSOR,
   Validators
@@ -54,6 +52,7 @@ import {
 import * as _moment from 'moment';
 import * as momentTz from 'moment-timezone';
 import { isDefined } from '@core/utils';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 interface SchedulerEventScheduleConfig {
   timezone: string;
@@ -68,12 +67,10 @@ interface SchedulerEventScheduleConfig {
   };
 }
 
-import { ErrorStateMatcher } from '@angular/material/core';
-
-export class MyErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
-    const invalidCtrl = !!(control && control.invalid);
-    const invalidParent = !!(control && control.parent && control.parent.invalid);
+export class endsOnDateErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null,): boolean {
+    const invalidCtrl = !!(control?.invalid);
+    const invalidParent = !!(control?.parent && control?.parent.invalid);
 
     return (invalidCtrl || invalidParent);
   }
@@ -92,7 +89,9 @@ export class MyErrorStateMatcher implements ErrorStateMatcher {
 export class SchedulerEventScheduleComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
   modelValue: SchedulerEventScheduleConfig | null;
-  matcher = new MyErrorStateMatcher();
+
+  endsOnDateMatcher = new endsOnDateErrorStateMatcher();
+
   scheduleConfigFormGroup: FormGroup;
 
   schedulerRepeatTypes = Object.keys(SchedulerRepeatType);
@@ -125,7 +124,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       endsOnDate: [null, [Validators.required]],
       timerRepeat: this.fb.group(
         {
-          repeatInterval: [null, [Validators.required, Validators.min(0)]],
+          repeatInterval: [null, [Validators.required]],
           timeUnit: [null, [Validators.required]]
         }
       )
