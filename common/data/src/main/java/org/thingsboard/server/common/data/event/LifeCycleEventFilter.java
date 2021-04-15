@@ -28,15 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.bootstrap.secure;
+package org.thingsboard.server.common.data.event;
 
 import lombok.Data;
+import org.eclipse.leshan.core.util.StringUtils;
 
 @Data
-public class LwM2MBootstrapServers {
-    private Integer shortId = 123;
-    private Integer lifetime = 300;
-    private Integer defaultMinPeriod = 1;
-    private boolean notifIfDisabled = true;
-    private String binding = "UQ";
+public class LifeCycleEventFilter implements EventFilter {
+    private String server;
+    private String event;
+    private String status;
+    private String error;
+
+    @Override
+    public EventType getEventType() {
+        return EventType.LC_EVENT;
+    }
+
+    @Override
+    public boolean hasFilterForJsonBody() {
+        return !StringUtils.isEmpty(server) || !StringUtils.isEmpty(event) || !StringUtils.isEmpty(status) || !StringUtils.isEmpty(error);
+    }
 }

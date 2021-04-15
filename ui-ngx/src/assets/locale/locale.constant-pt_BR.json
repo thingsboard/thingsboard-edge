@@ -1343,7 +1343,9 @@
     "failed": "Falhou",
     "messages-processed": "Mensagens processadas",
     "uuid": "UUID",
-    "errors-occurred": "Erros"
+    "errors-occurred": "Erros",
+    "all-events": "Tudo",
+    "entity-type": "Tipo de entidade"
   },
   "extension": {
     "extensions": "Extensões",

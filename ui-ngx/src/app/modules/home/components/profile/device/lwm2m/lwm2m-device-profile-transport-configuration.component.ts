@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {DeviceProfileTransportConfiguration, DeviceTransportType} from '@shared/models/device.models';
-import {Component, forwardRef, Inject, Input} from '@angular/core';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {Store} from '@ngrx/store';
-import {AppState} from '@app/core/core.state';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { DeviceProfileTransportConfiguration } from '@shared/models/device.models';
+import { Component, forwardRef, Inject, Input } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { AppState } from '@app/core/core.state';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
   ATTRIBUTE,
   DEFAULT_BINDING,
@@ -49,11 +49,11 @@ import {
   RESOURCES,
   TELEMETRY
 } from './lwm2m-profile-config.models';
-import {DeviceProfileService} from '@core/http/device-profile.service';
-import {deepClone, isDefinedAndNotNull, isEmpty, isUndefined} from '@core/utils';
-import {WINDOW} from '@core/services/window.service';
-import {JsonArray, JsonObject} from '@angular/compiler-cli/ngcc/src/packages/entry_point';
-import {Direction} from '@shared/models/page/sort-order';
+import { DeviceProfileService } from '@core/http/device-profile.service';
+import { deepClone, isDefinedAndNotNull, isEmpty, isUndefined } from '@core/utils';
+import { WINDOW } from '@core/services/window.service';
+import { JsonArray, JsonObject } from '@angular/compiler-cli/ngcc/src/packages/entry_point';
+import { Direction } from '@shared/models/page/sort-order';
 
 @Component({
   selector: 'tb-profile-lwm2m-device-transport-configuration',
@@ -188,7 +188,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   }
 
   private updateObserveAttrTelemetryObjectFormGroup = (objectsList: ObjectLwM2M[]): void => {
-     this.lwm2mDeviceProfileFormGroup.patchValue({
+    this.lwm2mDeviceProfileFormGroup.patchValue({
         observeAttrTelemetry: deepClone(this.getObserveAttrTelemetryObjects(objectsList))
       },
       {emitEvent: false});
@@ -373,6 +373,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
       this.configurationValue.observeAttr.observe = observeArray;
       this.configurationValue.observeAttr.attribute = attributeArray;
       this.configurationValue.observeAttr.telemetry = telemetryArray;
+      this.configurationValue.observeAttr.keyName = this.sortObjectKeyPathJson(KEY_NAME, keyNameNew);
       this.configurationValue.observeAttr.attributeLwm2m = attributeLwm2m;
     }
   }

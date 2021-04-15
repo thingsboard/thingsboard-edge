@@ -77,6 +77,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
               private broadcast: BroadcastService,
               private entityViewService: EntityViewService,
               private customerService: CustomerService,
+              private edgeService: EdgeService,
               private dialogService: DialogService,
               private translate: TranslateService,
               private datePipe: DatePipe,
@@ -96,7 +97,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
       this.utils.customTranslation(entityView.name, entityView.name) : '';
 
     this.config.deleteEntityTitle = entityView =>
-      this.translate.instant('entity-view.delete-entity-view-title', { entityViewName: entityView.name });
+      this.translate.instant('entity-view.delete-entity-view-title', {entityViewName: entityView.name});
     this.config.deleteEntityContent = () => this.translate.instant('entity-view.delete-entity-view-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('entity-view.delete-entity-views-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('entity-view.delete-entity-views-text');
@@ -147,6 +148,10 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           } else {
             this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('entity-view.entity-views');
           }
+        } else if (this.config.componentsData.entityViewScope === 'edge') {
+          this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(
+            edge => this.config.tableTitle = edge.name + ': ' + this.translate.instant('entity-view.entity-views')
+          );
         } else {
           this.config.tableTitle = this.translate.instant('entity-view.entity-views');
         }

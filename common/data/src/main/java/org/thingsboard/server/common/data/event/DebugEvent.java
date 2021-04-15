@@ -28,15 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.bootstrap.secure;
+package org.thingsboard.server.common.data.event;
 
 import lombok.Data;
+import org.eclipse.leshan.core.util.StringUtils;
 
 @Data
-public class LwM2MBootstrapServers {
-    private Integer shortId = 123;
-    private Integer lifetime = 300;
-    private Integer defaultMinPeriod = 1;
-    private boolean notifIfDisabled = true;
-    private String binding = "UQ";
+public abstract class DebugEvent implements EventFilter {
+
+    private String msgDirectionType;
+    private String server;
+    private String dataSearch;
+    private String metadataSearch;
+    private String entityName;
+    private String relationType;
+    private String entityId;
+    private String msgType;
+    private boolean isError;
+    private String error;
+
+    public void setIsError(boolean isError) {
+        this.isError = isError;
+    }
+
+    @Override
+    public boolean hasFilterForJsonBody() {
+        return !StringUtils.isEmpty(msgDirectionType) || !StringUtils.isEmpty(server) || !StringUtils.isEmpty(dataSearch) || !StringUtils.isEmpty(metadataSearch)
+                || !StringUtils.isEmpty(entityName) || !StringUtils.isEmpty(relationType) || !StringUtils.isEmpty(entityId) || !StringUtils.isEmpty(msgType) || !StringUtils.isEmpty(error) || isError;
+    }
+
 }

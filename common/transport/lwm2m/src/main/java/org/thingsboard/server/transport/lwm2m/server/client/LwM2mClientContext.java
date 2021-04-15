@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public interface LwM2mClientContext {
@@ -66,4 +67,6 @@ public interface LwM2mClientContext {
     Map<UUID, LwM2mClientProfile> setProfiles(Map<UUID, LwM2mClientProfile> profiles);
 
     boolean addUpdateProfileParameters(DeviceProfile deviceProfile);
+
+    Set<String> getSupportedIdVerInClient(Registration registration);
 }

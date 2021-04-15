@@ -93,7 +93,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     this.config.entityResources = entityTypeResources.get(EntityType.RULE_CHAIN);
 
     this.config.deleteEntityTitle = ruleChain => this.translate.instant('rulechain.delete-rulechain-title',
-      { ruleChainName: ruleChain.name });
+      {ruleChainName: ruleChain.name});
     this.config.deleteEntityContent = () => this.translate.instant('rulechain.delete-rulechain-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('rulechain.delete-rulechains-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('rulechain.delete-rulechains-text');

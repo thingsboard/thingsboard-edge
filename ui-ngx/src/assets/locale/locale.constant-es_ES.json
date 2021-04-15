@@ -1754,7 +1754,9 @@
         "success": "Éxito",
         "failed": "Fallo",
         "messages-processed": "Mensajes procesados",
-        "errors-occurred": "Ocurrieron errores"
+        "errors-occurred": "Ocurrieron errores",
+        "all-events": "Todos",
+        "entity-type": "Tipo de entidad"
     },
     "extension": {
         "extensions": "Extensiones",
