@@ -420,16 +420,11 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 }, dbCallbackExecutorService);
                 break;
             case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
                 saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
-
-                PageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new PageLink(Integer.MAX_VALUE));
-                if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
-                    EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
-                    for (Edge edge : edgesByTenantId.getData()) {
-                        saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, null, entityGroupId);
-                    }
-                }
+                break;
+            case REMOVED_FROM_ENTITY_GROUP:
+                EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
+                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, entityGroupId);
                 break;
             case ASSIGNED_TO_EDGE:
             case UNASSIGNED_FROM_EDGE:
