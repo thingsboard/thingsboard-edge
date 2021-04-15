@@ -736,6 +736,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     public ListenableFuture<Void> processEntityGroupEntitiesRequest(TenantId tenantId, Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
         if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
+            // TODO: voba - refactor this to pagination
             ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                 EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
