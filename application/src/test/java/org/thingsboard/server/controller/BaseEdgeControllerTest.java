@@ -450,7 +450,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class).isPresent());
 
         edgeImitator.allowIgnoredTypes();
-        edgeImitator.disconnect();
+        try {
+            edgeImitator.disconnect();
+        } catch (Exception ignored) {}
 
         doDelete("/api/device/" + savedDevice.getId().getId().toString())
                 .andExpect(status().isOk());

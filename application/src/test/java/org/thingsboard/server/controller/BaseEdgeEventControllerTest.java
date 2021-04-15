@@ -101,26 +101,28 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         EntityGroup deviceEntityGroup = constructEntityGroup("TestDevice", EntityType.DEVICE);
         EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
         Device device = constructDevice("TestDevice", "default");
+        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+
         Device savedDevice =
                 doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
 
-        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
-
-
         Device device2 = constructDevice("TestDevice2", "default");
         doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
-        EntityGroup assetEntityGroup = constructEntityGroup("TestDevice", EntityType.ASSET);
+
+
+        EntityGroup assetEntityGroup = constructEntityGroup("TestAsset", EntityType.ASSET);
         EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         Asset asset = constructAsset("TestAsset", "default");
-        Asset savedAsset = doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
-
         doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
+
+        Asset savedAsset =
+                doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
 
         Asset asset2 = constructAsset("TestAsset2", "default");
         doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
+
         EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
         doPost("/api/relation", relation);
-
 
         // wait while edge event for the relation entity persisted to DB
         Thread.sleep(100);
@@ -128,11 +130,11 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         int attempt = 1;
         do {
             edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
-                    new TypeReference<PageData<EdgeEvent>>() {}, new TimePageLink(4)).getData();
+                    new TypeReference<PageData<EdgeEvent>>() {}, new TimePageLink(10)).getData();
             attempt++;
             Thread.sleep(100);
-        } while (edgeEvents.size() != 6 || attempt < 5);
-        Assert.assertEquals(6, edgeEvents.size());
+        } while (edgeEvents.size() != 8 && attempt < 5);
+        Assert.assertEquals(8, edgeEvents.size());
 
         Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())
                 && EdgeEventActionType.UPDATED.equals(ee.getAction())));
