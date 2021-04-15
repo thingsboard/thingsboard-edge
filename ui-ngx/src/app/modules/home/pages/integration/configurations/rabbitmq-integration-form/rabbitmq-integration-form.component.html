@@ -58,22 +58,30 @@
         <input matInput formControlName="password" type="password" autocomplete="new-password">
       </mat-form-field>
     </div>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.queues</mat-label>
-        <input matInput formControlName="queues" required>
-        <mat-error translate *ngIf="form.get('queues').hasError('required')">integration.queues-required
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.routing-keys</mat-label>
-        <input matInput formControlName="routingKeys" required>
-        <mat-error translate *ngIf="form.get('routingKeys').hasError('required')">integration.routing-keys-required
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.downlink-topic</mat-label>
-        <input matInput formControlName="downlinkTopic">
-      </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.queues</mat-label>
+      <input matInput formControlName="queues" required>
+      <mat-error translate *ngIf="form.get('queues').hasError('required')">integration.queues-required></mat-error>
+    </mat-form-field>
+    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <mat-checkbox fxFlex="33" formControlName="durable">
+        {{ 'integration.durable' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex="33" formControlName="exclusive">
+        {{ 'integration.exclusive' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex="33" formControlName="autoDelete">
+        {{ 'integration.autoDelete' | translate }}
+      </mat-checkbox>
+    </div>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.routing-keys</mat-label>
+      <input matInput formControlName="routingKeys">
+    </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.downlink-topic</mat-label>
+      <input matInput formControlName="downlinkTopic">
+    </mat-form-field>
     <mat-form-field class="mat-block">
       <mat-label translate>integration.exchange-name</mat-label>
       <input matInput formControlName="exchangeName">
@@ -83,20 +91,23 @@
       <input matInput formControlName="virtualHost">
     </mat-form-field>
     <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-      <mat-form-field fxFlex="40"  class="mat-block">
-          <mat-label translate>integration.connection-timeout</mat-label>
-          <input matInput type="number" formControlName="connectionTimeout" step="1" min="0">
-          <mat-error translate *ngIf="form.get('connectionTimeout').hasError('min')">integration.connection-timeout-min</mat-error>
+      <mat-form-field fxFlex="40" class="mat-block">
+        <mat-label translate>integration.connection-timeout</mat-label>
+        <input matInput type="number" formControlName="connectionTimeout" step="1" min="0">
+        <mat-error translate *ngIf="form.get('connectionTimeout').hasError('min')">integration.connection-timeout-min
+        </mat-error>
       </mat-form-field>
       <mat-form-field fxFlex="40" class="mat-block">
-          <mat-label translate>integration.handshake-timeout</mat-label>
-          <input matInput type="number" formControlName="handshakeTimeout" step="1" min ="0">
-          <mat-error translate *ngIf="form.get('handshakeTimeout').hasError('min')">integration.handshake-timeout-min</mat-error>
+        <mat-label translate>integration.handshake-timeout</mat-label>
+        <input matInput type="number" formControlName="handshakeTimeout" step="1" min="0">
+        <mat-error translate *ngIf="form.get('handshakeTimeout').hasError('min')">integration.handshake-timeout-min
+        </mat-error>
       </mat-form-field>
       <mat-form-field fxFlex="40" class="mat-block">
         <mat-label translate>integration.rabbit-mq-poll-interval</mat-label>
         <input matInput type="number" formControlName="pollPeriod" step="1" min="0">
-        <mat-error translate *ngIf="form.get('pollPeriod').hasError('min')">integration.rabbit-mq-poll-interval-min</mat-error>
+        <mat-error translate *ngIf="form.get('pollPeriod').hasError('min')">integration.rabbit-mq-poll-interval-min
+        </mat-error>
       </mat-form-field>
     </div>
   </fieldset>

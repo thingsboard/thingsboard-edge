@@ -52,6 +52,7 @@ import { Router } from '@angular/router';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { EdgeService } from '@core/http/edge.service';
+import {SchedulerEventService} from '@core/http/scheduler-event.service'
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -76,6 +77,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['translate', TranslateService],
    ['http', HttpClient],
    ['router', Router],
-   ['importExport', ImportExportService]
+   ['importExport', ImportExportService],
+   ['schedulerEventService', SchedulerEventService]
   ]
 );
