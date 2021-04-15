@@ -1299,7 +1299,9 @@
     "failed": "ვერ მოხერხდა",
     "messages-processed": "შეტყობინებების დამუშავება",
     "errors-occurred": "შეცდომები მოხდა",
-    "uuid": "uuid"
+    "uuid": "uuid",
+    "all-events": "ყველა",
+    "entity-type": "ობიექტის ტიპი"
   },
   "extension": {
     "extensions": "დამატებითი აპი",

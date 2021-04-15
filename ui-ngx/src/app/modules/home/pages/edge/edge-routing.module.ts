@@ -33,7 +33,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
-import { EdgesTableConfigResolver } from '@home/pages/edge/edges-table-config.resolver'
+import { EdgesTableConfigResolver } from '@home/pages/edge/edges-table-config.resolver';
 import { AssetsTableConfigResolver } from '@home/pages/asset/assets-table-config.resolver';
 import { DevicesTableConfigResolver } from '@home/pages/device/devices-table-config.resolver';
 import { EntityViewsTableConfigResolver } from '@home/pages/entity-view/entity-views-table-config.resolver';
@@ -51,9 +51,9 @@ import {
   ruleChainBreadcumbLabelFunction,
   RuleChainImportGuard,
   RuleChainResolver,
-  RuleNodeComponentsResolver, TooltipsterResolver
+  RuleNodeComponentsResolver,
+  TooltipsterResolver
 } from '@home/pages/rulechain/rulechain-routing.module';
-import { UsersTableConfigResolver } from "@home/pages/user/users-table-config.resolver";
 
 const routes: Routes = [
   {
@@ -267,7 +267,7 @@ const routes: Routes = [
           }
         ]
       }
-      ]
+    ]
   }];
 
 @NgModule({
@@ -277,4 +277,5 @@ const routes: Routes = [
     EdgesTableConfigResolver
   ]
 })
-export class EdgeRoutingModule { }
+export class EdgeRoutingModule {
+}

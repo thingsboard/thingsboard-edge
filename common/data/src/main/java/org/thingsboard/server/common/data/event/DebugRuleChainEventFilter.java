@@ -28,15 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.bootstrap.secure;
+package org.thingsboard.server.common.data.event;
 
-import lombok.Data;
-
-@Data
-public class LwM2MBootstrapServers {
-    private Integer shortId = 123;
-    private Integer lifetime = 300;
-    private Integer defaultMinPeriod = 1;
-    private boolean notifIfDisabled = true;
-    private String binding = "UQ";
+public class DebugRuleChainEventFilter extends DebugEvent {
+    @Override
+    public EventType getEventType() {
+        return EventType.DEBUG_RULE_CHAIN;
+    }
 }

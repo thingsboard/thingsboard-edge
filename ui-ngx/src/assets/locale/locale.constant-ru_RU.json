@@ -1280,7 +1280,7 @@
         "out": "Выход",
         "message": "Сообщение",
         "entity": "Объект",
-        "message-id": "Id сообщения",
+        "message-id": "ИД сообщения",
         "message-type": "Тип сообщения",
         "data-type": "Тип данных",
         "relation-type": "Тип отношения",
@@ -1291,7 +1291,9 @@
         "success": "Успех",
         "failed": "Неудача",
         "messages-processed": "Сообщения обработаны",
-        "errors-occurred": "Возникли ошибки"
+        "errors-occurred": "Возникли ошибки",
+        "all-events": "Все",
+        "entity-type": "Тип объекта"
     },
     "extension": {
         "extensions": "Расширение",

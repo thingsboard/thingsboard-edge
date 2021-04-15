@@ -1997,6 +1997,7 @@
     "event": {
         "events": "Events",
         "event-type": "Event type",
+        "events-filter": "Events Filter",
         "type-error": "Error",
         "type-lc-event": "Lifecycle event",
         "type-rw-event": "Raw data",
@@ -2029,7 +2030,11 @@
         "failed": "Failed",
         "messages-processed": "Messages processed",
         "errors-occurred": "Errors occurred",
-        "uuid": "UUID"
+        "uuid": "UUID",
+        "all-events": "All",
+        "has-error": "Has error",
+        "entity-id": "Entity Id",
+        "entity-type": "Entity type"
     },
     "extension": {
         "extensions": "Extensions",

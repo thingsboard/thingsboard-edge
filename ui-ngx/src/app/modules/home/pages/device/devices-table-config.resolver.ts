@@ -104,7 +104,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       this.utils.customTranslation(device.name, device.name) : '';
     this.config.addDialogStyle = {width: '600px'};
 
-    this.config.deleteEntityTitle = device => this.translate.instant('device.delete-device-title', { deviceName: device.name });
+    this.config.deleteEntityTitle = device => this.translate.instant('device.delete-device-title', {deviceName: device.name});
     this.config.deleteEntityContent = () => this.translate.instant('device.delete-device-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('device.delete-devices-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('device.delete-devices-text');
@@ -445,10 +445,10 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       }
     }).afterClosed()
       .subscribe((res) => {
-      if (res) {
-        this.config.table.updateData();
-      }
-    });
+        if (res) {
+          this.config.table.updateData();
+        }
+      });
   }
 
   unassignFromCustomer($event: Event, device: DeviceInfo) {

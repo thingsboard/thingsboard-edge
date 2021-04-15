@@ -33,6 +33,7 @@ package org.thingsboard.server.transport.lwm2m.server;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.ResourceType;
@@ -89,12 +90,12 @@ public class LwM2mSessionMsgListener implements GenericFutureListener<Future<? s
 
     @Override
     public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg toDeviceRequest) {
-        log.info("[{}] toDeviceRpcRequest", toDeviceRequest);
+        this.service.onToDeviceRpcRequest(toDeviceRequest);
     }
 
     @Override
     public void onToServerRpcResponse(ToServerRpcResponseMsg toServerResponse) {
-        log.info("[{}] toServerRpcResponse", toServerResponse);
+        this.service.onToServerRpcResponse(toServerResponse);
     }
 
     @Override
@@ -102,13 +103,15 @@ public class LwM2mSessionMsgListener implements GenericFutureListener<Future<? s
         log.info("[{}]  operationComplete", future);
     }
 
-    public void onResourceUpdate(Optional<TransportProtos.ResourceUpdateMsg> resourceUpdateMsgOpt) {
+    @Override
+    public void onResourceUpdate(@NotNull Optional<TransportProtos.ResourceUpdateMsg> resourceUpdateMsgOpt) {
         if (ResourceType.LWM2M_MODEL.name().equals(resourceUpdateMsgOpt.get().getResourceType())) {
             this.service.onResourceUpdate(resourceUpdateMsgOpt);
         }
     }
 
-    public void onResourceDelete(Optional<TransportProtos.ResourceDeleteMsg> resourceDeleteMsgOpt) {
+    @Override
+    public void onResourceDelete(@NotNull Optional<TransportProtos.ResourceDeleteMsg> resourceDeleteMsgOpt) {
         if (ResourceType.LWM2M_MODEL.name().equals(resourceDeleteMsgOpt.get().getResourceType())) {
             this.service.onResourceDelete(resourceDeleteMsgOpt);
         }

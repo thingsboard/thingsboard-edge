@@ -1432,7 +1432,6 @@
         "body": "Corps",
         "data": "Données",
         "data-type": "Type de données",
-        "entity": "Entité",
         "error": "erreur",
         "errors-occurred": "Des erreurs sont survenues",
         "event": "événement",
@@ -1460,7 +1459,9 @@
         "type-debug-rule-node": "Debug",
         "type-error": "Erreur",
         "type-lc-event": "Evénement du cycle de vie",
-        "type-stats": "Statistiques"
+        "type-stats": "Statistiques",
+        "all-events": "Tout",
+        "entity-type": "Type d'entité"
     },
     "extension": {
         "add": "Ajouter une extension",

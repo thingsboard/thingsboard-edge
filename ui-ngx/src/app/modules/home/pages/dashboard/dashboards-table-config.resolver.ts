@@ -97,7 +97,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';
 
     this.config.deleteEntityTitle = dashboard =>
-      this.translate.instant('dashboard.delete-dashboard-title', { dashboardTitle: dashboard.title });
+      this.translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: dashboard.title});
     this.config.deleteEntityContent = () => this.translate.instant('dashboard.delete-dashboard-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('dashboard.delete-dashboards-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('dashboard.delete-dashboards-text');
@@ -352,11 +352,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     }
     if (this.config.componentsData.dashboardScope === 'customer') {
       this.router.navigateByUrl(`customers/${this.config.componentsData.customerId}/dashboards/${dashboard.id.id}`);
-    }
-    /* else if (this.config.componentsData.dashboardScope === 'edge') {
+    } else if (this.config.componentsData.dashboardScope === 'edge') {
       this.router.navigateByUrl(`edges/${this.config.componentsData.edgeId}/dashboards/${dashboard.id.id}`);
-    }*/
-    else {
+    } else {
       this.router.navigateByUrl(`dashboards/${dashboard.id.id}`);
     }
   }
@@ -413,7 +411,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           }
         }).afterClosed()
           .subscribe(() => {
-              this.config.table.updateData();
+            this.config.table.updateData();
           });
       }
     );

@@ -103,4 +103,5 @@ import { JsonInputWidgetComponent } from '@home/components/widget/lib/json-input
     ImportExportService
   ]
 })
-export class WidgetComponentsModule { }
+export class WidgetComponentsModule {
+}

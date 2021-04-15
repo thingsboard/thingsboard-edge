@@ -28,15 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.bootstrap.secure;
+package org.thingsboard.server.common.data.event;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@Data
-public class LwM2MBootstrapServers {
-    private Integer shortId = 123;
-    private Integer lifetime = 300;
-    private Integer defaultMinPeriod = 1;
-    private boolean notifIfDisabled = true;
-    private String binding = "UQ";
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "eventType")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = DebugRuleNodeEventFilter.class, name = "DEBUG_RULE_NODE"),
+        @JsonSubTypes.Type(value = DebugRuleChainEventFilter.class, name = "DEBUG_RULE_CHAIN"),
+        @JsonSubTypes.Type(value = ErrorEventFilter.class, name = "ERROR"),
+        @JsonSubTypes.Type(value = LifeCycleEventFilter.class, name = "LC_EVENT"),
+        @JsonSubTypes.Type(value = StatisticsEventFilter.class, name = "STATS")
+})
+public interface EventFilter {
+    @JsonIgnore
+    EventType getEventType();
+
+    boolean hasFilterForJsonBody();
+
 }
