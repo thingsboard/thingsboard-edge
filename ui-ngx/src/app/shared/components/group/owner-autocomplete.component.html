@@ -51,7 +51,7 @@
     </mat-option>
     <mat-option *ngIf="!(filteredOwners | async)?.length" [value]="null">
       <span>
-          {{ translate.get(notFoundText, {owner: searchText}) | async }}
+          {{ notFoundText | translate: {owner: searchText, entity: searchText} }}
       </span>
     </mat-option>
   </mat-autocomplete>
