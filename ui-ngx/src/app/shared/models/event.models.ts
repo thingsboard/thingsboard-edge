@@ -39,8 +39,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 export enum EventType {
   ERROR = 'ERROR',
   LC_EVENT = 'LC_EVENT',
-  STATS = 'STATS',
-  RAW_DATA = 'RAW_DATA'
+  STATS = 'STATS'
 }
 
 export enum DebugEventType {
@@ -55,7 +54,6 @@ export const eventTypeTranslations = new Map<EventType | DebugEventType, string>
     [EventType.ERROR, 'event.type-error'],
     [EventType.LC_EVENT, 'event.type-lc-event'],
     [EventType.STATS, 'event.type-stats'],
-    [EventType.RAW_DATA, 'event.type-rw-event'],
     [DebugEventType.DEBUG_RULE_NODE, 'event.type-debug-rule-node'],
     [DebugEventType.DEBUG_RULE_CHAIN, 'event.type-debug-rule-chain'],
     [DebugEventType.DEBUG_CONVERTER, 'event.type-debug-converter'],

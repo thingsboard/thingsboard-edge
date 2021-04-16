@@ -1262,7 +1262,6 @@
         "event-type": "Тип события",
         "type-error": "Ошибка",
         "type-lc-event": "Событие жизненного цикла",
-        "type-rw-event": "Необработанные данные",
         "type-stats": "Статистика",
         "type-debug-converter": "Отладка",
         "type-debug-integration": "Отладка",

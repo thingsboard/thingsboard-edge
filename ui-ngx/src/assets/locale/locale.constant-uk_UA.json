@@ -1273,7 +1273,6 @@
         "event-type": "Тип події",
         "type-error": "Помилка",
         "type-lc-event": "Подія життєвого циклу",
-        "type-rw-event": "Необроблені дані",
         "type-stats": "Статистика",
         "type-debug-converter": "Налагоджувати",
         "type-debug-integration": "Налагоджувати",

@@ -1313,7 +1313,6 @@
     "event-type": "Tipo de evento",
     "type-error": "Erro",
     "type-lc-event": "Evento de ciclo de vida",
-    "type-rw-event": "Dados brutos",
     "type-stats": "Estatísticas",
     "type-debug-converter": "Depuração",
     "type-debug-integration": "Depuração",
@@ -1342,7 +1341,6 @@
     "success": "Êxito",
     "failed": "Falhou",
     "messages-processed": "Mensagens processadas",
-    "uuid": "UUID",
     "errors-occurred": "Erros",
     "all-events": "Tudo",
     "entity-type": "Tipo de entidade"

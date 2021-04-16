@@ -151,12 +151,9 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
   updateColumns(updateTableColumns: boolean = false): void {
     this.columns = [];
     this.columns.push(
-      new DateEntityTableColumn<Event>('createdTime', 'event.event-time', this.datePipe, '120px'));
-    if (this.eventType !== EventType.RAW_DATA) {
-      this.columns.push(
-        new EntityTableColumn<Event>('server', 'event.server', '100px',
-          (entity) => entity.body.server, entity => ({}), false));
-    }
+      new DateEntityTableColumn<Event>('createdTime', 'event.event-time', this.datePipe, '120px'),
+      new EntityTableColumn<Event>('server', 'event.server', '100px',
+        (entity) => entity.body.server, entity => ({}), false));
     switch (this.eventType) {
       case EventType.ERROR:
         this.columns.push(
@@ -349,26 +346,6 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
             '40px')
         );
         break;
-      case EventType.RAW_DATA:
-        this.columns[0].width = '30%';
-        this.columns.push(
-          new EntityActionTableColumn<Event>('message', 'event.message',
-            {
-              name: this.translate.instant('action.view'),
-              icon: 'more_horiz',
-              isEnabled: (entity) => entity.body.message ? entity.body.message.length > 0 : false,
-              onAction: ($event, entity) => this.showContent($event, entity.body.message,
-                'event.message', entity.body.messageType)
-            },
-            '20%'),
-          new EntityTableColumn<Event>('uuid', 'event.uuid', '50%',
-            (entity) => entity.body.uuid, entity => ({
-              padding: '0 12px 0 0',
-            }), false, key => ({
-              padding: '0 12px 0 0'
-            }))
-        );
-        break;
     }
     if (updateTableColumns) {
       this.table.columnsUpdated(true);
@@ -397,10 +374,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
 
   private updateFilterColumns() {
     this.filterParams = {};
-    this.filterColumns = [];
-    if (this.eventType !== EventType.RAW_DATA) {
-      this.filterColumns.push({key: 'server', title: 'event.server'});
-    }
+    this.filterColumns = [{key: 'server', title: 'event.server'}];
     switch (this.eventType) {
       case EventType.ERROR:
         this.filterColumns.push(
@@ -452,12 +426,6 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
           {key: 'metadataSearch', title: 'event.metadata'},
           {key: 'isError', title: 'event.error'},
           {key: 'error', title: 'event.error'}
-        );
-        break;
-      case EventType.RAW_DATA:
-        this.filterColumns.push(
-          {key: 'message', title: 'event.message'},
-          {key: 'uuid', title: 'event.uuid'}
         );
         break;
     }
