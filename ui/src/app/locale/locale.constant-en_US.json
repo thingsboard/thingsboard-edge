@@ -409,7 +409,8 @@
         "search": "Search audit logs",
         "clear-search": "Clear search",
         "type-assigned-from-tenant": "Assigned from Tenant",
-        "type-assigned-to-tenant": "Assigned to Tenant"
+        "type-assigned-to-tenant": "Assigned to Tenant",
+        "type-owner-changed": "Owner changed"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",

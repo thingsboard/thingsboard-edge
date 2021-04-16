@@ -260,6 +260,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ASSIGNED_TO_TENANT": {
                     name: "audit-log.type-assigned-to-tenant"
+                },
+                "CHANGE_OWNER": {
+                    name: "audit-log.type-owner-changed"
                 }
             },
             auditLogActionStatus: {
