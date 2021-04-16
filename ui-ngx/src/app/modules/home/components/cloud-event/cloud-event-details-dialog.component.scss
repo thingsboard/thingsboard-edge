@@ -29,12 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .tb-cloud-event-action-data,
-  .tb-cloud-event-failure-details {
+  .tb-cloud-event-content {
     width: 100%;
     min-width: 400px;
     height: 100%;
     min-height: 50px;
-    border: 1px solid #c0c0c0;
   }
 }

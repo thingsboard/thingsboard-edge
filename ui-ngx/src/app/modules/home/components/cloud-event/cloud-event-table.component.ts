@@ -40,6 +40,7 @@ import { EdgeService } from "@core/http/edge.service";
 import { Store } from "@ngrx/store";
 import { AppState } from "@core/core.state";
 import { AttributeService } from "@core/http/attribute.service";
+import { EntityService } from '@core/http/entity.service';
 
 @Component({
   selector: 'tb-cloud-event-table',
@@ -75,13 +76,12 @@ export class CloudEventTableComponent implements OnInit {
               private dialog: MatDialog,
               private edgeService: EdgeService,
               private store: Store<AppState>,
+              private entityService: EntityService,
               private attributeService: AttributeService) {
   }
 
   ngOnInit() {
-    let updateOnInit = this.activeValue;
     this.dirtyValue = !this.activeValue;
-    updateOnInit = true;
     this.cloudEventTableConfig = new CloudEventTableConfig(
       this.translate,
       this.utils,
@@ -90,7 +90,7 @@ export class CloudEventTableComponent implements OnInit {
       this.edgeService,
       this.store,
       this.attributeService,
-      updateOnInit
+      this.entityService
     );
   }
 

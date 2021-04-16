@@ -30,8 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-toolbar color="primary">
-  <h2 translate>cloud-event.cloud-event-details</h2>
+<mat-toolbar fxLayout="row" color="primary">
+  <h2 translate>{{ title }}</h2>
   <span fxFlex></span>
   <button mat-button mat-icon-button
           [mat-dialog-close]="false"
@@ -40,12 +40,11 @@
   </button>
 </mat-toolbar>
 <div mat-dialog-content fxLayout="column">
-  <label translate class="tb-title no-padding">cloud-event.action-data</label>
-  <div #actionDataEditor class="tb-cloud-event-action-data">
+  <div #eventContentEditor class="tb-cloud-event-content">
   </div>
-  <span style="min-height: 30px;"></span>
 </div>
-<div mat-dialog-actions fxLayoutAlign="end center">
+<div mat-dialog-actions fxLayout="row">
+  <span fxFlex></span>
   <button mat-button color="primary"
           type="button"
           [disabled]="(isLoading$ | async)"

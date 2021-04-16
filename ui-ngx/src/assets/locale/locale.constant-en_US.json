@@ -1306,7 +1306,7 @@
         "group-permissions-request": "Group permissions request",
         "deployed": "Deployed",
         "pending": "Pending",
-        "load-entity-error": "Failed to load data. Entity not found or has been deleted.",
+        "load-entity-error": "Failed to load data. Entity has been deleted.",
         "name-starts-with": "Edge name starts with"
     },
     "cloud-event": {

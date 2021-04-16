@@ -29,17 +29,31 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, Inject, OnInit, Renderer2, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Inject,
+  OnInit,
+  Renderer2,
+  ViewChild
+} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import * as ace from 'ace-builds';
+
+import { Ace } from "ace-builds";
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import { CloudEvent } from "@shared/models/edge.models";
+import { ContentType, contentTypesMap } from "@shared/models/constants";
+import { getAce } from "@shared/models/ace/ace.models";
+import { Observable } from "rxjs/internal/Observable";
+import { beautifyJs } from "@shared/models/beautify.models";
+import { of } from "rxjs";
 
 export interface CloudEventDetailsDialogData {
-  cloudEvent: CloudEvent;
+  content: string;
+  title: string;
+  contentType: ContentType;
 }
 
 @Component({
@@ -47,14 +61,14 @@ export interface CloudEventDetailsDialogData {
   templateUrl: './cloud-event-details-dialog.component.html',
   styleUrls: ['./cloud-event-details-dialog.component.scss']
 })
-export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEventDetailsDialogComponent> implements OnInit {
+export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEventDetailsDialogData> implements OnInit {
 
-  @ViewChild('actionDataEditor', {static: true})
-  actionDataEditorElmRef: ElementRef;
-  private actionDataEditor: ace.Ace.Editor;
+  @ViewChild('eventContentEditor', {static: true})
+  cloudEventEditorElmRef: ElementRef;
 
-  cloudEvent: CloudEvent;
-  actionData: string;
+  content: string;
+  title: string;
+  contentType: ContentType;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -65,46 +79,58 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
   }
 
   ngOnInit(): void {
-    this.cloudEvent = this.data.cloudEvent;
-    this.actionData = this.prepareEdgeEventContent(this.cloudEvent);
-    this.actionDataEditor = this.createEditor(this.actionDataEditorElmRef, this.actionData);
+    this.content = this.data.content;
+    this.title = this.data.title;
+    this.contentType = this.data.contentType;
+
+    this.createEditor(this.cloudEventEditorElmRef, this.content);
   }
 
-  prepareEdgeEventContent(entity) {
-    // TODO: voba - extend this function with different cases based on action and entity type
-    // TODO: voba - add proper action data based on the cloud event type
-    switch (entity.type) {
-      default:
-        return JSON.stringify(entity, null, 2);
-    }
-  }
-
-  createEditor(editorElementRef: ElementRef, content: string): ace.Ace.Editor {
+  createEditor(editorElementRef: ElementRef, content: string) {
     const editorElement = editorElementRef.nativeElement;
-    let editorOptions: Partial<ace.Ace.EditorOptions> = {
-      mode: 'ace/mode/java',
-      theme: 'ace/theme/github',
-      showGutter: false,
-      showPrintMargin: false,
-      readOnly: true
-    };
+    let mode = 'java';
+    let content$: Observable<string> = null;
+    if (this.contentType) {
+      mode = contentTypesMap.get(this.contentType).code;
+      if (this.contentType === ContentType.JSON && content) {
+        content$ = beautifyJs(content, { indent_size: 4 });
+      }
+    }
+    if (!content$) {
+      content$ = of(content);
+    }
 
-    const advancedOptions = {
-      enableSnippets: false,
-      enableBasicAutocompletion: false,
-      enableLiveAutocompletion: false
-    };
+    content$.subscribe(
+      (processedContent) => {
+        let editorOptions: Partial<Ace.EditorOptions> = {
+          mode: `ace/mode/${mode}`,
+          theme: 'ace/theme/github',
+          showGutter: false,
+          showPrintMargin: false,
+          readOnly: true
+        };
 
-    editorOptions = {...editorOptions, ...advancedOptions};
-    const editor = ace.edit(editorElement, editorOptions);
-    editor.session.setUseWrapMode(false);
-    editor.setValue(content, -1);
-    this.updateEditorSize(editorElement, content, editor);
-    return editor;
+        const advancedOptions = {
+          enableSnippets: false,
+          enableBasicAutocompletion: false,
+          enableLiveAutocompletion: false
+        };
+
+        editorOptions = {...editorOptions, ...advancedOptions};
+        getAce().subscribe(
+          (ace) => {
+            const editor = ace.edit(editorElement, editorOptions);
+            editor.session.setUseWrapMode(false);
+            editor.setValue(processedContent, -1);
+            this.updateEditorSize(editorElement, processedContent, editor);
+          }
+        );
+      }
+    );
   }
 
-  updateEditorSize(editorElement: any, content: string, editor: ace.Ace.Editor) {
-    let newHeight = 200;
+  updateEditorSize(editorElement: any, content: string, editor: Ace.Editor) {
+    let newHeight = 400;
     let newWidth = 600;
     if (content && content.length > 0) {
       const lines = content.split('\n');
