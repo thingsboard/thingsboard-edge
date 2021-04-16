@@ -28,24 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.event;
+package org.thingsboard.server.service;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.StringUtils;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.extensions.cpsuite.ClasspathSuite;
+import org.junit.runner.RunWith;
+import org.thingsboard.server.dao.CustomSqlUnit;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
 
-@Data
-public class DebugIntegrationEventFilter extends DebugEventFilter {
-    @Override
-    public EventType getEventType() {
-        return EventType.DEBUG_INTEGRATION;
-    }
+import java.util.Arrays;
 
-    private String type;
-    private String message;
-    private String status;
+@RunWith(ClasspathSuite.class)
+@ClasspathSuite.ClassnameFilters({
+        "org.thingsboard.server.service.resource.*Test",
+        })
+public class ServiceSqlTestSuite {
 
-    @Override
-    public boolean hasFilterForJsonBody() {
-        return super.hasFilterForJsonBody() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(message) || !StringUtils.isEmpty(status);
+    @ClassRule
+    public static CustomSqlUnit sqlUnit = new CustomSqlUnit(
+            Arrays.asList("sql/schema-types-hsql.sql", "sql/schema-ts-hsql.sql", "sql/schema-entities-hsql.sql", "sql/schema-entities-idx.sql", "sql/system-data.sql"),
+            "sql/hsql/drop-all-tables.sql",
+            "sql-test.properties");
+
+    @BeforeClass
+    public static void cleanupInMemStorage(){
+        InMemoryStorage.getInstance().cleanup();
     }
 }

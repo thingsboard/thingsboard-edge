@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
@@ -54,13 +53,10 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.resource.TbResourceService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.StringJoiner;
 
 @Slf4j
 @RestController
@@ -69,12 +65,6 @@ import java.util.StringJoiner;
 public class TbResourceController extends BaseController {
 
     public static final String RESOURCE_ID = "resourceId";
-
-    private final TbResourceService resourceService;
-
-    public TbResourceController(TbResourceService resourceService) {
-        this.resourceService = resourceService;
-    }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/resource/{resourceId}/download", method = RequestMethod.GET)

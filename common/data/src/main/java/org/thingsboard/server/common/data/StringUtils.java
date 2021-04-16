@@ -28,24 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.event;
+package org.thingsboard.server.common.data;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.StringUtils;
+public class StringUtils {
 
-@Data
-public class DebugIntegrationEventFilter extends DebugEventFilter {
-    @Override
-    public EventType getEventType() {
-        return EventType.DEBUG_INTEGRATION;
+    public static boolean isEmpty(String source) {
+        return source == null || source.isEmpty();
     }
 
-    private String type;
-    private String message;
-    private String status;
-
-    @Override
-    public boolean hasFilterForJsonBody() {
-        return super.hasFilterForJsonBody() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(message) || !StringUtils.isEmpty(status);
+    public static boolean isNotEmpty(String source) {
+        return source != null && !source.isEmpty();
     }
 }
