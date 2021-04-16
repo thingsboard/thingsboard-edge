@@ -35,7 +35,6 @@ import { Observable } from 'rxjs';
 import { map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
@@ -96,7 +95,6 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              public translate: TranslateService,
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               private fb: FormBuilder) {
