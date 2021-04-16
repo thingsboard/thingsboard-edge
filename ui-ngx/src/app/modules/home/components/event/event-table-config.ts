@@ -397,7 +397,10 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
 
   private updateFilterColumns() {
     this.filterParams = {};
-    this.filterColumns = [{key: 'server', title: 'event.server'}];
+    this.filterColumns = [];
+    if (this.eventType !== EventType.RAW_DATA) {
+      this.filterColumns.push({key: 'server', title: 'event.server'});
+    }
     switch (this.eventType) {
       case EventType.ERROR:
         this.filterColumns.push(
@@ -418,6 +421,25 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
           {key: 'errorsOccurred', title: 'event.errors-occurred'}
         );
         break;
+      case DebugEventType.DEBUG_CONVERTER:
+        this.filterColumns.push(
+          {key: 'type', title: 'event.type'},
+          {key: 'in', title: 'event.in'},
+          {key: 'out', title: 'event.event.out'},
+          {key: 'metadataSearch', title: 'event.metadata'},
+          {key: 'isError', title: 'event.error'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
+      case DebugEventType.DEBUG_INTEGRATION:
+        this.filterColumns.push(
+          {key: 'type', title: 'event.type'},
+          {key: 'message', title: 'event.message'},
+          {key: 'statusIntegration', title: 'event.status'},
+          {key: 'isError', title: 'event.error'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
       case DebugEventType.DEBUG_RULE_NODE:
       case DebugEventType.DEBUG_RULE_CHAIN:
         this.filterColumns.push(
@@ -430,6 +452,12 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
           {key: 'metadataSearch', title: 'event.metadata'},
           {key: 'isError', title: 'event.error'},
           {key: 'error', title: 'event.error'}
+        );
+        break;
+      case EventType.RAW_DATA:
+        this.filterColumns.push(
+          {key: 'message', title: 'event.message'},
+          {key: 'uuid', title: 'event.uuid'}
         );
         break;
     }
