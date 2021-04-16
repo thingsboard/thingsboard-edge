@@ -140,6 +140,7 @@ import {
   DisplayWidgetTypesPanelData
 } from '@home/components/dashboard-page/widget-types-panel.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 // @dynamic
 @Component({
@@ -214,7 +215,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   addingLayoutCtx: DashboardPageLayoutContext;
 
-  logo = 'assets/logo_title_white.svg';
+  logo = this.wl.logoImageUrl();
 
   dashboardCtx: DashboardContext = {
     instanceId: this.utils.guid(),
@@ -307,6 +308,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private widgetComponentService: WidgetComponentService,
               private dashboardService: DashboardService,
               private userPermissionsService: UserPermissionsService,
+              private wl: WhiteLabelingService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
               private fb: FormBuilder,
