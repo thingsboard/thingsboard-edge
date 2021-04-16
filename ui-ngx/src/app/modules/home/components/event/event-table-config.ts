@@ -399,7 +399,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
         this.filterColumns.push(
           {key: 'type', title: 'event.type'},
           {key: 'in', title: 'event.in'},
-          {key: 'out', title: 'event.event.out'},
+          {key: 'out', title: 'event.out'},
           {key: 'metadataSearch', title: 'event.metadata'},
           {key: 'isError', title: 'event.error'},
           {key: 'error', title: 'event.error'}

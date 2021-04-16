@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.common.data.event;
 
-public class DebugRuleChainEventFilter extends DebugEvent {
+public class DebugRuleChainEventFilter extends DebugRuleEngineEventFilter {
     @Override
     public EventType getEventType() {
         return EventType.DEBUG_RULE_CHAIN;

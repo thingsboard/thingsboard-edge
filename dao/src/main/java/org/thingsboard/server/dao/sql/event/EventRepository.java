@@ -157,6 +157,95 @@ public interface EventRepository extends PagingAndSortingRepository<EventEntity,
                     "e.tenant_id = :tenantId " +
                     "AND e.entity_type = :entityType " +
                     "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_INTEGRATION' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:message IS NULL OR lower(json_body->>'message') LIKE concat('%', lower(:message\\:\\:varchar), '%')) " +
+                    "AND (:status IS NULL OR lower(json_body->>'status') LIKE concat('%', lower(:status\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))",
+            countQuery = "SELECT count(*) FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_INTEGRATION' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:message IS NULL OR lower(json_body->>'message') LIKE concat('%', lower(:message\\:\\:varchar), '%')) " +
+                    "AND (:status IS NULL OR lower(json_body->>'status') LIKE concat('%', lower(:status\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))"
+    )
+    Page<EventEntity> findDebugIntegrationEvents(@Param("tenantId") UUID tenantId,
+                                                 @Param("entityId") UUID entityId,
+                                                 @Param("entityType") String entityType,
+                                                 @Param("startTime") Long startTime,
+                                                 @Param("endTime") Long endTime,
+                                                 @Param("type") String type,
+                                                 @Param("server") String server,
+                                                 @Param("message") String message,
+                                                 @Param("status") String status,
+                                                 @Param("isError") boolean isError,
+                                                 @Param("error") String error,
+                                                 Pageable pageable);
+
+    @Query(nativeQuery = true,
+            value = "SELECT e.id, e.created_time, e.body, e.entity_id, e.entity_type, e.event_type, e.event_uid, e.tenant_id, ts  FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_CONVERTER' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:inParam IS NULL OR lower(json_body->>'in') LIKE concat('%', lower(:inParam\\:\\:varchar), '%')) " +
+                    "AND (:outParam IS NULL OR lower(json_body->>'out') LIKE concat('%', lower(:outParam\\:\\:varchar), '%')) " +
+                    "AND (:metadata IS NULL OR lower(json_body->>'metadata') LIKE concat('%', lower(:metadata\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))",
+            countQuery = "SELECT count(*) FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_CONVERTER' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:inParam IS NULL OR lower(json_body->>'in') LIKE concat('%', lower(:inParam\\:\\:varchar), '%')) " +
+                    "AND (:outParam IS NULL OR lower(json_body->>'out') LIKE concat('%', lower(:outParam\\:\\:varchar), '%')) " +
+                    "AND (:metadata IS NULL OR lower(json_body->>'metadata') LIKE concat('%', lower(:metadata\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))"
+    )
+    Page<EventEntity> findDebugConverterEvents(@Param("tenantId") UUID tenantId,
+                                                 @Param("entityId") UUID entityId,
+                                                 @Param("entityType") String entityType,
+                                                 @Param("startTime") Long startTime,
+                                                 @Param("endTime") Long endTime,
+                                                 @Param("type") String type,
+                                                 @Param("server") String server,
+                                                 @Param("inParam") String in,
+                                                 @Param("outParam") String out,
+                                                 @Param("metadata") String metadata,
+                                                 @Param("isError") boolean isError,
+                                                 @Param("error") String error,
+                                                 Pageable pageable);
+
+    @Query(nativeQuery = true,
+            value = "SELECT e.id, e.created_time, e.body, e.entity_id, e.entity_type, e.event_type, e.event_uid, e.tenant_id, ts  FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
                     "AND e.event_type = 'ERROR' " +
                     "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
                     ") AS e WHERE " +
@@ -255,5 +344,6 @@ public interface EventRepository extends PagingAndSortingRepository<EventEntity,
                                            @Param("messagesProcessed") Integer messagesProcessed,
                                            @Param("errorsOccurred") Integer errorsOccurred,
                                            Pageable pageable);
+
 
 }

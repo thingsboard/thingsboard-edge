@@ -30,6 +30,24 @@
  */
 package org.thingsboard.server.common.data.event;
 
-public enum EventType {
-    ERROR, LC_EVENT, STATS, DEBUG_RULE_NODE, DEBUG_RULE_CHAIN, DEBUG_INTEGRATION, DEBUG_CONVERTER
+import lombok.Data;
+import org.eclipse.leshan.core.util.StringUtils;
+
+@Data
+public abstract class DebugRuleEngineEventFilter extends DebugEventFilter {
+
+    private String msgDirectionType;
+    private String dataSearch;
+    private String metadataSearch;
+    private String entityName;
+    private String relationType;
+    private String entityId;
+    private String msgType;
+
+    @Override
+    public boolean hasFilterForJsonBody() {
+        return super.hasFilterForJsonBody() || !StringUtils.isEmpty(msgDirectionType) || !StringUtils.isEmpty(dataSearch) || !StringUtils.isEmpty(metadataSearch)
+                || !StringUtils.isEmpty(entityName) || !StringUtils.isEmpty(relationType) || !StringUtils.isEmpty(entityId) || !StringUtils.isEmpty(msgType);
+    }
+
 }

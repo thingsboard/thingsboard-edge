@@ -30,6 +30,24 @@
  */
 package org.thingsboard.server.common.data.event;
 
-public enum EventType {
-    ERROR, LC_EVENT, STATS, DEBUG_RULE_NODE, DEBUG_RULE_CHAIN, DEBUG_INTEGRATION, DEBUG_CONVERTER
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+
+@Data
+public class DebugConverterEventFilter extends DebugEventFilter {
+
+    @Override
+    public EventType getEventType() {
+        return EventType.DEBUG_CONVERTER;
+    }
+
+    private String type;
+    private String in;
+    private String out;
+    private String metadata;
+
+    @Override
+    public boolean hasFilterForJsonBody() {
+        return super.hasFilterForJsonBody() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(in) || !StringUtils.isEmpty(out) || !StringUtils.isEmpty(metadata);
+    }
 }
