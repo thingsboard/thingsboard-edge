@@ -58,8 +58,6 @@ public interface DashboardService {
 
     Dashboard saveDashboard(Dashboard dashboard);
 
-    Dashboard saveDashboard(Dashboard dashboard, boolean forceCreate);
-
     Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId);
 
     Dashboard unassignDashboardFromCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId);

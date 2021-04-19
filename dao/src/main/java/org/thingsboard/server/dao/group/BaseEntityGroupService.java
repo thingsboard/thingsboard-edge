@@ -162,22 +162,17 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
-        return doSaveEntityGroup(tenantId, parentEntityId, entityGroup, false);
+        return doSaveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
-    @Override
-    public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean forceCreate) {
-        return doSaveEntityGroup(tenantId, parentEntityId, entityGroup, forceCreate);
-    }
-
-    private EntityGroup doSaveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean forceCreate) {
+    private EntityGroup doSaveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
         new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
-        if ((entityGroup.getId() == null && entityGroup.getConfiguration() == null) || forceCreate) {
+        if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
             ObjectMapper mapper = new ObjectMapper();
@@ -197,7 +192,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 throw t;
             }
         }
-        if (entityGroup.getId() == null || forceCreate) {
+        if (entityGroup.getId() == null) {
             EntityRelation entityRelation = new EntityRelation();
             entityRelation.setFrom(parentEntityId);
             entityRelation.setTo(savedEntityGroup.getId());

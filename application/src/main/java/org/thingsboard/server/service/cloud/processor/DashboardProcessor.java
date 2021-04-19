@@ -82,7 +82,10 @@ public class DashboardProcessor extends BaseProcessor {
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
 
                     CustomerId dashboardCustomerId = safeSetCustomerId(dashboardUpdateMsg, cloudType, dashboard);
-                    dashboardService.saveDashboard(dashboard, created);
+                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
+                    if (created) {
+                        entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+                    }
                     addToEntityGroup(tenantId, customerId, dashboardUpdateMsg, cloudType, dashboardId, dashboardCustomerId);
                 } finally {
                     dashboardCreationLock.unlock();

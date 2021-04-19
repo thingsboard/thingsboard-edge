@@ -63,8 +63,6 @@ public interface EntityGroupService {
 
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
-    EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean forceCreate);
-
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
     EntityGroup findOrCreateUserGroup(TenantId tenantId, EntityId parentEntityId, String groupName, String description);

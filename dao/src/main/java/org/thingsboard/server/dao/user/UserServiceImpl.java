@@ -86,7 +86,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     private static final String LAST_LOGIN_TS = "lastLoginTs";
     private static final String FAILED_LOGIN_ATTEMPTS = "failedLoginAttempts";
 
-    private static final int DEFAULT_TOKEN_LENGTH = 30;
+    public static final int DEFAULT_TOKEN_LENGTH = 30;
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
@@ -151,22 +151,13 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     @Override
     public User saveUser(User user) {
-        return doSaveUser(user, false);
-    }
-
-    @Override
-    public User saveUser(User user, boolean forceCreate) {
-        return doSaveUser(user, forceCreate);
-    }
-
-    private User doSaveUser(User user, boolean forceCreate) {
         log.trace("Executing saveUser [{}]", user);
         userValidator.validate(user, User::getTenantId);
         if (!userLoginCaseSensitive) {
             user.setEmail(user.getEmail().toLowerCase());
         }
         User savedUser = userDao.save(user.getTenantId(), user);
-        if (user.getId() == null || forceCreate) {
+        if (user.getId() == null) {
             UserCredentials userCredentials = new UserCredentials();
             userCredentials.setEnabled(false);
             userCredentials.setActivateToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
@@ -410,7 +401,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         return failedLoginAttempts;
     }
 
-    private UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials) {
+    @Override
+    public UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials) {
         UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
         User user = findUserById(tenantId, userCredentials.getUserId());
         if (userCredentials.getPassword() != null) {

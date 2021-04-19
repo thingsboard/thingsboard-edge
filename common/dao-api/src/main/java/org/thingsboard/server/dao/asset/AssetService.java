@@ -54,8 +54,6 @@ public interface AssetService {
 
     Asset saveAsset(Asset asset);
 
-    Asset saveAsset(Asset asset, boolean forceCreate);
-
     void deleteAsset(TenantId tenantId, AssetId assetId);
 
     PageData<Asset> findAssetsByTenantId(TenantId tenantId, PageLink pageLink);

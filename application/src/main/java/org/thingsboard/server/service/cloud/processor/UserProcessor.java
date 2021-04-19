@@ -34,6 +34,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.User;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
@@ -89,7 +91,17 @@ public class UserProcessor extends BaseProcessor {
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
                     safeSetCustomerId(userUpdateMsg, user);
-                    User savedUser = userService.saveUser(user, created);
+                    User savedUser = userService.saveUser(user);
+                    if (created) {
+                        UserCredentials userCredentials = new UserCredentials();
+                        userCredentials.setEnabled(false);
+                        userCredentials.setActivateToken(RandomStringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
+                        userCredentials.setUserId(new UserId(savedUser.getUuidId()));
+                        userService.saveUserCredentialsAndPasswordHistory(user.getTenantId(), userCredentials);
+                        if (!user.getTenantId().isNullUid()) {
+                            entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
+                        }
+                    }
                     addToEntityGroup(tenantId, userUpdateMsg, cloudType, savedUser);
                 } finally {
                     userCreationLock.unlock();
