@@ -67,7 +67,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
 import org.thingsboard.server.utils.MiscUtils;
 

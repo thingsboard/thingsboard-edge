@@ -1,0 +1,70 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-form-field appearance="standard" [formGroup]="lwm2mListFormGroup" class="mat-block">
+  <mat-chip-list #chipList formControlName="objectsList">
+    <mat-chip
+      *ngFor="let objectLwm2m of objectsList"
+      [selectable]="!disabled"
+      [removable]="!disabled"
+      (removed)="remove(objectLwm2m)">
+      {{objectLwm2m.name}} <{{objectLwm2m.keyId}}>
+      <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
+    </mat-chip>
+    <input matInput type="text" placeholder="{{ !disabled ? ('device-profile.lwm2m.object-list' | translate) : '' }}"
+           style="max-width: 200px;"
+           #objectInput
+           (focusin)="onFocus()"
+           formControlName="objectLwm2m"
+           matAutocompleteOrigin
+           #origin="matAutocompleteOrigin"
+           [matAutocompleteConnectedTo]="origin"
+           [matAutocomplete]="objectAutocomplete"
+           [matChipInputFor]="chipList">
+  </mat-chip-list>
+  <mat-autocomplete #objectAutocomplete="matAutocomplete"
+                    class="tb-autocomplete"
+                    [displayWith]="displayObjectLwm2mFn">
+    <mat-option *ngFor="let objectLwm2m of filteredObjectsList | async" [value]="objectLwm2m">
+      <span [innerHTML]="objectLwm2m.keyId + ': ' + objectLwm2m.name  | highlight:searchText"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredObjectsList | async)?.length" [value]="null">
+      <span>
+          {{ 'device-profile.lwm2m.no-objects-matching' | translate: {object: searchText} }}
+      </span>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error *ngIf="lwm2mListFormGroup.get('objectsList').hasError('required')">
+    {{ 'device-profile.lwm2m.object-list-empty' | translate }}
+  </mat-error>
+</mat-form-field>
+

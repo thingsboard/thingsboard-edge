@@ -99,5 +99,4 @@ public interface UserService {
 	void onUserLoginSuccessful(TenantId tenantId, UserId userId);
 
 	int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId);
-
 }

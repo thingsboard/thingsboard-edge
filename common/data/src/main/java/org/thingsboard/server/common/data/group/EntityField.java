@@ -83,7 +83,7 @@ public enum EntityField {
         defaultFieldsByEntityType.put(EntityType.ASSET, new EntityField[]{CREATED_TIME, NAME, TYPE});
         defaultFieldsByEntityType.put(EntityType.DEVICE, new EntityField[]{CREATED_TIME, NAME, DEVICE_PROFILE, LABEL});
         defaultFieldsByEntityType.put(EntityType.ENTITY_VIEW, new EntityField[]{CREATED_TIME, NAME, TYPE});
-        defaultFieldsByEntityType.put(EntityType.EDGE, new EntityField[]{CREATED_TIME, NAME, TYPE});
+        defaultFieldsByEntityType.put(EntityType.EDGE, new EntityField[]{CREATED_TIME, NAME, TYPE, LABEL});
         defaultFieldsByEntityType.put(EntityType.DASHBOARD, new EntityField[]{CREATED_TIME, TITLE});
     }
 

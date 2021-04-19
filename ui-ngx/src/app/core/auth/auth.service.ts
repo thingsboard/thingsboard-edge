@@ -179,8 +179,11 @@ export class AuthService {
   }
 
   public changePassword(currentPassword: string, newPassword: string) {
-    return this.http.post('/api/auth/changePassword',
-      {currentPassword, newPassword}, defaultHttpOptions());
+    return this.http.post('/api/auth/changePassword', {currentPassword, newPassword}, defaultHttpOptions()).pipe(
+      tap((loginResponse: LoginResponse) => {
+          this.setUserFromJwtToken(loginResponse.token, loginResponse.refreshToken, false);
+        }
+      ));
   }
 
   public activateByEmailCode(emailCode: string): Observable<LoginResponse> {
@@ -494,7 +497,8 @@ export class AuthService {
         const allowedDashboardIds: string[] = data[1] as string[];
         const whiteLabelingAllowedInfo = data[2] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
         this.peMenuAllowed = data[8].cloudType == CloudType.PE;
-        return {userTokenAccessEnabled, allowedDashboardIds, ...whiteLabelingAllowedInfo};
+        const edgesSupportEnabled: boolean = true;
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
       })));

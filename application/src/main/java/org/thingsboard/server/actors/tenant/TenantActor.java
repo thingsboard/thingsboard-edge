@@ -45,32 +45,37 @@ import org.thingsboard.server.actors.ruleChain.RuleChainManagerActor;
 import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
+import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
-import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
-
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import java.util.List;
@@ -180,7 +185,9 @@ public class TenantActor extends RuleChainManagerActor {
             case DEVICE_ATTRIBUTES_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_CREDENTIALS_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_NAME_OR_TYPE_UPDATE_TO_DEVICE_ACTOR_MSG:
+            case DEVICE_EDGE_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG:
+            case DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG:
             case SERVER_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG:
                 onToDeviceActorMsg((DeviceAwareMsg) msg, true);
                 break;
@@ -245,7 +252,7 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onComponentLifecycleMsg(ComponentLifecycleMsg msg) {
-        if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
+       if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
             IntegrationId integrationId = new IntegrationId(msg.getEntityId().getId());
             PlatformIntegrationService platformIntegrationService = systemContext.getPlatformIntegrationService();
             if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
@@ -281,19 +288,19 @@ public class TenantActor extends RuleChainManagerActor {
                 log.info("[{}] Received API state update. Going to ENABLE Rule Engine execution.", tenantId);
                 initRuleChains();
             }
-        } else {
-            if (isRuleEngineForCurrentTenant) {
-                TbActorRef target = getEntityActorRef(msg.getEntityId());
-                if (target != null) {
-                    if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
-                        RuleChain ruleChain = systemContext.getRuleChainService().
-                                findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
+        } else if (isRuleEngineForCurrentTenant) {
+            TbActorRef target = getEntityActorRef(msg.getEntityId());
+            if (target != null) {
+                if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
+                    RuleChain ruleChain = systemContext.getRuleChainService().
+                            findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
+                    if (ruleChain != null && RuleChainType.CORE.equals(ruleChain.getType())) {
                         visit(ruleChain, target);
                     }
-                    target.tellWithHighPriority(msg);
-                } else {
-                    log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
                 }
+                target.tellWithHighPriority(msg);
+            } else {
+                log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
             }
         }
     }

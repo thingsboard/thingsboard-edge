@@ -35,8 +35,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiParam;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -48,14 +49,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -66,23 +70,26 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
+import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
+@RequiredArgsConstructor
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -96,21 +103,12 @@ public class UserController extends BaseController {
     @Getter
     private boolean userTokenAccessEnabled;
 
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private UserPermissionsService userPermissionsService;
-
-    @Autowired
-    private JwtTokenFactory tokenFactory;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private SystemSecurityService systemSecurityService;
-
+    private final MailService mailService;
+    private final UserPermissionsService userPermissionsService;
+    private final JwtTokenFactory tokenFactory;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final SystemSecurityService systemSecurityService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
@@ -250,6 +248,11 @@ public class UserController extends BaseController {
                 logEntityAction(savedUser.getId(), savedUser,
                         savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
+
+                /* merge comment
+                sendGroupEntityNotificationMsg(getTenantId(), savedUser.getId(),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                 */
             }
 
             if (sendEmail) {
@@ -272,6 +275,11 @@ public class UserController extends BaseController {
             logEntityAction(savedUser.getId(), savedUser,
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), savedUser.getId(),
+                    user.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+             */
 
             return savedUser;
         } catch (Exception e) {
@@ -341,6 +349,11 @@ public class UserController extends BaseController {
         try {
             UserId userId = new UserId(toUUID(strUserId));
             User user = checkUserId(userId, Operation.DELETE);
+
+            /* merge comment
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), userId);
+             */
+
             userService.deleteUser(getCurrentUser().getTenantId(), userId);
 
             userPermissionsService.onUserUpdatedOrRemoved(user);
@@ -348,6 +361,10 @@ public class UserController extends BaseController {
             logEntityAction(userId, user,
                     user.getCustomerId(),
                     ActionType.DELETED, null, strUserId);
+
+            /* merge comment
+            sendDeleteNotificationMsg(getTenantId(), userId, relatedEdgeIds);
+             */
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.USER),
@@ -471,6 +488,10 @@ public class UserController extends BaseController {
             checkUserId(userId, Operation.WRITE);
             TenantId tenantId = getCurrentUser().getTenantId();
             userService.setUserCredentialsEnabled(tenantId, userId, userCredentialsEnabled);
+
+            if (!userCredentialsEnabled) {
+                eventPublisher.publishEvent(new UserAuthDataChangedEvent(userId));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

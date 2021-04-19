@@ -112,5 +112,4 @@ export class DeviceProfileDialogComponent extends
       );
     }
   }
-
 }

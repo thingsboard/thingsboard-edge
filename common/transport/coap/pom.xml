@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.3.0-edge-SNAPSHOT</version>
+        <version>3.3.0-EDGE-SNAPSHOT</version>
         <artifactId>transport</artifactId>
     </parent>
     <groupId>org.thingsboard.common.transport</groupId>
@@ -56,8 +56,16 @@
             <artifactId>transport-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>coap-server</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>californium-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.californium</groupId>
+            <artifactId>scandium</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -39,17 +38,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -95,10 +94,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -115,9 +111,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
-
-    private static final JavaType assignedCustomersType =
-            JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Autowired
     private AssetService assetService;
@@ -255,9 +248,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case ENTITY_VIEW:
                 mappingFunction = getEntityViewMapping();
                 break;
-            case EDGE:
-                mappingFunction = getEdgeMapping();
-                break;
             case DASHBOARD:
                 mappingFunction = getDashboardMapping();
                 break;
@@ -266,6 +256,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case USER:
                 mappingFunction = getUserMapping();
+                break;
+            case EDGE:
+                mappingFunction = getEdgeMapping();
                 break;
             default:
                 mappingFunction = null;
@@ -392,7 +385,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 String assignedCustomersStr = assignedCustomers.toString();
                 if (!StringUtils.isEmpty(assignedCustomersStr)) {
                     try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, assignedCustomersType));
+                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {}));
                     } catch (IllegalArgumentException e) {
                         log.warn("Unable to parse assigned customers!", e);
                     }

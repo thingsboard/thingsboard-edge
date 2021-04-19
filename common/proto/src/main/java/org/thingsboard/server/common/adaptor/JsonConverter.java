@@ -37,7 +37,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.stream.MalformedJsonException;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
@@ -81,7 +80,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -182,15 +180,7 @@ public class JsonConverter {
             result.addProperty("id", msg.getRequestId());
         }
         result.addProperty("method", msg.getMethodName());
-        try {
-            result.add("params", JSON_PARSER.parse(msg.getParams()));
-        } catch (JsonSyntaxException ex) {
-            if (ex.getCause() instanceof MalformedJsonException) {
-                result.addProperty("params", msg.getParams());
-            } else {
-                throw ex;
-            }
-        }
+        result.add("params", JSON_PARSER.parse(msg.getParams()));
         return result;
     }
 
@@ -473,6 +463,8 @@ public class JsonConverter {
                     break;
                 case MQTT_BASIC:
                     result.add("credentialsValue", JSON_PARSER.parse(payload.getCredentialsValue()).getAsJsonObject());
+                    break;
+                case LWM2M_CREDENTIALS:
                     break;
             }
             result.addProperty("credentialsType", payload.getCredentialsType().name());

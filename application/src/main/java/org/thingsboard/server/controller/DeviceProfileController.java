@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -168,6 +169,11 @@ public class DeviceProfileController extends BaseController {
                     null,
                     created ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), savedDeviceProfile.getId(),
+                    deviceProfile.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+             */
+
             return savedDeviceProfile;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE_PROFILE), deviceProfile,
@@ -192,7 +198,9 @@ public class DeviceProfileController extends BaseController {
             logEntityAction(deviceProfileId, deviceProfile,
                     null,
                     ActionType.DELETED, null, strDeviceProfileId);
-
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), deviceProfile.getId(), EdgeEventActionType.DELETED);
+             */
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE_PROFILE),
                     null,

@@ -31,15 +31,22 @@
 package org.thingsboard.server.common.data.device.profile;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.validation.NoXss;
+
+import javax.validation.Valid;
+
+import java.io.Serializable;
 
 import java.io.Serializable;
 
 @Data
 public class AlarmRule implements Serializable {
 
+    @Valid
     private AlarmCondition condition;
     private AlarmSchedule schedule;
     // Advanced
+    @NoXss
     private String alarmDetails;
 
 }

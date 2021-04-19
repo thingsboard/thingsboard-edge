@@ -40,6 +40,7 @@ import { AfterViewInit, EventEmitter, Inject, OnInit, Directive } from '@angular
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AbstractControl, FormGroup } from '@angular/forms';
+import { RuleChainType } from '@shared/models/rule-chain.models';
 
 export interface RuleNodeConfiguration {
   [key: string]: any;
@@ -340,6 +341,7 @@ export interface FcRuleNode extends FcRuleNodeType {
   error?: string;
   highlighted?: boolean;
   componentClazz?: string;
+  ruleChainType?: RuleChainType;
 }
 
 export interface FcRuleEdge extends FcEdge {
@@ -457,6 +459,8 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.rest.TbRestApiCallNode': 'ruleNodeRestApiCall',
   'org.thingsboard.rule.engine.mail.TbSendEmailNode': 'ruleNodeSendEmail',
   'org.thingsboard.rule.engine.sms.TbSendSmsNode': 'ruleNodeSendSms',
+  'org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode': 'ruleNodePushToCloud',
+  'org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode': 'ruleNodePushToEdge',
   'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
   'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
   'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',
@@ -468,8 +472,8 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode': 'ruleNodeRestCallReply',
   'org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode': 'ruleNodeAggregateLatest',
   'org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode': 'ruleNodeAggregateStream',
-  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCount',
-  'org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode': 'ruleNodePushToCloud'
+  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2': 'ruleNodeAlarmsCount',
+  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCountDeprecated'
 };
 
 export function getRuleNodeHelpLink(component: RuleNodeComponentDescriptor): string {

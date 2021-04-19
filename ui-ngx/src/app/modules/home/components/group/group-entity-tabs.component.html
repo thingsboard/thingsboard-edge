@@ -59,6 +59,11 @@
                   [tenantId]="entity.tenantId.id"
                   [entityId]="entity.id"></tb-event-table>
 </mat-tab>
+<mat-tab *ngIf="entity && entityType === entityTypes.EDGE"
+         label="{{ 'edge.downlinks' | translate }}" #downLinksTab="matTab">
+  <tb-edge-downlink-table [active]="downLinksTab.isActive"
+                          [entityId]="entity.id"></tb-edge-downlink-table>
+</mat-tab>
 <mat-tab *ngIf="entity"
          label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
   <tb-relation-table [active]="relationsTab.isActive"

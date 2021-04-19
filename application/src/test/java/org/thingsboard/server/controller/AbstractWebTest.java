@@ -33,12 +33,12 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -69,6 +69,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
@@ -86,7 +87,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.service.mail.TestMailService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -493,6 +493,10 @@ public abstract class AbstractWebTest {
         return readResponse(doPost(urlTemplate, content, params).andExpect(status().isOk()), responseType);
     }
 
+    protected <T, R> R doPostWithTypedResponse(String urlTemplate, T content, TypeReference<R> responseType, ResultMatcher resultMatcher, String... params) throws Exception {
+        return readResponse(doPost(urlTemplate, content, params).andExpect(resultMatcher), responseType);
+    }
+
     protected <T> T doPostAsync(String urlTemplate, T content, Class<T> responseClass, ResultMatcher resultMatcher, String... params) throws Exception {
         return readResponse(doPostAsync(urlTemplate, content, DEFAULT_TIMEOUT, params).andExpect(resultMatcher), responseClass);
     }
@@ -586,4 +590,18 @@ public abstract class AbstractWebTest {
         return jsonPath("$.message", matcher);
     }
 
+    protected Edge constructEdge(String name, String type) {
+        return constructEdge(tenantId, name, type);
+    }
+    protected Edge constructEdge(TenantId tenantId, String name, String type) {
+        Edge edge = new Edge();
+        edge.setTenantId(tenantId);
+        edge.setName(name);
+        edge.setType(type);
+        edge.setSecret(RandomStringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setCloudEndpoint("http://localhost:8080");
+        return edge;
+    }
 }

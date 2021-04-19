@@ -44,7 +44,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
@@ -54,6 +53,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
@@ -64,8 +64,8 @@ import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfig
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -88,9 +88,10 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 
 import javax.annotation.Nullable;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -116,6 +117,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_DEVICE_ID = "Incorrect deviceId ";
+
     @Autowired
     private DeviceDao deviceDao;
 
@@ -196,7 +198,37 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return doSaveDevice(device, null, forceCreate);
     }
 
+    public Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials) {
+        if (device.getId() == null) {
+            Device deviceWithName = this.findDeviceByTenantIdAndName(device.getTenantId(), device.getName());
+            device = deviceWithName == null ? device : deviceWithName.updateDevice(device);
+        }
+        Device savedDevice = this.saveDeviceWithoutCredentials(device);
+        deviceCredentials.setDeviceId(savedDevice.getId());
+        if (device.getId() == null) {
+            deviceCredentials = deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+        }
+        else {
+            deviceCredentials.setId(deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), savedDevice.getId()).getId());
+            deviceCredentials = deviceCredentialsService.updateDeviceCredentials(device.getTenantId(), deviceCredentials);
+        }
+        return savedDevice;
+    }
+
     private Device doSaveDevice(Device device, String accessToken, boolean forceCreate) {
+        Device savedDevice = this.saveDeviceWithoutCredentials(device);
+        if (device.getId() == null || forceCreate) {
+            DeviceCredentials deviceCredentials = new DeviceCredentials();
+            deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
+            deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
+            deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
+            deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
+            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+        }
+        return savedDevice;
+    }
+
+    private Device saveDeviceWithoutCredentials(Device device) {
         log.trace("Executing saveDevice [{}]", device);
         deviceValidator.validate(device, Device::getTenantId);
         Device savedDevice;
@@ -217,7 +249,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             }
             device.setType(deviceProfile.getName());
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
-
             savedDevice = deviceDao.save(device.getTenantId(), device);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
@@ -228,14 +259,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             } else {
                 throw t;
             }
-        }
-        if (device.getId() == null || forceCreate) {
-            DeviceCredentials deviceCredentials = new DeviceCredentials();
-            deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
-            deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
-            deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
-            deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
-            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         return savedDevice;
     }
@@ -497,6 +520,8 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 case X509_CERTIFICATE:
                     deviceCredentials.setCredentialsValue(provisionRequest.getCredentialsData().getX509CertHash());
                     break;
+                case LWM2M_CREDENTIALS:
+                    break;
             }
             try {
                 deviceCredentialsService.updateDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
@@ -513,7 +538,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 @Override
                 protected void validateCreate(TenantId tenantId, Device device) {
                     DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration)tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
+                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
                     long maxDevices = profileConfiguration.getMaxDevices();
                     validateNumberOfEntitiesPerTenant(tenantId, deviceDao, maxDevices, EntityType.DEVICE);
                 }

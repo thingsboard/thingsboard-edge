@@ -102,6 +102,8 @@ public class EntityIdFactory {
                 return new TenantProfileId(uuid);
             case API_USAGE_STATE:
                 return new ApiUsageStateId(uuid);
+            case TB_RESOURCE:
+                return new TbResourceId(uuid);
             case EDGE:
                 return new EdgeId(uuid);
         }
@@ -120,6 +122,8 @@ public class EntityIdFactory {
                 return new DashboardId(uuid);
             case DEVICE:
                 return new DeviceId(uuid);
+            case DEVICE_PROFILE:
+                return new DeviceProfileId(uuid);
             case ASSET:
                 return new AssetId(uuid);
             case ALARM:
@@ -130,6 +134,16 @@ public class EntityIdFactory {
                 return new EntityViewId(uuid);
             case ENTITY_GROUP:
                 return new EntityGroupId(uuid);
+            case WIDGETS_BUNDLE:
+                return new WidgetsBundleId(uuid);
+            case WIDGET_TYPE:
+                return new WidgetTypeId(uuid);
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(uuid);
+            case ROLE:
+                return new RoleId(uuid);
+            case GROUP_PERMISSION:
+                return new GroupPermissionId(uuid);
         }
         throw new IllegalArgumentException("CloudEventType " + cloudEventType + " is not supported!");
     }

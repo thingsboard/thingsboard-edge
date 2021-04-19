@@ -31,6 +31,9 @@
 package org.thingsboard.server.common.data.device.profile;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.validation.NoXss;
+
+import java.io.Serializable;
 
 import java.io.Serializable;
 
@@ -38,6 +41,7 @@ import java.io.Serializable;
 public class AlarmConditionFilterKey implements Serializable {
 
     private final AlarmConditionKeyType type;
+    @NoXss
     private final String key;
 
 }

@@ -104,7 +104,6 @@ import {
 } from '@home/components/alias/entity-aliases-dialog.component';
 import { EntityAliases } from '@app/shared/models/alias.models';
 import { EditWidgetComponent } from '@home/components/dashboard-page/edit-widget.component';
-import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import {
   AddWidgetDialogComponent,
   AddWidgetDialogData
@@ -132,15 +131,16 @@ import { Operation } from '@shared/models/security.models';
 import { ReportType } from '@shared/models/report.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {
   DISPLAY_WIDGET_TYPES_PANEL_DATA,
   DisplayWidgetTypesPanelComponent,
-  DisplayWidgetTypesPanelData,
-  WidgetTypes
+  DisplayWidgetTypesPanelData
 } from '@home/components/dashboard-page/widget-types-panel.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 // @dynamic
 @Component({
@@ -200,6 +200,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   isToolbarOpenedAnimate = false;
   isRightLayoutOpened = false;
 
+  allowedEntityTypes: Array<EntityType | AliasEntityType> = null;
+
   editingWidget: Widget = null;
   editingWidgetLayout: WidgetLayout = null;
   editingWidgetOriginal: Widget = null;
@@ -213,6 +215,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   addingLayoutCtx: DashboardPageLayoutContext;
 
+  logo = this.wl.logoImageUrl();
 
   dashboardCtx: DashboardContext = {
     instanceId: this.utils.guid(),
@@ -305,6 +308,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private widgetComponentService: WidgetComponentService,
               private dashboardService: DashboardService,
               private userPermissionsService: UserPermissionsService,
+              private wl: WhiteLabelingService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
               private fb: FormBuilder,
@@ -382,6 +386,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       };
       this.window.parent.postMessage(JSON.stringify(message), '*');
     }
+
+    this.allowedEntityTypes = this.entityService.prepareAllowedEntityTypesList(null, true);
   }
 
   private reset() {
@@ -510,6 +516,19 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }
   }
 
+  public showDashboardLogo(): boolean {
+    if (this.dashboard.configuration.settings &&
+      isDefined(this.dashboard.configuration.settings.showDashboardLogo)) {
+      return this.dashboard.configuration.settings.showDashboardLogo;
+    } else {
+      return false;
+    }
+  }
+
+  public get dashboardLogo(): string {
+    return this.dashboard.configuration.settings.dashboardLogoUrl || this.logo;
+  }
+
   public showRightLayoutSwitch(): boolean {
     return this.isMobile && this.layouts.right.show;
   }
@@ -599,7 +618,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       data: {
         entityAliases: deepClone(this.dashboard.configuration.entityAliases),
         widgets: this.dashboardUtils.getWidgetsArray(this.dashboard),
-        isSingleEntityAlias: false
+        isSingleEntityAlias: false,
+        allowedEntityTypes: this.allowedEntityTypes
       }
     }).afterClosed().subscribe((entityAliases) => {
       if (entityAliases) {
@@ -645,7 +665,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         settings: deepClone(this.dashboard.configuration.settings),
-        gridSettings
+        gridSettings,
       }
     }).afterClosed().subscribe((data) => {
       if (data) {
@@ -1220,13 +1240,16 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       overlayRef.dispose();
     });
 
+    const filterWidgetTypes = this.dashboardWidgetSelectComponent.filterWidgetTypes;
+    const widgetTypesList = Array.from(this.dashboardWidgetSelectComponent.widgetTypes.values()).map(type => {
+      return {type, display: filterWidgetTypes === null ? true : filterWidgetTypes.includes(type)};
+    });
+
     const providers: StaticProvider[] = [
       {
         provide: DISPLAY_WIDGET_TYPES_PANEL_DATA,
         useValue: {
-          types: Array.from(this.dashboardWidgetSelectComponent.widgetTypes.values()).map(type => {
-            return {type, display: true};
-          }),
+          types: widgetTypesList,
           typesUpdated: (newTypes) => {
             this.filterWidgetTypes = newTypes.filter(type => type.display).map(type => type.type);
           }

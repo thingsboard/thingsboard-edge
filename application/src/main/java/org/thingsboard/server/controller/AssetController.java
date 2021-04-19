@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,7 +68,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
-
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 @RestController
@@ -109,12 +109,19 @@ public class AssetController extends BaseController {
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             Asset asset = checkAssetId(assetId, Operation.DELETE);
+
+            /* merge comment
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), assetId);
+             */
+
             assetService.deleteAsset(getTenantId(), assetId);
 
             logEntityAction(assetId, asset,
                     asset.getCustomerId(),
                     ActionType.DELETED, null, strAssetId);
-
+            /* merge comment
+            sendDeleteNotificationMsg(getTenantId(), assetId, relatedEdgeIds);
+             */
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ASSET),
                     null,

@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.api;
 
 import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -71,5 +72,7 @@ public @interface RuleNode {
     String docUrl() default "";
 
     boolean customRelations() default false;
+
+    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
 
 }

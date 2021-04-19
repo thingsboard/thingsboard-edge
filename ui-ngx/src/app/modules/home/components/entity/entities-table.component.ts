@@ -91,6 +91,9 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   @Input()
   entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
 
+  @Input()
+  edgeId: string = this.route.snapshot.params.edgeId;
+
   translations: EntityTypeTranslation;
 
   headerActionDescriptors: Array<HeaderActionDescriptor>;
@@ -158,6 +161,8 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
       if (!change.firstChange && change.currentValue !== change.previousValue) {
         if (propName === 'entitiesTableConfig' && change.currentValue) {
           this.init(change.currentValue);
+        } else if (propName === 'edgeId' && change.currentValue) {
+          this.init(this.entitiesTableConfig);
         }
       }
     }
@@ -284,6 +289,10 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
 
   addEnabled() {
     return this.entitiesTableConfig.addEnabled;
+  }
+
+  assignEnabled() {
+    return this.entitiesTableConfig.assignEnabled;
   }
 
   clearSelection() {
@@ -594,6 +603,21 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
 
   trackByEntityId(index: number, entity: BaseData<HasId>) {
     return entity.id.id;
+  }
+
+  assignEntityGroupsToEdge($event: Event) {
+    let entity$: Observable<BaseData<HasId>>;
+    if (this.entitiesTableConfig.assignEntity) {
+      entity$ = this.entitiesTableConfig.assignEntity();
+    }
+    entity$.subscribe(
+      (entity) => {
+        if (entity) {
+          this.updateData();
+          this.entitiesTableConfig.entityAssigned(entity);
+        }
+      }
+    );
   }
 
 }

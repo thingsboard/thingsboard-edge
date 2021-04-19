@@ -117,6 +117,7 @@ public class ThingsboardInstallService {
                     default:
                         throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 
+
                 }
                 log.info("Upgrade finished successfully!");
 

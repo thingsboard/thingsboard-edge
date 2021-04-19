@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -136,6 +137,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
+    @Autowired
+    private ResourceService resourceService;
+
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
@@ -214,6 +218,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
+        edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
         converterService.deleteConvertersByTenantId(tenantId);
@@ -225,6 +230,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
         roleService.deleteRolesByTenantId(tenantId);
         apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);
+        resourceService.deleteResourcesByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
     }
 

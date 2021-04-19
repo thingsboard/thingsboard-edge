@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.edge;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
 
 @Data

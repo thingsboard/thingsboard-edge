@@ -89,6 +89,7 @@ USER ${pkg.user}
 EXPOSE 8080
 EXPOSE 1883
 EXPOSE 5683/udp
+EXPOSE 5685/udp
 
 VOLUME ["/data"]
 

@@ -203,6 +203,12 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           deviceNameFilter: [filter ? filter.deviceNameFilter : '', []],
         });
         break;
+      case AliasFilterType.edgeType:
+        this.filterFormGroup = this.fb.group({
+          edgeType: [filter ? filter.edgeType : null, [Validators.required]],
+          edgeNameFilter: [filter ? filter.edgeNameFilter : '', []],
+        });
+        break;
       case AliasFilterType.entityViewType:
         this.filterFormGroup = this.fb.group({
           entityViewType: [filter ? filter.entityViewType : null, [Validators.required]],
@@ -212,9 +218,16 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
       case AliasFilterType.apiUsageState:
         this.filterFormGroup = this.fb.group({});
         break;
+      case AliasFilterType.edgeType:
+        this.filterFormGroup = this.fb.group({
+          edgeType: [filter ? filter.edgeType : null, [Validators.required]],
+          edgeNameFilter: [filter ? filter.edgeNameFilter : '', []],
+        });
+        break;
       case AliasFilterType.relationsQuery:
       case AliasFilterType.assetSearchQuery:
       case AliasFilterType.deviceSearchQuery:
+      case AliasFilterType.edgeSearchQuery:
       case AliasFilterType.entityViewSearchQuery:
         this.filterFormGroup = this.fb.group({
           rootStateEntity: [filter ? filter.rootStateEntity : false, []],
@@ -241,9 +254,15 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           } else if (type === AliasFilterType.deviceSearchQuery) {
             this.filterFormGroup.addControl('deviceTypes',
               this.fb.control(filter ? filter.deviceTypes : [], [Validators.required]));
+          } else if (type === AliasFilterType.edgeSearchQuery) {
+            this.filterFormGroup.addControl('edgeTypes',
+              this.fb.control(filter ? filter.edgeTypes : [], [Validators.required]));
           } else if (type === AliasFilterType.entityViewSearchQuery) {
             this.filterFormGroup.addControl('entityViewTypes',
               this.fb.control(filter ? filter.entityViewTypes : [], [Validators.required]));
+          } else if (type === AliasFilterType.edgeSearchQuery) {
+            this.filterFormGroup.addControl('edgeTypes',
+              this.fb.control(filter ? filter.edgeTypes : [], [Validators.required]));
           }
         }
         break;

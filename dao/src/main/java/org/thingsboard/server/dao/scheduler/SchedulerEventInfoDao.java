@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.scheduler;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.dao.Dao;
@@ -40,7 +41,6 @@ import java.util.UUID;
 
 /**
  * The Interface SchedulerEventInfoDao.
- *
  */
 public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
 
@@ -60,7 +60,7 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
      * Find scheduler events by tenantId and type.
      *
      * @param tenantId the tenantId
-     * @param type the type
+     * @param type     the type
      * @return the list of scheduler event objects
      */
     List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndType(UUID tenantId, String type);
@@ -68,7 +68,7 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
     /**
      * Find scheduler events by tenantId and customerId.
      *
-     * @param tenantId the tenantId
+     * @param tenantId   the tenantId
      * @param customerId the customerId
      * @return the list of scheduler event objects
      */
@@ -77,9 +77,9 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
     /**
      * Find scheduler events by tenantId, customerId and type.
      *
-     * @param tenantId the tenantId
+     * @param tenantId   the tenantId
      * @param customerId the customerId
-     * @param type the type
+     * @param type       the type
      * @return the list of scheduler event objects
      */
     List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type);
@@ -87,10 +87,19 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
     /**
      * Find scheduler events by tenantId and scheduler event Ids.
      *
-     * @param tenantId the tenantId
+     * @param tenantId          the tenantId
      * @param schedulerEventIds the scheduler event Ids
      * @return the list of role objects
      */
     ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> schedulerEventIds);
 
+    /**
+     * Find scheduler event infos by tenantId, edgeId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param edgeId   the edgeId
+     * @param pageLink the page link
+     * @return the list of scheduler event objects
+     */
+    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 }

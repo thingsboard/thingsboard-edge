@@ -42,6 +42,7 @@ import { BroadcastService } from '@app/core/services/broadcast.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { AssetService } from '@core/http/asset.service';
 import { EntityViewService } from '@core/http/entity-view.service';
+import { EdgeService } from '@core/http/edge.service';
 
 @Component({
   selector: 'tb-entity-subtype-autocomplete',
@@ -98,6 +99,7 @@ export class EntitySubTypeAutocompleteComponent implements ControlValueAccessor,
               private deviceService: DeviceService,
               private assetService: AssetService,
               private entityViewService: EntityViewService,
+              private edgeService: EdgeService,
               private fb: FormBuilder) {
     this.subTypeFormGroup = this.fb.group({
       subType: [null]
@@ -135,6 +137,14 @@ export class EntitySubTypeAutocompleteComponent implements ControlValueAccessor,
         this.entitySubtypeText = 'entity-view.entity-view-type';
         this.entitySubtypeRequiredText = 'entity-view.entity-view-type-required';
         this.broadcastSubscription = this.broadcast.on('entityViewSaved', () => {
+          this.subTypes = null;
+        });
+        break;
+      case EntityType.EDGE:
+        this.selectEntitySubtypeText = 'edge.select-edge-type';
+        this.entitySubtypeText = 'edge.edge-type';
+        this.entitySubtypeRequiredText = 'edge.edge-type-required';
+        this.broadcastSubscription = this.broadcast.on('edgeSaved', () => {
           this.subTypes = null;
         });
         break;
@@ -219,6 +229,9 @@ export class EntitySubTypeAutocompleteComponent implements ControlValueAccessor,
           break;
         case EntityType.ENTITY_VIEW:
           subTypesObservable = this.entityViewService.getEntityViewTypes({ignoreLoading: true});
+          break;
+        case EntityType.EDGE:
+          subTypesObservable = this.edgeService.getEdgeTypes({ignoreLoading: true});
           break;
       }
       if (subTypesObservable) {

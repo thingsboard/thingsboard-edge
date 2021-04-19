@@ -68,6 +68,13 @@
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageEdges')"
+          [fxShow]="!hideManageEdges() && !isEdit"
+          *ngIf="edgesSupportEnabled && (resource.EDGE_GROUP | hasGenericPermission: operation.READ)">
+    {{'customer.manage-edge-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDashboards')"
           *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageDashboards() && !isEdit">

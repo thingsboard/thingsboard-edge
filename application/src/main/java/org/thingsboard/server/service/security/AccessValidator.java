@@ -45,13 +45,13 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.ApiUsageStateId;
@@ -126,6 +126,7 @@ public class AccessValidator {
     public static final String ENTITY_VIEW_WITH_REQUESTED_ID_NOT_FOUND = "Entity-view with requested id wasn't found!";
     public static final String ROLE_WITH_REQUESTED_ID_NOT_FOUND = "Role with requested id wasn't found!";
     public static final String DASHBOARD_WITH_REQUESTED_ID_NOT_FOUND = "Dashboard with requested id wasn't found!";
+    public static final String EDGE_WITH_REQUESTED_ID_NOT_FOUND = "Edge with requested id wasn't found!";
 
     @Autowired
     protected TenantService tenantService;
@@ -170,13 +171,13 @@ public class AccessValidator {
     protected EntityViewService entityViewService;
 
     @Autowired
-    protected EdgeService edgeService;
-
-    @Autowired
     protected RoleService roleService;
 
     @Autowired
     protected DashboardService dashboardService;
+
+    @Autowired(required = false)
+    protected EdgeService edgeService;
 
     @Autowired
     protected AccessControlService accessControlService;
@@ -291,11 +292,11 @@ public class AccessValidator {
             case DASHBOARD:
                 validateDashboard(currentUser, operation, entityId, callback);
                 return;
-            case API_USAGE_STATE:
-                validateApiUsageState(currentUser, operation, entityId, callback);
-                return;
             case EDGE:
                 validateEdge(currentUser, operation, entityId, callback);
+                return;
+            case API_USAGE_STATE:
+                validateApiUsageState(currentUser, operation, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -619,26 +620,6 @@ public class AccessValidator {
         }
     }
 
-    private void validateEdge(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
-        if (currentUser.isSystemAdmin()) {
-            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
-        } else {
-            ListenableFuture<Edge> edgeFuture = edgeService.findEdgeByIdAsync(currentUser.getTenantId(), new EdgeId(entityId.getId()));
-            Futures.addCallback(edgeFuture, getCallback(callback, edge -> {
-                if (edge == null) {
-                    return ValidationResult.entityNotFound(ROLE_WITH_REQUESTED_ID_NOT_FOUND);
-                } else {
-                    try {
-                        accessControlService.checkPermission(currentUser, Resource.EDGE, operation, entityId, edge);
-                    } catch (ThingsboardException e) {
-                        return ValidationResult.accessDenied(e.getMessage());
-                    }
-                    return ValidationResult.ok(edge);
-                }
-            }), executor);
-        }
-    }
-
     private void validateRole(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
@@ -655,6 +636,26 @@ public class AccessValidator {
                         return ValidationResult.accessDenied(e.getMessage());
                     }
                     return ValidationResult.ok(role);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateEdge(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Edge> edgeFuture = edgeService.findEdgeByIdAsync(currentUser.getTenantId(), new EdgeId(entityId.getId()));
+            Futures.addCallback(edgeFuture, getCallback(callback, edge -> {
+                if (edge == null) {
+                    return ValidationResult.entityNotFound(EDGE_WITH_REQUESTED_ID_NOT_FOUND);
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.EDGE, operation, entityId, edge);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(edge);
                 }
             }), executor);
         }

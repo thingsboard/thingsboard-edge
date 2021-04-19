@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard.msa</groupId>
-        <version>3.3.0-edge-SNAPSHOT</version>
+        <version>3.3.0-EDGE-SNAPSHOT</version>
         <artifactId>integration</artifactId>
     </parent>
 

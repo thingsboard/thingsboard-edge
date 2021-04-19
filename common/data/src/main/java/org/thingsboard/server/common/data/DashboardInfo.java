@@ -36,15 +36,21 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
+import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
 
     private TenantId tenantId;
+
     private CustomerId customerId;
+
+    @NoXss
     private String title;
+    @Valid
     private Set<ShortCustomerInfo> assignedCustomers;
 
     public DashboardInfo() {

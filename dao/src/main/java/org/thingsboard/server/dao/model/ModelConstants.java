@@ -65,6 +65,7 @@ public class ModelConstants {
     public static final String ENTITY_TYPE_PROPERTY = "entity_type";
 
     public static final String ENTITY_TYPE_COLUMN = ENTITY_TYPE_PROPERTY;
+    public static final String TENANT_ID_COLUMN = "tenant_id";
     public static final String ENTITY_ID_COLUMN = "entity_id";
     public static final String ATTRIBUTE_TYPE_COLUMN = "attribute_type";
     public static final String ATTRIBUTE_KEY_COLUMN = "attribute_key";
@@ -374,6 +375,7 @@ public class ModelConstants {
     public static final String RULE_CHAIN_COLUMN_FAMILY_NAME = "rule_chain";
     public static final String RULE_CHAIN_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String RULE_CHAIN_NAME_PROPERTY = "name";
+    public static final String RULE_CHAIN_TYPE_PROPERTY = "type";
     public static final String RULE_CHAIN_FIRST_RULE_NODE_ID_PROPERTY = "first_rule_node_id";
     public static final String RULE_CHAIN_ROOT_PROPERTY = "root";
     public static final String RULE_CHAIN_CONFIGURATION_PROPERTY = "configuration";
@@ -388,7 +390,16 @@ public class ModelConstants {
     public static final String RULE_NODE_CONFIGURATION_PROPERTY = "configuration";
 
     /**
-     * scheduler event constants.
+     * Rule node state constants.
+     */
+    public static final String RULE_NODE_STATE_TABLE_NAME = "rule_node_state";
+    public static final String RULE_NODE_STATE_NODE_ID_PROPERTY = "rule_node_id";
+    public static final String RULE_NODE_STATE_ENTITY_TYPE_PROPERTY = "entity_type";
+    public static final String RULE_NODE_STATE_ENTITY_ID_PROPERTY = "entity_id";
+    public static final String RULE_NODE_STATE_DATA_PROPERTY = "state_data";
+
+    /**
+     * Scheduler event constants.
      */
     public static final String SCHEDULER_EVENT_COLUMN_FAMILY_NAME = "scheduler_event";
     public static final String SCHEDULER_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
@@ -438,15 +449,6 @@ public class ModelConstants {
     public static final String GROUP_PERMISSION_BY_GROUP_USER_GROUP_AND_ROLE_COLUMN_FAMILY_NAME = "group_permission_by_group_user_group_and_role";
     public static final String GROUP_PERMISSION_BY_ENTITY_GROUP_ID_COLUMN_FAMILY_NAME = "group_permission_by_entity_group_id";
     public static final String GROUP_PERMISSION_BY_ROLE_ID_COLUMN_FAMILY_NAME = "group_permission_by_role_id";
-
-    /**
-     * Rule node state constants.
-     */
-    public static final String RULE_NODE_STATE_TABLE_NAME = "rule_node_state";
-    public static final String RULE_NODE_STATE_NODE_ID_PROPERTY = "rule_node_id";
-    public static final String RULE_NODE_STATE_ENTITY_TYPE_PROPERTY = "entity_type";
-    public static final String RULE_NODE_STATE_ENTITY_ID_PROPERTY = "entity_id";
-    public static final String RULE_NODE_STATE_DATA_PROPERTY = "state_data";
 
     /**
      * OAuth2 client registration constants.
@@ -512,6 +514,33 @@ public class ModelConstants {
     public static final String API_USAGE_STATE_SMS_EXEC_COLUMN = "sms_exec";
 
     /**
+     *
+     * Resource constants.
+     */
+    public static final String RESOURCE_TABLE_NAME = "resource";
+    public static final String RESOURCE_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
+    public static final String RESOURCE_TYPE_COLUMN = "resource_type";
+    public static final String RESOURCE_KEY_COLUMN = "resource_key";
+    public static final String RESOURCE_TITLE_COLUMN = TITLE_PROPERTY;
+    public static final String RESOURCE_FILE_NAME_COLUMN = "file_name";
+    public static final String RESOURCE_DATA_COLUMN = "data";
+
+    /**
+     * Edge queue constants.
+     */
+    public static final String EDGE_EVENT_COLUMN_FAMILY_NAME = "edge_event";
+    public static final String EDGE_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String EDGE_EVENT_EDGE_ID_PROPERTY = "edge_id";
+    public static final String EDGE_EVENT_TYPE_PROPERTY = "edge_event_type";
+    public static final String EDGE_EVENT_ACTION_PROPERTY = "edge_event_action";
+    public static final String EDGE_EVENT_UID_PROPERTY = "edge_event_uid";
+    public static final String EDGE_EVENT_ENTITY_ID_PROPERTY = "entity_id";
+    public static final String EDGE_EVENT_BODY_PROPERTY = "body";
+    public static final String EDGE_EVENT_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
+
+    public static final String EDGE_EVENT_BY_ID_VIEW_NAME = "edge_event_by_id";
+
+    /**
      * attributes and timeseries constants.
      */
     public static final String KEY_COLUMN = "key";
@@ -519,7 +548,7 @@ public class ModelConstants {
     public static final String TS_COLUMN = "ts";
 
     /**
-     * Cassandra edge constants.
+     * edge constants.
      */
     public static final String EDGE_COLUMN_FAMILY_NAME = "edge";
     public static final String EDGE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;

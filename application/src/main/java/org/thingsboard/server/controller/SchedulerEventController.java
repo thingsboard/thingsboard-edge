@@ -40,10 +40,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -110,6 +113,12 @@ public class SchedulerEventController extends BaseController {
             logEntityAction(savedSchedulerEvent.getId(), savedSchedulerEvent,
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            /* merge comment
+            if (schedulerEvent.getId() != null) {
+                sendEntityNotificationMsg(getTenantId(), savedSchedulerEvent.getId(),
+                        EdgeEventActionType.UPDATED);
+            }
+             */
 
             if (schedulerEvent.getId() == null) {
                 schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
@@ -139,6 +148,9 @@ public class SchedulerEventController extends BaseController {
             logEntityAction(schedulerEventId, schedulerEvent,
                     schedulerEvent.getCustomerId(),
                     ActionType.DELETED, null, strSchedulerEventId);
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), schedulerEventId, EdgeEventActionType.DELETED);
+             */
 
             schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
@@ -210,5 +222,92 @@ public class SchedulerEventController extends BaseController {
                 return false;
             }
         }).collect(Collectors.toList());
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/{edgeId}/schedulerEvent/{schedulerEventId}", method = RequestMethod.POST)
+    @ResponseBody
+    public SchedulerEventInfo assignSchedulerEventToEdge(@PathVariable("edgeId") String strEdgeId,
+                                                     @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+
+            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+            checkSchedulerEventId(schedulerEventId, Operation.ASSIGN_TO_EDGE);
+
+            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.assignSchedulerEventToEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
+
+            /* merge comment
+            logEntityAction(schedulerEventId, savedSchedulerEvent,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
+
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.ASSIGNED_TO_EDGE);
+             */
+
+            return savedSchedulerEvent;
+        } catch (Exception e) {
+            /* merge comment
+            logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strSchedulerEventId, strEdgeId);
+             */
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/{edgeId}/schedulerEvent/{schedulerEventId}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public SchedulerEventInfo unassignSchedulerEventFromEdge(@PathVariable("edgeId") String strEdgeId,
+                                                         @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+            SchedulerEventInfo schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.UNASSIGN_FROM_EDGE);
+
+            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
+
+            /* merge comment
+            logEntityAction(schedulerEventId, schedulerEvent,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
+
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+             */
+
+            return savedSchedulerEvent;
+        } catch (Exception e) {
+            /* merge comment
+            logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), null,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, e, strSchedulerEventId);
+             */
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/{edgeId}/schedulerEvents", method = RequestMethod.GET)
+    @ResponseBody
+    public List<SchedulerEventInfo> getEdgeSchedulerEvents(
+            @PathVariable("edgeId") String strEdgeId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            checkEdgeId(edgeId, Operation.READ);
+            return checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId).get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 }

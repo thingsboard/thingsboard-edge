@@ -37,5 +37,8 @@ public enum RelationTypeGroup {
     TO_ENTITY_GROUP,
     FROM_ENTITY_GROUP,
     RULE_CHAIN,
-    RULE_NODE
+    RULE_NODE,
+    EDGE,
+    EDGE_AUTO_ASSIGN_RULE_CHAIN
+
 }

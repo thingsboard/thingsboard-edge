@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 
 import java.util.List;
@@ -58,6 +59,8 @@ public interface DeviceService {
     Device saveDevice(Device device, boolean forceCreate);
 
     Device saveDeviceWithAccessToken(Device device, String accessToken);
+
+    Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials);
 
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
@@ -90,5 +93,4 @@ public interface DeviceService {
     Device assignDeviceToTenant(TenantId tenantId, Device device);
 
     Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
-
 }

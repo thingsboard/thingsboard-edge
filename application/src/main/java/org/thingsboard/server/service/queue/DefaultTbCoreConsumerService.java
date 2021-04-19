@@ -51,7 +51,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -70,9 +70,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMs
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.CloudNotificationMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.RestApiCallResponseMsgProto;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
@@ -314,6 +311,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
+            callback.onSuccess();
+        } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray());
+            if (actorMsg.isPresent()) {
+                log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+                actorContext.tellWithHighPriority(actorMsg.get());
+            }
             callback.onSuccess();
         }
         if (statsEnabled) {

@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -131,7 +132,7 @@ public class AlarmController extends BaseController {
             sendNotificationMsgToCloudService(getTenantId(), alarmId, ActionType.DELETED);
 
             return alarmService.deleteAlarm(getTenantId(), alarmId);
-        } catch (Exception e) {
+         } catch (Exception e) {
             throw handleException(e);
         }
     }

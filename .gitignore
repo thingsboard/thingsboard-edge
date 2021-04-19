@@ -37,3 +37,5 @@ state_file.txt
 data_*.txt
 .run
 .run/**
+*/.run/**
+instance-license.data

@@ -35,7 +35,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { DebugEventType, Event, EventType } from '@shared/models/event.models';
+import { DebugEventType, Event, EventType, FilterEventBody } from '@shared/models/event.models';
 import { TimePageLink } from '@shared/models/page/page-link';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
@@ -53,16 +53,29 @@ import {
   EventContentDialogComponent,
   EventContentDialogData
 } from '@home/components/event/event-content-dialog.component';
-import { sortObjectKeys } from '@core/utils';
+import { isEqual, sortObjectKeys } from '@core/utils';
+import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
+import { ChangeDetectorRef, Injector, StaticProvider, ViewContainerRef } from '@angular/core';
+import { ComponentPortal } from '@angular/cdk/portal';
+import {
+  EVENT_FILTER_PANEL_DATA,
+  EventFilterPanelComponent,
+  EventFilterPanelData,
+  FilterEntityColumn
+} from '@home/components/event/event-filter-panel.component';
 
 export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
 
   eventTypeValue: EventType | DebugEventType;
 
+  private filterParams: FilterEventBody = {};
+  private filterColumns: FilterEntityColumn[] = [];
+
   set eventType(eventType: EventType | DebugEventType) {
     if (this.eventTypeValue !== eventType) {
       this.eventTypeValue = eventType;
       this.updateColumns(true);
+      this.updateFilterColumns();
     }
   }
 
@@ -81,7 +94,10 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               public tenantId: string,
               private defaultEventType: EventType | DebugEventType,
               private disabledEventTypes: Array<EventType | DebugEventType> = null,
-              private debugEventTypes: Array<DebugEventType> = null) {
+              private debugEventTypes: Array<DebugEventType> = null,
+              private overlay: Overlay,
+              private viewContainerRef: ViewContainerRef,
+              private cd: ChangeDetectorRef) {
     super();
     this.loadDataOnInit = false;
     this.tableTitle = '';
@@ -116,21 +132,28 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
     this.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
     this.updateColumns();
+    this.updateFilterColumns();
+
+    this.headerActionDescriptors.push({
+      name: this.translate.instant('event.events-filter'),
+      icon: 'filter_list',
+      isEnabled: () => true,
+      onAction: ($event) => {
+        this.editEventFilter($event);
+      }
+    });
   }
 
   fetchEvents(pageLink: TimePageLink): Observable<PageData<Event>> {
-    return this.eventService.getEvents(this.entityId, this.eventType, this.tenantId, pageLink);
+    return this.eventService.getFilterEvents(this.entityId, this.eventType, this.tenantId, this.filterParams, pageLink);
   }
 
   updateColumns(updateTableColumns: boolean = false): void {
     this.columns = [];
     this.columns.push(
-      new DateEntityTableColumn<Event>('createdTime', 'event.event-time', this.datePipe, '120px'));
-    if (this.eventType !== EventType.RAW_DATA) {
-      this.columns.push(
-        new EntityTableColumn<Event>('server', 'event.server', '100px',
-          (entity) => entity.body.server, entity => ({}), false));
-    }
+      new DateEntityTableColumn<Event>('createdTime', 'event.event-time', this.datePipe, '120px'),
+      new EntityTableColumn<Event>('server', 'event.server', '100px',
+        (entity) => entity.body.server, entity => ({}), false));
     switch (this.eventType) {
       case EventType.ERROR:
         this.columns.push(
@@ -268,7 +291,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
             }), false, key => ({
               padding: '0 12px 0 0'
             })),
-          new EntityTableColumn<Event>('entity', 'event.entity', '100px',
+          new EntityTableColumn<Event>('entityName', 'event.entity-type', '100px',
             (entity) => entity.body.entityName, entity => ({
               padding: '0 12px 0 0',
             }), false, key => ({
@@ -323,26 +346,6 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
             '40px')
         );
         break;
-      case EventType.RAW_DATA:
-        this.columns[0].width = '30%';
-        this.columns.push(
-          new EntityActionTableColumn<Event>('message', 'event.message',
-            {
-              name: this.translate.instant('action.view'),
-              icon: 'more_horiz',
-              isEnabled: (entity) => entity.body.message ? entity.body.message.length > 0 : false,
-              onAction: ($event, entity) => this.showContent($event, entity.body.message,
-                'event.message', entity.body.messageType)
-            },
-            '20%'),
-          new EntityTableColumn<Event>('uuid', 'event.uuid', '50%',
-            (entity) => entity.body.uuid, entity => ({
-              padding: '0 12px 0 0',
-            }), false, key => ({
-              padding: '0 12px 0 0'
-            }))
-        );
-        break;
     }
     if (updateTableColumns) {
       this.table.columnsUpdated(true);
@@ -368,4 +371,110 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
       }
     });
   }
+
+  private updateFilterColumns() {
+    this.filterParams = {};
+    this.filterColumns = [{key: 'server', title: 'event.server'}];
+    switch (this.eventType) {
+      case EventType.ERROR:
+        this.filterColumns.push(
+          {key: 'method', title: 'event.method'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
+      case EventType.LC_EVENT:
+        this.filterColumns.push(
+          {key: 'method', title: 'event.event'},
+          {key: 'status', title: 'event.status'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
+      case EventType.STATS:
+        this.filterColumns.push(
+          {key: 'messagesProcessed', title: 'event.min-messages-processed'},
+          {key: 'errorsOccurred', title: 'event.min-errors-occurred'}
+        );
+        break;
+      case DebugEventType.DEBUG_CONVERTER:
+        this.filterColumns.push(
+          {key: 'type', title: 'event.type'},
+          {key: 'in', title: 'event.in'},
+          {key: 'out', title: 'event.out'},
+          {key: 'metadataSearch', title: 'event.metadata'},
+          {key: 'isError', title: 'event.error'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
+      case DebugEventType.DEBUG_INTEGRATION:
+        this.filterColumns.push(
+          {key: 'type', title: 'event.type'},
+          {key: 'message', title: 'event.message'},
+          {key: 'statusIntegration', title: 'event.status'},
+          {key: 'isError', title: 'event.error'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
+      case DebugEventType.DEBUG_RULE_NODE:
+      case DebugEventType.DEBUG_RULE_CHAIN:
+        this.filterColumns.push(
+          {key: 'msgDirectionType', title: 'event.type'},
+          {key: 'entityId', title: 'event.entity-id'},
+          {key: 'entityName', title: 'event.entity-type'},
+          {key: 'msgType', title: 'event.message-type'},
+          {key: 'relationType', title: 'event.relation-type'},
+          {key: 'dataSearch', title: 'event.data'},
+          {key: 'metadataSearch', title: 'event.metadata'},
+          {key: 'isError', title: 'event.error'},
+          {key: 'error', title: 'event.error'}
+        );
+        break;
+    }
+  }
+
+  private editEventFilter($event: MouseEvent) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const target = $event.target || $event.srcElement || $event.currentTarget;
+    const config = new OverlayConfig();
+    config.backdropClass = 'cdk-overlay-transparent-backdrop';
+    config.hasBackdrop = true;
+    const connectedPosition: ConnectedPosition = {
+      originX: 'end',
+      originY: 'bottom',
+      overlayX: 'end',
+      overlayY: 'top'
+    };
+    config.positionStrategy = this.overlay.position().flexibleConnectedTo(target as HTMLElement)
+      .withPositions([connectedPosition]);
+
+    const overlayRef = this.overlay.create(config);
+    overlayRef.backdropClick().subscribe(() => {
+      overlayRef.dispose();
+    });
+    const providers: StaticProvider[] = [
+      {
+        provide: EVENT_FILTER_PANEL_DATA,
+        useValue: {
+          columns: this.filterColumns,
+          filterParams: this.filterParams
+        } as EventFilterPanelData
+      },
+      {
+        provide: OverlayRef,
+        useValue: overlayRef
+      }
+    ];
+    const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
+    const componentRef = overlayRef.attach(new ComponentPortal(EventFilterPanelComponent,
+      this.viewContainerRef, injector));
+    componentRef.onDestroy(() => {
+      if (componentRef.instance.result && !isEqual(this.filterParams, componentRef.instance.result.filterParams)) {
+        this.filterParams = componentRef.instance.result.filterParams;
+        this.table.updateData();
+      }
+    });
+    this.cd.detectChanges();
+  }
 }
+

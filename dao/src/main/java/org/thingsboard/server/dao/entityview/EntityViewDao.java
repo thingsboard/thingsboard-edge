@@ -132,5 +132,4 @@ public interface EntityViewDao extends Dao<EntityView> {
      * @return the list of tenant entity view type objects
      */
     ListenableFuture<List<EntitySubtype>> findTenantEntityViewTypesAsync(UUID tenantId);
-
 }

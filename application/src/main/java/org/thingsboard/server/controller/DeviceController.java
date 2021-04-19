@@ -60,11 +60,13 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -79,6 +81,9 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
+import org.thingsboard.server.dao.device.claim.ReclaimResult;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -148,6 +153,11 @@ public class DeviceController extends BaseController {
         try {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             Device device = checkDeviceId(deviceId, Operation.DELETE);
+
+            /* merge comment
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), deviceId);
+             */
+
             deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
 
             tbClusterService.onDeviceDeleted(device, null);
@@ -156,6 +166,10 @@ public class DeviceController extends BaseController {
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
+
+            /* merge comment
+            sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
+             */
 
             deviceStateService.onDeviceDeleted(device);
 
@@ -198,8 +212,11 @@ public class DeviceController extends BaseController {
         try {
             Device device = checkDeviceId(deviceCredentials.getDeviceId(), Operation.WRITE_CREDENTIALS);
             DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
+            tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId(), result), null);
 
-            tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId()), null);
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), device.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
+             */
 
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),
@@ -424,6 +441,13 @@ public class DeviceController extends BaseController {
                         if (result.getResponse().equals(ClaimResponse.SUCCESS)) {
                             status = HttpStatus.OK;
                             deferredResult.setResult(new ResponseEntity<>(result, status));
+
+                            try {
+                                logEntityAction(user, device.getId(), result.getDevice(), customerId, ActionType.ASSIGNED_TO_CUSTOMER, null,
+                                        device.getId().toString(), customerId.toString(), customerService.findCustomerById(tenantId, customerId).getName());
+                            } catch (ThingsboardException e) {
+                                throw new RuntimeException(e);
+                            }
                         } else {
                             status = HttpStatus.BAD_REQUEST;
                             deferredResult.setResult(new ResponseEntity<>(result.getResponse(), status));
@@ -459,14 +483,20 @@ public class DeviceController extends BaseController {
             accessControlService.checkPermission(user, Resource.DEVICE, Operation.CLAIM_DEVICES,
                     device.getId(), device);
 
-            ListenableFuture<List<Void>> future = claimDevicesService.reClaimDevice(tenantId, device);
-            Futures.addCallback(future, new FutureCallback<List<Void>>() {
+            ListenableFuture<ReclaimResult> result = claimDevicesService.reClaimDevice(tenantId, device);
+            Futures.addCallback(result, new FutureCallback<>() {
                 @Override
-                public void onSuccess(@Nullable List<Void> result) {
-                    if (result != null) {
-                        deferredResult.setResult(new ResponseEntity(HttpStatus.OK));
-                    } else {
-                        deferredResult.setResult(new ResponseEntity(HttpStatus.BAD_REQUEST));
+                public void onSuccess(ReclaimResult reclaimResult) {
+                    deferredResult.setResult(new ResponseEntity(HttpStatus.OK));
+
+                    Customer unassignedCustomer = reclaimResult.getUnassignedCustomer();
+                    if (unassignedCustomer != null) {
+                        try {
+                            logEntityAction(user, device.getId(), device, device.getCustomerId(), ActionType.UNASSIGNED_FROM_CUSTOMER, null,
+                                    device.getId().toString(), unassignedCustomer.getId().toString(), unassignedCustomer.getName());
+                        } catch (ThingsboardException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
 

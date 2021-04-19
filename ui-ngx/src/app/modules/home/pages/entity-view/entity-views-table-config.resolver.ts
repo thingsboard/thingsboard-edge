@@ -59,6 +59,11 @@ import { EntityView } from '@app/shared/models/entity-view.models';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewTableHeaderComponent } from '@modules/home/pages/entity-view/entity-view-table-header.component';
 import { EntityViewTabsComponent } from '@home/pages/entity-view/entity-view-tabs.component';
+import { EdgeService } from '@core/http/edge.service';
+import {
+  AddEntitiesToEdgeDialogComponent,
+  AddEntitiesToEdgeDialogData
+} from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
@@ -72,6 +77,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
               private broadcast: BroadcastService,
               private entityViewService: EntityViewService,
               private customerService: CustomerService,
+              private edgeService: EdgeService,
               private dialogService: DialogService,
               private translate: TranslateService,
               private datePipe: DatePipe,
@@ -91,7 +97,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
       this.utils.customTranslation(entityView.name, entityView.name) : '';
 
     this.config.deleteEntityTitle = entityView =>
-      this.translate.instant('entity-view.delete-entity-view-title', { entityViewName: entityView.name });
+      this.translate.instant('entity-view.delete-entity-view-title', {entityViewName: entityView.name});
     this.config.deleteEntityContent = () => this.translate.instant('entity-view.delete-entity-view-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('entity-view.delete-entity-views-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('entity-view.delete-entity-views-text');
@@ -104,7 +110,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         }));
     };
     this.config.onEntityAction = action => this.onEntityViewAction(action);
-    this.config.detailsReadonly = () => this.config.componentsData.entityViewScope === 'customer_user';
+    this.config.detailsReadonly = () => (this.config.componentsData.entityViewScope === 'customer_user' || this.config.componentsData.entityViewScope === 'edge_customer_user');
 
     this.config.headerComponent = EntityViewTableHeaderComponent;
 
@@ -123,6 +129,14 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           this.config.componentsData.entityViewScope = 'customer_user';
           this.customerId = authUser.customerId;
         }
+        /* if (authUser.authority === Authority.CUSTOMER_USER) {
+          if (route.data.entityViewsType === 'edge') {
+            this.config.componentsData.entityViewScope = 'edge_customer_user';
+          } else {
+            this.config.componentsData.entityViewScope = 'customer_user';
+          }
+          this.customerId = authUser.customerId;
+        }*/
       }),
       mergeMap(() =>
         this.customerId ? this.customerService.getCustomer(this.customerId) : of(null as Customer)
@@ -134,6 +148,10 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           } else {
             this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('entity-view.entity-views');
           }
+        } else if (this.config.componentsData.entityViewScope === 'edge') {
+          this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(
+            edge => this.config.tableTitle = edge.name + ': ' + this.translate.instant('entity-view.entity-views')
+          );
         } else {
           this.config.tableTitle = this.translate.instant('entity-view.entity-views');
         }
@@ -142,7 +160,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         this.config.cellActionDescriptors = this.configureCellActions(this.config.componentsData.entityViewScope);
         this.config.groupActionDescriptors = this.configureGroupActions(this.config.componentsData.entityViewScope);
         this.config.addActionDescriptors = this.configureAddActions(this.config.componentsData.entityViewScope);
-        this.config.addEnabled = this.config.componentsData.entityViewScope !== 'customer_user';
+        this.config.addEnabled = !(this.config.componentsData.entityViewScope === 'customer_user' || this.config.componentsData.entityViewScope !== 'edge_customer_user');
         this.config.entitiesDeleteEnabled = this.config.componentsData.entityViewScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.entityViewScope === 'tenant';
         return this.config;
@@ -173,7 +191,12 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
       this.config.entitiesFetchFunction = pageLink =>
         this.entityViewService.getTenantEntityViews(pageLink, this.config.componentsData.entityViewType);
       this.config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
-    } else {
+    }
+    /* else if (entityViewScope === 'edge' || entityViewScope === 'edge_customer_user') {
+      this.config.entitiesFetchFunction = pageLink =>
+        this.entityViewService.getEdgeEntityViews(this.config.componentsData.edgeId, pageLink, this.config.componentsData.entityViewType);
+    }*/
+    else {
       this.config.entitiesFetchFunction = pageLink =>
         this.entityViewService.getCustomerEntityViews(this.customerId, pageLink, this.config.componentsData.entityViewType);
       // this.config.deleteEntity = id => this.entityViewService.unassignEntityViewFromCustomer(id.id);
@@ -225,6 +248,16 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
+    }
+    if (entityViewScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('edge.unassign-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.unassignFromEdge($event, entity)
+        }
+      );
     }*/
     return actions;
   }
@@ -248,6 +281,16 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           icon: 'assignment_return',
           isEnabled: true,
           onAction: ($event, entities) => this.unassignEntityViewsFromCustomer($event, entities)
+        }
+      );
+    }
+    if (entityViewScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('entity-view.unassign-entity-views-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: true,
+          onAction: ($event, entities) => this.unassignEntityViewsFromEdge($event, entities)
         }
       );
     }*/
@@ -401,6 +444,9 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         return true;
       case 'unassignFromCustomer':
         this.unassignFromCustomer(action.event, action.entity);
+        return true;
+      case 'unassignFromEdge':
+        this.unassignFromEdge(action.event, action.entity);
         return true;*/
     }
     return false;

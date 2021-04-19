@@ -30,13 +30,12 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -135,6 +134,7 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
 
     public AbstractEdgeEntity(EdgeEntity edgeEntity) {
         this.setId(edgeEntity.getId());
+        this.setCreatedTime(edgeEntity.getCreatedTime());
         this.tenantId = edgeEntity.getTenantId();
         this.customerId = edgeEntity.getCustomerId();
         this.rootRuleChainId = edgeEntity.getRootRuleChainId();
@@ -165,7 +165,7 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
 
     protected Edge toEdge() {
         Edge edge = new Edge(new EdgeId(getUuid()));
-        edge.setCreatedTime(Uuids.unixTimestamp(getUuid()));
+        edge.setCreatedTime(createdTime);
         if (tenantId != null) {
             edge.setTenantId(new TenantId(tenantId));
         }

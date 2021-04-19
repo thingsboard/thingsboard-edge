@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @EqualsAndHashCode(callSuper = true)
 public class Integration extends SearchTextBased<IntegrationId> implements HasName, TenantEntity {
@@ -49,6 +50,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private TenantId tenantId;
     private ConverterId defaultConverterId;
     private ConverterId downlinkConverterId;
+    @NoXss
     private String name;
     private String routingKey;
     private IntegrationType type;

@@ -65,12 +65,15 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
@@ -164,6 +167,12 @@ public abstract class AbstractServiceTest {
     protected WhiteLabelingService whiteLabelingService;
 
     @Autowired
+    protected EdgeService edgeService;
+
+    @Autowired
+    protected EdgeEventService edgeEventService;
+
+    @Autowired
     private ComponentDescriptorService componentDescriptorService;
 
     @Autowired
@@ -175,7 +184,10 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected DeviceProfileService deviceProfileService;
 
-    class IdComparator<D extends HasId> implements Comparator<D> {
+    @Autowired
+    protected ResourceService resourceService;
+
+    public class IdComparator<D extends HasId> implements Comparator<D> {
         @Override
         public int compare(D o1, D o2) {
             return o1.getId().getId().compareTo(o2.getId().getId());

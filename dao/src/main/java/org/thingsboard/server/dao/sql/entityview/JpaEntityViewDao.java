@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.entityview;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
@@ -56,6 +57,7 @@ import java.util.UUID;
  * Created by Victor Basanets on 8/31/2017.
  */
 @Component
+@Slf4j
 public class JpaEntityViewDao extends JpaAbstractSearchTextDao<EntityViewEntity, EntityView>
         implements EntityViewDao {
 

@@ -35,16 +35,23 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -57,7 +64,9 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -69,8 +78,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -96,7 +107,16 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     private CustomerDao customerDao;
 
     @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
     private RelationService relationService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     @Override
     public Edge findEdgeById(TenantId tenantId, EdgeId edgeId) {
@@ -112,6 +132,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findByIdAsync(tenantId, edgeId.getId());
     }
 
+    @Cacheable(cacheNames = EDGE_CACHE, key = "{#tenantId, #name}")
     @Override
     public Edge findEdgeByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findEdgeByTenantIdAndName [{}][{}]", tenantId, name);
@@ -127,11 +148,23 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findByRoutingKey(tenantId.getId(), routingKey);
     }
 
+    @CacheEvict(cacheNames = EDGE_CACHE, key = "{#edge.tenantId, #edge.name}")
     @Override
     public Edge saveEdge(Edge edge) {
         log.trace("Executing saveEdge [{}]", edge);
         edgeValidator.validate(edge, Edge::getTenantId);
-        Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
+        Edge savedEdge;
+        try {
+            savedEdge = edgeDao.save(edge.getTenantId(), edge);
+        } catch (Exception t) {
+            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            if (e != null && e.getConstraintName() != null
+                    && e.getConstraintName().equalsIgnoreCase("edge_name_unq_key")) {
+                throw new DataValidationException("Edge with such name already exists!");
+            } else {
+                throw t;
+            }
+        }
         // TODO: voba - add to all group on save
 //        if (edge.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
@@ -159,6 +192,14 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     public void deleteEdge(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing deleteEdge [{}]", edgeId);
         validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
+
+        Edge edge = edgeDao.findById(tenantId, edgeId.getId());
+
+        List<Object> list = new ArrayList<>();
+        list.add(edge.getTenantId());
+        list.add(edge.getName());
+        Cache cache = cacheManager.getCache(EDGE_CACHE);
+        cache.evict(list);
 
         deleteEntityRelations(tenantId, edgeId);
 
@@ -318,6 +359,46 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findEdgesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
+    /* merge comment
+    public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
+        log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
+        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, oldEdgeName, EntityType.DEVICE);
+        Futures.addCallback(deviceEdgeAllGroupFuture, new FutureCallback<EntityGroup>() {
+            @Override
+            public void onSuccess(@Nullable EntityGroup deviceEdgeAllGroup) {
+                if (deviceEdgeAllGroup != null) {
+                    String newEntityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
+                    deviceEdgeAllGroup.setName(newEntityGroupName);
+                    entityGroupService.saveEntityGroup(tenantId, deviceEdgeAllGroup.getOwnerId(), deviceEdgeAllGroup);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[{}] Failed to find edge all group [{}]", tenantId, edge, t);
+            }
+        }, MoreExecutors.directExecutor());
+    }
+    */
+
+    class EdgeViewFunction implements BiFunction<Edge, List<EntityField>, ShortEntityView> {
+
+        @Override
+        public ShortEntityView apply(Edge edge, List<EntityField> entityFields) {
+            ShortEntityView shortEntityView = new ShortEntityView(edge.getId());
+            shortEntityView.put(EntityField.NAME.name().toLowerCase(), edge.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TYPE:
+                        shortEntityView.put(key, edge.getType());
+                        break;
+                }
+            }
+            return shortEntityView;
+        }
+    }
+
     private DataValidator<Edge> edgeValidator =
             new DataValidator<Edge>() {
 
@@ -384,5 +465,237 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     deleteEdge(tenantId, new EdgeId(entity.getUuidId()));
                 }
             };
+
+    /* merge comment
+    @Override
+    public void assignDefaultRuleChainsToEdge(TenantId tenantId, EdgeId edgeId) {
+        log.trace("Executing assignDefaultRuleChainsToEdge, tenantId [{}], edgeId [{}]", tenantId, edgeId);
+        ListenableFuture<List<RuleChain>> future = ruleChainService.findAutoAssignToEdgeRuleChainsByTenantId(tenantId);
+        Futures.addCallback(future, new FutureCallback<List<RuleChain>>() {
+            @Override
+            public void onSuccess(List<RuleChain> ruleChains) {
+                if (ruleChains != null && !ruleChains.isEmpty()) {
+                    for (RuleChain ruleChain : ruleChains) {
+                        ruleChainService.assignRuleChainToEdge(tenantId, ruleChain.getId(), edgeId);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] can't find default edge rule chains [{}]", tenantId.getId(), edgeId.getId(), t);
+            }
+        }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(TenantId tenantId, RuleChainId ruleChainId) {
+        log.trace("Executing findEdgesByTenantIdAndRuleChainId, tenantId [{}], ruleChainId [{}]", tenantId, ruleChainId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(ruleChainId, "Incorrect ruleChainId " + ruleChainId);
+        return edgeDao.findEdgesByTenantIdAndRuleChainId(tenantId.getId(), ruleChainId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(TenantId tenantId, SchedulerEventId schedulerEventId) {
+        log.trace("Executing findEdgesByTenantIdAndSchedulerEventId, tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+        return edgeDao.findEdgesByTenantIdAndSchedulerEventId(tenantId.getId(), schedulerEventId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType) {
+        log.trace("Executing findEdgesByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(entityGroupId, "Incorrect schedulerEventId " + entityGroupId);
+        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), groupType);
+    }
+
+    @Override
+    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr) {
+        // TODO: voba - rewrite 'find' to use native SQL queries instead of fetching relations
+
+        log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}]", tenantId, entityId);
+        if (EntityType.TENANT.equals(entityId.getEntityType()) ||
+                EntityType.CUSTOMER.equals(entityId.getEntityType()) ||
+                EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
+            List<EdgeId> result = new ArrayList<>();
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+            PageData<Edge> pageData;
+            do {
+                if (EntityType.TENANT.equals(entityId.getEntityType()) ||
+                        EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
+                    pageData = findEdgesByTenantId(tenantId, pageLink);
+                } else {
+                    pageData = findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink);
+                }
+                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                    for (Edge edge : pageData.getData()) {
+                        result.add(edge.getId());
+                    }
+                    if (pageData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                }
+            } while (pageData != null && pageData.hasNext());
+            return Futures.immediateFuture(result);
+        } else {
+            switch (entityId.getEntityType()) {
+                case USER:
+                case DEVICE:
+                case ASSET:
+                case ENTITY_VIEW:
+                case DASHBOARD:
+                    ListenableFuture<List<EntityGroupId>> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
+                    ListenableFuture<List<List<Edge>>> mergedFuture = Futures.transformAsync(entityGroupsForEntity, entityGroupIds -> {
+                        List<ListenableFuture<List<Edge>>> futures = new ArrayList<>();
+                        if (entityGroupIds != null && !entityGroupIds.isEmpty()) {
+                            for (EntityGroupId entityGroupId : entityGroupIds) {
+                                futures.add(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, entityId.getEntityType()));
+                            }
+                        }
+                        return Futures.successfulAsList(futures);
+                    }, MoreExecutors.directExecutor());
+                    return Futures.transform(mergedFuture, listOfEdges -> {
+                        Set<EdgeId> result = new HashSet<>();
+                        if (listOfEdges != null && !listOfEdges.isEmpty()) {
+                            for (List<Edge> edges : listOfEdges) {
+                                if (edges != null && !edges.isEmpty()) {
+                                    for (Edge edge : edges) {
+                                        result.add(edge.getId());
+                                    }
+                                }
+                            }
+                        }
+                        return new ArrayList<>(result);
+                    }, MoreExecutors.directExecutor());
+                case RULE_CHAIN:
+                    return convertToEdgeIds(findEdgesByTenantIdAndRuleChainId(tenantId, new RuleChainId(entityId.getId())));
+                case SCHEDULER_EVENT:
+                    return convertToEdgeIds(findEdgesByTenantIdAndSchedulerEventId(tenantId, new SchedulerEventId(entityId.getId())));
+                case ENTITY_GROUP:
+                    EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
+                    EntityType groupType;
+                    if (groupTypeStr != null) {
+                        groupType = EntityType.valueOf(groupTypeStr);
+                    } else {
+                        groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
+                    }
+                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType));
+                default:
+                    return Futures.immediateFuture(Collections.emptyList());
+            }
+        }
+    }
+
+    private ListenableFuture<List<EdgeId>> convertToEdgeIds(ListenableFuture<List<Edge>> future) {
+        return Futures.transform(future, edges -> {
+            if (edges != null && !edges.isEmpty()) {
+                return edges.stream().map(IdBased::getId).collect(Collectors.toList());
+            } else {
+                return Collections.emptyList();
+            }
+        }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public Object checkInstance(Object request) {
+        return this.restTemplate.postForEntity(EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/checkInstance", request, Object.class, new Object[0]);
+    }
+
+    @Override
+    public Object activateInstance(String edgeLicenseSecret, String releaseDate) {
+        Map<String, String> params = new HashMap<>();
+        params.put("licenseSecret", edgeLicenseSecret);
+        params.put("releaseDate", releaseDate);
+        return this.restTemplate.postForEntity(EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/activateInstance?licenseSecret={licenseSecret}&releaseDate={releaseDate}", (Object) null, Object.class, params);
+    }
+
+    @Override
+    public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId) {
+        List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
+        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
+        ObjectNode result = mapper.createObjectNode();
+        for (RuleChain edgeRuleChain : edgeRuleChains) {
+            List<RuleChainConnectionInfo> connectionInfos =
+                    ruleChainService.loadRuleChainMetaData(edgeRuleChain.getTenantId(), edgeRuleChain.getId()).getRuleChainConnections();
+            if (connectionInfos != null && !connectionInfos.isEmpty()) {
+                List<RuleChainId> connectedRuleChains =
+                        connectionInfos.stream().map(RuleChainConnectionInfo::getTargetRuleChainId).collect(Collectors.toList());
+                List<String> missingRuleChains = new ArrayList<>();
+                for (RuleChainId connectedRuleChain : connectedRuleChains) {
+                    if (!edgeRuleChainIds.contains(connectedRuleChain)) {
+                        RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, connectedRuleChain);
+                        missingRuleChains.add(ruleChainById.getName());
+                    }
+                }
+                if (!missingRuleChains.isEmpty()) {
+                    ArrayNode array = mapper.createArrayNode();
+                    for (String missingRuleChain : missingRuleChains) {
+                        array.add(missingRuleChain);
+                    }
+                    result.set(edgeRuleChain.getName(), array);
+                }
+            }
+        }
+        return result.toString();
+    }
+
+    private List<RuleChain> findEdgeRuleChains(TenantId tenantId, EdgeId edgeId) {
+        List<RuleChain> result = new ArrayList<>();
+        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageData<RuleChain> pageData;
+        do {
+            pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                result.addAll(pageData.getData());
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
+        return result;
+    }
+
+    private void initRestTemplate() {
+        boolean jdkHttpClientEnabled = isNotEmpty(System.getProperty("tb.proxy.jdk")) && System.getProperty("tb.proxy.jdk").equalsIgnoreCase("true");
+        boolean systemProxyEnabled = isNotEmpty(System.getProperty("tb.proxy.system")) && System.getProperty("tb.proxy.system").equalsIgnoreCase("true");
+        boolean proxyEnabled = isNotEmpty(System.getProperty("tb.proxy.host")) && isNotEmpty(System.getProperty("tb.proxy.port"));
+        if (jdkHttpClientEnabled) {
+            log.warn("Going to use plain JDK Http Client!");
+            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            if (proxyEnabled) {
+                log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
+                factory.setProxy(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")))));
+            }
+
+            this.restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
+        } else {
+            CloseableHttpClient httpClient;
+            HttpComponentsClientHttpRequestFactory requestFactory;
+            if (systemProxyEnabled) {
+                log.warn("Going to use System Proxy Server!");
+                httpClient = HttpClients.createSystem();
+                requestFactory = new HttpComponentsClientHttpRequestFactory();
+                requestFactory.setHttpClient(httpClient);
+                this.restTemplate = new RestTemplate(requestFactory);
+            } else if (proxyEnabled) {
+                log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
+                httpClient = HttpClients.custom().setSSLHostnameVerifier(new DefaultHostnameVerifier()).setProxy(new HttpHost(System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")), "https")).build();
+                requestFactory = new HttpComponentsClientHttpRequestFactory();
+                requestFactory.setHttpClient(httpClient);
+                this.restTemplate = new RestTemplate(requestFactory);
+            } else {
+                httpClient = HttpClients.custom().setSSLHostnameVerifier(new DefaultHostnameVerifier()).build();
+                requestFactory = new HttpComponentsClientHttpRequestFactory();
+                requestFactory.setHttpClient(httpClient);
+                this.restTemplate = new RestTemplate(requestFactory);
+            }
+        }
+
+    }
+
+     */
 
 }

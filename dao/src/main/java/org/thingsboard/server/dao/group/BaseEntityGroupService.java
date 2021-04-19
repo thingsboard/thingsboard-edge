@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -69,7 +71,9 @@ import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -109,6 +113,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String UNABLE_TO_FIND_ENTITY_GROUP_BY_ID = "Unable to find entity group by id ";
+    public static final String EDGE_ENTITY_GROUP_RELATION_PREFIX = "EDGE_ENTITY_GROUP_";
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final ReentrantLock roleCreationLock = new ReentrantLock();
@@ -130,6 +135,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private EntityQueryDao entityQueryDao;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
@@ -495,6 +503,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
+
+//        dashboardService.unassignEdgeDashboards(tenantId, edgeId);
+//        // TODO: validate that rule chains are removed by deleteEntityRelations(tenantId, edgeId); call
+//        ruleChainService.unassignEdgeRuleChains(tenantId, edgeId);
+
         deleteEntityRelations(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
     }
@@ -784,6 +797,105 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
             return entityGroupIds;
         }, MoreExecutors.directExecutor());
+    }
+
+    /* merge comment
+    @Override
+    public EntityGroup assignEntityGroupToEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EntityType groupType) {
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
+        Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+        if (edge == null) {
+            throw new DataValidationException("Can't assign entity group to non-existent edge!");
+        }
+        try {
+            String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+            createRelation(tenantId, new EntityRelation(edgeId, entityGroupId, relationType, RelationTypeGroup.EDGE));
+        } catch (Exception e) {
+            log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
+            throw new RuntimeException(e);
+        }
+        return entityGroup;
+    }
+
+    @Override
+    public EntityGroup unassignEntityGroupFromEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EntityType groupType) {
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
+        Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+        if (edge == null) {
+            throw new DataValidationException("Can't unassign entity group from non-existent edge!");
+        }
+        try {
+            String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX +  groupType.name();
+            deleteRelation(tenantId, new EntityRelation(edgeId, entityGroupId, relationType, RelationTypeGroup.EDGE));
+        } catch (Exception e) {
+            log.warn("[{}] Failed to delete entity group relation. Edge id: [{}]", entityGroupId, edgeId);
+            throw new RuntimeException(e);
+        }
+        return entityGroup;
+    }
+
+    @Override
+    public ListenableFuture<List<EntityGroup>> findEdgeEntityGroupsByType(TenantId tenantId, EdgeId edgeId, EntityType groupType) {
+        log.trace("[{}] Executing findEdgeEntityGroupsByType, edgeId [{}], groupType [{}]", tenantId, edgeId, groupType);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEdgeEntityGroupsByType(tenantId.getId(), edgeId.getId(), relationType);
+    }
+
+    @Override
+    public ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
+        log.trace("Executing checkEdgeEntityGroupById, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
+        validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        return relationService.checkRelation(tenantId, edgeId, entityGroupId,
+                EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
+                , RelationTypeGroup.EDGE);
+    }
+
+    @Override
+    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroup(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
+        String entityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
+        ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
+                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
+        return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {
+            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
+                return Futures.immediateFuture(optionalEntityGroup.get());
+            } else {
+                try {
+                    ListenableFuture<Optional<EntityGroup>> currentEntityGroupFuture = entityGroupService
+                            .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
+                    return Futures.transformAsync(currentEntityGroupFuture, currentEntityGroup -> {
+                        if (currentEntityGroup != null) {
+                            if (currentEntityGroup.isEmpty()) {
+                                EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId);
+                                entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(),
+                                        edge.getId(), EntityType.DEVICE);
+                                return Futures.immediateFuture(entityGroup);
+                            } else {
+                                return Futures.immediateFuture(currentEntityGroup.get());
+                            }
+                        } else {
+                            return Futures.immediateFailedFuture(new RuntimeException("Failed to find entity group by type and name"));
+                        }
+                    }, MoreExecutors.directExecutor());
+                } catch (Exception e) {
+                    log.error("[{}] Can't get entity group by name edge owner id [{}], groupType [{}], entityGroupName [{}]",
+                            tenantId, edge.getOwnerId(), groupType, entityGroupName, e);
+                    throw new RuntimeException(e);
+                }
+            }
+        }, MoreExecutors.directExecutor());
+    }
+
+    */
+    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName(entityGroupName);
+        entityGroup.setType(EntityType.DEVICE);
+        return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
     @Override

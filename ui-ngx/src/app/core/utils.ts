@@ -147,6 +147,10 @@ export function isEmpty(obj: any): boolean {
   return true;
 }
 
+export function isLiteralObject(value: any) {
+  return (!!value) && (value.constructor === Object);
+}
+
 export function formatValue(value: any, dec?: number, units?: string, showZeroDecimals?: boolean): string | undefined {
   if (isDefinedAndNotNull(value) && isNumeric(value) &&
     (isDefinedAndNotNull(dec) || isDefinedAndNotNull(units) || Number(value).toString() === value)) {
@@ -320,7 +324,7 @@ export function deepClone<T>(target: T, ignoreFields?: string[]): T {
     return cp.map((n: any) => deepClone<any>(n)) as any;
   }
   if (typeof target === 'object' && target !== {}) {
-    const cp = { ...(target as { [key: string]: any }) } as { [key: string]: any };
+    const cp = {...(target as { [key: string]: any })} as { [key: string]: any };
     Object.keys(cp).forEach(k => {
       if (!ignoreFields || ignoreFields.indexOf(k) === -1) {
         cp[k] = deepClone<any>(cp[k]);

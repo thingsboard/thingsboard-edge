@@ -48,11 +48,11 @@ import org.thingsboard.rule.engine.util.EntityContainer;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.page.PageData;
@@ -260,6 +260,13 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         targetEntity.setEntityId(entityView.getId());
                     }
                     break;
+                case EDGE:
+                    EdgeService edgeService = ctx.getEdgeService();
+                    Edge edge = edgeService.findEdgeByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
+                    if (edge != null) {
+                        targetEntity.setEntityId(edge.getId());
+                    }
+                    break;
                 case DASHBOARD:
                     DashboardService dashboardService = ctx.getDashboardService();
                     PageData<DashboardInfo> dashboardInfoTextPageData = dashboardService.findDashboardsByTenantId(ctx.getTenantId(), new PageLink(200, 0, entitykey.getEntityName()));
@@ -267,13 +274,6 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         if (dashboardInfo.getTitle().equals(entitykey.getEntityName())) {
                             targetEntity.setEntityId(dashboardInfo.getId());
                         }
-                    }
-                    break;
-                case EDGE:
-                    EdgeService edgeService = ctx.getEdgeService();
-                    Edge edge = edgeService.findEdgeByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
-                    if (edge != null) {
-                        targetEntity.setEntityId(edge.getId());
                     }
                     break;
                 case USER:

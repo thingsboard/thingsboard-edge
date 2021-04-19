@@ -60,6 +60,18 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+import org.thingsboard.server.common.data.kv.DoubleDataEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
+import org.thingsboard.server.common.data.query.DynamicValue;
+import org.thingsboard.server.common.data.query.DynamicValueSourceType;
+import org.thingsboard.server.common.data.query.EntityKeyValueType;
+import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
@@ -260,6 +272,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("navigation_widgets");
         this.deleteSystemWidgetBundle("edge_widgets");
         installScripts.loadSystemWidgets();
+    }
+
+    @Override
+    public void loadSystemLwm2mResources() throws Exception {
+        installScripts.loadSystemLwm2mResources();
     }
 
     private User createUser(Authority authority,

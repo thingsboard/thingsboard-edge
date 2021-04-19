@@ -40,6 +40,7 @@ import { AuditLogDetailsDialogComponent } from '@home/components/audit-log/audit
 import { AuditLogTableComponent } from '@home/components/audit-log/audit-log-table.component';
 import { EventTableHeaderComponent } from '@home/components/event/event-table-header.component';
 import { EventTableComponent } from '@home/components/event/event-table.component';
+import { EventFilterPanelComponent } from '@home/components/event/event-filter-panel.component';
 import { RelationTableComponent } from '@home/components/relation/relation-table.component';
 import { RelationDialogComponent } from '@home/components/relation/relation-dialog.component';
 import { AlarmTableHeaderComponent } from '@home/components/alarm/alarm-table-header.component';
@@ -80,26 +81,6 @@ import { EventContentDialogComponent } from '@home/components/event/event-conten
 import { SharedHomeComponentsModule } from '@home/components/shared-home-components.module';
 import { SelectTargetLayoutDialogComponent } from '@home/components/dashboard/select-target-layout-dialog.component';
 import { SelectTargetStateDialogComponent } from '@home/components/dashboard/select-target-state-dialog.component';
-import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
-import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
-import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
-import { PermissionListComponent } from '@home/components/role/permission-list.component';
-import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
-import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
-import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
-import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
-import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
-import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { RegistrationPermissionsComponent } from './role/registration-permissions.component';
-import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
-import { EntityGroupComponent } from '@home/components/group/entity-group.component';
-import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
-import { EntityGroupSettingsComponent } from '@home/components/group/entity-group-settings.component';
-import { EntityGroupColumnsComponent } from '@home/components/group/entity-group-columns.component';
-import { EntityGroupColumnDialogComponent } from '@home/components/group/entity-group-column-dialog.component';
-import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
-import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
-import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { AliasesEntityAutocompleteComponent } from '@home/components/alias/aliases-entity-autocomplete.component';
 import { BooleanFilterPredicateComponent } from '@home/components/filter/boolean-filter-predicate.component';
 import { StringFilterPredicateComponent } from '@home/components/filter/string-filter-predicate.component';
@@ -131,8 +112,7 @@ import { DeviceProfileTransportConfigurationComponent } from '@home/components/p
 import { DeviceProfileDialogComponent } from '@home/components/profile/device-profile-dialog.component';
 import { DeviceProfileAutocompleteComponent } from '@home/components/profile/device-profile-autocomplete.component';
 import { MqttDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/mqtt-device-profile-transport-configuration.component';
-import { Lwm2mDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/lwm2m-device-profile-transport-configuration.component';
-import {CoapDeviceProfileTransportConfigurationComponent} from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
+import { CoapDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
 import { DeviceProfileAlarmsComponent } from '@home/components/profile/alarm/device-profile-alarms.component';
 import { DeviceProfileAlarmComponent } from '@home/components/profile/alarm/device-profile-alarm.component';
 import { CreateAlarmRulesComponent } from '@home/components/profile/alarm/create-alarm-rules.component';
@@ -149,13 +129,13 @@ import { AlarmScheduleInfoComponent } from '@home/components/profile/alarm/alarm
 import { AlarmScheduleDialogComponent } from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import { EditAlarmDetailsDialogComponent } from '@home/components/profile/alarm/edit-alarm-details-dialog.component';
 import { AlarmRuleConditionDialogComponent } from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
-import { EntityGroupWizardDialogComponent } from '@home/components/wizard/entity-group-wizard-dialog.component';
 import { DefaultTenantProfileConfigurationComponent } from '@home/components/profile/tenant/default-tenant-profile-configuration.component';
 import { TenantProfileConfigurationComponent } from '@home/components/profile/tenant/tenant-profile-configuration.component';
 import { SmsProviderConfigurationComponent } from '@home/components/sms/sms-provider-configuration.component';
 import { AwsSnsProviderConfigurationComponent } from '@home/components/sms/aws-sns-provider-configuration.component';
 import { TwilioSmsProviderConfigurationComponent } from '@home/components/sms/twilio-sms-provider-configuration.component';
 import { CopyDeviceCredentialsComponent } from '@home/components/device/copy-device-credentials.component';
+import { Lwm2mProfileComponentsModule } from '@home/components/profile/device/lwm2m/lwm2m-profile-components.module';
 import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
 import { DashboardToolbarComponent } from '@home/components/dashboard-page/dashboard-toolbar.component';
 import { StatesControllerModule } from '@home/components/dashboard-page/states/states-controller.module';
@@ -171,6 +151,29 @@ import { EmbedDashboardDialogComponent } from '@home/components/widget/dialog/em
 import { EMBED_DASHBOARD_DIALOG_TOKEN } from '@home/components/widget/dialog/embed-dashboard-dialog-token';
 import { CloudEventTableComponent } from '@home/components/cloud-event/cloud-event-table.component';
 import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/cloud-event-details-dialog.component';
+import { EdgeDownlinkTableComponent } from '@home/components/edge/edge-downlink-table.component';
+import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
+import { EntityGroupWizardDialogComponent } from '@home/components/wizard/entity-group-wizard-dialog.component';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
+import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
+import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
+import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
+import { PermissionListComponent } from '@home/components/role/permission-list.component';
+import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
+import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
+import { EntityGroupSettingsComponent } from '@home/components/group/entity-group-settings.component';
+import { EntityGroupColumnsComponent } from '@home/components/group/entity-group-columns.component';
+import { EntityGroupColumnDialogComponent } from '@home/components/group/entity-group-column-dialog.component';
+import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
+import { RegistrationPermissionsComponent } from '@home/components/role/registration-permissions.component';
+import { EntityGroupComponent } from '@home/components/group/entity-group.component';
+import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
+import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
 
 @NgModule({
@@ -185,6 +188,9 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
       EventContentDialogComponent,
       EventTableHeaderComponent,
       EventTableComponent,
+      EventFilterPanelComponent,
+      EdgeDownlinkTableHeaderComponent,
+      EdgeDownlinkTableComponent,
       RelationTableComponent,
       RelationDialogComponent,
       RelationFiltersComponent,
@@ -267,7 +273,6 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
       DeviceProfileConfigurationComponent,
       DefaultDeviceProfileTransportConfigurationComponent,
       MqttDeviceProfileTransportConfigurationComponent,
-      Lwm2mDeviceProfileTransportConfigurationComponent,
       CoapDeviceProfileTransportConfigurationComponent,
       DeviceProfileTransportConfigurationComponent,
       CreateAlarmRulesComponent,
@@ -312,6 +317,7 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
     SharedModule,
     SharedHomeComponentsModule,
     HomeDialogsModule,
+    Lwm2mProfileComponentsModule,
     StatesControllerModule
   ],
   exports: [
@@ -322,6 +328,8 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
     EntityDetailsPanelComponent,
     AuditLogTableComponent,
     EventTableComponent,
+    EdgeDownlinkTableHeaderComponent,
+    EdgeDownlinkTableComponent,
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
@@ -391,7 +399,6 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
     DeviceProfileConfigurationComponent,
     DefaultDeviceProfileTransportConfigurationComponent,
     MqttDeviceProfileTransportConfigurationComponent,
-    Lwm2mDeviceProfileTransportConfigurationComponent,
     CoapDeviceProfileTransportConfigurationComponent,
     DeviceProfileTransportConfigurationComponent,
     CreateAlarmRulesComponent,
@@ -412,6 +419,7 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
     AlarmScheduleDialogComponent,
     EditAlarmDetailsDialogComponent,
     DeviceProfileProvisionConfigurationComponent,
+    AlarmScheduleComponent,
     SmsProviderConfigurationComponent,
     AwsSnsProviderConfigurationComponent,
     TwilioSmsProviderConfigurationComponent,

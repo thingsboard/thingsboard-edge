@@ -1,0 +1,88 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<form fxLayout="column" class="mat-content mat-padding" [formGroup]="eventFilterFormGroup" (ngSubmit)="update()">
+  <ng-container *ngFor="let column of showColumns">
+    <ng-container [ngSwitch]="column.key">
+      <ng-template [ngSwitchCase]="isSelector(column.key)">
+        <mat-form-field>
+          <mat-label>{{ column.title | translate}}</mat-label>
+          <mat-select [formControlName]="column.key">
+            <mat-option [value]="">{{ 'event.all-events' | translate}}</mat-option>
+            <mat-option *ngFor="let value of selectorValues(column.key)" [value]="value">
+              {{ value }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-template>
+      <ng-template [ngSwitchCase]="isNumberFields(column.key)">
+        <mat-form-field>
+          <mat-label>{{ column.title | translate}}</mat-label>
+          <input matInput type="number" min="0" [name]="column.key" [formControlName]="column.key">
+          <mat-error *ngIf="eventFilterFormGroup.get(column.key).hasError('min')">
+            {{ 'event.min-value' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </ng-template>
+      <ng-template [ngSwitchCase]="'isError'">
+        <tb-checkbox formControlName="isError" [falseValue]="''">
+          {{ 'event.has-error' | translate }}
+        </tb-checkbox>
+      </ng-template>
+      <ng-template [ngSwitchCase]="'error'">
+        <mat-form-field fxHide [fxShow]="showErrorMsgFields()">
+          <mat-label>{{ column.title | translate}}</mat-label>
+          <input matInput type="text" name="errorSearchText" formControlName="error">
+        </mat-form-field>
+      </ng-template>
+      <ng-container *ngSwitchDefault>
+        <mat-form-field>
+          <mat-label>{{ column.title | translate}}</mat-label>
+          <input matInput type="text" [name]="column.key" [formControlName]="column.key">
+        </mat-form-field>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+  <div fxLayout="row" class="tb-panel-actions" fxLayoutAlign="end center">
+    <button type="button"
+            mat-button
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button type="submit"
+            mat-raised-button
+            color="primary"
+            [disabled]="eventFilterFormGroup.invalid || !eventFilterFormGroup.dirty">
+      {{ 'action.update' | translate }}
+    </button>
+  </div>
+</form>

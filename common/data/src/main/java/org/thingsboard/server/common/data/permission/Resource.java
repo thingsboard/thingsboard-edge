@@ -75,7 +75,8 @@ public enum Resource {
     GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
     WHITE_LABELING(),
     AUDIT_LOG(),
-    API_USAGE_STATE(EntityType.API_USAGE_STATE);
+    API_USAGE_STATE(EntityType.API_USAGE_STATE),
+    TB_RESOURCE(EntityType.TB_RESOURCE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -126,6 +127,7 @@ public enum Resource {
         operationsByResource.put(Resource.USER, userOperations);
         operationsByResource.put(Resource.WIDGETS_BUNDLE, Operation.crudOperations);
         operationsByResource.put(Resource.WIDGET_TYPE, Operation.crudOperations);
+        operationsByResource.put(Resource.TB_RESOURCE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.CONVERTER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.INTEGRATION, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.SCHEDULER_EVENT, Operation.defaultEntityOperations);
@@ -135,6 +137,7 @@ public enum Resource {
         operationsByResource.put(Resource.ASSET_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.USER_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.ENTITY_VIEW_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.EDGE_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.DASHBOARD_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.ROLE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
@@ -155,7 +158,8 @@ public enum Resource {
                 Resource.ROLE,
                 Resource.WHITE_LABELING,
                 Resource.OAUTH2_CONFIGURATION_INFO,
-                Resource.OAUTH2_CONFIGURATION_TEMPLATE)));
+                Resource.OAUTH2_CONFIGURATION_TEMPLATE,
+                Resource.TB_RESOURCE)));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -185,9 +189,11 @@ public enum Resource {
                 Resource.ASSET_GROUP,
                 Resource.DASHBOARD_GROUP,
                 Resource.ENTITY_VIEW_GROUP,
+                Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
-                Resource.AUDIT_LOG)));
+                Resource.AUDIT_LOG,
+                Resource.TB_RESOURCE)));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -211,6 +217,7 @@ public enum Resource {
                 Resource.ASSET_GROUP,
                 Resource.DASHBOARD_GROUP,
                 Resource.ENTITY_VIEW_GROUP,
+                Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG)));

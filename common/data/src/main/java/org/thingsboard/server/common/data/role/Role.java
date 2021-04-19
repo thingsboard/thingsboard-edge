@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 @AllArgsConstructor
@@ -67,6 +68,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
 
     private TenantId tenantId;
     private CustomerId customerId;
+    @NoXss
     private String name;
     private RoleType type;
     private transient JsonNode permissions;

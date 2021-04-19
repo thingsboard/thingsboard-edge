@@ -1,0 +1,177 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.controller;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.security.Authority;
+
+import java.util.List;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Slf4j
+public class BaseEdgeEventControllerTest extends AbstractControllerTest {
+
+    private Tenant savedTenant;
+    private User tenantAdmin;
+
+    @Before
+    public void beforeTest() throws Exception {
+        loginSysAdmin();
+
+        Tenant tenant = new Tenant();
+        tenant.setTitle("My tenant");
+        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Assert.assertNotNull(savedTenant);
+
+        tenantAdmin = new User();
+        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdmin.setTenantId(savedTenant.getId());
+        tenantAdmin.setEmail("tenant2@thingsboard.org");
+        tenantAdmin.setFirstName("Joe");
+        tenantAdmin.setLastName("Downs");
+
+        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+        // sleep 1 seconds to avoid CREDENTIALS updated message for the user
+        // user credentials is going to be stored and updated event pushed to edge notification service
+        // while service will be processing this event edge could be already added and additional message will be pushed
+        Thread.sleep(1000);
+    }
+
+    @After
+    public void afterTest() throws Exception {
+        loginSysAdmin();
+
+        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetEdgeEvents() throws Exception {
+        Edge edge = constructEdge("TestEdge", "default");
+        edge = doPost("/api/edge", edge, Edge.class);
+
+        EntityGroup deviceEntityGroup = constructEntityGroup("TestDevice", EntityType.DEVICE);
+        EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
+        Device device = constructDevice("TestDevice", "default");
+        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+
+        Device savedDevice =
+                doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
+
+        Device device2 = constructDevice("TestDevice2", "default");
+        doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
+
+
+        EntityGroup assetEntityGroup = constructEntityGroup("TestAsset", EntityType.ASSET);
+        EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
+        Asset asset = constructAsset("TestAsset", "default");
+        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
+
+        Asset savedAsset =
+                doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
+
+        Asset asset2 = constructAsset("TestAsset2", "default");
+        doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
+
+        EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
+        doPost("/api/relation", relation);
+
+        // wait while edge event for the relation entity persisted to DB
+        Thread.sleep(100);
+        List<EdgeEvent> edgeEvents;
+        int attempt = 1;
+        do {
+            edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
+                    new TypeReference<PageData<EdgeEvent>>() {}, new TimePageLink(10)).getData();
+            attempt++;
+            Thread.sleep(100);
+        } while (edgeEvents.size() != 8 && attempt < 5);
+        Assert.assertEquals(8, edgeEvents.size());
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())
+                && EdgeEventActionType.UPDATED.equals(ee.getAction())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ENTITY_GROUP.equals(ee.getType())
+                && EdgeEventActionType.ASSIGNED_TO_EDGE.equals(ee.getAction())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.DEVICE.equals(ee.getType())
+                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
+                && savedDeviceEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ASSET.equals(ee.getType())
+                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
+                && savedAssetEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RELATION.equals(ee.getType())
+                && EdgeEventActionType.RELATION_ADD_OR_UPDATE.equals(ee.getAction())));
+    }
+
+    private EntityGroup constructEntityGroup(String name, EntityType type) {
+        EntityGroup result = new EntityGroup();
+        result.setName(name);
+        result.setType(type);
+        return result;
+    }
+
+    private Device constructDevice(String name, String type) {
+        Device device = new Device();
+        device.setName(name);
+        device.setType(type);
+        return device;
+    }
+
+    private Asset constructAsset(String name, String type) {
+        Asset asset = new Asset();
+        asset.setName(name);
+        asset.setType(type);
+        return asset;
+    }
+}

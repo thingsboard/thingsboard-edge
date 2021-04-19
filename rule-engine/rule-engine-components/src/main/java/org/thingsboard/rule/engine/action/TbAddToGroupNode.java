@@ -36,7 +36,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -46,10 +45,10 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -184,6 +183,15 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 return Futures.transformAsync(entityViewListenableFuture, entityView -> {
                     if (entityView != null) {
                         return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), entityView.getOwnerId(), EntityType.ENTITY_VIEW, EntityGroup.GROUP_ALL_NAME);
+                    } else {
+                        return Futures.immediateFuture(Optional.empty());
+                    }
+                }, ctx.getDbCallbackExecutor());
+            case EDGE:
+                ListenableFuture<Edge> edgeListenableFuture = ctx.getEdgeService().findEdgeByIdAsync(ctx.getTenantId(), new EdgeId(msg.getOriginator().getId()));
+                return Futures.transformAsync(edgeListenableFuture, edge -> {
+                    if (edge != null) {
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), edge.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }

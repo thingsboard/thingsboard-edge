@@ -34,12 +34,12 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EventId } from './id/event-id';
 import { ContentType } from '@shared/models/constants';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export enum EventType {
   ERROR = 'ERROR',
   LC_EVENT = 'LC_EVENT',
-  STATS = 'STATS',
-  RAW_DATA = 'RAW_DATA'
+  STATS = 'STATS'
 }
 
 export enum DebugEventType {
@@ -54,7 +54,6 @@ export const eventTypeTranslations = new Map<EventType | DebugEventType, string>
     [EventType.ERROR, 'event.type-error'],
     [EventType.LC_EVENT, 'event.type-lc-event'],
     [EventType.STATS, 'event.type-stats'],
-    [EventType.RAW_DATA, 'event.type-rw-event'],
     [DebugEventType.DEBUG_RULE_NODE, 'event.type-debug-rule-node'],
     [DebugEventType.DEBUG_RULE_CHAIN, 'event.type-debug-rule-chain'],
     [DebugEventType.DEBUG_CONVERTER, 'event.type-debug-converter'],
@@ -129,3 +128,36 @@ export interface Event extends BaseData<EventId> {
   uid: string;
   body: EventBody;
 }
+
+export interface BaseFilterEventBody {
+  server?: string;
+}
+
+export interface ErrorFilterEventBody extends BaseFilterEventBody {
+  method?: string;
+}
+
+export interface LcFilterEventEventBody extends BaseFilterEventBody {
+  method?: string;
+  status?: string;
+  isError?: boolean;
+}
+
+export interface StatsFilterEventBody extends BaseFilterEventBody {
+  messagesProcessed?: string;
+  errorsOccurred?: string;
+}
+
+export interface DebugFilterRuleNodeEventBody extends BaseFilterEventBody {
+  msgDirectionType?: string;
+  entityId?: string;
+  entityName?: EntityType;
+  msgId?: string;
+  msgType?: string;
+  relationType?: string;
+  dataSearch?: string;
+  metadataSearch?: string;
+  isError?: boolean;
+}
+
+export type FilterEventBody = ErrorFilterEventBody & LcFilterEventEventBody & StatsFilterEventBody & DebugFilterRuleNodeEventBody;

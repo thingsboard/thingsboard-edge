@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,6 +41,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
@@ -54,6 +57,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -85,7 +89,14 @@ public class WidgetTypeController extends BaseController {
 
             checkEntity(widgetTypeDetails.getId(), widgetTypeDetails, Resource.WIDGET_TYPE, null);
 
-            return checkNotNull(widgetTypeService.saveWidgetType(widgetTypeDetails));
+            WidgetTypeDetails savedWidgetTypeDetails = widgetTypeService.saveWidgetType(widgetTypeDetails);
+
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), savedWidgetTypeDetails.getId(),
+                    widgetTypeDetails.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+             */
+
+            return checkNotNull(savedWidgetTypeDetails);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -100,6 +111,11 @@ public class WidgetTypeController extends BaseController {
             WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));
             checkWidgetTypeId(widgetTypeId, Operation.DELETE);
             widgetTypeService.deleteWidgetType(getCurrentUser().getTenantId(), widgetTypeId);
+
+            /* merge comment
+            sendEntityNotificationMsg(getTenantId(), widgetTypeId, EdgeEventActionType.DELETED);
+             */
+
         } catch (Exception e) {
             throw handleException(e);
         }

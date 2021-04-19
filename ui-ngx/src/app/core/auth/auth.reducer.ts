@@ -37,6 +37,7 @@ const emptyUserAuthState: AuthPayload = {
   userDetails: null,
   userTokenAccessEnabled: false,
   forceFullscreen: false,
+  edgesSupportEnabled: false,
   whiteLabelingAllowed: false,
   customerWhiteLabelingAllowed: false,
   allowedDashboardIds: []
