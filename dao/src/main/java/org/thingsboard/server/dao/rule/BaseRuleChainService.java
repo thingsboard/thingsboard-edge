@@ -637,7 +637,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     @Override
     public RuleChain getEdgeTemplateRootRuleChain(TenantId tenantId) {
-        return getRootRuleChainByType(tenantId, RuleChainType.EDGE);
+        return getRootRuleChainByType(tenantId, RuleChainType.CORE);
     }
 
     @Override
@@ -762,7 +762,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                             throw new DataValidationException("Another root rule chain is present in scope of current tenant!");
                         }
                     }
-                    if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
+                    if (ruleChain.isRoot() && RuleChainType.CORE.equals(ruleChain.getType())) {
                         RuleChain edgeTemplateRootRuleChain = getEdgeTemplateRootRuleChain(ruleChain.getTenantId());
                         if (edgeTemplateRootRuleChain != null && !edgeTemplateRootRuleChain.getId().equals(ruleChain.getId())) {
                             throw new DataValidationException("Another edge template root rule chain is present in scope of current tenant!");

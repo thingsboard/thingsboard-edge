@@ -547,32 +547,32 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
-      const pages: Array<MenuSection> = [];
-      pages.push(
-        {
-          id: guid(),
-          name: 'edge.rulechain-templates',
-          type: 'link',
-          path: '/edges/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('rulechain_templates') > -1
-        }
-      );
-      sections.push(this.createEntityGroupSection(EntityType.EDGE));
-      sections.push(
-        {
-          id: guid(),
-          name: 'edge.management',
-          type: 'toggle',
-          path: '/edges',
-          icon: 'settings_input_antenna',
-          pages,
-          asyncPages: of(pages)
-        }
-      );
-      sections.push();
-    }
+    // if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+    //   const pages: Array<MenuSection> = [];
+    //   pages.push(
+    //     {
+    //       id: guid(),
+    //       name: 'edge.rulechain-templates',
+    //       type: 'link',
+    //       path: '/edges/ruleChains',
+    //       icon: 'settings_ethernet',
+    //       disabled: disabledItems.indexOf('rulechain_templates') > -1
+    //     }
+    //   );
+    //   sections.push(this.createEntityGroupSection(EntityType.EDGE));
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'edge.management',
+    //       type: 'toggle',
+    //       path: '/edges',
+    //       icon: 'settings_input_antenna',
+    //       pages,
+    //       asyncPages: of(pages)
+    //     }
+    //   );
+    //   sections.push();
+    // }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       sections.push(
         {
@@ -907,27 +907,27 @@ export class MenuService {
         }
       );
     }
-    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
-      homeSections.push(
-        {
-          name: 'edge.management',
-          places: [
-            {
-              name: 'edge.edge-instances',
-              icon: 'router',
-              path: '/edgeGroups',
-              disabled: disabledItems.indexOf('edge_groups') > -1
-            },
-            {
-              name: 'edge.rulechain-templates',
-              icon: 'settings_ethernet',
-              path: '/edges/ruleChains',
-              disabled: disabledItems.indexOf('edge_groups') > -1
-            }
-          ]
-        }
-      );
-    }
+    // if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+    //   homeSections.push(
+    //     {
+    //       name: 'edge.management',
+    //       places: [
+    //         {
+    //           name: 'edge.edge-instances',
+    //           icon: 'router',
+    //           path: '/edgeGroups',
+    //           disabled: disabledItems.indexOf('edge_groups') > -1
+    //         },
+    //         {
+    //           name: 'edge.rulechain-templates',
+    //           icon: 'settings_ethernet',
+    //           path: '/edges/ruleChains',
+    //           disabled: disabledItems.indexOf('edge_groups') > -1
+    //         }
+    //       ]
+    //     }
+    //   );
+    // }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
       homeSections.push(
         {

@@ -375,7 +375,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
     private RuleChainId saveRuleChainAndSetAutoAssignToEdge(String name) {
         RuleChain edgeRuleChain = new RuleChain();
         edgeRuleChain.setTenantId(tenantId);
-        edgeRuleChain.setType(RuleChainType.EDGE);
+        edgeRuleChain.setType(RuleChainType.CORE);
         edgeRuleChain.setName(name);
         RuleChain savedEdgeRuleChain = ruleChainService.saveRuleChain(edgeRuleChain);
         ruleChainService.setAutoAssignToEdgeRuleChain(tenantId, savedEdgeRuleChain.getId());

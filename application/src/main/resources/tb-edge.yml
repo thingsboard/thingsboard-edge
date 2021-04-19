@@ -613,7 +613,7 @@ transport:
   # Local LwM2M transport parameters
   lwm2m:
     # Enable/disable lvm2m transport protocol.
-    enabled: "${LWM2M_ENABLED:true}"
+    enabled: "${LWM2M_ENABLED:false}"
     #   We choose a default timeout a bit higher to the MAX_TRANSMIT_WAIT(62-93s) which is the time from starting to
     #   send a Confirmable message to the time when an acknowledgement is no longer expected.
     #   DEFAULT_TIMEOUT = 2 * 60 * 1000l; 2 min in ms
@@ -652,7 +652,7 @@ transport:
         # Only Certificate_x509:
         alias: "${LWM2M_KEYSTORE_ALIAS_SERVER:server}"
     bootstrap:
-      enable: "${LWM2M_ENABLED_BS:true}"
+      enable: "${LWM2M_ENABLED_BS:false}"
       id: "${LWM2M_SERVER_ID_BS:111}"
       bind_address: "${LWM2M_BIND_ADDRESS_BS:0.0.0.0}"
       bind_port_no_sec: "${LWM2M_BIND_PORT_NO_SEC_BS:5687}"
