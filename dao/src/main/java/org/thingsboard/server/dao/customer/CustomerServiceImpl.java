@@ -160,19 +160,12 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public Customer saveCustomer(Customer customer) {
         log.trace("Executing saveCustomer [{}]", customer);
         customerValidator.validate(customer, Customer::getTenantId);
-        return saveCustomerInternal(customer, false);
+        return saveCustomerInternal(customer);
     }
 
-    @Override
-    public Customer saveCustomer(Customer customer, boolean forceCreate) {
-        log.trace("Executing saveCustomer [{}]", customer);
-        customerValidator.validate(customer, Customer::getTenantId);
-        return saveCustomerInternal(customer, forceCreate);
-    }
-
-    private Customer saveCustomerInternal(Customer customer, boolean forceCreate) {
+    private Customer saveCustomerInternal(Customer customer) {
         Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
-        if (customer.getId() == null || forceCreate) {
+        if (customer.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
@@ -187,7 +180,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                 // entityGroupService.findOrCreateCustomerUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId(), savedCustomer.getParentCustomerId());
                 // entityGroupService.findOrCreateCustomerAdminsGroup(savedCustomer.getTenantId(), savedCustomer.getId(), savedCustomer.getParentCustomerId());
             } else {
-                entityGroupService.findOrCreatePublicUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId());
+//                entityGroupService.findOrCreatePublicUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId());
             }
         }
         return savedCustomer;
@@ -266,7 +259,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     } catch (IOException e) {
                         throw new IncorrectParameterException("Unable to create public customer.", e);
                     }
-                    return saveCustomerInternal(publicCustomer, false);
+                    return saveCustomerInternal(publicCustomer);
                 } else {
                     return result.get(0);
                 }

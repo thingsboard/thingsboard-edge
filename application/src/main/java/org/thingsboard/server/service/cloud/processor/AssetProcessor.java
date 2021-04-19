@@ -75,7 +75,10 @@ public class AssetProcessor extends BaseProcessor {
                     asset.setLabel(assetUpdateMsg.getLabel());
                     asset.setAdditionalInfo(JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()));
                     CustomerId assetCustomerId = safeSetCustomerId(assetUpdateMsg, cloudType, asset);
-                    assetService.saveAsset(asset, created);
+                    Asset savedAsset = assetService.saveAsset(asset);
+                    if (created) {
+                        entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
+                    }
                     addToEntityGroup(tenantId, customerId, assetUpdateMsg, cloudType, assetId, assetCustomerId);
                 } finally {
                     assetCreationLock.unlock();

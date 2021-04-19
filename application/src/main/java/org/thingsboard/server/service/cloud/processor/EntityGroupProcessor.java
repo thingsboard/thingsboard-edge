@@ -52,6 +52,9 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.dao.group.BaseEntityGroupService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
@@ -94,7 +97,16 @@ public class EntityGroupProcessor extends BaseProcessor {
                         ownerId = new CustomerId(new UUID(entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB()));
                     }
                     entityGroup.setOwnerId(ownerId);
-                    entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, created);
+                    EntityGroup savedEntityGroup = entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup);
+
+                    if (created) {
+                        EntityRelation entityRelation = new EntityRelation();
+                        entityRelation.setFrom(ownerId);
+                        entityRelation.setTo(savedEntityGroup.getId());
+                        entityRelation.setTypeGroup(RelationTypeGroup.TO_ENTITY_GROUP);
+                        entityRelation.setType(BaseEntityGroupService.ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
+                        relationService.saveRelation(tenantId, entityRelation);
+                    }
 
                 } finally {
                     entityGroupCreationLock.unlock();

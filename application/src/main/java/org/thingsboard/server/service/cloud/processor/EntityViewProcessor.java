@@ -88,7 +88,12 @@ public class EntityViewProcessor extends BaseProcessor {
                     entityView.setEntityId(entityId);
                     entityView.setAdditionalInfo(JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()));
                     CustomerId entityViewCustomerId = safeSetCustomerId(entityViewUpdateMsg, cloudType, entityView);
-                    entityViewService.saveEntityView(entityView, created);
+                    EntityView savedEntityView = entityViewService.saveEntityView(entityView);
+
+                    if (created) {
+                        entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
+                    }
+
                     addToEntityGroup(tenantId, customerId, entityViewUpdateMsg, cloudType, entityViewId, entityViewCustomerId);
                 } finally {
                     entityViewCreationLock.unlock();

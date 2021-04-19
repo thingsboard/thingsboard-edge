@@ -163,22 +163,16 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
     @Override
     public Device saveDeviceWithAccessToken(Device device, String accessToken) {
-        return doSaveDevice(device, accessToken, false);
+        return doSaveDevice(device, accessToken);
     }
 
     @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
     @Override
     public Device saveDevice(Device device) {
-        return doSaveDevice(device, null, false);
+        return doSaveDevice(device, null);
     }
 
-    @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
-    @Override
-    public Device saveDevice(Device device, boolean forceCreate) {
-        return doSaveDevice(device, null, forceCreate);
-    }
-
-    private Device doSaveDevice(Device device, String accessToken, boolean forceCreate) {
+    private Device doSaveDevice(Device device, String accessToken) {
         log.trace("Executing saveDevice [{}]", device);
         deviceValidator.validate(device, Device::getTenantId);
         Device savedDevice;
@@ -196,7 +190,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 }
             }
         }
-        if (device.getId() == null || forceCreate) {
+        if (device.getId() == null) {
             DeviceCredentials deviceCredentials = new DeviceCredentials();
             deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
@@ -424,7 +418,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
         device.setTenantId(tenantId);
         device.setCustomerId(null);
-        Device assignedDevice = doSaveDevice(device, null, false);
+        Device assignedDevice = doSaveDevice(device, null);
         entityGroupService.addEntityToEntityGroupAll(assignedDevice.getTenantId(), assignedDevice.getOwnerId(), assignedDevice.getId());
         return assignedDevice;
     }
