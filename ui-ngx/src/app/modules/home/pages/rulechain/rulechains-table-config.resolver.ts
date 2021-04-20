@@ -321,7 +321,8 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         {
           name: this.translate.instant('edge.unassign-from-edge'),
           icon: 'assignment_return',
-          isEnabled: (entity) => entity.id.id !== this.config.componentsData.edge.rootRuleChainId.id,
+          isEnabled: (entity) => entity.id.id !== this.config.componentsData.edge.rootRuleChainId.id &&
+            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
           onAction: ($event, entity) => this.unassignFromEdge($event, entity)
         }
       );

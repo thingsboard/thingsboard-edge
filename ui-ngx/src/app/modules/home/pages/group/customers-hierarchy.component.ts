@@ -56,7 +56,7 @@ import {
 import { EntityService } from '@core/http/entity.service';
 import { Customer } from '@shared/models/customer.model';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { groupResourceByGroupType, Operation, resourceByEntityType } from '@shared/models/security.models';
+import { groupResourceByGroupType, Operation, Resource } from '@shared/models/security.models';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
@@ -590,7 +590,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     });
-    if (this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.SCHEDULER_EVENT), Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ)) {
       const groupType = EntityType.SCHEDULER_EVENT;
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
@@ -610,7 +610,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     }
-    if (this.hasRuleChainsPermission()) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) &&
+        getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
       const groupType = EntityType.RULE_CHAIN;
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
@@ -631,11 +632,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.registerNode(node, parentNodeId);
     }
     return nodes;
-  }
-
-  private hasRuleChainsPermission() {
-    const isCustomerUser = getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER;
-    return !isCustomerUser && this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.EDGE), Operation.WRITE);
   }
 
   private registerNode(node: CustomersHierarchyNode, parentNodeId: string) {

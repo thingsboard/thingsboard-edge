@@ -179,7 +179,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         {
           name: this.translate.instant('edge.unassign-entity-groups-from-edge'),
           icon: 'assignment_return',
-          isEnabled: true,
+          isEnabled: this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entities) => {
             this.unassignEntityGroupsFromEdge($event, entities);
           }
@@ -210,11 +210,15 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.addEntity = () => this.entityGroupWizard();
     }
-    if (this.entityGroupsHasEdgeScope() && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
-      this.assignEnabled = true;
-      this.assignEntity = () => this.assignEntityGroupsToEdge();
+    if (this.entityGroupsHasEdgeScope()) {
+      this.addEnabled = false;
       this.componentsData = {
         isEdgeScope: true
+      }
+      if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) &&
+          this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
+        this.assignEnabled = true;
+        this.assignEntity = () => this.assignEntityGroupsToEdge();
       }
     }
   }
@@ -234,7 +238,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
           icon: 'assignment_return',
-          isEnabled: (entity) => true,
+          isEnabled: (entity) => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }
       );

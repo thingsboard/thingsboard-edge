@@ -74,6 +74,7 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassignFromEdge')"
+          *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.WRITE"
           [fxShow]="!isEdit && !isEdgeRootRuleChain() && ruleChainScope === 'edge'">
     {{'edge.unassign-from-edge' | translate }}
   </button>

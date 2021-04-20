@@ -3256,9 +3256,7 @@
                 "ADD_TO_GROUP": "Add to Group",
                 "REMOVE_FROM_GROUP": "Remove from Group",
                 "SHARE_GROUP": "Share Group",
-                "ASSIGN_TO_TENANT": "Assign to Tenant",
-                "ASSIGN_TO_EDGE": "Assign to Edge",
-                "UNASSIGN_FROM_EDGE": "Unassign from Edge"
+                "ASSIGN_TO_TENANT": "Assign to Tenant"
             }
         }
     },
