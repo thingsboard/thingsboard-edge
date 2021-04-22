@@ -1339,6 +1339,7 @@
         "unassign-entity-groups-from-edge-text": "Después de la confirmación, los grupos de entidades serán desasignados y no serán accesibles desde el borde.",
         "unassign-entity-groups-from-edge": "Anular la asignación de grupos de entidades desde el borde",
         "assign-scheduler-events": "Asignar eventos del programador",
+        "unassign-scheduler-events-from-edge": "Anular la asignación de eventos del programador desde el borde",
         "unassign-scheduler-event-from-edge-title": "¿Está seguro de que desea anular la asignación del evento del programador '{{SchedulerEventName}}'?",
         "unassign-scheduler-event-from-edge-text": "Después de la confirmación, se anulará la asignación del evento del programador y el borde no podrá acceder a él.",
         "unassign-scheduler-events-from-edge-title": "¿Está seguro de que desea anular la asignación de {count, plural, 1 {1 Scheduler Event} otros {# Scheduler Events}}?",

@@ -847,6 +847,7 @@
     "unassign-entity-groups-from-edge-text": "Nach der Bestätigung werden Entity-Gruppen nicht zugewiesen und sind für den Edge nicht zugänglich.",
     "unassign-entity-groups-from-edge": "Entitätsgruppen von Kante entfernen",
     "assign-scheduler-events": "Assign Scheduler Events",
+    "unassign-scheduler-events-from-edge": "Heben Sie die Zuordnung von Scheduler-Ereignissen vom Kante auf",
     "unassign-scheduler-event-from-edge-title": "Möchten Sie das Scheduler-Ereignis '{{schedulerEventName}}' aufheben?",
     "unassign-scheduler-event-from-edge-text": "Nach der Bestätigung wird das Scheduler-Ereignis nicht zugewiesen und ist für den Edge nicht zugänglich.",
     "unassign-scheduler-events-from-edge-title": "Möchten Sie sicher die Zuweisung von {count, plural, 1 {1 Scheduler-Ereignis} anderen {# Scheduler-Ereignissen}} aufheben?",
