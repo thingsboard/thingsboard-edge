@@ -69,7 +69,7 @@
                   matTooltipPosition="above">
             <mat-icon>add</mat-icon>
           </button>
-          <button *ngIf="edgeId && assignToEdgeEnabled"
+          <button *ngIf="edgeId && assignEnabled"
                   [disabled]="isLoading$ | async"
                   mat-icon-button
                   (click)="assignToEdgeSchedulerEvent($event)"
@@ -128,7 +128,7 @@
           <mat-icon>delete</mat-icon>
         </button>
         <button mat-icon-button [disabled]="isLoading$ | async"
-                *ngIf="edgeId && assignToEdgeEnabled"
+                *ngIf="edgeId && assignEnabled"
                 matTooltip="{{ 'action.unassign' | translate }}"
                 matTooltipPosition="above"
                 (click)="unassignFromEdgeSchedulerEvents($event)">
@@ -197,7 +197,7 @@
                         (click)="viewSchedulerEvent($event, schedulerEvent)">
                   <mat-icon>more_horiz</mat-icon>
                 </button>
-                <button *ngIf="edgeId"
+                <button *ngIf="edgeId && (resource.EDGE | hasGenericPermission: operation.WRITE)"
                         mat-button mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'edge.unassign-from-edge' | translate }}"
                         matTooltipPosition="above"

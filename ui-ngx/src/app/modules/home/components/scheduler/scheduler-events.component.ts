@@ -132,7 +132,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
-  assignToEdgeEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ) && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
+  assignEnabled = this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
 
   authUser = getCurrentAuthUser(this.store);
 
@@ -202,7 +202,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.ctx.updateWidgetParams();
     } else {
       this.displayedColumns = ['createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
-      if (this.deleteEnabled) {
+      if (this.deleteEnabled && !this.edgeId) {
         this.displayedColumns.unshift('select');
       }
       const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
@@ -213,6 +213,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       if (this.edgeId) {
         this.deleteEnabled = false;
         this.editEnabled = false;
+        if (this.assignEnabled) {
+          this.displayedColumns.unshift('select');
+        }
       }
     }
   }
