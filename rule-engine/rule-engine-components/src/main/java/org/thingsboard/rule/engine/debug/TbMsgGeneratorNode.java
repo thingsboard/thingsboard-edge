@@ -104,7 +104,7 @@ public class TbMsgGeneratorNode implements TbNode {
             if (!initialized) {
                 initialized = true;
                 this.jsEngine = ctx.createJsScriptEngine(config.getJsScript(), "prevMsg", "prevMetadata", "prevMsgType");
-                scheduleTickMsg(ctx);
+                scheduleTickMsg(ctx, null);
             }
         } else if (initialized) {
             initialized = false;
@@ -119,28 +119,29 @@ public class TbMsgGeneratorNode implements TbNode {
                     m -> {
                         if (initialized && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
                             ctx.enqueueForTellNext(m, SUCCESS);
-                            scheduleTickMsg(ctx);
+                            scheduleTickMsg(ctx, msg);
                             currentMsgCount++;
                         }
                     },
                     t -> {
                         if (initialized && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
                             ctx.tellFailure(msg, t);
-                            scheduleTickMsg(ctx);
+                            scheduleTickMsg(ctx, msg);
                             currentMsgCount++;
                         }
                     });
         }
     }
 
-    private void scheduleTickMsg(TbContext ctx) {
+    private void scheduleTickMsg(TbContext ctx, TbMsg msg) {
         long curTs = System.currentTimeMillis();
         if (lastScheduledTs == 0L) {
             lastScheduledTs = curTs;
         }
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(),
+                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }

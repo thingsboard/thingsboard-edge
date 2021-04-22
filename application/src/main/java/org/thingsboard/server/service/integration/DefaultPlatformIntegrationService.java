@@ -759,7 +759,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     private void pushDeviceCreatedEventToRuleEngine(Integration integration, Device device) {
         try {
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), device.getCustomerId(), deviceActionTbMsgMetaData(integration, device), mapper.writeValueAsString(entityNode));
             process(device.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
@@ -769,7 +769,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     private void pushAssetCreatedEventToRuleEngine(Integration integration, Asset asset) {
         try {
             ObjectNode entityNode = mapper.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
             process(integration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
@@ -790,7 +790,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     private void pushCustomerCreatedEventToRuleEngine(Integration integration, Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
             process(customer.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
@@ -849,7 +849,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }

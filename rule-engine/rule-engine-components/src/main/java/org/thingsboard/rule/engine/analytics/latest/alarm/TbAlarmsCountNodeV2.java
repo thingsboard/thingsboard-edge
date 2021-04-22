@@ -112,7 +112,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
             TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                    entityId, metaData, JacksonUtil.toString(data));
+                    entityId, msg.getCustomerId(), metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, SUCCESS);
         });
         ctx.ack(msg);

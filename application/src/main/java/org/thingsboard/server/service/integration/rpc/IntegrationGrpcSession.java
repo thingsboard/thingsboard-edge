@@ -258,7 +258,7 @@ public final class IntegrationGrpcSession implements Closeable {
                                     metaData.putValue("assetType", data.getAssetType());
                                     metaData.putValue("ts", tsKv.getTs() + "");
                                     JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                                    TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
+                                    TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
                                     ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
                                 });
                     }
@@ -268,7 +268,7 @@ public final class IntegrationGrpcSession implements Closeable {
                         metaData.putValue("assetName", data.getAssetName());
                         metaData.putValue("assetType", data.getAssetType());
                         JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
+                        TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
                         ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
                     }
                 }
