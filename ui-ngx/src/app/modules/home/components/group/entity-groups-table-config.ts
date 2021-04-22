@@ -175,6 +175,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     if (this.entityGroupsHasEdgeScope()) {
       this.deleteEnabled = () => false;
+      this.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
       this.groupActionDescriptors.push(
         {
           name: this.translate.instant('edge.unassign-entity-groups-from-edge'),
@@ -188,13 +189,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     } else {
       this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
         this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
+      this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
+        this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
     }
 
-    this.detailsReadonly = (entityGroup) =>
-      !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
-    this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
-      this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
-
+    this.detailsReadonly = (entityGroup) => !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
     if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
