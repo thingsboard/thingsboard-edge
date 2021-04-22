@@ -61,8 +61,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.UUID;
-
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -192,7 +190,6 @@ public class AlarmController extends BaseController {
             @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false) String offset,
             @RequestParam(required = false) Boolean fetchOriginator
     ) throws ThingsboardException {
         checkParameter("EntityId", strEntityId);
@@ -207,12 +204,9 @@ public class AlarmController extends BaseController {
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         checkEntityId(entityId, Operation.READ);
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-        UUID idOffsetUuid = null;
-        if (StringUtils.isNotEmpty(offset)) {
-            idOffsetUuid = toUUID(offset);
-        }
+
         try {
-            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator, idOffsetUuid)).get());
+            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator)).get());
         } catch (Exception e) {
             throw handleException(e);
         }

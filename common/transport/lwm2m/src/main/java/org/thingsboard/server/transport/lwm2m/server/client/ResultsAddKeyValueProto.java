@@ -28,16 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.stats;
+package org.thingsboard.server.transport.lwm2m.server.client;
 
-import org.thingsboard.server.common.data.ApiUsageRecordKey;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Data;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
-public interface TbApiUsageReportClient {
+import java.util.ArrayList;
+import java.util.List;
 
-    void report(TenantId tenantId, CustomerId customerId, ApiUsageRecordKey key, long value);
+@Data
+public class ResultsAddKeyValueProto {
+    List<TransportProtos.KeyValueProto> resultAttributes;
+    List<TransportProtos.KeyValueProto> resultTelemetries;
 
-    void report(TenantId tenantId, CustomerId customerId, ApiUsageRecordKey key);
+    public ResultsAddKeyValueProto() {
+        this.resultAttributes = new ArrayList<>();
+        this.resultTelemetries = new ArrayList<>();
+    }
 
 }

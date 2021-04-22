@@ -31,6 +31,7 @@
 package org.thingsboard.server.transport.mqtt.session;
 
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,6 +76,8 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     private volatile TransportPayloadType payloadType = TransportPayloadType.JSON;
     private volatile Descriptors.Descriptor attributesDynamicMessageDescriptor;
     private volatile Descriptors.Descriptor telemetryDynamicMessageDescriptor;
+    private volatile Descriptors.Descriptor rpcResponseDynamicMessageDescriptor;
+    private volatile DynamicMessage.Builder rpcRequestDynamicMessageBuilder;
 
     @Getter
     @Setter
@@ -117,6 +120,14 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
         return attributesDynamicMessageDescriptor;
     }
 
+    public Descriptors.Descriptor getRpcResponseDynamicMessageDescriptor() {
+        return rpcResponseDynamicMessageDescriptor;
+    }
+
+    public DynamicMessage.Builder getRpcRequestDynamicMessageBuilder() {
+        return rpcRequestDynamicMessageBuilder;
+    }
+
     @Override
     public void setDeviceProfile(DeviceProfile deviceProfile) {
         super.setDeviceProfile(deviceProfile);
@@ -151,5 +162,7 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
         ProtoTransportPayloadConfiguration protoTransportPayloadConfig = (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;
         telemetryDynamicMessageDescriptor = protoTransportPayloadConfig.getTelemetryDynamicMessageDescriptor(protoTransportPayloadConfig.getDeviceTelemetryProtoSchema());
         attributesDynamicMessageDescriptor = protoTransportPayloadConfig.getAttributesDynamicMessageDescriptor(protoTransportPayloadConfig.getDeviceAttributesProtoSchema());
+        rpcResponseDynamicMessageDescriptor = protoTransportPayloadConfig.getRpcResponseDynamicMessageDescriptor(protoTransportPayloadConfig.getDeviceRpcResponseProtoSchema());
+        rpcRequestDynamicMessageBuilder = protoTransportPayloadConfig.getRpcRequestDynamicMessageBuilder(protoTransportPayloadConfig.getDeviceRpcRequestProtoSchema());
     }
 }

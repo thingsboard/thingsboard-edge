@@ -301,7 +301,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
 
 
-
     @PostConstruct
     public void init() {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
@@ -572,7 +571,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 dataPoints += tsKv.getKvCount();
             }
-            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, dataPoints, callback));
+            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), dataPoints, callback));
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 metaData.putValue("deviceName", sessionInfo.getDeviceName());
@@ -595,13 +594,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             metaData.putValue("deviceName", sessionInfo.getDeviceName());
             metaData.putValue("deviceType", sessionInfo.getDeviceType());
             sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, SessionMsgType.POST_ATTRIBUTES_REQUEST,
-                    new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, msg.getKvList().size(), callback)));
+                    new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
         }
     }
 
     @Override
     public void process(TenantId tenantId, TbMsg tbMsg, IntegrationCallback<Void> callback) {
-        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, 1, callback)));
+        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, tbMsg.getCustomerId(), 1, callback)));
     }
 
 
@@ -833,7 +832,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
-                                    TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
+                                  TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
@@ -1109,11 +1108,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private class ApiStatsProxyCallback<T> implements IntegrationCallback<T> {
         private final TenantId tenantId;
+        private final CustomerId customerId;
         private final int dataPoints;
         private final IntegrationCallback<T> callback;
 
-        public ApiStatsProxyCallback(TenantId tenantId, int dataPoints, IntegrationCallback<T> callback) {
+        public ApiStatsProxyCallback(TenantId tenantId, CustomerId customerId, int dataPoints, IntegrationCallback<T> callback) {
             this.tenantId = tenantId;
+            this.customerId = customerId;
             this.dataPoints = dataPoints;
             this.callback = callback;
         }
@@ -1121,8 +1122,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         @Override
         public void onSuccess(T msg) {
             try {
-                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
-                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
+                apiUsageReportClient.report(tenantId, customerId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
+                apiUsageReportClient.report(tenantId, customerId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
             } finally {
                 callback.onSuccess(msg);
             }
@@ -1134,4 +1135,14 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         }
     }
 
+
+    private static CustomerId getCustomerId(SessionInfoProto sessionInfo) {
+        CustomerId customerId;
+        if (sessionInfo.getCustomerIdMSB() > 0 && sessionInfo.getCustomerIdLSB() > 0) {
+            customerId = new CustomerId(new UUID(sessionInfo.getCustomerIdMSB(), sessionInfo.getCustomerIdLSB()));
+        } else {
+            customerId = null;
+        }
+        return customerId;
+    }
 }

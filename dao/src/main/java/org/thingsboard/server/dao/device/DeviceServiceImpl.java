@@ -530,6 +530,11 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return savedDevice;
     }
 
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return deviceDao.countByTenantId(tenantId);
+    }
+
     private DataValidator<Device> deviceValidator =
             new DataValidator<Device>() {
 

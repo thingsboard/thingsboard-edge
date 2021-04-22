@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
@@ -89,14 +90,14 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
     }
 
     @Override
-    public ListenableFuture<Object> invokeFunction(TenantId tenantId, UUID scriptId, Object... args) {
+    public ListenableFuture<Object> invokeFunction(TenantId tenantId, CustomerId customerId, UUID scriptId, Object... args) {
         if (!apiUsageStateClient.isPresent() || apiUsageStateClient.get().getApiUsageState(tenantId).isJsExecEnabled()) {
             String functionName = scriptIdToNameMap.get(scriptId);
             if (functionName == null) {
                 return Futures.immediateFailedFuture(new RuntimeException("No compiled script found for scriptId: [" + scriptId + "]!"));
             }
             if (!isDisabled(scriptId)) {
-                apiUsageReportClient.ifPresent(client -> client.report(tenantId, ApiUsageRecordKey.JS_EXEC_COUNT, 1));
+                apiUsageReportClient.ifPresent(client -> client.report(tenantId, customerId, ApiUsageRecordKey.JS_EXEC_COUNT, 1));
                 return doInvokeFunction(scriptId, functionName, args);
             } else {
                 return Futures.immediateFailedFuture(

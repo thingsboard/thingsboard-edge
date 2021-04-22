@@ -103,7 +103,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
 
 
     private void processTestProvisioningDisabledDevice() throws Exception {
-        super.processBeforeTest("Test Provision device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, DeviceProfileProvisionType.DISABLED, null, null);
+        super.processBeforeTest("Test Provision device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, null, null, null, null, DeviceProfileProvisionType.DISABLED);
         byte[] result = createCoapClientAndPublish().getPayload();
         JsonObject response = JsonUtils.parse(new String(result)).getAsJsonObject();
         Assert.assertEquals("Provision data was not found!", response.get("errorMsg").getAsString());
@@ -112,7 +112,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
 
 
     private void processTestProvisioningCreateNewDeviceWithoutCredentials() throws Exception {
-        super.processBeforeTest("Test Provision device3", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES, "testProvisionKey", "testProvisionSecret");
+        super.processBeforeTest("Test Provision device3", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, null, null, "testProvisionKey", "testProvisionSecret", DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
         byte[] result = createCoapClientAndPublish().getPayload();
         JsonObject response = JsonUtils.parse(new String(result)).getAsJsonObject();
 
@@ -128,7 +128,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
 
 
     private void processTestProvisioningCreateNewDeviceWithAccessToken() throws Exception {
-        super.processBeforeTest("Test Provision device3", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES, "testProvisionKey", "testProvisionSecret");
+        super.processBeforeTest("Test Provision device3", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, null, null, "testProvisionKey", "testProvisionSecret", DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
         String requestCredentials = ",\"credentialsType\": \"ACCESS_TOKEN\",\"token\": \"test_token\"";
         byte[] result = createCoapClientAndPublish(requestCredentials).getPayload();
         JsonObject response = JsonUtils.parse(new String(result)).getAsJsonObject();
@@ -147,7 +147,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
 
 
     private void processTestProvisioningCreateNewDeviceWithCert() throws Exception {
-        super.processBeforeTest("Test Provision device3", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES, "testProvisionKey", "testProvisionSecret");
+        super.processBeforeTest("Test Provision device3", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, null, null, "testProvisionKey", "testProvisionSecret", DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
         String requestCredentials = ",\"credentialsType\": \"X509_CERTIFICATE\",\"hash\": \"testHash\"";
         byte[] result = createCoapClientAndPublish(requestCredentials).getPayload();
         JsonObject response = JsonUtils.parse(new String(result)).getAsJsonObject();
@@ -171,7 +171,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
     }
 
     private void processTestProvisioningCheckPreProvisionedDevice() throws Exception {
-        super.processBeforeTest("Test Provision device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, DeviceProfileProvisionType.CHECK_PRE_PROVISIONED_DEVICES, "testProvisionKey", "testProvisionSecret");
+        super.processBeforeTest("Test Provision device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, null, null, "testProvisionKey", "testProvisionSecret", DeviceProfileProvisionType.CHECK_PRE_PROVISIONED_DEVICES);
         byte[] result = createCoapClientAndPublish().getPayload();
         JsonObject response = JsonUtils.parse(new String(result)).getAsJsonObject();
 
@@ -182,7 +182,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
     }
 
     private void processTestProvisioningWithBadKeyDevice() throws Exception {
-        super.processBeforeTest("Test Provision device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, DeviceProfileProvisionType.CHECK_PRE_PROVISIONED_DEVICES, "testProvisionKeyOrig", "testProvisionSecret");
+        super.processBeforeTest("Test Provision device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON, null, null, null, null, "testProvisionKeyOrig", "testProvisionSecret", DeviceProfileProvisionType.CHECK_PRE_PROVISIONED_DEVICES);
         byte[] result = createCoapClientAndPublish().getPayload();
         JsonObject response = JsonUtils.parse(new String(result)).getAsJsonObject();
         Assert.assertEquals("Provision data was not found!", response.get("errorMsg").getAsString());

@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -91,4 +92,6 @@ public interface DeviceService {
     Device assignDeviceToTenant(TenantId tenantId, Device device);
 
     Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
+
+    long countByTenantId(TenantId tenantId);
 }

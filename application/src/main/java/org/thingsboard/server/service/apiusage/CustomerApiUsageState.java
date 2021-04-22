@@ -28,16 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.stats;
+package org.thingsboard.server.service.apiusage;
 
-import org.thingsboard.server.common.data.ApiUsageRecordKey;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.EntityType;
 
-public interface TbApiUsageReportClient {
+public class CustomerApiUsageState extends BaseApiUsageState {
+    public CustomerApiUsageState(ApiUsageState apiUsageState) {
+        super(apiUsageState);
+    }
 
-    void report(TenantId tenantId, CustomerId customerId, ApiUsageRecordKey key, long value);
-
-    void report(TenantId tenantId, CustomerId customerId, ApiUsageRecordKey key);
-
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CUSTOMER;
+    }
 }

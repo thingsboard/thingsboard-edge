@@ -411,7 +411,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             pageData = tenantService.findTenants(pageLink);
                             for (Tenant tenant : pageData.getData()) {
                                 try {
-                                    apiUsageStateService.createDefaultApiUsageState(tenant.getId());
+                                    apiUsageStateService.createDefaultApiUsageState(tenant.getId(), null);
                                 } catch (Exception e) {
                                 }
                                 List<EntitySubtype> deviceTypes = deviceService.findDeviceTypesByTenantId(tenant.getId()).get();

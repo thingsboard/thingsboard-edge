@@ -87,7 +87,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
         UUID sessionId = UUID.randomUUID();
-        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+        TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
                 .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
@@ -97,8 +97,14 @@ public class LocalIntegrationContext implements IntegrationContext {
                 .setDeviceName(device.getName())
                 .setDeviceType(device.getType())
                 .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
-                .build();
+                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
+
+        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
+            builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        }
+
+        TransportProtos.SessionInfoProto sessionInfo = builder.build();
 
         if (data.hasPostTelemetryMsg()) {
             ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);

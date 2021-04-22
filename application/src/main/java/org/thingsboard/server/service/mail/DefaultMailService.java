@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -223,7 +224,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
+    public void send(TenantId tenantId, CustomerId customerId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
         ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
         JsonNode jsonConfig = configEntry.jsonConfig;
         if (!configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
@@ -253,7 +254,7 @@ public class DefaultMailService implements MailService {
                 }
                 mailSender.send(helper.getMimeMessage());
                 if (configEntry.isSystem) {
-                    apiUsageClient.report(tenantId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
+                    apiUsageClient.report(tenantId, customerId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
                 }
             } catch (Exception e) {
                 throw handleException(e);

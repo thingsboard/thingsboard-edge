@@ -66,6 +66,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
@@ -124,6 +125,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private GroupPermissionService groupPermissionService;
+
+    @Autowired
+    private ApiUsageStateService apiUsageStateService;
 
     @Autowired
     @Lazy
@@ -221,6 +225,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         deleteEntityGroups(tenantId, customerId);
         deleteEntityRelations(tenantId, customerId);
         roleService.deleteRolesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
+        apiUsageStateService.deleteApiUsageStateByEntityId(customerId);
         customerDao.removeById(tenantId, customerId.getId());
     }
 

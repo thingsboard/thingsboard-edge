@@ -183,6 +183,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
@@ -193,7 +194,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
             entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
             entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
-            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId());
+            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
         return savedTenant;
     }

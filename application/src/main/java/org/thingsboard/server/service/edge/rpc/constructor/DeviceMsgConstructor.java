@@ -52,8 +52,6 @@ import java.util.UUID;
 @TbCoreComponent
 public class DeviceMsgConstructor {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
                                                      String conflictName, EntityGroupId entityGroupId) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
