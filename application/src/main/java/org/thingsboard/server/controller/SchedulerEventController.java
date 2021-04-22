@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -297,7 +298,8 @@ public class SchedulerEventController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             checkEdgeId(edgeId, Operation.READ);
-            return checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId).get());
+            List<SchedulerEventInfo> schedulerEventInfos = checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId).get());
+            return filterSchedulerEventsByReadPermission(schedulerEventInfos);
         } catch (Exception e) {
             throw handleException(e);
         }
