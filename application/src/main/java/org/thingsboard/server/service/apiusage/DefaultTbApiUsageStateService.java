@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.apiusage;
 
 import com.google.common.util.concurrent.FutureCallback;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -62,20 +63,23 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfigurat
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.SchedulerUtils;
-import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.UsageStatsKVProto;
+import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.telemetry.InternalTelemetryService;
 
 import javax.annotation.PostConstruct;
@@ -100,6 +104,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DefaultTbApiUsageStateService extends TbApplicationEventListener<PartitionChangeEvent> implements TbApiUsageStateService {
 
     public static final String HOURLY = "Hourly";
@@ -115,13 +120,14 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
     private final TbClusterService clusterService;
     private final PartitionService partitionService;
     private final TenantService tenantService;
-    private final CustomerService customerService;
     private final TimeseriesService tsService;
     private final ApiUsageStateService apiUsageStateService;
     private final SchedulerComponent scheduler;
     private final TbTenantProfileCache tenantProfileCache;
     private final MailService mailService;
-
+    private final OwnersCacheService ownersCacheService;
+    private final TbQueueProducerProvider producerProvider;
+    private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;
     @Lazy
     @Autowired
     private InternalTelemetryService tsWsService;
@@ -141,33 +147,14 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
 
     private final Lock updateLock = new ReentrantLock();
 
-    private final ExecutorService mailExecutor;
-
-    public DefaultTbApiUsageStateService(TbClusterService clusterService,
-                                         PartitionService partitionService,
-                                         TenantService tenantService,
-                                         CustomerService customerService,
-                                         TimeseriesService tsService,
-                                         ApiUsageStateService apiUsageStateService,
-                                         SchedulerComponent scheduler,
-                                         TbTenantProfileCache tenantProfileCache,
-                                         MailService mailService) {
-        this.clusterService = clusterService;
-        this.partitionService = partitionService;
-        this.tenantService = tenantService;
-        this.customerService = customerService;
-        this.tsService = tsService;
-        this.apiUsageStateService = apiUsageStateService;
-        this.scheduler = scheduler;
-        this.tenantProfileCache = tenantProfileCache;
-        this.mailService = mailService;
-        this.mailExecutor = Executors.newSingleThreadExecutor();
-    }
+    private ExecutorService mailExecutor;
 
     @PostConstruct
     public void init() {
         if (enabled) {
             log.info("Starting api usage service.");
+            msgProducer = producerProvider.getTbUsageStatsMsgProducer();
+            mailExecutor = Executors.newSingleThreadExecutor();
             scheduler.scheduleAtFixedRate(this::checkStartOfNextCycle, nextCycleCheckInterval, nextCycleCheckInterval, TimeUnit.MILLISECONDS);
             log.info("Started api usage service.");
         }
@@ -181,6 +168,7 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
         EntityId entityId;
         if (statsMsg.getCustomerIdMSB() != 0 && statsMsg.getCustomerIdLSB() != 0) {
             entityId = new CustomerId(new UUID(statsMsg.getCustomerIdMSB(), statsMsg.getCustomerIdLSB()));
+            propagateStatsToCustomerOwner(statsMsg, tenantId, (CustomerId) entityId);
         } else {
             entityId = tenantId;
         }
@@ -227,6 +215,20 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
         if (!result.isEmpty()) {
             persistAndNotify(usageState, result);
         }
+    }
+
+    private void propagateStatsToCustomerOwner(ToUsageStatsServiceMsg statsMsg, TenantId tenantId, CustomerId customerId) {
+        EntityId owner = ownersCacheService.getOwner(tenantId, customerId);
+        if (owner == null || owner.isNullUid() || owner.getEntityType() != EntityType.CUSTOMER) return;
+
+        ToUsageStatsServiceMsg newStatsMsg = ToUsageStatsServiceMsg.newBuilder()
+                .mergeFrom(statsMsg)
+                .setCustomerIdMSB(owner.getId().getMostSignificantBits())
+                .setCustomerIdLSB(owner.getId().getLeastSignificantBits())
+                .build();
+
+        TopicPartitionInfo partitionInfo = partitionService.resolve(ServiceType.TB_CORE, tenantId, owner).newByTopic(msgProducer.getDefaultTopic());
+        msgProducer.send(partitionInfo, new TbProtoQueueMsg<>(UUID.randomUUID(), newStatsMsg), null);
     }
 
     @Override
