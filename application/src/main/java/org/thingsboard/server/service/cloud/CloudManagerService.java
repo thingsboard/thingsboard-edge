@@ -1216,6 +1216,11 @@ public class CloudManagerService {
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
+                try {
+                    edgeRpcClient.disconnect(true);
+                } catch (Exception ex) {
+                    log.error("Exception during disconnect: {}", ex.getMessage());
+                }
                 edgeRpcClient.connect(routingKey, routingSecret,
                         this::onUplinkResponse,
                         this::onEdgeUpdate,
