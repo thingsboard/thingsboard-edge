@@ -39,7 +39,9 @@ import { EdgeDownlinkTableConfig } from './edge-downlink-table-config';
 import { DialogService } from '@core/services/dialog.service';
 import { AttributeService } from '@core/http/attribute.service';
 import { EdgeService } from '@core/http/edge.service';
-import { EntityService } from '@core/http/entity.service';
+import { EntityService } from "@core/http/entity.service";
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 @Component({
   selector: 'tb-edge-downlink-table',
@@ -85,8 +87,8 @@ export class EdgeDownlinkTableComponent implements OnInit {
               private dialog: MatDialog,
               private edgeService: EdgeService,
               private entityService: EntityService,
-              private translate: TranslateService
-              ) {
+              private translate: TranslateService,
+              protected store: Store<AppState>) {
   }
 
   ngOnInit() {
@@ -99,8 +101,8 @@ export class EdgeDownlinkTableComponent implements OnInit {
       this.edgeService,
       this.entityService,
       this.translate,
+      this.store,
       this.entityIdValue
     );
   }
-
 }
