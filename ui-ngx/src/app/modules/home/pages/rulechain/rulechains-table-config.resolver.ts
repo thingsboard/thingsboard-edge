@@ -215,7 +215,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           name: this.translate.instant('rulechain.assign-rulechains'),
           icon: 'add',
           isEnabled: () => true,
-          onAction: ($event) => this.addRuleChainsToEdge($event)
+          onAction: ($event) => this.assignRuleChainsToEdge($event)
         }
       );
     }
@@ -249,7 +249,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         {
           name: this.translate.instant('rulechain.unassign-rulechains'),
           icon: 'assignment_return',
-          isEnabled: true,
+          isEnabled: this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entities) => this.unassignRuleChainsFromEdge($event, entities)
         }
       );
@@ -315,14 +315,14 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           name: this.translate.instant('rulechain.set-root'),
           icon: 'flag',
           isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
-            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
+            this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entity) => this.setRootRuleChain($event, entity)
         },
         {
           name: this.translate.instant('edge.unassign-from-edge'),
           icon: 'assignment_return',
           isEnabled: (entity) => entity.id.id !== this.config.componentsData.edge.rootRuleChainId.id &&
-            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
+            this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entity) => this.unassignFromEdge($event, entity)
         }
       );
@@ -471,7 +471,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     );
   }
 
-  addRuleChainsToEdge($event: Event) {
+  assignRuleChainsToEdge($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }

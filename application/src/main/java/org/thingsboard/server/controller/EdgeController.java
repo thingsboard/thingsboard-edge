@@ -255,7 +255,7 @@ public class EdgeController extends BaseController {
         checkParameter("ruleChainId", strRuleChainId);
         try {
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.WRITE);
+            checkRuleChain(ruleChainId, Operation.READ);
 
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
