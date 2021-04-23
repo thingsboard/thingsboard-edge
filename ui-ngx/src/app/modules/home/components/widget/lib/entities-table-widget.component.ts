@@ -56,7 +56,16 @@ import {
 import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { createLabelFromDatasource, deepClone, hashCode, isDefined, isNumber, isObject } from '@core/utils';
+import {
+  convertValue,
+  createLabelFromDatasource,
+  deepClone,
+  hashCode,
+  isDefined,
+  isDefinedAndNotNull,
+  isNumber,
+  isObject
+} from '@core/utils';
 import cssjs from '@core/css/css';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -187,6 +196,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.editColumnsToDisplay($event);
     }
   };
+
+  private convertPostProcFunction = new Map<string, any>();
 
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
@@ -775,7 +786,29 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     columns.forEach(column => {
       if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
         if (latest) {
-          entity[column.label] = getLatestDataValue(latest, column.entityKey.type, column.entityKey.key, '');
+          let dataValue: any = '';
+          let tsValue;
+          const fields = latest[column.entityKey.type];
+          if (fields) {
+            tsValue = fields[column.entityKey.key];
+            if (tsValue && isDefinedAndNotNull(tsValue.value)) {
+              dataValue = tsValue.value;
+            }
+          }
+          if (column.usePostProcessing && column.postFuncBody) {
+            if (!this.convertPostProcFunction.has(column.label)) {
+              const postFunction = new Function('time', 'value', 'prevValue', 'timePrev', 'prevOrigValue', column.postFuncBody);
+              this.convertPostProcFunction.set(column.label, postFunction);
+            }
+
+            dataValue = convertValue(dataValue);
+            let dataTs = 0;
+            if (tsValue && isDefinedAndNotNull(tsValue.ts)) {
+              dataTs = tsValue.ts;
+            }
+            dataValue = this.convertPostProcFunction.get(column.label)(dataTs, dataValue, 0, 0, 0);
+          }
+          entity[column.label] = dataValue;
         } else {
           entity[column.label] = '';
         }
@@ -787,7 +820,6 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     });
     return dataObj;
   }
-
 }
 
 class EntityDatasource implements DataSource<EntityData> {
