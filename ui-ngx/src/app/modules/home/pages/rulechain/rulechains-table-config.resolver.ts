@@ -316,7 +316,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'flag',
           isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
             this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
-          onAction: ($event, entity) => this.setRootRuleChain($event, entity)
+          onAction: ($event, entity) => this.setEdgeRootRuleChain($event, entity)
         },
         {
           name: this.translate.instant('edge.unassign-from-edge'),
@@ -403,20 +403,34 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       true
     ).subscribe((res) => {
         if (res) {
-          if (this.config.componentsData.ruleChainScope === 'edge') {
-            this.ruleChainService.setEdgeRootRuleChain(this.config.componentsData.edgeId, ruleChain.id.id).subscribe(
-              (edge) => {
-                this.config.componentsData.edge = edge;
-                this.config.table.updateData();
-              }
-            );
-          } else {
-            this.ruleChainService.setRootRuleChain(ruleChain.id.id).subscribe(
-              () => {
-                this.config.table.updateData();
-              }
-            );
-          }
+          this.ruleChainService.setRootRuleChain(ruleChain.id.id).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          );
+        }
+      }
+    );
+  }
+
+  setEdgeRootRuleChain($event: Event, ruleChain: RuleChain) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('rulechain.set-root-rulechain-title', {ruleChainName: ruleChain.name}),
+      this.translate.instant('rulechain.set-root-rulechain-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          this.ruleChainService.setEdgeRootRuleChain(this.config.componentsData.edgeId, ruleChain.id.id).subscribe(
+            (edge) => {
+              this.config.componentsData.edge = edge;
+              this.config.table.updateData();
+            }
+          );
         }
       }
     );
@@ -432,6 +446,9 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         return true;
       case 'setRoot':
         this.setRootRuleChain(action.event, action.entity);
+        return true;
+      case 'setEdgeRoot':
+        this.setEdgeRootRuleChain(action.event, action.entity);
         return true;
       case 'setEdgeTemplateRoot':
         this.setEdgeTemplateRootRuleChain(action.event, action.entity);
