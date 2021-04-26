@@ -97,9 +97,8 @@
             </div>
             <div [fxShow]="assignEnabled()">
               <button mat-icon-button [disabled]="isLoading$ | async"
-                      *ngIf="assignEnabled()"
-                      (click)="assignEntityGroupsToEdge($event)"
-                      matTooltip="{{ translations.assign | translate }}"
+                      (click)="entitiesTableConfig.componentsData.assignEntities($event)"
+                      matTooltip="{{ 'edge.assign-to-edge' | translate }}"
                       matTooltipPosition="above">
                 <mat-icon>add</mat-icon>
               </button>

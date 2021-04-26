@@ -211,13 +211,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
     if (this.entityGroupsHasEdgeScope()) {
       this.addEnabled = false;
-      this.componentsData = {
-        isEdgeScope: true
-      }
+      this.componentsData.isEdgeScope = true;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) &&
           this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
-        this.assignEnabled = true;
-        this.assignEntity = () => this.assignEntityGroupsToEdge();
+        this.componentsData.assignEnabled = true;
+        this.componentsData.assignEntities = ($event) => this.assignEntityGroupsToEdge($event);
       }
     }
   }
@@ -296,7 +294,10 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     ));
   }
 
-  private assignEntityGroupsToEdge(): Observable<EntityGroupInfo> {
+  private assignEntityGroupsToEdge($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
     let ownerId = this.userPermissionsService.getUserOwnerId();
     if (this.params.customerId) {
       ownerId = {
@@ -304,7 +305,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         entityType: EntityType.CUSTOMER
       };
     }
-    return this.dialog.open<AddEntityGroupsToEdgeDialogComponent,
+    this.dialog.open<AddEntityGroupsToEdgeDialogComponent,
       AddEntityGroupsToEdgeDialogData,
       EntityGroupWizardDialogResult>(AddEntityGroupsToEdgeDialogComponent, {
       disableClose: true,
@@ -319,16 +320,14 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         notFoundText: 'entity-group.no-entity-groups-matching',
         requiredText: 'entity-group.target-entity-group-required'
       }
-    }).afterClosed().pipe(
-      map((result) => {
+    }).afterClosed().subscribe(
+      (result) => {
           if (result) {
             this.notifyEntityGroupUpdated();
             this.table.updateData();
           }
-          return result?.entityGroup;
         }
-      )
-    );
+    )
   }
 
   private share($event: Event, entityGroup: EntityGroupInfo) {
@@ -445,7 +444,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private entityGroupsHasEdgeScope(): boolean {
-    return this.params.childGroupScope && (this.params.childGroupScope === 'customer' || this.params.childGroupScope === 'edge');
+    return !!this.params.childGroupScope;
   }
 
 }

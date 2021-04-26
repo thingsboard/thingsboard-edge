@@ -292,7 +292,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   }
 
   assignEnabled() {
-    return this.entitiesTableConfig.assignEnabled;
+    return this.entitiesTableConfig.componentsData?.assignEnabled;
   }
 
   clearSelection() {
@@ -603,21 +603,6 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
 
   trackByEntityId(index: number, entity: BaseData<HasId>) {
     return entity.id.id;
-  }
-
-  assignEntityGroupsToEdge($event: Event) {
-    let entity$: Observable<BaseData<HasId>>;
-    if (this.entitiesTableConfig.assignEntity) {
-      entity$ = this.entitiesTableConfig.assignEntity();
-    }
-    entity$.subscribe(
-      (entity) => {
-        if (entity) {
-          this.updateData();
-          this.entitiesTableConfig.entityAssigned(entity);
-        }
-      }
-    );
   }
 
 }
