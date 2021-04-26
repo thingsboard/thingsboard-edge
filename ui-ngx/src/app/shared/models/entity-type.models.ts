@@ -56,7 +56,8 @@ export enum EntityType {
   GROUP_PERMISSION = 'GROUP_PERMISSION',
   API_USAGE_STATE = 'API_USAGE_STATE',
   TB_RESOURCE = 'TB_RESOURCE',
-  EDGE = 'EDGE'
+  EDGE = 'EDGE',
+  FIRMWARE = 'FIRMWARE'
 }
 
 export enum AliasEntityType {
@@ -442,6 +443,16 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         selectedEntities: 'resource.selected-resources'
       }
     ],
+    [
+      EntityType.FIRMWARE,
+      {
+        details: 'firmware.firmware-details',
+        add: 'firmware.add',
+        noEntities: 'firmware.no-firmware-text',
+        search: 'firmware.search',
+        selectedEntities: 'firmware.selected-firmware'
+      }
+    ]
   ]
 );
 
@@ -535,6 +546,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.TB_RESOURCE,
       {
         helpLinkId: 'resources'
+      }
+    ],
+    [
+      EntityType.FIRMWARE,
+      {
+        helpLinkId: 'firmware'
       }
     ]
   ]

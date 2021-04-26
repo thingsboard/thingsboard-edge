@@ -90,7 +90,7 @@ public class LwM2mSessionMsgListener implements GenericFutureListener<Future<? s
 
     @Override
     public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg toDeviceRequest) {
-        this.service.onToDeviceRpcRequest(toDeviceRequest);
+        this.service.onToDeviceRpcRequest(toDeviceRequest,this.sessionInfo);
     }
 
     @Override

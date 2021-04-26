@@ -34,6 +34,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -52,6 +53,8 @@ public class TbKafkaTopicConfigs {
     private String notificationsProperties;
     @Value("${queue.kafka.topic-properties.js-executor}")
     private String jsExecutorProperties;
+    @Value("${queue.kafka.topic-properties.fw-updates:}")
+    private String fwUpdatesProperties;
 
     @Getter
     private Map<String, String> coreConfigs;
@@ -63,6 +66,8 @@ public class TbKafkaTopicConfigs {
     private Map<String, String> notificationsConfigs;
     @Getter
     private Map<String, String> jsExecutorConfigs;
+    @Getter
+    private Map<String, String> fwUpdatesConfigs;
 
     @PostConstruct
     private void init() {
@@ -71,15 +76,18 @@ public class TbKafkaTopicConfigs {
         transportApiConfigs = getConfigs(transportApiProperties);
         notificationsConfigs = getConfigs(notificationsProperties);
         jsExecutorConfigs = getConfigs(jsExecutorProperties);
+        fwUpdatesConfigs = getConfigs(fwUpdatesProperties);
     }
 
     private Map<String, String> getConfigs(String properties) {
         Map<String, String> configs = new HashMap<>();
-        for (String property : properties.split(";")) {
-            int delimiterPosition = property.indexOf(":");
-            String key = property.substring(0, delimiterPosition);
-            String value = property.substring(delimiterPosition + 1);
-            configs.put(key, value);
+        if (StringUtils.isNotEmpty(properties)) {
+            for (String property : properties.split(";")) {
+                int delimiterPosition = property.indexOf(":");
+                String key = property.substring(0, delimiterPosition);
+                String value = property.substring(delimiterPosition + 1);
+                configs.put(key, value);
+            }
         }
         return configs;
     }

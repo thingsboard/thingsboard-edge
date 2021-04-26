@@ -558,6 +558,18 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.FIRMWARE)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'firmware.firmware',
+          type: 'link',
+          path: '/firmwares',
+          icon: 'memory',
+          disabled: disabledItems.indexOf('firmwares') > -1
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
@@ -824,6 +836,16 @@ export class MenuService {
             isMdiIcon: true,
             path: '/deviceProfiles',
             disabled: disabledItems.indexOf('device_profiles') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.FIRMWARE)) {
+        deviceManagementSection.places.push(
+          {
+            name: 'firmware.firmware',
+            icon: 'memory',
+            path: '/firmwares',
+            disabled: disabledItems.indexOf('firmwares') > -1
           }
         );
       }

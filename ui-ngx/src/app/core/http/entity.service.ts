@@ -108,6 +108,7 @@ import {
   StringOperation
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
+import { FirmwareService } from '@core/http/firmware.service';
 import { EdgeService } from "@core/http/edge.service";
 import { Edge, EdgeEventType } from '@shared/models/edge.models';
 import { WidgetService } from '@core/http/widget.service';
@@ -132,6 +133,7 @@ export class EntityService {
     private dashboardService: DashboardService,
     private entityRelationService: EntityRelationService,
     private attributeService: AttributeService,
+    private firmwareService: FirmwareService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
     private converterService: ConverterService,
@@ -201,6 +203,9 @@ export class EntityService {
         break;
       case EntityType.ENTITY_GROUP:
         observable = this.entityGroupService.getEntityGroup(entityId, config);
+        break;
+      case EntityType.FIRMWARE:
+        observable = this.firmwareService.getFirmwareInfo(entityId, config);
         break;
     }
     return observable;
@@ -540,6 +545,10 @@ export class EntityService {
       case EntityType.ROLE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.roleService.getRoles(pageLink, subType as RoleType, config);
+        break;
+      case EntityType.FIRMWARE:
+        pageLink.sortOrder.property = 'title';
+        entitiesObservable = this.firmwareService.getFirmwares(pageLink, true, config);
         break;
     }
     return entitiesObservable;

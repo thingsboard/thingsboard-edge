@@ -35,10 +35,9 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.firmware.FirmwareCacheReader;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
-import org.thingsboard.server.queue.util.TbTransportComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -65,6 +64,11 @@ public abstract class TransportContext {
 
     @Getter
     private ExecutorService executor;
+
+
+    @Getter
+    @Autowired
+    private FirmwareCacheReader firmwareCacheReader;
 
     @PostConstruct
     public void init() {

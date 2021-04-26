@@ -28,20 +28,62 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.thingsboard.server.common.data.kv.DataType;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.id.TenantId;
 
+@Slf4j
 @Data
-public class ResultsResourceValue {
-    DataType dataType;
-    Object value;
-    String resourceName;
+@EqualsAndHashCode(callSuper = true)
+public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> implements TenantEntity {
 
-    public ResultsResourceValue (DataType dataType, Object value, String resourceName) {
-        this.dataType = dataType;
-        this.value = value;
-        this.resourceName = resourceName;
+    private static final long serialVersionUID = 3168391583570815419L;
+
+    private TenantId tenantId;
+    private String title;
+    private String version;
+    private boolean hasData;
+    private String fileName;
+    private String contentType;
+    private String checksumAlgorithm;
+    private String checksum;
+    private Long dataSize;
+
+
+    public FirmwareInfo() {
+        super();
+    }
+
+    public FirmwareInfo(FirmwareId id) {
+        super(id);
+    }
+
+    public FirmwareInfo(FirmwareInfo firmwareInfo) {
+        super(firmwareInfo);
+        this.tenantId = firmwareInfo.getTenantId();
+        this.title = firmwareInfo.getTitle();
+        this.version = firmwareInfo.getVersion();
+        this.hasData = firmwareInfo.isHasData();
+        this.fileName = firmwareInfo.getFileName();
+        this.contentType = firmwareInfo.getContentType();
+        this.checksumAlgorithm = firmwareInfo.getChecksumAlgorithm();
+        this.checksum = firmwareInfo.getChecksum();
+        this.dataSize = firmwareInfo.getDataSize();
+    }
+
+    @Override
+    public String getSearchText() {
+        return title;
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.FIRMWARE;
     }
 }

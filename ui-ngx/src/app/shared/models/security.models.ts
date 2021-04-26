@@ -109,7 +109,8 @@ export enum Resource {
   API_USAGE_STATE = 'API_USAGE_STATE',
   TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
-  EDGE_GROUP = 'EDGE_GROUP'
+  EDGE_GROUP = 'EDGE_GROUP',
+  FIRMWARE = 'FIRMWARE'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();

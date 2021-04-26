@@ -92,7 +92,7 @@ export class DeviceWizardDialogComponent extends
 
   entityType = EntityType;
 
-  deviceTransportTypes = Object.keys(DeviceTransportType);
+  deviceTransportTypes = Object.values(DeviceTransportType);
 
   deviceTransportTypeTranslations = deviceTransportTypeTranslationMap;
 
@@ -132,6 +132,7 @@ export class DeviceWizardDialogComponent extends
     this.deviceWizardFormGroup = this.fb.group({
         name: ['', Validators.required],
         label: [''],
+        firmwareId: [null],
         gateway: [false],
         overwriteActivityTime: [false],
         transportType: [DeviceTransportType.DEFAULT, Validators.required],
@@ -330,6 +331,7 @@ export class DeviceWizardDialogComponent extends
     const device = {
       name: this.deviceWizardFormGroup.get('name').value,
       label: this.deviceWizardFormGroup.get('label').value,
+      firmwareId: this.deviceWizardFormGroup.get('firmwareId').value,
       deviceProfileId: profileId,
       additionalInfo: {
         gateway: this.deviceWizardFormGroup.get('gateway').value,

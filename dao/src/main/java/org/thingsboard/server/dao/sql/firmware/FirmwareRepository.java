@@ -28,53 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.permission;
+package org.thingsboard.server.dao.sql.firmware;
 
-import org.thingsboard.server.common.data.EntityType;
+import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.dao.model.sql.FirmwareEntity;
 
-import java.util.Optional;
+import java.util.UUID;
 
-public enum Resource {
-    ADMIN_SETTINGS(),
-    ALARM(EntityType.ALARM),
-    DEVICE(EntityType.DEVICE),
-    ASSET(EntityType.ASSET),
-    CUSTOMER(EntityType.CUSTOMER),
-    DASHBOARD(EntityType.DASHBOARD),
-    ENTITY_VIEW(EntityType.ENTITY_VIEW),
-    TENANT(EntityType.TENANT),
-    RULE_CHAIN(EntityType.RULE_CHAIN),
-    USER(EntityType.USER),
-    WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
-    WIDGET_TYPE(EntityType.WIDGET_TYPE),
-    OAUTH2_CONFIGURATION_INFO(),
-    OAUTH2_CONFIGURATION_TEMPLATE(),
-    TENANT_PROFILE(EntityType.TENANT_PROFILE),
-    DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
-    API_USAGE_STATE(EntityType.API_USAGE_STATE),
-    TB_RESOURCE(EntityType.TB_RESOURCE),
-    EDGE(EntityType.EDGE);
-
-    private final EntityType entityType;
-
-    Resource() {
-        this.entityType = null;
-    }
-
-    Resource(EntityType entityType) {
-        this.entityType = entityType;
-    }
-
-    public Optional<EntityType> getEntityType() {
-        return Optional.ofNullable(entityType);
-    }
-
-    public static Resource of(EntityType entityType) {
-        for (Resource resource : Resource.values()) {
-            if (resource.getEntityType().get() == entityType) {
-                return resource;
-            }
-        }
-        throw new IllegalArgumentException("Unknown EntityType: " + entityType.name());
-    }
+public interface FirmwareRepository extends CrudRepository<FirmwareEntity, UUID> {
 }
