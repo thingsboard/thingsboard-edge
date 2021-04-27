@@ -141,7 +141,8 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.ROLE, Resource.ROLE],
     [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION],
     [EntityType.TB_RESOURCE, Resource.TB_RESOURCE],
-    [EntityType.EDGE, Resource.EDGE]
+    [EntityType.EDGE, Resource.EDGE],
+    [EntityType.FIRMWARE, Resource.FIRMWARE]
   ]
 );
 
