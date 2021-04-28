@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -108,7 +109,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     @PostConstruct
     public void init() {
         // Should be always single threaded due to absence of locks.
-        queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor());
+        queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
         deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultSchedulerService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 

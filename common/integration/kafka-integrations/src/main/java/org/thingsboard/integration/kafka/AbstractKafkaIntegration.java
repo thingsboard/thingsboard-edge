@@ -35,6 +35,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -60,7 +61,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor();
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
         this.ctx = params.getContext();
         kafkaConsumerConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),

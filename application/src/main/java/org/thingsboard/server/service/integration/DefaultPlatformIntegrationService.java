@@ -52,6 +52,8 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
@@ -305,15 +307,15 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     public void init() {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
-        this.callbackExecutor = Executors.newWorkStealingPool(20);
-        refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
+        this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
+        refreshExecutorService = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(4, "default-integration-refresh"));
         deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultPlatformIntegrationService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
         if (reinitEnabled) {
-            reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
+            reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-reinit"));
             reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-stats"));
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
     }

@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
@@ -156,12 +157,12 @@ public class RemoteIntegrationManagerService {
     public void init() {
         serviceId = "[" + clientId + ":" + port + "]";
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
-        executor = Executors.newSingleThreadExecutor();
-        reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
-        schedulerService = Executors.newSingleThreadScheduledExecutor();
+        executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
+        reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-reconnect"));
+        schedulerService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-scheduler"));
         processHandleMessages();
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-stats"));
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
     }
