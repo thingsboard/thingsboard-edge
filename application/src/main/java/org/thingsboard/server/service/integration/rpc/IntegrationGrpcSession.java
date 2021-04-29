@@ -144,6 +144,8 @@ public final class IntegrationGrpcSession implements Closeable {
                             .build());
                     if (ConnectResponseCode.ACCEPTED != responseMsg.getResponseCode()) {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
+                    } else {
+                        connected = true;
                     }
                 }
                 if (connected) {
@@ -157,13 +159,29 @@ public final class IntegrationGrpcSession implements Closeable {
 
             @Override
             public void onError(Throwable t) {
-                log.error("Failed to deliver message from client!", t);
+                log.error("[{}] Failed to deliver message from client!", configuration.getId(), t);
+                closeSession();
             }
 
             @Override
             public void onCompleted() {
-                sessionCloseListener.accept(configuration.getId());
-                outputStream.onCompleted();
+                closeSession();
+            }
+
+            private void closeSession() {
+                connected = false;
+                if (configuration != null) {
+                    try {
+                        sessionCloseListener.accept(configuration.getId());
+                    } catch (Exception ignored) {
+                        //Do nothing
+                    }
+                }
+                try {
+                    outputStream.onCompleted();
+                } catch (Exception ignored) {
+                    //Do nothing
+                }
             }
         };
     }
@@ -339,6 +357,12 @@ public final class IntegrationGrpcSession implements Closeable {
             ctx.getEventService().save(event);
         } catch (IOException e) {
             log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
+        } catch (Exception e) {
+            /* Catch exception to avoid endless loop in case:
+            ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
+            Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
+             */
+            log.error("[{}] Failed to save event!", proto.getData(), e);
         }
     }
 
@@ -373,6 +397,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
     @Override
     public void close() {
+        log.debug("[{}][{}] Closing session", sessionId, configuration.getId());
         connected = false;
         try {
             outputStream.onCompleted();
@@ -419,17 +444,27 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     void onDownlink(Device device, IntegrationDownlinkMsg msg) {
-        outputStream.onNext(ResponseMsg.newBuilder()
-                .setDownlinkMsg(DownlinkMsg.newBuilder()
-                        .setDeviceData(
-                                DeviceDownlinkDataProto.newBuilder()
-                                        .setDeviceName(device.getName())
-                                        .setDeviceType(device.getType())
-                                        .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
-                                        .build()
-                        )
-                        .build())
-                .build());
+        log.trace("[{}] Sending downlink msg [{}]", this.sessionId, msg);
+        if (isConnected()) {
+            try {
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setDownlinkMsg(DownlinkMsg.newBuilder()
+                                .setDeviceData(
+                                        DeviceDownlinkDataProto.newBuilder()
+                                                .setDeviceName(device.getName())
+                                                .setDeviceType(device.getType())
+                                                .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
+                                                .build()
+                                )
+                                .build())
+                        .build());
+            } catch (Exception e) {
+                log.error("[{}] Failed to send downlink msg [{}]", this.sessionId, msg, e);
+                connected = false;
+                sessionCloseListener.accept(configuration.getId());
+            }
+            log.trace("[{}] Downlink msg successfully sent [{}]", this.sessionId, msg);
+        }
     }
 
     private void processIntegrationStatistics(IntegrationStatisticsProto data) {

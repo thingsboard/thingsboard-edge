@@ -33,6 +33,7 @@ package org.thingsboard.server.service.integration.rpc;
 import com.google.common.io.Resources;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -78,6 +80,8 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     private String certFileResource;
     @Value("${integrations.rpc.ssl.privateKey}")
     private String privateKeyResource;
+    @Value("${integrations.rpc.client_max_keep_alive_time_sec}")
+    private int clientMaxKeepAliveTimeSec;
 
     private final TbServiceInfoProvider serviceInfoProvider;
     private final IntegrationContextComponent ctx;
@@ -98,7 +102,9 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     @PostConstruct
     public void init() {
         log.info("Initializing RPC service!");
-        ServerBuilder builder = ServerBuilder.forPort(rpcPort).addService(this);
+        NettyServerBuilder builder = NettyServerBuilder.forPort(rpcPort)
+                .permitKeepAliveTime(clientMaxKeepAliveTimeSec, TimeUnit.SECONDS)
+                .addService(this);
         if (sslEnabled) {
             try {
                 File certFile = new File(Resources.getResource(certFileResource).toURI());

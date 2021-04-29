@@ -359,6 +359,8 @@ integrations:
       enabled: "${INTEGRATIONS_RPC_SSL_ENABLED:false}"
       cert: "${INTEGRATIONS_RPC_SSL_CERT:certChainFile.pem}"
       privateKey: "${INTEGRATIONS_RPC_SSL_PRIVATE_KEY:privateKeyFile.pem}"
+    # Disconnect a client if no keepalive ping received in the specified time
+    client_max_keep_alive_time_sec: "${INTEGRATIONS_RPC_CLIENT_MAX_KEEP_ALIVE_TIME_SEC:300}"
 
 # Reports parameters
 reports:

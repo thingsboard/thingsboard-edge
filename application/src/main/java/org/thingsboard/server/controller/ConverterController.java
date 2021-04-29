@@ -255,7 +255,7 @@ public class ConverterController extends BaseController {
             JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
                 jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
-                output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
+                output = jsUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();;
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
                 errorText = e.getMessage();
