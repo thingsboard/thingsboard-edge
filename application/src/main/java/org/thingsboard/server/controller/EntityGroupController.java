@@ -857,7 +857,7 @@ public class EntityGroupController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntityGroupInfo> getEdgeEntityGroups(
+    public List<EntityGroup> getEdgeEntityGroups(
             @PathVariable("edgeId") String strEdgeId,
             @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
@@ -867,7 +867,8 @@ public class EntityGroupController extends BaseController {
             checkEdgeId(edgeId, Operation.READ);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType).get());
+                List<EntityGroup> entityGroups = checkNotNull(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType).get());
+                return filterEntityGroupsByReadPermission(entityGroups);
             } else {
                 throw permissionDenied();
             }
