@@ -309,7 +309,7 @@ public class JsonConverter {
         return result;
     }
 
-    public static JsonElement toJson(AttributeUpdateNotificationMsg payload) {
+    public static JsonObject toJson(AttributeUpdateNotificationMsg payload) {
         JsonObject result = new JsonObject();
         if (payload.getSharedUpdatedCount() > 0) {
             payload.getSharedUpdatedList().forEach(addToObjectFromProto(result));
@@ -574,6 +574,14 @@ public class JsonConverter {
         for (KvEntry entry : parseValues(valuesObject)) {
             result.computeIfAbsent(ts, tmp -> new ArrayList<>()).add(entry);
         }
+    }
+
+    public static JsonElement parse(String json) {
+        return JSON_PARSER.parse(json);
+    }
+
+    public static String toJson(JsonElement element) {
+        return GSON.toJson(element);
     }
 
     public static void setTypeCastEnabled(boolean enabled) {

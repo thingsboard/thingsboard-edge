@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> implements TenantEntity {
+public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> implements TenantEntity, HasName {
 
     private static final long serialVersionUID = 3168391583570815419L;
 
@@ -78,6 +78,12 @@ public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> 
 
     @Override
     public String getSearchText() {
+        return title;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getName() {
         return title;
     }
 

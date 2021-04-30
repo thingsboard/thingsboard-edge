@@ -45,7 +45,9 @@ public enum SessionMsgType {
 
     SESSION_OPEN, SESSION_CLOSE,
 
-    CLAIM_REQUEST();
+    CLAIM_REQUEST(),
+
+    GET_FIRMWARE_REQUEST;
 
     private final boolean requiresRulesProcessing;
 

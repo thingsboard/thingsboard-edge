@@ -28,21 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache.firmware;
+package org.thingsboard.common.util;
 
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import lombok.NonNull;
+import lombok.ToString;
 
-import static org.thingsboard.server.common.data.CacheConstants.FIRMWARE_CACHE;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class AbstractRedisFirmwareCache {
+@ToString
+public class ThingsBoardForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+    private final String namePrefix;
+    private final AtomicLong threadNumber = new AtomicLong(1);
 
-    protected final RedisConnectionFactory redisConnectionFactory;
-
-    protected AbstractRedisFirmwareCache(RedisConnectionFactory redisConnectionFactory) {
-        this.redisConnectionFactory = redisConnectionFactory;
+    public ThingsBoardForkJoinWorkerThreadFactory(@NonNull String namePrefix) {
+        this.namePrefix = namePrefix;
     }
 
-    protected byte[] toFirmwareCacheKey(String key) {
-        return String.format("%s::%s", FIRMWARE_CACHE, key).getBytes();
+    @Override
+    public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+        ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+        thread.setName(namePrefix +"-"+thread.getPoolIndex()+"-"+threadNumber.getAndIncrement());
+        return thread;
     }
+
 }

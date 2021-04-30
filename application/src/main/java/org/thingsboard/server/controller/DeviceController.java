@@ -81,8 +81,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -90,7 +88,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
@@ -123,8 +120,8 @@ public class DeviceController extends BaseController {
     public Device saveDevice(@RequestBody Device device,
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+        boolean created = device.getId() == null;
         try {
-            boolean created = device.getId() == null;
             Device oldDevice;
             if (!created) {
                 oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
@@ -149,6 +146,8 @@ public class DeviceController extends BaseController {
             firmwareStateService.update(savedDevice, oldDevice);
             return savedDevice;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.DEVICE), device,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
 

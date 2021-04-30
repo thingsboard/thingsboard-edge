@@ -28,26 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache.firmware;
+package org.thingsboard.server.queue.discovery.event;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 
-@Service
-@ConditionalOnExpression("('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core') && '${cache.type:null}'=='redis'")
-public class RedisFirmwareCacheWriter extends AbstractRedisFirmwareCache implements FirmwareCacheWriter {
+import java.util.Set;
 
-    public RedisFirmwareCacheWriter(RedisConnectionFactory redisConnectionFactory) {
-        super(redisConnectionFactory);
+
+public class PartitionChangeEvent extends TbApplicationEvent {
+
+    private static final long serialVersionUID = -8731788167026510559L;
+
+    @Getter
+    private final ServiceQueueKey serviceQueueKey;
+    @Getter
+    private final Set<TopicPartitionInfo> partitions;
+
+    public PartitionChangeEvent(Object source, ServiceQueueKey serviceQueueKey, Set<TopicPartitionInfo> partitions) {
+        super(source);
+        this.serviceQueueKey = serviceQueueKey;
+        this.partitions = partitions;
     }
 
-    @Override
-    public void put(String key, byte[] value) {
-        try (RedisConnection connection = redisConnectionFactory.getConnection()) {
-            connection.set(toFirmwareCacheKey(key), value);
-        }
+    public ServiceType getServiceType() {
+        return serviceQueueKey.getServiceQueue().getType();
     }
-
 }

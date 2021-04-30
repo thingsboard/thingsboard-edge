@@ -67,6 +67,9 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
@@ -92,6 +95,8 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -162,6 +167,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @Autowired
     private EdgeService edgeService;
+
+    @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
+    private FirmwareService firmwareService;
 
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
@@ -580,6 +591,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case EDGE:
                 hasName = edgeService.findEdgeByIdAsync(tenantId, new EdgeId(entityId.getId()));
+                break;
+            case TB_RESOURCE:
+                hasName = resourceService.findResourceInfoByIdAsync(tenantId, new TbResourceId(entityId.getId()));
+                break;
+            case FIRMWARE:
+                hasName = firmwareService.findFirmwareInfoByIdAsync(tenantId, new FirmwareId(entityId.getId()));
                 break;
             default:
                 throw new IllegalStateException("Not Implemented!");

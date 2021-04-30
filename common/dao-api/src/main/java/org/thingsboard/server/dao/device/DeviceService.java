@@ -33,11 +33,11 @@ package org.thingsboard.server.dao.device;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface DeviceService {
 
@@ -88,6 +89,8 @@ public interface DeviceService {
     PageData<Device> findDevicesByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
 
     PageData<Device> findDevicesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
+
+    PageData<UUID> findDevicesIdsByDeviceProfileTransportType(DeviceTransportType transportType, PageLink pageLink);
 
     PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
 

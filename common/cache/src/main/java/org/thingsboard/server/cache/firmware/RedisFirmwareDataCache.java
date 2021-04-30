@@ -30,24 +30,54 @@
  */
 package org.thingsboard.server.cache.firmware;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.cache.CacheManager;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
 
 import static org.thingsboard.server.common.data.CacheConstants.FIRMWARE_CACHE;
 
 @Service
-@ConditionalOnExpression("('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core') && ('${cache.type:null}'=='caffeine' || '${cache.type:null}'=='null')")
-public class CaffeineFirmwareCacheWriter implements FirmwareCacheWriter {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@RequiredArgsConstructor
+public class RedisFirmwareDataCache implements FirmwareDataCache {
 
-    private final CacheManager cacheManager;
+    private final RedisConnectionFactory redisConnectionFactory;
 
-    public CaffeineFirmwareCacheWriter(CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
+    @Override
+    public byte[] get(String key) {
+        return get(key, 0, 0);
+    }
+
+    @Override
+    public byte[] get(String key, int chunkSize, int chunk) {
+        try (RedisConnection connection = redisConnectionFactory.getConnection()) {
+            if (chunkSize == 0) {
+                return connection.get(toFirmwareCacheKey(key));
+            }
+
+            int startIndex = chunkSize * chunk;
+            int endIndex = startIndex + chunkSize - 1;
+            return connection.getRange(toFirmwareCacheKey(key), startIndex, endIndex);
+        }
     }
 
     @Override
     public void put(String key, byte[] value) {
-        cacheManager.getCache(FIRMWARE_CACHE).putIfAbsent(key, value);
+        try (RedisConnection connection = redisConnectionFactory.getConnection()) {
+            connection.set(toFirmwareCacheKey(key), value);
+        }
+    }
+
+    @Override
+    public void evict(String key) {
+        try (RedisConnection connection = redisConnectionFactory.getConnection()) {
+            connection.del(toFirmwareCacheKey(key));
+        }
+    }
+
+    private byte[] toFirmwareCacheKey(String key) {
+        return String.format("%s::%s", FIRMWARE_CACHE, key).getBytes();
     }
 }

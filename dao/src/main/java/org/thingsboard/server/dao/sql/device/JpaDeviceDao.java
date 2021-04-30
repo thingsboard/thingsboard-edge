@@ -37,6 +37,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -142,6 +143,11 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         profileId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<UUID> findDevicesIdsByDeviceProfileTransportType(DeviceTransportType transportType, PageLink pageLink) {
+        return DaoUtil.pageToPageData(deviceRepository.findIdsByDeviceProfileTransportType(transportType, DaoUtil.toPageable(pageLink)));
     }
 
     @Override

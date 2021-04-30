@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
@@ -65,6 +66,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.SchedulerUtils;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -73,7 +75,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceM
 import org.thingsboard.server.gen.transport.TransportProtos.UsageStatsKVProto;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -104,7 +106,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DefaultTbApiUsageStateService extends TbApplicationEventListener<PartitionChangeEvent> implements TbApiUsageStateService {
 
     public static final String HOURLY = "Hourly";
@@ -147,14 +148,37 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
 
     private final Lock updateLock = new ReentrantLock();
 
-    private ExecutorService mailExecutor;
+    private final ExecutorService mailExecutor;
+
+    public DefaultTbApiUsageStateService(TbClusterService clusterService,
+                                         PartitionService partitionService,
+                                         TenantService tenantService,
+                                         TimeseriesService tsService,
+                                         ApiUsageStateService apiUsageStateService,
+                                         SchedulerComponent scheduler,
+                                         TbTenantProfileCache tenantProfileCache,
+                                         MailService mailService,
+                                         OwnersCacheService ownersCacheService,
+                                         TbQueueProducerProvider producerProvider
+                                         ) {
+        this.clusterService = clusterService;
+        this.partitionService = partitionService;
+        this.tenantService = tenantService;
+        this.tsService = tsService;
+        this.apiUsageStateService = apiUsageStateService;
+        this.scheduler = scheduler;
+        this.tenantProfileCache = tenantProfileCache;
+        this.mailService = mailService;
+        this.ownersCacheService = ownersCacheService;
+        this.producerProvider = producerProvider;
+        this.mailExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("api-usage-svc-mail"));
+    }
 
     @PostConstruct
     public void init() {
         if (enabled) {
             log.info("Starting api usage service.");
             msgProducer = producerProvider.getTbUsageStatsMsgProducer();
-            mailExecutor = Executors.newSingleThreadExecutor();
             scheduler.scheduleAtFixedRate(this::checkStartOfNextCycle, nextCycleCheckInterval, nextCycleCheckInterval, TimeUnit.MILLISECONDS);
             log.info("Started api usage service.");
         }

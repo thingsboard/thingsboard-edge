@@ -28,25 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.common.data.transport.snmp.config.impl;
 
-import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
+import org.thingsboard.server.common.data.transport.snmp.SnmpCommunicationSpec;
+import org.thingsboard.server.common.data.transport.snmp.config.MultipleMappingsSnmpCommunicationConfig;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-public class TbApplicationEvent extends ApplicationEvent {
-
-    private static final long serialVersionUID = 3884264064887765146L;
-
-    private static final AtomicInteger sequence = new AtomicInteger();
-
-    @Getter
-    private final int sequenceNumber;
-
-    public TbApplicationEvent(Object source) {
-        super(source);
-        sequenceNumber = sequence.incrementAndGet();
+public class ToDeviceRpcRequestSnmpCommunicationConfig extends MultipleMappingsSnmpCommunicationConfig {
+    @Override
+    public SnmpCommunicationSpec getSpec() {
+        return SnmpCommunicationSpec.TO_DEVICE_RPC_REQUEST;
     }
-
 }

@@ -28,24 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.common.data.device.profile;
 
-import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
-import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.transport.snmp.SnmpMapping;
+import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
 
-import java.util.Set;
+import java.util.List;
 
+@Data
+public class SnmpDeviceProfileTransportConfiguration implements DeviceProfileTransportConfiguration {
+    private Integer timeoutMs;
+    private Integer retries;
+    private List<SnmpCommunicationConfig> communicationConfigs;
 
-public class ClusterTopologyChangeEvent extends TbApplicationEvent {
+    @Override
+    public DeviceTransportType getType() {
+        return DeviceTransportType.SNMP;
+    }
 
-    private static final long serialVersionUID = -2441739930040282254L;
+    @Override
+    public void validate() {
+        if (!isValid()) {
+            throw new IllegalArgumentException("SNMP transport configuration is not valid");
+        }
+    }
 
-    @Getter
-    private final Set<ServiceQueueKey> serviceQueueKeys;
-
-    public ClusterTopologyChangeEvent(Object source, Set<ServiceQueueKey> serviceQueueKeys) {
-        super(source);
-        this.serviceQueueKeys = serviceQueueKeys;
+    @JsonIgnore
+    private boolean isValid() {
+        return timeoutMs != null && timeoutMs >= 0 && retries != null && retries >= 0
+                && communicationConfigs != null
+                && communicationConfigs.stream().allMatch(config -> config != null && config.isValid())
+                && communicationConfigs.stream().flatMap(config -> config.getAllMappings().stream()).map(SnmpMapping::getOid)
+                .distinct().count() == communicationConfigs.stream().mapToInt(config -> config.getAllMappings().size()).sum();
     }
 }

@@ -28,10 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache.firmware;
+package org.thingsboard.server.common.data.transport.snmp;
 
-public interface FirmwareCacheReader {
-    byte[] get(String key);
+public enum SnmpProtocolVersion {
+    V1(0),
+    V2C(1),
+    V3(3);
 
-    byte[] get(String key, int chunkSize, int chunk);
+    private final int code;
+
+    SnmpProtocolVersion(int code) {
+        this.code = code;
+    }
+
+    public int getCode() {
+        return code;
+    }
 }

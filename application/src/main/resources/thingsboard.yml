@@ -427,8 +427,8 @@ caffeine:
       timeToLiveInMinutes: 20000
       maxSize: 10000
     firmwares:
-      timeToLiveInMinutes: 1440
-      maxSize: 100
+      timeToLiveInMinutes: 60
+      maxSize: 10
     edges:
       timeToLiveInMinutes: 1440
       maxSize: 0
@@ -556,6 +556,8 @@ audit-log:
       "entity_view": "${AUDIT_LOG_MASK_ENTITY_VIEW:W}"
       "device_profile": "${AUDIT_LOG_MASK_DEVICE_PROFILE:W}"
       "edge": "${AUDIT_LOG_MASK_EDGE:W}"
+      "tb_resource": "${AUDIT_LOG_MASK_RESOURCE:W}"
+      "firmware": "${AUDIT_LOG_MASK_FIRMWARE:W}"
       "role": "${AUDIT_LOG_MASK_ROLE:W}"
       "group_permission": "${AUDIT_LOG_MASK_GROUP_PERMISSION:W}"
   sink:
@@ -685,9 +687,9 @@ transport:
       key_password: "${COAP_DTLS_KEY_PASSWORD:server_key_password}"
       # Key alias
       key_alias: "${COAP_DTLS_KEY_ALIAS:serveralias}"
-      # Skip certificate validity check for client certificates.
-      skip_validity_check_for_client_cert: "${COAP_DTLS_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
       x509:
+        # Skip certificate validity check for client certificates.
+        skip_validity_check_for_client_cert: "${TB_COAP_X509_DTLS_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
         dtls_session_inactivity_timeout: "${TB_COAP_X509_DTLS_SESSION_INACTIVITY_TIMEOUT:86400000}"
         dtls_session_report_timeout: "${TB_COAP_X509_DTLS_SESSION_REPORT_TIMEOUT:1800000}"
   # Local LwM2M transport parameters
@@ -750,6 +752,13 @@ transport:
         alias: "${LWM2M_KEYSTORE_ALIAS_BS:bootstrap}"
     # Use redis for Security and Registration stores
     redis.enabled: "${LWM2M_REDIS_ENABLED:false}"
+  snmp:
+    enabled: "${SNMP_ENABLED:true}"
+    response_processing:
+      # parallelism level for executor (workStealingPool) that is responsible for handling responses from SNMP devices
+      parallelism_level: "${SNMP_RESPONSE_PROCESSING_PARALLELISM_LEVEL:20}"
+    # to configure SNMP to work over UDP or TCP
+    underlying_protocol: "${SNMP_UNDERLYING_PROTOCOL:udp}"
 
 # Edges parameters
 edges:
@@ -796,6 +805,7 @@ queue:
     bootstrap.servers: "${TB_KAFKA_SERVERS:localhost:9092}"
     acks: "${TB_KAFKA_ACKS:all}"
     retries: "${TB_KAFKA_RETRIES:1}"
+    compression.type: "${TB_KAFKA_COMPRESSION_TYPE:none}" # none or gzip
     batch.size: "${TB_KAFKA_BATCH_SIZE:16384}"
     linger.ms: "${TB_KAFKA_LINGER_MS:1}"
     buffer.memory: "${TB_BUFFER_MEMORY:33554432}"

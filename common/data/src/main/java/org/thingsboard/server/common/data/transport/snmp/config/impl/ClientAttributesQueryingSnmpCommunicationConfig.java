@@ -28,37 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache.firmware;
+package org.thingsboard.server.common.data.transport.snmp.config.impl;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.transport.snmp.SnmpCommunicationSpec;
+import org.thingsboard.server.common.data.transport.snmp.config.RepeatingQueryingSnmpCommunicationConfig;
 
-@Service
-@ConditionalOnExpression("(('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true') || '${service.type:null}'=='tb-transport') && '${cache.type:null}'=='redis'")
-public class RedisFirmwareCacheReader extends AbstractRedisFirmwareCache implements FirmwareCacheReader {
-
-    public RedisFirmwareCacheReader(RedisConnectionFactory redisConnectionFactory) {
-        super(redisConnectionFactory);
-    }
+public class ClientAttributesQueryingSnmpCommunicationConfig extends RepeatingQueryingSnmpCommunicationConfig {
 
     @Override
-    public byte[] get(String key) {
-        return get(key, 0, 0);
-    }
-
-    @Override
-    public byte[] get(String key, int chunkSize, int chunk) {
-        try (RedisConnection connection = redisConnectionFactory.getConnection()) {
-            if (chunkSize == 0) {
-                return connection.get(toFirmwareCacheKey(key));
-            }
-
-            int startIndex = chunkSize * chunk;
-            int endIndex = startIndex + chunkSize - 1;
-            return connection.getRange(toFirmwareCacheKey(key), startIndex, endIndex);
-        }
+    public SnmpCommunicationSpec getSpec() {
+        return SnmpCommunicationSpec.CLIENT_ATTRIBUTES_QUERYING;
     }
 
 }

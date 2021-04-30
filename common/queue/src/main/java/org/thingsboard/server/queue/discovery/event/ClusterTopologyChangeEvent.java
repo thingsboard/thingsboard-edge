@@ -28,33 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.queue.discovery.event;
 
 import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
 import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 
 import java.util.Set;
 
 
-public class PartitionChangeEvent extends TbApplicationEvent {
+public class ClusterTopologyChangeEvent extends TbApplicationEvent {
 
-    private static final long serialVersionUID = -8731788167026510559L;
+    private static final long serialVersionUID = -2441739930040282254L;
 
     @Getter
-    private final ServiceQueueKey serviceQueueKey;
-    @Getter
-    private final Set<TopicPartitionInfo> partitions;
+    private final Set<ServiceQueueKey> serviceQueueKeys;
 
-    public PartitionChangeEvent(Object source, ServiceQueueKey serviceQueueKey, Set<TopicPartitionInfo> partitions) {
+    public ClusterTopologyChangeEvent(Object source, Set<ServiceQueueKey> serviceQueueKeys) {
         super(source);
-        this.serviceQueueKey = serviceQueueKey;
-        this.partitions = partitions;
-    }
-
-    public ServiceType getServiceType() {
-        return serviceQueueKey.getServiceQueue().getType();
+        this.serviceQueueKeys = serviceQueueKeys;
     }
 }

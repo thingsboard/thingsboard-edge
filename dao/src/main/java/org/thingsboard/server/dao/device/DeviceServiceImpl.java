@@ -49,20 +49,22 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Firmware;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
+import org.thingsboard.server.common.data.device.data.DeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -99,6 +101,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -285,11 +288,14 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 case MQTT:
                     deviceData.setTransportConfiguration(new MqttDeviceTransportConfiguration());
                     break;
+                case COAP:
+                    deviceData.setTransportConfiguration(new CoapDeviceTransportConfiguration());
+                    break;
                 case LWM2M:
                     deviceData.setTransportConfiguration(new Lwm2mDeviceTransportConfiguration());
                     break;
-                case COAP:
-                    deviceData.setTransportConfiguration(new CoapDeviceTransportConfiguration());
+                case SNMP:
+                    deviceData.setTransportConfiguration(new SnmpDeviceTransportConfiguration());
                     break;
             }
         }
@@ -545,6 +551,11 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
+    public PageData<UUID> findDevicesIdsByDeviceProfileTransportType(DeviceTransportType transportType, PageLink pageLink) {
+        return deviceDao.findDevicesIdsByDeviceProfileTransportType(transportType, pageLink);
+    }
+
+    @Override
     public long countByTenantId(TenantId tenantId) {
         return deviceDao.countByTenantId(tenantId);
     }
@@ -592,6 +603,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                             throw new DataValidationException("Can't assign device to customer from different tenant!");
                         }
                     }
+                    Optional.ofNullable(device.getDeviceData())
+                            .flatMap(deviceData -> Optional.ofNullable(deviceData.getTransportConfiguration()))
+                            .ifPresent(DeviceTransportConfiguration::validate);
 
                     if (device.getFirmwareId() != null) {
                         Firmware firmware = firmwareService.findFirmwareById(tenantId, device.getFirmwareId());

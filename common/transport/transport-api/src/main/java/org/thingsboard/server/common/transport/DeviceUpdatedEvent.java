@@ -28,48 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache.firmware;
+package org.thingsboard.server.common.transport;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import org.thingsboard.server.common.data.Device;
 
-import static org.thingsboard.server.common.data.CacheConstants.FIRMWARE_CACHE;
+@Getter
+public class DeviceUpdatedEvent {
+    private final Device device;
 
-@Service
-@ConditionalOnExpression("(('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true') || '${service.type:null}'=='tb-transport') && ('${cache.type:null}'=='caffeine' || '${cache.type:null}'=='null')")
-public class CaffeineFirmwareCacheReader implements FirmwareCacheReader {
-
-    private final CacheManager cacheManager;
-
-    public CaffeineFirmwareCacheReader(CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
-    }
-
-    @Override
-    public byte[] get(String key) {
-        return get(key, 0, 0);
-    }
-
-    @Override
-    public byte[] get(String key, int chunkSize, int chunk) {
-        byte[] data = cacheManager.getCache(FIRMWARE_CACHE).get(key, byte[].class);
-
-        if (chunkSize < 1) {
-            return data;
-        }
-
-        if (data != null && data.length > 0) {
-            int startIndex = chunkSize * chunk;
-
-            int size = Math.min(data.length - startIndex, chunkSize);
-
-            if (startIndex < data.length && size > 0) {
-                byte[] result = new byte[size];
-                System.arraycopy(data, startIndex, result, 0, size);
-                return result;
-            }
-        }
-        return new byte[0];
+    public DeviceUpdatedEvent(Device device) {
+        this.device = device;
     }
 }

@@ -38,7 +38,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 
 public interface TbApiUsageStateService extends TbApiUsageStateClient, ApplicationListener<PartitionChangeEvent> {
 
