@@ -130,9 +130,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       });
       this.config.entitiesDeleteEnabled = false;
       this.config.addEnabled = false;
-      this.config.componentsData.isEdgeScope = true;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
-        this.config.headerActionDescriptors = [];
         this.config.headerActionDescriptors.push({
             name: this.translate.instant('edge.assign-to-edge'),
             icon: 'add',

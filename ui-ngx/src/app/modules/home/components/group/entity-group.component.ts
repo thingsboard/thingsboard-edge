@@ -83,6 +83,14 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
     }
   }
 
+  hideUnassign() {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.isUnassignEnabled;
+    } else {
+      return false;
+    }
+  }
+
   buildForm(entity: EntityGroupInfo): FormGroup {
     const form = this.fb.group(
       {
@@ -113,10 +121,11 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         const isOwned = this.userPermissionsService.isDirectlyOwnedGroup(entityGroup);
         const isWriteAllowed = this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
         const isCreatePermissionAllowed = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE);
+        const isEdgeParent: boolean = this.entitiesTableConfig.componentsData.isEdgeParent;
         this.isPublic = isPublic;
-        this.shareEnabled = isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed;
-        this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
-        this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
+        this.shareEnabled = isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed && !isEdgeParent;
+        this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed && !isEdgeParent;
+        this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed && !isEdgeParent;
         this.isGroupAll = entityGroup.groupAll;
       } else {
         this.isPublic = false;
@@ -137,14 +146,6 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  isEdgeScope() {
-    if (this.entitiesTableConfig) {
-      return this.entitiesTableConfig.componentsData.isEdgeScope;
-    } else {
-      return false;
-    }
   }
 
 }

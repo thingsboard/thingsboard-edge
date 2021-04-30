@@ -86,17 +86,17 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       params
     );
 
-    if (config.customerId && resolveCustomer && !config.edgeId) {
+    if (config.customerId && resolveCustomer && !config.edgeId) { //TODO deaflynx: !config.edgeId
       return this.customerService.getShortCustomerInfo(config.customerId).pipe(
         map((info) => {
           config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
           return config;
         })
       );
-    } else if (config.customerId && customerTitle && !config.edgeId){
+    } else if (config.customerId && customerTitle && !config.edgeId){ //TODO deaflynx: !config.edgeId
       config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
       return config;
-    } else if (config.edgeId && resolveCustomer) {
+    } else if (config.edgeId && resolveCustomer) { //TODO deaflynx: if resolveCustomer required?
       return this.edgeService.getEdge(config.edgeId).pipe(
         map((info) => {
           config.tableTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));

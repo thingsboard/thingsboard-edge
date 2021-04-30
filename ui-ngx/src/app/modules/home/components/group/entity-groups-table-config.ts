@@ -131,10 +131,10 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.entitiesFetchFunction = pageLink => {
       let fetchObservable: Observable<Array<EntityGroupInfo>>;
-      if (this.customerId && !this.entityGroupsHasEdgeScope()) {
+      if (this.customerId && !this.isEdgeParent()) {
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
       }
-      else if (this.entityGroupsHasEdgeScope()) {
+      else if (this.isEdgeParent()) {
         fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
       }
       else {
@@ -173,31 +173,17 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
-    if (this.entityGroupsHasEdgeScope()) {
-      this.deleteEnabled = () => false;
-      this.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
-      this.groupActionDescriptors.push(
-        {
-          name: this.translate.instant('edge.unassign-entity-groups-from-edge'),
-          icon: 'assignment_return',
-          isEnabled: this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
-          onAction: ($event, entities) => {
-            this.unassignEntityGroupsFromEdge($event, entities);
-          }
-        }
-      );
-    } else {
-      this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
-        this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
-      this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
-        this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
-    }
+    this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
+      this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
+    this.detailsReadonly = (entityGroup) =>
+      !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
+    this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
+      this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
 
-    this.detailsReadonly = (entityGroup) => !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
     if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.entityGroupsHasEdgeScope()) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType)) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
@@ -209,21 +195,35 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.addEntity = () => this.entityGroupWizard();
     }
-    if (this.entityGroupsHasEdgeScope()) {
+    if (this.isEdgeParent()) {
+      this.deleteEnabled = () => false;
       this.addEnabled = false;
-      this.componentsData.isEdgeScope = true;
-      if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) &&
-          this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
-        this.headerActionDescriptors = [];
-        this.headerActionDescriptors.push({
-            name: this.translate.instant('edge.assign-to-edge'),
-            icon: 'add',
-            isEnabled: () => true,
-            onAction: ($event) => {
-              this.assignEntityGroupsToEdge($event);
+      this.componentsData.isEdgeParent = true;
+      this.entitiesDeleteEnabled = false;
+      if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+        this.entitySelectionEnabled = () => true;
+        this.componentsData.isUnassignEnabled = true;
+        this.groupActionDescriptors.push(
+          {
+            name: this.translate.instant('edge.unassign-entity-groups-from-edge'),
+            icon: 'assignment_return',
+            isEnabled: true,
+            onAction: ($event, entities) => {
+              this.unassignEntityGroupsFromEdge($event, entities);
             }
           }
         );
+        if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
+          this.headerActionDescriptors.push({
+              name: this.translate.instant('edge.assign-to-edge'),
+              icon: 'add',
+              isEnabled: () => true,
+              onAction: ($event) => {
+                this.assignEntityGroupsToEdge($event);
+              }
+            }
+          );
+        }
       }
     }
   }
@@ -238,7 +238,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         onAction: ($event, entity) => this.open($event, entity)
       }
     );
-    if (this.entityGroupsHasEdgeScope()) {
+    if (this.isEdgeParent()) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
@@ -451,7 +451,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     return false;
   }
 
-  private entityGroupsHasEdgeScope(): boolean {
+  private isEdgeParent(): boolean {
     return ((this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
              this.params.groupType === EntityType.EDGE) && isDefinedAndNotNull(this.params.edgeId);
   }

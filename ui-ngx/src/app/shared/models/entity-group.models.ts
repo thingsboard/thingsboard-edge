@@ -521,7 +521,8 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
   let routeData = {...route.data};
   while (route.parent !== null) {
     route = route.parent;
-    if (routeParams.entityGroupId && route.params.entityGroupId && !isEqual(routeParams.entityGroupId, route.params.entityGroupId)) {
+    if (routeParams.entityGroupId && route.params.entityGroupId &&
+        !isEqual(routeParams.entityGroupId, route.params.entityGroupId)) {
       routeParams.childEntityGroupId = routeParams.entityGroupId;
     }
     if (routeData.grandChildGroupType === routeData.groupType) {
