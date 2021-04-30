@@ -291,10 +291,6 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     return this.entitiesTableConfig.addEnabled;
   }
 
-  assignEnabled() {
-    return this.entitiesTableConfig.componentsData?.assignEnabled;
-  }
-
   clearSelection() {
     this.dataSource.selection.clear();
     this.cd.detectChanges();

@@ -53,7 +53,6 @@ export interface AddEntityGroupsToEdgeDialogData {
   notFoundText: string;
   requiredText: string;
   customerId?: string;
-  childGroupScope?: string;
 }
 
 @Component({

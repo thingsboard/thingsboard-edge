@@ -51,7 +51,7 @@ import { EntityView } from '@shared/models/entity-view.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
 import { Customer } from '@shared/models/customer.model';
-import { Edge } from "@shared/models/edge.models";
+import { Edge } from '@shared/models/edge.models';
 
 export const ASSET_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Asset>>(EntityType.ASSET);
 export const DEVICE_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Device>>(EntityType.DEVICE);

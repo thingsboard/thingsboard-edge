@@ -214,8 +214,16 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.componentsData.isEdgeScope = true;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) &&
           this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
-        this.componentsData.assignEnabled = true;
-        this.componentsData.assignEntities = ($event) => this.assignEntityGroupsToEdge($event);
+        this.headerActionDescriptors = [];
+        this.headerActionDescriptors.push({
+            name: this.translate.instant('edge.assign-to-edge'),
+            icon: 'add',
+            isEnabled: () => true,
+            onAction: ($event) => {
+              this.assignEntityGroupsToEdge($event);
+            }
+          }
+        );
       }
     }
   }
@@ -294,7 +302,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     ));
   }
 
-  private assignEntityGroupsToEdge($event: Event) {
+  private assignEntityGroupsToEdge($event: Event): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -444,7 +452,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private entityGroupsHasEdgeScope(): boolean {
-    return !!this.params.childGroupScope;
+    return ((this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
+             this.params.groupType === EntityType.EDGE) && isDefinedAndNotNull(this.params.edgeId);
   }
 
 }

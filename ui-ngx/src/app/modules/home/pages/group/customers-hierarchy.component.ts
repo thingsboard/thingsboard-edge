@@ -284,11 +284,10 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         entityGroupParams.customerId = node.data.customerData.customerId;
         entityGroupParams.nodeId = node.id;
         entityGroupParams.internalId = node.data.internalId;
-        entityGroupParams.childGroupScope = 'edge';
         entityGroupParams.entityGroupId = node.data.parentEntityGroupId;
         entityGroupParams.edgeId = node.data.edge.id.id;
+        entityGroupParams.groupType = EntityType.EDGE;
         if (node.data.type === 'edgeGroups') {
-          entityGroupParams.groupType = EntityType.EDGE;
           entityGroupParams.childGroupType = node.data.groupsType;
           this.updateViewByEntityType(node.data.groupsType, entityGroupParams, node.data.edge);
         } else {

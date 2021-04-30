@@ -344,7 +344,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
   }
 
   private isCustomerScope(params: EntityGroupParams): boolean {
-    return params.childGroupScope === 'customer';
+    return params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER;
   }
 
 }

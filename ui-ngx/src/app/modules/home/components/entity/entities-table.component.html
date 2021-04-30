@@ -95,14 +95,6 @@
                 </ng-template>
               </ng-template>
             </div>
-            <div [fxShow]="assignEnabled()">
-              <button mat-icon-button [disabled]="isLoading$ | async"
-                      (click)="entitiesTableConfig.componentsData.assignEntities($event)"
-                      matTooltip="{{ 'edge.assign-to-edge' | translate }}"
-                      matTooltipPosition="above">
-                <mat-icon>add</mat-icon>
-              </button>
-            </div>
             <button mat-icon-button [disabled]="isLoading$ | async"
                     [fxShow]="actionDescriptor.isEnabled()" *ngFor="let actionDescriptor of headerActionDescriptors"
                     matTooltip="{{ actionDescriptor.name }}"

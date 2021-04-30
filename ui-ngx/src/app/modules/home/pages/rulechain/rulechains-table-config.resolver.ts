@@ -132,8 +132,16 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       this.config.addEnabled = false;
       this.config.componentsData.isEdgeScope = true;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
-        this.config.componentsData.assignEnabled = true;
-        this.config.componentsData.assignEntities = ($event) => this.assignRuleChainsToEdge($event);
+        this.config.headerActionDescriptors = [];
+        this.config.headerActionDescriptors.push({
+            name: this.translate.instant('edge.assign-to-edge'),
+            icon: 'add',
+            isEnabled: () => true,
+            onAction: ($event) => {
+              this.assignRuleChainsToEdge($event);
+            }
+          }
+        );
       }
     }
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
@@ -494,7 +502,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     );
   }
 
-  assignRuleChainsToEdge($event: Event) {
+  assignRuleChainsToEdge($event: Event): void {
     if ($event) {
       $event.stopPropagation();
     }
