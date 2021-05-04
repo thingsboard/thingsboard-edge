@@ -57,6 +57,8 @@ import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.c
 import { OAuth2SettingsComponent } from '@home/pages/admin/oauth2-settings.component';
 import { OAuth2Service } from '@core/http/oauth2.service';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
+import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
+import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/resources-library-table-config.resolve';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -130,7 +132,9 @@ const routes: Routes = [
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
             SYS_ADMIN: '/settings/general',
-            TENANT_ADMIN: '/settings/home',
+            TENANT_ADMIN: {
+              condition: 'authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission("WHITE_LABELING") ? "/settings/home" : "/settings/resources-library"'
+            },
             CUSTOMER_USER: '/settings/home'
           }
         }
@@ -162,22 +166,6 @@ const routes: Routes = [
         }
       },
       {
-        path: 'mail-template',
-        component: MailTemplatesComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          title: 'admin.mail-template-settings',
-          breadcrumb: {
-            label: 'admin.mail-templates',
-            icon: 'format_shapes'
-          }
-        },
-        resolve: {
-          adminSettings: MailTemplateSettingsResolver
-        }
-      },
-      {
         path: 'sms-provider',
         component: SmsProviderComponent,
         canDeactivate: [ConfirmOnExitGuard],
@@ -188,66 +176,6 @@ const routes: Routes = [
             label: 'admin.sms-provider',
             icon: 'sms'
           }
-        }
-      },
-      {
-        path: 'whiteLabel',
-        component: WhiteLabelingComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'white-labeling.white-labeling',
-          isLoginWl: false,
-          breadcrumb: {
-            label: 'white-labeling.white-labeling',
-            icon: 'format_paint'
-          }
-        }
-      },
-      {
-        path: 'loginWhiteLabel',
-        component: WhiteLabelingComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'white-labeling.login-white-labeling',
-          isLoginWl: true,
-          breadcrumb: {
-            label: 'white-labeling.login-white-labeling',
-            icon: 'format_paint'
-          }
-        }
-      },
-      {
-        path: 'customTranslation',
-        component: CustomTranslationComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'custom-translation.custom-translation',
-          breadcrumb: {
-            label: 'custom-translation.custom-translation',
-            icon: 'language'
-          }
-        },
-        resolve: {
-          customTranslation: CustomTranslationResolver
-        }
-      },
-      {
-        path: 'customMenu',
-        component: CustomMenuComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'custom-menu.custom-menu',
-          breadcrumb: {
-            label: 'custom-menu.custom-menu',
-            icon: 'list'
-          }
-        },
-        resolve: {
-          customMenu: CustomMenuResolver
         }
       },
       {
@@ -304,6 +232,135 @@ const routes: Routes = [
             icon: 'settings_applications'
           }
         }
+      },
+      {
+        path: 'resources-library',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+          title: 'resource.resources-library',
+          breadcrumb: {
+            label: 'resource.resources-library',
+            icon: 'folder'
+          }
+        },
+        resolve: {
+          entitiesTableConfig: ResourcesLibraryTableConfigResolver
+        }
+      }
+    ]
+  },
+  {
+    path: 'white-labeling',
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      breadcrumb: {
+        label: 'white-labeling.white-labeling',
+        icon: 'format_paint'
+      }
+    },
+    children: [
+      {
+        path: '',
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            SYS_ADMIN: '/white-labeling/whiteLabel',
+            TENANT_ADMIN: '/white-labeling/whiteLabel',
+            CUSTOMER_USER: '/white-labeling/whiteLabel'
+          }
+        }
+      },
+      {
+        path: 'whiteLabel',
+        component: WhiteLabelingComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'white-labeling.white-labeling',
+          isLoginWl: false,
+          breadcrumb: {
+            label: 'white-labeling.white-labeling',
+            icon: 'format_paint'
+          }
+        }
+      },
+      {
+        path: 'loginWhiteLabel',
+        component: WhiteLabelingComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'white-labeling.login-white-labeling',
+          isLoginWl: true,
+          breadcrumb: {
+            label: 'white-labeling.login-white-labeling',
+            icon: 'format_paint'
+          }
+        }
+      },
+      {
+        path: 'mail-template',
+        component: MailTemplatesComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'admin.mail-template-settings',
+          breadcrumb: {
+            label: 'admin.mail-templates',
+            icon: 'format_shapes'
+          }
+        },
+        resolve: {
+          adminSettings: MailTemplateSettingsResolver
+        }
+      },
+      {
+        path: 'customTranslation',
+        component: CustomTranslationComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'custom-translation.custom-translation',
+          breadcrumb: {
+            label: 'custom-translation.custom-translation',
+            icon: 'language'
+          }
+        },
+        resolve: {
+          customTranslation: CustomTranslationResolver
+        }
+      },
+      {
+        path: 'customMenu',
+        component: CustomMenuComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'custom-menu.custom-menu',
+          breadcrumb: {
+            label: 'custom-menu.custom-menu',
+            icon: 'list'
+          }
+        },
+        resolve: {
+          customMenu: CustomMenuResolver
+        }
+      },
+      {
+        path: 'resources-library',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+          title: 'resource.resources-library',
+          breadcrumb: {
+            label: 'resource.resources-library',
+            icon: 'folder'
+          }
+        },
+        resolve: {
+          entitiesTableConfig: ResourcesLibraryTableConfigResolver
+        }
       }
     ]
   }
@@ -316,7 +373,8 @@ const routes: Routes = [
     MailTemplateSettingsResolver,
     CustomTranslationResolver,
     CustomMenuResolver,
-    OAuth2LoginProcessingUrlResolver
+    OAuth2LoginProcessingUrlResolver,
+    ResourcesLibraryTableConfigResolver
   ]
 })
 export class AdminRoutingModule { }

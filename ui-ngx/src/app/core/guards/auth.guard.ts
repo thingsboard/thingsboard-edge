@@ -158,10 +158,15 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               return of(false);
             } else if (data.redirectTo) {
               let redirect;
-              if (isObject(data.redirectTo)) {
+              if (isObject(data.redirectTo) && !data.redirectTo.hasOwnProperty('condition')) {
                 redirect = data.redirectTo[authority];
               } else {
                 redirect = data.redirectTo;
+              }
+              if (isObject(redirect) && redirect.hasOwnProperty('condition')) {
+                const userPermissionsService = this.userPermissionsService; // used in eval
+                // tslint:disable-next-line:no-eval
+                redirect = eval(redirect.condition);
               }
               return this.menuService.getRedirectPath(path, redirect).pipe(
                 map((redirectPath) => {

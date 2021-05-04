@@ -174,6 +174,8 @@ import { EntityGroupComponent } from '@home/components/group/entity-group.compon
 import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
 import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
+import { SecurityConfigLwm2mComponent } from '@home/components/device/security-config-lwm2m.component';
+import { SecurityConfigLwm2mServerComponent } from '@home/components/device/security-config-lwm2m-server.component';
 
 @NgModule({
   declarations:
@@ -291,6 +293,8 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
       DeviceWizardDialogComponent,
       DeviceCredentialsComponent,
       CopyDeviceCredentialsComponent,
+      SecurityConfigLwm2mComponent,
+      SecurityConfigLwm2mServerComponent,
       AlarmScheduleDialogComponent,
       EditAlarmDetailsDialogComponent,
       SmsProviderConfigurationComponent,
@@ -413,6 +417,8 @@ import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-pag
     DeviceWizardDialogComponent,
     DeviceCredentialsComponent,
     CopyDeviceCredentialsComponent,
+    SecurityConfigLwm2mComponent,
+    SecurityConfigLwm2mServerComponent,
     AlarmScheduleInfoComponent,
     AlarmScheduleComponent,
     AlarmScheduleDialogComponent,
