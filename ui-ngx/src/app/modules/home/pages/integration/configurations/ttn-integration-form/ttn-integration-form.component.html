@@ -122,6 +122,9 @@
             </mat-form-field>
           </section>
         </div>
+      <mat-slide-toggle *ngIf="integrationType === 'TTN'" [formControl]="apiVersion" style="padding-bottom: 48px;">
+        {{'integration.api-version' | translate}}
+      </mat-slide-toggle>
     </fieldset>
     <tb-mqtt-topic-filters [topicFilters]="topicFilters">
     </tb-mqtt-topic-filters>
