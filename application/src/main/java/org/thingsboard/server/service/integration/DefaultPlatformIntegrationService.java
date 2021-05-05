@@ -757,8 +757,23 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private void pushDeviceCreatedEventToRuleEngine(Integration integration, Device device) {
         try {
+            DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
+            RuleChainId ruleChainId;
+            String queueName;
+
+            if (deviceProfile == null) {
+                ruleChainId = null;
+                queueName = ServiceQueue.MAIN;
+            } else {
+                ruleChainId = deviceProfile.getDefaultRuleChainId();
+                String defaultQueueName = deviceProfile.getDefaultQueueName();
+                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+            }
+
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), device.getCustomerId(), deviceActionTbMsgMetaData(integration, device), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
+                    mapper.writeValueAsString(entityNode), ruleChainId, null);
+
             process(device.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
