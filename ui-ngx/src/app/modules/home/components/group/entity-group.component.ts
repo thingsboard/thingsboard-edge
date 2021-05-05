@@ -123,10 +123,15 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         const isCreatePermissionAllowed = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE);
         const isEdgeParent: boolean = this.entitiesTableConfig.componentsData.isEdgeParent;
         this.isPublic = isPublic;
-        this.shareEnabled = isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed && !isEdgeParent;
-        this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed && !isEdgeParent;
-        this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed && !isEdgeParent;
+        this.shareEnabled = isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed;
+        this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
+        this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
         this.isGroupAll = entityGroup.groupAll;
+        if (isEdgeParent) {
+          this.shareEnabled = false;
+          this.makePublicEnabled = false;
+          this.makePrivateEnabled = false;
+        }
       } else {
         this.isPublic = false;
         this.shareEnabled = false;

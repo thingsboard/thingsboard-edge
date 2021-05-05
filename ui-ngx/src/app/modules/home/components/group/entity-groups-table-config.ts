@@ -133,11 +133,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       let fetchObservable: Observable<Array<EntityGroupInfo>>;
       if (this.customerId && !this.isEdgeParent()) {
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
-      }
-      else if (this.isEdgeParent()) {
+      } else if (this.isEdgeParent()) {
         fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
-      }
-      else {
+      } else {
         fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
       }
       return fetchObservable.pipe(
@@ -197,9 +195,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
     if (this.isEdgeParent()) {
       this.deleteEnabled = () => false;
+      this.entitiesDeleteEnabled = false;
       this.addEnabled = false;
       this.componentsData.isEdgeParent = true;
-      this.entitiesDeleteEnabled = false;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
         this.entitySelectionEnabled = () => true;
         this.componentsData.isUnassignEnabled = true;
@@ -238,7 +236,41 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         onAction: ($event, entity) => this.open($event, entity)
       }
     );
+    if (sharableGroupTypes.has(this.groupType) &&
+      this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
+      this.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('action.share'),
+          icon: 'assignment_ind',
+          isEnabled: (entity) => entity && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.share($event, entity)
+        }
+      );
+    }
+    if (publicGroupTypes.has(this.groupType)) {
+      this.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('action.make-public'),
+          icon: 'share',
+          isEnabled: (entity) => entity
+            && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
+            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.makePublic($event, entity)
+        },
+        {
+          name: this.translate.instant('action.make-private'),
+          icon: 'reply',
+          isEnabled: (entity) => entity
+            && entity.additionalInfo && entity.additionalInfo.isPublic
+            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.makePrivate($event, entity)
+        }
+      );
+    }
     if (this.isEdgeParent()) {
+      this.cellActionDescriptors = this.cellActionDescriptors.slice(0, 1);
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
@@ -247,40 +279,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
           onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }
       );
-    } else {
-      if (sharableGroupTypes.has(this.groupType) &&
-        this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
-        this.cellActionDescriptors.push(
-          {
-            name: this.translate.instant('action.share'),
-            icon: 'assignment_ind',
-            isEnabled: (entity) => entity && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-            onAction: ($event, entity) => this.share($event, entity)
-          }
-        );
-      }
-      if (publicGroupTypes.has(this.groupType)) {
-        this.cellActionDescriptors.push(
-          {
-            name: this.translate.instant('action.make-public'),
-            icon: 'share',
-            isEnabled: (entity) => entity
-              && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
-              && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-              && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-            onAction: ($event, entity) => this.makePublic($event, entity)
-          },
-          {
-            name: this.translate.instant('action.make-private'),
-            icon: 'reply',
-            isEnabled: (entity) => entity
-              && entity.additionalInfo && entity.additionalInfo.isPublic
-              && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-              && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-            onAction: ($event, entity) => this.makePrivate($event, entity)
-          }
-        );
-      }
     }
   }
 
@@ -452,8 +450,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private isEdgeParent(): boolean {
-    return ((this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
-             this.params.groupType === EntityType.EDGE) && isDefinedAndNotNull(this.params.edgeId);
+    return (isDefinedAndNotNull(this.params.edgeId) &&
+            (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
+            this.params.groupType === EntityType.EDGE);
   }
 
 }
