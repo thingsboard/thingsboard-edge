@@ -450,9 +450,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private isEdgeParent(): boolean {
-    return (isDefinedAndNotNull(this.params.edgeId) &&
-            (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
-            this.params.groupType === EntityType.EDGE);
+    return isDefinedAndNotNull(this.params.edgeId) &&
+           ((this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
+           this.params.groupType === EntityType.EDGE);
   }
 
 }
