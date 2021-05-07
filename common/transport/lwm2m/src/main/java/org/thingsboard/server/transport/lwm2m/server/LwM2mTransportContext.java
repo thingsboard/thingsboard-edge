@@ -30,50 +30,18 @@
  */
 package org.thingsboard.server.transport.lwm2m.server;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
 import org.eclipse.leshan.server.californium.LeshanServer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.transport.TransportContext;
 import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
-import org.thingsboard.server.transport.lwm2m.secure.LWM2MGenerationPSkRPkECC;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-@Slf4j
-@Component("LwM2MTransportServerInitializer")
+@Component
 @TbLwM2mTransportComponent
-public class LwM2mTransportServerInitializer {
+public class LwM2mTransportContext extends TransportContext {
 
-    @Autowired
-    private LwM2mTransportServiceImpl service;
+    @Getter @Setter
+    private LeshanServer server;
 
-    @Autowired
-    private LeshanServer leshanServer;
-
-    @Autowired
-    private LwM2mTransportContextServer context;
-
-    @PostConstruct
-    public void init() {
-        if (this.context.getLwM2MTransportConfigServer().getEnableGenNewKeyPskRpk()) {
-            new LWM2MGenerationPSkRPkECC();
-        }
-        this.startLhServer();
-    }
-
-    private void startLhServer() {
-        this.leshanServer.start();
-        LwM2mServerListener lhServerCertListener = new LwM2mServerListener(service);
-        this.leshanServer.getRegistrationService().addListener(lhServerCertListener.registrationListener);
-        this.leshanServer.getPresenceService().addListener(lhServerCertListener.presenceListener);
-        this.leshanServer.getObservationService().addListener(lhServerCertListener.observationListener);
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        log.info("Stopping LwM2M transport Server!");
-        leshanServer.destroy();
-        log.info("LwM2M transport Server stopped!");
-    }
 }

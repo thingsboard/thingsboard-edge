@@ -70,6 +70,8 @@ public interface DeviceService {
 
     PageData<Device> findDevicesByTenantIdAndTypeAndEmptyFirmware(TenantId tenantId, String type, PageLink pageLink);
 
+    PageData<Device> findDevicesByTenantIdAndTypeAndEmptySoftware(TenantId tenantId, String type, PageLink pageLink);
+
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds);
 
     void deleteDevicesByTenantId(TenantId tenantId);

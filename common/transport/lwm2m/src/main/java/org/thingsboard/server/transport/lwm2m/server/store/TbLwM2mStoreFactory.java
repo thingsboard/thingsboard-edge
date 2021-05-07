@@ -34,25 +34,20 @@ import org.eclipse.leshan.server.californium.registration.CaliforniumRegistratio
 import org.eclipse.leshan.server.californium.registration.InMemoryRegistrationStore;
 import org.eclipse.leshan.server.security.EditableSecurityStore;
 import org.eclipse.leshan.server.security.InMemorySecurityStore;
-import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
-import org.eclipse.leshan.server.security.SecurityInfo;
-import org.eclipse.leshan.server.security.SecurityStoreListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
 import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
-import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
 import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
 
-import java.util.Collection;
 import java.util.Optional;
 
-@Service
+@Component
 @TbLwM2mTransportComponent
-public class TbLwM2mStoreConfiguration {
+public class TbLwM2mStoreFactory {
 
     @Autowired(required = false)
     private Optional<TBRedisCacheConfiguration> redisConfiguration;
@@ -72,72 +67,8 @@ public class TbLwM2mStoreConfiguration {
 
     @Bean
     private EditableSecurityStore securityStore() {
-        return new TbLwM2mSecurityStoreWrapper(redisConfiguration.isPresent() && useRedis ?
+        return new TbLwM2mSecurityStore(clientContext, redisConfiguration.isPresent() && useRedis ?
                 new TbLwM2mRedisSecurityStore(redisConfiguration.get().redisConnectionFactory()) : new InMemorySecurityStore());
     }
 
-    public class TbLwM2mSecurityStoreWrapper implements EditableSecurityStore {
-
-        private final EditableSecurityStore securityStore;
-
-        public TbLwM2mSecurityStoreWrapper(EditableSecurityStore securityStore) {
-            this.securityStore = securityStore;
-        }
-
-        @Override
-        public Collection<SecurityInfo> getAll() {
-            return securityStore.getAll();
-        }
-
-        @Override
-        public SecurityInfo add(SecurityInfo info) throws NonUniqueSecurityInfoException {
-            return securityStore.add(info);
-        }
-
-        @Override
-        public SecurityInfo remove(String endpoint, boolean infosAreCompromised) {
-            return securityStore.remove(endpoint, infosAreCompromised);
-        }
-
-        @Override
-        public void setListener(SecurityStoreListener listener) {
-            securityStore.setListener(listener);
-        }
-
-        @Override
-        public SecurityInfo getByEndpoint(String endPoint) {
-            SecurityInfo securityInfo = securityStore.getByEndpoint(endPoint);
-            if (securityInfo == null) {
-                LwM2mClient lwM2mClient = clientContext.getLwM2MClient(endPoint, null);
-                if (lwM2mClient != null && lwM2mClient.getRegistration() != null && !lwM2mClient.getRegistration().getIdentity().isSecure()){
-                    return null;
-                }
-                securityInfo = clientContext.addLwM2mClientToSession(endPoint).getSecurityInfo();
-                try {
-                    if (securityInfo != null) {
-                        add(securityInfo);
-                    }
-                } catch (NonUniqueSecurityInfoException e) {
-                    e.printStackTrace();
-                }
-            }
-            return securityInfo;
-        }
-
-        @Override
-        public SecurityInfo getByIdentity(String pskIdentity) {
-            SecurityInfo securityInfo = securityStore.getByIdentity(pskIdentity);
-            if (securityInfo == null) {
-                securityInfo = clientContext.addLwM2mClientToSession(pskIdentity).getSecurityInfo();
-                try {
-                    if (securityInfo != null) {
-                        add(securityInfo);
-                    }
-                } catch (NonUniqueSecurityInfoException e) {
-                    e.printStackTrace();
-                }
-            }
-            return securityInfo;
-        }
-    }
 }

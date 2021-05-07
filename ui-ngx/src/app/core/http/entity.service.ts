@@ -548,7 +548,7 @@ export class EntityService {
         break;
       case EntityType.FIRMWARE:
         pageLink.sortOrder.property = 'title';
-        entitiesObservable = this.firmwareService.getFirmwares(pageLink, true, config);
+        entitiesObservable = this.firmwareService.getFirmwares(pageLink, config);
         break;
     }
     return entitiesObservable;

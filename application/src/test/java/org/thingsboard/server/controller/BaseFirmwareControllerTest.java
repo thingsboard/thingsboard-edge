@@ -39,10 +39,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Firmware;
 import org.thingsboard.server.common.data.FirmwareInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -53,6 +56,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.common.data.firmware.FirmwareType.FIRMWARE;
 
 public abstract class BaseFirmwareControllerTest extends AbstractControllerTest {
 
@@ -68,6 +72,7 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
 
     private Tenant savedTenant;
     private User tenantAdmin;
+    private DeviceProfileId deviceProfileId;
 
     @Before
     public void beforeTest() throws Exception {
@@ -86,6 +91,11 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile", null);
+        DeviceProfile savedDeviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+        Assert.assertNotNull(savedDeviceProfile);
+        deviceProfileId = savedDeviceProfile.getId();
     }
 
     @After
@@ -99,6 +109,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
     @Test
     public void testSaveFirmware() throws Exception {
         FirmwareInfo firmwareInfo = new FirmwareInfo();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
 
@@ -122,6 +134,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
     @Test
     public void testSaveFirmwareData() throws Exception {
         FirmwareInfo firmwareInfo = new FirmwareInfo();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
 
@@ -152,6 +166,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
     @Test
     public void testUpdateFirmwareFromDifferentTenant() throws Exception {
         FirmwareInfo firmwareInfo = new FirmwareInfo();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
 
@@ -165,6 +181,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
     @Test
     public void testFindFirmwareInfoById() throws Exception {
         FirmwareInfo firmwareInfo = new FirmwareInfo();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
 
@@ -178,6 +196,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
     @Test
     public void testFindFirmwareById() throws Exception {
         FirmwareInfo firmwareInfo = new FirmwareInfo();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
 
@@ -195,6 +215,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
     @Test
     public void testDeleteFirmware() throws Exception {
         FirmwareInfo firmwareInfo = new FirmwareInfo();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
 
@@ -212,6 +234,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
         List<FirmwareInfo> firmwares = new ArrayList<>();
         for (int i = 0; i < 165; i++) {
             FirmwareInfo firmwareInfo = new FirmwareInfo();
+            firmwareInfo.setDeviceProfileId(deviceProfileId);
+            firmwareInfo.setType(FIRMWARE);
             firmwareInfo.setTitle(TITLE);
             firmwareInfo.setVersion(VERSION + i);
 
@@ -253,6 +277,8 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
 
         for (int i = 0; i < 165; i++) {
             FirmwareInfo firmwareInfo = new FirmwareInfo();
+            firmwareInfo.setDeviceProfileId(deviceProfileId);
+            firmwareInfo.setType(FIRMWARE);
             firmwareInfo.setTitle(TITLE);
             firmwareInfo.setVersion(VERSION + i);
 
@@ -272,7 +298,7 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
         PageLink pageLink = new PageLink(24);
         PageData<FirmwareInfo> pageData;
         do {
-            pageData = doGetTypedWithPageLink("/api/firmwares/true?",
+            pageData = doGetTypedWithPageLink("/api/firmwares/" + deviceProfileId.toString() + "/FIRMWARE/true?",
                     new TypeReference<>() {
                     }, pageLink);
             loadedFirmwaresWithData.addAll(pageData.getData());
@@ -284,7 +310,7 @@ public abstract class BaseFirmwareControllerTest extends AbstractControllerTest 
         List<FirmwareInfo> loadedFirmwaresWithoutData = new ArrayList<>();
         pageLink = new PageLink(24);
         do {
-            pageData = doGetTypedWithPageLink("/api/firmwares/false?",
+            pageData = doGetTypedWithPageLink("/api/firmwares/" + deviceProfileId.toString() + "/FIRMWARE/false?",
                     new TypeReference<>() {
                     }, pageLink);
             loadedFirmwaresWithoutData.addAll(pageData.getData());

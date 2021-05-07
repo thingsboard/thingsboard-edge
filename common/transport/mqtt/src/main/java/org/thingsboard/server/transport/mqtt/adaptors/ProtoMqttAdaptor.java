@@ -46,12 +46,15 @@ import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.adaptor.ProtoConverter;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.mqtt.session.DeviceSessionCtx;
 import org.thingsboard.server.transport.mqtt.session.MqttDeviceAwareSessionContext;
 
 import java.util.Optional;
+
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_FIRMWARE_RESPONSES_TOPIC_FORMAT;
 
 @Component
 @Slf4j
@@ -180,8 +183,8 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
     }
 
     @Override
-    public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, byte[] firmwareChunk, String requestId, int chunk) throws AdaptorException {
-        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.DEVICE_FIRMWARE_RESPONSE_TOPIC_PREFIX + requestId + "/" + chunk, firmwareChunk));
+    public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, byte[] firmwareChunk, String requestId, int chunk, FirmwareType firmwareType) throws AdaptorException {
+        return Optional.of(createMqttPublishMsg(ctx, String.format(DEVICE_FIRMWARE_RESPONSES_TOPIC_FORMAT, firmwareType.getKeyPrefix(), requestId, chunk), firmwareChunk));
     }
 
     @Override

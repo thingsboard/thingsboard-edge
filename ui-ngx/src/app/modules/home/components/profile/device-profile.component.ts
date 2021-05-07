@@ -55,6 +55,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { ServiceType } from '@shared/models/queue.models';
 import { EntityId } from '@shared/models/id/entity-id';
+import { FirmwareType } from '@shared/models/firmware.models';
 
 @Component({
   selector: 'tb-device-profile',
@@ -83,6 +84,8 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
   serviceType = ServiceType.TB_RULE_ENGINE;
 
   deviceProfileId: EntityId;
+
+  firmwareTypes = FirmwareType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -125,6 +128,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
         defaultRuleChainId: [entity && entity.defaultRuleChainId ? entity.defaultRuleChainId.id : null, []],
         defaultQueueName: [entity ? entity.defaultQueueName : '', []],
         firmwareId: [entity ? entity.firmwareId : null],
+        softwareId: [entity ? entity.softwareId : null],
         description: [entity ? entity.description : '', []],
       }
     );
@@ -201,6 +205,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
     this.entityForm.patchValue({defaultRuleChainId: entity.defaultRuleChainId ? entity.defaultRuleChainId.id : null}, {emitEvent: false});
     this.entityForm.patchValue({defaultQueueName: entity.defaultQueueName}, {emitEvent: false});
     this.entityForm.patchValue({firmwareId: entity.firmwareId}, {emitEvent: false});
+    this.entityForm.patchValue({softwareId: entity.softwareId}, {emitEvent: false});
     this.entityForm.patchValue({description: entity.description}, {emitEvent: false});
   }
 

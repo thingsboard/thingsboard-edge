@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-dashboard-page mat-content" tb-toast style="padding-top: 150px;"
+<div class="tb-dashboard-page mat-content" [ngClass]="{'mobile-app': isMobileApp && !isEdit}" style="padding-top: 150px;"
      fxFlex tb-fullscreen [fullscreen]="widgetEditMode || iframeMode || forceFullscreen || isFullscreen || reportView">
   <tb-hotkeys-cheatsheet #cheatSheetComponent></tb-hotkeys-cheatsheet>
   <section class="tb-dashboard-toolbar" [fxShow]="!reportView"
@@ -40,7 +40,7 @@
                           [toolbarOpened]="toolbarOpened" (triggerClick)="openToolbar()">
       <div class="tb-dashboard-action-panels" fxLayout="column" fxLayout.gt-sm="row"
            fxLayoutAlign="center stretch" fxLayoutAlign.gt-sm="space-between center">
-        <div class="tb-dashboard-action-panel" fxFlex="auto" fxLayout="row-reverse"
+        <div class="tb-dashboard-action-panel" fxFlex="auto" fxLayout="row-reverse" [fxHide]="isMobileApp && !isEdit"
              fxLayoutAlign.gt-sm="end center" fxLayoutAlign="space-between center" fxLayoutGap="12px">
           <tb-user-menu *ngIf="!isPublicUser() && forceFullscreen" fxHide.gt-sm displayUserInfo="true">
           </tb-user-menu>
@@ -64,7 +64,7 @@
           <tb-states-component fxFlex.lt-md
                                [statesControllerId]="isEdit ? 'default' : dashboardConfiguration.settings.stateControllerId"
                                [dashboardCtrl]="this"
-                               [dashboardId]="(!embedded && dashboard.id) ? dashboard.id.id : ''"
+                               [dashboardId]="setStateDashboardId ? dashboard.id.id : ''"
                                [isMobile]="isMobile"
                                [state]="dashboardCtx.state"
                                [currentState]="currentState"

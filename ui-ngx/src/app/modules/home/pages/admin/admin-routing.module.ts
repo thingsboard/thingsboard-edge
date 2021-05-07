@@ -346,21 +346,6 @@ const routes: Routes = [
         resolve: {
           customMenu: CustomMenuResolver
         }
-      },
-      {
-        path: 'resources-library',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-          title: 'resource.resources-library',
-          breadcrumb: {
-            label: 'resource.resources-library',
-            icon: 'folder'
-          }
-        },
-        resolve: {
-          entitiesTableConfig: ResourcesLibraryTableConfigResolver
-        }
       }
     ]
   }

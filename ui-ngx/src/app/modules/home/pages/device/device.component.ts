@@ -50,6 +50,7 @@ import { ClipboardService } from 'ngx-clipboard';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { Subject } from 'rxjs';
+import { FirmwareType } from '@shared/models/firmware.models';
 
 @Component({
   selector: 'tb-device',
@@ -63,6 +64,8 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   deviceCredentials$: Subject<DeviceCredentials>;
 
 //  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
+
+  firmwareTypes = FirmwareType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -114,6 +117,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
         name: [entity ? entity.name : '', [Validators.required]],
         deviceProfileId: [entity ? entity.deviceProfileId : null, [Validators.required]],
         firmwareId: [entity ? entity.firmwareId : null],
+        softwareId: [entity ? entity.softwareId : null],
         label: [entity ? entity.label : ''],
         deviceData: [entity ? entity.deviceData : null, [Validators.required]],
         additionalInfo: this.fb.group(
@@ -128,19 +132,19 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   }
 
   updateForm(entity: Device) {
-    this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({deviceProfileId: entity.deviceProfileId});
-    this.entityForm.patchValue({firmwareId: entity.firmwareId});
-    this.entityForm.patchValue({label: entity.label});
-    this.entityForm.patchValue({deviceData: entity.deviceData});
     this.entityForm.patchValue({
-      additionalInfo:
-        {
-          gateway: entity.additionalInfo ? entity.additionalInfo.gateway : false,
-          overwriteActivityTime: entity.additionalInfo ? entity.additionalInfo.overwriteActivityTime : false
-        }
+      name: entity.name,
+      deviceProfileId: entity.deviceProfileId,
+      firmwareId: entity.firmwareId,
+      softwareId: entity.softwareId,
+      label: entity.label,
+      deviceData: entity.deviceData,
+      additionalInfo: {
+        gateway: entity.additionalInfo ? entity.additionalInfo.gateway : false,
+        overwriteActivityTime: entity.additionalInfo ? entity.additionalInfo.overwriteActivityTime : false,
+        description: entity.additionalInfo ? entity.additionalInfo.description : ''
+      }
     });
-    this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
   }
 
 
@@ -186,6 +190,10 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
           this.entityForm.markAsDirty();
         }
       }
+      this.entityForm.patchValue({
+        firmwareId: null,
+        softwareId: null
+      });
     }
   }
 }

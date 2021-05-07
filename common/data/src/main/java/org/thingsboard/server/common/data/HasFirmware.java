@@ -28,26 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.secure;
+package org.thingsboard.server.common.data;
 
-import com.google.gson.JsonObject;
-import lombok.Data;
-import org.eclipse.leshan.server.bootstrap.BootstrapConfig;
-import org.eclipse.leshan.server.security.SecurityInfo;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceCredentialsResponseMsg;
+import org.thingsboard.server.common.data.id.FirmwareId;
 
-import static org.thingsboard.server.transport.lwm2m.secure.LwM2MSecurityMode.DEFAULT_MODE;
+public interface HasFirmware {
 
-@Data
-public class ReadResultSecurityStore {
-    private ValidateDeviceCredentialsResponseMsg msg;
-    private SecurityInfo securityInfo;
-    private int securityMode = DEFAULT_MODE.code;
+    FirmwareId getFirmwareId();
 
-    /** bootstrap */
-    DeviceProfile deviceProfile;
-    JsonObject bootstrapJsonCredential;
-    String endPoint;
-    BootstrapConfig bootstrapConfig;
+    FirmwareId getSoftwareId();
 }

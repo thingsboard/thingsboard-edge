@@ -51,7 +51,7 @@ import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalIn
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity {
+public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity, HasFirmware {
 
     private TenantId tenantId;
     @NoXss
@@ -74,6 +74,8 @@ public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements H
 
     private FirmwareId firmwareId;
 
+    private FirmwareId softwareId;
+
     public DeviceProfile() {
         super();
     }
@@ -92,6 +94,8 @@ public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements H
         this.defaultQueueName = deviceProfile.getDefaultQueueName();
         this.setProfileData(deviceProfile.getProfileData());
         this.provisionDeviceKey = deviceProfile.getProvisionDeviceKey();
+        this.firmwareId = deviceProfile.getFirmwareId();
+        this.softwareId = deviceProfile.getSoftwareId();
     }
 
     @Override

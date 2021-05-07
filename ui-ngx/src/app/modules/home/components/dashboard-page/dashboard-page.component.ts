@@ -141,6 +141,7 @@ import {
 } from '@home/components/dashboard-page/widget-types-panel.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { MobileService } from '@core/services/mobile.service';
 
 // @dynamic
 @Component({
@@ -185,6 +186,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   forceFullscreen = this.authState.forceFullscreen;
 
   readonly = false;
+  isMobileApp = this.mobileService.isMobileApp();
   isFullscreen = false;
   isEdit = false;
   isEditingWidget = false;
@@ -212,6 +214,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   thingsboardVersion: string = env.tbVersion;
 
   currentDashboardId: string;
+
+  setStateDashboardId = false;
 
   addingLayoutCtx: DashboardPageLayoutContext;
 
@@ -311,6 +315,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private wl: WhiteLabelingService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
+              private mobileService: MobileService,
               private fb: FormBuilder,
               private dialog: MatDialog,
               private translate: TranslateService,
@@ -350,10 +355,22 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
     this.reset();
 
-    this.currentDashboardId = data.currentDashboardId;
-
     this.dashboard = data.dashboard;
     this.entityGroup = data.entityGroup;
+    if (!this.embedded && this.dashboard.id) {
+      this.setStateDashboardId = true;
+    }
+
+    if (this.route.snapshot.queryParamMap.has('hideToolbar')) {
+      this.hideToolbar = this.route.snapshot.queryParamMap.get('hideToolbar') === 'true';
+    }
+
+    if (this.route.snapshot.queryParamMap.has('embedded')) {
+      this.embedded = this.route.snapshot.queryParamMap.get('embedded') === 'true';
+    }
+
+    this.currentDashboardId = data.currentDashboardId;
+
     this.dashboardConfiguration = this.dashboard.configuration;
     if (this.reportService.reportTimewindow) {
       this.dashboardCtx.dashboardTimewindow = this.reportService.reportTimewindow;
@@ -418,6 +435,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.editingLayoutCtx = null;
 
     this.currentDashboardId = null;
+
+    this.setStateDashboardId = false;
 
     this.dashboardCtx.state = null;
   }

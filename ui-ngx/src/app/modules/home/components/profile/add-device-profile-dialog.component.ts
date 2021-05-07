@@ -123,7 +123,6 @@ export class AddDeviceProfileDialogComponent extends
         type: [DeviceProfileType.DEFAULT, [Validators.required]],
         defaultRuleChainId: [null, []],
         defaultQueueName: ['', []],
-        firmwareId: [null],
         description: ['', []]
       }
     );
@@ -202,7 +201,6 @@ export class AddDeviceProfileDialogComponent extends
         transportType: this.transportConfigFormGroup.get('transportType').value,
         provisionType: deviceProvisionConfiguration.type,
         provisionDeviceKey,
-        firmwareId: this.deviceProfileDetailsFormGroup.get('firmwareId').value,
         description: this.deviceProfileDetailsFormGroup.get('description').value,
         profileData: {
           configuration: createDeviceProfileConfiguration(DeviceProfileType.DEFAULT),

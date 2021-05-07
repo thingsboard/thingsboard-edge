@@ -28,37 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.bootstrap;
+package org.thingsboard.server.common.data.firmware;
 
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.leshan.server.californium.bootstrap.LeshanBootstrapServer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+public enum FirmwareType {
 
-@Slf4j
-@Service
-@ConditionalOnExpression("('${service.type:null}'=='tb-transport' && '${transport.lwm2m.enabled:false}'=='true'&& '${transport.lwm2m.bootstrap.enable:false}'=='true') || ('${service.type:null}'=='monolith' && '${transport.lwm2m.enabled:false}'=='true'&& '${transport.lwm2m.bootstrap.enable:false}'=='true')")
-public class LwM2MTransportBootstrapServerInitializer {
+    FIRMWARE("fw"), SOFTWARE("sw");
 
-    @Autowired(required = false)
-    private LeshanBootstrapServer lhBServer;
+    @Getter
+    private final String keyPrefix;
 
-    @Autowired
-    private LwM2MTransportContextBootstrap contextBS;
-
-    @PostConstruct
-    public void init() {
-        this.lhBServer.start();
-    }
-
-    @PreDestroy
-    public void shutdown() throws InterruptedException {
-        log.info("Stopping LwM2M transport Bootstrap Server!");
-        lhBServer.destroy();
-        log.info("LwM2M transport Bootstrap Server stopped!");
+    FirmwareType(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
     }
 }

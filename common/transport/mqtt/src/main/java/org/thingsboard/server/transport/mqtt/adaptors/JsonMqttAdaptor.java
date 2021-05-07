@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.device.profile.MqttTopics;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.mqtt.session.MqttDeviceAwareSessionContext;
 
@@ -57,6 +58,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_FIRMWARE_RESPONSES_TOPIC_FORMAT;
+
 
 /**
  * @author Andrew Shvayka
@@ -166,8 +170,8 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
     }
 
     @Override
-    public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, byte[] firmwareChunk, String requestId, int chunk) {
-        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.DEVICE_FIRMWARE_RESPONSE_TOPIC_PREFIX + requestId + "/chunk/" + chunk, firmwareChunk));
+    public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, byte[] firmwareChunk, String requestId, int chunk, FirmwareType firmwareType) {
+        return Optional.of(createMqttPublishMsg(ctx, String.format(DEVICE_FIRMWARE_RESPONSES_TOPIC_FORMAT, firmwareType.getKeyPrefix(), requestId, chunk), firmwareChunk));
     }
 
     public static JsonElement validateJsonPayload(UUID sessionId, ByteBuf payloadData) throws AdaptorException {

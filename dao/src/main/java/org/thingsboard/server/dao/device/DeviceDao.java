@@ -79,6 +79,8 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao {
 
     PageData<Device> findDevicesByTenantIdAndTypeAndEmptyFirmware(UUID tenantId, String type, PageLink pageLink);
 
+    PageData<Device> findDevicesByTenantIdAndTypeAndEmptySoftware(UUID tenantId, String type, PageLink pageLink);
+
     /**
      * Find devices by tenantId and devices Ids.
      *
