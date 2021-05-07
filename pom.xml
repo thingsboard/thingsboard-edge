@@ -44,7 +44,7 @@
 
     <properties>
         <main.dir>${basedir}</main.dir>
-        <thingsboard-cloud.version>3.3.0-EDGE-SNAPSHOT</thingsboard-cloud.version>
+        <thingsboard-cloud.version>3.3.0PE-SNAPSHOT</thingsboard-cloud.version>
         <pkg.disabled>true</pkg.disabled>
         <pkg.process-resources.phase>none</pkg.process-resources.phase>
         <pkg.package.phase>none</pkg.package.phase>
@@ -1027,7 +1027,7 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>edge-api</artifactId>
-                <version>${project.version}</version>
+                <version>${thingsboard-cloud.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard</groupId>
@@ -1038,11 +1038,6 @@
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>queue</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thingsboard.common</groupId>
-                <artifactId>edge-api</artifactId>
-                <version>${thingsboard-cloud.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
