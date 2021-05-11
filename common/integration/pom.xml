@@ -61,6 +61,7 @@
         <module>rabbitmq-integrations</module>
         <module>remote-integration-api</module>
         <module>apache-pulsar</module>
+        <module>coap-integrations</module>
     </modules>
 
 </project>

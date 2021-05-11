@@ -31,8 +31,10 @@
 package org.thingsboard.server.coapserver;
 
 import org.eclipse.californium.core.CoapServer;
+import org.eclipse.californium.core.server.resources.Resource;
 
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 public interface CoapServerService {
@@ -42,5 +44,9 @@ public interface CoapServerService {
     ConcurrentMap<String, TbCoapDtlsSessionInfo> getDtlsSessionsMap();
 
     long getTimeout();
+
+    Resource addResourceHierarchicallyAndReturnLast(List<String> resourceHierarchy) throws UnknownHostException;
+
+    boolean isDtlsEnabled();
 
 }

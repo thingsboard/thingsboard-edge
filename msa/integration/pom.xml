@@ -61,6 +61,7 @@
         <module>apache-pulsar</module>
         <module>rabbitmq</module>
         <module>pubsub</module>
+        <module>coap</module>
     </modules>
 
 </project>

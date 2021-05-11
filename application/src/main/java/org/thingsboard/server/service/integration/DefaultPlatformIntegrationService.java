@@ -51,8 +51,8 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
+import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -65,6 +65,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
+import org.thingsboard.integration.coap.CoapIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
 import org.thingsboard.integration.http.loriot.LoriotIntegration;
@@ -82,6 +83,7 @@ import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -152,7 +154,6 @@ import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
-import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.EventDeduplicationExecutor;
@@ -252,6 +253,9 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     @Autowired
     private DefaultTbDeviceProfileCache deviceProfileCache;
+
+    @Autowired(required = false)
+    private CoapServerService coapServerService;
 
     @Value("${transport.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -1061,6 +1065,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
                 return new BasicRabbitMQIntegration();
             case APACHE_PULSAR:
                 return new BasicPulsarIntegration();
+            case COAP:
+                return new CoapIntegration(coapServerService);
             case CUSTOM:
             case TCP:
             case UDP:

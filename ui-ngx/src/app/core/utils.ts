@@ -469,6 +469,13 @@ export function baseUrl(): string {
   return url;
 }
 
+export function coapBaseUrl(dtlsEnabled: boolean): string {
+  if (dtlsEnabled) {
+    return "coaps:" + '//' + window.location.hostname;
+  }
+  return "coap:" + '//' + window.location.hostname;
+}
+
 export function generateId(length: number): string {
   if (!length || isNaN(length)) {
     length = 1;

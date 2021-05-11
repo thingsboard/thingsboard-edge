@@ -2728,6 +2728,7 @@
         "type-azure-iot-hub": "Azure IoT Hub",
         "type-opc-ua": "OPC-UA",
         "type-custom": "Custom",
+        "type-coap": "CoAP",
         "type-udp": "UDP",
         "type-tcp": "TCP",
         "type-kafka": "Kafka",
@@ -2870,7 +2871,20 @@
         "cache-time-to-live": "Cache time to live in minutes",
         "min-cache-size": "Cache size can't be lower 0",
         "min-cache-time-to-live": "Cache time to live can't be lower 0",
-        "max-cache-time-to-live": "Invalid time of cache live, select between 0 and 525600"
+        "max-cache-time-to-live": "Invalid time of cache live, select between 0 and 525600",
+        "coap-security-mode": "Security mode",
+        "coap-security-mode-required": "CoAP security mode is required",
+        "coap-security-mode-no-secure": "NO SECURE",
+        "coap-security-mode-dtls": "DTLS",
+        "coap-security-mode-mixed": "MIXED",
+        "coap-endpoint": "CoAP endpoint URL",
+        "coap-endpoint-url-copied-message": "CoAP endpoint URL has been copied to clipboard",
+        "copy-coap-endpoint-url": "Copy CoAP endpoint URL",
+        "copy-coap-dtls-endpoint-url": "Copy CoAP DTLS endpoint URL",
+        "coap-dtls-base-url": "DTLS Base URL",
+        "coap-dtls-base-url-required": "DTLS Base URL is required",
+        "coap-dtls-endpoint": "CoAP DTLS endpoint URL",
+        "coap-dtls-endpoint-url-copied-message": "CoAP DTLS endpoint URL has been copied to clipboard"
     },
     "item": {
         "selected": "Selected"

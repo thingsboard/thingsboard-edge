@@ -128,7 +128,7 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
             log.warn("Failed to process downLink message", e);
             reportDownlinkError(context, msg, "ERROR", e);
         }
-        logDownlink(context, msg.getType(), msg);
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
             processDownLinkMsg(context, msg);
         }

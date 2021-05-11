@@ -62,9 +62,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         super.init(params);
         loopExecutor = Executors.newSingleThreadExecutor();
         this.ctx = params.getContext();
-        kafkaConsumerConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                KafkaConsumerConfiguration.class);
+        kafkaConsumerConfiguration = getClientConfiguration(configuration, KafkaConsumerConfiguration.class);
     }
 
     @Override
