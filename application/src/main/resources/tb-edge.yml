@@ -89,7 +89,7 @@ cloud:
   secret: "${CLOUD_ROUTING_SECRET:}"
   reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}" # in milliseconds
   rpc:
-    host: "${CLOUD_PRC_HOST:demo.thingsboard.io}"
+    host: "${CLOUD_PRC_HOST:localhost}"
     port: "${CLOUD_RPC_PORT:7070}"
     timeout: "${CLOUD_RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
     keep_alive_time_sec: "${CLOUD_RPC_KEEP_ALIVE_TIME_SEC:360}"
