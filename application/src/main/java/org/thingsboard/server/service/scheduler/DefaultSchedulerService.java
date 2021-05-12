@@ -88,9 +88,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -122,16 +124,16 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData = new ConcurrentHashMap<>();
     private final ConcurrentMap<TopicPartitionInfo, Set<TenantId>> partitionedTenants = new ConcurrentHashMap<>();
-    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
-    private ListeningScheduledExecutorService queueExecutor;
+    ListeningScheduledExecutorService queueExecutor;
 
     private volatile boolean firstRun = true;
+
+    final Queue<Set<TopicPartitionInfo>> subscribeQueue = new ConcurrentLinkedQueue<>();
 
     @PostConstruct
     public void init() {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
-        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultSchedulerService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 
     @PreDestroy
@@ -158,6 +160,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
 
     @Override
     public void onQueueMsg(TransportProtos.SchedulerServiceMsgProto proto, TbCallback callback) {
+        log.debug("onQueueMsg proto {}", proto);
         TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
         SchedulerEventId eventId = new SchedulerEventId(new UUID(proto.getEventIdMSB(), proto.getEventIdLSB()));
         if (proto.getDeleted()) {
@@ -179,16 +182,36 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         callback.onSuccess();
     }
 
+    /**
+     * DiscoveryService will call this event from the single thread (one-by-one).
+     * Events order is guaranteed by DiscoveryService.
+     * The only concurrency is expected from the [main] thread on Application started.
+     * Async implementation. Locks is not allowed by design.
+     * Any locks or delays in this module will affect DiscoveryService and entire system
+     * */
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+        log.trace("onTbApplicationEvent event {}", partitionChangeEvent);
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
+            log.debug("onTbApplicationEvent ServiceType is TB_CORE, processing queue {}", partitionChangeEvent);
+            subscribeQueue.add(partitionChangeEvent.getPartitions());
+            queueExecutor.submit(this::pollInitStateFromDB);
         }
     }
 
-    private void initStateFromDB(Set<TopicPartitionInfo> partitions) {
+    void pollInitStateFromDB(){
+        final Set<TopicPartitionInfo> partitions = getLatestPartitionsFromQueue();
+        if (partitions == null) {
+            log.info("Scheduler service. Nothing to do. partitions is null");
+            return;
+        }
+        initStateFromDB(partitions);
+    }
+
+    void initStateFromDB(Set<TopicPartitionInfo> partitions) {
         try {
-            log.info("{}} scheduler service.", firstRun ? "Initializing" : "Updating");
+            log.info("Scheduler service {}", firstRun ? "Initializing" : "Updating");
+
             Set<TopicPartitionInfo> addedPartitions = new HashSet<>(partitions);
             addedPartitions.removeAll(partitionedTenants.keySet());
 
@@ -222,6 +245,17 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         }
     }
 
+    Set<TopicPartitionInfo> getLatestPartitionsFromQueue() {
+        log.debug("getLatestPartitionsFromQueue, queue size {}", subscribeQueue.size());
+        Set<TopicPartitionInfo> partitions = null;
+        while (!subscribeQueue.isEmpty()) {
+            partitions = subscribeQueue.poll();
+            log.debug("polled from the queue partitions {}", partitions);
+        }
+        log.debug("getLatestPartitionsFromQueue, partitions {}", partitions);
+        return partitions;
+    }
+
     private void addEventsForTenant(long ts, Tenant tenant) {
         List<SchedulerEventId> eventIds = new ArrayList<>();
         log.debug("[{}] Fetching scheduled events for tenant.", tenant.getId());
@@ -247,6 +281,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private void scheduleNextEvent(long ts, SchedulerEventInfo event, SchedulerEventMetaData md) {
         long eventTs = md.getNextEventTime(ts);
         if (eventTs != 0L) {
+            log.debug("schedule next event for ts {}, event {}, metadata {}", ts, event, md);
             long eventDelay = eventTs - ts;
             md.setNextTaskFuture(queueExecutor.schedule(() -> processEvent(event.getTenantId(), event.getId()), eventDelay, TimeUnit.MILLISECONDS));
         }
@@ -269,6 +304,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     }
 
     private void processEvent(TenantId tenantId, SchedulerEventId eventId) {
+        log.debug("processEvent tenant {}, event {}", tenantId, eventId);
         SchedulerEventMetaData md = eventsMetaData.get(eventId);
         if (md != null) {
             SchedulerEvent event = schedulerEventService.findSchedulerEventById(tenantId, eventId);
@@ -336,6 +372,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                     }
                     TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
                     TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
+                    log.debug("pushing message to the rule engine tenant {}, originator {}, msg {}", tenantId, originatorId, tbMsg);
                     clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
                 } catch (Exception e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
@@ -389,6 +426,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     }
 
     private void onEventDeleted(SchedulerEventId eventId) {
+        log.debug("onEventDeleted event {}", eventId);
         SchedulerEventMetaData oldMd = eventsMetaData.remove(eventId);
         if (oldMd != null && oldMd.getNextTaskFuture() != null) {
             oldMd.getNextTaskFuture().cancel(false);
@@ -396,6 +434,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     }
 
     private void scheduleAndAddToMap(SchedulerEventInfo event) {
+        log.debug("scheduleAndAddToMap event {}", event);
         long ts = System.currentTimeMillis();
         SchedulerEventMetaData eventMd = getSchedulerEventMetaData(event);
         scheduleNextEvent(ts, event, eventMd);
