@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud.processor;
+package org.thingsboard.server.service.cloud.processor.downlink;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,6 +70,7 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -117,6 +118,9 @@ public abstract class BaseProcessor {
 
     @Autowired
     protected DeviceService deviceService;
+
+    @Autowired
+    protected DeviceProfileService deviceProfileService;
 
     @Autowired
     protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
@@ -195,11 +199,16 @@ public abstract class BaseProcessor {
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
             SettableFuture<Void> futureToSet = SettableFuture.create();
             List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
-            futures.add(saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+            CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+            futures.add(saveCloudEvent(tenantId, cloudEventType,
                     ActionType.ATTRIBUTES_REQUEST, entityId, null));
-            futures.add(saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+            futures.add(saveCloudEvent(tenantId, cloudEventType,
                     ActionType.RELATION_REQUEST, entityId, null));
-            Futures.addCallback(Futures.allAsList(futures), new FutureCallback<List<CloudEvent>>() {
+            if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
+                futures.add(saveCloudEvent(tenantId, cloudEventType,
+                        ActionType.ENTITY_VIEW_REQUEST, entityId, null));
+            }
+            Futures.addCallback(Futures.allAsList(futures), new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable List<CloudEvent> cloudEvents) {
                     futureToSet.set(null);

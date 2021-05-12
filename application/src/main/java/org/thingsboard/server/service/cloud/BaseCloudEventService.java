@@ -28,26 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cloud;
+package org.thingsboard.server.service.cloud;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 
-import java.util.List;
+@Slf4j
+public abstract class BaseCloudEventService {
 
-public interface CloudEventService {
+    @Autowired
+    protected CloudEventService cloudEventService;
 
-    ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent);
+    protected ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,
+                                                        CloudEventType cloudEventType,
+                                                        ActionType cloudEventAction,
+                                                        EntityId entityId,
+                                                        JsonNode entityBody) {
+        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
+                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
-
-    EdgeSettings findEdgeSettings(TenantId tenantId);
-
-    ListenableFuture<List<Void>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
-
-    void deleteCloudEventsByTenantId(TenantId tenantId);
+        CloudEvent cloudEvent = new CloudEvent();
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setCloudEventType(cloudEventType);
+        cloudEvent.setCloudEventAction(cloudEventAction.name());
+        if (entityId != null) {
+            cloudEvent.setEntityId(entityId.getId());
+        }
+        cloudEvent.setEntityBody(entityBody);
+        return cloudEventService.saveAsync(cloudEvent);
+    }
 }

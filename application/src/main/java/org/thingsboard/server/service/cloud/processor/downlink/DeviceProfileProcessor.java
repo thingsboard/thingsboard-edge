@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud.processor;
+package org.thingsboard.server.service.cloud.processor.downlink;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -51,8 +53,6 @@ import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
@@ -104,6 +104,10 @@ public class DeviceProfileProcessor extends BaseProcessor {
                         deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
                     }
                     deviceProfileService.saveDeviceProfile(deviceProfile);
+
+                    if (created) {
+                        saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, ActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
+                    }
                 } finally {
                     deviceCreationLock.unlock();
                 }

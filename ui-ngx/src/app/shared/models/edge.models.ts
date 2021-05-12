@@ -95,7 +95,8 @@ export enum CloudEventType {
   CUSTOMER = "CUSTOMER",
   RELATION = "RELATION",
   ENTITY_GROUP = "ENTITY_GROUP",
-  EDGE = "EDGE"
+  EDGE = "EDGE",
+  WIDGETS_BUNDLE = "WIDGETS_BUNDLE"
 }
 
 export interface Edge extends BaseData<EdgeId> {
@@ -121,6 +122,7 @@ export interface EdgeSearchQuery extends EntitySearchQuery {
   edgeTypes: Array<string>;
 }
 
+// PE MERGE
 export enum EdgeEventType {
   DASHBOARD = "DASHBOARD",
   ASSET = "ASSET",
@@ -171,6 +173,8 @@ export enum CloudEventActionType {
   CREDENTIALS_REQUEST = "CREDENTIALS_REQUEST",
   GROUP_ENTITIES_REQUEST = "GROUP_ENTITIES_REQUEST",
   GROUP_PERMISSIONS_REQUEST = "GROUP_PERMISSIONS_REQUEST",
+  DEVICE_PROFILE_DEVICES_REQUEST = "DEVICE_PROFILE_DEVICES_REQUEST",
+  WIDGET_BUNDLE_TYPES_REQUEST = "WIDGET_BUNDLE_TYPES_REQUEST",
   EDGE = "EDGE",
   USER = "USER",
   CUSTOMER = "CUSTOMER",
@@ -188,6 +192,7 @@ export enum CloudEventActionType {
   GROUP_PERMISSION = "GROUP_PERMISSION"
 }
 
+// PE MERGE
 export enum EdgeEventActionType {
   ADDED = "ADDED",
   DELETED = "DELETED",
@@ -231,7 +236,8 @@ export const cloudEventTypeTranslations = new Map<CloudEventType, string>(
     [CloudEventType.EDGE, 'cloud-event.cloud-event-type-edge'],
     [CloudEventType.USER, 'cloud-event.cloud-event-type-user'],
     [CloudEventType.CUSTOMER, 'cloud-event.cloud-event-type-customer'],
-    [CloudEventType.RELATION, 'cloud-event.cloud-event-type-relation']
+    [CloudEventType.RELATION, 'cloud-event.cloud-event-type-relation'],
+    [CloudEventType.WIDGETS_BUNDLE, 'cloud-event.cloud-event-type-widgets-bundle']
   ]
 );
 
@@ -258,7 +264,9 @@ export const cloudEventActionTypeTranslations = new Map<string, string>(
     [CloudEventActionType.RELATION_REQUEST, 'cloud-event.cloud-event-action-relation-request'],
     [CloudEventActionType.CREDENTIALS_REQUEST, 'cloud-event.cloud-event-action-credentials-request'],
     [CloudEventActionType.GROUP_ENTITIES_REQUEST, 'cloud-event.cloud-event-action-group-entities-request'],
-    [CloudEventActionType.GROUP_PERMISSIONS_REQUEST, 'cloud-event.cloud-event-action-group-permissions-request']
+    [CloudEventActionType.GROUP_PERMISSIONS_REQUEST, 'cloud-event.cloud-event-action-group-permissions-request'],
+    [CloudEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, 'cloud-event.cloud-event-action-device-profile-devices-request'],
+    [CloudEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, 'cloud-event.cloud-event-action-widget-bundle-types-request']
   ]
 );
 

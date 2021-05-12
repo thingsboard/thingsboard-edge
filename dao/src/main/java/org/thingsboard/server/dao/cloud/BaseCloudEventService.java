@@ -114,13 +114,13 @@ public class BaseCloudEventService implements CloudEventService {
     }
 
     @Override
-    public void saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
+    public ListenableFuture<List<Void>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
         try {
             BaseAttributeKvEntry edgeSettingAttr =
                     new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
             List<AttributeKvEntry> attributes =
                     Collections.singletonList(edgeSettingAttr);
-            attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+             return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
         } catch (Exception e) {
             log.error("Exception while saving edge settings", e);
             throw new RuntimeException("Exception while saving edge settings", e);

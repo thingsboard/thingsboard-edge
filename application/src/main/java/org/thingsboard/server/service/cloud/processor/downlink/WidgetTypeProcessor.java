@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud.processor;
+package org.thingsboard.server.service.cloud.processor.downlink;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
@@ -36,53 +36,54 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.WidgetsBundleId;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class WidgetsBundleProcessor extends BaseProcessor {
+public class WidgetTypeProcessor extends BaseProcessor {
 
-    public ListenableFuture<Void> onWidgetsBundleUpdate(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
-        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
-        switch (widgetsBundleUpdateMsg.getMsgType()) {
+    public ListenableFuture<Void> onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
+        WidgetTypeId widgetTypeId = new WidgetTypeId(new UUID(widgetTypeUpdateMsg.getIdMSB(), widgetTypeUpdateMsg.getIdLSB()));
+        switch (widgetTypeUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
                     widgetCreationLock.lock();
-                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                    if (widgetsBundle == null) {
-                        widgetsBundle = new WidgetsBundle();
-                        if (widgetsBundleUpdateMsg.getIsSystem()) {
-                            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+                    WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(tenantId, widgetTypeId);
+                    if (widgetTypeDetails == null) {
+                        widgetTypeDetails = new WidgetTypeDetails();
+                        if (widgetTypeUpdateMsg.getIsSystem()) {
+                            widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);
                         } else {
-                            widgetsBundle.setTenantId(tenantId);
+                            widgetTypeDetails.setTenantId(tenantId);
                         }
-                        widgetsBundle.setId(widgetsBundleId);
-                        widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
+                        widgetTypeDetails.setId(widgetTypeId);
+                        widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
                     }
-                    widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
-                    widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                    widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toString());
-                    widgetsBundleService.saveWidgetsBundle(widgetsBundle);
+                    widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
+                    widgetTypeDetails.setAlias(widgetTypeUpdateMsg.getAlias());
+                    widgetTypeDetails.setName(widgetTypeUpdateMsg.getName());
+                    widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
+                    widgetTypeService.saveWidgetType(widgetTypeDetails);
                 } finally {
                     widgetCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                if (widgetsBundle != null) {
-                    widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
+                WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
+                if (widgetType != null) {
+                    widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
                 }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetsBundleUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetTypeUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
     }

@@ -1394,6 +1394,7 @@
         "row": "Row"
     },
     "edge": {
+        "edge": "Edge",
         "id": "ID",
         "last-connect-time": "Last time connected to Cloud",
         "last-disconnect-time": "Last time disconnected from Cloud",
@@ -1632,6 +1633,7 @@
       "cloud-event-type-user": "User",
       "cloud-event-type-customer":  "Customer",
       "cloud-event-type-relation": "Relation",
+      "cloud-event-type-widgets-bundle": "Widgets Bundle",
       "cloud-event-action-added": "Added",
       "cloud-event-action-deleted": "Deleted",
       "cloud-event-action-updated": "Updated",
@@ -1653,7 +1655,9 @@
       "cloud-event-action-relation-request": "Relation Request",
       "cloud-event-action-credentials-request": "Credentials Request",
       "cloud-event-action-group-entities-request": "Group Entities Request",
-      "cloud-event-action-group-permissions-request": "Permissions Request"
+      "cloud-event-action-group-permissions-request": "Permissions Request",
+      "cloud-event-action-device-profile-devices-request": "Device Profile Devices Request",
+      "cloud-event-action-widget-bundle-types-request": "Widget Bundle Types Request"
     },
     "entity": {
         "entity": "Entity",

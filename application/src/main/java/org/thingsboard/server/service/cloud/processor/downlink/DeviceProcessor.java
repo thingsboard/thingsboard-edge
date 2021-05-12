@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud.processor;
+package org.thingsboard.server.service.cloud.processor.downlink;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -118,10 +118,10 @@ public class DeviceProcessor extends BaseProcessor {
         }
 
         SettableFuture<Void> futureToSet = SettableFuture.create();
-        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), new FutureCallback<Void>() {
+        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Void unused) {
-                FutureCallback<CloudEvent> cloudEventFutureCallback = new FutureCallback<CloudEvent>() {
+                FutureCallback<CloudEvent> cloudEventFutureCallback = new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable CloudEvent cloudEvent) {
                         futureToSet.set(null);

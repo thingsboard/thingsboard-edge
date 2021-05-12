@@ -72,7 +72,10 @@ public enum ActionType {
     RELATION_REQUEST(false),
     CREDENTIALS_REQUEST(false),
     GROUP_ENTITIES_REQUEST(false),
-    GROUP_PERMISSIONS_REQUEST(false);
+    GROUP_PERMISSIONS_REQUEST(false),
+    DEVICE_PROFILE_DEVICES_REQUEST(false),
+    WIDGET_BUNDLE_TYPES_REQUEST(false),
+    ENTITY_VIEW_REQUEST(false),;
 
     private final boolean isRead;
 

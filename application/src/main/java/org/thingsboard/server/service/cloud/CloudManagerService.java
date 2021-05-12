@@ -31,13 +31,10 @@
 package org.thingsboard.server.service.cloud;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -46,31 +43,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AlarmId;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -79,19 +65,13 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.transport.util.JsonUtils;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -104,69 +84,14 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
-import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
-import org.thingsboard.server.gen.edge.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.AttributesRequestMsg;
-import org.thingsboard.server.gen.edge.CustomTranslationProto;
-import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
-import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
-import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
-import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
-import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.EntityDataProto;
-import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
-import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
-import org.thingsboard.server.gen.edge.GroupPermissionProto;
-import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.RelationRequestMsg;
-import org.thingsboard.server.gen.edge.RelationUpdateMsg;
-import org.thingsboard.server.gen.edge.RoleProto;
-import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
-import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
-import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
-import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
-import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
-import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.UserUpdateMsg;
-import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
-import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
-import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
-import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
-import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.cloud.constructor.RelationUpdateMsgConstructor;
-import org.thingsboard.server.service.cloud.processor.AdminSettingsProcessor;
-import org.thingsboard.server.service.cloud.processor.AlarmProcessor;
-import org.thingsboard.server.service.cloud.processor.AssetProcessor;
-import org.thingsboard.server.service.cloud.processor.CustomerProcessor;
-import org.thingsboard.server.service.cloud.processor.DashboardProcessor;
-import org.thingsboard.server.service.cloud.processor.DeviceProcessor;
-import org.thingsboard.server.service.cloud.processor.DeviceProfileProcessor;
-import org.thingsboard.server.service.cloud.processor.EntityGroupProcessor;
-import org.thingsboard.server.service.cloud.processor.EntityViewProcessor;
-import org.thingsboard.server.service.cloud.processor.GroupPermissionProcessor;
-import org.thingsboard.server.service.cloud.processor.RelationProcessor;
-import org.thingsboard.server.service.cloud.processor.RoleProcessor;
-import org.thingsboard.server.service.cloud.processor.RuleChainProcessor;
-import org.thingsboard.server.service.cloud.processor.SchedulerEventProcessor;
-import org.thingsboard.server.service.cloud.processor.TelemetryProcessor;
-import org.thingsboard.server.service.cloud.processor.UserProcessor;
-import org.thingsboard.server.service.cloud.processor.WhiteLabelingProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetTypeProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetsBundleProcessor;
+import org.thingsboard.server.service.cloud.processor.uplink.UplinkProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -175,7 +100,6 @@ import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -188,15 +112,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class CloudManagerService {
-
-    private final ObjectMapper mapper = new ObjectMapper();
+public class CloudManagerService extends BaseCloudEventService {
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
@@ -208,9 +128,6 @@ public class CloudManagerService {
 
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
-
-    @Autowired
-    private CloudEventService cloudEventService;
 
     @Autowired
     private EdgeService edgeService;
@@ -240,9 +157,6 @@ public class CloudManagerService {
     private DeviceProfileService deviceProfileService;
 
     @Autowired
-    private DeviceCredentialsService deviceCredentialsService;
-
-    @Autowired
     private AssetService assetService;
 
     @Autowired
@@ -253,9 +167,6 @@ public class CloudManagerService {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private AlarmService alarmService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -282,88 +193,24 @@ public class CloudManagerService {
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     @Autowired
-    private RuleChainProcessor ruleChainProcessor;
-
-    @Autowired
-    private TelemetryProcessor telemetryProcessor;
-
-    @Autowired
-    private DeviceProcessor deviceProcessor;
-
-    @Autowired
-    private DeviceProfileProcessor deviceProfileProcessor;
-
-    @Autowired
-    private AssetProcessor assetProcessor;
-
-    @Autowired
-    private EntityViewProcessor entityViewProcessor;
-
-    @Autowired
-    private RelationProcessor relationProcessor;
-
-    @Autowired
-    private DashboardProcessor dashboardProcessor;
-
-    @Autowired
-    private CustomerProcessor customerProcessor;
-
-    @Autowired
-    private AlarmProcessor alarmProcessor;
-
-    @Autowired
-    private UserProcessor userProcessor;
-
-    @Autowired
-    private EntityGroupProcessor entityGroupProcessor;
-
-    @Autowired
-    private SchedulerEventProcessor schedulerEventProcessor;
-
-    @Autowired
-    private RoleProcessor roleProcessor;
-
-    @Autowired
-    private GroupPermissionProcessor groupPermissionProcessor;
-
-    @Autowired
-    private WhiteLabelingProcessor whiteLabelingProcessor;
-
-    @Autowired
-    private WidgetsBundleProcessor widgetsBundleProcessor;
-
-    @Autowired
-    private WidgetTypeProcessor widgetTypeProcessor;
-
-    @Autowired
-    private AdminSettingsProcessor adminSettingsProcessor;
-
-    @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
 
     @Autowired
-    private DeviceUpdateMsgConstructor deviceUpdateMsgConstructor;
-
-    @Autowired
-    private AlarmUpdateMsgConstructor alarmUpdateMsgConstructor;
-
-    @Autowired
-    private RelationUpdateMsgConstructor relationUpdateMsgConstructor;
-
-    @Autowired
-    private EntityDataMsgConstructor entityDataMsgConstructor;
+    private DownlinkMessageService downlinkMessageService;
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
+
+    @Autowired
+    private UplinkProcessor uplinkProcessor;
 
     @Autowired
     private InstallScripts installScripts;
 
     private CountDownLatch latch;
 
-    private final Lock sequenceDependencyLock = new ReentrantLock();
-
-    private EdgeSettings edgeSettings;
+    private EdgeId edgeId;
+    private EdgeSettings currentEdgeSettings;
 
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
@@ -371,7 +218,6 @@ public class CloudManagerService {
     private volatile boolean initialized;
 
     private TenantId tenantId;
-    private CustomerId customerId;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -399,7 +245,7 @@ public class CloudManagerService {
 
     @PreDestroy
     public void destroy() throws InterruptedException {
-        String edgeId = edgeSettings != null ? edgeSettings.getEdgeId() : "";
+        String edgeId = currentEdgeSettings != null ? currentEdgeSettings.getEdgeId() : "";
         log.info("[{}] Starting destroying process", edgeId);
         try {
             edgeRpcClient.disconnect(false);
@@ -493,33 +339,42 @@ public class CloudManagerService {
                     case CREDENTIALS_UPDATED:
                     case RELATION_ADD_OR_UPDATE:
                     case RELATION_DELETED:
-                        uplinkMsg = processEntityMessage(cloudEvent, edgeEventAction);
+                        uplinkMsg = uplinkProcessor.processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
                         break;
                     case ATTRIBUTES_UPDATED:
                     case ATTRIBUTES_DELETED:
                     case TIMESERIES_UPDATED:
-                        uplinkMsg = processTelemetryMessage(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processTelemetryMessage(cloudEvent);
                         break;
                     case ATTRIBUTES_REQUEST:
-                        uplinkMsg = processAttributesRequest(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processAttributesRequest(cloudEvent);
                         break;
                     case RELATION_REQUEST:
-                        uplinkMsg = processRelationRequest(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processRelationRequest(cloudEvent);
                         break;
                     case RULE_CHAIN_METADATA_REQUEST:
-                        uplinkMsg = processRuleChainMetadataRequest(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processRuleChainMetadataRequest(cloudEvent);
                         break;
                     case CREDENTIALS_REQUEST:
-                        uplinkMsg = processCredentialsRequest(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processCredentialsRequest(cloudEvent);
                         break;
                     case GROUP_ENTITIES_REQUEST:
-                        uplinkMsg = processGroupEntitiesRequest(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processGroupEntitiesRequest(cloudEvent);
                         break;
                     case GROUP_PERMISSIONS_REQUEST:
-                        uplinkMsg = processEntityGroupPermissionsRequest(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processEntityGroupPermissionsRequest(cloudEvent);
                         break;
                     case RPC_CALL:
-                        uplinkMsg = processRpcCallResponse(cloudEvent);
+                        uplinkMsg = uplinkProcessor.processRpcCallResponse(cloudEvent);
+                        break;
+                    case DEVICE_PROFILE_DEVICES_REQUEST:
+                        uplinkMsg = uplinkProcessor.processDeviceProfileDevicesRequest(cloudEvent);
+                        break;
+                    case WIDGET_BUNDLE_TYPES_REQUEST:
+                        uplinkMsg = uplinkProcessor.processWidgetBundleTypesRequest(cloudEvent);
+                        break;
+                    case ENTITY_VIEW_REQUEST:
+                        uplinkMsg = uplinkProcessor.processEntityViewRequest(cloudEvent);
                         break;
                 }
                 if (uplinkMsg != null) {
@@ -551,312 +406,6 @@ public class CloudManagerService {
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
     }
 
-    private UplinkMsg processTelemetryMessage(CloudEvent cloudEvent) {
-        try {
-            log.trace("Executing processTelemetryMessage, cloudEvent [{}]", cloudEvent);
-            EntityId entityId;
-            switch (cloudEvent.getCloudEventType()) {
-                case DEVICE:
-                    entityId = new DeviceId(cloudEvent.getEntityId());
-                    break;
-                case ASSET:
-                    entityId = new AssetId(cloudEvent.getEntityId());
-                    break;
-                case ENTITY_VIEW:
-                    entityId = new EntityViewId(cloudEvent.getEntityId());
-                    break;
-                case DASHBOARD:
-                    entityId = new DashboardId(cloudEvent.getEntityId());
-                    break;
-                case ENTITY_GROUP:
-                    entityId = new EntityGroupId(cloudEvent.getEntityId());
-                    break;
-                default:
-                    throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getCloudEventType() + "]");
-            }
-
-            ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
-            return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(cloudEvent.getEntityBody())));
-        } catch (Exception e) {
-            log.warn("Can't convert telemetry data msg, cloudEvent [{}]", cloudEvent, e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processEntityMessage(CloudEvent cloudEvent, ActionType edgeEventAction) {
-        UpdateMsgType msgType = getResponseMsgType(ActionType.valueOf(cloudEvent.getCloudEventAction()));
-        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}], msgType [{}]", cloudEvent, edgeEventAction, msgType);
-        switch (cloudEvent.getCloudEventType()) {
-            case DEVICE:
-                return processDevice(cloudEvent, msgType, edgeEventAction);
-            case ALARM:
-                return processAlarm(cloudEvent, msgType);
-            case RELATION:
-                return processRelation(cloudEvent, msgType);
-            default:
-                log.warn("Unsupported cloud event type [{}]", cloudEvent);
-                return null;
-        }
-    }
-
-    private UplinkMsg processDevice(CloudEvent cloudEvent, UpdateMsgType msgType, ActionType edgeActionType) {
-        try {
-            DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
-            UplinkMsg msg = null;
-            switch (edgeActionType) {
-                case ADDED:
-                case UPDATED:
-                    Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
-                    if (device != null) {
-                        DeviceUpdateMsg deviceUpdateMsg =
-                                deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
-                        msg = UplinkMsg.newBuilder()
-                                .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
-                    } else {
-                        log.info("Skipping event as device was not found [{}]", cloudEvent);
-                    }
-                    break;
-                case DELETED:
-                    DeviceUpdateMsg deviceUpdateMsg =
-                            deviceUpdateMsgConstructor.constructDeviceDeleteMsg(deviceId);
-                    msg = UplinkMsg.newBuilder()
-                            .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
-                    break;
-                case CREDENTIALS_UPDATED:
-                    DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
-                    if (deviceCredentials != null) {
-                        DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg =
-                                deviceUpdateMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
-                        msg = UplinkMsg.newBuilder()
-                                .addAllDeviceCredentialsUpdateMsg(Collections.singletonList(deviceCredentialsUpdateMsg)).build();
-                    } else {
-                        log.info("Skipping event as device credentials was not found [{}]", cloudEvent);
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported edge action type [" + edgeActionType + "]");
-            }
-            return msg;
-        } catch (Exception e) {
-            log.error("Can't process device msg [{}] [{}]", cloudEvent, msgType, e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processAlarm(CloudEvent cloudEvent, UpdateMsgType msgType) {
-        try {
-            AlarmId alarmId = new AlarmId(cloudEvent.getEntityId());
-            Alarm alarm = alarmService.findAlarmByIdAsync(cloudEvent.getTenantId(), alarmId).get();
-            UplinkMsg msg = null;
-            if (alarm != null) {
-                AlarmUpdateMsg alarmUpdateMsg = alarmUpdateMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
-                msg = UplinkMsg.newBuilder()
-                        .addAllAlarmUpdateMsg(Collections.singletonList(alarmUpdateMsg)).build();
-            } else {
-                log.info("Skipping event as alarm was not found [{}]", cloudEvent);
-            }
-            return msg;
-        } catch (Exception e) {
-            log.error("Can't process alarm msg [{}] [{}]", cloudEvent, msgType, e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processAttributesRequest(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        try {
-            ArrayList<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
-            AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()
-                    .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                    .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                    .setEntityType(entityId.getEntityType().name())
-                    .setScope(DataConstants.SERVER_SCOPE)
-                    .build();
-            allAttributesRequestMsg.add(serverAttributesRequestMsg);
-            if (EntityType.DEVICE.equals(entityId.getEntityType())) {
-                AttributesRequestMsg sharedAttributesRequestMsg = AttributesRequestMsg.newBuilder()
-                        .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                        .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                        .setEntityType(entityId.getEntityType().name())
-                        .setScope(DataConstants.SHARED_SCOPE)
-                        .build();
-                allAttributesRequestMsg.add(sharedAttributesRequestMsg);
-            }
-            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllAttributesRequestMsg(allAttributesRequestMsg);
-            return builder.build();
-        } catch (Exception e) {
-            log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processRelation(CloudEvent cloudEvent, UpdateMsgType msgType) {
-        log.trace("Executing processRelation, cloudEvent [{}]", cloudEvent);
-        UplinkMsg msg = null;
-        try {
-            EntityRelation entityRelation = mapper.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
-            if (entityRelation != null) {
-                RelationUpdateMsg relationUpdateMsg = relationUpdateMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
-                msg = UplinkMsg.newBuilder()
-                        .addAllRelationUpdateMsg(Collections.singletonList(relationUpdateMsg)).build();
-            }
-        } catch (Exception e) {
-            log.error("Can't process relation msg [{}] [{}]", cloudEvent, msgType, e);
-        }
-        return msg;
-    }
-
-    private UplinkMsg processRelationRequest(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processRelationRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        try {
-            RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
-                    .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                    .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                    .setEntityType(entityId.getEntityType().name())
-                    .build();
-            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
-            return builder.build();
-        } catch (Exception e) {
-            log.warn("Can't send relation request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processRpcCallResponse(CloudEvent cloudEvent) {
-        log.trace("Executing processRpcCallResponse, cloudEvent [{}]", cloudEvent);
-        UplinkMsg msg = null;
-        try {
-            DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
-            DeviceRpcCallMsg rpcResponseMsg = deviceUpdateMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
-            msg = UplinkMsg.newBuilder()
-                    .addAllDeviceRpcCallMsg(Collections.singletonList(rpcResponseMsg)).build();
-        } catch (Exception e) {
-            log.error("Can't process RPC response msg [{}]", cloudEvent, e);
-        }
-        return msg;
-    }
-
-    private UplinkMsg processRuleChainMetadataRequest(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processRuleChainMetadataRequest, cloudEvent [{}]", cloudEvent);
-        EntityId ruleChainId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        try {
-            RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
-                    .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
-                    .setRuleChainIdLSB(ruleChainId.getId().getLeastSignificantBits())
-                    .build();
-            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllRuleChainMetadataRequestMsg(Collections.singletonList(ruleChainMetadataRequestMsg));
-            return builder.build();
-        } catch (Exception e) {
-            log.warn("Can't send rule chain metadata request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processCredentialsRequest(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processCredentialsRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        try {
-            UplinkMsg msg = null;
-            switch (entityId.getEntityType()) {
-                case USER:
-                    UserCredentialsRequestMsg userCredentialsRequestMsg = UserCredentialsRequestMsg.newBuilder()
-                            .setUserIdMSB(entityId.getId().getMostSignificantBits())
-                            .setUserIdLSB(entityId.getId().getLeastSignificantBits())
-                            .build();
-                    msg = UplinkMsg.newBuilder()
-                            .addAllUserCredentialsRequestMsg(Collections.singletonList(userCredentialsRequestMsg))
-                            .build();
-                    break;
-                case DEVICE:
-                    DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = DeviceCredentialsRequestMsg.newBuilder()
-                            .setDeviceIdMSB(entityId.getId().getMostSignificantBits())
-                            .setDeviceIdLSB(entityId.getId().getLeastSignificantBits())
-                            .build();
-                    msg = UplinkMsg.newBuilder()
-                            .addAllDeviceCredentialsRequestMsg(Collections.singletonList(deviceCredentialsRequestMsg))
-                            .build();
-                    break;
-                default:
-                    log.info("Skipping event as entity type doesn't supported [{}]", cloudEvent);
-            }
-            return msg;
-        } catch (Exception e) {
-            log.warn("Can't send credentials request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processGroupEntitiesRequest(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processGroupEntitiesRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        String type = cloudEvent.getEntityBody().get("type").asText();
-        try {
-            EntityGroupRequestMsg entityGroupEntitiesRequestMsg = EntityGroupRequestMsg.newBuilder()
-                    .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
-                    .setType(type)
-                    .build();
-            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllEntityGroupEntitiesRequestMsg(Collections.singletonList(entityGroupEntitiesRequestMsg));
-            return builder.build();
-        } catch (Exception e) {
-            log.warn("Can't group entities credentials request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
-            return null;
-        }
-    }
-
-    private UplinkMsg processEntityGroupPermissionsRequest(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processEntityGroupPermissionsRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        String type = cloudEvent.getEntityBody().get("type").asText();
-        try {
-            EntityGroupRequestMsg entityGroupPermissionsRequestMsg = EntityGroupRequestMsg.newBuilder()
-                    .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
-                    .setType(type)
-                    .build();
-            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllEntityGroupPermissionsRequestMsg(Collections.singletonList(entityGroupPermissionsRequestMsg));
-            return builder.build();
-        } catch (Exception e) {
-            log.warn("Failed process group permissions request, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
-            return null;
-        }
-    }
-
-
-    private UpdateMsgType getResponseMsgType(ActionType actionType) {
-        switch (actionType) {
-            case UPDATED:
-            case CREDENTIALS_UPDATED:
-                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
-            case ADDED:
-            case RELATION_ADD_OR_UPDATE:
-                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
-            case DELETED:
-            case RELATION_DELETED:
-                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
-            case ALARM_ACK:
-                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
-            case ALARM_CLEAR:
-                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
-            default:
-                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
-        }
-    }
-
-    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
-        EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllEntityData(Collections.singletonList(entityDataProto));
-        return builder.build();
-    }
-
     private void onUplinkResponse(UplinkResponseMsg msg) {
         try {
             if (msg.getSuccess()) {
@@ -872,6 +421,8 @@ public class CloudManagerService {
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
+            boolean updatingEdge = this.currentEdgeSettings != null;
+
             if (scheduledFuture != null) {
                 scheduledFuture.cancel(true);
                 scheduledFuture = null;
@@ -880,14 +431,15 @@ public class CloudManagerService {
             UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
             this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
 
-            this.edgeSettings = cloudEventService.findEdgeSettings(tenantId);
+            this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
             EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
-            if (this.edgeSettings == null || !this.edgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
+            if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
                 cleanUp();
-                this.edgeSettings = newEdgeSetting;
-                // TODO: voba - should sync be executed in some other cases ???
-                edgeRpcClient.sendSyncRequestMsg();
+                this.currentEdgeSettings = newEdgeSetting;
             }
+
+            // TODO: voba - should sync be executed in some other cases ???
+            edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
 
             cloudEventService.saveEdgeSettings(tenantId, newEdgeSetting);
 
@@ -907,11 +459,10 @@ public class CloudManagerService {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
     }
-
     private void saveEdge(EdgeConfiguration edgeConfiguration) {
         Edge edge = new Edge();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
-        EdgeId edgeId = new EdgeId(edgeUUID);
+        edgeId = new EdgeId(edgeUUID);
         edge.setId(edgeId);
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         edge.setTenantId(new TenantId(tenantUUID));
@@ -1010,13 +561,13 @@ public class CloudManagerService {
         edgeSettings.setType(edgeConfiguration.getType());
         edgeSettings.setRoutingKey(edgeConfiguration.getRoutingKey());
         edgeSettings.setCloudType(CloudType.valueOf(edgeConfiguration.getCloudType()));
-
+        edgeSettings.setFullSyncRequired(true);
         return edgeSettings;
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        ListenableFuture<List<Void>> future = processDownlinkMsg(downlinkMsg);
-        Futures.addCallback(future, new FutureCallback<List<Void>>() {
+        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
+        Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder().setSuccess(true).build();
@@ -1030,199 +581,6 @@ public class CloudManagerService {
             }
         }, MoreExecutors.directExecutor());
     }
-
-    private ListenableFuture<List<Void>> processDownlinkMsg(DownlinkMsg downlinkMsg) {
-        List<ListenableFuture<Void>> result = new ArrayList<>();
-        try {
-            log.debug("onDownlink {}", downlinkMsg);
-            if (downlinkMsg.getEntityDataCount() > 0) {
-                for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    result.addAll(telemetryProcessor.onTelemetryUpdate(tenantId, entityData));
-                }
-            }
-            if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
-                for (DeviceRpcCallMsg deviceRpcRequestMsg : downlinkMsg.getDeviceRpcCallMsgList()) {
-                    result.add(deviceProcessor.onDeviceRpcRequest(tenantId, deviceRpcRequestMsg));
-                }
-            }
-            if (downlinkMsg.getDeviceCredentialsRequestMsgCount() > 0) {
-                for (DeviceCredentialsRequestMsg deviceCredentialsRequestMsg : downlinkMsg.getDeviceCredentialsRequestMsgList()) {
-                    result.add(processDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg));
-                }
-            }
-            if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
-                for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceProcessor.onDeviceUpdate(tenantId, customerId, deviceUpdateMsg, edgeSettings.getCloudType()));
-                }
-            }
-            if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
-                for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
-                    result.add(deviceProfileProcessor.onDeviceProfileUpdate(tenantId, deviceProfileUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
-                for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(deviceProcessor.onDeviceCredentialsUpdate(tenantId, deviceCredentialsUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
-                for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
-                    result.add(assetProcessor.onAssetUpdate(tenantId, customerId, assetUpdateMsg, edgeSettings.getCloudType()));
-                }
-            }
-            if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
-                for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
-                    result.add(entityViewProcessor.onEntityViewUpdate(tenantId, customerId, entityViewUpdateMsg, edgeSettings.getCloudType()));
-                }
-            }
-            if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
-                for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
-                    result.add(ruleChainProcessor.onRuleChainUpdate(tenantId, ruleChainUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getRuleChainMetadataUpdateMsgCount() > 0) {
-                for (RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg : downlinkMsg.getRuleChainMetadataUpdateMsgList()) {
-                    result.add(ruleChainProcessor.onRuleChainMetadataUpdate(tenantId, ruleChainMetadataUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getDashboardUpdateMsgCount() > 0) {
-                for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
-                    result.add(dashboardProcessor.onDashboardUpdate(tenantId, customerId, dashboardUpdateMsg, edgeSettings.getCloudType()));
-                }
-            }
-            if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
-                for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(alarmProcessor.onAlarmUpdate(tenantId, alarmUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
-                for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
-                    try {
-                        sequenceDependencyLock.lock();
-                        result.add(customerProcessor.onCustomerUpdate(tenantId, customerUpdateMsg, edgeSettings.getCloudType()));
-                        updateCustomerId(customerUpdateMsg);
-                    } finally {
-                        sequenceDependencyLock.unlock();
-                    }
-                }
-            }
-            if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
-                for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationProcessor.onRelationUpdate(tenantId, relationUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
-                for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
-                    result.add(widgetsBundleProcessor.onWidgetsBundleUpdate(tenantId, widgetsBundleUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
-                for (WidgetTypeUpdateMsg widgetTypeUpdateMsg : downlinkMsg.getWidgetTypeUpdateMsgList()) {
-                    result.add(widgetTypeProcessor.onWidgetTypeUpdate(tenantId, widgetTypeUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getUserUpdateMsgCount() > 0) {
-                for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
-                    try {
-                        sequenceDependencyLock.lock();
-                        result.add(userProcessor.onUserUpdate(tenantId, userUpdateMsg, this.edgeSettings.getCloudType()));
-                    } finally {
-                        sequenceDependencyLock.unlock();
-                    }
-                }
-            }
-            if (downlinkMsg.getUserCredentialsUpdateMsgCount() > 0) {
-                for (UserCredentialsUpdateMsg userCredentialsUpdateMsg : downlinkMsg.getUserCredentialsUpdateMsgList()) {
-                    result.add(userProcessor.onUserCredentialsUpdate(tenantId, userCredentialsUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
-                for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
-                    result.add(entityGroupProcessor.onEntityGroupUpdate(tenantId, entityGroupUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getCustomTranslationMsgCount() > 0) {
-                for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
-                    result.add(whiteLabelingProcessor.onCustomTranslationUpdate(tenantId, customTranslationProto));
-                }
-            }
-            if (downlinkMsg.getWhiteLabelingParamsCount() > 0) {
-                for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingProcessor.onWhiteLabelingParamsUpdate(tenantId, whiteLabelingParamsProto));
-                }
-            }
-            if (downlinkMsg.getLoginWhiteLabelingParamsCount() > 0) {
-                for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, loginWhiteLabelingParamsProto));
-                }
-            }
-            if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
-                for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
-                    result.add(schedulerEventProcessor.onScheduleEventUpdate(tenantId, schedulerEventUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
-                for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
-                    result.add(adminSettingsProcessor.onAdminSettingsUpdate(tenantId, adminSettingsUpdateMsg));
-                }
-            }
-            if (downlinkMsg.getRoleMsgCount() > 0) {
-                for (RoleProto roleProto : downlinkMsg.getRoleMsgList()) {
-                    result.add(roleProcessor.onRoleUpdate(tenantId, roleProto));
-                }
-            }
-            if (downlinkMsg.getGroupPermissionMsgCount() > 0) {
-                for (GroupPermissionProto groupPermissionProto : downlinkMsg.getGroupPermissionMsgList()) {
-                    result.add(groupPermissionProcessor.onGroupPermissionUpdate(tenantId, groupPermissionProto));
-                }
-            }
-        } catch (Exception e) {
-            log.error("Can't process downlink message [{}]", downlinkMsg, e);
-        }
-        return Futures.allAsList(result);
-    }
-
-    private void updateCustomerId(CustomerUpdateMsg customerUpdateMsg) {
-        switch (customerUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                customerId = null;
-                break;
-        }
-    }
-
-    private ListenableFuture<Void> processDeviceCredentialsRequestMsg(DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
-        if (deviceCredentialsRequestMsg.getDeviceIdMSB() != 0 && deviceCredentialsRequestMsg.getDeviceIdLSB() != 0) {
-            DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
-            ListenableFuture<CloudEvent> future = saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null);
-            return Futures.transform(future, cloudEvent -> null, dbCallbackExecutorService);
-        }
-        return Futures.immediateFuture(null);
-    }
-
-    private ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,
-                                                        CloudEventType cloudEventType,
-                                                        ActionType cloudEventAction,
-                                                        EntityId entityId,
-                                                        JsonNode entityBody) {
-        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
-
-        CloudEvent cloudEvent = new CloudEvent();
-        cloudEvent.setTenantId(tenantId);
-        cloudEvent.setCloudEventType(cloudEventType);
-        cloudEvent.setCloudEventAction(cloudEventAction.name());
-        if (entityId != null) {
-            cloudEvent.setEntityId(entityId.getId());
-        }
-        cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.saveAsync(cloudEvent);
-    }
-
-
 
     private void scheduleReconnect(Exception e) {
         initialized = false;

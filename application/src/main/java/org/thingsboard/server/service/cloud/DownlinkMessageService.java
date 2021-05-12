@@ -28,26 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cloud;
+package org.thingsboard.server.service.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.gen.edge.DownlinkMsg;
 
 import java.util.List;
 
-public interface CloudEventService {
+public interface DownlinkMessageService {
 
-    ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent);
-
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
-
-    EdgeSettings findEdgeSettings(TenantId tenantId);
-
-    ListenableFuture<List<Void>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
-
-    void deleteCloudEventsByTenantId(TenantId tenantId);
+    ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId, DownlinkMsg downlinkMsg, EdgeSettings currentEdgeSettings);
 }
