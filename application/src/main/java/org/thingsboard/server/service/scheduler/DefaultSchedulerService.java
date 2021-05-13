@@ -88,6 +88,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -97,6 +98,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Collections.emptyList;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
 
@@ -123,10 +125,10 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData = new ConcurrentHashMap<>();
-    private final ConcurrentMap<TopicPartitionInfo, Set<TenantId>> partitionedTenants = new ConcurrentHashMap<>();
+    final ConcurrentMap<TopicPartitionInfo, Set<TenantId>> partitionedTenants = new ConcurrentHashMap<>();
     ListeningScheduledExecutorService queueExecutor;
 
-    private volatile boolean firstRun = true;
+    volatile boolean firstRun = true;
 
     final Queue<Set<TopicPartitionInfo>> subscribeQueue = new ConcurrentLinkedQueue<>();
 
@@ -199,7 +201,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         }
     }
 
-    void pollInitStateFromDB(){
+    void pollInitStateFromDB() {
         final Set<TopicPartitionInfo> partitions = getLatestPartitionsFromQueue();
         if (partitions == null) {
             log.info("Scheduler service. Nothing to do. partitions is null");
@@ -214,26 +216,27 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
 
             Set<TopicPartitionInfo> addedPartitions = new HashSet<>(partitions);
             addedPartitions.removeAll(partitionedTenants.keySet());
+            log.trace("calculated addedPartitions {}", addedPartitions);
 
             Set<TopicPartitionInfo> removedPartitions = new HashSet<>(partitionedTenants.keySet());
             removedPartitions.removeAll(partitions);
+            log.trace("calculated removedPartitions {}", removedPartitions);
 
             // We no longer manage current partition of tenants;
             removedPartitions.forEach(partition -> {
-                Set<TenantId> tenants = partitionedTenants.remove(partition);
-                tenants.forEach(tenantId -> {
-                    tenantEvents.getOrDefault(tenantId, Collections.emptyList()).forEach(this::onEventDeleted);
-                    tenantEvents.remove(tenantId);
-                });
+                Set<TenantId> tenants = Optional.ofNullable(partitionedTenants.remove(partition)).orElseGet(Collections::emptySet);
+                log.trace("removing partition {}, tenants found {}", partition, tenants);
+                tenants.forEach(tenantId -> removeEvents(partition, tenantId));
             });
 
             addedPartitions.forEach(tpi -> partitionedTenants.computeIfAbsent(tpi, key -> ConcurrentHashMap.newKeySet()));
 
             long ts = System.currentTimeMillis();
-            List<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE)).getData();
+            List<Tenant> tenants = getAllTenants();
             for (Tenant tenant : tenants) {
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenant.getId(), tenant.getId());
                 if (addedPartitions.contains(tpi)) {
+                    addToPartitionedTenants(tenant, tpi);
                     addEventsForTenant(ts, tenant);
                 }
             }
@@ -241,8 +244,22 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
             log.info("Scheduler service {}.", firstRun ? "initialized" : "updated");
             firstRun = false;
         } catch (Throwable t) {
-            log.warn("Failed to init device states from DB", t);
+            log.warn("Failed to init scheduler states from DB", t);
         }
+    }
+
+    void removeEvents(TopicPartitionInfo partition, TenantId tenantId) {
+        log.trace("removing partition {} for tenantId {}", partition, tenantId);
+        tenantEvents.getOrDefault(tenantId, emptyList()).forEach(this::onEventDeleted);
+        tenantEvents.remove(tenantId);
+    }
+
+    boolean addToPartitionedTenants(Tenant tenant, TopicPartitionInfo tpi) {
+        return partitionedTenants.computeIfAbsent(tpi, key -> ConcurrentHashMap.newKeySet()).add(tenant.getId());
+    }
+
+    List<Tenant> getAllTenants() {
+        return tenantService.findTenants(new PageLink(Integer.MAX_VALUE)).getData();
     }
 
     Set<TopicPartitionInfo> getLatestPartitionsFromQueue() {
@@ -257,8 +274,8 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     }
 
     private void addEventsForTenant(long ts, Tenant tenant) {
-        List<SchedulerEventId> eventIds = new ArrayList<>();
         log.debug("[{}] Fetching scheduled events for tenant.", tenant.getId());
+        List<SchedulerEventId> eventIds = new ArrayList<>();
         List<SchedulerEventInfo> events = schedulerEventService.findSchedulerEventsByTenantId(tenant.getId());
         long scheduled = 0L;
         long passedAway = 0L;
@@ -425,7 +442,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         return new TbMsgMetaData(metaData);
     }
 
-    private void onEventDeleted(SchedulerEventId eventId) {
+    void onEventDeleted(SchedulerEventId eventId) {
         log.debug("onEventDeleted event {}", eventId);
         SchedulerEventMetaData oldMd = eventsMetaData.remove(eventId);
         if (oldMd != null && oldMd.getNextTaskFuture() != null) {

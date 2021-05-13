@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -14,17 +16,24 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.queue.TbClusterService;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableSet;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +52,9 @@ public class DefaultSchedulerServiceTest {
     SchedulerEventService schedulerEventService;
 
     DefaultSchedulerService schedulerService;
+
+    final Tenant sysTenant = new Tenant(TenantId.SYS_TENANT_ID);
+    final TopicPartitionInfo tpiForSysTenant = new TopicPartitionInfo("tb_core", null, 1, true);
 
     @Before
     public void setUp() throws Exception {
@@ -99,6 +111,66 @@ public class DefaultSchedulerServiceTest {
         } catch (InterruptedException e) {
             assertThat("Await latch interrupted", false);
         }
+    }
+
+    @Test
+    public void givenPartitionsFirstEvent_whenInitStateFromDBFirstTime_thenVerifyTenantAdded() {
+        //given
+        willReturn(singletonList(sysTenant)).given(schedulerService).getAllTenants();
+
+        final Set<TopicPartitionInfo> partitions = unmodifiableSet(new HashSet(asList(
+                new TopicPartitionInfo("tb_core", null, 0, true),
+                new TopicPartitionInfo("tb_core", null, 1, true),
+                new TopicPartitionInfo("tb_core", null, 2, true)
+        )));
+
+        willReturn(tpiForSysTenant).given(partitionService).resolve(ServiceType.TB_CORE, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+
+        assertThat(schedulerService.firstRun, is(true));
+
+        //when
+        schedulerService.initStateFromDB(partitions);
+
+        //then
+        assertThat(schedulerService.firstRun, is(false));
+        assertThat(schedulerService.partitionedTenants.size(), is(partitions.size()));
+
+        partitions.forEach(tpi -> assertThat(schedulerService.partitionedTenants.get(tpi), notNullValue()));
+        partitions.stream().filter(tpi -> !tpi.equals(tpiForSysTenant))
+                .forEach(tpi -> assertThat(schedulerService.partitionedTenants.get(tpi), is(empty())));
+
+        assertThat(schedulerService.partitionedTenants.get(tpiForSysTenant), notNullValue());
+        assertThat(schedulerService.partitionedTenants.get(tpiForSysTenant).size(), is(1)); //fix the issue that have been prevented cleanup on partition delete
+        verify(schedulerService, times(1)).addToPartitionedTenants(sysTenant, tpiForSysTenant);
+        verify(schedulerService, times(1)).addToPartitionedTenants(any(), any());
+    }
+
+    @Test
+    public void givenPartitionsSecondEvent_whenInitStateFromDBFirstTime_thenVerifyTenantRemoved() {
+        //given first event from previous test
+        givenPartitionsFirstEvent_whenInitStateFromDBFirstTime_thenVerifyTenantAdded();
+        assertThat(schedulerService.firstRun, is(false));
+        verify(schedulerService, never()).removeEvents(any(), any());
+
+        //given
+        final Set<TopicPartitionInfo> secondEventPartitions = unmodifiableSet(new HashSet(asList(
+                new TopicPartitionInfo("tb_core", null, 0, true),
+                //new TopicPartitionInfo("tb_core", null, 1, true), //have to remove tenant
+                new TopicPartitionInfo("tb_core", null, 2, true),
+                new TopicPartitionInfo("tb_core", null, 4, true),
+                new TopicPartitionInfo("tb_core", null, 6, true),
+                new TopicPartitionInfo("tb_core", null, 8, true)
+        )));
+
+        //when
+        schedulerService.initStateFromDB(secondEventPartitions);
+
+        //then
+        assertThat(schedulerService.partitionedTenants.size(), is(secondEventPartitions.size()));
+        secondEventPartitions.forEach(tpi -> assertThat(schedulerService.partitionedTenants.get(tpi), is(empty())));
+        assertThat(schedulerService.partitionedTenants.get(tpiForSysTenant), nullValue());
+        verify(schedulerService, times(1)).removeEvents(tpiForSysTenant, sysTenant.getId());
+        verify(schedulerService, times(1)).removeEvents(any(), any());
     }
 
     @After
