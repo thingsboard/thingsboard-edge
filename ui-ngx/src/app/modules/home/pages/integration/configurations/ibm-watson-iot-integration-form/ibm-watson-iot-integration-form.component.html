@@ -42,10 +42,12 @@
             integration.connect-timeout-range</mat-error>
     </mat-form-field>
     <mat-form-field class="mat-block">
-         <mat-label translate>integration.max-bytes-in-message</mat-label>
-         <input matInput type="number" formControlName="maxBytesInMessage">
-         <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('min')">integration.max-bytes-in-message-range</mat-error>
-         <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('max')">integration.max-bytes-in-message-range</mat-error>
+        <mat-label translate>integration.max-bytes-in-message</mat-label>
+        <input matInput type="number" formControlName="maxBytesInMessage">
+        <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('min')">
+            integration.max-bytes-in-message-range</mat-error>
+        <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('max')">
+            integration.max-bytes-in-message-range</mat-error>
      </mat-form-field>
     <div class="tb-panel-title" style="padding-bottom: 15px;">
         {{ 'integration.application-credentials' | translate }}</div>
