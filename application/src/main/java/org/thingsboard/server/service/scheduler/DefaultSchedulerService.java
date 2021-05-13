@@ -71,6 +71,8 @@ import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
@@ -469,6 +471,16 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         builder.setDeleted(deleted);
         TransportProtos.SchedulerServiceMsgProto msg = builder.build();
         // Routing by tenant id.
-        clusterService.pushMsgToCore(tenantId, tenantId, TransportProtos.ToCoreMsg.newBuilder().setSchedulerServiceMsg(msg).build(), null);
+        clusterService.pushMsgToCore(tenantId, tenantId, TransportProtos.ToCoreMsg.newBuilder().setSchedulerServiceMsg(msg).build(),
+                new TbQueueCallback() {
+                    @Override
+                    public void onSuccess(TbQueueMsgMetadata metadata) {
+                        log.trace("sendSchedulerEvent onSuccess tenantId {}, eventId {}, added {}, updated {}, deleted {}", tenantId, eventId, added, updated, deleted);
+                    }
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.trace("sendSchedulerEvent onFailure tenantId {}, eventId {}, added {}, updated {}, deleted {}, exception {}", tenantId, eventId, added, updated, deleted, t);
+                    }
+                });
     }
 }
