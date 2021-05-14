@@ -470,8 +470,11 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         builder.setUpdated(updated);
         builder.setDeleted(deleted);
         TransportProtos.SchedulerServiceMsgProto msg = builder.build();
+        log.trace("msg {}", msg);
         // Routing by tenant id.
-        clusterService.pushMsgToCore(tenantId, tenantId, TransportProtos.ToCoreMsg.newBuilder().setSchedulerServiceMsg(msg).build(),
+        TransportProtos.ToCoreMsg toCoreMsg = TransportProtos.ToCoreMsg.newBuilder().setSchedulerServiceMsg(msg).build();
+        log.trace("toCoreMsg.hasSchedulerServiceMsg() {} toCoreMsg {}", toCoreMsg.hasSchedulerServiceMsg(), toCoreMsg);
+        clusterService.pushMsgToCore(tenantId, tenantId, toCoreMsg,
                 new TbQueueCallback() {
                     @Override
                     public void onSuccess(TbQueueMsgMetadata metadata) {
