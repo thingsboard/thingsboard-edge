@@ -28,15 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.common.data.firmware;
 
-import lombok.Data;
-
-import java.util.UUID;
-
-@Data
-public class LwM2mFirmwareUpdate {
-    private volatile String clientFwVersion;
-    private volatile String currentFwVersion;
-    private volatile UUID currentFwId;
+public enum FirmwareUpdateStatus {
+    QUEUED, INITIATED, DOWNLOADING, DOWNLOADED, VERIFIED, UPDATING, UPDATED, FAILED
 }

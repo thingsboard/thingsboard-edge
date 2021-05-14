@@ -28,8 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.firmware;
+$previewSize: 300px !default;
 
-public enum FirmwareUpdateStatus {
-    QUEUED, INITIATED, DOWNLOADING, DOWNLOADED, VERIFIED, UPDATING, UPDATED, FAILED
+:host {
+
+  mat-form-field.rect-field {
+    max-width: 60px;
+  }
+
+  .tb-image-preview {
+    width: auto;
+    max-width: $previewSize - 2;
+    height: auto;
+    max-height: $previewSize - 2;
+  }
+
+  .tb-image-preview-container {
+    position: relative;
+    float: left;
+    width: $previewSize;
+    height: $previewSize;
+    margin-right: 12px;
+    vertical-align: top;
+    border: solid 1px;
+
+    div {
+      width: 100%;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    div,
+    .tb-image-preview {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .taking-screenshot-progress {
+    background-color: rgba(255, 255, 255, 0.65);
+  }
 }

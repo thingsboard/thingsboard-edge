@@ -91,6 +91,7 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       maxRuleNodeExecutionsPerMessage: [null, [Validators.required, Validators.min(0)]],
       maxEmails: [null, [Validators.required, Validators.min(0)]],
       maxSms: [null, [Validators.required, Validators.min(0)]],
+      maxCreatedAlarms: [null, [Validators.required, Validators.min(0)]],
       defaultStorageTtlDays: [null, [Validators.required, Validators.min(0)]]
     });
     this.defaultTenantProfileConfigurationFormGroup.valueChanges.subscribe(() => {
