@@ -43,12 +43,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.firmware.FirmwareDataCache;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.firmware.Firmware;
 import org.thingsboard.server.common.data.firmware.FirmwareInfo;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -201,6 +202,14 @@ public class BaseFirmwareService implements FirmwareService {
         log.trace("Executing findFirmwareInfoByDeviceIdAndFirmwareType [{}] [{}]", deviceId, firmwareType);
         validateId(deviceId, "Incorrect deviceId " + deviceId);
         return firmwareInfoDao.findFirmwareByDeviceIdAndFirmwareType(deviceId.getId(), firmwareType);
+    }
+
+    @Override
+    public PageData<FirmwareInfo> findFirmwaresByGroupIdAndHasData(EntityGroupId deviceGroupId, FirmwareType firmwareType, PageLink pageLink) {
+        log.trace("Executing findFirmwaresByGroupIdAndHasData, groupId [{}], pageLink [{}]", deviceGroupId, pageLink);
+        validateId(deviceGroupId, "Incorrect deviceGroupId " + deviceGroupId);
+        validatePageLink(pageLink);
+        return firmwareInfoDao.findFirmwaresByGroupIdAndHasData(deviceGroupId.getId(), firmwareType, pageLink);
     }
 
     private DataValidator<FirmwareInfo> firmwareInfoValidator = new DataValidator<>() {

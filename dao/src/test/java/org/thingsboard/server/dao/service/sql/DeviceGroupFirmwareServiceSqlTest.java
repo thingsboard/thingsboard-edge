@@ -28,28 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.firmware;
+package org.thingsboard.server.dao.service.sql;
 
-import org.thingsboard.server.common.data.firmware.FirmwareInfo;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.FirmwareId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.service.BaseDeviceGroupFirmwareServiceTest;
+import org.thingsboard.server.dao.service.BaseFirmwareServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.UUID;
-
-public interface FirmwareInfoDao extends Dao<FirmwareInfo> {
-
-    PageData<FirmwareInfo> findFirmwareInfoByTenantId(TenantId tenantId, PageLink pageLink);
-
-    PageData<FirmwareInfo> findFirmwareInfoByTenantIdAndDeviceProfileIdAndTypeAndHasData(TenantId tenantId, DeviceProfileId deviceProfileId, FirmwareType firmwareType, boolean hasData, PageLink pageLink);
-
-    boolean isFirmwareUsed(FirmwareId firmwareId, FirmwareType type, DeviceProfileId deviceProfileId);
-
-    FirmwareInfo findFirmwareByDeviceIdAndFirmwareType(UUID deviceId, FirmwareType firmwareType);
-
-    PageData<FirmwareInfo> findFirmwaresByGroupIdAndHasData(UUID deviceGroupId, FirmwareType firmwareType, PageLink pageLink);
+@DaoSqlTest
+public class DeviceGroupFirmwareServiceSqlTest extends BaseDeviceGroupFirmwareServiceTest {
 }

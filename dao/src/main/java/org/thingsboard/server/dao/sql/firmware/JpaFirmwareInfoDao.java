@@ -123,4 +123,14 @@ public class JpaFirmwareInfoDao extends JpaAbstractSearchTextDao<FirmwareInfoEnt
 
         return DaoUtil.getData(firmwareInfoEntity);
     }
+
+    @Override
+    public PageData<FirmwareInfo> findFirmwaresByGroupIdAndHasData(UUID deviceGroupId, FirmwareType firmwareType, PageLink pageLink) {
+        return DaoUtil.toPageData(firmwareInfoRepository
+                .findAllByTenantIdAndDeviceGroupAndTypeAndHasData(
+                        deviceGroupId,
+                        firmwareType,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
 }

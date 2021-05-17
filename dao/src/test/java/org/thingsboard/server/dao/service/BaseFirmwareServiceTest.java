@@ -86,9 +86,6 @@ public abstract class BaseFirmwareServiceTest extends AbstractServiceTest {
         deviceProfileId = savedDeviceProfile.getId();
     }
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @After
     public void after() {
         tenantService.deleteTenant(tenantId);

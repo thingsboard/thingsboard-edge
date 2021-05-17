@@ -18,6 +18,8 @@ DROP TABLE IF EXISTS ts_kv_dictionary;
 DROP TABLE IF EXISTS user_credentials;
 DROP TABLE IF EXISTS widget_type;
 DROP TABLE IF EXISTS widgets_bundle;
+DROP TABLE IF EXISTS device_group_firmware;
+DROP TABLE IF EXISTS entity_group;
 DROP TABLE IF EXISTS entity_view;
 DROP TABLE IF EXISTS device_profile;
 DROP TABLE IF EXISTS tenant_profile;

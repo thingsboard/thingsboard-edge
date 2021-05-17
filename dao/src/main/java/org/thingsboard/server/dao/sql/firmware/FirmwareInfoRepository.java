@@ -112,4 +112,15 @@ public interface FirmwareInfoRepository extends CrudRepository<FirmwareInfoEntit
             nativeQuery = true)
     FirmwareInfoEntity findSoftwareByDeviceId(@Param("deviceId") UUID deviceId);
 
+    @Query("SELECT new FirmwareInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, f.data IS NOT NULL) FROM FirmwareEntity f " +
+            "WHERE f.deviceProfileId IN (SELECT d.deviceProfileId FROM DeviceEntity d " +
+            "WHERE d.id IN (SELECT r.toId FROM RelationEntity r " +
+            "WHERE r.fromId = :groupId AND r.fromType = 'ENTITY_GROUP' AND r.relationTypeGroup = 'FROM_ENTITY_GROUP')) " +
+            "AND f.type = :type " +
+            "AND f.data IS NOT NULL " +
+            "AND LOWER(f.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<FirmwareInfoEntity> findAllByTenantIdAndDeviceGroupAndTypeAndHasData(@Param("groupId") UUID groupId,
+                                                                              @Param("type") FirmwareType type,
+                                                                              @Param("searchText") String searchText,
+                                                                              Pageable pageable);
 }
