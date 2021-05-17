@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.Device;
 import org.junit.rules.ExpectedException;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.Firmware;
+import org.thingsboard.server.common.data.firmware.Firmware;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;

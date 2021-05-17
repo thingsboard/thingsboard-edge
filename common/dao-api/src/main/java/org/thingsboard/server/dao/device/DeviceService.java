@@ -36,8 +36,10 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -68,10 +70,6 @@ public interface DeviceService {
 
     PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
-    PageData<Device> findDevicesByTenantIdAndTypeAndEmptyFirmware(TenantId tenantId, String type, PageLink pageLink);
-
-    PageData<Device> findDevicesByTenantIdAndTypeAndEmptySoftware(TenantId tenantId, String type, PageLink pageLink);
-
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds);
 
     void deleteDevicesByTenantId(TenantId tenantId);
@@ -101,4 +99,14 @@ public interface DeviceService {
     Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
 
     long countByTenantId(TenantId tenantId);
+
+    PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyFirmware(EntityGroupId groupId,
+                                                                       DeviceProfileId deviceProfileId,
+                                                                       FirmwareType firmwareType,
+                                                                       PageLink pageLink);
+
+    PageData<Device> findByDeviceProfileAndEmptyFirmware(TenantId tenantId,
+                                                         DeviceProfileId deviceProfileId,
+                                                         FirmwareType firmwareType,
+                                                         PageLink pageLink);
 }

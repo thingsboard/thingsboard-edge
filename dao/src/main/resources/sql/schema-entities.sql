@@ -653,6 +653,16 @@ CREATE TABLE IF NOT EXISTS edge_event (
     ts bigint NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS device_group_firmware (
+    id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,
+    group_id uuid NOT NULL,
+    firmware_type varchar(32) NOT NULL,
+    firmware_id uuid NOT NULL,
+    firmware_update_time bigint NOT NULL,
+    CONSTRAINT device_group_firmware_unq_key UNIQUE (group_id, firmware_type),
+    CONSTRAINT fk_device_profile_firmware FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
+);
+
 CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(IN ttl bigint, IN debug_ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$

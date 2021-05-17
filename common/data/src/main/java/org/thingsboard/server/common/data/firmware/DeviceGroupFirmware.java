@@ -28,22 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.firmware;
+package org.thingsboard.server.common.data.firmware;
 
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.transport.TransportProtos.ToFirmwareStateServiceMsg;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.FirmwareId;
 
-public interface FirmwareStateService {
+import java.util.UUID;
 
-    void update(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
-
-    void update(Device device);
-
-    void update(DeviceProfile deviceProfile, boolean isFirmwareChanged, boolean isSoftwareChanged);
-
-    boolean process(ToFirmwareStateServiceMsg msg);
-
+@Data
+public class DeviceGroupFirmware {
+    private UUID id;
+    private EntityGroupId groupId;
+    private FirmwareType firmwareType;
+    private FirmwareId firmwareId;
+    private long firmwareUpdateTime;
 }

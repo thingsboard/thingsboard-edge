@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
@@ -105,5 +105,22 @@ public class JpaFirmwareInfoDao extends JpaAbstractSearchTextDao<FirmwareInfoEnt
     @Override
     public boolean isFirmwareUsed(FirmwareId firmwareId, FirmwareType type, DeviceProfileId deviceProfileId) {
         return firmwareInfoRepository.isFirmwareUsed(firmwareId.getId(), deviceProfileId.getId(), type.name());
+    }
+
+    @Override
+    public FirmwareInfo findFirmwareByDeviceIdAndFirmwareType(UUID deviceId, FirmwareType firmwareType) {
+        FirmwareInfoEntity firmwareInfoEntity;
+        switch (firmwareType) {
+            case FIRMWARE:
+                firmwareInfoEntity = firmwareInfoRepository.findFirmwareByDeviceId(deviceId);
+                break;
+            case SOFTWARE:
+                firmwareInfoEntity = firmwareInfoRepository.findSoftwareByDeviceId(deviceId);
+                break;
+            default:
+                return null;
+        }
+
+        return DaoUtil.getData(firmwareInfoEntity);
     }
 }

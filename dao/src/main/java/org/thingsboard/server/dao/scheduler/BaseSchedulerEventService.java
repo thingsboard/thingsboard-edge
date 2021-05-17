@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.scheduler;
 
-
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

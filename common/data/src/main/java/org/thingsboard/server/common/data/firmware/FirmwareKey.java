@@ -34,7 +34,8 @@ import lombok.Getter;
 
 public enum FirmwareKey {
 
-    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm");
+    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"),
+    ID("id");
 
     @Getter
     private final String value;

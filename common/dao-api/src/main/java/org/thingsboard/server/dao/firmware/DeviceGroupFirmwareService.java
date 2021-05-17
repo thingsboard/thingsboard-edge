@@ -28,22 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.firmware;
+package org.thingsboard.server.dao.firmware;
 
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.transport.TransportProtos.ToFirmwareStateServiceMsg;
 
-public interface FirmwareStateService {
+import java.util.UUID;
 
-    void update(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
+public interface DeviceGroupFirmwareService {
+    DeviceGroupFirmware findDeviceGroupFirmwareById(UUID id);
 
-    void update(Device device);
+    DeviceGroupFirmware findDeviceGroupFirmwareByGroupIdAndFirmwareType(EntityGroupId groupId, FirmwareType firmwareType);
 
-    void update(DeviceProfile deviceProfile, boolean isFirmwareChanged, boolean isSoftwareChanged);
+    DeviceGroupFirmware saveDeviceGroupFirmware(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
 
-    boolean process(ToFirmwareStateServiceMsg msg);
-
+    void deleteDeviceGroupFirmware(UUID id);
 }

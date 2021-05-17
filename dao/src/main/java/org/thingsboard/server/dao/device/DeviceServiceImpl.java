@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -53,7 +54,6 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Firmware;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.device.data.DeviceTransportConfigurati
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.firmware.Firmware;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -93,7 +94,6 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
-import org.thingsboard.common.util.JacksonUtil;
 
 import javax.annotation.Nullable;
 import javax.transaction.Transactional;
@@ -212,8 +212,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         deviceCredentials.setDeviceId(savedDevice.getId());
         if (device.getId() == null) {
             deviceCredentials = deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
-        }
-        else {
+        } else {
             deviceCredentials.setId(deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), savedDevice.getId()).getId());
             deviceCredentials = deviceCredentialsService.updateDeviceCredentials(device.getTenantId(), deviceCredentials);
         }
@@ -353,24 +352,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantIdAndType(tenantId.getId(), type, pageLink);
-    }
-
-    @Override
-    public PageData<Device> findDevicesByTenantIdAndTypeAndEmptyFirmware(TenantId tenantId, String type, PageLink pageLink) {
-        log.trace("Executing findDevicesByTenantIdAndTypeAndEmptyFirmware, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink);
-        return deviceDao.findDevicesByTenantIdAndTypeAndEmptyFirmware(tenantId.getId(), type, pageLink);
-    }
-
-    @Override
-    public PageData<Device> findDevicesByTenantIdAndTypeAndEmptySoftware(TenantId tenantId, String type, PageLink pageLink) {
-        log.trace("Executing findDevicesByTenantIdAndTypeAndEmptySoftware, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink);
-        return deviceDao.findDevicesByTenantIdAndTypeAndEmptySoftware(tenantId.getId(), type, pageLink);
     }
 
     @Override
@@ -677,4 +658,28 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             deleteDevice(tenantId, new DeviceId(entity.getUuidId()));
         }
     };
+
+    @Override
+    public PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyFirmware(EntityGroupId groupId,
+                                                                              DeviceProfileId deviceProfileId,
+                                                                              FirmwareType firmwareType,
+                                                                              PageLink pageLink) {
+        log.trace("Executing findByEntityGroupIdAndDeviceProfileAndFirmwareIsNull, groupId [{}], deviceProfileId [{}], " +
+                "deviceProfileId [{}] firmwareType [{}]", groupId, deviceProfileId, firmwareType, pageLink);
+        validateId(groupId, "Incorrect groupId" + groupId);
+        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+        validatePageLink(pageLink);
+        return deviceDao.findByEntityGroupAndDeviceProfileAndEmptyFirmware(groupId.getId(), deviceProfileId.getId(), firmwareType, pageLink);
+    }
+
+    @Override
+    public PageData<Device> findByDeviceProfileAndEmptyFirmware(TenantId tenantId, DeviceProfileId deviceProfileId,
+                                                                FirmwareType firmwareType,
+                                                                PageLink pageLink) {
+        log.trace("Executing findByDeviceProfileAndEmptyFirmware,  deviceProfileId [{}], deviceProfileId [{}] firmwareType [{}]",
+                deviceProfileId, firmwareType, pageLink);
+        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+        validatePageLink(pageLink);
+        return deviceDao.findByDeviceProfileAndEmptyFirmware(tenantId.getId(), deviceProfileId.getId(), firmwareType, pageLink);
+    }
 }

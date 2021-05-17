@@ -43,10 +43,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.firmware.FirmwareDataCache;
 import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.firmware.Firmware;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -193,6 +194,13 @@ public class BaseFirmwareService implements FirmwareService {
         log.trace("Executing deleteFirmwaresByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantFirmwareRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public FirmwareInfo findFirmwareInfoByDeviceIdAndFirmwareType(DeviceId deviceId, FirmwareType firmwareType) {
+        log.trace("Executing findFirmwareInfoByDeviceIdAndFirmwareType [{}] [{}]", deviceId, firmwareType);
+        validateId(deviceId, "Incorrect deviceId " + deviceId);
+        return firmwareInfoDao.findFirmwareByDeviceIdAndFirmwareType(deviceId.getId(), firmwareType);
     }
 
     private DataValidator<FirmwareInfo> firmwareInfoValidator = new DataValidator<>() {

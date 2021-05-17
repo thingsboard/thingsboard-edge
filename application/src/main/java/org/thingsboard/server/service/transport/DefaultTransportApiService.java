@@ -48,16 +48,15 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.credentials.ProvisionDeviceCredentialsData;
 import org.thingsboard.server.common.data.device.profile.ProvisionDeviceProfileCredentials;
+import org.thingsboard.server.common.data.firmware.Firmware;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
-import org.thingsboard.server.common.data.firmware.FirmwareUtil;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -536,34 +535,26 @@ public class DefaultTransportApiService implements TransportApiService {
             return getEmptyTransportApiResponseFuture();
         }
 
-        FirmwareId firmwareId = FirmwareUtil.getFirmwareId(device, firmwareType);
-        if (firmwareId == null) {
-            DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
-            firmwareId = FirmwareUtil.getFirmwareId(deviceProfile, firmwareType);
-        }
+        FirmwareInfo firmwareInfo = firmwareService.findFirmwareInfoByDeviceIdAndFirmwareType(deviceId, firmwareType);
 
         TransportProtos.GetFirmwareResponseMsg.Builder builder = TransportProtos.GetFirmwareResponseMsg.newBuilder();
 
-        if (firmwareId == null) {
+        if (firmwareInfo == null) {
             builder.setResponseStatus(TransportProtos.ResponseStatus.NOT_FOUND);
         } else {
-            FirmwareInfo firmwareInfo = firmwareService.findFirmwareInfoById(tenantId, firmwareId);
+            FirmwareId firmwareId = firmwareInfo.getId();
 
-            if (firmwareInfo == null) {
-                builder.setResponseStatus(TransportProtos.ResponseStatus.NOT_FOUND);
-            } else {
-                builder.setResponseStatus(TransportProtos.ResponseStatus.SUCCESS);
-                builder.setFirmwareIdMSB(firmwareId.getId().getMostSignificantBits());
-                builder.setFirmwareIdLSB(firmwareId.getId().getLeastSignificantBits());
-                builder.setType(firmwareInfo.getType().name());
-                builder.setTitle(firmwareInfo.getTitle());
-                builder.setVersion(firmwareInfo.getVersion());
-                builder.setFileName(firmwareInfo.getFileName());
-                builder.setContentType(firmwareInfo.getContentType());
-                if (!firmwareDataCache.has(firmwareId.toString())) {
-                    Firmware firmware = firmwareService.findFirmwareById(tenantId, firmwareId);
-                    firmwareDataCache.put(firmwareId.toString(), firmware.getData().array());
-                }
+            builder.setResponseStatus(TransportProtos.ResponseStatus.SUCCESS);
+            builder.setFirmwareIdMSB(firmwareId.getId().getMostSignificantBits());
+            builder.setFirmwareIdLSB(firmwareId.getId().getLeastSignificantBits());
+            builder.setType(firmwareInfo.getType().name());
+            builder.setTitle(firmwareInfo.getTitle());
+            builder.setVersion(firmwareInfo.getVersion());
+            builder.setFileName(firmwareInfo.getFileName());
+            builder.setContentType(firmwareInfo.getContentType());
+            if (!firmwareDataCache.has(firmwareId.toString())) {
+                Firmware firmware = firmwareService.findFirmwareById(tenantId, firmwareId);
+                firmwareDataCache.put(firmwareId.toString(), firmware.getData().array());
             }
         }
 

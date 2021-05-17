@@ -28,22 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.firmware;
+package org.thingsboard.server.common.data.firmware;
 
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.transport.TransportProtos.ToFirmwareStateServiceMsg;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.FirmwareId;
 
-public interface FirmwareStateService {
+import java.nio.ByteBuffer;
 
-    void update(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Firmware extends FirmwareInfo {
 
-    void update(Device device);
+    private static final long serialVersionUID = 3091601761339422546L;
 
-    void update(DeviceProfile deviceProfile, boolean isFirmwareChanged, boolean isSoftwareChanged);
+    private transient ByteBuffer data;
 
-    boolean process(ToFirmwareStateServiceMsg msg);
+    public Firmware() {
+        super();
+    }
 
+    public Firmware(FirmwareId id) {
+        super(id);
+    }
+
+    public Firmware(Firmware firmware) {
+        super(firmware);
+        this.data = firmware.getData();
+    }
 }

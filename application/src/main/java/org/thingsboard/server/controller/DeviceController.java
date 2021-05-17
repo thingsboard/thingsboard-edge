@@ -122,13 +122,6 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         boolean created = device.getId() == null;
         try {
-            Device oldDevice;
-            if (!created) {
-                oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
-            } else {
-                oldDevice = null;
-            }
-
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
@@ -143,7 +136,7 @@ public class DeviceController extends BaseController {
                 deviceStateService.onDeviceUpdated(savedDevice);
             }
 
-            firmwareStateService.update(savedDevice, oldDevice);
+            firmwareStateService.update(savedDevice);
             return savedDevice;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), device,
