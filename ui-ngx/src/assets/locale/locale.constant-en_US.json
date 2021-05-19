@@ -2776,6 +2776,7 @@
         "service-bus-namespace-name": "Service Bus Namespace Name",
         "service-bus-namespace-name-required": "Service Bus Namespace Name is required.",
         "connection-string": "Connection string",
+        "consumer-group": "Consumer group",
         "connection-string-required": "Connection string required!",
         "event-hub-name": "Event Hub Name",
         "event-hub-name-required": "Event Hub Name is required.",
