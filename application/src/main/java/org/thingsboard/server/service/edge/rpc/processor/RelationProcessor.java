@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -48,9 +49,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -58,7 +62,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class RelationProcessor extends BaseProcessor {
 
-    public ListenableFuture<Void> onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
+    public ListenableFuture<Void> processRelationFromEdge(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         log.trace("[{}] onRelationUpdate [{}]", tenantId, relationUpdateMsg);
         try {
             EntityRelation entityRelation = new EntityRelation();
@@ -115,5 +119,12 @@ public class RelationProcessor extends BaseProcessor {
         }
     }
 
+    public DownlinkMsg processRelationToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        EntityRelation entityRelation = mapper.convertValue(edgeEvent.getBody(), EntityRelation.class);
+        RelationUpdateMsg r = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
+        return DownlinkMsg.newBuilder()
+                .addAllRelationUpdateMsg(Collections.singletonList(r))
+                .build();
+    }
 
 }

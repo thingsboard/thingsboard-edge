@@ -36,60 +36,46 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
-import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DeviceProfileMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.GroupPermissionProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RoleProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
+import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.AssetProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.CustomerProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.DashboardProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.DeviceProfileProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EntityGroupProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EntityProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EntityViewProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RelationProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.RoleProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.RuleChainProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.SchedulerEventProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.TelemetryProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.UserProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WhiteLabelingProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WidgetBundleProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WidgetTypeProcessor;
+import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.state.DeviceStateService;
 
 @Component
 @TbCoreComponent
@@ -99,9 +85,6 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private EdgeService edgeService;
-
-    @Autowired
-    private PartitionService partitionService;
 
     @Lazy
     @Autowired
@@ -113,35 +96,11 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private DeviceService deviceService;
-
-    @Lazy
-    @Autowired
     private DeviceProfileService deviceProfileService;
 
     @Lazy
     @Autowired
-    private DeviceCredentialsService deviceCredentialsService;
-
-    @Lazy
-    @Autowired
-    private EntityViewService entityViewService;
-
-    @Lazy
-    @Autowired
     private AttributesService attributesService;
-
-    @Lazy
-    @Autowired
-    private CustomerService customerService;
-
-    @Lazy
-    @Autowired
-    private RelationService relationService;
-
-    @Lazy
-    @Autowired
-    private AlarmService alarmService;
 
     @Lazy
     @Autowired
@@ -157,26 +116,6 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private SchedulerEventService schedulerEventService;
-
-    @Lazy
-    @Autowired
-    private EntityGroupService entityGroupService;
-
-    @Lazy
-    @Autowired
-    private RoleService roleService;
-
-    @Lazy
-    @Autowired
-    private GroupPermissionService groupPermissionService;
-
-    @Lazy
-    @Autowired
-    private UserPermissionsService userPermissionsService;
-
-    @Lazy
-    @Autowired
     private ActorService actorService;
 
     @Lazy
@@ -185,107 +124,7 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private WidgetTypeService widgetTypeService;
-
-    @Lazy
-    @Autowired
-    private DeviceStateService deviceStateService;
-
-    @Lazy
-    @Autowired
-    private TbClusterService tbClusterService;
-
-    @Lazy
-    @Autowired
     private EdgeRequestsService edgeRequestsService;
-
-    @Lazy
-    @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
-    @Lazy
-    @Autowired
-    private CustomTranslationService customTranslationService;
-
-    @Lazy
-    @Autowired
-    private RuleChainMsgConstructor ruleChainMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private AlarmMsgConstructor alarmMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private DeviceMsgConstructor deviceMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private DeviceProfileMsgConstructor deviceProfileMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private AssetMsgConstructor assetMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private EntityViewMsgConstructor entityViewMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private DashboardMsgConstructor dashboardMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private CustomerMsgConstructor customerMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private UserMsgConstructor userMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private RelationMsgConstructor relationMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private WidgetsBundleMsgConstructor widgetsBundleMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private WidgetTypeMsgConstructor widgetTypeMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private AdminSettingsMsgConstructor adminSettingsMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private EntityDataMsgConstructor entityDataMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private SchedulerEventMsgConstructor schedulerEventMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private EntityGroupMsgConstructor entityGroupMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
-
-    @Lazy
-    @Autowired
-    private CustomTranslationProtoConstructor customTranslationProtoConstructor;
-
-    @Lazy
-    @Autowired
-    private RoleProtoConstructor roleProtoConstructor;
-
-    @Lazy
-    @Autowired
-    private GroupPermissionProtoConstructor groupPermissionProtoConstructor;
 
     @Lazy
     @Autowired
@@ -293,7 +132,27 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
+    private DeviceProfileProcessor deviceProfileProcessor;
+
+    @Lazy
+    @Autowired
     private DeviceProcessor deviceProcessor;
+
+    @Lazy
+    @Autowired
+    private EntityProcessor entityProcessor;
+
+    @Lazy
+    @Autowired
+    private AssetProcessor assetProcessor;
+
+    @Lazy
+    @Autowired
+    private EntityViewProcessor entityViewProcessor;
+
+    @Lazy
+    @Autowired
+    private UserProcessor userProcessor;
 
     @Lazy
     @Autowired
@@ -305,9 +164,75 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
+    private DashboardProcessor dashboardProcessor;
+
+    @Lazy
+    @Autowired
+    private RuleChainProcessor ruleChainProcessor;
+
+    @Lazy
+    @Autowired
+    private CustomerProcessor customerProcessor;
+
+    @Lazy
+    @Autowired
+    private WidgetBundleProcessor widgetBundleProcessor;
+
+    @Lazy
+    @Autowired
+    private WidgetTypeProcessor widgetTypeProcessor;
+
+    @Lazy
+    @Autowired
+    private AdminSettingsProcessor adminSettingsProcessor;
+
+    @Lazy
+    @Autowired
     private EdgeEventStorageSettings edgeEventStorageSettings;
 
     @Autowired
     @Getter
     private DbCallbackExecutorService dbCallbackExecutor;
+
+    // PE context
+
+    @Lazy
+    @Autowired
+    protected RoleService roleService;
+
+    @Lazy
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
+
+    @Lazy
+    @Autowired
+    protected WhiteLabelingService whiteLabelingService;
+
+    @Lazy
+    @Autowired
+    protected CustomTranslationService customTranslationService;
+
+    @Lazy
+    @Autowired
+    protected EntityGroupService entityGroupService;
+
+    @Lazy
+    @Autowired
+    private EntityGroupProcessor entityGroupProcessor;
+
+    @Lazy
+    @Autowired
+    private WhiteLabelingProcessor whiteLabelingProcessor;
+
+    @Lazy
+    @Autowired
+    private RoleProcessor roleProcessor;
+
+    @Lazy
+    @Autowired
+    private GroupPermissionsProcessor groupPermissionsProcessor;
+
+    @Lazy
+    @Autowired
+    private SchedulerEventProcessor schedulerEventProcessor;
 }

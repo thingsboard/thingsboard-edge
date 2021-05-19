@@ -53,6 +53,11 @@ import java.util.UUID;
 public class DeviceMsgConstructor {
 
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
+                                                     String conflictName) {
+        return constructDeviceUpdatedMsg(msgType, device, customerId, conflictName, null);
+    }
+
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
                                                      String conflictName, EntityGroupId entityGroupId) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(msgType)
