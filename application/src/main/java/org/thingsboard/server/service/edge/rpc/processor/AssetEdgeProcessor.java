@@ -32,13 +32,15 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.WidgetsBundleId;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
@@ -46,28 +48,33 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class WidgetBundleProcessor extends BaseProcessor {
+public class AssetEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processWidgetsBundleToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
-        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(edgeEvent.getEntityId());
+    public DownlinkMsg processAssetToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+        AssetId assetId = new AssetId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEdgeEventActionType) {
+        switch (action) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
-                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(edgeEvent.getTenantId(), widgetsBundleId);
-                if (widgetsBundle != null) {
-                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
-                            widgetsBundleMsgConstructor.constructWidgetsBundleUpdateMsg(msgType, widgetsBundle);
+            case ASSIGNED_TO_EDGE:
+                Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
+                if (asset != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    AssetUpdateMsg assetUpdateMsg =
+                            assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllWidgetsBundleUpdateMsg(Collections.singletonList(widgetsBundleUpdateMsg))
+                            .addAllAssetUpdateMsg(Collections.singletonList(assetUpdateMsg))
                             .build();
                 }
                 break;
             case DELETED:
-                WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
-                        widgetsBundleMsgConstructor.constructWidgetsBundleDeleteMsg(widgetsBundleId);
+            case REMOVED_FROM_ENTITY_GROUP:
+            case UNASSIGNED_FROM_EDGE:
+                AssetUpdateMsg assetUpdateMsg =
+                        assetMsgConstructor.constructAssetDeleteMsg(assetId);
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllWidgetsBundleUpdateMsg(Collections.singletonList(widgetsBundleUpdateMsg))
+                        .addAllAssetUpdateMsg(Collections.singletonList(assetUpdateMsg))
                         .build();
                 break;
         }
@@ -75,3 +82,4 @@ public class WidgetBundleProcessor extends BaseProcessor {
     }
 
 }
+

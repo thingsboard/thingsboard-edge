@@ -98,7 +98,7 @@ import org.thingsboard.server.service.security.permission.UserPermissionsService
 import org.thingsboard.server.service.state.DeviceStateService;
 
 @Slf4j
-public abstract class BaseProcessor {
+public abstract class BaseEdgeProcessor {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
 

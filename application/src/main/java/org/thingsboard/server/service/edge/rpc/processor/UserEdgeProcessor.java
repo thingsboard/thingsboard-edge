@@ -32,12 +32,16 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
@@ -45,31 +49,42 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class SchedulerEventProcessor extends BaseProcessor {
+public class UserEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processSchedulerEventToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
-        SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
+    public DownlinkMsg processUserToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
+        UserId userId = new UserId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (msgType) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
-                if (schedulerEvent != null) {
-                    SchedulerEventUpdateMsg msg = schedulerEventMsgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
+        switch (edgeEdgeEventActionType) {
+            case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
+            case UPDATED:
+            case ASSIGNED_TO_EDGE:
+                User user = userService.findUserById(edgeEvent.getTenantId(), userId);
+                if (user != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllSchedulerEventUpdateMsg(Collections.singletonList(msg))
+                            .addAllUserUpdateMsg(Collections.singletonList(userMsgConstructor.constructUserUpdatedMsg(msgType, user, entityGroupId)))
                             .build();
                 }
                 break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                SchedulerEventUpdateMsg msg = schedulerEventMsgConstructor.constructEventDeleteMsg(schedulerEventId);
+            case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
+            case UNASSIGNED_FROM_EDGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllSchedulerEventUpdateMsg(Collections.singletonList(msg))
+                        .addAllUserUpdateMsg(Collections.singletonList(userMsgConstructor.constructUserDeleteMsg(userId)))
                         .build();
                 break;
+            case CREDENTIALS_UPDATED:
+                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edge.getTenantId(), userId);
+                if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
+                    UserCredentialsUpdateMsg userCredentialsUpdateMsg =
+                            userMsgConstructor.constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
+                    downlinkMsg = DownlinkMsg.newBuilder()
+                            .addAllUserCredentialsUpdateMsg(Collections.singletonList(userCredentialsUpdateMsg))
+                            .build();
+                }
         }
         return downlinkMsg;
     }
-
 
 }

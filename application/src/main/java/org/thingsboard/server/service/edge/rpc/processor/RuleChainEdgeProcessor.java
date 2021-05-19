@@ -33,15 +33,15 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
+import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
@@ -49,40 +49,47 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class UserProcessor extends BaseProcessor {
+public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processUserToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
-        UserId userId = new UserId(edgeEvent.getEntityId());
+    public DownlinkMsg processRuleChainToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+        RuleChainId ruleChainId = new RuleChainId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEdgeEventActionType) {
+        switch (action) {
             case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
-                User user = userService.findUserById(edgeEvent.getTenantId(), userId);
-                if (user != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                RuleChain ruleChain = ruleChainService.findRuleChainById(edgeEvent.getTenantId(), ruleChainId);
+                if (ruleChain != null) {
+                    RuleChainUpdateMsg ruleChainUpdateMsg =
+                            ruleChainMsgConstructor.constructRuleChainUpdatedMsg(edge.getRootRuleChainId(), msgType, ruleChain);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllUserUpdateMsg(Collections.singletonList(userMsgConstructor.constructUserUpdatedMsg(msgType, user, entityGroupId)))
+                            .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainUpdateMsg))
                             .build();
                 }
                 break;
             case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllUserUpdateMsg(Collections.singletonList(userMsgConstructor.constructUserDeleteMsg(userId)))
+                        .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainMsgConstructor.constructRuleChainDeleteMsg(ruleChainId)))
                         .build();
                 break;
-            case CREDENTIALS_UPDATED:
-                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edge.getTenantId(), userId);
-                if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
-                    UserCredentialsUpdateMsg userCredentialsUpdateMsg =
-                            userMsgConstructor.constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
-                    downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllUserCredentialsUpdateMsg(Collections.singletonList(userCredentialsUpdateMsg))
-                            .build();
-                }
+        }
+        return downlinkMsg;
+    }
+
+    public DownlinkMsg processRuleChainMetadataToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        RuleChainId ruleChainId = new RuleChainId(edgeEvent.getEntityId());
+        RuleChain ruleChain = ruleChainService.findRuleChainById(edgeEvent.getTenantId(), ruleChainId);
+        DownlinkMsg downlinkMsg = null;
+        if (ruleChain != null) {
+            RuleChainMetaData ruleChainMetaData = ruleChainService.loadRuleChainMetaData(edgeEvent.getTenantId(), ruleChainId);
+            RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg =
+                    ruleChainMsgConstructor.constructRuleChainMetadataUpdatedMsg(msgType, ruleChainMetaData);
+            if (ruleChainMetadataUpdateMsg != null) {
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllRuleChainMetadataUpdateMsg(Collections.singletonList(ruleChainMetadataUpdateMsg))
+                        .build();
+            }
         }
         return downlinkMsg;
     }

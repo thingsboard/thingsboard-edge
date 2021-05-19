@@ -33,12 +33,10 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.WidgetTypeId;
-import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
@@ -46,28 +44,24 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class WidgetTypeProcessor extends BaseProcessor {
+public class RoleEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processWidgetTypeToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
-        WidgetTypeId widgetTypeId = new WidgetTypeId(edgeEvent.getEntityId());
+    public DownlinkMsg processRoleToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        RoleId roleId = new RoleId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEdgeEventActionType) {
-            case ADDED:
-            case UPDATED:
-                WidgetType widgetType = widgetTypeService.findWidgetTypeById(edgeEvent.getTenantId(), widgetTypeId);
-                if (widgetType != null) {
-                    WidgetTypeUpdateMsg widgetTypeUpdateMsg =
-                            widgetTypeMsgConstructor.constructWidgetTypeUpdateMsg(msgType, widgetType);
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                Role role = roleService.findRoleById(edgeEvent.getTenantId(), roleId);
+                if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
+                            .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleProto(msgType, role)))
                             .build();
                 }
                 break;
-            case DELETED:
-                WidgetTypeUpdateMsg widgetTypeUpdateMsg =
-                        widgetTypeMsgConstructor.constructWidgetTypeDeleteMsg(widgetTypeId);
+            case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
+                        .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleDeleteMsg(roleId)))
                         .build();
                 break;
         }

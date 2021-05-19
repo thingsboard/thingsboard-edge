@@ -32,11 +32,12 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -45,31 +46,32 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class EntityGroupProcessor extends BaseProcessor {
+public class DeviceProfileEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processEntityGroupToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
-        EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
+    public DownlinkMsg processDeviceProfileToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+        DeviceProfileId deviceProfileId = new DeviceProfileId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (msgType) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
-                if (entityGroup != null) {
-                    EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
+        switch (action) {
+            case ADDED:
+            case UPDATED:
+                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(edgeEvent.getTenantId(), deviceProfileId);
+                if (deviceProfile != null) {
+                    DeviceProfileUpdateMsg deviceProfileUpdateMsg =
+                            deviceProfileMsgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
+                            .addAllDeviceProfileUpdateMsg(Collections.singletonList(deviceProfileUpdateMsg))
                             .build();
                 }
                 break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupDeleteMsg(entityGroupId);
+            case DELETED:
+                DeviceProfileUpdateMsg deviceProfileUpdateMsg =
+                        deviceProfileMsgConstructor.constructDeviceProfileDeleteMsg(deviceProfileId);
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
+                        .addAllDeviceProfileUpdateMsg(Collections.singletonList(deviceProfileUpdateMsg))
                         .build();
                 break;
         }
         return downlinkMsg;
     }
-
 
 }

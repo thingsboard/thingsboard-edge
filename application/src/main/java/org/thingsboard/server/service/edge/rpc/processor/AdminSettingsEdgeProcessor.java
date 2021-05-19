@@ -32,14 +32,10 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.gen.edge.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
@@ -47,32 +43,15 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class WhiteLabelingProcessor extends BaseProcessor {
+public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processWhiteLabelingToEdge(EdgeEvent edgeEvent) {
-        WhiteLabelingParams whiteLabelingParams = mapper.convertValue(edgeEvent.getBody(), WhiteLabelingParams.class);
-        WhiteLabelingParamsProto whiteLabelingParamsProto =
-                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
+    public DownlinkMsg processAdminSettingsToEdge(EdgeEvent edgeEvent) {
+        AdminSettings adminSettings = mapper.convertValue(edgeEvent.getBody(), AdminSettings.class);
+        AdminSettingsUpdateMsg t = adminSettingsMsgConstructor.constructAdminSettingsUpdateMsg(adminSettings);
         return DownlinkMsg.newBuilder()
-                .addAllWhiteLabelingParams(Collections.singletonList(whiteLabelingParamsProto))
+                .addAllAdminSettingsUpdateMsg(Collections.singletonList(t))
                 .build();
     }
 
-    public DownlinkMsg processLoginWhiteLabelingToEdge(EdgeEvent edgeEvent) {
-        LoginWhiteLabelingParams loginWhiteLabelingParams = mapper.convertValue(edgeEvent.getBody(), LoginWhiteLabelingParams.class);
-        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
-        return DownlinkMsg.newBuilder()
-                .addAllLoginWhiteLabelingParams(Collections.singletonList(loginWhiteLabelingParamsProto))
-                .build();
-    }
 
-    public DownlinkMsg processCustomTranslationToEdge(EdgeEvent edgeEvent) {
-        CustomTranslation customTranslation = mapper.convertValue(edgeEvent.getBody(), CustomTranslation.class);
-        CustomTranslationProto customTranslationProto =
-                customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
-        return DownlinkMsg.newBuilder()
-                .addAllCustomTranslationMsg(Collections.singletonList(customTranslationProto))
-                .build();
-    }
 }

@@ -32,14 +32,11 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -48,37 +45,31 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class EntityViewProcessor extends BaseProcessor {
+public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processEntityViewToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
-        EntityViewId entityViewId = new EntityViewId(edgeEvent.getEntityId());
+    public DownlinkMsg processEntityGroupToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (action) {
-            case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
-            case UPDATED:
-            case ASSIGNED_TO_EDGE:
-                EntityView entityView = entityViewService.findEntityViewById(edgeEvent.getTenantId(), entityViewId);
-                if (entityView != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
-                    EntityViewUpdateMsg entityViewUpdateMsg =
-                            entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
+                if (entityGroup != null) {
+                    EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllEntityViewUpdateMsg(Collections.singletonList(entityViewUpdateMsg))
+                            .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
                             .build();
                 }
                 break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-            case UNASSIGNED_FROM_EDGE:
-                EntityViewUpdateMsg entityViewUpdateMsg =
-                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId);
+            case ENTITY_DELETED_RPC_MESSAGE:
+                EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupDeleteMsg(entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllEntityViewUpdateMsg(Collections.singletonList(entityViewUpdateMsg))
+                        .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
                         .build();
                 break;
         }
         return downlinkMsg;
     }
+
 
 }

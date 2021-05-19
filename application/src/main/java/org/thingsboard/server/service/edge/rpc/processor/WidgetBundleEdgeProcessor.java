@@ -33,10 +33,12 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
@@ -44,24 +46,28 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class RoleProcessor extends BaseProcessor {
+public class WidgetBundleEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processRoleToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
-        RoleId roleId = new RoleId(edgeEvent.getEntityId());
+    public DownlinkMsg processWidgetsBundleToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
+        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (msgType) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                Role role = roleService.findRoleById(edgeEvent.getTenantId(), roleId);
-                if (role != null) {
+        switch (edgeEdgeEventActionType) {
+            case ADDED:
+            case UPDATED:
+                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(edgeEvent.getTenantId(), widgetsBundleId);
+                if (widgetsBundle != null) {
+                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
+                            widgetsBundleMsgConstructor.constructWidgetsBundleUpdateMsg(msgType, widgetsBundle);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleProto(msgType, role)))
+                            .addAllWidgetsBundleUpdateMsg(Collections.singletonList(widgetsBundleUpdateMsg))
                             .build();
                 }
                 break;
-            case ENTITY_DELETED_RPC_MESSAGE:
+            case DELETED:
+                WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
+                        widgetsBundleMsgConstructor.constructWidgetsBundleDeleteMsg(widgetsBundleId);
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleDeleteMsg(roleId)))
+                        .addAllWidgetsBundleUpdateMsg(Collections.singletonList(widgetsBundleUpdateMsg))
                         .build();
                 break;
         }

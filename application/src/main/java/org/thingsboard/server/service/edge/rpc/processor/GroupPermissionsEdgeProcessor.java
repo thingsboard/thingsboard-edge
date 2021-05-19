@@ -44,7 +44,7 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class GroupPermissionsProcessor extends BaseProcessor {
+public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
 
     public DownlinkMsg processGroupPermissionToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
         GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());

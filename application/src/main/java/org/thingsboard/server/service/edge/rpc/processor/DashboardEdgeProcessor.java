@@ -32,11 +32,13 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -46,28 +48,33 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class CustomerProcessor extends BaseProcessor {
+public class DashboardEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processCustomerToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
-        CustomerId customerId = new CustomerId(edgeEvent.getEntityId());
+    public DownlinkMsg processDashboardToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+        DashboardId dashboardId = new DashboardId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         switch (action) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
-                Customer customer = customerService.findCustomerById(edgeEvent.getTenantId(), customerId);
-                if (customer != null) {
-                    CustomerUpdateMsg customerUpdateMsg =
-                            customerMsgConstructor.constructCustomerUpdatedMsg(msgType, customer);
+            case ASSIGNED_TO_EDGE:
+                Dashboard dashboard = dashboardService.findDashboardById(edgeEvent.getTenantId(), dashboardId);
+                if (dashboard != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    DashboardUpdateMsg dashboardUpdateMsg =
+                            dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllCustomerUpdateMsg(Collections.singletonList(customerUpdateMsg))
+                            .addAllDashboardUpdateMsg(Collections.singletonList(dashboardUpdateMsg))
                             .build();
                 }
                 break;
             case DELETED:
-                CustomerUpdateMsg customerUpdateMsg =
-                        customerMsgConstructor.constructCustomerDeleteMsg(customerId);
+            case REMOVED_FROM_ENTITY_GROUP:
+            case UNASSIGNED_FROM_EDGE:
+                DashboardUpdateMsg dashboardUpdateMsg =
+                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId);
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllCustomerUpdateMsg(Collections.singletonList(customerUpdateMsg))
+                        .addAllDashboardUpdateMsg(Collections.singletonList(dashboardUpdateMsg))
                         .build();
                 break;
         }

@@ -43,7 +43,6 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -53,29 +52,28 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
-import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.AlarmProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.AssetProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.CustomerProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.DashboardProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.DeviceProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.DeviceProfileProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.EntityGroupProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.EntityProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.EntityViewProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.RelationProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.RoleProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.RuleChainProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.SchedulerEventProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.TelemetryProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.UserProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.WhiteLabelingProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.WidgetBundleProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.WidgetTypeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.DeviceProfileEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EntityGroupEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EntityViewEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.RelationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.RoleEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.RuleChainEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.SchedulerEventEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.TelemetryEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.UserEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WhiteLabelingEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WidgetBundleEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WidgetTypeEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 @Component
 @TbCoreComponent
@@ -128,63 +126,63 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private AlarmProcessor alarmProcessor;
+    private AlarmEdgeProcessor alarmProcessor;
 
     @Lazy
     @Autowired
-    private DeviceProfileProcessor deviceProfileProcessor;
+    private DeviceProfileEdgeProcessor deviceProfileProcessor;
 
     @Lazy
     @Autowired
-    private DeviceProcessor deviceProcessor;
+    private DeviceEdgeProcessor deviceProcessor;
 
     @Lazy
     @Autowired
-    private EntityProcessor entityProcessor;
+    private EntityEdgeProcessor entityProcessor;
 
     @Lazy
     @Autowired
-    private AssetProcessor assetProcessor;
+    private AssetEdgeProcessor assetProcessor;
 
     @Lazy
     @Autowired
-    private EntityViewProcessor entityViewProcessor;
+    private EntityViewEdgeProcessor entityViewProcessor;
 
     @Lazy
     @Autowired
-    private UserProcessor userProcessor;
+    private UserEdgeProcessor userProcessor;
 
     @Lazy
     @Autowired
-    private RelationProcessor relationProcessor;
+    private RelationEdgeProcessor relationProcessor;
 
     @Lazy
     @Autowired
-    private TelemetryProcessor telemetryProcessor;
+    private TelemetryEdgeProcessor telemetryProcessor;
 
     @Lazy
     @Autowired
-    private DashboardProcessor dashboardProcessor;
+    private DashboardEdgeProcessor dashboardProcessor;
 
     @Lazy
     @Autowired
-    private RuleChainProcessor ruleChainProcessor;
+    private RuleChainEdgeProcessor ruleChainProcessor;
 
     @Lazy
     @Autowired
-    private CustomerProcessor customerProcessor;
+    private CustomerEdgeProcessor customerProcessor;
 
     @Lazy
     @Autowired
-    private WidgetBundleProcessor widgetBundleProcessor;
+    private WidgetBundleEdgeProcessor widgetBundleProcessor;
 
     @Lazy
     @Autowired
-    private WidgetTypeProcessor widgetTypeProcessor;
+    private WidgetTypeEdgeProcessor widgetTypeProcessor;
 
     @Lazy
     @Autowired
-    private AdminSettingsProcessor adminSettingsProcessor;
+    private AdminSettingsEdgeProcessor adminSettingsProcessor;
 
     @Lazy
     @Autowired
@@ -218,21 +216,21 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private EntityGroupProcessor entityGroupProcessor;
+    private EntityGroupEdgeProcessor entityGroupProcessor;
 
     @Lazy
     @Autowired
-    private WhiteLabelingProcessor whiteLabelingProcessor;
+    private WhiteLabelingEdgeProcessor whiteLabelingProcessor;
 
     @Lazy
     @Autowired
-    private RoleProcessor roleProcessor;
+    private RoleEdgeProcessor roleProcessor;
 
     @Lazy
     @Autowired
-    private GroupPermissionsProcessor groupPermissionsProcessor;
+    private GroupPermissionsEdgeProcessor groupPermissionsProcessor;
 
     @Lazy
     @Autowired
-    private SchedulerEventProcessor schedulerEventProcessor;
+    private SchedulerEventEdgeProcessor schedulerEventProcessor;
 }

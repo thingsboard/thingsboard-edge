@@ -32,15 +32,12 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
-import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -49,47 +46,30 @@ import java.util.Collections;
 @Component
 @Slf4j
 @TbCoreComponent
-public class RuleChainProcessor extends BaseProcessor {
+public class CustomerEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processRuleChainToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
-        RuleChainId ruleChainId = new RuleChainId(edgeEvent.getEntityId());
+    public DownlinkMsg processCustomerToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+        CustomerId customerId = new CustomerId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         switch (action) {
             case ADDED:
             case UPDATED:
-            case ASSIGNED_TO_EDGE:
-                RuleChain ruleChain = ruleChainService.findRuleChainById(edgeEvent.getTenantId(), ruleChainId);
-                if (ruleChain != null) {
-                    RuleChainUpdateMsg ruleChainUpdateMsg =
-                            ruleChainMsgConstructor.constructRuleChainUpdatedMsg(edge.getRootRuleChainId(), msgType, ruleChain);
+                Customer customer = customerService.findCustomerById(edgeEvent.getTenantId(), customerId);
+                if (customer != null) {
+                    CustomerUpdateMsg customerUpdateMsg =
+                            customerMsgConstructor.constructCustomerUpdatedMsg(msgType, customer);
                     downlinkMsg = DownlinkMsg.newBuilder()
-                            .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainUpdateMsg))
+                            .addAllCustomerUpdateMsg(Collections.singletonList(customerUpdateMsg))
                             .build();
                 }
                 break;
             case DELETED:
-            case UNASSIGNED_FROM_EDGE:
+                CustomerUpdateMsg customerUpdateMsg =
+                        customerMsgConstructor.constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainMsgConstructor.constructRuleChainDeleteMsg(ruleChainId)))
+                        .addAllCustomerUpdateMsg(Collections.singletonList(customerUpdateMsg))
                         .build();
                 break;
-        }
-        return downlinkMsg;
-    }
-
-    public DownlinkMsg processRuleChainMetadataToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
-        RuleChainId ruleChainId = new RuleChainId(edgeEvent.getEntityId());
-        RuleChain ruleChain = ruleChainService.findRuleChainById(edgeEvent.getTenantId(), ruleChainId);
-        DownlinkMsg downlinkMsg = null;
-        if (ruleChain != null) {
-            RuleChainMetaData ruleChainMetaData = ruleChainService.loadRuleChainMetaData(edgeEvent.getTenantId(), ruleChainId);
-            RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg =
-                    ruleChainMsgConstructor.constructRuleChainMetadataUpdatedMsg(msgType, ruleChainMetaData);
-            if (ruleChainMetadataUpdateMsg != null) {
-                downlinkMsg = DownlinkMsg.newBuilder()
-                        .addAllRuleChainMetadataUpdateMsg(Collections.singletonList(ruleChainMetadataUpdateMsg))
-                        .build();
-            }
         }
         return downlinkMsg;
     }
