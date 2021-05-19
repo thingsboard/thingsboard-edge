@@ -158,9 +158,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                 integration.getConfiguration().get("clientConfiguration"),
                 AzureEventHubClientConfiguration.class
         );
-        var consumerClient = buildConsumerClient(configuration);
-        checkConnection(consumerClient);
-        consumerClient.close();
+        try(var consumerClient = buildConsumerClient(configuration)) {
+            checkConnection(consumerClient);
+        }
     }
 
 
@@ -236,7 +236,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return deviceIdToMessage;
     }
 
-    private void initReceiver(AzureEventHubClientConfiguration configuration) throws RuntimeException {
+    private void initReceiver(AzureEventHubClientConfiguration configuration) {
         this.receiver = buildConsumerClient(configuration);
 
         checkConnection(this.receiver);
