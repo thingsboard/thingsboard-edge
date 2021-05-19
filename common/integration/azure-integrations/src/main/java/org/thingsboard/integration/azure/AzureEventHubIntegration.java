@@ -153,7 +153,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void checkConnection(Integration integration, IntegrationContext ctx) throws RuntimeException {
+    public void checkConnection(Integration integration, IntegrationContext ctx) {
         var configuration = getClientConfiguration(
                 integration.getConfiguration().get("clientConfiguration"),
                 AzureEventHubClientConfiguration.class
