@@ -33,20 +33,25 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { defaultPageLinkSearchFunction, PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { EntityId } from '@shared/models/id/entity-id';
 import {
   EntityGroup,
   EntityGroupInfo,
-  prepareEntityGroupConfiguration, ShareGroupRequest,
+  prepareEntityGroupConfiguration,
+  ShareGroupRequest,
   ShortEntityView
 } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { map } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { BaseData, HasId, sortEntitiesByIds } from '@shared/models/base-data';
+import { deepClone, isDefinedAndNotNull } from '@core/utils';
+import { FirmwareService } from '@core/http/firmware.service';
+import { FirmwareGroupInfo, FirmwareType } from '@shared/models/firmware.models';
+import { FirmwareId } from '@shared/models/id/firmware-id';
 
 @Injectable({
   providedIn: 'root'
@@ -54,7 +59,8 @@ import { BaseData, HasId, sortEntitiesByIds } from '@shared/models/base-data';
 export class EntityGroupService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private firmwareService: FirmwareService
   ) {}
 
   public getOwners(pageLink: PageLink, config?: RequestConfig): Observable<PageData<ContactBased<EntityId>>> {
@@ -68,8 +74,61 @@ export class EntityGroupService {
         map(group => {
           group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
           return group;
-        })
+        }),
+        mergeMap(group => this.fetchFirmwareGroupInfo(group, config))
     );
+  }
+
+  public fetchFirmwareGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<EntityGroupInfo> {
+    if (isDefinedAndNotNull(group) && group.type === EntityType.DEVICE && !group.groupAll) {
+      const tasks = [];
+      tasks.push(this.firmwareService.getFirmwareInfoByDeviceGroupId(group.id.id, FirmwareType.FIRMWARE, config));
+      tasks.push(this.firmwareService.getFirmwareInfoByDeviceGroupId(group.id.id, FirmwareType.SOFTWARE, config));
+      return forkJoin(tasks).pipe(
+        map(([firmware, software]: FirmwareGroupInfo[]) => {
+          if (isDefinedAndNotNull(firmware)) {
+            group.firmwareGroup = firmware;
+            group.firmwareId = deepClone(firmware.firmwareId);
+          }
+          if (isDefinedAndNotNull(software)) {
+            group.softwareGroup = software;
+            group.softwareId = deepClone(software.firmwareId);
+          }
+          return group;
+        })
+      );
+    }
+    return of(group);
+  }
+
+  public updateDeviceGroupFirmware(firmwareGroup: FirmwareGroupInfo, firmwareId: FirmwareId | null,
+                                   groupId: EntityGroupId, firmwareType: FirmwareType): Observable<FirmwareGroupInfo> {
+    if (isDefinedAndNotNull(firmwareGroup)) {
+      if (firmwareId === null) {
+        return this.deleteDeviceGroupFirmware(firmwareGroup.id);
+      } else if (firmwareId.id !== firmwareGroup.firmwareId.id) {
+        firmwareGroup.firmwareId = firmwareId;
+        return this.saveDeviceGroupFirmware(firmwareGroup);
+      } else {
+        return of(firmwareGroup);
+      }
+    } else if (isDefinedAndNotNull(firmwareId)) {
+      const newFirmwareGroup: FirmwareGroupInfo = {
+        firmwareId,
+        firmwareType,
+        groupId
+      };
+      return this.saveDeviceGroupFirmware(newFirmwareGroup);
+    }
+    return of(null);
+  }
+
+  public saveDeviceGroupFirmware(firmwareGroup: FirmwareGroupInfo, config?: RequestConfig ): Observable<FirmwareGroupInfo> {
+    return this.http.post<FirmwareGroupInfo>('/api/deviceGroupFirmware', firmwareGroup, defaultHttpOptionsFromConfig(config));
+  }
+
+  public deleteDeviceGroupFirmware(deviceGroupFirmwareId: string, config?: RequestConfig ) {
+    return this.http.delete<null>(`/api/DeviceGroupFirmware/${deviceGroupFirmwareId}`, defaultHttpOptionsFromConfig(config));
   }
 
   public saveEntityGroup(entityGroup: EntityGroup, config?: RequestConfig): Observable<EntityGroupInfo> {
@@ -193,12 +252,14 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public assignEntityGroupToEdge(edgeId: string, entityGroupId: string, groupType: string, config?: RequestConfig): Observable<EntityGroup> {
+  public assignEntityGroupToEdge(edgeId: string, entityGroupId: string,
+                                 groupType: string, config?: RequestConfig): Observable<EntityGroup> {
     return this.http.post<EntityGroup>(`/api/edge/${edgeId}/entityGroup/${entityGroupId}/${groupType}`,
-      defaultHttpOptionsFromConfig(config))
+      defaultHttpOptionsFromConfig(config));
   }
 
-  public unassignEntityGroupFromEdge(edgeId: string, entityGroupId: string, groupType: string, config?: RequestConfig): Observable<EntityGroup> {
+  public unassignEntityGroupFromEdge(edgeId: string, entityGroupId: string,
+                                     groupType: string, config?: RequestConfig): Observable<EntityGroup> {
     return this.http.delete<EntityGroup>(`/api/edge/${edgeId}/entityGroup/${entityGroupId}/${groupType}`,
       defaultHttpOptionsFromConfig(config));
   }

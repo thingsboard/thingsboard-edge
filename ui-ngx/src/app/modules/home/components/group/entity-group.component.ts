@@ -40,6 +40,9 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { FirmwareType } from '@shared/models/firmware.models';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 
 @Component({
   selector: 'tb-entity-group',
@@ -53,6 +56,7 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
   makePublicEnabled = false;
   makePrivateEnabled = false;
   isGroupAll = false;
+  firmwareTypes = FirmwareType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -95,12 +99,22 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
       }
     );
     this.updateGroupParams(entity);
+    if ((this.entitiesTableConfig as EntityGroupsTableConfig).groupType === EntityType.DEVICE) {
+      form.addControl('firmwareId', this.fb.control(entity ? entity.firmwareId : ''));
+      form.addControl('softwareId', this.fb.control(entity ? entity.softwareId : ''));
+    }
     return form;
   }
 
   updateForm(entity: EntityGroupInfo) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
+    if (entity.type === EntityType.DEVICE) {
+      this.entityForm.patchValue({
+        firmwareId: entity.firmwareId,
+        softwareId: entity.softwareId
+      }, {emitEvent: false});
+    }
     this.updateGroupParams(entity);
   }
 
