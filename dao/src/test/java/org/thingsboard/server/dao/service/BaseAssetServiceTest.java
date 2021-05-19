@@ -399,4 +399,5 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         Assert.assertNull("Can't find asset by name in cache if it was renamed", renamedAsset);
         assetService.deleteAsset(tenantId, savedAsset.getId());
     }
+
 }

@@ -102,13 +102,14 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
         return !ApiUsageStateValue.DISABLED.equals(smsExecState);
     }
 
+    public boolean isAlarmCreationEnabled() {
+        return alarmExecState != ApiUsageStateValue.DISABLED;
+    }
+
     @Override
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.API_USAGE_STATE;
     }
 
-    public boolean isAlarmCreationEnabled() {
-        return alarmExecState != ApiUsageStateValue.DISABLED;
-    }
 }

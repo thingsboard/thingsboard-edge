@@ -94,6 +94,7 @@ export interface IDashboardComponent {
   pauseChangeNotifications();
   resumeChangeNotifications();
   notifyLayoutUpdated();
+  detectChanges();
 }
 
 declare type DashboardWidgetUpdateOperation = 'add' | 'remove' | 'update';
@@ -358,7 +359,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
       widget.id = guid();
     }
     this.widgetId = widget.id;
-    this.updateWidgetParams();
+    this.updateWidgetParams(false);
   }
 
   gridsterItemComponent$(): Observable<GridsterItemComponentInterface> {
@@ -369,7 +370,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
     }
   }
 
-  updateWidgetParams() {
+  updateWidgetParams(detectChanges = true) {
     this.color = this.widget.config.color || 'rgba(0, 0, 0, 0.87)';
     this.backgroundColor = this.widget.config.backgroundColor || '#fff';
     this.padding = this.widget.config.padding || '8px';
@@ -427,6 +428,9 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
 
     this.customHeaderActions = this.widgetContext.customHeaderActions ? this.widgetContext.customHeaderActions : [];
     this.widgetActions = this.widgetContext.widgetActions ? this.widgetContext.widgetActions : [];
+    if (detectChanges) {
+      this.dashboard.detectChanges();
+    }
   }
 
   exportWidgetData($event: Event, widgetExportType: WidgetExportType) {

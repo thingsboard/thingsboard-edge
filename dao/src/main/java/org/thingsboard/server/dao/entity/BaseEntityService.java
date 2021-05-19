@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.entity;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -49,9 +48,9 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -64,12 +63,11 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.id.FirmwareId;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -94,16 +92,16 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
+
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -615,7 +613,10 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case TENANT:
             case RULE_CHAIN:
             case RULE_NODE:
-            case DASHBOARD:
+            case ROLE:
+            case GROUP_PERMISSION:
+            case CONVERTER:
+            case INTEGRATION:
             case WIDGETS_BUNDLE:
             case WIDGET_TYPE:
             case TENANT_PROFILE:
@@ -623,9 +624,17 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case API_USAGE_STATE:
             case TB_RESOURCE:
             case FIRMWARE:
+            case SCHEDULER_EVENT:
+            case BLOB_ENTITY:
                 break;
             case CUSTOMER:
                 hasCustomerId = () -> new CustomerId(entityId.getId());
+                break;
+            case ENTITY_GROUP:
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId()));
+                if (entityGroup != null && EntityType.CUSTOMER == entityGroup.getOwnerId().getEntityType()) {
+                    hasCustomerId = () -> new CustomerId(entityGroup.getOwnerId().getId());
+                }
                 break;
             case USER:
                 hasCustomerId = userService.findUserById(tenantId, new UserId(entityId.getId()));
@@ -635,6 +644,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case DEVICE:
                 hasCustomerId = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                break;
+            case DASHBOARD:
+                hasCustomerId = dashboardService.findDashboardInfoById(tenantId, new DashboardId(entityId.getId()));
                 break;
             case ALARM:
                 try {

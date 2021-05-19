@@ -327,15 +327,6 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
-    public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters) {
-        List<Long> alarmCounts = new ArrayList<>();
-        for (AlarmFilter filter : filters) {
-            long count = alarmDao.findAlarmCount(tenantId, query, filter);
-            alarmCounts.add(count);
-        }
-        return alarmCounts;
-    }
-
     public ListenableFuture<PageData<AlarmInfo>> findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query) {
         PageData<AlarmInfo> alarms = alarmDao.findCustomerAlarms(tenantId, customerId, query);
         if (query.getFetchOriginator() != null && query.getFetchOriginator().booleanValue()) {
@@ -360,6 +351,16 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         return Futures.transform(Futures.successfulAsList(alarmFutures),
                 alarmInfos -> new PageData<>(alarmInfos, alarms.getTotalPages(), alarms.getTotalElements(),
                         alarms.hasNext()), MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters) {
+        List<Long> alarmCounts = new ArrayList<>();
+        for (AlarmFilter filter : filters) {
+            long count = alarmDao.findAlarmCount(tenantId, query, filter);
+            alarmCounts.add(count);
+        }
+        return alarmCounts;
     }
 
     @Override

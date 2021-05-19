@@ -36,10 +36,10 @@
                 [flowConfig]="{singleFile: true, allowDuplicateUploads: true}">
     <div class="tb-image-select-container">
       <div *ngIf="showPreview" class="tb-image-preview-container">
-        <div *ngIf="!safeImageUrl;else elseBlock">{{ (disabled ? 'dashboard.empty-image' : 'dashboard.no-image') | translate }}</div>
+        <div *ngIf="!safeImageUrl;else elseBlock">{{ disabled ? emptyImageText : noImageText }}</div>
         <ng-template #elseBlock><img class="tb-image-preview" [src]="safeImageUrl" /></ng-template>
       </div>
-      <div *ngIf="showClearButton && !disabled" class="tb-image-clear-container" >
+      <div class="tb-image-clear-container" *ngIf="!disabled && showClearButton">
         <button mat-button mat-icon-button color="primary"
                 type="button"
                 (click)="clearImage()"
