@@ -163,6 +163,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -513,6 +514,8 @@ public final class  EdgeGrpcSession implements Closeable {
                 if (success) {
                     pageLink = pageLink.nextPageLink();
                 }
+            } else {
+                log.trace("[{}] no event(s) found. Stop processing edge events", this.sessionId);
             }
         } while (isConnected() && pageData.hasNext());
         return ifOffset;
@@ -585,14 +588,10 @@ public final class  EdgeGrpcSession implements Closeable {
     }
 
     private List<DownlinkMsg> convertToDownlinkMsgsPack(List<EdgeEvent> edgeEvents) {
-        List<DownlinkMsg> result = new ArrayList<>();
-        for (EdgeEvent edgeEvent : edgeEvents) {
-            DownlinkMsg downlinkMsg = convertToDownlinkMsg(edgeEvent);
-            if (downlinkMsg != null) {
-                result.add(downlinkMsg);
-            }
-        }
-        return result;
+        return edgeEvents
+                .stream()
+                .map(this::convertToDownlinkMsg)
+                .collect(Collectors.toList());
     }
 
     private DownlinkMsg processEntityMergeRequestMessage(EdgeEvent edgeEvent) {
