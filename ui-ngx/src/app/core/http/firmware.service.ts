@@ -37,7 +37,7 @@ import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { Firmware, FirmwareGroupInfo, FirmwareInfo, FirmwareType } from '@shared/models/firmware.models';
 import { catchError, map, mergeMap } from 'rxjs/operators';
-import { deepClone, isDefinedAndNotNull } from '@core/utils';
+import { deepClone } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
