@@ -30,16 +30,30 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -70,6 +84,72 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                 break;
         }
         return downlinkMsg;
+    }
+
+    public void processGroupPermissionNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
+                new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        switch (actionType) {
+            case ADDED:
+            case UPDATED:
+                ListenableFuture<GroupPermission> gpFuture = groupPermissionService.findGroupPermissionByIdAsync(tenantId, new GroupPermissionId(entityId.getId()));
+                Futures.addCallback(gpFuture, new FutureCallback<GroupPermission>() {
+                    @Override
+                    public void onSuccess(@Nullable GroupPermission groupPermission) {
+                        if (groupPermission != null) {
+                            ListenableFuture<List<EdgeId>> edgesFuture = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER.name());
+                            Futures.addCallback(edgesFuture, new FutureCallback<List<EdgeId>>() {
+                                @Override
+                                public void onSuccess(@Nullable List<EdgeId> edgeIds) {
+                                    if (edgeIds != null && !edgeIds.isEmpty()) {
+                                        for (EdgeId edgeId : edgeIds) {
+                                            ListenableFuture<Boolean> checkFuture =
+                                                    entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                            Futures.addCallback(checkFuture, new FutureCallback<Boolean>() {
+                                                @Override
+                                                public void onSuccess(@Nullable Boolean exists) {
+                                                    if (Boolean.TRUE.equals(exists)) {
+                                                        saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onFailure(Throwable t) {
+                                                    log.error("Failed to check edge entity group id [{}]", edgeNotificationMsg, t);
+                                                }
+                                            }, dbCallbackExecutorService);
+
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Throwable t) {
+                                    log.error("Failed to find edges by user group id [{}]", edgeNotificationMsg, t);
+                                }
+                            }, dbCallbackExecutorService);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("Failed to find group permission by id [{}]", edgeNotificationMsg, t);
+                    }
+                }, dbCallbackExecutorService);
+                break;
+            case DELETED:
+                processActionForAllEdges(tenantId, type, actionType, entityId);
+// TODO: voba - check this
+//            case ASSIGNED_TO_EDGE:
+//            case UNASSIGNED_FROM_EDGE:
+//                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+//                if (type.equals(EdgeEventType.RULE_CHAIN)) {
+//                    updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
+//                }
+                break;
+        }
     }
 
 }

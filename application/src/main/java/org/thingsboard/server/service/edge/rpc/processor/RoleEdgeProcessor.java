@@ -30,16 +30,31 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -66,6 +81,50 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 break;
         }
         return downlinkMsg;
+    }
+
+    public void processRoleNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
+                new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        switch (actionType) {
+            case ADDED:
+            case UPDATED:
+                ListenableFuture<Role> roleFuture = roleService.findRoleByIdAsync(tenantId, new RoleId(entityId.getId()));
+                Futures.addCallback(roleFuture, new FutureCallback<Role>() {
+                    @Override
+                    public void onSuccess(@Nullable Role role) {
+                        if (role != null) {
+                            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+                            PageData<Edge> edgesByTenantId;
+                            do {
+                                edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, pageLink);
+                                if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
+                                    for (Edge edge : edgesByTenantId.getData()) {
+                                        if (EntityType.TENANT.equals(role.getOwnerId().getEntityType()) ||
+                                                edge.getOwnerId().equals(role.getOwnerId())) {
+                                            saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, null);
+                                        }
+                                    }
+                                    if (edgesByTenantId.hasNext()) {
+                                        pageLink = pageLink.nextPageLink();
+                                    }
+                                }
+                            } while (edgesByTenantId != null && edgesByTenantId.hasNext());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("Failed to find role by id [{}]", edgeNotificationMsg, t);
+                    }
+                }, dbCallbackExecutorService);
+                break;
+            case DELETED:
+                processActionForAllEdges(tenantId, type, actionType, entityId);
+                break;
+        }
     }
 
 }

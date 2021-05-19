@@ -46,8 +46,11 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.controller.CustomTranslationController;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -101,6 +104,8 @@ import org.thingsboard.server.service.state.DeviceStateService;
 public abstract class BaseEdgeProcessor {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
+
+    protected static final int DEFAULT_LIMIT = 100;
 
     @Autowired
     protected RuleChainService ruleChainService;
@@ -244,12 +249,22 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected EntityGroupMsgConstructor entityGroupMsgConstructor;
 
+    protected void saveEdgeEvent(TenantId tenantId,
+                               EdgeId edgeId,
+                               EdgeEventType type,
+                               EdgeEventActionType action,
+                               EntityId entityId,
+                               JsonNode body) {
+        saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
+    }
+
     protected ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
                                                         EdgeId edgeId,
                                                         EdgeEventType type,
                                                         EdgeEventActionType action,
                                                         EntityId entityId,
-                                                        JsonNode body) {
+                                                        JsonNode body,
+                                                        EntityGroupId entityGroupId) {
         log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
                         "action [{}], entityId [{}], body [{}]",
                 tenantId, edgeId, type, action, entityId, body);
@@ -261,6 +276,9 @@ public abstract class BaseEdgeProcessor {
         edgeEvent.setAction(action);
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
+        }
+        if (entityGroupId != null) {
+            edgeEvent.setEntityGroupId(entityGroupId.getId());
         }
         edgeEvent.setBody(body);
         ListenableFuture<EdgeEvent> future = edgeEventService.saveAsync(edgeEvent);
@@ -284,5 +302,21 @@ public abstract class BaseEdgeProcessor {
         } else {
             return null;
         }
+    }
+
+    protected void processActionForAllEdges(TenantId tenantId, EdgeEventType type, EdgeEventActionType actionType, EntityId entityId) {
+        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageData<Edge> pageData;
+        do {
+            pageData = edgeService.findEdgesByTenantId(tenantId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (Edge edge : pageData.getData()) {
+                    saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, null);
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
     }
 }

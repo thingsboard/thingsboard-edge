@@ -487,6 +487,11 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             };
 
     @Override
+    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId) {
+        return findRelatedEdgeIdsByEntityId(tenantId, entityId, null);
+    }
+
+    @Override
     public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr) {
         // TODO: voba - rewrite 'find' to use native SQL queries instead of fetching relations
 

@@ -88,6 +88,8 @@ public interface EdgeService {
 
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType);
 
+    ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId);
+
     ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr);
 
     void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
