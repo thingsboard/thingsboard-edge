@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantInfo;
@@ -96,10 +97,10 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.FirmwareId;
-import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UUIDBased;
@@ -177,10 +178,9 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
-import org.thingsboard.server.service.firmware.FirmwareStateService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
-import org.thingsboard.server.service.edge.rpc.EdgeGrpcService;
-import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.firmware.FirmwareStateService;
 import org.thingsboard.server.service.lwm2m.LwM2MServerSecurityInfoRepository;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
@@ -376,10 +376,7 @@ public abstract class BaseController {
     protected EdgeNotificationService edgeNotificationService;
 
     @Autowired(required = false)
-    protected SyncEdgeService syncEdgeService;
-
-    @Autowired(required = false)
-    protected EdgeGrpcService edgeGrpcService;
+    protected EdgeRpcService edgeGrpcService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter

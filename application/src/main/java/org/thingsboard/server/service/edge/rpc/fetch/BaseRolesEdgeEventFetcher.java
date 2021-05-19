@@ -28,35 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.init;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Edge;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.AttributesRequestMsg;
-import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
-import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
-import org.thingsboard.server.gen.edge.RelationRequestMsg;
-import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
-import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
-public interface SyncEdgeService {
+import java.util.ArrayList;
+import java.util.List;
 
-    void sync(TenantId tenantId, Edge edge);
+@AllArgsConstructor
+@Slf4j
+public abstract class BaseRolesEdgeEventFetcher extends BasePageableEdgeEventFetcher {
 
-    void syncEdgeOwner(TenantId tenantId, Edge edge);
+    protected final RoleService roleService;
 
-    ListenableFuture<Void> processRuleChainMetadataRequestMsg(TenantId tenantId, Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg);
+    @Override
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+        log.trace("[{}] start fetching edge events [{}]", tenantId, edgeId);
+        PageData<Role> pageData = findRoles(tenantId, pageLink);
+        List<EdgeEvent> result = new ArrayList<>();
+        if (!pageData.getData().isEmpty()) {
+            for (Role role : pageData.getData()) {
+                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ROLE,
+                        EdgeEventActionType.ADDED, role.getId(), null));
+            }
+        }
+        return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
+    }
 
-    ListenableFuture<Void> processAttributesRequestMsg(TenantId tenantId, Edge edge, AttributesRequestMsg attributesRequestMsg);
-
-    ListenableFuture<Void> processRelationRequestMsg(TenantId tenantId, Edge edge, RelationRequestMsg relationRequestMsg);
-
-    ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg);
-
-    ListenableFuture<Void> processUserCredentialsRequestMsg(TenantId tenantId, Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg);
-
-    ListenableFuture<Void> processEntityGroupEntitiesRequest(TenantId tenantId, Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg);
-
-    ListenableFuture<Void> processEntityGroupPermissionsRequest(TenantId tenantId, Edge edge, EntityGroupRequestMsg userGroupEntitiesRequestMsg);
+    protected abstract PageData<Role> findRoles(TenantId tenantId, PageLink pageLink);
 }

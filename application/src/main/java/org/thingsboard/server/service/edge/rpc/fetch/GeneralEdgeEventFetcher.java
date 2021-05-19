@@ -28,8 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.firmware;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-public enum FirmwareUpdateStatus {
-    QUEUED, INITIATED, DOWNLOADING, DOWNLOADED, VERIFIED, UPDATING, UPDATED, FAILED
+import lombok.AllArgsConstructor;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.edge.EdgeEventService;
+
+@AllArgsConstructor
+public class GeneralEdgeEventFetcher implements EdgeEventFetcher {
+
+    private final Long queueStartTs;
+    private final EdgeEventService edgeEventService;
+
+    @Override
+    public PageLink getPageLink(int pageSize) {
+        return new TimePageLink(
+                pageSize,
+                0,
+                null,
+                new SortOrder("createdTime", SortOrder.Direction.ASC),
+                queueStartTs,
+                null);
+    }
+
+    @Override
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+        return edgeEventService.findEdgeEvents(tenantId, edgeId, (TimePageLink) pageLink, true);
+    }
 }

@@ -43,6 +43,7 @@ import { TimeUnit } from '@shared/models/time/time.models';
 import * as _moment from 'moment';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { FirmwareId } from '@shared/models/id/firmware-id';
+import { DashboardId } from '@shared/models/id/dashboard-id';
 
 export enum DeviceProfileType {
   DEFAULT = 'DEFAULT',
@@ -507,10 +508,12 @@ export interface DeviceProfile extends BaseData<DeviceProfileId> {
   description?: string;
   default?: boolean;
   type: DeviceProfileType;
+  image?: string;
   transportType: DeviceTransportType;
   provisionType: DeviceProvisionType;
   provisionDeviceKey?: string;
   defaultRuleChainId?: RuleChainId;
+  defaultDashboardId?: DashboardId;
   defaultQueueName?: string;
   firmwareId?: FirmwareId;
   softwareId?: FirmwareId;
@@ -520,6 +523,8 @@ export interface DeviceProfile extends BaseData<DeviceProfileId> {
 export interface DeviceProfileInfo extends EntityInfoData {
   type: DeviceProfileType;
   transportType: DeviceTransportType;
+  image?: string;
+  defaultDashboardId?: DashboardId;
 }
 
 export interface DefaultDeviceConfiguration {

@@ -53,9 +53,11 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
@@ -79,7 +81,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
+import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RelationProcessor;
@@ -195,7 +197,15 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private SyncEdgeService syncEdgeService;
+    private EdgeRequestsService edgeRequestsService;
+
+    @Lazy
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
+    @Lazy
+    @Autowired
+    private CustomTranslationService customTranslationService;
 
     @Lazy
     @Autowired

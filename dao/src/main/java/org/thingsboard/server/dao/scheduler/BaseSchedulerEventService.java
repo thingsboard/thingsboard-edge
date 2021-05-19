@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -240,19 +242,21 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     }
 
     @Override
-    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId) {
+    public PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId,
+                                                                                                 EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findSchedulerEventInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
-        return schedulerEventInfoDao.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return schedulerEventInfoDao.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
     @Override
-    public ListenableFuture<List<SchedulerEvent>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId) {
+    public PageData<SchedulerEvent> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId,
+                                                                            EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findSchedulerEventsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
-        return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
     private DataValidator<SchedulerEvent> schedulerEventValidator =

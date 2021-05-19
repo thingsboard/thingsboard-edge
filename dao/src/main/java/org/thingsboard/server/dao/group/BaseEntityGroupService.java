@@ -71,7 +71,6 @@ import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -762,7 +761,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
-        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId);
+        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -75,6 +76,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
     @Column(name = ModelConstants.DEVICE_PROFILE_TYPE_PROPERTY)
     private DeviceProfileType type;
 
+    @Column(name = ModelConstants.DEVICE_PROFILE_IMAGE_PROPERTY)
+    private String image;
+
     @Enumerated(EnumType.STRING)
     @Column(name = ModelConstants.DEVICE_PROFILE_TRANSPORT_TYPE_PROPERTY)
     private DeviceTransportType transportType;
@@ -94,6 +98,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
 
     @Column(name = ModelConstants.DEVICE_PROFILE_DEFAULT_RULE_CHAIN_ID_PROPERTY, columnDefinition = "uuid")
     private UUID defaultRuleChainId;
+
+    @Column(name = ModelConstants.DEVICE_PROFILE_DEFAULT_DASHBOARD_ID_PROPERTY)
+    private UUID defaultDashboardId;
 
     @Column(name = ModelConstants.DEVICE_PROFILE_DEFAULT_QUEUE_NAME_PROPERTY)
     private String defaultQueueName;
@@ -125,6 +132,7 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         this.setCreatedTime(deviceProfile.getCreatedTime());
         this.name = deviceProfile.getName();
         this.type = deviceProfile.getType();
+        this.image = deviceProfile.getImage();
         this.transportType = deviceProfile.getTransportType();
         this.provisionType = deviceProfile.getProvisionType();
         this.description = deviceProfile.getDescription();
@@ -132,6 +140,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         this.profileData = JacksonUtil.convertValue(deviceProfile.getProfileData(), ObjectNode.class);
         if (deviceProfile.getDefaultRuleChainId() != null) {
             this.defaultRuleChainId = deviceProfile.getDefaultRuleChainId().getId();
+        }
+        if (deviceProfile.getDefaultDashboardId() != null) {
+            this.defaultDashboardId = deviceProfile.getDefaultDashboardId().getId();
         }
         this.defaultQueueName = deviceProfile.getDefaultQueueName();
         this.provisionDeviceKey = deviceProfile.getProvisionDeviceKey();
@@ -166,6 +177,7 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         }
         deviceProfile.setName(name);
         deviceProfile.setType(type);
+        deviceProfile.setImage(image);
         deviceProfile.setTransportType(transportType);
         deviceProfile.setProvisionType(provisionType);
         deviceProfile.setDescription(description);
@@ -173,6 +185,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         deviceProfile.setProfileData(JacksonUtil.convertValue(profileData, DeviceProfileData.class));
         if (defaultRuleChainId != null) {
             deviceProfile.setDefaultRuleChainId(new RuleChainId(defaultRuleChainId));
+        }
+        if (defaultDashboardId != null) {
+            deviceProfile.setDefaultDashboardId(new DashboardId(defaultDashboardId));
         }
         deviceProfile.setDefaultQueueName(defaultQueueName);
         deviceProfile.setProvisionDeviceKey(provisionDeviceKey);

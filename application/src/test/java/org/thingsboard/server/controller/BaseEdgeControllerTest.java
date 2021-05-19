@@ -400,7 +400,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         Device device = new Device();
         device.setName("Edge Device 1");
-        device.setType("test");
+        device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
 
         doPost("/api/edge/" + edge.getId().getId().toString()
@@ -421,17 +421,18 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
+
         edgeImitator.expectMessageAmount(13);
         edgeImitator.connect();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         Assert.assertEquals(13, edgeImitator.getDownlinkMsgs().size());
-        Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RoleProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size());
 
         edgeImitator.getDownlinkMsgs().clear();
 
@@ -441,13 +442,13 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         Assert.assertEquals(10, edgeImitator.getDownlinkMsgs().size());
-        Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class).isPresent());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RoleProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
 
         edgeImitator.allowIgnoredTypes();
         try {

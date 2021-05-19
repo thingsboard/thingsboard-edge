@@ -41,34 +41,21 @@ import org.thingsboard.server.common.data.id.ApiUsageStateId;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEntity {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
-    @Getter
-    @Setter
     private TenantId tenantId;
-    @Getter
-    @Setter
     private EntityId entityId;
-    @Getter
-    @Setter
     private ApiUsageStateValue transportState;
-    @Getter
-    @Setter
     private ApiUsageStateValue dbStorageState;
-    @Getter
-    @Setter
     private ApiUsageStateValue reExecState;
-    @Getter
-    @Setter
     private ApiUsageStateValue jsExecState;
-    @Getter
-    @Setter
     private ApiUsageStateValue emailExecState;
-    @Getter
-    @Setter
     private ApiUsageStateValue smsExecState;
+    private ApiUsageStateValue alarmExecState;
 
     public ApiUsageState() {
         super();
@@ -88,6 +75,7 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
         this.jsExecState = ur.getJsExecState();
         this.emailExecState = ur.getEmailExecState();
         this.smsExecState = ur.getSmsExecState();
+        this.alarmExecState = ur.getAlarmExecState();
     }
 
     public boolean isTransportEnabled() {
@@ -118,5 +106,9 @@ public class ApiUsageState extends BaseData<ApiUsageStateId> implements TenantEn
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.API_USAGE_STATE;
+    }
+
+    public boolean isAlarmCreationEnabled() {
+        return alarmExecState != ApiUsageStateValue.DISABLED;
     }
 }

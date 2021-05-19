@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
-import org.thingsboard.server.common.data.query.AlarmDataPageLink;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
 
 import java.util.Collection;
@@ -59,6 +58,8 @@ import java.util.List;
 public interface AlarmService {
 
     AlarmOperationResult createOrUpdateAlarm(Alarm alarm);
+
+    AlarmOperationResult createOrUpdateAlarm(Alarm alarm, boolean alarmCreationEnabled);
 
     AlarmOperationResult deleteAlarm(TenantId tenantId, AlarmId alarmId);
 
@@ -73,6 +74,8 @@ public interface AlarmService {
     ListenableFuture<PageData<AlarmInfo>> findAlarms(TenantId tenantId, AlarmQuery query);
 
     List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters);
+
+    ListenableFuture<PageData<AlarmInfo>> findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query);
 
     AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus,
                                            AlarmStatus alarmStatus);

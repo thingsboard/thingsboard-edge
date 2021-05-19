@@ -89,7 +89,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -125,6 +124,7 @@ import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.RpcResponseMsg;
@@ -135,6 +135,7 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -219,61 +220,33 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     @Test
     public void test() throws Exception {
         testReceivedInitialData();
-        int expectedDownlinkSize = 10;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testDevices();
-        expectedDownlinkSize = expectedDownlinkSize + 5;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testAssets();
-        expectedDownlinkSize = expectedDownlinkSize + 5;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testRuleChains();
-        expectedDownlinkSize = expectedDownlinkSize + 3;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testDashboards();
-        expectedDownlinkSize = expectedDownlinkSize + 4;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testRelations();
-        expectedDownlinkSize = expectedDownlinkSize + 2;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testAlarms();
-        expectedDownlinkSize = expectedDownlinkSize + 3;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testEntityView();
-        expectedDownlinkSize = expectedDownlinkSize + 4;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         // TODO
 //        changeOwnerToCustomer();
-//        expectedDownlinkSize = expectedDownlinkSize + 2;
-//        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testWidgetsBundleAndWidgetType();
-        expectedDownlinkSize = expectedDownlinkSize + 4;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testTimeseries();
-        expectedDownlinkSize = expectedDownlinkSize + 1;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testAttributes();
-        expectedDownlinkSize = expectedDownlinkSize + 3;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testSendMessagesToCloud();
-        expectedDownlinkSize = expectedDownlinkSize + 8;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
 
         testRpcCall();
-        expectedDownlinkSize = expectedDownlinkSize + 1;
-        Assert.assertEquals(expectedDownlinkSize, edgeImitator.getDownlinkMsgs().size());
     }
 
     private Device saveDevice(String deviceName, String type) throws Exception {
@@ -343,7 +316,6 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void testReceivedInitialData() throws Exception {
         log.info("Checking received data");
-
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         EdgeConfiguration configuration = edgeImitator.getConfiguration();
@@ -370,7 +342,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Optional<RuleChainUpdateMsg> ruleChainUpdateMsgOpt = edgeImitator.findMessageByType(RuleChainUpdateMsg.class);
         Assert.assertTrue(ruleChainUpdateMsgOpt.isPresent());
         RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgOpt.get();
-        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, ruleChainUpdateMsg.getMsgType());
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, ruleChainUpdateMsg.getMsgType());
         UUID ruleChainUUID = new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB());
         RuleChain ruleChain = doGet("/api/ruleChain/" + ruleChainUUID.toString(), RuleChain.class);
         Assert.assertNotNull(ruleChain);
@@ -890,6 +862,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/entityGroup/" + entityViewEntityGroup.getId().toString() + "/" + EntityType.ENTITY_VIEW.name(), EntityGroup.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
+
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
         EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
@@ -904,14 +877,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.expectMessageAmount(1);
         EntityView savedEntityView = saveEntityView("Edge Entity View 1", "Default", globalTestDevice.getId(), entityViewEntityGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
-        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
-        Assert.assertEquals(entityViewUpdateMsg.getIdMSB(), savedEntityView.getUuidId().getMostSignificantBits());
-        Assert.assertEquals(entityViewUpdateMsg.getIdLSB(), savedEntityView.getUuidId().getLeastSignificantBits());
-        Assert.assertEquals(entityViewUpdateMsg.getName(), savedEntityView.getName());
-        Assert.assertEquals(entityViewUpdateMsg.getType(), savedEntityView.getType());
+        verifyEntityViewUpdateMsg(savedEntityView, globalTestDevice);
 
         // 3
         testEntityViewEntityGroupRequestMsg(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB(), savedEntityView.getId());
@@ -923,12 +889,25 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(edgeImitator.waitForMessages());
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
-        entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
         Assert.assertEquals(entityViewUpdateMsg.getIdMSB(), savedEntityView.getUuidId().getMostSignificantBits());
         Assert.assertEquals(entityViewUpdateMsg.getIdLSB(), savedEntityView.getUuidId().getLeastSignificantBits());
-
         log.info("EntityView tested successfully");
+    }
+
+    private void verifyEntityViewUpdateMsg(EntityView entityView, Device device) {
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
+        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
+        Assert.assertEquals(entityViewUpdateMsg.getType(), entityView.getType());
+        Assert.assertEquals(entityViewUpdateMsg.getName(), entityView.getName());
+        Assert.assertEquals(entityViewUpdateMsg.getIdMSB(), entityView.getUuidId().getMostSignificantBits());
+        Assert.assertEquals(entityViewUpdateMsg.getIdLSB(), entityView.getUuidId().getLeastSignificantBits());
+        Assert.assertEquals(entityViewUpdateMsg.getEntityIdMSB(), device.getUuidId().getMostSignificantBits());
+        Assert.assertEquals(entityViewUpdateMsg.getEntityIdLSB(), device.getUuidId().getLeastSignificantBits());
+        Assert.assertEquals(entityViewUpdateMsg.getEntityType().name(), device.getId().getEntityType().name());
     }
 
     private void testWidgetsBundleAndWidgetType() throws Exception {
@@ -1396,12 +1375,10 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     private void sendUserCredentialsRequest() throws Exception {
-        UserId userId = edgeImitator.getUserId();
-
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         UserCredentialsRequestMsg.Builder userCredentialsRequestMsgBuilder = UserCredentialsRequestMsg.newBuilder();
-        userCredentialsRequestMsgBuilder.setUserIdMSB(userId.getId().getMostSignificantBits());
-        userCredentialsRequestMsgBuilder.setUserIdLSB(userId.getId().getLeastSignificantBits());
+        userCredentialsRequestMsgBuilder.setUserIdMSB(tenantAdmin.getId().getId().getMostSignificantBits());
+        userCredentialsRequestMsgBuilder.setUserIdLSB(tenantAdmin.getId().getId().getLeastSignificantBits());
         testAutoGeneratedCodeByProtobuf(userCredentialsRequestMsgBuilder);
         uplinkMsgBuilder.addUserCredentialsRequestMsg(userCredentialsRequestMsgBuilder.build());
 
@@ -1416,8 +1393,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
-        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdMSB(), userId.getId().getMostSignificantBits());
-        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdLSB(), userId.getId().getLeastSignificantBits());
+        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdMSB(), tenantAdmin.getId().getId().getMostSignificantBits());
+        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdLSB(), tenantAdmin.getId().getId().getLeastSignificantBits());
 
         testAutoGeneratedCodeByProtobuf(userCredentialsUpdateMsg);
     }

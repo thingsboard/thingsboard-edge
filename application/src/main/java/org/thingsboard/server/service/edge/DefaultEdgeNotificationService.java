@@ -77,7 +77,6 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 
@@ -103,9 +102,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private EdgeService edgeService;
-
-    @Autowired
-    private SyncEdgeService syncEdgeService;
 
     @Autowired
     private AlarmService alarmService;
@@ -276,7 +272,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                                         unassignSchedulerEventsOfPreviousOwnerFromEdge(tenantId, edgeId, previousOwnerId);
                                     }
                                     if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-                                        syncEdgeService.syncEdgeOwner(tenantId, edge);
+                                        syncEdgeOwner(tenantId, edge);
                                     }
                                 } catch (Exception e) {
                                     log.error("[{}] Failed to switch owner for edge [{}]", tenantId, edge, e);
@@ -297,28 +293,38 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         }
     }
 
-    private void unassignSchedulerEventsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
-        ListenableFuture<List<SchedulerEventInfo>> future = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId);
-        Futures.addCallback(future, new FutureCallback<List<SchedulerEventInfo>>() {
-            @Override
-            public void onSuccess(@Nullable List<SchedulerEventInfo> schedulerEventInfos) {
-                if (schedulerEventInfos != null && !schedulerEventInfos.isEmpty()) {
-                    for (SchedulerEventInfo schedulerEventInfo : schedulerEventInfos) {
-                        if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
-                            schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
-                            saveEdgeEvent(tenantId, edgeId, EdgeEventType.SCHEDULER_EVENT, EdgeEventActionType.UNASSIGNED_FROM_EDGE, schedulerEventInfo.getId(), null);
-                        }
-                    }
+    private void syncEdgeOwner(TenantId tenantId, Edge edge) {
+        saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null, null);
+        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageData<Role> rolesData;
+        do {
+            rolesData = roleService.findRolesByTenantIdAndCustomerId(tenantId,
+                    new CustomerId(edge.getOwnerId().getId()), pageLink);
+            if (rolesData != null && rolesData.getData() != null && !rolesData.getData().isEmpty()) {
+                for (Role role : rolesData.getData()) {
+                    saveEdgeEvent(tenantId, edge.getId(),
+                            EdgeEventType.ROLE, EdgeEventActionType.ADDED, role.getId(), null, null);
+                }
+                if (rolesData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
                 }
             }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                log.error("[{}] Failed to find edge scheduler events [{}]", tenantId, edgeId, throwable);
-            }
-        }, dbCallbackExecutorService);
+        } while (rolesData != null && rolesData.hasNext());
     }
 
+    private void unassignSchedulerEventsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
+        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageData<SchedulerEventInfo> pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+        if (pageData.getData() != null && !pageData.getData().isEmpty()) {
+            for (SchedulerEventInfo schedulerEventInfo : pageData.getData()) {
+                if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
+                    schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
+                    saveEdgeEvent(tenantId, edgeId, EdgeEventType.SCHEDULER_EVENT, EdgeEventActionType.UNASSIGNED_FROM_EDGE, schedulerEventInfo.getId(), null);
+                }
+            }
+        }
+    }
 
     private void unassignEntityGroupsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId previousOwnerId) {
         ListenableFuture<List<EntityGroup>> future = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType);
