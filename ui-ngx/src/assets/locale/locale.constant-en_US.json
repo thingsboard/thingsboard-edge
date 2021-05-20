@@ -1657,9 +1657,10 @@
       "cloud-event-action-group-entities-request": "Group Entities Request",
       "cloud-event-action-group-permissions-request": "Permissions Request",
       "cloud-event-action-device-profile-devices-request": "Device Profile Devices Request",
-      "cloud-event-action-widget-bundle-types-request": "Widget Bundle Types Request"
+      "cloud-event-action-widget-bundle-types-request": "Widget Bundle Types Request",
+      "cloud-event-action-entity-view-request": "Entity View Request"
     },
-    "entity": {
+  "entity": {
         "entity": "Entity",
         "entities": "Entities",
         "entities-count": "Entities count",

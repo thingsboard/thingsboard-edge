@@ -175,21 +175,7 @@ export enum CloudEventActionType {
   GROUP_PERMISSIONS_REQUEST = "GROUP_PERMISSIONS_REQUEST",
   DEVICE_PROFILE_DEVICES_REQUEST = "DEVICE_PROFILE_DEVICES_REQUEST",
   WIDGET_BUNDLE_TYPES_REQUEST = "WIDGET_BUNDLE_TYPES_REQUEST",
-  EDGE = "EDGE",
-  USER = "USER",
-  CUSTOMER = "CUSTOMER",
-  RELATION = "RELATION",
-  TENANT = "TENANT",
-  WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
-  WIDGET_TYPE = "WIDGET_TYPE",
-  ADMIN_SETTINGS = "ADMIN_SETTINGS",
-  ENTITY_GROUP = "ENTITY_GROUP",
-  SCHEDULER_EVENT = "SCHEDULER_EVENT",
-  WHITE_LABELING = "WHITE_LABELING",
-  LOGIN_WHITE_LABELING = "LOGIN_WHITE_LABELING",
-  CUSTOM_TRANSLATION = "CUSTOM_TRANSLATION",
-  ROLE = "ROLE",
-  GROUP_PERMISSION = "GROUP_PERMISSION"
+  ENTITY_VIEW_REQUEST = "ENTITY_VIEW_REQUEST"
 }
 
 // PE MERGE
@@ -266,10 +252,12 @@ export const cloudEventActionTypeTranslations = new Map<string, string>(
     [CloudEventActionType.GROUP_ENTITIES_REQUEST, 'cloud-event.cloud-event-action-group-entities-request'],
     [CloudEventActionType.GROUP_PERMISSIONS_REQUEST, 'cloud-event.cloud-event-action-group-permissions-request'],
     [CloudEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, 'cloud-event.cloud-event-action-device-profile-devices-request'],
-    [CloudEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, 'cloud-event.cloud-event-action-widget-bundle-types-request']
+    [CloudEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, 'cloud-event.cloud-event-action-widget-bundle-types-request'],
+    [CloudEventActionType.ENTITY_VIEW_REQUEST, 'cloud-event.cloud-event-action-entity-view-request']
   ]
 );
 
+// PE MERGE
 export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
   [
     [EdgeEventType.DASHBOARD, 'edge-event.type-dashboard'],
