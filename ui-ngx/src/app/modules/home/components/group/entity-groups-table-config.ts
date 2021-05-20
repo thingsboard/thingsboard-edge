@@ -46,8 +46,8 @@ import { UtilsService } from '@core/services/utils.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { deepClone, isDefinedAndNotNull } from '@core/utils';
-import { forkJoin, Observable } from 'rxjs';
+import { isDefinedAndNotNull } from '@core/utils';
+import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
 import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
@@ -62,7 +62,6 @@ import {
   AddEntityGroupsToEdgeDialogComponent,
   AddEntityGroupsToEdgeDialogData
 } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
-import { FirmwareGroupInfo, FirmwareType } from '@shared/models/firmware.models';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -157,29 +156,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
           id: this.customerId
         };
       }
-      let saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
-      if (isDefinedAndNotNull(entityGroup.id) && entityGroup.type === EntityType.DEVICE) {
-        const tasks = [];
-        tasks.push(this.entityGroupService.updateDeviceGroupFirmware(
-          entityGroup.firmwareGroup, entityGroup.firmwareId, entityGroup.id, FirmwareType.FIRMWARE));
-        tasks.push(this.entityGroupService.updateDeviceGroupFirmware(
-          entityGroup.softwareGroup, entityGroup.softwareId, entityGroup.id, FirmwareType.SOFTWARE));
-        delete entityGroup.firmwareId;
-        delete entityGroup.firmwareGroup;
-        delete entityGroup.softwareId;
-        delete entityGroup.softwareGroup;
-        tasks.push(this.entityGroupService.saveEntityGroup(entityGroup));
-        saveEntity$ = forkJoin(tasks).pipe(
-          map(([firmware, software, savedEntityGroup]: [FirmwareGroupInfo, FirmwareGroupInfo, EntityGroupInfo]) => {
-              return Object.assign(savedEntityGroup, {
-                firmwareId: deepClone(firmware?.firmwareId),
-                firmwareGroup: firmware,
-                softwareId: deepClone(software?.firmwareId),
-                softwareGroup: software
-              });
-            }
-          ));
-      }
+      const saveEntity$ = entityGroup.type === EntityType.DEVICE ?
+        this.entityGroupService.saveDeviceEntityGroup(entityGroup) : this.entityGroupService.saveEntityGroup(entityGroup);
       return saveEntity$.pipe(
         tap((savedEntityGroup) => {
             this.notifyEntityGroupUpdated();

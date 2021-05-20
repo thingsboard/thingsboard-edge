@@ -102,13 +102,14 @@ export class EntityGroupService {
   }
 
   public updateDeviceGroupFirmware(firmwareGroup: FirmwareGroupInfo, firmwareId: FirmwareId | null,
-                                   groupId: EntityGroupId, firmwareType: FirmwareType): Observable<FirmwareGroupInfo> {
+                                   groupId: EntityGroupId, firmwareType: FirmwareType,
+                                   config?: RequestConfig): Observable<FirmwareGroupInfo> {
     if (isDefinedAndNotNull(firmwareGroup)) {
       if (firmwareId === null) {
-        return this.deleteDeviceGroupFirmware(firmwareGroup.id);
+        return this.deleteDeviceGroupFirmware(firmwareGroup.id, config);
       } else if (firmwareId.id !== firmwareGroup.firmwareId.id) {
         firmwareGroup.firmwareId = firmwareId;
-        return this.saveDeviceGroupFirmware(firmwareGroup);
+        return this.saveDeviceGroupFirmware(firmwareGroup, config);
       } else {
         return of(firmwareGroup);
       }
@@ -118,13 +119,39 @@ export class EntityGroupService {
         firmwareType,
         groupId
       };
-      return this.saveDeviceGroupFirmware(newFirmwareGroup);
+      return this.saveDeviceGroupFirmware(newFirmwareGroup, config);
     }
     return of(null);
   }
 
   public saveDeviceGroupFirmware(firmwareGroup: FirmwareGroupInfo, config?: RequestConfig ): Observable<FirmwareGroupInfo> {
     return this.http.post<FirmwareGroupInfo>('/api/deviceGroupFirmware', firmwareGroup, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveDeviceEntityGroup(entityGroup: EntityGroupInfo, config?: RequestConfig) {
+    if (isDefinedAndNotNull(entityGroup.id)) {
+      const tasks = [];
+      tasks.push(this.updateDeviceGroupFirmware(entityGroup.firmwareGroup, entityGroup.firmwareId,
+        entityGroup.id, FirmwareType.FIRMWARE, config));
+      tasks.push(this.updateDeviceGroupFirmware(entityGroup.softwareGroup, entityGroup.softwareId,
+        entityGroup.id, FirmwareType.SOFTWARE, config));
+      delete entityGroup.firmwareId;
+      delete entityGroup.firmwareGroup;
+      delete entityGroup.softwareId;
+      delete entityGroup.softwareGroup;
+      tasks.push(this.saveEntityGroup(entityGroup, config));
+      return forkJoin(tasks).pipe(
+        map(([firmware, software, savedEntityGroup]: [FirmwareGroupInfo, FirmwareGroupInfo, EntityGroupInfo]) => {
+            return Object.assign(savedEntityGroup, {
+              firmwareId: deepClone(firmware?.firmwareId),
+              firmwareGroup: firmware,
+              softwareId: deepClone(software?.firmwareId),
+              softwareGroup: software
+            });
+          }
+        ));
+    }
+    return this.saveEntityGroup(entityGroup, config);
   }
 
   public deleteDeviceGroupFirmware(deviceGroupFirmwareId: string, config?: RequestConfig ) {
