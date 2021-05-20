@@ -54,7 +54,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardProcessor extends BaseProcessor {
+public class DashboardCloudProcessor extends BaseCloudProcessor {
 
     private final Lock dashboardCreationLock = new ReentrantLock();
 

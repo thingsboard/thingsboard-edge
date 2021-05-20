@@ -35,55 +35,60 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.WidgetTypeId;
-import org.thingsboard.server.common.data.widget.WidgetType;
-import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class WidgetTypeProcessor extends BaseProcessor {
+public class WidgetsBundleCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
-        WidgetTypeId widgetTypeId = new WidgetTypeId(new UUID(widgetTypeUpdateMsg.getIdMSB(), widgetTypeUpdateMsg.getIdLSB()));
-        switch (widgetTypeUpdateMsg.getMsgType()) {
+    public ListenableFuture<Void> onWidgetsBundleUpdate(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
+        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
+        switch (widgetsBundleUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
                     widgetCreationLock.lock();
-                    WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(tenantId, widgetTypeId);
-                    if (widgetTypeDetails == null) {
-                        widgetTypeDetails = new WidgetTypeDetails();
-                        if (widgetTypeUpdateMsg.getIsSystem()) {
-                            widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);
+                    WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                    boolean created = false;
+                    if (widgetsBundle == null) {
+                        created = true;
+                        widgetsBundle = new WidgetsBundle();
+                        if (widgetsBundleUpdateMsg.getIsSystem()) {
+                            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
                         } else {
-                            widgetTypeDetails.setTenantId(tenantId);
+                            widgetsBundle.setTenantId(tenantId);
                         }
-                        widgetTypeDetails.setId(widgetTypeId);
-                        widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
+                        widgetsBundle.setId(widgetsBundleId);
+                        widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
                     }
-                    widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
-                    widgetTypeDetails.setAlias(widgetTypeUpdateMsg.getAlias());
-                    widgetTypeDetails.setName(widgetTypeUpdateMsg.getName());
-                    widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
-                    widgetTypeService.saveWidgetType(widgetTypeDetails);
+                    widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
+                    widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
+                    widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toString());
+                    widgetsBundleService.saveWidgetsBundle(widgetsBundle);
+
+                    if (created) {
+                        saveCloudEvent(tenantId, CloudEventType.WIDGETS_BUNDLE, ActionType.WIDGET_BUNDLE_TYPES_REQUEST, widgetsBundleId, null);
+                    }
                 } finally {
                     widgetCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
-                if (widgetType != null) {
-                    widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
+                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
+                if (widgetsBundle != null) {
+                    widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
                 }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetTypeUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetsBundleUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
     }

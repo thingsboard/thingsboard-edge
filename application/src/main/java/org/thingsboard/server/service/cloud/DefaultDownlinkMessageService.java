@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -71,25 +70,25 @@ import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
-import org.thingsboard.server.service.cloud.processor.downlink.AdminSettingsProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.AlarmProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.AssetProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.CustomerProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.DashboardProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.DeviceProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.DeviceProfileProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.EntityGroupProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.EntityViewProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.GroupPermissionProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.RelationProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.RoleProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.RuleChainProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.SchedulerEventProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.TelemetryProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.UserProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.WhiteLabelingProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.WidgetTypeProcessor;
-import org.thingsboard.server.service.cloud.processor.downlink.WidgetsBundleProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.AdminSettingsCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.AssetCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.CustomerCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.DashboardCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.DeviceCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.DeviceProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.EntityGroupCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.EntityViewCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.GroupPermissionCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.RelationCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.RoleCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.RuleChainCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.SchedulerEventCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.TelemetryCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.UserCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.WhiteLabelingCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.WidgetTypeCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.downlink.WidgetsBundleCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
@@ -108,61 +107,61 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
     private CloudEventService cloudEventService;
 
     @Autowired
-    private RuleChainProcessor ruleChainProcessor;
+    private RuleChainCloudProcessor ruleChainProcessor;
 
     @Autowired
-    private TelemetryProcessor telemetryProcessor;
+    private TelemetryCloudProcessor telemetryProcessor;
 
     @Autowired
-    private DeviceProcessor deviceProcessor;
+    private DeviceCloudProcessor deviceProcessor;
 
     @Autowired
-    private DeviceProfileProcessor deviceProfileProcessor;
+    private DeviceProfileCloudProcessor deviceProfileProcessor;
 
     @Autowired
-    private AssetProcessor assetProcessor;
+    private AssetCloudProcessor assetProcessor;
 
     @Autowired
-    private EntityViewProcessor entityViewProcessor;
+    private EntityViewCloudProcessor entityViewProcessor;
 
     @Autowired
-    private RelationProcessor relationProcessor;
+    private RelationCloudProcessor relationProcessor;
 
     @Autowired
-    private DashboardProcessor dashboardProcessor;
+    private DashboardCloudProcessor dashboardProcessor;
 
     @Autowired
-    private CustomerProcessor customerProcessor;
+    private CustomerCloudProcessor customerProcessor;
 
     @Autowired
-    private AlarmProcessor alarmProcessor;
+    private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
-    private UserProcessor userProcessor;
+    private UserCloudProcessor userProcessor;
 
     @Autowired
-    private EntityGroupProcessor entityGroupProcessor;
+    private EntityGroupCloudProcessor entityGroupProcessor;
 
     @Autowired
-    private SchedulerEventProcessor schedulerEventProcessor;
+    private SchedulerEventCloudProcessor schedulerEventProcessor;
 
     @Autowired
-    private RoleProcessor roleProcessor;
+    private RoleCloudProcessor roleProcessor;
 
     @Autowired
-    private GroupPermissionProcessor groupPermissionProcessor;
+    private GroupPermissionCloudProcessor groupPermissionProcessor;
 
     @Autowired
-    private WhiteLabelingProcessor whiteLabelingProcessor;
+    private WhiteLabelingCloudProcessor whiteLabelingProcessor;
 
     @Autowired
-    private WidgetsBundleProcessor widgetsBundleProcessor;
+    private WidgetsBundleCloudProcessor widgetsBundleProcessor;
 
     @Autowired
-    private WidgetTypeProcessor widgetTypeProcessor;
+    private WidgetTypeCloudProcessor widgetTypeProcessor;
 
     @Autowired
-    private AdminSettingsProcessor adminSettingsProcessor;
+    private AdminSettingsCloudProcessor adminSettingsProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;

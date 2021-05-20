@@ -50,7 +50,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class SchedulerEventProcessor extends BaseProcessor {
+public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private SchedulerEventService schedulerEventService;

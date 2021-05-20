@@ -96,7 +96,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public abstract class BaseProcessor {
+public abstract class BaseCloudProcessor {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
 

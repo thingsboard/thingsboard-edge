@@ -72,7 +72,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class DeviceProcessor extends BaseProcessor {
+public class DeviceCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private DeviceStateService deviceStateService;

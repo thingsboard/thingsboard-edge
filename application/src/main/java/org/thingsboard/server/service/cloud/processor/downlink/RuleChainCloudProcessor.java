@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class RuleChainProcessor extends BaseProcessor {
+public class RuleChainCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private RuleChainService ruleChainService;

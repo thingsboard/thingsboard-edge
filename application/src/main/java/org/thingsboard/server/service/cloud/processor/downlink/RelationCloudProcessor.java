@@ -56,7 +56,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class RelationProcessor extends BaseProcessor {
+public class RelationCloudProcessor extends BaseCloudProcessor {
 
     public ListenableFuture<Void> onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {

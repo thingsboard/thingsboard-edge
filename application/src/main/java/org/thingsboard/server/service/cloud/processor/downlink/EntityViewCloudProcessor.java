@@ -55,7 +55,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityViewProcessor extends BaseProcessor {
+public class EntityViewCloudProcessor extends BaseCloudProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 

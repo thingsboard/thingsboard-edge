@@ -52,7 +52,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class AssetProcessor extends BaseProcessor {
+public class AssetCloudProcessor extends BaseCloudProcessor {
 
     private final Lock assetCreationLock = new ReentrantLock();
 

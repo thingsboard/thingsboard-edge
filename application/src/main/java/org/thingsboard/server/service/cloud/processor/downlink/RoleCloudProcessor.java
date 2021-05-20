@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class RoleProcessor extends BaseProcessor {
+public class RoleCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private RoleService roleService;

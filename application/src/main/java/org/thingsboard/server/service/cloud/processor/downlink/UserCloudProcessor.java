@@ -62,7 +62,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class UserProcessor extends BaseProcessor {
+public class UserCloudProcessor extends BaseCloudProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 

@@ -56,7 +56,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class DeviceProfileProcessor extends BaseProcessor {
+public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private DeviceProfileService deviceProfileService;

@@ -51,7 +51,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class GroupPermissionProcessor extends BaseProcessor {
+public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private GroupPermissionService groupPermissionService;

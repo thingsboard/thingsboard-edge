@@ -91,7 +91,7 @@ import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
-import org.thingsboard.server.service.cloud.processor.uplink.UplinkProcessor;
+import org.thingsboard.server.service.cloud.processor.uplink.UplinkCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -202,7 +202,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private EdgeRpcClient edgeRpcClient;
 
     @Autowired
-    private UplinkProcessor uplinkProcessor;
+    private UplinkCloudProcessor uplinkProcessor;
 
     @Autowired
     private InstallScripts installScripts;

@@ -84,7 +84,7 @@ import java.util.Collections;
 
 @Slf4j
 @Component
-public class UplinkProcessor {
+public class UplinkCloudProcessor {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 

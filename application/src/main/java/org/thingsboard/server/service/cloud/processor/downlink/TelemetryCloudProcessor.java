@@ -78,7 +78,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class TelemetryProcessor extends BaseProcessor {
+public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
     private final Gson gson = new Gson();
 

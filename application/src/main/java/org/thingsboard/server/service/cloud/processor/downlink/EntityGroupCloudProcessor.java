@@ -68,7 +68,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityGroupProcessor extends BaseProcessor {
+public class EntityGroupCloudProcessor extends BaseCloudProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
