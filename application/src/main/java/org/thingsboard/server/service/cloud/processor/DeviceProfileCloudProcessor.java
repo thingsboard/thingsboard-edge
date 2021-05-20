@@ -42,15 +42,21 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.gen.edge.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -64,7 +70,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
 
-    public ListenableFuture<Void> onDeviceProfileUpdate(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
+    public ListenableFuture<Void> processDeviceProfileMsgFromCloud(TenantId tenantId, DeviceProfileUpdateMsg deviceProfileUpdateMsg) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(deviceProfileUpdateMsg.getIdMSB(), deviceProfileUpdateMsg.getIdLSB()));
         switch (deviceProfileUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -123,5 +129,16 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + deviceProfileUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
+    }
+
+    public UplinkMsg processDeviceProfileDevicesRequestMsgToCloud(CloudEvent cloudEvent) {
+        EntityId deviceProfileId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = DeviceProfileDevicesRequestMsg.newBuilder()
+                .setDeviceProfileIdMSB(deviceProfileId.getId().getMostSignificantBits())
+                .setDeviceProfileIdLSB(deviceProfileId.getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllDeviceProfileDevicesRequestMsg(Collections.singletonList(deviceProfileDevicesRequestMsg));
+        return builder.build();
     }
 }

@@ -61,7 +61,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private DashboardService dashboardService;
 
-    public ListenableFuture<Void> onDashboardUpdate(TenantId tenantId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

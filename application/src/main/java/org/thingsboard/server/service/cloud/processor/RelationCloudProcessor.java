@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -50,15 +51,20 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.UUID;
 
 @Component
 @Slf4j
 public class RelationCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
+    public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
             EntityRelation entityRelation = new EntityRelation();
 
@@ -119,4 +125,28 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
         }
 
     }
+
+    public UplinkMsg processRelationRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
+        return builder.build();
+    }
+
+    public UplinkMsg processRelationMsgToCloud(CloudEvent cloudEvent, UpdateMsgType msgType) {
+        UplinkMsg msg = null;
+        EntityRelation entityRelation = mapper.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
+        if (entityRelation != null) {
+            RelationUpdateMsg relationUpdateMsg = relationUpdateMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
+            msg = UplinkMsg.newBuilder()
+                    .addAllRelationUpdateMsg(Collections.singletonList(relationUpdateMsg)).build();
+        }
+        return msg;
+    }
+
 }

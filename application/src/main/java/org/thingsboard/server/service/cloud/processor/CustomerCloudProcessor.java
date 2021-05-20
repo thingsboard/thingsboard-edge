@@ -60,7 +60,7 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> onCustomerUpdate(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg, CloudType cloudType) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

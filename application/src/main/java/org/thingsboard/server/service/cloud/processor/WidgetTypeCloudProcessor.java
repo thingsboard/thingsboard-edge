@@ -48,7 +48,7 @@ import java.util.UUID;
 @Slf4j
 public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
+    public ListenableFuture<Void> processWidgetTypeMsgFromCloud(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
         WidgetTypeId widgetTypeId = new WidgetTypeId(new UUID(widgetTypeUpdateMsg.getIdMSB(), widgetTypeUpdateMsg.getIdLSB()));
         switch (widgetTypeUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

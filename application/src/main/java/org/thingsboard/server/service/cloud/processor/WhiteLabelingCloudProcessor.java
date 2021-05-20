@@ -61,7 +61,7 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public ListenableFuture<Void> onCustomTranslationUpdate(TenantId tenantId, CustomTranslationProto customTranslationProto) {
+    public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto) {
         try {
             CustomTranslation customTranslation = new CustomTranslation();
             customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
@@ -73,7 +73,7 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    public ListenableFuture<Void> onLoginWhiteLabelingParamsUpdate(TenantId tenantId, LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
+    public ListenableFuture<Void> processLoginWhiteLabelingParamsMsgFromCloud(TenantId tenantId, LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
         try {
             LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
             whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
@@ -108,7 +108,7 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         return loginWLP;
     }
 
-    public ListenableFuture<Void> onWhiteLabelingParamsUpdate(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
+    public ListenableFuture<Void> processWhiteLabelingParamsMsgFromCloud(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
         try {
             WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
             whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);

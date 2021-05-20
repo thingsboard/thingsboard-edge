@@ -50,7 +50,7 @@ import java.util.List;
 @Component
 public class AdminSettingsCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> onAdminSettingsUpdate(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+    public ListenableFuture<Void> processAdminSettingsMsgFromCloud(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
         String key = adminSettingsUpdateMsg.getKey();
         String jsonValue = adminSettingsUpdateMsg.getJsonValue();
         if (adminSettingsUpdateMsg.getIsSystem()) {

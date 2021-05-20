@@ -58,7 +58,7 @@ public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private SchedulerService schedulerService;
 
-    public ListenableFuture<Void> onScheduleEventUpdate(TenantId tenantId, SchedulerEventUpdateMsg schedulerEventUpdateMsg) {
+    public ListenableFuture<Void> processScheduleEventFromCloud(TenantId tenantId, SchedulerEventUpdateMsg schedulerEventUpdateMsg) {
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(new UUID(schedulerEventUpdateMsg.getIdMSB(), schedulerEventUpdateMsg.getIdLSB()));
             switch (schedulerEventUpdateMsg.getMsgType()) {

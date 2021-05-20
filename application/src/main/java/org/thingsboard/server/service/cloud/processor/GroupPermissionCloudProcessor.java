@@ -38,15 +38,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.GroupPermissionProto;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -59,7 +66,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    public ListenableFuture<Void> onGroupPermissionUpdate(TenantId tenantId, GroupPermissionProto groupPermissionProto) {
+    public ListenableFuture<Void> processGroupPermissionMsgFromCloud(TenantId tenantId, GroupPermissionProto groupPermissionProto) {
         try {
             GroupPermissionId groupPermissionId = new GroupPermissionId(new UUID(groupPermissionProto.getIdMSB(), groupPermissionProto.getIdLSB()));
             switch (groupPermissionProto.getMsgType()) {
@@ -109,4 +116,16 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
+    public UplinkMsg processEntityGroupPermissionsRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        String type = cloudEvent.getEntityBody().get("type").asText();
+        EntityGroupRequestMsg entityGroupPermissionsRequestMsg = EntityGroupRequestMsg.newBuilder()
+                .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
+                .setType(type)
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllEntityGroupPermissionsRequestMsg(Collections.singletonList(entityGroupPermissionsRequestMsg));
+        return builder.build();
+    }
 }

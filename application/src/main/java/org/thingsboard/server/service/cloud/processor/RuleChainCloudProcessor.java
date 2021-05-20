@@ -37,7 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,12 +52,15 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleNodeProto;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -67,7 +73,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private RuleChainService ruleChainService;
 
-    public ListenableFuture<Void> onRuleChainUpdate(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
+    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
         try {
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
             switch (ruleChainUpdateMsg.getMsgType()) {
@@ -130,7 +136,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    public ListenableFuture<Void> onRuleChainMetadataUpdate(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
+    public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
         try {
             switch (ruleChainMetadataUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -200,6 +206,17 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             result.add(ruleNode);
         }
         return result;
+    }
+
+    public UplinkMsg processRuleChainMetadataRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+        EntityId ruleChainId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
+                .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
+                .setRuleChainIdLSB(ruleChainId.getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllRuleChainMetadataRequestMsg(Collections.singletonList(ruleChainMetadataRequestMsg));
+        return builder.build();
     }
 
 }

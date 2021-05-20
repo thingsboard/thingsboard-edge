@@ -88,7 +88,7 @@ import org.thingsboard.server.service.cloud.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.UserCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.WhiteLabelingCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.WidgetTypeCloudProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetsBundleCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
@@ -155,7 +155,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
     private WhiteLabelingCloudProcessor whiteLabelingProcessor;
 
     @Autowired
-    private WidgetsBundleCloudProcessor widgetsBundleProcessor;
+    private WidgetBundleCloudProcessor widgetsBundleProcessor;
 
     @Autowired
     private WidgetTypeCloudProcessor widgetTypeProcessor;
@@ -177,12 +177,12 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    result.addAll(telemetryProcessor.onTelemetryUpdate(tenantId, entityData));
+                    result.addAll(telemetryProcessor.processTelemetryMsgFromCloud(tenantId, entityData));
                 }
             }
             if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcRequestMsg : downlinkMsg.getDeviceRpcCallMsgList()) {
-                    result.add(deviceProcessor.onDeviceRpcRequest(tenantId, deviceRpcRequestMsg));
+                    result.add(deviceProcessor.processDeiceRpcRequestFromCloud(tenantId, deviceRpcRequestMsg));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgCount() > 0) {
@@ -192,54 +192,54 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceProcessor.onDeviceUpdate(tenantId, customerId, deviceUpdateMsg, currentEdgeSettings.getCloudType()));
+                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, customerId, deviceUpdateMsg, currentEdgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
                 for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
-                    result.add(deviceProfileProcessor.onDeviceProfileUpdate(tenantId, deviceProfileUpdateMsg));
+                    result.add(deviceProfileProcessor.processDeviceProfileMsgFromCloud(tenantId, deviceProfileUpdateMsg));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(deviceProcessor.onDeviceCredentialsUpdate(tenantId, deviceCredentialsUpdateMsg));
+                    result.add(deviceProcessor.processDeviceCredentialsMsgFromCloud(tenantId, deviceCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
                 for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
-                    result.add(assetProcessor.onAssetUpdate(tenantId, customerId, assetUpdateMsg, currentEdgeSettings.getCloudType()));
+                    result.add(assetProcessor.processAssetMsgFromCloud(tenantId, customerId, assetUpdateMsg, currentEdgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
                 for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
-                    result.add(entityViewProcessor.onEntityViewUpdate(tenantId, customerId, entityViewUpdateMsg, currentEdgeSettings.getCloudType()));
+                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(tenantId, customerId, entityViewUpdateMsg, currentEdgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
                 for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
-                    result.add(ruleChainProcessor.onRuleChainUpdate(tenantId, ruleChainUpdateMsg));
+                    result.add(ruleChainProcessor.processRuleChainMsgFromCloud(tenantId, ruleChainUpdateMsg));
                 }
             }
             if (downlinkMsg.getRuleChainMetadataUpdateMsgCount() > 0) {
                 for (RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg : downlinkMsg.getRuleChainMetadataUpdateMsgList()) {
-                    result.add(ruleChainProcessor.onRuleChainMetadataUpdate(tenantId, ruleChainMetadataUpdateMsg));
+                    result.add(ruleChainProcessor.processRuleChainMetadataMsgFromCloud(tenantId, ruleChainMetadataUpdateMsg));
                 }
             }
             if (downlinkMsg.getDashboardUpdateMsgCount() > 0) {
                 for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
-                    result.add(dashboardProcessor.onDashboardUpdate(tenantId, customerId, dashboardUpdateMsg, currentEdgeSettings.getCloudType()));
+                    result.add(dashboardProcessor.processDashboardMsgFromCloud(tenantId, customerId, dashboardUpdateMsg, currentEdgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(alarmProcessor.onAlarmUpdate(tenantId, alarmUpdateMsg));
+                    result.add(alarmProcessor.processAlarmMsgFromCloud(tenantId, alarmUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
                     try {
                         sequenceDependencyLock.lock();
-                        result.add(customerProcessor.onCustomerUpdate(tenantId, customerUpdateMsg, currentEdgeSettings.getCloudType()));
+                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, currentEdgeSettings.getCloudType()));
                         updateCustomerId(customerUpdateMsg);
                     } finally {
                         sequenceDependencyLock.unlock();
@@ -248,24 +248,24 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationProcessor.onRelationUpdate(tenantId, relationUpdateMsg));
+                    result.add(relationProcessor.processRelationMsgFromCloud(tenantId, relationUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
                 for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
-                    result.add(widgetsBundleProcessor.onWidgetsBundleUpdate(tenantId, widgetsBundleUpdateMsg));
+                    result.add(widgetsBundleProcessor.processWidgetsBundleMsgFromCloud(tenantId, widgetsBundleUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
                 for (WidgetTypeUpdateMsg widgetTypeUpdateMsg : downlinkMsg.getWidgetTypeUpdateMsgList()) {
-                    result.add(widgetTypeProcessor.onWidgetTypeUpdate(tenantId, widgetTypeUpdateMsg));
+                    result.add(widgetTypeProcessor.processWidgetTypeMsgFromCloud(tenantId, widgetTypeUpdateMsg));
                 }
             }
             if (downlinkMsg.getUserUpdateMsgCount() > 0) {
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
                     try {
                         sequenceDependencyLock.lock();
-                        result.add(userProcessor.onUserUpdate(tenantId, userUpdateMsg, currentEdgeSettings.getCloudType()));
+                        result.add(userProcessor.processUserMsgFromCloud(tenantId, userUpdateMsg, currentEdgeSettings.getCloudType()));
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -273,47 +273,47 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getUserCredentialsUpdateMsgCount() > 0) {
                 for (UserCredentialsUpdateMsg userCredentialsUpdateMsg : downlinkMsg.getUserCredentialsUpdateMsgList()) {
-                    result.add(userProcessor.onUserCredentialsUpdate(tenantId, userCredentialsUpdateMsg));
+                    result.add(userProcessor.processUserCredentialsMsgFromCloud(tenantId, userCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
                 for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
-                    result.add(entityGroupProcessor.onEntityGroupUpdate(tenantId, entityGroupUpdateMsg));
+                    result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomTranslationMsgCount() > 0) {
                 for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
-                    result.add(whiteLabelingProcessor.onCustomTranslationUpdate(tenantId, customTranslationProto));
+                    result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, customTranslationProto));
                 }
             }
             if (downlinkMsg.getWhiteLabelingParamsCount() > 0) {
                 for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingProcessor.onWhiteLabelingParamsUpdate(tenantId, whiteLabelingParamsProto));
+                    result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, whiteLabelingParamsProto));
                 }
             }
             if (downlinkMsg.getLoginWhiteLabelingParamsCount() > 0) {
                 for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, loginWhiteLabelingParamsProto));
+                    result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, loginWhiteLabelingParamsProto));
                 }
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
-                    result.add(schedulerEventProcessor.onScheduleEventUpdate(tenantId, schedulerEventUpdateMsg));
+                    result.add(schedulerEventProcessor.processScheduleEventFromCloud(tenantId, schedulerEventUpdateMsg));
                 }
             }
             if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
                 for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
-                    result.add(adminSettingsProcessor.onAdminSettingsUpdate(tenantId, adminSettingsUpdateMsg));
+                    result.add(adminSettingsProcessor.processAdminSettingsMsgFromCloud(tenantId, adminSettingsUpdateMsg));
                 }
             }
             if (downlinkMsg.getRoleMsgCount() > 0) {
                 for (RoleProto roleProto : downlinkMsg.getRoleMsgList()) {
-                    result.add(roleProcessor.onRoleUpdate(tenantId, roleProto));
+                    result.add(roleProcessor.processRoleMsgFromCloud(tenantId, roleProto));
                 }
             }
             if (downlinkMsg.getGroupPermissionMsgCount() > 0) {
                 for (GroupPermissionProto groupPermissionProto : downlinkMsg.getGroupPermissionMsgList()) {
-                    result.add(groupPermissionProcessor.onGroupPermissionUpdate(tenantId, groupPermissionProto));
+                    result.add(groupPermissionProcessor.processGroupPermissionMsgFromCloud(tenantId, groupPermissionProto));
                 }
             }
         } catch (Exception e) {

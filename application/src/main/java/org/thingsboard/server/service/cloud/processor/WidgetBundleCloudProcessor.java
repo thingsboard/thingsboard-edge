@@ -36,19 +36,25 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 
+import java.util.Collections;
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class WidgetsBundleCloudProcessor extends BaseCloudProcessor {
+public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> onWidgetsBundleUpdate(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
+    public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         switch (widgetsBundleUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -91,5 +97,16 @@ public class WidgetsBundleCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetsBundleUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
+    }
+
+    public UplinkMsg processWidgetBundleTypesRequestMsgToCloud(CloudEvent cloudEvent) {
+        EntityId widgetBundleId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        WidgetBundleTypesRequestMsg widgetBundleTypesRequestMsg = WidgetBundleTypesRequestMsg.newBuilder()
+                .setWidgetBundleIdMSB(widgetBundleId.getId().getMostSignificantBits())
+                .setWidgetBundleIdLSB(widgetBundleId.getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllWidgetBundleTypesRequestMsg(Collections.singletonList(widgetBundleTypesRequestMsg));
+        return builder.build();
     }
 }

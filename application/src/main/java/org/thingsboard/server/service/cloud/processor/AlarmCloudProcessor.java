@@ -38,15 +38,22 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
+
+import java.util.Collections;
+import java.util.concurrent.ExecutionException;
 
 @Component
 @Slf4j
 public class AlarmCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> onAlarmUpdate(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
+    public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         EntityId originatorId = getAlarmOriginator(tenantId,
                 alarmUpdateMsg.getOriginatorName(),
                 EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
@@ -107,5 +114,19 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
             default:
                 return null;
         }
+    }
+
+    public UplinkMsg processAlarmMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType) throws ExecutionException, InterruptedException {
+        AlarmId alarmId = new AlarmId(cloudEvent.getEntityId());
+        Alarm alarm = alarmService.findAlarmByIdAsync(cloudEvent.getTenantId(), alarmId).get();
+        UplinkMsg msg = null;
+        if (alarm != null) {
+            AlarmUpdateMsg alarmUpdateMsg = alarmUpdateMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
+            msg = UplinkMsg.newBuilder()
+                    .addAllAlarmUpdateMsg(Collections.singletonList(alarmUpdateMsg)).build();
+        } else {
+            log.info("Skipping event as alarm was not found [{}]", cloudEvent);
+        }
+        return msg;
     }
 }

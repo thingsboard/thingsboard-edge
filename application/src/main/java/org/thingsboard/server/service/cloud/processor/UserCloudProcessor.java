@@ -69,7 +69,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private UserService userService;
 
-    public ListenableFuture<Void> onUserUpdate(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -162,7 +162,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
         user.setCustomerId(customerId);
     }
 
-    public ListenableFuture<Void> onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
+    public ListenableFuture<Void> processUserCredentialsMsgFromCloud(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
         UserId userId = new UserId(new UUID(userCredentialsUpdateMsg.getUserIdMSB(), userCredentialsUpdateMsg.getUserIdLSB()));
         ListenableFuture<User> userFuture = userService.findUserByIdAsync(tenantId, userId);
         return Futures.transform(userFuture, user -> {

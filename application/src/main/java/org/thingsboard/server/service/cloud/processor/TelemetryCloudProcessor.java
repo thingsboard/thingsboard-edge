@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -55,6 +57,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
@@ -64,13 +67,17 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
+import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.EntityDataProto;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +89,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
     private final Gson gson = new Gson();
 
-    public List<ListenableFuture<Void>> onTelemetryUpdate(TenantId tenantId, EntityDataProto entityData) {
+    public List<ListenableFuture<Void>> processTelemetryMsgFromCloud(TenantId tenantId, EntityDataProto entityData) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         EntityId entityId = constructEntityId(entityData);
         if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg() || entityData.hasAttributesUpdatedMsg()) && entityId != null) {
@@ -269,4 +276,69 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
         }
         return futureToSet;
     }
+
+    public UplinkMsg processTelemetryMessageMsgToCloud(CloudEvent cloudEvent) throws Exception {
+        EntityId entityId;
+        switch (cloudEvent.getCloudEventType()) {
+            case DEVICE:
+                entityId = new DeviceId(cloudEvent.getEntityId());
+                break;
+            case ASSET:
+                entityId = new AssetId(cloudEvent.getEntityId());
+                break;
+            case ENTITY_VIEW:
+                entityId = new EntityViewId(cloudEvent.getEntityId());
+                break;
+            case DASHBOARD:
+                entityId = new DashboardId(cloudEvent.getEntityId());
+                break;
+            case ENTITY_GROUP:
+                entityId = new EntityGroupId(cloudEvent.getEntityId());
+                break;
+            default:
+                throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getCloudEventType() + "]");
+        }
+
+        ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
+        return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(cloudEvent.getEntityBody())));
+    }
+
+
+    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
+        EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllEntityData(Collections.singletonList(entityDataProto));
+        return builder.build();
+    }
+
+    public UplinkMsg processAttributesRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+        log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        try {
+            ArrayList<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
+            AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()
+                    .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                    .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                    .setEntityType(entityId.getEntityType().name())
+                    .setScope(DataConstants.SERVER_SCOPE)
+                    .build();
+            allAttributesRequestMsg.add(serverAttributesRequestMsg);
+            if (EntityType.DEVICE.equals(entityId.getEntityType())) {
+                AttributesRequestMsg sharedAttributesRequestMsg = AttributesRequestMsg.newBuilder()
+                        .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                        .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                        .setEntityType(entityId.getEntityType().name())
+                        .setScope(DataConstants.SHARED_SCOPE)
+                        .build();
+                allAttributesRequestMsg.add(sharedAttributesRequestMsg);
+            }
+            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                    .addAllAttributesRequestMsg(allAttributesRequestMsg);
+            return builder.build();
+        } catch (Exception e) {
+            log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
+        }
+    }
+
 }

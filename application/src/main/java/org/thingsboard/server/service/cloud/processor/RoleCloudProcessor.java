@@ -81,7 +81,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
             Operation.READ_CREDENTIALS, Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
 
-    public ListenableFuture<Void> onRoleUpdate(TenantId tenantId, RoleProto roleProto) {
+    public ListenableFuture<Void> processRoleMsgFromCloud(TenantId tenantId, RoleProto roleProto) {
         try {
             RoleId roleId = new RoleId(new UUID(roleProto.getIdMSB(), roleProto.getIdLSB()));
             switch (roleProto.getMsgType()) {

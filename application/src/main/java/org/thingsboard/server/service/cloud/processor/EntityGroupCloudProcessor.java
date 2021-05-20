@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -49,18 +50,22 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.group.BaseEntityGroupService;
+import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -72,7 +77,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> onEntityGroupUpdate(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
+    public ListenableFuture<Void> processEntityGroupMsgFromCloud(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
         switch (entityGroupUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -200,5 +205,18 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 dashboardService.deleteDashboard(tenantId, new DashboardId(entityId.getId()));
                 break;
         }
+    }
+
+    public UplinkMsg processGroupEntitiesRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        String type = cloudEvent.getEntityBody().get("type").asText();
+        EntityGroupRequestMsg entityGroupEntitiesRequestMsg = EntityGroupRequestMsg.newBuilder()
+                .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
+                .setType(type)
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllEntityGroupEntitiesRequestMsg(Collections.singletonList(entityGroupEntitiesRequestMsg));
+        return builder.build();
     }
 }

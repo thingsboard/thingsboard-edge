@@ -56,7 +56,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
 
     private final Lock assetCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> onAssetUpdate(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

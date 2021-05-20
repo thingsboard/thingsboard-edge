@@ -89,9 +89,21 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
-import org.thingsboard.server.service.cloud.processor.UplinkCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.DeviceCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.DeviceProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.EntityCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.EntityGroupCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.EntityViewCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.GroupPermissionCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.RelationCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.RuleChainCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.TelemetryCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetTypeCloudProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -202,7 +214,37 @@ public class CloudManagerService extends BaseCloudEventService {
     private EdgeRpcClient edgeRpcClient;
 
     @Autowired
-    private UplinkCloudProcessor uplinkProcessor;
+    private RelationCloudProcessor relationProcessor;
+
+    @Autowired
+    private DeviceCloudProcessor deviceProcessor;
+
+    @Autowired
+    private DeviceProfileCloudProcessor deviceProfileProcessor;
+
+    @Autowired
+    private AlarmCloudProcessor alarmProcessor;
+
+    @Autowired
+    private EntityCloudProcessor entityProcessor;
+
+    @Autowired
+    private TelemetryCloudProcessor telemetryProcessor;
+
+    @Autowired
+    private WidgetBundleCloudProcessor widgetBundleProcessor;
+
+    @Autowired
+    private EntityViewCloudProcessor entityViewProcessor;
+
+    @Autowired
+    private RuleChainCloudProcessor ruleChainProcessor;
+
+    @Autowired
+    private GroupPermissionCloudProcessor groupPermissionProcessor;
+
+    @Autowired
+    private EntityGroupCloudProcessor entityGroupProcessor;
 
     @Autowired
     private InstallScripts installScripts;
@@ -327,8 +369,8 @@ public class CloudManagerService extends BaseCloudEventService {
         List<UplinkMsg> result = new ArrayList<>();
         for (CloudEvent cloudEvent : cloudEvents) {
             log.trace("Processing cloud event [{}]", cloudEvent);
+            UplinkMsg uplinkMsg = null;
             try {
-                UplinkMsg uplinkMsg = null;
                 ActionType edgeEventAction = ActionType.valueOf(cloudEvent.getCloudEventAction());
                 switch (edgeEventAction) {
                     case UPDATED:
@@ -339,52 +381,89 @@ public class CloudManagerService extends BaseCloudEventService {
                     case CREDENTIALS_UPDATED:
                     case RELATION_ADD_OR_UPDATE:
                     case RELATION_DELETED:
-                        uplinkMsg = uplinkProcessor.processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
+                        uplinkMsg = processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
                         break;
                     case ATTRIBUTES_UPDATED:
                     case ATTRIBUTES_DELETED:
                     case TIMESERIES_UPDATED:
-                        uplinkMsg = uplinkProcessor.processTelemetryMessage(cloudEvent);
+                        uplinkMsg = telemetryProcessor.processTelemetryMessageMsgToCloud(cloudEvent);
                         break;
                     case ATTRIBUTES_REQUEST:
-                        uplinkMsg = uplinkProcessor.processAttributesRequest(cloudEvent);
+                        uplinkMsg = telemetryProcessor.processAttributesRequestMsgToCloud(cloudEvent);
                         break;
                     case RELATION_REQUEST:
-                        uplinkMsg = uplinkProcessor.processRelationRequest(cloudEvent);
+                        uplinkMsg = relationProcessor.processRelationRequestMsgToCloud(cloudEvent);
                         break;
                     case RULE_CHAIN_METADATA_REQUEST:
-                        uplinkMsg = uplinkProcessor.processRuleChainMetadataRequest(cloudEvent);
+                        uplinkMsg = ruleChainProcessor.processRuleChainMetadataRequestMsgToCloud(cloudEvent);
                         break;
                     case CREDENTIALS_REQUEST:
-                        uplinkMsg = uplinkProcessor.processCredentialsRequest(cloudEvent);
+                        uplinkMsg = entityProcessor.processCredentialsRequestMsgToCloud(cloudEvent);
                         break;
                     case GROUP_ENTITIES_REQUEST:
-                        uplinkMsg = uplinkProcessor.processGroupEntitiesRequest(cloudEvent);
+                        uplinkMsg = entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
                         break;
                     case GROUP_PERMISSIONS_REQUEST:
-                        uplinkMsg = uplinkProcessor.processEntityGroupPermissionsRequest(cloudEvent);
+                        uplinkMsg = groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                         break;
                     case RPC_CALL:
-                        uplinkMsg = uplinkProcessor.processRpcCallResponse(cloudEvent);
+                        uplinkMsg = deviceProcessor.processRpcCallResponseMsgToCloud(cloudEvent);
                         break;
                     case DEVICE_PROFILE_DEVICES_REQUEST:
-                        uplinkMsg = uplinkProcessor.processDeviceProfileDevicesRequest(cloudEvent);
+                        uplinkMsg = deviceProfileProcessor.processDeviceProfileDevicesRequestMsgToCloud(cloudEvent);
                         break;
                     case WIDGET_BUNDLE_TYPES_REQUEST:
-                        uplinkMsg = uplinkProcessor.processWidgetBundleTypesRequest(cloudEvent);
+                        uplinkMsg = widgetBundleProcessor.processWidgetBundleTypesRequestMsgToCloud(cloudEvent);
                         break;
                     case ENTITY_VIEW_REQUEST:
-                        uplinkMsg = uplinkProcessor.processEntityViewRequest(cloudEvent);
+                        uplinkMsg = entityViewProcessor.processEntityViewRequestMsgToCloud(cloudEvent);
                         break;
-                }
-                if (uplinkMsg != null) {
-                    result.add(uplinkMsg);
                 }
             } catch (Exception e) {
                 log.error("Exception during processing events from queue, skipping event [{}]", cloudEvent, e);
             }
+            if (uplinkMsg != null) {
+                result.add(uplinkMsg);
+            }
         }
         return result;
+    }
+
+    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent, ActionType edgeEventAction)
+            throws ExecutionException, InterruptedException {
+        UpdateMsgType msgType = getResponseMsgType(ActionType.valueOf(cloudEvent.getCloudEventAction()));
+        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}], msgType [{}]", cloudEvent, edgeEventAction, msgType);
+        switch (cloudEvent.getCloudEventType()) {
+            case DEVICE:
+                return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
+            case ALARM:
+                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent, msgType);
+            case RELATION:
+                return relationProcessor.processRelationMsgToCloud(cloudEvent, msgType);
+            default:
+                log.warn("Unsupported cloud event type [{}]", cloudEvent);
+                return null;
+        }
+    }
+
+    private UpdateMsgType getResponseMsgType(ActionType actionType) {
+        switch (actionType) {
+            case UPDATED:
+            case CREDENTIALS_UPDATED:
+                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
+            case ADDED:
+            case RELATION_ADD_OR_UPDATE:
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
+            case DELETED:
+            case RELATION_DELETED:
+                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
+            case ALARM_ACK:
+                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
+            case ALARM_CLEAR:
+                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
+            default:
+                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        }
     }
 
     private ListenableFuture<Long> getQueueStartTs() {

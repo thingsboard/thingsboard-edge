@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -45,10 +46,14 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityViewsRequestMsg;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -59,7 +64,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> onEntityViewUpdate(TenantId tenantId, CustomerId customerId, EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId, CustomerId customerId, EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -148,5 +153,17 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                 addEntityToGroup(tenantId, entityGroupId, entityViewId);
             }
         }
+    }
+
+    public UplinkMsg processEntityViewRequestMsgToCloud(CloudEvent cloudEvent) {
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        EntityViewsRequestMsg entityViewsRequestMsg = EntityViewsRequestMsg.newBuilder()
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllEntityViewsRequestMsg(Collections.singletonList(entityViewsRequestMsg));
+        return builder.build();
     }
 }
