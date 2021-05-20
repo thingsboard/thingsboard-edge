@@ -82,37 +82,68 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
 
   onIntegrationFormSet() {
     if (this.form.enabled) {
-      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe(() => {
-        this.handlerConfigurationTypeChanged();
+      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe((handlerType) => {
+        this.handlerConfigurationTypeChanged(handlerType);
+        this.setDefaultValue(handlerType);
       });
-      this.handlerConfigurationTypeChanged();
+      this.handlerConfigurationTypeChanged(this.form.get('handlerConfiguration').get('handlerType').value);
     }
   }
 
-  handlerConfigurationTypeChanged() {
-    const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
+  setDefaultValue(type: string){
     const handlerConf = this.defaultHandlerConfigurations[type];
-    const controls = this.form.get('handlerConfiguration') as FormGroup;
-    const fieldsSet = {
-      BINARY: [
-        'byteOrder',
-        'maxFrameLength',
-        'lengthFieldOffset',
-        'lengthFieldLength',
-        'lengthAdjustment',
-        'initialBytesToStrip',
-        'failFast'
-      ],
-      TEXT: [
-        'maxFrameLength',
-        'stripDelimiter',
-        'messageSeparator'
-      ],
-      JSON: []
-    };
-    disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
-    enableFields(controls, fieldsSet[type]);
     this.form.get('handlerConfiguration').patchValue(handlerConf, {emitEvent: false});
   }
 
+  handlerConfigurationTypeChanged(type: string) {
+    const controls = this.form.get('handlerConfiguration') as FormGroup;
+    const fieldsSet = {
+      BINARY: {
+        enable: [
+          'byteOrder',
+          'maxFrameLength',
+          'lengthFieldOffset',
+          'lengthFieldLength',
+          'lengthAdjustment',
+          'initialBytesToStrip',
+          'failFast'
+        ],
+        disable: [
+          'stripDelimiter',
+          'messageSeparator'
+        ]
+      },
+      TEXT: {
+        enable: [
+          'stripDelimiter',
+          'maxFrameLength',
+          'messageSeparator'
+        ],
+        disable: [
+          'byteOrder',
+          'lengthFieldOffset',
+          'lengthFieldLength',
+          'lengthAdjustment',
+          'initialBytesToStrip',
+          'failFast'
+        ]
+      },
+      JSON: {
+        enable: [],
+        disable: [
+          'byteOrder',
+          'lengthFieldOffset',
+          'lengthFieldLength',
+          'lengthAdjustment',
+          'initialBytesToStrip',
+          'failFast',
+          'stripDelimiter',
+          'maxFrameLength',
+          'messageSeparator'
+        ]
+      }
+    };
+    disableFields(controls, [...fieldsSet[type].disable]);
+    enableFields(controls, [...fieldsSet[type].enable]);
+  }
 }
