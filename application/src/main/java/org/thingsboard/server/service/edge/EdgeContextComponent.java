@@ -47,6 +47,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -87,6 +88,10 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private EdgeEventService edgeEventService;
+
+    @Lazy
+    @Autowired
+    private AdminSettingsService adminSettingsService;
 
     @Lazy
     @Autowired

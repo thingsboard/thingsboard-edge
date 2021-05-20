@@ -128,6 +128,7 @@ import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.GeneralEdgeEventFetcher;
@@ -258,13 +259,9 @@ public final class  EdgeGrpcSession implements Closeable {
                 startProcessingEdgeEvents(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
                 startProcessingEdgeEvents(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
                 startProcessingEdgeEvents(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
-
                 syncWhiteLabelingAndCustomTranslation(tenantId, edge);
-
-                // TODO: voba - implement this
-                // syncAdminSettings(tenantId, edge);
+                startProcessingEdgeEvents(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService()));
                 startProcessingEdgeEvents(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
-
                 syncEntityGroups(tenantId, edge);
                 startProcessingEdgeEvents(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
 
@@ -278,7 +275,7 @@ public final class  EdgeGrpcSession implements Closeable {
         });
     }
 
-    private void syncEdgeOwner(TenantId tenantId, Edge edge) throws InterruptedException {
+    private void syncEdgeOwner(TenantId tenantId, Edge edge) throws Exception {
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
             EdgeEvent customerEdgeEvent = EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
                     EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null);
@@ -471,7 +468,7 @@ public final class  EdgeGrpcSession implements Closeable {
         sendDownlinkMsg(edgeConfigMsg);
     }
 
-    void processEdgeEvents() throws ExecutionException, InterruptedException {
+    void processEdgeEvents() throws Exception {
         log.trace("[{}] processHandleMessages started", this.sessionId);
         if (isConnected() && isSyncCompleted()) {
             Long queueStartTs = getQueueStartTs().get();
@@ -487,7 +484,7 @@ public final class  EdgeGrpcSession implements Closeable {
         log.trace("[{}] processHandleMessages finished", this.sessionId);
     }
 
-    private UUID startProcessingEdgeEvents(EdgeEventFetcher fetcher) throws InterruptedException {
+    private UUID startProcessingEdgeEvents(EdgeEventFetcher fetcher) throws Exception {
         PageLink pageLink = fetcher.getPageLink(ctx.getEdgeEventStorageSettings().getMaxReadRecordsCount());
         PageData<EdgeEvent> pageData;
         UUID ifOffset = null;

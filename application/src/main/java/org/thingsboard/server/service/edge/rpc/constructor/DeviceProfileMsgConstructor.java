@@ -56,17 +56,14 @@ public class DeviceProfileMsgConstructor {
                 .setDefault(deviceProfile.isDefault())
                 .setType(deviceProfile.getType().name())
                 .setProfileDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(deviceProfile.getProfileData())));
-
-        /* TODO: voba - support of rule chain and queue name on the edge planned for next releases
-        if (deviceProfile.getDefaultRuleChainId() != null) {
-            builder.setDefaultRuleChainIdMSB(deviceProfile.getDefaultRuleChainId().getId().getMostSignificantBits())
-                    .setDefaultRuleChainIdLSB(deviceProfile.getDefaultRuleChainId().getId().getLeastSignificantBits());
-        }
-        if (deviceProfile.getDefaultQueueName() != null) {
-            builder.setDefaultQueueName(deviceProfile.getDefaultQueueName());
-        }
-        */
-
+        // TODO: @voba - add possibility to setup edge rule chain as device profile default
+//        if (deviceProfile.getDefaultRuleChainId() != null) {
+//            builder.setDefaultRuleChainIdMSB(deviceProfile.getDefaultRuleChainId().getId().getMostSignificantBits())
+//                    .setDefaultRuleChainIdLSB(deviceProfile.getDefaultRuleChainId().getId().getLeastSignificantBits());
+//        }
+//        if (deviceProfile.getDefaultQueueName() != null) {
+//            builder.setDefaultQueueName(deviceProfile.getDefaultQueueName());
+//        }
         if (deviceProfile.getDescription() != null) {
             builder.setDescription(deviceProfile.getDescription());
         }
