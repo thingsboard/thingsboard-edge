@@ -68,8 +68,9 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
 
   onIntegrationFormSet() {
     if (this.form.enabled) {
-      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe(() => {
+      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe((handlerType) => {
         this.handlerConfigurationTypeChanged();
+        this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[handlerType], {emitEvent: false});
       });
       this.handlerConfigurationTypeChanged();
     }
@@ -77,14 +78,15 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
 
   handlerConfigurationTypeChanged() {
     const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
-    disableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName', 'maxFrameLength']);
+    const controls = this.form.get('handlerConfiguration') as FormGroup
     if (type === handlerConfigurationTypes.hex.value) {
-      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['maxFrameLength']);
+      enableFields(controls, ['maxFrameLength']);
+      disableFields(controls, ['charsetName']);
+    } else if (type === handlerConfigurationTypes.text.value) {
+      enableFields(controls, ['charsetName']);
+      disableFields(controls, ['maxFrameLength']);
+    } else {
+      disableFields(controls, ['charsetName', 'maxFrameLength']);
     }
-    if (type === handlerConfigurationTypes.text.value) {
-      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName']);
-    }
-    this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type], {emitEvent: false});
   }
-
 }
