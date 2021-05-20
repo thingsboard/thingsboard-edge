@@ -42,64 +42,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AlarmId;
-import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.GroupPermissionId;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.widget.WidgetType;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.transport.util.JsonUtils;
-import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.ConnectRequestMsg;
 import org.thingsboard.server.gen.edge.ConnectResponseCode;
 import org.thingsboard.server.gen.edge.ConnectResponseMsg;
-import org.thingsboard.server.gen.edge.CustomTranslationProto;
-import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
-import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceProfileDevicesRequestMsg;
@@ -111,9 +71,7 @@ import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EdgeUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
-import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewsRequestMsg;
-import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.RequestMsg;
@@ -127,10 +85,11 @@ import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
-import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.GeneralEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.RuleChainsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SchedulerEventsEdgeEventFetcher;
@@ -138,6 +97,7 @@ import org.thingsboard.server.service.edge.rpc.fetch.SysAdminRolesEdgeEventFetch
 import org.thingsboard.server.service.edge.rpc.fetch.SystemWidgetsBundlesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.TenantRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.TenantWidgetsBundlesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.WhiteLabelingEdgeEventFetcher;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -146,7 +106,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -156,7 +115,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Data
-public final class  EdgeGrpcSession implements Closeable {
+public final class EdgeGrpcSession implements Closeable {
 
     private static final ReentrantLock downlinkMsgLock = new ReentrantLock();
 
@@ -259,10 +218,10 @@ public final class  EdgeGrpcSession implements Closeable {
                 startProcessingEdgeEvents(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
                 startProcessingEdgeEvents(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
                 startProcessingEdgeEvents(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
-                syncWhiteLabelingAndCustomTranslation(tenantId, edge);
-                startProcessingEdgeEvents(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService()));
+                startProcessingEdgeEvents(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
+                startProcessingEdgeEvents(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
                 startProcessingEdgeEvents(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
-                syncEntityGroups(tenantId, edge);
+                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService()));
                 startProcessingEdgeEvents(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
 
                 DownlinkMsg syncCompleteDownlinkMsg = DownlinkMsg.newBuilder()
@@ -286,125 +245,6 @@ public final class  EdgeGrpcSession implements Closeable {
         }
     }
 
-    private void syncWhiteLabelingAndCustomTranslation(TenantId tenantId, Edge edge) throws InterruptedException {
-        List<EdgeEvent> edgeEvents = new ArrayList<>();
-        EdgeEvent loginWhiteLabelingEdgeEvent = getLoginWhiteLabelingEdgeEvent(tenantId, edge);
-        if (loginWhiteLabelingEdgeEvent != null) {
-            edgeEvents.add(loginWhiteLabelingEdgeEvent);
-        }
-        EdgeEvent whiteLabelingEdgeEvent = getWhiteLabelingEdgeEvent(tenantId, edge);
-        if (whiteLabelingEdgeEvent != null) {
-            edgeEvents.add(whiteLabelingEdgeEvent);
-        }
-        EdgeEvent customTranslationEdgeEvent = getCustomTranslationEdgeEvent(tenantId, edge);
-        if (customTranslationEdgeEvent != null) {
-            edgeEvents.add(customTranslationEdgeEvent);
-        }
-        List<DownlinkMsg> downlinkMsgs = convertToDownlinkMsgsPack(edgeEvents);
-        sendDownlinkMsgsPack(downlinkMsgs);
-    }
-
-    private EdgeEvent getLoginWhiteLabelingEdgeEvent(TenantId tenantId, Edge edge) {
-        try {
-            EntityId ownerId = edge.getOwnerId();
-            String domainName = "localhost";
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                domainName = ctx.getWhiteLabelingService().getTenantLoginWhiteLabelingParams(tenantId).getDomainName();
-            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                domainName = ctx.getWhiteLabelingService().getCustomerLoginWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId())).getDomainName();
-            }
-            LoginWhiteLabelingParams loginWhiteLabelingParams = ctx.getWhiteLabelingService()
-                    .getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, domainName == null ? "localhost" : domainName, null, null);
-            if (loginWhiteLabelingParams != null) {
-                return EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(loginWhiteLabelingParams));
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("Can't load login white labeling params", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private EdgeEvent getWhiteLabelingEdgeEvent(TenantId tenantId, Edge edge) {
-        try {
-            EntityId ownerId = edge.getOwnerId();
-            WhiteLabelingParams whiteLabelingParams = null;
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                whiteLabelingParams = ctx.getWhiteLabelingService().getMergedTenantWhiteLabelingParams(tenantId, null, null);
-            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                whiteLabelingParams = ctx.getWhiteLabelingService().getMergedCustomerWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId()), null, null);
-            }
-            if (whiteLabelingParams != null) {
-                return EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(whiteLabelingParams));
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("Can't load white labeling params", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private EdgeEvent getCustomTranslationEdgeEvent(TenantId tenantId, Edge edge) {
-        try {
-            EntityId ownerId = edge.getOwnerId();
-            CustomTranslation customTranslation = null;
-
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                customTranslation = ctx.getCustomTranslationService().getMergedTenantCustomTranslation(new TenantId(ownerId.getId()));
-            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                customTranslation = ctx.getCustomTranslationService().getMergedCustomerCustomTranslation(edge.getTenantId(), new CustomerId(ownerId.getId()));
-            }
-
-            if (customTranslation != null) {
-                return EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, mapper.valueToTree(customTranslation));
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            log.error("Can't load custom translation", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void syncEntityGroups(TenantId tenantId, Edge edge) {
-        try {
-            List<EdgeEvent> edgeEvents = new ArrayList<>();
-            edgeEvents.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.DEVICE));
-            edgeEvents.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.ASSET));
-            // TODO: entity view must be in sync with assets/devices
-            edgeEvents.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.ENTITY_VIEW));
-            edgeEvents.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.DASHBOARD));
-            edgeEvents.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.USER));
-            List<DownlinkMsg> downlinkMsgs = convertToDownlinkMsgsPack(edgeEvents);
-            sendDownlinkMsgsPack(downlinkMsgs);
-        } catch (Exception e) {
-            log.error("Exception during loading edge entity groups(s) on sync!", e);
-        }
-    }
-
-    private List<EdgeEvent> getEntityGroupsEdgeEvents(TenantId tenantId, EdgeId edgeId, EntityType entityGroupType) {
-        try {
-            List<EntityGroup> list = ctx.getEntityGroupService().findEdgeEntityGroupsByType(tenantId, edgeId, entityGroupType).get();
-            List<EdgeEvent> result = new ArrayList<>();
-            if (list != null && !list.isEmpty()) {
-                for (EntityGroup entityGroup : list) {
-                    if (!entityGroup.isEdgeGroupAll()) {
-                        result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP,
-                                EdgeEventActionType.ADDED, entityGroup.getId(), null, null));
-                    }
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            log.error("Exception during loading edge entity groups(s) on sync!", e);
-            throw new RuntimeException(e);
-        }
-    }
 
     private void onUplinkMsg(UplinkMsg uplinkMsg) {
         ListenableFuture<List<Void>> future = processUplinkMsg(uplinkMsg);
@@ -490,7 +330,7 @@ public final class  EdgeGrpcSession implements Closeable {
         UUID ifOffset = null;
         boolean success;
         do {
-            pageData = fetcher.fetchEdgeEvents(edge.getTenantId(), edge.getId(), pageLink);
+            pageData = fetcher.fetchEdgeEvents(edge.getTenantId(), edge, pageLink);
             if (isConnected() && !pageData.getData().isEmpty()) {
                 log.trace("[{}] [{}] event(s) are going to be processed.", this.sessionId, pageData.getData().size());
                 List<DownlinkMsg> downlinkMsgsPack = convertToDownlinkMsgsPack(pageData.getData());

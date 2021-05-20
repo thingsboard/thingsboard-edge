@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -53,13 +54,13 @@ public abstract class BaseRolesEdgeEventFetcher extends BasePageableEdgeEventFet
     protected final RoleService roleService;
 
     @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
-        log.trace("[{}] start fetching edge events [{}]", tenantId, edgeId);
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
+        log.trace("[{}] start fetching edge events [{}]", tenantId, edge.getId());
         PageData<Role> pageData = findRoles(tenantId, pageLink);
         List<EdgeEvent> result = new ArrayList<>();
         if (!pageData.getData().isEmpty()) {
             for (Role role : pageData.getData()) {
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ROLE,
+                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ROLE,
                         EdgeEventActionType.ADDED, role.getId(), null));
             }
         }
