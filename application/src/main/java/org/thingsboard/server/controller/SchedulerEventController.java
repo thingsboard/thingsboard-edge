@@ -49,9 +49,11 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
@@ -68,6 +70,8 @@ import java.util.stream.Collectors;
 @TbCoreComponent
 @RequestMapping("/api")
 public class SchedulerEventController extends BaseController {
+
+    private static final int DEFAULT_SCHEDULER_EVENT_LIMIT = 100;
 
     public static final String SCHEDULER_EVENT_ID = "schedulerEventId";
 
@@ -288,6 +292,7 @@ public class SchedulerEventController extends BaseController {
         }
     }
 
+    // TODO: @voba add pagination
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/schedulerEvents", method = RequestMethod.GET)
     @ResponseBody
@@ -298,8 +303,19 @@ public class SchedulerEventController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             checkEdgeId(edgeId, Operation.READ);
-            // TODO: add pagination
-            return checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, new PageLink(Integer.MAX_VALUE)).getData());
+            List<SchedulerEventInfo> result = new ArrayList<>();
+            PageLink pageLink = new PageLink(DEFAULT_SCHEDULER_EVENT_LIMIT);
+            PageData<SchedulerEventInfo> pageData;
+            do {
+                pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+                if (pageData.getData().size() > 0) {
+                    result.addAll(pageData.getData());
+                    if (pageData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                }
+            } while (pageData.hasNext());
+            return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
         }
