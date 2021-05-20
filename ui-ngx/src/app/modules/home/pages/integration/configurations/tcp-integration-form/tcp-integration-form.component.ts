@@ -75,6 +75,53 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
     }
   };
 
+  fieldsSet = {
+    BINARY: {
+      enable: [
+        'byteOrder',
+        'maxFrameLength',
+        'lengthFieldOffset',
+        'lengthFieldLength',
+        'lengthAdjustment',
+        'initialBytesToStrip',
+        'failFast'
+      ],
+      disable: [
+        'stripDelimiter',
+        'messageSeparator'
+      ]
+    },
+    TEXT: {
+      enable: [
+        'stripDelimiter',
+        'maxFrameLength',
+        'messageSeparator'
+      ],
+      disable: [
+        'byteOrder',
+        'lengthFieldOffset',
+        'lengthFieldLength',
+        'lengthAdjustment',
+        'initialBytesToStrip',
+        'failFast'
+      ]
+    },
+    JSON: {
+      enable: [],
+      disable: [
+        'byteOrder',
+        'lengthFieldOffset',
+        'lengthFieldLength',
+        'lengthAdjustment',
+        'initialBytesToStrip',
+        'failFast',
+        'stripDelimiter',
+        'maxFrameLength',
+        'messageSeparator'
+      ]
+    }
+  };
+
   constructor() {
     super();
     delete this.handlerTypes.hex;
@@ -97,53 +144,7 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
 
   handlerConfigurationTypeChanged(type: string) {
     const controls = this.form.get('handlerConfiguration') as FormGroup;
-    const fieldsSet = {
-      BINARY: {
-        enable: [
-          'byteOrder',
-          'maxFrameLength',
-          'lengthFieldOffset',
-          'lengthFieldLength',
-          'lengthAdjustment',
-          'initialBytesToStrip',
-          'failFast'
-        ],
-        disable: [
-          'stripDelimiter',
-          'messageSeparator'
-        ]
-      },
-      TEXT: {
-        enable: [
-          'stripDelimiter',
-          'maxFrameLength',
-          'messageSeparator'
-        ],
-        disable: [
-          'byteOrder',
-          'lengthFieldOffset',
-          'lengthFieldLength',
-          'lengthAdjustment',
-          'initialBytesToStrip',
-          'failFast'
-        ]
-      },
-      JSON: {
-        enable: [],
-        disable: [
-          'byteOrder',
-          'lengthFieldOffset',
-          'lengthFieldLength',
-          'lengthAdjustment',
-          'initialBytesToStrip',
-          'failFast',
-          'stripDelimiter',
-          'maxFrameLength',
-          'messageSeparator'
-        ]
-      }
-    };
-    disableFields(controls, [...fieldsSet[type].disable]);
-    enableFields(controls, [...fieldsSet[type].enable]);
+    disableFields(controls, [...this.fieldsSet[type].disable]);
+    enableFields(controls, [...this.fieldsSet[type].enable]);
   }
 }

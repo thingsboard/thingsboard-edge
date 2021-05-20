@@ -78,7 +78,7 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
 
   handlerConfigurationTypeChanged() {
     const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
-    const controls = this.form.get('handlerConfiguration') as FormGroup
+    const controls = this.form.get('handlerConfiguration') as FormGroup;
     if (type === handlerConfigurationTypes.hex.value) {
       enableFields(controls, ['maxFrameLength']);
       disableFields(controls, ['charsetName']);
