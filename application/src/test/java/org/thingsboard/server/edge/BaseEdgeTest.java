@@ -199,7 +199,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(10);
+        edgeImitator.expectMessageAmount(11);
         edgeImitator.connect();
     }
 

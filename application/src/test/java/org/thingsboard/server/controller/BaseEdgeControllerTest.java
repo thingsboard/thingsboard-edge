@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
@@ -422,11 +423,10 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(12);
+        edgeImitator.expectMessageAmount(13);
         edgeImitator.connect();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        Assert.assertEquals(12, edgeImitator.getDownlinkMsgs().size());
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size()); // one msg during sync process, another from edge creation
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size()); // one msg during sync process for 'default' device profile
         Assert.assertEquals(4, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size()); // two msgs during sync process, two msgs from assign to edge
@@ -434,12 +434,13 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size()); // one msg during sync process
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size()); // one msg during sync process
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size()); // one msg during sync process
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
+        Assert.assertEquals(13, edgeImitator.getDownlinkMsgs().size());
 
-        edgeImitator.expectMessageAmount(9);
+        edgeImitator.expectMessageAmount(10);
         doPost("/api/edge/sync/" + edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        Assert.assertEquals(9, edgeImitator.getDownlinkMsgs().size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size());
@@ -447,6 +448,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
+        Assert.assertEquals(10, edgeImitator.getDownlinkMsgs().size());
 
         edgeImitator.allowIgnoredTypes();
         try {

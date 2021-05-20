@@ -65,8 +65,10 @@ public class AdminSettingsEdgeEventFetcher extends BasePageableEdgeEventFetcher 
         List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
         for (String key : adminSettingsKeys) {
             AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                    EdgeEventActionType.UPDATED, null, mapper.valueToTree(sysAdminMainSettings)));
+            if (sysAdminMainSettings != null) {
+                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, mapper.valueToTree(sysAdminMainSettings)));
+            }
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
                 AdminSettings tenantMailSettings = new AdminSettings();
