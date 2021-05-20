@@ -62,6 +62,17 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
     },
   };
 
+  fieldsSet = {
+    BINARY: [],
+    TEXT: [
+      'charsetName'
+    ],
+    JSON: [],
+    HEX: [
+      'maxFrameLength'
+    ]
+  };
+
   constructor() {
     super();
   }
@@ -79,14 +90,9 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
   handlerConfigurationTypeChanged() {
     const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
     const controls = this.form.get('handlerConfiguration') as FormGroup;
-    if (type === handlerConfigurationTypes.hex.value) {
-      enableFields(controls, ['maxFrameLength']);
-      disableFields(controls, ['charsetName']);
-    } else if (type === handlerConfigurationTypes.text.value) {
-      enableFields(controls, ['charsetName']);
-      disableFields(controls, ['maxFrameLength']);
-    } else {
-      disableFields(controls, ['charsetName', 'maxFrameLength']);
-    }
+    const enableField = this.fieldsSet[type];
+    const disableField  = Object.values(this.fieldsSet).flat().filter(item => !enableField.includes(item));
+    enableFields(controls, enableField);
+    disableFields(controls, disableField);
   }
 }

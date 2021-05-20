@@ -76,50 +76,21 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
   };
 
   fieldsSet = {
-    BINARY: {
-      enable: [
-        'byteOrder',
-        'maxFrameLength',
-        'lengthFieldOffset',
-        'lengthFieldLength',
-        'lengthAdjustment',
-        'initialBytesToStrip',
-        'failFast'
-      ],
-      disable: [
-        'stripDelimiter',
-        'messageSeparator'
-      ]
-    },
-    TEXT: {
-      enable: [
-        'stripDelimiter',
-        'maxFrameLength',
-        'messageSeparator'
-      ],
-      disable: [
-        'byteOrder',
-        'lengthFieldOffset',
-        'lengthFieldLength',
-        'lengthAdjustment',
-        'initialBytesToStrip',
-        'failFast'
-      ]
-    },
-    JSON: {
-      enable: [],
-      disable: [
-        'byteOrder',
-        'lengthFieldOffset',
-        'lengthFieldLength',
-        'lengthAdjustment',
-        'initialBytesToStrip',
-        'failFast',
-        'stripDelimiter',
-        'maxFrameLength',
-        'messageSeparator'
-      ]
-    }
+    BINARY: [
+      'byteOrder',
+      'maxFrameLength',
+      'lengthFieldOffset',
+      'lengthFieldLength',
+      'lengthAdjustment',
+      'initialBytesToStrip',
+      'failFast'
+    ],
+    TEXT: [
+      'maxFrameLength',
+      'stripDelimiter',
+      'messageSeparator'
+    ],
+    JSON: []
   };
 
   constructor() {
@@ -144,7 +115,9 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
 
   handlerConfigurationTypeChanged(type: string) {
     const controls = this.form.get('handlerConfiguration') as FormGroup;
-    disableFields(controls, [...this.fieldsSet[type].disable]);
-    enableFields(controls, [...this.fieldsSet[type].enable]);
+    const enableField = this.fieldsSet[type];
+    const disable = Object.values(this.fieldsSet).flat().filter(item => !enableField.includes(item));
+    disableFields(controls, disable);
+    enableFields(controls, enableField);
   }
 }
