@@ -156,7 +156,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    for (const propName of Object.keys(changes)) {
+    for (const propName of Object.keys(changes)) { //TODO: deaflynx check if code runs twice if changed entitiesTableConfig / edgeId
       const change = changes[propName];
       if (!change.firstChange && change.currentValue !== change.previousValue) {
         if (propName === 'entitiesTableConfig' && change.currentValue) {

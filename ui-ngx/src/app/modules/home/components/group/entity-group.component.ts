@@ -128,7 +128,7 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
         this.isGroupAll = entityGroup.groupAll;
         if (isEdgeParent) {
-          this.shareEnabled = false;
+          this.shareEnabled = false; //TODO: deaflynx discuss why users can't has extended rights
           this.makePublicEnabled = false;
           this.makePrivateEnabled = false;
         }

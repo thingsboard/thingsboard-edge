@@ -60,7 +60,7 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { isUndefined } from '@core/utils';
+import { deepClone, isUndefined } from '@core/utils';
 import { PageLink } from '@shared/models/page/page-link';
 import { Edge } from '@shared/models/edge.models';
 import { mergeMap } from 'rxjs/operators';
@@ -150,21 +150,22 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     const edgeId = params.edgeId;
     const edge = params.edge;
     const ruleChainScope = 'edge';
-    this.config.componentsData = {
+    const config = deepClone(this.config);
+    config.componentsData = {
       edgeId,
       edge,
       ruleChainScope
     };
-    this.config.columns = this.configureEntityTableColumns(ruleChainScope);
-    this.config.entitiesFetchFunction = this.configureEntityFunctions(ruleChainScope, edgeId);
-    this.config.groupActionDescriptors = this.configureGroupActions(ruleChainScope);
-    this.config.addActionDescriptors = this.configureAddActions(ruleChainScope);
-    this.config.cellActionDescriptors = this.configureCellActions(ruleChainScope, params);
-    this.config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
-    this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
-    this.config.entitiesDeleteEnabled = false;
-    defaultEntityTablePermissions(this.userPermissionsService, this.config);
-    return this.config;
+    config.columns = this.configureEntityTableColumns(ruleChainScope);
+    config.entitiesFetchFunction = this.configureEntityFunctions(ruleChainScope, edgeId);
+    config.groupActionDescriptors = this.configureGroupActions(ruleChainScope);
+    config.addActionDescriptors = this.configureAddActions(ruleChainScope);
+    config.cellActionDescriptors = this.configureCellActions(ruleChainScope, params);
+    config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
+    config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
+    config.entitiesDeleteEnabled = false;
+    defaultEntityTablePermissions(this.userPermissionsService, config);
+    return config;
   }
 
   configureEntityTableColumns(ruleChainScope: string): Array<EntityColumn<RuleChain>> {

@@ -144,9 +144,9 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
       this.isWidgetsBundleEditable(widgetsBundle, authUser.authority) &&
       this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.DELETE);
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
-    const authState = getCurrentAuthState(this.store);
-    this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink).pipe(
+    this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink).pipe( //TODO: deaflynx move to backend
       map((widgetBundles) => {
+        const authState = getCurrentAuthState(this.store);
         if (!authState.edgesSupportEnabled) {
           widgetBundles.data = widgetBundles.data.filter(widgetBundle => widgetBundle.alias !== 'edge_widgets');
         }
