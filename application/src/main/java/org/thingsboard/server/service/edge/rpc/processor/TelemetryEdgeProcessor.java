@@ -314,7 +314,7 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
     }
 
     public DownlinkMsg processTelemetryMessageToEdge(EdgeEvent edgeEvent) throws JsonProcessingException {
-        EntityId entityId = null;
+        EntityId entityId;
         switch (edgeEvent.getType()) {
             case DEVICE:
                 entityId = new DeviceId(edgeEvent.getEntityId());
@@ -340,12 +340,11 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_GROUP:
                 entityId = new EntityGroupId(edgeEvent.getEntityId());
                 break;
+            default:
+                log.warn("Unsupported edge event type [{}]", edgeEvent);
+                return null;
         }
-        DownlinkMsg downlinkMsg = null;
-        if (entityId != null) {
-            downlinkMsg = constructEntityDataProtoMsg(entityId, edgeEvent.getAction(), JsonUtils.parse(mapper.writeValueAsString(edgeEvent.getBody())));
-        }
-        return downlinkMsg;
+        return constructEntityDataProtoMsg(entityId, edgeEvent.getAction(), JsonUtils.parse(mapper.writeValueAsString(edgeEvent.getBody())));
     }
 
     private DownlinkMsg constructEntityDataProtoMsg(EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {
