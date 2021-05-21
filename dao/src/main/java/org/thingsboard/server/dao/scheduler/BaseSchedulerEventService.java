@@ -30,18 +30,29 @@
  */
 package org.thingsboard.server.dao.scheduler;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -52,9 +63,12 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -94,6 +108,15 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
 
     @Autowired
     private EdgeService edgeService;
+
+    @Autowired
+    private FirmwareService firmwareService;
+
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
 
     @Override
     public SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId) {
@@ -298,7 +321,61 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                             throw new DataValidationException("Can't assign schedulerEvent to customer from different tenant!");
                         }
                     }
+
+                    boolean isFirmwareUpdate = "firmwareUpdate".equals(schedulerEvent.getType());
+                    boolean isSoftwareUpdate = "softwareUpdate".equals(schedulerEvent.getType());
+
+                    if (isFirmwareUpdate || isSoftwareUpdate) {
+                        FirmwareId firmwareId =
+                                JacksonUtil.convertValue(schedulerEvent.getConfiguration().get("msgBody"), FirmwareId.class);
+                        if (firmwareId == null) {
+                            throw new DataValidationException("SchedulerEvent firmwareId should be specified!");
+                        }
+                        FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, firmwareId);
+                        if (firmwareInfo == null) {
+                            throw new DataValidationException("Can't assign non-existent firmware!");
+                        }
+
+                        if ((isFirmwareUpdate && !FirmwareType.FIRMWARE.equals(firmwareInfo.getType()))
+                                || (isSoftwareUpdate && !FirmwareType.SOFTWARE.equals(firmwareInfo.getType()))) {
+                            throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
+                        }
+
+                        EntityId originatorId = getOriginatorId(schedulerEvent.getConfiguration());
+
+                        if (originatorId == null) {
+                            throw new DataValidationException("SchedulerEvent originatorId should be specified!");
+                        }
+
+                        switch (originatorId.getEntityType()) {
+                            case DEVICE:
+                                Device device = deviceService.findDeviceById(tenantId, (DeviceId) originatorId);
+                                if (!device.getDeviceProfileId().equals(firmwareInfo.getDeviceProfileId())) {
+                                    throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
+                                }
+                                break;
+                            case DEVICE_PROFILE:
+                                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, (DeviceProfileId) originatorId);
+                                if (!deviceProfile.getId().equals(firmwareInfo.getDeviceProfileId())) {
+                                    throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
+                                }
+                                break;
+                        }
+                    }
                 }
             };
+
+    private EntityId getOriginatorId(JsonNode configuration) {
+        EntityId originatorId = null;
+        if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
+            JsonNode entityId = configuration.get("originatorId");
+            if (entityId != null) {
+                if (entityId.has("entityType") && !entityId.get("entityType").isNull()
+                        && entityId.has("id") && !entityId.get("id").isNull())
+                    originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
+            }
+        }
+        return originatorId;
+    }
 
 }

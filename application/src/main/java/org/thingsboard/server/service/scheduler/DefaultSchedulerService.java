@@ -35,11 +35,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -51,14 +62,19 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.firmware.DeviceGroupFirmwareService;
+import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.service.firmware.FirmwareStateService;
 import org.thingsboard.server.service.queue.TbClusterService;
-import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.PostConstruct;
@@ -82,12 +98,19 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultSchedulerService extends TbApplicationEventListener<PartitionChangeEvent> implements SchedulerService {
 
     private final TenantService tenantService;
     private final TbClusterService clusterService;
     private final PartitionService partitionService;
     private final SchedulerEventService schedulerEventService;
+    private final FirmwareStateService firmwareStateService;
+    private final DeviceService deviceService;
+    private final DeviceProfileService deviceProfileService;
+    private final EntityGroupService entityGroupService;
+    private final DeviceGroupFirmwareService deviceGroupFirmwareService;
+    private final FirmwareService firmwareService;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
@@ -97,13 +120,6 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private ListeningScheduledExecutorService queueExecutor;
 
     private volatile boolean firstRun = true;
-
-    public DefaultSchedulerService(TenantService tenantService, TbClusterService clusterService, PartitionService partitionService, SchedulerEventService schedulerEventService) {
-        this.tenantService = tenantService;
-        this.clusterService = clusterService;
-        this.partitionService = partitionService;
-        this.schedulerEventService = schedulerEventService;
-    }
 
     @PostConstruct
     public void init() {
@@ -255,9 +271,62 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                     JsonNode configuration = event.getConfiguration();
                     String msgType = getMsgType(event, configuration);
                     EntityId originatorId = getOriginatorId(eventId, configuration);
-                    TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
-                    TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
-                    clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
+
+                    boolean isFirmwareUpdate = "firmwareUpdate".equals(event.getType());
+                    boolean isSoftwareUpdate = "softwareUpdate".equals(event.getType());
+
+                    if (isFirmwareUpdate || isSoftwareUpdate) {
+                    FirmwareId firmwareId = JacksonUtil.convertValue(configuration.get("msgBody"), FirmwareId.class);
+
+                        FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, firmwareId);
+
+                        if (firmwareInfo == null) {
+                            throw new RuntimeException("Failed to process event: Firmware with id [" + firmwareId + "] not found!");
+                        }
+
+                        switch (originatorId.getEntityType()) {
+                            case DEVICE:
+                                Device device = deviceService.findDeviceById(tenantId, (DeviceId) originatorId);
+                                if (device == null) {
+                                    throw new RuntimeException("Failed to process event: Device with id [" + originatorId + "] not found!");
+                                }
+                                if (isFirmwareUpdate) {
+                                    device.setFirmwareId(firmwareId);
+                                } else {
+                                    device.setSoftwareId(firmwareId);
+                                }
+                                firmwareStateService.update(deviceService.saveDevice(device));
+                                break;
+                            case ENTITY_GROUP:
+                                EntityGroup deviceGroup = entityGroupService.findEntityGroupById(tenantId, (EntityGroupId) originatorId);
+                                if (deviceGroup == null) {
+                                    throw new RuntimeException("Failed to process event: Device group with id [" + originatorId + "] not found!");
+                                }
+                                DeviceGroupFirmware dgf = new DeviceGroupFirmware();
+                                dgf.setGroupId(deviceGroup.getId());
+                                dgf.setFirmwareId(firmwareId);
+                                dgf.setFirmwareType(firmwareInfo.getType());
+                                firmwareStateService.update(tenantId, deviceGroupFirmwareService.saveDeviceGroupFirmware(tenantId, dgf));
+                                break;
+                            case DEVICE_PROFILE:
+                                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, (DeviceProfileId) originatorId);
+                                if (deviceProfile == null) {
+                                    throw new RuntimeException("Failed to process event: Device profile with id [" + originatorId + "] not found!");
+                                }
+                                if (isFirmwareUpdate) {
+                                    deviceProfile.setFirmwareId(firmwareId);
+                                } else {
+                                    deviceProfile.setSoftwareId(firmwareId);
+                                }
+                                firmwareStateService.update(deviceProfileService.saveDeviceProfile(deviceProfile), isFirmwareUpdate, isSoftwareUpdate);
+                                break;
+                        }
+//TODO: send event to rule engine and send msg to the cluster service with entity update
+                    } else {
+                        TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
+                        TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
+                        clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
+                    }
                 } catch (Exception e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
                 }
