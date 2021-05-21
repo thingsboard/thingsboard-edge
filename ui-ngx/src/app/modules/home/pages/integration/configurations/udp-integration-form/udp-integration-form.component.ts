@@ -45,7 +45,7 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
   @Input() isSetDownlink: boolean;
   handlerConfigurationTypes = handlerConfigurationTypes;
 
-  defaultHandlerConfigurations = {
+  private defaultHandlerConfigurations = {
     [handlerConfigurationTypes.binary.value]: {
       handlerType: handlerConfigurationTypes.binary.value
     },
@@ -62,7 +62,7 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
     },
   };
 
-  fieldsSet = {
+  private fieldsSet = {
     BINARY: [],
     TEXT: [
       'charsetName'

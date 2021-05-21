@@ -54,7 +54,7 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
   tcpBinaryByteOrder = tcpBinaryByteOrder;
   tcpTextMessageSeparator = tcpTextMessageSeparator;
 
-  defaultHandlerConfigurations = {
+  private defaultHandlerConfigurations = {
     [handlerConfigurationTypes.binary.value]: {
       handlerType: handlerConfigurationTypes.binary.value,
       byteOrder: tcpBinaryByteOrder.littleEndian.value,
@@ -75,7 +75,7 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
     }
   };
 
-  fieldsSet = {
+  private fieldsSet = {
     BINARY: [
       'byteOrder',
       'maxFrameLength',
@@ -116,8 +116,8 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
   handlerConfigurationTypeChanged(type: string) {
     const controls = this.form.get('handlerConfiguration') as FormGroup;
     const enableField = this.fieldsSet[type];
-    const disable = Object.values(this.fieldsSet).flat().filter(item => !enableField.includes(item));
-    disableFields(controls, disable);
+    const disableField = Object.values(this.fieldsSet).flat().filter(item => !enableField.includes(item));
+    disableFields(controls, disableField);
     enableFields(controls, enableField);
   }
 }
