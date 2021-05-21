@@ -177,6 +177,8 @@ import { EntityGroupColumnComponent } from '@home/components/group/entity-group-
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
 import { SecurityConfigLwm2mComponent } from '@home/components/device/security-config-lwm2m.component';
 import { SecurityConfigLwm2mServerComponent } from '@home/components/device/security-config-lwm2m-server.component';
+import { UpdateFirmwareComponent } from '@home/components/scheduler/config/update-firmware.component';
+import { TargetFirmwareSelectComponent } from '@home/components/scheduler/config/target-firmware-select.component';
 
 @NgModule({
   declarations:
@@ -314,6 +316,8 @@ import { SecurityConfigLwm2mServerComponent } from '@home/components/device/secu
       ManageDashboardStatesDialogComponent,
       DashboardStateDialogComponent,
       EmbedDashboardDialogComponent,
+      UpdateFirmwareComponent,
+      TargetFirmwareSelectComponent,
       DisplayWidgetTypesPanelComponent
     ],
   imports: [
@@ -443,6 +447,8 @@ import { SecurityConfigLwm2mServerComponent } from '@home/components/device/secu
     ManageDashboardStatesDialogComponent,
     DashboardStateDialogComponent,
     EmbedDashboardDialogComponent,
+    UpdateFirmwareComponent,
+    TargetFirmwareSelectComponent,
     DisplayWidgetTypesPanelComponent
   ],
   providers: [

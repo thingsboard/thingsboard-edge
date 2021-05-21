@@ -75,9 +75,6 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
   deviceGroupId: string;
 
   @Input()
-  deviceGroupAll = false;
-
-  @Input()
   labelText: string;
 
   @Input()
@@ -85,6 +82,22 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
 
   @Input()
   useFullEntityId = false;
+
+  private deviceGroupAllValue: boolean;
+
+  get deviceGroupAll(): boolean {
+    return this.deviceGroupAllValue;
+  }
+
+  @Input()
+  set deviceGroupAll(value: boolean) {
+    this.deviceGroupAllValue = coerceBooleanProperty(value);
+    if (this.deviceGroupAll) {
+      this.firmwareFormGroup.disable({emitEvent: false});
+    } else {
+      this.firmwareFormGroup.enable({emitEvent: false});
+    }
+  }
 
   private requiredValue: boolean;
 
