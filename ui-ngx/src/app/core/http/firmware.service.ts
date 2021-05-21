@@ -35,7 +35,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, defaultHttpUploadOptions, RequestConfig } from '@core/http/http-utils';
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
-import { Firmware, FirmwareInfo, FirmwareType } from '@shared/models/firmware.models';
+import { Firmware, FirmwareGroupInfo, FirmwareInfo, FirmwareType } from '@shared/models/firmware.models';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 
@@ -135,4 +135,14 @@ export class FirmwareService {
     return this.http.delete(`/api/firmware/${firmwareId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getFirmwareInfoByDeviceGroupId(deviceGroupId: string, type: FirmwareType, config?: RequestConfig): Observable<FirmwareGroupInfo> {
+    const url = `/api/deviceGroupFirmware/${deviceGroupId}/${type}`;
+    return this.http.get<FirmwareGroupInfo>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getFirmwaresInfoByDeviceGroupId(pageLink: PageLink, deviceGroupId: string, type: FirmwareType,
+                                         config?: RequestConfig): Observable<PageData<FirmwareInfo>> {
+    const url = `/api/firmwares/${deviceGroupId}/${type}${pageLink.toQuery()}`;
+    return this.http.get<PageData<FirmwareInfo>>(url, defaultHttpOptionsFromConfig(config));
+  }
 }

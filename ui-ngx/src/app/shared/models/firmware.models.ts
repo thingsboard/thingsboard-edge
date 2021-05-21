@@ -33,6 +33,7 @@ import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { FirmwareId } from '@shared/models/id/firmware-id';
 import { DeviceProfileId } from '@shared/models/id/device-profile-id';
+import { EntityGroupId } from '@shared/models/id/entity-group-id';
 
 export enum ChecksumAlgorithm {
   MD5 = 'md5',
@@ -78,4 +79,12 @@ export interface FirmwareInfo extends BaseData<FirmwareId> {
 export interface Firmware extends FirmwareInfo {
   file?: File;
   data: string;
+}
+
+export interface FirmwareGroupInfo {
+  firmwareId: FirmwareId;
+  firmwareType: FirmwareType;
+  firmwareUpdateTime?: number;
+  groupId: EntityGroupId;
+  id?: string;
 }
