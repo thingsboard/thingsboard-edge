@@ -65,6 +65,7 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.Nullable;
@@ -101,44 +102,107 @@ public class DefaultFirmwareStateService implements FirmwareStateService {
     private final DeviceService deviceService;
     private final RuleEngineTelemetryService telemetryService;
     private final AttributesService attributesService;
+    private final DbCallbackExecutorService dbExecutor;
     private final TbQueueProducer<TbProtoQueueMsg<ToFirmwareStateServiceMsg>> fwStateMsgProducer;
 
     public DefaultFirmwareStateService(TbClusterService tbClusterService, FirmwareService firmwareService,
                                        DeviceService deviceService,
                                        RuleEngineTelemetryService telemetryService,
-                                       AttributesService attributesService, TbCoreQueueFactory coreQueueFactory) {
+                                       AttributesService attributesService, DbCallbackExecutorService dbExecutor, TbCoreQueueFactory coreQueueFactory) {
         this.tbClusterService = tbClusterService;
         this.firmwareService = firmwareService;
         this.deviceService = deviceService;
         this.telemetryService = telemetryService;
         this.attributesService = attributesService;
+        this.dbExecutor = dbExecutor;
         this.fwStateMsgProducer = coreQueueFactory.createToFirmwareStateServiceMsgProducer();
     }
-
 
     @Override
     public void update(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware) {
         FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, deviceGroupFirmware.getFirmwareId());
-        Consumer<Device> updateConsumer;
-
-        if (deviceGroupFirmware.getFirmwareId() != null) {
-            long ts = System.currentTimeMillis();
-            updateConsumer = d -> send(d.getTenantId(), d.getId(), deviceGroupFirmware.getFirmwareId(), ts, deviceGroupFirmware.getFirmwareType());
-        } else {
-            updateConsumer = d -> remove(d, deviceGroupFirmware.getFirmwareType());
-        }
+        long ts = System.currentTimeMillis();
 
         PageLink pageLink = new PageLink(100);
         PageData<Device> pageData;
         do {
             pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyFirmware(deviceGroupFirmware.getGroupId(),
                     firmwareInfo.getDeviceProfileId(), deviceGroupFirmware.getFirmwareType(), pageLink);
-            pageData.getData().forEach(updateConsumer);
+            pageData.getData().forEach(d ->
+                    send(d.getTenantId(), d.getId(), deviceGroupFirmware.getFirmwareId(), ts, deviceGroupFirmware.getFirmwareType()));
 
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
+    }
+
+    @Override
+    public void updateByRemovedDeviceGroupFirmware(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware) {
+        FirmwareInfo firmwareFromRemovedGroup = firmwareService.findFirmwareById(tenantId, deviceGroupFirmware.getFirmwareId());
+        FirmwareType firmwareType = deviceGroupFirmware.getFirmwareType();
+        PageLink pageLink = new PageLink(100);
+        PageData<Device> pageData;
+        do {
+            pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyFirmware(deviceGroupFirmware.getGroupId(),
+                    firmwareFromRemovedGroup.getDeviceProfileId(), firmwareType, pageLink);
+            pageData.getData().forEach(device -> {
+                FirmwareInfo firmware = firmwareService.findFirmwareInfoByDeviceIdAndFirmwareType(device.getId(), deviceGroupFirmware.getFirmwareType());
+                if (firmware != null) {
+                    ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
+                            attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(firmwareType, ID));
+                    DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
+                        if (oldIdOpt.isPresent()) {
+                            FirmwareId oldFirmwareId = new FirmwareId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+                            if (!firmware.getId().equals(oldFirmwareId)) {
+                                send(device.getTenantId(), device.getId(), firmware.getId(), System.currentTimeMillis(), firmwareType);
+                            }
+                        } else {
+                            log.trace("[{}] Firmware id attribute not found!", device.getId());
+                        }
+                    }, (e) -> log.error("Failed to get firmware id attribute for device!", e), dbExecutor);
+                } else {
+                    remove(device, firmwareType);
+                }
+            });
+
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+    }
+
+    @Override
+    public void update(TenantId tenantId, List<DeviceId> deviceIds, boolean isFirmware, boolean isSoftware) {
+        deviceIds.forEach(id -> {
+            if (isFirmware) {
+                update(tenantId, id, FIRMWARE);
+            }
+            if (isSoftware) {
+                update(tenantId, id, SOFTWARE);
+            }
+        });
+    }
+
+    private void update(TenantId tenantId, DeviceId deviceId, FirmwareType firmwareType) {
+        FirmwareInfo firmware = firmwareService.findFirmwareInfoByDeviceIdAndFirmwareType(deviceId, firmwareType);
+        if (firmware != null) {
+            ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
+                    attributesService.find(tenantId, deviceId, DataConstants.SERVER_SCOPE, getAttributeKey(firmwareType, ID));
+            DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
+                if (oldIdOpt.isPresent()) {
+                    FirmwareId oldFirmwareId = new FirmwareId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+                    if (!firmware.getId().equals(oldFirmwareId)) {
+                        send(tenantId, deviceId, firmware.getId(), System.currentTimeMillis(), firmwareType);
+                    }
+                } else {
+                    send(tenantId, deviceId, firmware.getId(), System.currentTimeMillis(), firmwareType);
+                }
+            }, (e) -> log.error("Failed to get firmware id attribute for device!", e), dbExecutor);
+        } else {
+            Device device = deviceService.findDeviceById(tenantId, deviceId);
+            remove(device, firmwareType);
+        }
     }
 
     @Override
@@ -167,7 +231,7 @@ public class DefaultFirmwareStateService implements FirmwareStateService {
                 send(device.getTenantId(), device.getId(), fw.getId(), System.currentTimeMillis(), FIRMWARE);
             }
 
-        }, (e) -> log.error("Failed to get firmware id attribute!", e));
+        }, (e) -> log.error("Failed to get firmware id attribute!", e), dbExecutor);
     }
 
     private void updateSoftware(Device device) {
@@ -190,7 +254,7 @@ public class DefaultFirmwareStateService implements FirmwareStateService {
                 send(device.getTenantId(), device.getId(), sw.getId(), System.currentTimeMillis(), SOFTWARE);
             }
 
-        }, (e) -> log.error("Failed to get software id attribute!", e));
+        }, (e) -> log.error("Failed to get software id attribute!", e), dbExecutor);
     }
 
     @Override

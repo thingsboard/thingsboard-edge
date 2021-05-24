@@ -90,6 +90,7 @@ public class DeviceGroupFirmwareController extends BaseController {
             DeviceGroupFirmware deviceGroupFirmware = deviceGroupFirmwareService.findDeviceGroupFirmwareById(id);
             checkEntityGroupId(deviceGroupFirmware.getGroupId(), Operation.WRITE);
             deviceGroupFirmwareService.deleteDeviceGroupFirmware(id);
+            firmwareStateService.updateByRemovedDeviceGroupFirmware(getTenantId(), deviceGroupFirmware);
         } catch (Exception e) {
             throw handleException(e);
         }

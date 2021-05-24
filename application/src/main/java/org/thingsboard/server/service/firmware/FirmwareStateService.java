@@ -33,12 +33,19 @@ package org.thingsboard.server.service.firmware;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.transport.TransportProtos.ToFirmwareStateServiceMsg;
+
+import java.util.List;
 
 public interface FirmwareStateService {
 
     void update(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
+
+    void updateByRemovedDeviceGroupFirmware(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
+
+    void update(TenantId tenantId, List<DeviceId> deviceIds, boolean isFirmware, boolean isSoftware);
 
     void update(Device device);
 

@@ -184,6 +184,8 @@ public class BaseFirmwareService implements FirmwareService {
                 throw new DataValidationException("The software referenced by the devices cannot be deleted!");
             } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_software_device_profile")) {
                 throw new DataValidationException("The software referenced by the device profile cannot be deleted!");
+            } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_firmware_device_group_firmware")) {
+                throw new DataValidationException("The firmware referenced by the device group cannot be deleted!");
             } else {
                 throw t;
             }

@@ -43,8 +43,8 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -76,6 +76,8 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 
+import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
+import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -322,8 +324,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                         }
                     }
 
-                    boolean isFirmwareUpdate = "firmwareUpdate".equals(schedulerEvent.getType());
-                    boolean isSoftwareUpdate = "softwareUpdate".equals(schedulerEvent.getType());
+                    boolean isFirmwareUpdate = UPDATE_FIRMWARE.equals(schedulerEvent.getType());
+                    boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(schedulerEvent.getType());
 
                     if (isFirmwareUpdate || isSoftwareUpdate) {
                         FirmwareId firmwareId =

@@ -93,6 +93,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
+import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
+
 /**
  * Created by ashvayka on 25.06.18.
  */
@@ -272,11 +275,11 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                     String msgType = getMsgType(event, configuration);
                     EntityId originatorId = getOriginatorId(eventId, configuration);
 
-                    boolean isFirmwareUpdate = "firmwareUpdate".equals(event.getType());
-                    boolean isSoftwareUpdate = "softwareUpdate".equals(event.getType());
+                    boolean isFirmwareUpdate = UPDATE_FIRMWARE.equals(event.getType());
+                    boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(event.getType());
 
                     if (isFirmwareUpdate || isSoftwareUpdate) {
-                    FirmwareId firmwareId = JacksonUtil.convertValue(configuration.get("msgBody"), FirmwareId.class);
+                        FirmwareId firmwareId = JacksonUtil.convertValue(configuration.get("msgBody"), FirmwareId.class);
 
                         FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, firmwareId);
 
@@ -320,13 +323,13 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                                 }
                                 firmwareStateService.update(deviceProfileService.saveDeviceProfile(deviceProfile), isFirmwareUpdate, isSoftwareUpdate);
                                 break;
+                            default:
+                                throw new RuntimeException("Not implemented!");
                         }
-//TODO: send event to rule engine and send msg to the cluster service with entity update
-                    } else {
-                        TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
-                        TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
-                        clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
                     }
+                    TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
+                    TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
+                    clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
                 } catch (Exception e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
                 }

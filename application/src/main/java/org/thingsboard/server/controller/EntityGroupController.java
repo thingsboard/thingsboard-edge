@@ -57,9 +57,12 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -127,9 +130,9 @@ public class EntityGroupController extends BaseController {
     @RequestMapping(value = "/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroupInfo getEntityGroupByOwnerAndNameAndType(@PathVariable("ownerType") String strOwnerType,
-                                                                @PathVariable("ownerId") String strOwnerId,
-                                                                @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
-                                                                @PathVariable("groupName") String groupName) throws ThingsboardException {
+                                                               @PathVariable("ownerId") String strOwnerId,
+                                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+                                                               @PathVariable("groupName") String groupName) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
         checkParameter("groupName", groupName);
@@ -358,7 +361,17 @@ public class EntityGroupController extends BaseController {
                 for (EntityId entityId : entityIds) {
                     userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
                 }
+            } else if (entityGroup.getType() == EntityType.DEVICE) {
+                DeviceGroupFirmware fw =
+                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.FIRMWARE);
+                DeviceGroupFirmware sw =
+                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.SOFTWARE);
+                if (fw != null || sw != null) {
+                    List<DeviceId> deviceIds = entityIds.stream().map(id -> new DeviceId(id.getId())).collect(Collectors.toList());
+                    firmwareStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
+                }
             }
+
             for (EntityId entityId : entityIds) {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
@@ -405,7 +418,17 @@ public class EntityGroupController extends BaseController {
                 for (EntityId entityId : entityIds) {
                     userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
                 }
+            } else if (entityGroup.getType() == EntityType.DEVICE) {
+                DeviceGroupFirmware fw =
+                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.FIRMWARE);
+                DeviceGroupFirmware sw =
+                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.SOFTWARE);
+                if (fw != null || sw != null) {
+                    List<DeviceId> deviceIds = entityIds.stream().map(id -> new DeviceId(id.getId())).collect(Collectors.toList());
+                    firmwareStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
+                }
             }
+
             for (EntityId entityId : entityIds) {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
