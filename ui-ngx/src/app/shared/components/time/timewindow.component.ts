@@ -30,6 +30,7 @@
 ///
 
 import {
+  ChangeDetectorRef,
   Component,
   forwardRef,
   Inject,
@@ -173,6 +174,7 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
               private millisecondsToTimeStringPipe: MillisecondsToTimeStringPipe,
               private datePipe: DatePipe,
               private overlay: Overlay,
+              private cd: ChangeDetectorRef,
               public viewContainerRef: ViewContainerRef,
               public breakpointObserver: BreakpointObserver,
               @Inject(DOCUMENT) private document: Document,
@@ -328,6 +330,7 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
     } else {
       this.innerValue.displayTimezoneAbbr = '';
     }
+    this.cd.detectChanges();
   }
 
   hideLabel() {

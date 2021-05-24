@@ -179,6 +179,7 @@ import { SecurityConfigLwm2mComponent } from '@home/components/device/security-c
 import { SecurityConfigLwm2mServerComponent } from '@home/components/device/security-config-lwm2m-server.component';
 import { UpdateFirmwareComponent } from '@home/components/scheduler/config/update-firmware.component';
 import { TargetFirmwareSelectComponent } from '@home/components/scheduler/config/target-firmware-select.component';
+import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
 
 @NgModule({
   declarations:
@@ -315,6 +316,7 @@ import { TargetFirmwareSelectComponent } from '@home/components/scheduler/config
       DashboardSettingsDialogComponent,
       ManageDashboardStatesDialogComponent,
       DashboardStateDialogComponent,
+      DashboardImageDialogComponent,
       EmbedDashboardDialogComponent,
       UpdateFirmwareComponent,
       TargetFirmwareSelectComponent,
@@ -446,6 +448,7 @@ import { TargetFirmwareSelectComponent } from '@home/components/scheduler/config
     DashboardSettingsDialogComponent,
     ManageDashboardStatesDialogComponent,
     DashboardStateDialogComponent,
+    DashboardImageDialogComponent,
     EmbedDashboardDialogComponent,
     UpdateFirmwareComponent,
     TargetFirmwareSelectComponent,

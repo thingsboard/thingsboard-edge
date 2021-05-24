@@ -30,6 +30,7 @@
 ///
 
 import {
+  ChangeDetectorRef,
   Component,
   Injector,
   Input,
@@ -88,6 +89,7 @@ export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
 
   constructor(private translate: TranslateService,
               private overlay: Overlay,
+              private cd: ChangeDetectorRef,
               private breakpointObserver: BreakpointObserver,
               private viewContainerRef: ViewContainerRef) {
   }
@@ -194,6 +196,7 @@ export class AliasesEntitySelectComponent implements OnInit, OnDestroy {
       displayValue = this.translate.instant('entity.entities');
     }
     this.displayValue = displayValue;
+    this.cd.detectChanges();
   }
 
   private updateEntityAliasesInfo() {

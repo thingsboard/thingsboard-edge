@@ -65,6 +65,8 @@ public interface AlarmDao extends Dao<Alarm> {
 
     PageData<AlarmInfo> findAlarms(TenantId tenantId, AlarmQuery query);
 
+    PageData<AlarmInfo> findCustomerAlarms(TenantId tenantId, CustomerId customerId, AlarmQuery query);
+
     long findAlarmCount(TenantId tenantId, AlarmQuery query, AlarmFilter filter);
 
     PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions,

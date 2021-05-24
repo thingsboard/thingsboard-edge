@@ -78,6 +78,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.transport.coap.adaptors.CoapTransportAdaptor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -95,6 +96,8 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
     private static final int FEATURE_TYPE_POSITION_CERTIFICATE_REQUEST = 3;
     private static final int REQUEST_ID_POSITION_CERTIFICATE_REQUEST = 4;
     private static final String DTLS_SESSION_ID_KEY = "DTLS_SESSION_ID";
+
+    private static final String INTEGRATIONS_RESOURCE_NAME = "i";
 
     private final ConcurrentMap<String, TransportProtos.SessionInfoProto> tokenToSessionIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, AtomicInteger> tokenToNotificationCounterMap = new ConcurrentHashMap<>();
@@ -437,6 +440,17 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
 
     @Override
     public Resource getChild(String name) {
+        if (INTEGRATIONS_RESOURCE_NAME.equals(name)) {
+            Collection<Resource> children = getChildren();
+            Resource integrationResource = null;
+            for (Resource resource: children) {
+                if (INTEGRATIONS_RESOURCE_NAME.equals(resource.getName())) {
+                    integrationResource = resource;
+                    break;
+                }
+            }
+            return integrationResource;
+        }
         return this;
     }
 

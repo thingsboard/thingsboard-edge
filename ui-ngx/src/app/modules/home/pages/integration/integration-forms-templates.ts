@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { IntegrationType, IntegrationTypeInfo } from '@shared/models/integration.models';
-import { baseUrl, generateId } from '@app/core/utils';
+import { CoapSecurityMode, IntegrationType, IntegrationTypeInfo } from '@shared/models/integration.models';
+import { baseUrl, coapBaseUrl, generateId } from '@app/core/utils';
 import { AbstractControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 
 export const handlerConfigurationTypes = {
@@ -219,6 +219,21 @@ export const templates = {
       'credentials.email': [],
       'credentials.password': [],
       'credentials.token': []
+    }
+  },
+  [IntegrationType.COAP]: {
+    clientConfiguration: {
+      baseUrl: coapBaseUrl(false),
+      dtlsBaseUrl: coapBaseUrl(true),
+      securityMode: CoapSecurityMode.NO_SECURE,
+      coapEndpoint: '',
+      dtlsCoapEndpoint: ''
+    },
+    ignoreNonPrimitiveFields: [],
+    fieldValidators: {
+      'clientConfiguration.baseUrl': [Validators.required],
+      'clientConfiguration.dtlsBaseUrl': [Validators.required],
+      'clientConfiguration.securityMode': [Validators.required]
     }
   },
   [IntegrationType.MQTT]: {

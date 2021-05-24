@@ -261,7 +261,7 @@ export interface ResourceLwM2M {
   observe: boolean;
   attribute: boolean;
   telemetry: boolean;
-  keyName: {};
+  keyName: string;
   attributeLwm2m?: {};
 }
 

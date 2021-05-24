@@ -57,11 +57,15 @@ public abstract class PaginatedUpdater<I, D extends SearchTextBased<? extends UU
                 log.info("{}: {} entities updated so far...", getName(), updated);
                 pageLink = pageLink.nextPageLink();
             } else {
-                if (updated > DEFAULT_LIMIT) {
+                if (updated > DEFAULT_LIMIT || forceReportTotal()) {
                     log.info("{}: {} total entities updated.", getName(), updated);
                 }
             }
         }
+    }
+
+    protected boolean forceReportTotal() {
+        return false;
     }
 
     protected abstract String getName();

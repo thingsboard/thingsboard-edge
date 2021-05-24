@@ -125,6 +125,10 @@
             <artifactId>apache-pulsar</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>coap-integrations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.rule-engine</groupId>
             <artifactId>rule-engine-components</artifactId>
         </dependency>

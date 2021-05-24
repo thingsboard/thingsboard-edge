@@ -58,9 +58,7 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
         super.init(params);
         loopExecutor = Executors.newSingleThreadExecutor();
         this.ctx = params.getContext();
-        pulsarConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                PulsarConfiguration.class);
+        pulsarConfiguration = getClientConfiguration(configuration, PulsarConfiguration.class);
 
         pulsarClient = PulsarClient.builder()
                 .authentication(pulsarConfiguration.getCredentials().getAuthentication())

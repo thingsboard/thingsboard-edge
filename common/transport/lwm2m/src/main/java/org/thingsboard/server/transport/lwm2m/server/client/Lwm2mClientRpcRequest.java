@@ -32,6 +32,7 @@ package org.thingsboard.server.transport.lwm2m.server.client;
 
 import com.google.gson.JsonObject;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.request.ContentFormat;
 import org.eclipse.leshan.server.registration.Registration;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -42,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.validPathIdVer;
 
+@Slf4j
 @Data
 public class Lwm2mClientRpcRequest {
     public final String targetIdVerKey = "targetIdVer";
@@ -128,7 +130,7 @@ public class Lwm2mClientRpcRequest {
         try {
             return super.clone();
         } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+            log.error("", e);
         }
         return null;
     }

@@ -88,10 +88,10 @@ public class TbCoapDtlsSettings {
     @Value("${transport.coap.dtls.x509.dtls_session_report_timeout:1800000}")
     private long dtlsSessionReportTimeout;
 
-    @Autowired
+    @Autowired(required = false)
     private TransportService transportService;
 
-    @Autowired
+    @Autowired(required = false)
     private TbServiceInfoProvider serviceInfoProvider;
 
     public DtlsConnectorConfig dtlsConnectorConfig() throws UnknownHostException {

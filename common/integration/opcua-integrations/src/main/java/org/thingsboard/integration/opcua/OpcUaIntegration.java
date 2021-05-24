@@ -130,9 +130,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             return;
         }
         stopped = false;
-        opcUaServerConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                OpcUaServerConfiguration.class);
+        opcUaServerConfiguration = getClientConfiguration(configuration, OpcUaServerConfiguration.class);
         if (opcUaServerConfiguration.getMapping().isEmpty()) {
             throw new IllegalArgumentException("No mapping elements configured!");
         }
@@ -149,10 +147,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
         OpcUaServerConfiguration opcUaServerConfiguration;
         try {
-            opcUaServerConfiguration = mapper.readValue(
-                    mapper.writeValueAsString(configuration.get("clientConfiguration")),
-                    OpcUaServerConfiguration.class);
-        } catch (IOException e) {
+            opcUaServerConfiguration = getClientConfiguration(configuration.get("clientConfiguration"), OpcUaServerConfiguration.class);
+        } catch (IllegalArgumentException e) {
             log.error(e.getMessage(), e);
             throw new IllegalArgumentException("Invalid OPC-UA Integration Configuration structure!");
         }

@@ -210,11 +210,11 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        dashboardService.deleteDashboardsByTenantId(tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
+        dashboardService.deleteDashboardsByTenantId(tenantId);
         edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);

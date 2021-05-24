@@ -131,7 +131,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
         TbMsg msg = downlink.getTbMsg();
-        logDownlink(context, msg.getType(), msg);
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
             processDownLinkMsg(context, msg);
         }

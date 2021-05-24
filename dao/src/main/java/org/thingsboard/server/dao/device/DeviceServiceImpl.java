@@ -98,6 +98,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import javax.annotation.Nullable;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -257,7 +258,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_name_unq_key")) {
                 // remove device from cache in case null value cached in the distributed redis.
-                removeDeviceFromCache(device.getTenantId(), device.getName());
+                removeDeviceFromCacheByName(device.getTenantId(), device.getName());
                 throw new DataValidationException("Device with such name already exists!");
             } else {
                 throw t;
@@ -324,17 +325,14 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         }
         deleteEntityRelations(tenantId, deviceId);
 
-        removeDeviceFromCache(tenantId, device.getName());
+        removeDeviceFromCacheByName(tenantId, device.getName());
 
         deviceDao.removeById(tenantId, deviceId.getId());
     }
 
-    private void removeDeviceFromCache(TenantId tenantId, String name) {
-        List<Object> list = new ArrayList<>();
-        list.add(tenantId);
-        list.add(name);
+    private void removeDeviceFromCacheByName(TenantId tenantId, String name) {
         Cache cache = cacheManager.getCache(DEVICE_CACHE);
-        cache.evict(list);
+        cache.evict(Arrays.asList(tenantId, name));
     }
 
     @Override
@@ -567,6 +565,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     Device old = deviceDao.findById(device.getTenantId(), device.getId().getId());
                     if (old == null) {
                         throw new DataValidationException("Can't update non existing device!");
+                    }
+                    if (!old.getName().equals(device.getName())) {
+                        removeDeviceFromCacheByName(tenantId, old.getName());
                     }
                 }
 
