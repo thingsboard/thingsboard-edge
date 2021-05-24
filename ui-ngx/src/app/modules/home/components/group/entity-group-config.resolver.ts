@@ -104,36 +104,30 @@ export class EntityGroupConfigResolver {
               tasks.push(of(entityGroup));
             }
             if (params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER && params.edgeId) {
-              tasks.push(this.edgeService.getEdge(params.edgeId));
-              tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId));
+              tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
+                map(res =>
+                  entityGroup.edgeGroupsTitle = res.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType))
+                )
+              ));
+              tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId).pipe(
+                map(res => entityGroup.edgeGroupName = res.name)
+              ));
             }
-            return forkJoin(tasks).pipe(
-              map(res => {
-                if (tasks.length > 1) {
-                  let edge = res[1] as Edge;
-                  let edgeGroup = res[2] as EntityGroupInfo;
-                  entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType));
-                  entityGroup.edgeGroupName = edgeGroup.name;
-                }
-                return entityGroup;
-              })
-            );
+            return forkJoin(tasks);
           }
         ));
     } else if (params.edgeId) {
       const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
       let tasks = [];
-      tasks.push(this.edgeService.getEdge(params.edgeId));
-      tasks.push(this.entityGroupService.getEntityGroup(params.entityGroupId));
-      return forkJoin(tasks).pipe(
-        map(res => {
-          let edge = res[0] as Edge;
-          let edgeGroup = res[1] as EntityGroupInfo;
-          entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(groupType));
-          entityGroup.parentEntityGroup = edgeGroup;
-          return entityGroup;
-        })
-      );
+      tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
+        map(res =>
+          entityGroup.edgeGroupsTitle = res.name + ': ' + this.translate.instant(entityGroupsTitle(groupType))
+        )
+      ));
+      tasks.push(this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
+        map(res => entityGroup.parentEntityGroup = res)
+      ));
+      return forkJoin(tasks);
     } else {
       return of(entityGroup);
     }
