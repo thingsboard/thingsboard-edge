@@ -46,6 +46,8 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
   @Input() downlinkTopicPattern: FormControl;
   @Input() integrationType: IntegrationType;
 
+  private downlinkPattern = '';
+
   hostTypes = ['Region', 'Custom'];
   hostRegion: FormControl;
   hostCustom: FormControl;
@@ -83,8 +85,9 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
       this.updateHostParams(type);
       this.form.markAsDirty();
     });
-    this.apiVersion.valueChanges.subscribe(() => {
-      this.updateTopicsState();
+    this.apiVersion.valueChanges.subscribe((value: boolean) => {
+      this.form.get('apiVersion').patchValue(value);
+      this.updateTopicsState(value);
     })
   }
 
@@ -104,8 +107,12 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
       }
       this.hostCustom.patchValue('', {emitEvent: false});
     }
+    this.form.get('credentials.username').valueChanges.subscribe(name => {
+      this.updateDownlinkPattern(name)
+    });
+    const apiVersion = this.form.get('apiVersion').value;
     this.updateHostParams(hostType);
-    this.updateTopicsState();
+    this.updateTopicsState(apiVersion);
     this.updateControlsState();
   }
 
@@ -113,19 +120,16 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
     this.updateControlsState();
   }
 
-  updateTopicsState() {
-    let downlinkPattern = this.apiVersion.value ? this.V3_DOWNLINK_TOPIC_PATTERN : this.V2_DOWNLINK_TOPIC_PATTERN;
+  updateTopicsState(apiVersion: boolean) {
+    this.downlinkPattern = apiVersion ? this.V3_DOWNLINK_TOPIC_PATTERN : this.V2_DOWNLINK_TOPIC_PATTERN;
     let name = this.form.get('credentials').get('username').value;
-    this.topicFilters.patchValue([this.apiVersion.value ? this.V3_UPLINK_TOPIC : this.V2_UPLINK_TOPIC]);
-    this.form.get('apiVersion').patchValue(this.apiVersion.value);
-    this.updateDownlinkPattern(name, downlinkPattern)
-    this.form.get('credentials').get('username').valueChanges.subscribe(name => {
-      this.updateDownlinkPattern(name, downlinkPattern)
-    });
+    this.topicFilters.patchValue([apiVersion ? this.V3_UPLINK_TOPIC : this.V2_UPLINK_TOPIC]);
+    this.apiVersion.patchValue(apiVersion, {emitEvent: false});
+    this.updateDownlinkPattern(name)
   }
 
-  updateDownlinkPattern(name: string, pattern: string) {
-    let finalPattern = pattern.replace("${applicationId}", name);
+  updateDownlinkPattern(name: string) {
+    let finalPattern = this.downlinkPattern.replace("${applicationId}", name);
     this.downlinkTopicPattern.patchValue(finalPattern);
     this.form.markAsDirty();
   }
