@@ -493,7 +493,7 @@ export interface HierarchyCallbacks {
 
 export interface EntityGroupParams {
   customerId?: string;
-  customerGroupId?: string; //TODO: deaflynx try to avoid
+  customerGroupId?: string;
   entityGroupId?: string;
   childEntityGroupId?: string;
   groupType?: EntityType;
