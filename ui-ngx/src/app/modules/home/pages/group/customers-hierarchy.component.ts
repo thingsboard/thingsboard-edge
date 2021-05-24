@@ -362,7 +362,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   private updateRuleChains(entityGroupParams: EntityGroupParams, edge: Edge) {
     this.edgeService.getEdge(edge.id.id).subscribe((edge) => {
-      this.edgeId = edge.id.id;
       entityGroupParams.edge = edge;
       const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(entityGroupParams);
       this.updateView('groups', entityGroupParams, ruleChainsTableConfig, null);

@@ -43,7 +43,6 @@ import {
 } from '@home/models/group/group-entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { EdgeService } from '@core/http/edge.service';
-import { Edge } from '@shared/models/edge.models';
 
 @Injectable()
 export class EntityGroupConfigResolver {

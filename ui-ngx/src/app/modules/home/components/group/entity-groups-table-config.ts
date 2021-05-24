@@ -425,7 +425,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         }
       }
     );
-
   }
 
   private onEntityGroupAction(action: EntityAction<EntityGroupInfo>): boolean {
