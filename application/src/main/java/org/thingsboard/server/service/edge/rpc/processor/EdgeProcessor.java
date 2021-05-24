@@ -67,15 +67,14 @@ public class EdgeProcessor extends BaseEdgeProcessor {
             ListenableFuture<Edge> edgeFuture;
             switch (actionType) {
                 case CHANGE_OWNER:
-                    CustomerId customerId = mapper.readValue(edgeNotificationMsg.getBody(), CustomerId.class);
                     edgeFuture = edgeService.findEdgeByIdAsync(tenantId, edgeId);
                     Futures.addCallback(edgeFuture, new FutureCallback<Edge>() {
                         @Override
                         public void onSuccess(@Nullable Edge edge) {
-                            if (edge != null && !customerId.isNullUid()) {
+                            if (edge != null) {
                                 try {
                                     EntityId previousOwnerId = mapper.readValue(edgeNotificationMsg.getBody(), EntityId.class);
-                                    if (previousOwnerId != null && EntityType.CUSTOMER.equals(previousOwnerId.getEntityType())) {
+                                    if (previousOwnerId != null && EntityType.CUSTOMER.equals(previousOwnerId.getEntityType()) && !previousOwnerId.isNullUid()) {
                                         saveEdgeEvent(edge.getTenantId(), edge.getId(),
                                                 EdgeEventType.CUSTOMER, EdgeEventActionType.DELETED, previousOwnerId, null);
                                         unassignEntityGroupsOfPreviousOwnerFromEdge(tenantId, edgeId, EntityType.DEVICE, previousOwnerId);
@@ -116,8 +115,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                     for (EntityGroup entityGroup : entityGroups) {
                         if (entityGroup.getOwnerId().equals(previousOwnerId)) {
                             entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
-                            // TODO: voba - remove of the customer should remove entity groups as well - double check this
-                            // saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, ActionType.UNASSIGNED_FROM_EDGE, entityGroup.getId(), null);
+                            saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.UNASSIGNED_FROM_EDGE, entityGroup.getId(), null);
                         }
                     }
                 }

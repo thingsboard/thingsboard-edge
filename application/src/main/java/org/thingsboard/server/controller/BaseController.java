@@ -1414,10 +1414,18 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, EntityId previousOwnerId) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, EdgeEventActionType.CHANGE_OWNER);
+                String body = null;
+                if (EntityType.EDGE.equals(entityId.getEntityType())) {
+                    try {
+                        body = json.writeValueAsString(previousOwnerId);
+                    } catch (Exception e) {
+                        log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
+                    }
+                }
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
             }
         }
     }
@@ -1508,12 +1516,15 @@ public abstract class BaseController {
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
-        return  findRelatedEdgeIds(tenantId, entityId, null);
+        return findRelatedEdgeIds(tenantId, entityId, null);
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId, EntityType groupType) {
         if (!edgesEnabled) {
             return null;
+        }
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            return Collections.singletonList(new EdgeId(entityId.getId()));
         }
         List<EdgeId> result = null;
         try {

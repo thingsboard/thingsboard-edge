@@ -559,6 +559,8 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                         groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
                     }
                     return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType));
+                case EDGE:
+                    return Futures.immediateFuture(Collections.singletonList(new EdgeId(entityId.getId())));
                 default:
                     return Futures.immediateFuture(Collections.emptyList());
             }
