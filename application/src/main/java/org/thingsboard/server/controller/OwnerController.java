@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -95,8 +96,9 @@ public class OwnerController extends BaseController {
         }
         try {
             checkEntityId(entityId, Operation.CHANGE_OWNER);
-            EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            sendChangeOwnerNotificationMsg(getTenantId(), entityId, previousOwnerId);
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
+            changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
+            sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -127,51 +129,52 @@ public class OwnerController extends BaseController {
             }
         }
         try {
-            EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            sendChangeOwnerNotificationMsg(getTenantId(), entityId, previousOwnerId);
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
+            changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
+            sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds);
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
-    private EntityId changeOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
+    private void changeOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
         try {
             switch (entityId.getEntityType()) {
                 case DEVICE:
                     Device device = checkDeviceId(new DeviceId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeDeviceOwner(tenantId, targetOwnerId, device);
                     logChangeOwnerAction(device.getId(), device, targetOwnerId);
-                    return device.getOwnerId();
+                    break;
                 case ASSET:
                     Asset asset = checkAssetId(new AssetId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeAssetOwner(tenantId, targetOwnerId, asset);
                     logChangeOwnerAction(asset.getId(), asset, targetOwnerId);
-                    return asset.getOwnerId();
+                    break;
                 case ENTITY_VIEW:
                     EntityView entityView = checkEntityViewId(new EntityViewId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeEntityViewOwner(tenantId, targetOwnerId, entityView);
                     logChangeOwnerAction(entityView.getId(), entityView, targetOwnerId);
-                    return entityView.getOwnerId();
+                    break;
                 case EDGE:
                     Edge edge = checkEdgeId(new EdgeId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeEdgeOwner(tenantId, targetOwnerId, edge);
                     logChangeOwnerAction(edge.getId(), edge, targetOwnerId);
-                    return edge.getOwnerId();
+                    break;
                 case CUSTOMER:
                     Customer customer = checkCustomerId(new CustomerId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeCustomerOwner(tenantId, targetOwnerId, customer);
                     logChangeOwnerAction(customer.getId(), customer, targetOwnerId);
-                    return customer.getOwnerId();
+                    break;
                 case USER:
                     User user = checkUserId(new UserId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeUserOwner(tenantId, targetOwnerId, user);
                     logChangeOwnerAction(user.getId(), user, targetOwnerId);
-                    return user.getOwnerId();
+                    break;
                 case DASHBOARD:
                     Dashboard dashboard = checkDashboardId(new DashboardId(entityId.getId()), Operation.CHANGE_OWNER);
                     ownersCacheService.changeDashboardOwner(tenantId, targetOwnerId, dashboard);
                     logChangeOwnerAction(dashboard.getId(), dashboard, targetOwnerId);
-                    return dashboard.getOwnerId();
+                    break;
                 default:
                     throw new ThingsboardException("EntityType does not support owner change: " + entityId.getEntityType(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }

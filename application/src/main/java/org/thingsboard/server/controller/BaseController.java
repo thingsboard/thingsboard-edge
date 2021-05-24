@@ -1414,12 +1414,11 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
-        try {
-            sendNotificationMsgToEdgeService(tenantId, null, entityId,
-                    json.writeValueAsString(previousOwnerId), EdgeEventActionType.CHANGE_OWNER);
-        } catch (Exception e) {
-            log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
+        if (edgeIds != null && !edgeIds.isEmpty()) {
+            for (EdgeId edgeId : edgeIds) {
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, EdgeEventActionType.CHANGE_OWNER);
+            }
         }
     }
 
@@ -1509,12 +1508,16 @@ public abstract class BaseController {
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        return  findRelatedEdgeIds(tenantId, entityId, null);
+    }
+
+    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId, EntityType groupType) {
         if (!edgesEnabled) {
             return null;
         }
         List<EdgeId> result = null;
         try {
-            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, null).get();
+            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, groupType).get();
         } catch (Exception e) {
             log.error("[{}] can't find related edge ids for entity [{}]", tenantId, entityId, e);
         }

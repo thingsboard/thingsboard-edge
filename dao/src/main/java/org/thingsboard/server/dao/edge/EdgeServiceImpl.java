@@ -492,7 +492,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr) {
+    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType) {
         // TODO: @voba - rewrite 'find' to use native SQL queries instead of fetching relations
 
         log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}]", tenantId, entityId);
@@ -555,10 +555,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     return convertToEdgeIds(findEdgesByTenantIdAndSchedulerEventId(tenantId, new SchedulerEventId(entityId.getId())));
                 case ENTITY_GROUP:
                     EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
-                    EntityType groupType;
-                    if (groupTypeStr != null) {
-                        groupType = EntityType.valueOf(groupTypeStr);
-                    } else {
+                    if (groupType == null) {
                         groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
                     }
                     return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType));

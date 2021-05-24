@@ -71,6 +71,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
+            case CHANGE_OWNER:
                 AssetUpdateMsg assetUpdateMsg =
                         assetMsgConstructor.constructAssetDeleteMsg(assetId);
                 downlinkMsg = DownlinkMsg.newBuilder()

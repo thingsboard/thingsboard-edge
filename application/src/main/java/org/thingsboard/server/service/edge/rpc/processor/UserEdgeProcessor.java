@@ -70,6 +70,7 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
+            case CHANGE_OWNER:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .addAllUserUpdateMsg(Collections.singletonList(userMsgConstructor.constructUserDeleteMsg(userId)))
                         .build();

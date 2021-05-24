@@ -277,7 +277,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             latch.countDown();
         } catch (Exception e) {
-            log.error("[{}] Can't process downlink response message [{}]", this.sessionId, msg, e);
+            log.error("[{}] Can't process downlink response message [{}] {}", this.sessionId, msg, e);
         }
     }
 
@@ -288,7 +288,7 @@ public final class EdgeGrpcSession implements Closeable {
                 downlinkMsgLock.lock();
                 outputStream.onNext(downlinkMsg);
             } catch (Exception e) {
-                log.error("[{}] Failed to send downlink message [{}]", this.sessionId, downlinkMsg, e);
+                log.error("[{}] Failed to send downlink message [{}] {}", this.sessionId, downlinkMsg, e);
                 connected = false;
                 sessionCloseListener.accept(edge.getId());
             } finally {
@@ -389,6 +389,7 @@ public final class EdgeGrpcSession implements Closeable {
                 case CREDENTIALS_UPDATED:
                 case RELATION_ADD_OR_UPDATE:
                 case RELATION_DELETED:
+                case CHANGE_OWNER:
                     downlinkMsg = processEntityMessage(edgeEvent, edgeEvent.getAction());
                     log.trace("[{}][{}] entity message processed [{}]", edgeEvent.getTenantId(), this.sessionId, downlinkMsg);
                     break;
@@ -409,7 +410,7 @@ public final class EdgeGrpcSession implements Closeable {
                     break;
             }
         } catch (Exception e) {
-            log.error("[{}][{}] Exception during converting edge event to downlink msg", edge.getTenantId(), this.sessionId, e);
+            log.error("[{}][{}] Exception during converting edge event to downlink msg {}", edge.getTenantId(), this.sessionId, e);
         }
         return downlinkMsg;
     }
@@ -508,6 +509,7 @@ public final class EdgeGrpcSession implements Closeable {
             case UNASSIGNED_FROM_EDGE:
             case RELATION_DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
+            case CHANGE_OWNER:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
                 return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
@@ -603,7 +605,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
             }
         } catch (Exception e) {
-            log.error("[{}] Can't process uplink msg [{}]", this.sessionId, uplinkMsg, e);
+            log.error("[{}] Can't process uplink msg [{}] {}", this.sessionId, uplinkMsg, e);
         }
         return Futures.allAsList(result);
     }
@@ -626,7 +628,7 @@ public final class EdgeGrpcSession implements Closeable {
                         .setErrorMsg("Failed to validate the edge!")
                         .setConfiguration(EdgeConfiguration.getDefaultInstance()).build();
             } catch (Exception e) {
-                log.error("[{}] Failed to process edge connection!", request.getEdgeRoutingKey(), e);
+                log.error("[{}] Failed to process edge connection! {}", request.getEdgeRoutingKey(), e);
                 return ConnectResponseMsg.newBuilder()
                         .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
                         .setErrorMsg("Failed to process edge connection!")

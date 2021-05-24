@@ -359,6 +359,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
+            case CHANGE_OWNER:
                 DeviceUpdateMsg deviceUpdateMsg =
                         deviceMsgConstructor.constructDeviceDeleteMsg(deviceId);
                 downlinkMsg = DownlinkMsg.newBuilder()

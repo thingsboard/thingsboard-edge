@@ -64,6 +64,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                 }
                 break;
             case DELETED:
+            case CHANGE_OWNER:
                 CustomerUpdateMsg customerUpdateMsg =
                         customerMsgConstructor.constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()

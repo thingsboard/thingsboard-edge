@@ -217,13 +217,15 @@ public class EntityGroupController extends BaseController {
                 userPermissionsService.onGroupPermissionDeleted(groupPermission);
             }
 
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId, entityGroup.getType());
+
             entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
             logEntityAction(entityGroupId, entityGroup,
                     null,
                     ActionType.DELETED, null, strEntityGroupId);
 
-            sendEntityNotificationMsg(getTenantId(), entityGroupId, EdgeEventActionType.DELETED);
+            sendDeleteNotificationMsg(getTenantId(), entityGroupId, relatedEdgeIds);
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.ENTITY_GROUP),

@@ -134,6 +134,7 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
                 }, dbCallbackExecutorService);
                 break;
             case DELETED:
+            case CHANGE_OWNER:
                 saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
                 break;
             case REMOVED_FROM_ENTITY_GROUP:
@@ -146,9 +147,6 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
                 if (type.equals(EdgeEventType.RULE_CHAIN)) {
                     updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
                 }
-                break;
-            case CHANGE_OWNER:
-                // TODO: voba
                 break;
         }
     }

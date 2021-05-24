@@ -71,6 +71,7 @@ public class DashboardEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
+            case CHANGE_OWNER:
                 DashboardUpdateMsg dashboardUpdateMsg =
                         dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId);
                 downlinkMsg = DownlinkMsg.newBuilder()

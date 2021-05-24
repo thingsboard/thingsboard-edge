@@ -99,7 +99,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     @Override
                     public void onSuccess(@Nullable GroupPermission groupPermission) {
                         if (groupPermission != null) {
-                            ListenableFuture<List<EdgeId>> edgesFuture = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER.name());
+                            ListenableFuture<List<EdgeId>> edgesFuture = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER);
                             Futures.addCallback(edgesFuture, new FutureCallback<List<EdgeId>>() {
                                 @Override
                                 public void onSuccess(@Nullable List<EdgeId> edgeIds) {
@@ -141,13 +141,6 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                 break;
             case DELETED:
                 processActionForAllEdges(tenantId, type, actionType, entityId);
-// TODO: voba - check this
-//            case ASSIGNED_TO_EDGE:
-//            case UNASSIGNED_FROM_EDGE:
-//                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
-//                if (type.equals(EdgeEventType.RULE_CHAIN)) {
-//                    updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
-//                }
                 break;
         }
     }

@@ -71,6 +71,7 @@ public class EntityViewEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
+            case CHANGE_OWNER:
                 EntityViewUpdateMsg entityViewUpdateMsg =
                         entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId);
                 downlinkMsg = DownlinkMsg.newBuilder()
