@@ -544,9 +544,6 @@ export class MenuService {
     //     }
     //   );
     // }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
-      sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
-    }
     // if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
     //   const pages: Array<MenuSection> = [];
     //   pages.push(
