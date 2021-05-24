@@ -305,11 +305,15 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                                 if (deviceGroup == null) {
                                     throw new RuntimeException("Failed to process event: Device group with id [" + originatorId + "] not found!");
                                 }
+                                DeviceGroupFirmware oldDgf = deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(deviceGroup.getId(), firmwareInfo.getType());
                                 DeviceGroupFirmware dgf = new DeviceGroupFirmware();
+                                dgf.setFirmwareType(firmwareInfo.getType());
                                 dgf.setGroupId(deviceGroup.getId());
                                 dgf.setFirmwareId(firmwareId);
-                                dgf.setFirmwareType(firmwareInfo.getType());
-                                firmwareStateService.update(tenantId, deviceGroupFirmwareService.saveDeviceGroupFirmware(tenantId, dgf));
+                                if (oldDgf != null) {
+                                    dgf.setId(oldDgf.getId());
+                                }
+                                firmwareStateService.update(tenantId, deviceGroupFirmwareService.saveDeviceGroupFirmware(tenantId, dgf), oldDgf);
                                 break;
                             case DEVICE_PROFILE:
                                 DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, (DeviceProfileId) originatorId);

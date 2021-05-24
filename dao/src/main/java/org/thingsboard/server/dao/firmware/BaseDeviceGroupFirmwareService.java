@@ -73,18 +73,8 @@ public class BaseDeviceGroupFirmwareService implements DeviceGroupFirmwareServic
     @Override
     public DeviceGroupFirmware saveDeviceGroupFirmware(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware) {
         log.trace("Executing saveDeviceGroupFirmware [{}]", deviceGroupFirmware);
+        deviceGroupFirmware.setFirmwareUpdateTime(System.currentTimeMillis());
         validate(tenantId, deviceGroupFirmware);
-
-        if (deviceGroupFirmware.getId() != null) {
-            DeviceGroupFirmware oldDeviceGroupFirmware = deviceGroupFirmwareDao.findDeviceGroupFirmwareById(deviceGroupFirmware.getId());
-            if (!deviceGroupFirmware.getGroupId().equals(oldDeviceGroupFirmware.getGroupId())) {
-                throw new DataValidationException("Updating firmware groupId is prohibited!");
-            }
-            if (!deviceGroupFirmware.getFirmwareId().equals(oldDeviceGroupFirmware.getFirmwareId())) {
-                deviceGroupFirmware.setFirmwareUpdateTime(System.currentTimeMillis());
-            }
-        }
-
         return deviceGroupFirmwareDao.saveDeviceGroupFirmware(deviceGroupFirmware);
     }
 
@@ -115,6 +105,16 @@ public class BaseDeviceGroupFirmwareService implements DeviceGroupFirmwareServic
 
         if (deviceGroupFirmware.getFirmwareType() == null) {
             throw new DataValidationException("Type should be specified!");
+        }
+
+        if (deviceGroupFirmware.getId() != null) {
+            DeviceGroupFirmware oldDeviceGroupFirmware = deviceGroupFirmwareDao.findDeviceGroupFirmwareById(deviceGroupFirmware.getId());
+            if (!deviceGroupFirmware.getGroupId().equals(oldDeviceGroupFirmware.getGroupId())) {
+                throw new DataValidationException("Updating firmware groupId is prohibited!");
+            }
+            if (!deviceGroupFirmware.getFirmwareType().equals(oldDeviceGroupFirmware.getFirmwareType())) {
+                throw new DataValidationException("Updating firmware type is prohibited!");
+            }
         }
 
         if (deviceGroupFirmware.getFirmwareId() == null) {

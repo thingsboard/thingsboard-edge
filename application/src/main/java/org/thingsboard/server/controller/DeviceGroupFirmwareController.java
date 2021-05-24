@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
@@ -73,8 +72,12 @@ public class DeviceGroupFirmwareController extends BaseController {
     public DeviceGroupFirmware saveDeviceGroupFirmware(@RequestBody DeviceGroupFirmware deviceGroupFirmware) throws ThingsboardException {
         try {
             checkEntityGroupId(deviceGroupFirmware.getGroupId(), Operation.WRITE);
+            DeviceGroupFirmware oldDeviceGroupFirmware = null;
+            if (deviceGroupFirmware.getId() != null) {
+                oldDeviceGroupFirmware = deviceGroupFirmwareService.findDeviceGroupFirmwareById(deviceGroupFirmware.getId());
+            }
             DeviceGroupFirmware savedDeviceGroupFirmware = deviceGroupFirmwareService.saveDeviceGroupFirmware(getTenantId(), deviceGroupFirmware);
-            firmwareStateService.update(getTenantId(), savedDeviceGroupFirmware);
+            firmwareStateService.update(getTenantId(), savedDeviceGroupFirmware, oldDeviceGroupFirmware);
             return savedDeviceGroupFirmware;
         } catch (Exception e) {
             throw handleException(e);
@@ -90,7 +93,7 @@ public class DeviceGroupFirmwareController extends BaseController {
             DeviceGroupFirmware deviceGroupFirmware = deviceGroupFirmwareService.findDeviceGroupFirmwareById(id);
             checkEntityGroupId(deviceGroupFirmware.getGroupId(), Operation.WRITE);
             deviceGroupFirmwareService.deleteDeviceGroupFirmware(id);
-            firmwareStateService.updateByRemovedDeviceGroupFirmware(getTenantId(), deviceGroupFirmware);
+            firmwareStateService.update(getTenantId(), null, deviceGroupFirmware);
         } catch (Exception e) {
             throw handleException(e);
         }

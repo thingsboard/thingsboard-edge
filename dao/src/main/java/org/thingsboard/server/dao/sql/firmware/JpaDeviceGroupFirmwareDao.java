@@ -64,7 +64,6 @@ public class JpaDeviceGroupFirmwareDao implements DeviceGroupFirmwareDao {
         if (deviceGroupFirmware.getId() == null) {
             UUID uuid = Uuids.timeBased();
             deviceGroupFirmware.setId(uuid);
-            deviceGroupFirmware.setFirmwareUpdateTime(Uuids.unixTimestamp(uuid));
         }
         return DaoUtil.getData(deviceGroupFirmwareRepository.save(new DeviceGroupFirmwareEntity(deviceGroupFirmware)));
     }

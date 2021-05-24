@@ -41,9 +41,7 @@ import java.util.List;
 
 public interface FirmwareStateService {
 
-    void update(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
-
-    void updateByRemovedDeviceGroupFirmware(TenantId tenantId, DeviceGroupFirmware deviceGroupFirmware);
+    void update(TenantId tenantId, DeviceGroupFirmware newDeviceGroupFirmware, DeviceGroupFirmware oldDeviceGroupFirmware);
 
     void update(TenantId tenantId, List<DeviceId> deviceIds, boolean isFirmware, boolean isSoftware);
 
@@ -52,5 +50,4 @@ public interface FirmwareStateService {
     void update(DeviceProfile deviceProfile, boolean isFirmwareChanged, boolean isSoftwareChanged);
 
     boolean process(ToFirmwareStateServiceMsg msg);
-
 }
