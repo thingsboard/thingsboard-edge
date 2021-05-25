@@ -131,9 +131,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.entitiesFetchFunction = pageLink => {
       let fetchObservable: Observable<Array<EntityGroupInfo>>;
-      if (this.customerId && !this.isEdgeParent()) {
+      if (this.customerId && !this.isEdgeGroup()) {
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
-      } else if (this.isEdgeParent()) {
+      } else if (this.isEdgeGroup()) {
         fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
       } else {
         fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
@@ -193,11 +193,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.addEntity = () => this.entityGroupWizard();
     }
-    if (this.isEdgeParent()) {
+    if (this.isEdgeGroup()) {
       this.deleteEnabled = () => false;
       this.entitiesDeleteEnabled = false;
       this.addEnabled = false;
-      this.componentsData.isEdgeParent = true;
+      this.componentsData.isEdgeGroup = true;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
         this.entitySelectionEnabled = () => true;
         this.componentsData.isUnassignEnabled = true;
@@ -269,8 +269,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         }
       );
     }
-    if (this.isEdgeParent()) {
-      this.cellActionDescriptors = this.cellActionDescriptors.slice(0, 1);
+    if (this.isEdgeGroup()) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
@@ -448,10 +447,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     return false;
   }
 
-  private isEdgeParent(): boolean {
-    return isDefinedAndNotNull(this.params.edgeId) &&
-           ((this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE) ||
-           this.params.groupType === EntityType.EDGE);
+  private isEdgeGroup(): boolean {
+    return isDefinedAndNotNull(this.params.edgeId) && (this.params.groupType === EntityType.EDGE ||
+      (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE));
   }
 
 }
