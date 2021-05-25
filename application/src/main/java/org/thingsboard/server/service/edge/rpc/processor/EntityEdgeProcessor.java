@@ -110,28 +110,25 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
         EdgeId edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB()));
-        ListenableFuture<List<EdgeId>> edgeIdsFuture;
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EdgeId> pageData;
         switch (actionType) {
             case ADDED:
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
             case CREDENTIALS_UPDATED:
-                edgeIdsFuture = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId);
-                Futures.addCallback(edgeIdsFuture, new FutureCallback<List<EdgeId>>() {
-                    @Override
-                    public void onSuccess(@Nullable List<EdgeId> edgeIds) {
-                        if (edgeIds != null && !edgeIds.isEmpty()) {
-                            EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
-                            for (EdgeId edgeId : edgeIds) {
-                                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, entityGroupId);
-                            }
+                do {
+                    pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, pageLink);
+                    if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                        EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
+                        for (EdgeId relatedEdgeId : pageData.getData()) {
+                            saveEdgeEvent(tenantId, relatedEdgeId, type, actionType, entityId, null, entityGroupId);
+                        }
+                        if (pageData.hasNext()) {
+                            pageLink = pageLink.nextPageLink();
                         }
                     }
-                    @Override
-                    public void onFailure(Throwable throwable) {
-                        log.error("Failed to find related edge ids [{}]", edgeNotificationMsg, throwable);
-                    }
-                }, dbCallbackExecutorService);
+                } while (pageData != null && pageData.hasNext());
                 break;
             case DELETED:
             case CHANGE_OWNER:
@@ -166,7 +163,7 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void updateDependentRuleChains(TenantId tenantId, RuleChainId processingRuleChainId, EdgeId edgeId) {
-        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<RuleChain> pageData;
         do {
             pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);

@@ -74,6 +74,17 @@ public interface EdgeRepository extends PagingAndSortingRepository<EdgeEntity, U
                                                         @Param("textSearch") String textSearch,
                                                         Pageable pageable);
 
+    @Query("SELECT ee FROM EdgeEntity ee, RelationEntity re WHERE ee.tenantId = :tenantId " +
+            "AND ee.id = re.fromId AND re.fromType = 'EDGE' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = :relationType AND re.toId = :entityId AND re.toType = :entityType " +
+            "AND LOWER(ee.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<EdgeEntity> findByTenantIdAndEntityId(@Param("tenantId") UUID tenantId,
+                                               @Param("entityId") UUID entityId,
+                                               @Param("entityType") String entityType,
+                                               @Param("relationType") String relationType,
+                                               @Param("searchText") String searchText,
+                                               Pageable pageable);
+
     @Query("SELECT DISTINCT d.type FROM EdgeEntity d WHERE d.tenantId = :tenantId")
     List<String> findTenantEdgeTypes(@Param("tenantId") UUID tenantId);
 

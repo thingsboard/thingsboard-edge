@@ -96,7 +96,7 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                     @Override
                     public void onSuccess(@Nullable Role role) {
                         if (role != null) {
-                            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+                            PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
                             PageData<Edge> edgesByTenantId;
                             do {
                                 edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, pageLink);

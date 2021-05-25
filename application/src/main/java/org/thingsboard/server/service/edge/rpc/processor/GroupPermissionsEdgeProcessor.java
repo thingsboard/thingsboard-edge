@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
@@ -52,7 +54,6 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -99,37 +100,34 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     @Override
                     public void onSuccess(@Nullable GroupPermission groupPermission) {
                         if (groupPermission != null) {
-                            ListenableFuture<List<EdgeId>> edgesFuture = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER);
-                            Futures.addCallback(edgesFuture, new FutureCallback<List<EdgeId>>() {
-                                @Override
-                                public void onSuccess(@Nullable List<EdgeId> edgeIds) {
-                                    if (edgeIds != null && !edgeIds.isEmpty()) {
-                                        for (EdgeId edgeId : edgeIds) {
-                                            ListenableFuture<Boolean> checkFuture =
-                                                    entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
-                                            Futures.addCallback(checkFuture, new FutureCallback<Boolean>() {
-                                                @Override
-                                                public void onSuccess(@Nullable Boolean exists) {
-                                                    if (Boolean.TRUE.equals(exists)) {
-                                                        saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
-                                                    }
+                            PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+                            PageData<EdgeId> pageData;
+                            do {
+                                pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER, pageLink);
+                                if (pageData.getData().size() > 0) {
+                                    for (EdgeId edgeId : pageData.getData()) {
+                                        ListenableFuture<Boolean> checkFuture =
+                                                entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                        Futures.addCallback(checkFuture, new FutureCallback<Boolean>() {
+                                            @Override
+                                            public void onSuccess(@Nullable Boolean exists) {
+                                                if (Boolean.TRUE.equals(exists)) {
+                                                    saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
                                                 }
+                                            }
 
-                                                @Override
-                                                public void onFailure(Throwable t) {
-                                                    log.error("Failed to check edge entity group id [{}]", edgeNotificationMsg, t);
-                                                }
-                                            }, dbCallbackExecutorService);
+                                            @Override
+                                            public void onFailure(Throwable t) {
+                                                log.error("Failed to check edge entity group id [{}]", edgeNotificationMsg, t);
+                                            }
+                                        }, dbCallbackExecutorService);
 
-                                        }
+                                    }
+                                    if (pageData.hasNext()) {
+                                        pageLink = pageLink.nextPageLink();
                                     }
                                 }
-
-                                @Override
-                                public void onFailure(Throwable t) {
-                                    log.error("Failed to find edges by user group id [{}]", edgeNotificationMsg, t);
-                                }
-                            }, dbCallbackExecutorService);
+                            } while (pageData.hasNext());
                         }
                     }
 

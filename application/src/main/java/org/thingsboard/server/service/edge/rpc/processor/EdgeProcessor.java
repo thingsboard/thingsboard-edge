@@ -129,7 +129,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void unassignSchedulerEventsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
-        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<SchedulerEventInfo> pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
         if (pageData.getData() != null && !pageData.getData().isEmpty()) {
             for (SchedulerEventInfo schedulerEventInfo : pageData.getData()) {
@@ -144,7 +144,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     private void syncEdgeOwner(TenantId tenantId, Edge edge) {
         saveEdgeEvent(edge.getTenantId(), edge.getId(),
                 EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null, null);
-        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<Role> rolesData;
         do {
             rolesData = roleService.findRolesByTenantIdAndCustomerId(tenantId,

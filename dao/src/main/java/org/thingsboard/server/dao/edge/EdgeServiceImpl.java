@@ -59,10 +59,8 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -70,7 +68,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -103,7 +100,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -125,7 +121,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final int DEFAULT_LIMIT = 100;
+    private static final int DEFAULT_PAGE_SIZE = 1000;
 
     private RestTemplate restTemplate;
 
@@ -355,28 +351,10 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         }, MoreExecutors.directExecutor());
     }
 
-    class EdgeViewFunction implements BiFunction<Edge, List<EntityField>, ShortEntityView> {
-
-        @Override
-        public ShortEntityView apply(Edge edge, List<EntityField> entityFields) {
-            ShortEntityView shortEntityView = new ShortEntityView(edge.getId());
-            shortEntityView.put(EntityField.NAME.name().toLowerCase(), edge.getName());
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case TYPE:
-                        shortEntityView.put(key, edge.getType());
-                        break;
-                }
-            }
-            return shortEntityView;
-        }
-    }
-
     @Override
     public void assignDefaultRuleChainsToEdge(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing assignDefaultRuleChainsToEdge, tenantId [{}], edgeId [{}]", tenantId, edgeId);
-        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<RuleChain> pageData;
         do {
             pageData = ruleChainService.findAutoAssignToEdgeRuleChainsByTenantId(tenantId, pageLink);
@@ -392,27 +370,20 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(TenantId tenantId, RuleChainId ruleChainId) {
-        log.trace("Executing findEdgesByTenantIdAndRuleChainId, tenantId [{}], ruleChainId [{}]", tenantId, ruleChainId);
+    public PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgesByTenantIdAndEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(ruleChainId, "Incorrect ruleChainId " + ruleChainId);
-        return edgeDao.findEdgesByTenantIdAndRuleChainId(tenantId.getId(), ruleChainId.getId());
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByTenantIdAndEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
     }
 
     @Override
-    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(TenantId tenantId, SchedulerEventId schedulerEventId) {
-        log.trace("Executing findEdgesByTenantIdAndSchedulerEventId, tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
-        return edgeDao.findEdgesByTenantIdAndSchedulerEventId(tenantId.getId(), schedulerEventId.getId());
-    }
-
-    @Override
-    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType) {
+    public PageData<Edge> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEdgesByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(entityGroupId, "Incorrect schedulerEventId " + entityGroupId);
-        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), groupType);
+        Validator.validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), groupType, pageLink);
     }
 
     private DataValidator<Edge> edgeValidator =
@@ -487,94 +458,84 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             };
 
     @Override
-    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId) {
-        return findRelatedEdgeIdsByEntityId(tenantId, entityId, null);
+    public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        return findRelatedEdgeIdsByEntityId(tenantId, entityId, null, pageLink);
     }
 
     @Override
-    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType) {
-        // TODO: @voba - rewrite 'find' to use native SQL queries instead of fetching relations
-
-        log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}]", tenantId, entityId);
+    public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType, PageLink pageLink) {
+        log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}] [{}]", tenantId, entityId, pageLink);
         if (EntityType.TENANT.equals(entityId.getEntityType()) ||
                 EntityType.CUSTOMER.equals(entityId.getEntityType()) ||
                 EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
-            List<EdgeId> result = new ArrayList<>();
-            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
-            PageData<Edge> pageData;
-            do {
-                if (EntityType.TENANT.equals(entityId.getEntityType()) ||
-                        EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
-                    pageData = findEdgesByTenantId(tenantId, pageLink);
-                } else {
-                    pageData = findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink);
-                }
-                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                    for (Edge edge : pageData.getData()) {
-                        result.add(edge.getId());
-                    }
-                    if (pageData.hasNext()) {
-                        pageLink = pageLink.nextPageLink();
-                    }
-                }
-            } while (pageData != null && pageData.hasNext());
-            return Futures.immediateFuture(result);
+            if (EntityType.TENANT.equals(entityId.getEntityType()) ||
+                    EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
+                return convertToEdgeIds(findEdgesByTenantId(tenantId, pageLink));
+            } else {
+                return convertToEdgeIds(findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink));
+            }
         } else {
             switch (entityId.getEntityType()) {
+                case EDGE:
+                    List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
+                    return new PageData<>(edgeIds, 1, 1, false);
                 case USER:
                 case DEVICE:
                 case ASSET:
                 case ENTITY_VIEW:
                 case DASHBOARD:
-                    ListenableFuture<List<EntityGroupId>> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
-                    ListenableFuture<List<List<Edge>>> mergedFuture = Futures.transformAsync(entityGroupsForEntity, entityGroupIds -> {
-                        List<ListenableFuture<List<Edge>>> futures = new ArrayList<>();
-                        if (entityGroupIds != null && !entityGroupIds.isEmpty()) {
-                            for (EntityGroupId entityGroupId : entityGroupIds) {
-                                futures.add(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, entityId.getEntityType()));
-                            }
-                        }
-                        return Futures.successfulAsList(futures);
-                    }, MoreExecutors.directExecutor());
-                    return Futures.transform(mergedFuture, listOfEdges -> {
-                        Set<EdgeId> result = new HashSet<>();
-                        if (listOfEdges != null && !listOfEdges.isEmpty()) {
-                            for (List<Edge> edges : listOfEdges) {
-                                if (edges != null && !edges.isEmpty()) {
-                                    for (Edge edge : edges) {
-                                        result.add(edge.getId());
+                    Set<EdgeId> result = new HashSet<>();
+                    try {
+                        List<EntityGroupId> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
+                        if (entityGroupsForEntity != null && !entityGroupsForEntity.isEmpty()) {
+                            for (EntityGroupId entityGroupId : entityGroupsForEntity) {
+                                PageLink localPageLink = new PageLink(DEFAULT_PAGE_SIZE);
+                                PageData<Edge> pageData;
+                                do {
+                                    pageData = findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, entityId.getEntityType(), localPageLink);
+                                    if (pageData.getData().size() > 0) {
+                                        result.addAll(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()));
+                                        if (pageData.hasNext()) {
+                                            localPageLink = localPageLink.nextPageLink();
+                                        }
                                     }
-                                }
+                                } while (pageData.hasNext());
                             }
                         }
-                        return new ArrayList<>(result);
-                    }, MoreExecutors.directExecutor());
-                case RULE_CHAIN:
-                    return convertToEdgeIds(findEdgesByTenantIdAndRuleChainId(tenantId, new RuleChainId(entityId.getId())));
-                case SCHEDULER_EVENT:
-                    return convertToEdgeIds(findEdgesByTenantIdAndSchedulerEventId(tenantId, new SchedulerEventId(entityId.getId())));
+                    } catch (Exception e) {
+                        log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
+                    }
+                    // TODO: @voba - replace with correct pagination
+                    return new PageData<>(new ArrayList<>(result), 1, result.size(), false);
                 case ENTITY_GROUP:
                     EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                     if (groupType == null) {
                         groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
                     }
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType));
-                case EDGE:
-                    return Futures.immediateFuture(Collections.singletonList(new EdgeId(entityId.getId())));
+                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType, pageLink));
+                case RULE_CHAIN:
+                case SCHEDULER_EVENT:
+                    return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
                 default:
-                    return Futures.immediateFuture(Collections.emptyList());
+                    log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
+                    return createEmptyEdgeIdPageData();
             }
         }
     }
 
-    private ListenableFuture<List<EdgeId>> convertToEdgeIds(ListenableFuture<List<Edge>> future) {
-        return Futures.transform(future, edges -> {
-            if (edges != null && !edges.isEmpty()) {
-                return edges.stream().map(IdBased::getId).collect(Collectors.toList());
-            } else {
-                return Collections.emptyList();
-            }
-        }, MoreExecutors.directExecutor());
+    private PageData<EdgeId> createEmptyEdgeIdPageData() {
+        return new PageData<>(new ArrayList<>(), 0, 0, false);
+    }
+
+    private PageData<EdgeId> convertToEdgeIds(PageData<Edge> pageData) {
+        if (pageData == null) {
+            return createEmptyEdgeIdPageData();
+        }
+        List<EdgeId> edgeIds = new ArrayList<>();
+        if (pageData.getData() != null && !pageData.getData().isEmpty()) {
+            edgeIds = pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+        }
+        return new PageData<>(edgeIds, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
     }
 
     @Override
@@ -622,7 +583,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     private List<RuleChain> findEdgeRuleChains(TenantId tenantId, EdgeId edgeId) {
         List<RuleChain> result = new ArrayList<>();
-        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<RuleChain> pageData;
         do {
             pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
