@@ -121,17 +121,11 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         const isOwned = this.userPermissionsService.isDirectlyOwnedGroup(entityGroup);
         const isWriteAllowed = this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
         const isCreatePermissionAllowed = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE);
-        const isEdgeParent: boolean = this.entitiesTableConfig.componentsData.isEdgeParent;
         this.isPublic = isPublic;
         this.shareEnabled = isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed;
         this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
         this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
         this.isGroupAll = entityGroup.groupAll;
-        if (isEdgeParent) {
-          this.shareEnabled = false; //TODO: deaflynx discuss why users can't has extended rights
-          this.makePublicEnabled = false;
-          this.makePrivateEnabled = false;
-        }
       } else {
         this.isPublic = false;
         this.shareEnabled = false;
