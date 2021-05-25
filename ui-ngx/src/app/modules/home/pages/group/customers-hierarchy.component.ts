@@ -570,19 +570,10 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
     this.allowedEdgeGroupTypes.forEach((groupType) => {
-      const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: entityGroupsNodeText(this.translate, groupType),
-        children: true,
-        data: {
-          type: 'edgeGroups',
-          groupsType: groupType,
-          edge,
-          parentEntityGroupId,
-          customerData,
-          internalId: edge.id.id + '_' + groupType
-        } as EdgeEntityGroupsNodeData
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entityGroupsNodeText(this.translate, groupType),
+          children: true
+        }
       };
       nodes.push(node);
       nodesMap[groupType] = node.id;
@@ -590,19 +581,9 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     });
     if (this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ)) {
       const groupType = EntityType.SCHEDULER_EVENT;
-      const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: entitiesNodeText(this.translate, groupType, 'scheduler.scheduler'),
-        children: false,
-        data: {
-          type: 'edgeGroups',
-          groupsType: groupType,
-          edge,
-          customerData,
-          parentEntityGroupId,
-          internalId: edge.id.id + '_' + groupType
-        } as EdgeEntityGroupsNodeData
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entitiesNodeText(this.translate, groupType, 'scheduler.scheduler')
+        }
       };
       nodes.push(node);
       nodesMap[groupType] = node.id;
@@ -611,25 +592,31 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) &&
         getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
       const groupType = EntityType.RULE_CHAIN;
-      const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: entitiesNodeText(this.translate, groupType, 'entity.type-rulechains'),
-        children: false,
-        data: {
-          type: 'edgeGroups',
-          groupsType: groupType,
-          edge,
-          customerData,
-          parentEntityGroupId,
-          internalId: edge.id.id + '_' + groupType
-        } as EdgeEntityGroupsNodeData
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entitiesNodeText(this.translate, groupType, 'entity.type-rulechains')
+        }
       };
       nodes.push(node);
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     }
     return nodes;
+  }
+
+  private createBaseEdgeNode(parentEntityGroupId: string, edge: Edge, customerData: EdgeNodeCustomerData, groupType: EntityType) {
+    return {
+      id: (++this.nodeIdCounter)+'',
+      icon: false,
+      children: false,
+      data: {
+        type: 'edgeGroups',
+        groupsType: groupType,
+        edge,
+        parentEntityGroupId,
+        customerData,
+        internalId: edge.id.id + '_' + groupType
+      } as EdgeEntityGroupsNodeData
+    };
   }
 
   private registerNode(node: CustomersHierarchyNode, parentNodeId: string) {
