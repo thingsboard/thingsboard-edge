@@ -489,6 +489,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                         List<EntityGroupId> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
                         if (entityGroupsForEntity != null && !entityGroupsForEntity.isEmpty()) {
                             for (EntityGroupId entityGroupId : entityGroupsForEntity) {
+                                // TODO: @voba - replace with correct pagination
                                 PageLink localPageLink = new PageLink(DEFAULT_PAGE_SIZE);
                                 PageData<Edge> pageData;
                                 do {
@@ -505,7 +506,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     } catch (Exception e) {
                         log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
                     }
-                    // TODO: @voba - replace with correct pagination
                     return new PageData<>(new ArrayList<>(result), 1, result.size(), false);
                 case ENTITY_GROUP:
                     EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
