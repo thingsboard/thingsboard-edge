@@ -329,7 +329,7 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'edges',
+    path: 'edgeManagement',
     data: {
       breadcrumb: {
         label: 'edge.management',
@@ -341,7 +341,7 @@ const routes: Routes = [
         path: '',
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          redirectTo: '/edges/ruleChains'
+          redirectTo: '/edgeManagement/ruleChains'
         }
       },
       {
