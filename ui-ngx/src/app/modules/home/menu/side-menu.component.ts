@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { MenuService } from '@core/services/menu.service';
 import { combineLatest, Observable, of } from 'rxjs';
 import { MenuSection } from '@core/services/menu.models';
@@ -38,7 +38,8 @@ import { map, mergeMap, share } from 'rxjs/operators';
 @Component({
   selector: 'tb-side-menu',
   templateUrl: './side-menu.component.html',
-  styleUrls: ['./side-menu.component.scss']
+  styleUrls: ['./side-menu.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SideMenuComponent implements OnInit {
 
