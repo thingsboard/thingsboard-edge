@@ -82,7 +82,7 @@ public interface EdgeService {
 
     PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId ruleChainId, PageLink pageLink);
 
-    PageData<Edge> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink);
+    PageData<Edge> findEdgesByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupId, EntityType groupType, PageLink pageLink);
 
     PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 

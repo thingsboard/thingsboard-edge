@@ -158,13 +158,13 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
     }
 
     @Override
-    public PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, EntityType groupType, PageLink pageLink) {
-        log.debug("Try to find edges by tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+    public PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink) {
+        log.debug("Try to find edges by tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
         return DaoUtil.toPageData(
-                edgeRepository.findByTenantIdAndEntityId(
+                edgeRepository.findByTenantIdAndEntityIds(
                         tenantId,
-                        entityGroupId,
+                        entityGroupIds,
                         EntityType.ENTITY_GROUP.name(),
                         relationType,
                         Objects.toString(pageLink.getTextSearch(), ""),

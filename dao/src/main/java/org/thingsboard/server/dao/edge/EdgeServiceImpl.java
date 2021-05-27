@@ -69,6 +69,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -95,11 +96,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -378,12 +378,13 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public PageData<Edge> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
-        log.trace("Executing findEdgesByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+    public PageData<Edge> findEdgesByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEdgesByTenantIdAndEntityGroupId, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
-        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), groupType, pageLink);
+        List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
+        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
     }
 
     private DataValidator<Edge> edgeValidator =
@@ -484,35 +485,21 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 case ASSET:
                 case ENTITY_VIEW:
                 case DASHBOARD:
-                    Set<EdgeId> result = new HashSet<>();
                     try {
                         List<EntityGroupId> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
-                        if (entityGroupsForEntity != null && !entityGroupsForEntity.isEmpty()) {
-                            for (EntityGroupId entityGroupId : entityGroupsForEntity) {
-                                // TODO: @voba - replace with correct pagination
-                                PageLink localPageLink = new PageLink(DEFAULT_PAGE_SIZE);
-                                PageData<Edge> pageData;
-                                do {
-                                    pageData = findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, entityId.getEntityType(), localPageLink);
-                                    if (pageData.getData().size() > 0) {
-                                        result.addAll(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()));
-                                        if (pageData.hasNext()) {
-                                            localPageLink = localPageLink.nextPageLink();
-                                        }
-                                    }
-                                } while (pageData.hasNext());
-                            }
+                        if (entityGroupsForEntity == null) {
+                            entityGroupsForEntity = new ArrayList<>();
                         }
-                    } catch (Exception e) {
+                        return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink));
+                    }  catch (Exception e) {
                         log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
                     }
-                    return new PageData<>(new ArrayList<>(result), 1, result.size(), false);
                 case ENTITY_GROUP:
                     EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                     if (groupType == null) {
                         groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
                     }
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType, pageLink));
+                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink));
                 case RULE_CHAIN:
                 case SCHEDULER_EVENT:
                     return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));

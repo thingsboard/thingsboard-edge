@@ -158,6 +158,6 @@ public interface EdgeDao extends Dao<Edge> {
      * @param groupType the groupType
      * @return the list of rule chain objects
      */
-    PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, EntityType groupType, PageLink pageLink);
+    PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupId, EntityType groupType, PageLink pageLink);
 
 }
