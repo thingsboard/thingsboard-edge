@@ -28,46 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.secure;
+package org.thingsboard.server.transport.lwm2m.server.store;
 
-public enum LwM2MSecurityMode {
+import org.thingsboard.server.transport.lwm2m.secure.TbX509DtlsSessionInfo;
 
-    PSK(0, "psk"),
-    RPK(1, "rpk"),
-    X509(2, "x509"),
-    NO_SEC(3, "no_sec"),
-    X509_EST(4, "x509_est"),
-    REDIS(7, "redis"),
-    DEFAULT_MODE(255, "default_mode");
+import java.util.concurrent.ConcurrentHashMap;
 
-    public int code;
-    public String  subEndpoint;
+public class TbL2M2MDtlsSessionInMemoryStore implements TbLwM2MDtlsSessionStore {
 
-    LwM2MSecurityMode(int code, String subEndpoint) {
-        this.code = code;
-        this.subEndpoint = subEndpoint;
+    private final ConcurrentHashMap<String, TbX509DtlsSessionInfo> store = new ConcurrentHashMap<>();
+
+    @Override
+    public void put(String endpoint, TbX509DtlsSessionInfo msg) {
+        store.put(endpoint, msg);
     }
 
-    public static LwM2MSecurityMode fromSecurityMode(long code) {
-        return fromSecurityMode((int) code);
+    @Override
+    public TbX509DtlsSessionInfo get(String endpoint) {
+        return store.get(endpoint);
     }
 
-    public static LwM2MSecurityMode fromSecurityMode(int code) {
-        for (LwM2MSecurityMode sm : LwM2MSecurityMode.values()) {
-            if (sm.code == code) {
-                return sm;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Unsupported security code : %d", code));
-    }
-
-
-    public static LwM2MSecurityMode fromSecurityMode(String  subEndpoint) {
-        for (LwM2MSecurityMode sm : LwM2MSecurityMode.values()) {
-            if (sm.subEndpoint.equals(subEndpoint)) {
-                return sm;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Unsupported security subEndpoint : %d", subEndpoint));
+    @Override
+    public void remove(String endpoint) {
+        store.remove(endpoint);
     }
 }

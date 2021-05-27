@@ -58,6 +58,7 @@ import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayRequestMsg;
@@ -278,9 +279,12 @@ public class GatewaySessionHandler {
                                     log.trace("[{}] First got or created device [{}], type [{}] for the gateway session", sessionId, deviceName, deviceType);
                                     SessionInfoProto deviceSessionInfo = deviceSessionCtx.getSessionInfo();
                                     transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
-                                    transportService.process(deviceSessionInfo, DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
-                                    transportService.process(deviceSessionInfo, SubscribeToRPCMsg.getDefaultInstance(), null);
-                                    transportService.process(deviceSessionInfo, SubscribeToAttributeUpdatesMsg.getDefaultInstance(), null);
+                                    transportService.process(TransportToDeviceActorMsg.newBuilder()
+                                            .setSessionInfo(deviceSessionInfo)
+                                            .setSessionEvent(DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN))
+                                            .setSubscribeToAttributes(SubscribeToAttributeUpdatesMsg.newBuilder().build())
+                                            .setSubscribeToRPC(SubscribeToRPCMsg.newBuilder().build())
+                                            .build(), null);
                                 }
                                 futureToSet.set(devices.get(deviceName));
                                 deviceFutures.remove(deviceName);

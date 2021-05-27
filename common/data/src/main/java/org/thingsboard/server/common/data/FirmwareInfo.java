@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
@@ -54,7 +55,7 @@ public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> 
     private boolean hasData;
     private String fileName;
     private String contentType;
-    private String checksumAlgorithm;
+    private ChecksumAlgorithm checksumAlgorithm;
     private String checksum;
     private Long dataSize;
 
