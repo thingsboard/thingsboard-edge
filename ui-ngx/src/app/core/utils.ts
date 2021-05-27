@@ -224,12 +224,11 @@ export function base64toObj(b64Encoded: string): any {
   return JSON.parse(json);
 }
 
-export function convertValue(val: string): number | string {
+export function checkNumericStringAndConvert(val: string): number | string {
   if (val && isNumeric(val) && Number(val).toString() === val) {
     return Number(val);
-  } else {
-    return val;
   }
+  return val;
 }
 
 const scrollRegex = /(auto|scroll)/;
