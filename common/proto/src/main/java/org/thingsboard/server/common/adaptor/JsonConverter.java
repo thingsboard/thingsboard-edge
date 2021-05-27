@@ -249,7 +249,7 @@ public class JsonConverter {
         String valueAsString = value.getAsString();
         KeyValueProto.Builder builder = KeyValueProto.newBuilder().setKey(key);
         var bd = new BigDecimal(valueAsString);
-        if (bd.stripTrailingZeros().scale() <= 0) {
+        if (bd.stripTrailingZeros().scale() <= 0 && !isSimpleDouble(valueAsString)) {
             try {
                 return builder.setType(KeyValueType.LONG_V).setLongV(bd.longValueExact()).build();
             } catch (ArithmeticException e) {
@@ -271,6 +271,10 @@ public class JsonConverter {
 
     }
 
+    private static boolean isSimpleDouble(String valueAsString) {
+        return valueAsString.contains(".") && !valueAsString.contains("E") && !valueAsString.contains("e");
+    }
+
     public static ToServerRpcRequestMsg convertToServerRpcRequest(JsonElement json, int requestId) throws JsonSyntaxException {
         JsonObject object = json.getAsJsonObject();
         return ToServerRpcRequestMsg.newBuilder().setRequestId(requestId).setMethodName(object.get("method").getAsString()).setParams(GSON.toJson(object.get("params"))).build();
@@ -280,7 +284,7 @@ public class JsonConverter {
         String valueAsString = value.getAsString();
         String key = valueEntry.getKey();
         var bd = new BigDecimal(valueAsString);
-        if (bd.stripTrailingZeros().scale() <= 0) {
+        if (bd.stripTrailingZeros().scale() <= 0 && !isSimpleDouble(valueAsString)) {
             try {
                 result.add(new LongDataEntry(key, bd.longValueExact()));
             } catch (ArithmeticException e) {
