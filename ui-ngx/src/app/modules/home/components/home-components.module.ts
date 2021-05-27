@@ -177,6 +177,8 @@ import { EntityGroupColumnComponent } from '@home/components/group/entity-group-
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
 import { SecurityConfigLwm2mComponent } from '@home/components/device/security-config-lwm2m.component';
 import { SecurityConfigLwm2mServerComponent } from '@home/components/device/security-config-lwm2m-server.component';
+import { UpdateFirmwareComponent } from '@home/components/scheduler/config/update-firmware.component';
+import { TargetFirmwareSelectComponent } from '@home/components/scheduler/config/target-firmware-select.component';
 import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
 import { WidgetContainerComponent } from '@home/components/widget/widget-container.component';
 
@@ -318,6 +320,8 @@ import { WidgetContainerComponent } from '@home/components/widget/widget-contain
       DashboardStateDialogComponent,
       DashboardImageDialogComponent,
       EmbedDashboardDialogComponent,
+      UpdateFirmwareComponent,
+      TargetFirmwareSelectComponent,
       DisplayWidgetTypesPanelComponent
     ],
   imports: [
@@ -449,6 +453,8 @@ import { WidgetContainerComponent } from '@home/components/widget/widget-contain
     DashboardStateDialogComponent,
     DashboardImageDialogComponent,
     EmbedDashboardDialogComponent,
+    UpdateFirmwareComponent,
+    TargetFirmwareSelectComponent,
     DisplayWidgetTypesPanelComponent
   ],
   providers: [

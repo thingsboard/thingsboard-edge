@@ -633,6 +633,17 @@ public class ModelConstants {
     public static final String FIRMWARE_HAS_DATA_PROPERTY = "has_data";
 
     /**
+     * Device group firmware constants.
+     */
+    public static final String DEVICE_GROUP_FIRMWARE_TABLE_NAME = "device_group_firmware";
+    public static final String DEVICE_GROUP_FIRMWARE_ID = ID_PROPERTY;
+    public static final String DEVICE_GROUP_FIRMWARE_GROUP_ID = "group_id";
+    public static final String DEVICE_GROUP_FIRMWARE_FIRMWARE_TYPE = "firmware_type";
+    public static final String DEVICE_GROUP_FIRMWARE_FIRMWARE_ID = "firmware_id";
+    public static final String DEVICE_GROUP_FIRMWARE_FIRMWARE_UPDATE_TIME = "firmware_update_time";
+
+
+    /**
      * Edge constants.
      */
     public static final String EDGE_COLUMN_FAMILY_NAME = "edge";

@@ -28,32 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.firmware;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 
-import java.nio.ByteBuffer;
+import java.util.UUID;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class Firmware extends FirmwareInfo {
+public interface DeviceGroupFirmwareDao {
 
-    private static final long serialVersionUID = 3091601761339422546L;
+    DeviceGroupFirmware findDeviceGroupFirmwareById(UUID id);
 
-    private transient ByteBuffer data;
+    DeviceGroupFirmware findDeviceGroupFirmwareByGroupIdAndFirmwareType(UUID groupId, FirmwareType firmwareType);
 
-    public Firmware() {
-        super();
-    }
+    DeviceGroupFirmware saveDeviceGroupFirmware(DeviceGroupFirmware deviceGroupFirmware);
 
-    public Firmware(FirmwareId id) {
-        super(id);
-    }
-
-    public Firmware(Firmware firmware) {
-        super(firmware);
-        this.data = firmware.getData();
-    }
+    boolean deleteDeviceGroupFirmware(UUID id);
 }

@@ -72,4 +72,55 @@ public interface FirmwareInfoRepository extends CrudRepository<FirmwareInfoEntit
             "OR ('SOFTWARE' = :type AND (dp.software_id = :firmwareId or d.software_id = :firmwareId))))", nativeQuery = true)
     boolean isFirmwareUsed(@Param("firmwareId") UUID firmwareId, @Param("deviceProfileId") UUID deviceProfileId, @Param("type") String type);
 
+    @Query(value =
+            "SELECT * FROM firmware " +
+                    "WHERE id = " +
+                    "(SELECT COALESCE(d.firmware_id, g.firmware_id, dp.firmware_id) " +
+                    "FROM (SELECT d.firmware_id FROM device d WHERE d.id = :deviceId LIMIT 1) d " +
+                    "FULL JOIN " +
+                    "(SELECT dgf.firmware_id " +
+                    "FROM device_group_firmware dgf " +
+                    "INNER JOIN firmware f ON dgf.firmware_id = f.id AND dgf.firmware_type = 'FIRMWARE' AND f.device_profile_id = " +
+                    "(SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId LIMIT 1) " +
+                    "INNER JOIN relation r " +
+                    "ON dgf.group_id = r.from_id AND r.to_type = 'DEVICE' AND " +
+                    "r.relation_type_group = 'FROM_ENTITY_GROUP' AND r.to_id = :deviceId " +
+                    "ORDER BY dgf.firmware_update_time DESC LIMIT 1) g ON true " +
+                    "FULL JOIN " +
+                    "(SELECT dp.firmware_id FROM device_profile dp " +
+                    "WHERE id = (SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId)) dp ON true)",
+            nativeQuery = true)
+    FirmwareInfoEntity findFirmwareByDeviceId(@Param("deviceId") UUID deviceId);
+
+    @Query(value =
+            "SELECT * FROM firmware " +
+                    "WHERE id = " +
+                    "(SELECT COALESCE(d.software_id, g.software_id, dp.software_id) " +
+                    "FROM (SELECT d.software_id FROM device d WHERE d.id = :deviceId LIMIT 1) d " +
+                    "FULL JOIN " +
+                    "(SELECT dgf.firmware_id software_id " +
+                    "FROM device_group_firmware dgf " +
+                    "INNER JOIN firmware f ON dgf.firmware_id = f.id AND dgf.firmware_type = 'SOFTWARE' AND f.device_profile_id = " +
+                    "(SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId LIMIT 1) " +
+                    "INNER JOIN relation r " +
+                    "ON dgf.group_id = r.from_id AND r.to_type = 'DEVICE' AND " +
+                    "r.relation_type_group = 'FROM_ENTITY_GROUP' AND r.to_id = :deviceId " +
+                    "ORDER BY dgf.firmware_update_time DESC LIMIT 1) g ON true " +
+                    "FULL JOIN " +
+                    "(SELECT dp.software_id FROM device_profile dp " +
+                    "WHERE id = (SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId)) dp ON true)",
+            nativeQuery = true)
+    FirmwareInfoEntity findSoftwareByDeviceId(@Param("deviceId") UUID deviceId);
+
+    @Query("SELECT new FirmwareInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, f.data IS NOT NULL) FROM FirmwareEntity f " +
+            "WHERE f.deviceProfileId IN (SELECT d.deviceProfileId FROM DeviceEntity d " +
+            "WHERE d.id IN (SELECT r.toId FROM RelationEntity r " +
+            "WHERE r.fromId = :groupId AND r.fromType = 'ENTITY_GROUP' AND r.relationTypeGroup = 'FROM_ENTITY_GROUP')) " +
+            "AND f.type = :type " +
+            "AND f.data IS NOT NULL " +
+            "AND LOWER(f.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<FirmwareInfoEntity> findAllByTenantIdAndDeviceGroupAndTypeAndHasData(@Param("groupId") UUID groupId,
+                                                                              @Param("type") FirmwareType type,
+                                                                              @Param("searchText") String searchText,
+                                                                              Pageable pageable);
 }

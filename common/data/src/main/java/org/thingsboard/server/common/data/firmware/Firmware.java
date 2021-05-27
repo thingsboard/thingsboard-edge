@@ -30,17 +30,30 @@
  */
 package org.thingsboard.server.common.data.firmware;
 
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.FirmwareId;
 
-public enum FirmwareKey {
+import java.nio.ByteBuffer;
 
-    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"),
-    ID("id");
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class Firmware extends FirmwareInfo {
 
-    @Getter
-    private final String value;
+    private static final long serialVersionUID = 3091601761339422546L;
 
-    FirmwareKey(String value) {
-        this.value = value;
+    private transient ByteBuffer data;
+
+    public Firmware() {
+        super();
+    }
+
+    public Firmware(FirmwareId id) {
+        super(id);
+    }
+
+    public Firmware(Firmware firmware) {
+        super(firmware);
+        this.data = firmware.getData();
     }
 }

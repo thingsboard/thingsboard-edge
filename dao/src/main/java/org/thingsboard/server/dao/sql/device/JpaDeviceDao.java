@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.device;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -40,6 +41,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -173,26 +175,6 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     }
 
     @Override
-    public PageData<Device> findDevicesByTenantIdAndTypeAndEmptyFirmware(UUID tenantId, String type, PageLink pageLink) {
-        return DaoUtil.toPageData(
-                deviceRepository.findByTenantIdAndTypeAndFirmwareIdIsNull(
-                        tenantId,
-                        type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<Device> findDevicesByTenantIdAndTypeAndEmptySoftware(UUID tenantId, String type, PageLink pageLink) {
-        return DaoUtil.toPageData(
-                deviceRepository.findByTenantIdAndTypeAndSoftwareIdIsNull(
-                        tenantId,
-                        type,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
     public PageData<Device> findDevicesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink) {
         return DaoUtil.toPageData(
                 deviceRepository.findByTenantIdAndCustomerIdAndType(
@@ -238,4 +220,46 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
         }
         return list;
     }
+
+    @Override
+    public PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyFirmware(UUID groupId,
+                                                                              UUID deviceProfileId,
+                                                                              FirmwareType firmwareType,
+                                                                              PageLink pageLink) {
+        Page<DeviceEntity> page;
+        switch (firmwareType) {
+            case FIRMWARE:
+                page = deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(
+                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink));
+                break;
+            case SOFTWARE:
+                page = deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(
+                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink));
+                break;
+            default:
+                log.warn("Unsupported firmware type: [{}]", firmwareType);
+                return PageData.emptyPageData();
+        }
+        return DaoUtil.toPageData(page);
+    }
+
+    @Override
+    public PageData<Device> findByDeviceProfileAndEmptyFirmware(UUID tenantId, UUID deviceProfileId,
+                                                                FirmwareType firmwareType,
+                                                                PageLink pageLink) {
+        Page<DeviceEntity> page;
+        switch (firmwareType) {
+            case FIRMWARE:
+                page = deviceRepository.findByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId, DaoUtil.toPageable(pageLink));
+                break;
+            case SOFTWARE:
+                page = deviceRepository.findByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId, DaoUtil.toPageable(pageLink));
+                break;
+            default:
+                log.warn("Unsupported firmware type: [{}]", firmwareType);
+                return PageData.emptyPageData();
+        }
+        return DaoUtil.toPageData(page);
+    }
+
 }

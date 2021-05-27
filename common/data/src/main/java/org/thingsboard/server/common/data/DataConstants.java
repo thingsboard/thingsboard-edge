@@ -118,4 +118,6 @@ public class DataConstants {
     public static final String EDGE_MSG_SOURCE = "edge";
     public static final String MSG_SOURCE_KEY = "source";
 
+    public static final String UPDATE_FIRMWARE = "updateFirmware";
+    public static final String UPDATE_SOFTWARE = "updateSoftware";
 }

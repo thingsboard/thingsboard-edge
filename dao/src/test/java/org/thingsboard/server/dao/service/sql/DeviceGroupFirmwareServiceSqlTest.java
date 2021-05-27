@@ -28,19 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.firmware;
+package org.thingsboard.server.dao.service.sql;
 
-import lombok.Getter;
+import org.thingsboard.server.dao.service.BaseDeviceGroupFirmwareServiceTest;
+import org.thingsboard.server.dao.service.BaseFirmwareServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-public enum FirmwareKey {
-
-    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"),
-    ID("id");
-
-    @Getter
-    private final String value;
-
-    FirmwareKey(String value) {
-        this.value = value;
-    }
+@DaoSqlTest
+public class DeviceGroupFirmwareServiceSqlTest extends BaseDeviceGroupFirmwareServiceTest {
 }

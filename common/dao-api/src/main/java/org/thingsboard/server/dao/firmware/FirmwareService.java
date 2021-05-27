@@ -31,11 +31,13 @@
 package org.thingsboard.server.dao.firmware;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.firmware.Firmware;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -64,4 +66,8 @@ public interface FirmwareService {
     void deleteFirmware(TenantId tenantId, FirmwareId firmwareId);
 
     void deleteFirmwaresByTenantId(TenantId tenantId);
+
+    FirmwareInfo findFirmwareInfoByDeviceIdAndFirmwareType(DeviceId deviceId, FirmwareType firmwareType);
+
+    PageData<FirmwareInfo> findFirmwaresByGroupIdAndHasData(EntityGroupId deviceGroupId, FirmwareType firmwareType, PageLink pageLink);
 }

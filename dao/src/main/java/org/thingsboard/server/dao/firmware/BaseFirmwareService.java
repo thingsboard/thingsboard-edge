@@ -43,14 +43,14 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.firmware.FirmwareDataCache;
 import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.firmware.Firmware;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -61,11 +61,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -219,6 +215,8 @@ public class BaseFirmwareService implements FirmwareService {
                 throw new DataValidationException("The software referenced by the devices cannot be deleted!");
             } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_software_device_profile")) {
                 throw new DataValidationException("The software referenced by the device profile cannot be deleted!");
+            } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_firmware_device_group_firmware")) {
+                throw new DataValidationException("The firmware referenced by the device group cannot be deleted!");
             } else {
                 throw t;
             }
@@ -230,6 +228,21 @@ public class BaseFirmwareService implements FirmwareService {
         log.trace("Executing deleteFirmwaresByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantFirmwareRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public FirmwareInfo findFirmwareInfoByDeviceIdAndFirmwareType(DeviceId deviceId, FirmwareType firmwareType) {
+        log.trace("Executing findFirmwareInfoByDeviceIdAndFirmwareType [{}] [{}]", deviceId, firmwareType);
+        validateId(deviceId, "Incorrect deviceId " + deviceId);
+        return firmwareInfoDao.findFirmwareByDeviceIdAndFirmwareType(deviceId.getId(), firmwareType);
+    }
+
+    @Override
+    public PageData<FirmwareInfo> findFirmwaresByGroupIdAndHasData(EntityGroupId deviceGroupId, FirmwareType firmwareType, PageLink pageLink) {
+        log.trace("Executing findFirmwaresByGroupIdAndHasData, groupId [{}], pageLink [{}]", deviceGroupId, pageLink);
+        validateId(deviceGroupId, "Incorrect deviceGroupId " + deviceGroupId);
+        validatePageLink(pageLink);
+        return firmwareInfoDao.findFirmwaresByGroupIdAndHasData(deviceGroupId.getId(), firmwareType, pageLink);
     }
 
     private DataValidator<FirmwareInfo> firmwareInfoValidator = new DataValidator<>() {

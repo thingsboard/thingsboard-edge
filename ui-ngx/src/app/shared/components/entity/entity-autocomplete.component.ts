@@ -29,7 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, mergeMap, share, tap } from 'rxjs/operators';
@@ -43,6 +53,7 @@ import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import { isEqual } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-autocomplete',
@@ -113,6 +124,9 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
   @Input()
   disabled: boolean;
 
+  @Output()
+  entityChanged = new EventEmitter<BaseData<EntityId>>();
+
   @ViewChild('entityInput', {static: true}) entityInput: ElementRef;
 
   entityText: string;
@@ -153,7 +167,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           } else {
             modelValue = this.useFullEntityId ? value.id : value.id.id;
           }
-          this.updateView(modelValue);
+          this.updateView(modelValue, value);
           if (value === null) {
             this.clear();
           }
@@ -308,10 +322,12 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           (entity) => {
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
             this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
+            this.entityChanged.emit(entity);
           },
           () => {
             this.modelValue = null;
             this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
+            this.entityChanged.emit(null);
             if (value !== null) {
               this.propagateChange(this.modelValue);
             }
@@ -323,10 +339,12 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           (entity) => {
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
             this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
+            this.entityChanged.emit(entity);
           },
           () => {
             this.modelValue = null;
             this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
+            this.entityChanged.emit(null);
             if (value !== null) {
               this.propagateChange(this.modelValue);
             }
@@ -354,10 +372,11 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
     this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
   }
 
-  updateView(value: string | EntityId | null) {
-    if (this.modelValue !== value) {
+  updateView(value: string | EntityId | null, entity: BaseData<EntityId> | null) {
+    if (!isEqual(this.modelValue, value)) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
+      this.entityChanged.emit(entity);
     }
   }
 

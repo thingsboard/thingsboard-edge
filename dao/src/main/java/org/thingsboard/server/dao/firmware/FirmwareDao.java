@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.firmware;
 
-import org.thingsboard.server.common.data.Firmware;
+import org.thingsboard.server.common.data.firmware.Firmware;
 import org.thingsboard.server.dao.Dao;
 
 public interface FirmwareDao extends Dao<Firmware> {

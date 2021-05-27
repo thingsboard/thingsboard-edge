@@ -47,6 +47,7 @@ import { FirmwareInfo, FirmwareType } from '@shared/models/firmware.models';
 import { FirmwareService } from '@core/http/firmware.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-firmware-autocomplete',
@@ -62,13 +63,16 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
 
   firmwareFormGroup: FormGroup;
 
-  modelValue: string | null;
+  modelValue: string | EntityId | null;
 
   @Input()
   type = FirmwareType.FIRMWARE;
 
   @Input()
   deviceProfileId: string;
+
+  @Input()
+  deviceGroupId: string;
 
   @Input()
   labelText: string;
@@ -78,6 +82,22 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
 
   @Input()
   useFullEntityId = false;
+
+  private deviceGroupAllValue: boolean;
+
+  get deviceGroupAll(): boolean {
+    return this.deviceGroupAllValue;
+  }
+
+  @Input()
+  set deviceGroupAll(value: boolean) {
+    this.deviceGroupAllValue = coerceBooleanProperty(value);
+    if (this.deviceGroupAll) {
+      this.firmwareFormGroup.disable({emitEvent: false});
+    } else {
+      this.firmwareFormGroup.enable({emitEvent: false});
+    }
+  }
 
   private requiredValue: boolean;
 
@@ -173,7 +193,7 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.disabled = isDisabled || this.deviceGroupAll;
     if (this.disabled) {
       this.firmwareFormGroup.disable({emitEvent: false});
     } else {
@@ -197,8 +217,8 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
       if (firmwareId !== '') {
         this.entityService.getEntity(EntityType.FIRMWARE, firmwareId, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (entity) => {
-            this.modelValue = entity.id.id;
-            this.firmwareFormGroup.get('firmwareId').patchValue(entity);
+            this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
+            this.firmwareFormGroup.get('firmwareId').patchValue(entity, {emitEvent: false});
           },
           () => {
             this.modelValue = null;
@@ -248,8 +268,12 @@ export class FirmwareAutocompleteComponent implements ControlValueAccessor, OnIn
       property: 'title',
       direction: Direction.ASC
     });
-    return this.firmwareService.getFirmwaresInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type,
-                                                          true, {ignoreLoading: true}).pipe(
+    let fetchFirmware$ = this.firmwareService.getFirmwaresInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type,
+      true, {ignoreLoading: true});
+    if (isDefinedAndNotNull(this.deviceGroupId)) {
+      fetchFirmware$ = this.firmwareService.getFirmwaresInfoByDeviceGroupId(pageLink, this.deviceGroupId, this.type, {ignoreLoading: true});
+    }
+    return fetchFirmware$.pipe(
       map((data) => data && data.data.length ? data.data : null)
     );
   }

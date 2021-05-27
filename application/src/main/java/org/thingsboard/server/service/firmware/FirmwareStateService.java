@@ -32,14 +32,22 @@ package org.thingsboard.server.service.firmware;
 
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.transport.TransportProtos.ToFirmwareStateServiceMsg;
+
+import java.util.List;
 
 public interface FirmwareStateService {
 
-    void update(Device device, Device oldDevice);
+    void update(TenantId tenantId, DeviceGroupFirmware newDeviceGroupFirmware, DeviceGroupFirmware oldDeviceGroupFirmware);
+
+    void update(TenantId tenantId, List<DeviceId> deviceIds, boolean isFirmware, boolean isSoftware);
+
+    void update(Device device);
 
     void update(DeviceProfile deviceProfile, boolean isFirmwareChanged, boolean isSoftwareChanged);
 
     boolean process(ToFirmwareStateServiceMsg msg);
-
 }

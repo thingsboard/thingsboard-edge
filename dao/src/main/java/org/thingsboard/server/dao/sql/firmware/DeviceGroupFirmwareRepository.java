@@ -28,19 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.firmware;
+package org.thingsboard.server.dao.sql.firmware;
 
-import lombok.Getter;
+import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.dao.model.sql.DeviceGroupFirmwareEntity;
 
-public enum FirmwareKey {
+import java.util.UUID;
 
-    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"),
-    ID("id");
+public interface DeviceGroupFirmwareRepository extends CrudRepository<DeviceGroupFirmwareEntity, UUID> {
 
-    @Getter
-    private final String value;
+    DeviceGroupFirmwareEntity findByGroupIdAndFirmwareType(UUID groupId, FirmwareType firmwareType);
 
-    FirmwareKey(String value) {
-        this.value = value;
-    }
 }

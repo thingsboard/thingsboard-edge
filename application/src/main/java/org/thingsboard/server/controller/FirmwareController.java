@@ -45,13 +45,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.firmware.Firmware;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -234,4 +235,25 @@ public class FirmwareController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/firmwares/{groupId}/{type}", method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<FirmwareInfo> getFirmwares(@PathVariable("groupId") String strGroupId,
+                                               @PathVariable("type") String strType,
+                                               @RequestParam int pageSize,
+                                               @RequestParam int page,
+                                               @RequestParam(required = false) String textSearch,
+                                               @RequestParam(required = false) String sortProperty,
+                                               @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter("groupId", strGroupId);
+        checkParameter("type", strType);
+        try {
+            EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
+            checkEntityGroupId(groupId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(firmwareService.findFirmwaresByGroupIdAndHasData(groupId, FirmwareType.valueOf(strType), pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
 }

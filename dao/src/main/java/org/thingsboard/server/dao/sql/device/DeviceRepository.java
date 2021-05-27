@@ -81,24 +81,6 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
                                              Pageable pageable);
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND d.type = :type " +
-            "AND d.firmwareId = null " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<DeviceEntity> findByTenantIdAndTypeAndFirmwareIdIsNull(@Param("tenantId") UUID tenantId,
-                                             @Param("type") String type,
-                                             @Param("textSearch") String textSearch,
-                                             Pageable pageable);
-
-    @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND d.type = :type " +
-            "AND d.softwareId = null " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<DeviceEntity> findByTenantIdAndTypeAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
-                                                                @Param("type") String type,
-                                                                @Param("textSearch") String textSearch,
-                                                                Pageable pageable);
-
-    @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
             "AND d.type = :type " +
             "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
@@ -173,4 +155,128 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "INNER JOIN DeviceProfileEntity p ON d.deviceProfileId = p.id " +
             "WHERE p.transportType = :transportType")
     Page<UUID> findIdsByDeviceProfileTransportType(@Param("transportType") DeviceTransportType transportType, Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND d.firmwareId = null " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
+                                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                                @Param("textSearch") String textSearch,
+                                                                                Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND d.softwareId = null " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
+                                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                                @Param("textSearch") String textSearch,
+                                                                                Pageable pageable);
+
+    @Query(value = "SELECT d.* FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null " +
+            "AND d.id NOT IN ( " +
+            "SELECT r.to_id " +
+            "FROM relation r " +
+            "WHERE r.to_id IN (" +
+            "SELECT d.id " +
+            "FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null) " +
+            "AND r.to_type = 'DEVICE' " +
+            "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+            "AND r.from_id IN (" +
+            "SELECT dfg.group_id " +
+            "FROM firmware f " +
+            "INNER JOIN device_group_firmware dfg ON dfg.firmware_id = f.id AND dfg.firmware_type = 'FIRMWARE' " +
+            "WHERE f.device_profile_id = :deviceProfileId)" +
+            ")",
+
+            countQuery = "SELECT count(d.*) FROM device d " +
+                    "WHERE d.device_profile_id = :deviceProfileId " +
+                    "AND d.tenant_id = :tenantId " +
+                    "AND d.firmware_id is null " +
+                    "AND d.id NOT IN ( " +
+                    "SELECT r.to_id " +
+                    "FROM relation r " +
+                    "WHERE r.to_id IN (" +
+                    "SELECT d.id " +
+                    "FROM device d " +
+                    "WHERE d.device_profile_id = :deviceProfileId " +
+                    "AND d.tenant_id = :tenantId " +
+                    "AND d.firmware_id is null) " +
+                    "AND r.to_type = 'DEVICE' " +
+                    "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+                    "AND r.from_id IN (" +
+                    "SELECT dfg.group_id " +
+                    "FROM firmware f " +
+                    "INNER JOIN device_group_firmware dfg ON dfg.firmware_id = f.id AND dfg.firmware_type = 'FIRMWARE' " +
+                    "WHERE f.device_profile_id = :deviceProfileId)" +
+                    ")",
+            nativeQuery = true)
+    Page<DeviceEntity> findByDeviceProfileIdAndFirmwareIdIsNull(@Param("tenantId") UUID tenantId,
+                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                Pageable pageable);
+
+    @Query(value = "SELECT d.* FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.software_id is null " +
+            "AND d.id NOT IN ( " +
+            "SELECT r.to_id " +
+            "FROM relation r " +
+            "WHERE r.to_id IN (" +
+            "SELECT d.id " +
+            "FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.software_id is null) " +
+            "AND r.to_type = 'DEVICE' " +
+            "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+            "AND r.from_id IN (" +
+            "SELECT dfg.group_id " +
+            "FROM firmware f " +
+            "INNER JOIN device_group_firmware dfg ON dfg.firmware_id = f.id AND dfg.firmware_type = 'SOFTWARE' " +
+            "WHERE f.device_profile_id = :deviceProfileId)" +
+            ")",
+
+            countQuery = "SELECT count(d.*) FROM device d " +
+                    "WHERE d.device_profile_id = :deviceProfileId " +
+                    "AND d.tenant_id = :tenantId " +
+                    "AND d.firmware_id is null " +
+                    "AND d.id NOT IN ( " +
+                    "SELECT r.to_id " +
+                    "FROM relation r " +
+                    "WHERE r.to_id IN (" +
+                    "SELECT d.id " +
+                    "FROM device d " +
+                    "WHERE d.device_profile_id = :deviceProfileId " +
+                    "AND d.tenant_id = :tenantId " +
+                    "AND d.firmware_id is null) " +
+                    "AND r.to_type = 'DEVICE' " +
+                    "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+                    "AND r.from_id IN (" +
+                    "SELECT dfg.group_id " +
+                    "FROM firmware f " +
+                    "INNER JOIN device_group_firmware dfg ON dfg.firmware_id = f.id AND dfg.firmware_type = 'SOFTWARE' " +
+                    "WHERE f.device_profile_id = :deviceProfileId)" +
+                    ")",
+            nativeQuery = true)
+    Page<DeviceEntity> findByDeviceProfileIdAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
+                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                Pageable pageable);
 }

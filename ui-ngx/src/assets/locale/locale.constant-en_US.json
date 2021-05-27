@@ -2339,6 +2339,7 @@
         "drop-file": "Drop a firmware file or click to select a file to upload.",
         "empty": "Firmware is empty",
         "idCopiedMessage": "Firmware Id has been copied to clipboard",
+        "no-compatible-group-all": "Not compatible with group 'All'",
         "no-firmware-matching": "No firmware matching '{{entity}}' were found.",
         "no-firmware-text": "No firmwares found",
         "no-software-matching": "No sowtware matching '{{entity}}' were found.",

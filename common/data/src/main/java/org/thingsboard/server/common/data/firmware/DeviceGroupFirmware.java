@@ -30,17 +30,17 @@
  */
 package org.thingsboard.server.common.data.firmware;
 
-import lombok.Getter;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.FirmwareId;
 
-public enum FirmwareKey {
+import java.util.UUID;
 
-    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"),
-    ID("id");
-
-    @Getter
-    private final String value;
-
-    FirmwareKey(String value) {
-        this.value = value;
-    }
+@Data
+public class DeviceGroupFirmware {
+    private UUID id;
+    private EntityGroupId groupId;
+    private FirmwareType firmwareType;
+    private FirmwareId firmwareId;
+    private long firmwareUpdateTime;
 }

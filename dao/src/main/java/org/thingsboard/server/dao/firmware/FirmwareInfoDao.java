@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.firmware;
 
-import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
@@ -49,4 +49,7 @@ public interface FirmwareInfoDao extends Dao<FirmwareInfo> {
 
     boolean isFirmwareUsed(FirmwareId firmwareId, FirmwareType type, DeviceProfileId deviceProfileId);
 
+    FirmwareInfo findFirmwareByDeviceIdAndFirmwareType(UUID deviceId, FirmwareType firmwareType);
+
+    PageData<FirmwareInfo> findFirmwaresByGroupIdAndHasData(UUID deviceGroupId, FirmwareType firmwareType, PageLink pageLink);
 }

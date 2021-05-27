@@ -30,32 +30,48 @@
  */
 package org.thingsboard.server.dao.sql.firmware;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.firmware.Firmware;
-import org.thingsboard.server.dao.firmware.FirmwareDao;
-import org.thingsboard.server.dao.model.sql.FirmwareEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.firmware.DeviceGroupFirmwareDao;
+import org.thingsboard.server.dao.model.sql.DeviceGroupFirmwareEntity;
 
 import java.util.UUID;
 
 @Slf4j
 @Component
-public class JpaFirmwareDao extends JpaAbstractSearchTextDao<FirmwareEntity, Firmware> implements FirmwareDao {
+@RequiredArgsConstructor
+public class JpaDeviceGroupFirmwareDao implements DeviceGroupFirmwareDao {
 
-    @Autowired
-    private FirmwareRepository firmwareRepository;
+    private final DeviceGroupFirmwareRepository deviceGroupFirmwareRepository;
 
     @Override
-    protected Class<FirmwareEntity> getEntityClass() {
-        return FirmwareEntity.class;
+    public DeviceGroupFirmware findDeviceGroupFirmwareById(UUID id) {
+        return DaoUtil.getData(deviceGroupFirmwareRepository.findById(id));
     }
 
     @Override
-    protected CrudRepository<FirmwareEntity, UUID> getCrudRepository() {
-        return firmwareRepository;
+    public DeviceGroupFirmware findDeviceGroupFirmwareByGroupIdAndFirmwareType(UUID groupId, FirmwareType firmwareType) {
+        return DaoUtil.getData(deviceGroupFirmwareRepository.findByGroupIdAndFirmwareType(groupId, firmwareType));
     }
 
+    @Override
+    public DeviceGroupFirmware saveDeviceGroupFirmware(DeviceGroupFirmware deviceGroupFirmware) {
+        if (deviceGroupFirmware.getId() == null) {
+            UUID uuid = Uuids.timeBased();
+            deviceGroupFirmware.setId(uuid);
+        }
+        return DaoUtil.getData(deviceGroupFirmwareRepository.save(new DeviceGroupFirmwareEntity(deviceGroupFirmware)));
+    }
+
+    @Override
+    public boolean deleteDeviceGroupFirmware(UUID id) {
+        deviceGroupFirmwareRepository.deleteById(id);
+        log.debug("Remove request: {}", id);
+        return !deviceGroupFirmwareRepository.existsById(id);
+    }
 }
