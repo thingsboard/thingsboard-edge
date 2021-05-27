@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.service.AbstractServiceTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
@@ -72,7 +71,7 @@ public class BaseTbResourceServiceTest extends AbstractControllerTest {
             "<Resources>\n" +
             "<Item ID=\"0\">\n" +
             "<Name>LWM2M</Name>\n" +
-            "<Operations></Operations>\n" +
+            "<Operations>RW</Operations>\n" +
             "<MultipleInstances>Single</MultipleInstances>\n" +
             "<Mandatory>Mandatory</Mandatory>\n" +
             "<Type>String</Type>\n" +

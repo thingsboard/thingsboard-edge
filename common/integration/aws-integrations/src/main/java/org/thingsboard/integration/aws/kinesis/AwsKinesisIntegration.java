@@ -119,9 +119,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
 
         this.ctx = params.getContext();
 
-        kinesisClientConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                KinesisClientConfiguration.class);
+        kinesisClientConfiguration = getClientConfiguration(configuration, KinesisClientConfiguration.class);
 
         init(kinesisClientConfiguration);
     }
@@ -270,10 +268,8 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
     @Override
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
         try {
-            mapper.readValue(
-                    mapper.writeValueAsString(configuration.get("clientConfiguration")),
-                    KinesisClientConfiguration.class);
-        } catch (IOException e) {
+            getClientConfiguration(configuration.get("clientConfiguration"), KinesisClientConfiguration.class);
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid Kinesis Integration Configuration structure!");
         }
     }

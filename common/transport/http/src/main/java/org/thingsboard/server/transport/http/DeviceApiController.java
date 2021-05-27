@@ -50,6 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportContext;
@@ -88,7 +90,7 @@ import java.util.function.Consumer;
 @ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true' && '${transport.http.enabled}'=='true')")
 @RequestMapping("/api/v1")
 @Slf4j
-public class DeviceApiController {
+public class DeviceApiController implements TbTransportService {
 
     @Autowired
     private HttpTransportContext transportContext;
@@ -227,19 +229,18 @@ public class DeviceApiController {
     public DeferredResult<ResponseEntity> getFirmware(@PathVariable("deviceToken") String deviceToken,
                                                       @RequestParam(value = "title") String title,
                                                       @RequestParam(value = "version") String version,
-                                                      @RequestParam(value = "chunkSize", required = false, defaultValue = "0") int chunkSize,
+                                                      @RequestParam(value = "size", required = false, defaultValue = "0") int size,
                                                       @RequestParam(value = "chunk", required = false, defaultValue = "0") int chunk) {
-        DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
-        transportContext.getTransportService().process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(deviceToken).build(),
-                new DeviceAuthCallback(transportContext, responseWriter, sessionInfo -> {
-                    GetFirmwareRequestMsg requestMsg = GetFirmwareRequestMsg.newBuilder()
-                            .setTenantIdMSB(sessionInfo.getTenantIdMSB())
-                            .setTenantIdLSB(sessionInfo.getTenantIdLSB())
-                            .setDeviceIdMSB(sessionInfo.getDeviceIdMSB())
-                            .setDeviceIdLSB(sessionInfo.getDeviceIdLSB()).build();
-                    transportContext.getTransportService().process(sessionInfo, requestMsg, new GetFirmwareCallback(responseWriter, title, version, chunkSize, chunk));
-                }));
-        return responseWriter;
+        return getFirmwareCallback(deviceToken, title, version, size, chunk, FirmwareType.FIRMWARE);
+    }
+
+    @RequestMapping(value = "/{deviceToken}/software", method = RequestMethod.GET)
+    public DeferredResult<ResponseEntity> getSoftware(@PathVariable("deviceToken") String deviceToken,
+                                                      @RequestParam(value = "title") String title,
+                                                      @RequestParam(value = "version") String version,
+                                                      @RequestParam(value = "size", required = false, defaultValue = "0") int size,
+                                                      @RequestParam(value = "chunk", required = false, defaultValue = "0") int chunk) {
+        return getFirmwareCallback(deviceToken, title, version, size, chunk, FirmwareType.SOFTWARE);
     }
 
     @RequestMapping(value = "/provision", method = RequestMethod.POST)
@@ -247,6 +248,21 @@ public class DeviceApiController {
         DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
         transportContext.getTransportService().process(JsonConverter.convertToProvisionRequestMsg(json),
                 new DeviceProvisionCallback(responseWriter));
+        return responseWriter;
+    }
+
+    private DeferredResult<ResponseEntity> getFirmwareCallback(String deviceToken, String title, String version, int size, int chunk, FirmwareType firmwareType) {
+        DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
+        transportContext.getTransportService().process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(deviceToken).build(),
+                new DeviceAuthCallback(transportContext, responseWriter, sessionInfo -> {
+                    GetFirmwareRequestMsg requestMsg = GetFirmwareRequestMsg.newBuilder()
+                            .setTenantIdMSB(sessionInfo.getTenantIdMSB())
+                            .setTenantIdLSB(sessionInfo.getTenantIdLSB())
+                            .setDeviceIdMSB(sessionInfo.getDeviceIdMSB())
+                            .setDeviceIdLSB(sessionInfo.getDeviceIdLSB())
+                            .setType(firmwareType.name()).build();
+                    transportContext.getTransportService().process(sessionInfo, requestMsg, new GetFirmwareCallback(responseWriter, title, version, size, chunk));
+                }));
         return responseWriter;
     }
 
@@ -317,7 +333,7 @@ public class DeviceApiController {
                 responseWriter.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
             } else if (title.equals(firmwareResponseMsg.getTitle()) && version.equals(firmwareResponseMsg.getVersion())) {
                 String firmwareId = new UUID(firmwareResponseMsg.getFirmwareIdMSB(), firmwareResponseMsg.getFirmwareIdLSB()).toString();
-                ByteArrayResource resource = new ByteArrayResource(transportContext.getFirmwareCacheReader().get(firmwareId, chuckSize, chuck));
+                ByteArrayResource resource = new ByteArrayResource(transportContext.getFirmwareDataCache().get(firmwareId, chuckSize, chuck));
                 ResponseEntity<ByteArrayResource> response = ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + firmwareResponseMsg.getFileName())
                         .header("x-filename", firmwareResponseMsg.getFileName())
@@ -423,6 +439,11 @@ public class DeviceApiController {
         } catch (Exception e) {
             return MediaType.APPLICATION_OCTET_STREAM;
         }
+    }
+
+    @Override
+    public String getName() {
+        return "HTTP";
     }
 
 }

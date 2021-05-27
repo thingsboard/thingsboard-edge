@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, forwardRef, Input} from '@angular/core';
+import { Component, forwardRef, Input } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -39,9 +39,9 @@ import {
   NG_VALUE_ACCESSOR,
   Validators
 } from '@angular/forms';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
   ATTRIBUTE,
   ATTRIBUTE_LWM2M,
@@ -53,13 +53,14 @@ import {
   RESOURCES,
   TELEMETRY
 } from './lwm2m-profile-config.models';
-import {deepClone, isDefinedAndNotNull, isEqual, isUndefined} from '@core/utils';
-import {MatDialog} from '@angular/material/dialog';
-import {TranslateService} from '@ngx-translate/core';
+import { deepClone, isDefinedAndNotNull, isEqual, isUndefined } from '@core/utils';
+import { MatDialog } from '@angular/material/dialog';
+import { TranslateService } from '@ngx-translate/core';
 import {
   Lwm2mObjectAddInstancesData,
   Lwm2mObjectAddInstancesDialogComponent
 } from '@home/components/profile/device/lwm2m/lwm2m-object-add-instances-dialog.component';
+import _ from 'lodash';
 
 @Component({
   selector: 'tb-profile-lwm2m-observe-attr-telemetry',
@@ -267,7 +268,6 @@ export class Lwm2mObserveAttrTelemetryComponent implements ControlValueAccessor 
   }
 
   private updateInstancesIds = (data: Lwm2mObjectAddInstancesData): void => {
-    debugger
     const objectLwM2MFormGroup = (this.observeAttrTelemetryFormGroup.get(CLIENT_LWM2M) as FormArray).controls
       .find(e => e.value.keyId === data.objectKeyId) as FormGroup;
     const instancesArray = objectLwM2MFormGroup.value.instances as Instance [];
@@ -277,7 +277,6 @@ export class Lwm2mObserveAttrTelemetryComponent implements ControlValueAccessor 
       r.attribute = false;
       r.telemetry = false;
       r.observe = false;
-      r.keyName = {};
       r.attributeLwm2m = {};
     });
     const valueOld = this.instancesToSetId(instancesArray);
@@ -296,7 +295,8 @@ export class Lwm2mObserveAttrTelemetryComponent implements ControlValueAccessor 
   private addInstancesNew = (idsAdd: Set<number>, objectLwM2MFormGroup: FormGroup, instancesFormArray: FormArray,
                              instanceNew: Instance): void => {
     idsAdd.forEach(x => {
-      this.pushInstance(instancesFormArray, x, instanceNew);
+      instanceNew.resources.forEach(resource => {resource.keyName = _.camelCase(resource.name + x);});
+      this.pushInstance(instancesFormArray, x, deepClone(instanceNew as Instance));
     });
     (instancesFormArray.controls as FormGroup[]).sort((a, b) => a.value.id - b.value.id);
   }

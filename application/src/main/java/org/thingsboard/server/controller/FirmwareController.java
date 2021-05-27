@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -45,9 +44,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Firmware;
 import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -64,6 +68,7 @@ import java.nio.ByteBuffer;
 public class FirmwareController extends BaseController {
 
     public static final String FIRMWARE_ID = "firmwareId";
+    public static final String CHECKSUM_ALGORITHM = "checksumAlgorithm";
 
     @PreAuthorize("hasAnyAuthority( 'TENANT_ADMIN')")
     @RequestMapping(value = "/firmware/{firmwareId}/download", method = RequestMethod.GET)
@@ -86,14 +91,14 @@ public class FirmwareController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/firmware/info/{firmwareId}", method = RequestMethod.GET)
     @ResponseBody
     public FirmwareInfo getFirmwareInfoById(@PathVariable(FIRMWARE_ID) String strFirmwareId) throws ThingsboardException {
         checkParameter(FIRMWARE_ID, strFirmwareId);
         try {
             FirmwareId firmwareId = new FirmwareId(toUUID(strFirmwareId));
-            return checkFirmwareInfoId(firmwareId, Operation.READ);
+            return checkNotNull(firmwareService.findFirmwareInfoById(getTenantId(), firmwareId));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -116,11 +121,17 @@ public class FirmwareController extends BaseController {
     @RequestMapping(value = "/firmware", method = RequestMethod.POST)
     @ResponseBody
     public FirmwareInfo saveFirmwareInfo(@RequestBody FirmwareInfo firmwareInfo) throws ThingsboardException {
-        firmwareInfo.setTenantId(getTenantId());
-        checkEntity(firmwareInfo.getId(), firmwareInfo, Resource.FIRMWARE, null);
+        boolean created = firmwareInfo.getId() == null;
         try {
-            return firmwareService.saveFirmwareInfo(firmwareInfo);
+            firmwareInfo.setTenantId(getTenantId());
+            checkEntity(firmwareInfo.getId(), firmwareInfo, Resource.FIRMWARE, null);
+            FirmwareInfo savedFirmwareInfo = firmwareService.saveFirmwareInfo(firmwareInfo);
+            logEntityAction(savedFirmwareInfo.getId(), savedFirmwareInfo,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+            return savedFirmwareInfo;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.FIRMWARE), firmwareInfo,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -130,9 +141,10 @@ public class FirmwareController extends BaseController {
     @ResponseBody
     public Firmware saveFirmwareData(@PathVariable(FIRMWARE_ID) String strFirmwareId,
                                      @RequestParam(required = false) String checksum,
-                                     @RequestParam(required = false) String checksumAlgorithm,
+                                     @RequestParam(CHECKSUM_ALGORITHM) String checksumAlgorithmStr,
                                      @RequestBody MultipartFile file) throws ThingsboardException {
         checkParameter(FIRMWARE_ID, strFirmwareId);
+        checkParameter(CHECKSUM_ALGORITHM, checksumAlgorithmStr);
         try {
             FirmwareId firmwareId = new FirmwareId(toUUID(strFirmwareId));
             FirmwareInfo info = checkFirmwareInfoId(firmwareId, Operation.READ);
@@ -140,29 +152,35 @@ public class FirmwareController extends BaseController {
             Firmware firmware = new Firmware(firmwareId);
             firmware.setCreatedTime(info.getCreatedTime());
             firmware.setTenantId(getTenantId());
+            firmware.setDeviceProfileId(info.getDeviceProfileId());
+            firmware.setType(info.getType());
             firmware.setTitle(info.getTitle());
             firmware.setVersion(info.getVersion());
             firmware.setAdditionalInfo(info.getAdditionalInfo());
 
-            byte[] data = file.getBytes();
-            if (StringUtils.isEmpty(checksumAlgorithm)) {
-                checksumAlgorithm = "sha256";
-                checksum = Hashing.sha256().hashBytes(data).toString();
+            ChecksumAlgorithm checksumAlgorithm = ChecksumAlgorithm.valueOf(checksumAlgorithmStr.toUpperCase());
+
+            byte[] bytes = file.getBytes();
+            if (StringUtils.isEmpty(checksum)) {
+                checksum = firmwareService.generateChecksum(checksumAlgorithm, ByteBuffer.wrap(bytes));
             }
 
             firmware.setChecksumAlgorithm(checksumAlgorithm);
             firmware.setChecksum(checksum);
             firmware.setFileName(file.getOriginalFilename());
             firmware.setContentType(file.getContentType());
-            firmware.setData(ByteBuffer.wrap(data));
-            firmware.setDataSize((long) data.length);
-            return firmwareService.saveFirmware(firmware);
+            firmware.setData(ByteBuffer.wrap(bytes));
+            firmware.setDataSize((long) bytes.length);
+            Firmware savedFirmware = firmwareService.saveFirmware(firmware);
+            logEntityAction(savedFirmware.getId(), savedFirmware, null, ActionType.UPDATED, null);
+            return savedFirmware;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.FIRMWARE), null, null, ActionType.UPDATED, e, strFirmwareId);
             throw handleException(e);
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/firmwares", method = RequestMethod.GET)
     @ResponseBody
     public PageData<FirmwareInfo> getFirmwares(@RequestParam int pageSize,
@@ -178,18 +196,23 @@ public class FirmwareController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/firmwares/{hasData}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/firmwares/{deviceProfileId}/{type}/{hasData}", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<FirmwareInfo> getFirmwares(@PathVariable("hasData") boolean hasData,
+    public PageData<FirmwareInfo> getFirmwares(@PathVariable("deviceProfileId") String strDeviceProfileId,
+                                               @PathVariable("type") String strType,
+                                               @PathVariable("hasData") boolean hasData,
                                                @RequestParam int pageSize,
                                                @RequestParam int page,
                                                @RequestParam(required = false) String textSearch,
                                                @RequestParam(required = false) String sortProperty,
                                                @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter("deviceProfileId", strDeviceProfileId);
+        checkParameter("type", strType);
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(firmwareService.findTenantFirmwaresByTenantIdAndHasData(getTenantId(), hasData, pageLink));
+            return checkNotNull(firmwareService.findTenantFirmwaresByTenantIdAndDeviceProfileIdAndTypeAndHasData(getTenantId(),
+                    new DeviceProfileId(toUUID(strDeviceProfileId)), FirmwareType.valueOf(strType), hasData, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -198,13 +221,15 @@ public class FirmwareController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/firmware/{firmwareId}", method = RequestMethod.DELETE)
     @ResponseBody
-    public void deleteResource(@PathVariable("firmwareId") String strFirmwareId) throws ThingsboardException {
+    public void deleteFirmware(@PathVariable("firmwareId") String strFirmwareId) throws ThingsboardException {
         checkParameter(FIRMWARE_ID, strFirmwareId);
         try {
             FirmwareId firmwareId = new FirmwareId(toUUID(strFirmwareId));
-            checkFirmwareInfoId(firmwareId, Operation.DELETE);
+            FirmwareInfo info = checkFirmwareInfoId(firmwareId, Operation.DELETE);
             firmwareService.deleteFirmware(getTenantId(), firmwareId);
+            logEntityAction(firmwareId, info, null, ActionType.DELETED, null, strFirmwareId);
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.FIRMWARE), null, null, ActionType.DELETED, e, strFirmwareId);
             throw handleException(e);
         }
     }

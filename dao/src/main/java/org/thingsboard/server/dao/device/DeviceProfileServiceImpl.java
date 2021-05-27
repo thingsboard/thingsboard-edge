@@ -51,6 +51,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
@@ -71,13 +72,17 @@ import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfilePr
 import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -130,6 +135,12 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
 
     @Autowired
     private FirmwareService firmwareService;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
+    private DashboardService dashboardService;
 
     private final Lock findOrCreateLock = new ReentrantLock();
 
@@ -350,7 +361,7 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
     }
 
     private DataValidator<DeviceProfile> deviceProfileValidator =
-            new DataValidator<DeviceProfile>() {
+            new DataValidator<>() {
                 @Override
                 protected void validateDataImpl(TenantId tenantId, DeviceProfile deviceProfile) {
                     if (StringUtils.isEmpty(deviceProfile.getName())) {
@@ -378,6 +389,7 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
                     }
 
                     DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();
+                    transportConfiguration.validate();
                     if (transportConfiguration instanceof MqttDeviceProfileTransportConfiguration) {
                         MqttDeviceProfileTransportConfiguration mqttTransportConfiguration = (MqttDeviceProfileTransportConfiguration) transportConfiguration;
                         if (mqttTransportConfiguration.getTransportPayloadTypeConfiguration() instanceof ProtoTransportPayloadConfiguration) {
@@ -415,13 +427,49 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
                         }
                     }
 
+                    if (deviceProfile.getDefaultRuleChainId() != null) {
+                        RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, deviceProfile.getDefaultRuleChainId());
+                        if (ruleChain == null) {
+                            throw new DataValidationException("Can't assign non-existent rule chain!");
+                        }
+                    }
+
+                    if (deviceProfile.getDefaultDashboardId() != null) {
+                        DashboardInfo dashboard = dashboardService.findDashboardInfoById(tenantId, deviceProfile.getDefaultDashboardId());
+                        if (dashboard == null) {
+                            throw new DataValidationException("Can't assign non-existent dashboard!");
+                        }
+                    }
+
                     if (deviceProfile.getFirmwareId() != null) {
                         Firmware firmware = firmwareService.findFirmwareById(tenantId, deviceProfile.getFirmwareId());
                         if (firmware == null) {
                             throw new DataValidationException("Can't assign non-existent firmware!");
                         }
+                        if (!firmware.getType().equals(FirmwareType.FIRMWARE)) {
+                            throw new DataValidationException("Can't assign firmware with type: " + firmware.getType());
+                        }
                         if (firmware.getData() == null) {
                             throw new DataValidationException("Can't assign firmware with empty data!");
+                        }
+                        if (!firmware.getDeviceProfileId().equals(deviceProfile.getId())) {
+                            throw new DataValidationException("Can't assign firmware with different deviceProfile!");
+                        }
+                    }
+
+                    if (deviceProfile.getSoftwareId() != null) {
+                        Firmware software = firmwareService.findFirmwareById(tenantId, deviceProfile.getSoftwareId());
+                        if (software == null) {
+                            throw new DataValidationException("Can't assign non-existent software!");
+                        }
+                        if (!software.getType().equals(FirmwareType.SOFTWARE)) {
+                            throw new DataValidationException("Can't assign software with type: " + software.getType());
+                        }
+                        if (software.getData() == null) {
+                            throw new DataValidationException("Can't assign software with empty data!");
+                        }
+                        if (!software.getDeviceProfileId().equals(deviceProfile.getId())) {
+                            throw new DataValidationException("Can't assign firmware with different deviceProfile!");
                         }
                     }
                 }

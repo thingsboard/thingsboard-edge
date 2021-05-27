@@ -63,6 +63,7 @@
         <json-path.version>2.2.0</json-path.version>
         <junit.version>4.12</junit.version>
         <jupiter.version>5.7.1</jupiter.version>
+        <hamcrest.version>2.2</hamcrest.version>
         <slf4j.version>1.7.7</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <mockito.version>3.3.3</mockito.version>
@@ -113,7 +114,7 @@
         <hsqldb.version>2.5.0</hsqldb.version>
         <dbunit.version>2.5.3</dbunit.version>
         <spring-test-dbunit.version>1.2.1</spring-test-dbunit.version>
-        <postgresql.driver.version>42.2.16</postgresql.driver.version>
+        <postgresql.driver.version>42.2.20</postgresql.driver.version>
         <azure-messaging-eventhubs.version>5.5.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
@@ -147,6 +148,7 @@
         <javax.el.version>3.0.0</javax.el.version>
         <javax.validation-api.version>2.0.1.Final</javax.validation-api.version>
         <antisamy.version>1.6.2</antisamy.version>
+        <snmp4j.version>2.8.5</snmp4j.version>
     </properties>
 
     <modules>
@@ -973,6 +975,11 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>coap-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>remote-integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1015,6 +1022,11 @@
             <dependency>
                 <groupId>org.thingsboard.common.transport</groupId>
                 <artifactId>coap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.transport</groupId>
+                <artifactId>snmp</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1480,6 +1492,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${jupiter.version}</version>
@@ -1542,6 +1560,11 @@
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-redis</artifactId>
                 <version>${spring-data-redis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.integration</groupId>
+                <artifactId>spring-integration-redis</artifactId>
+                <version>${spring.version}</version>
             </dependency>
             <dependency>
                 <groupId>redis.clients</groupId>
@@ -1769,6 +1792,11 @@
                         <artifactId>spotbugs-annotations</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.snmp4j</groupId>
+                <artifactId>snmp4j</artifactId>
+                <version>${snmp4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

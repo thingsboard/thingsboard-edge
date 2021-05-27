@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -143,6 +144,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private ResourceService resourceService;
 
+    @Autowired
+    private FirmwareService firmwareService;
+
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
@@ -206,11 +210,11 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        dashboardService.deleteDashboardsByTenantId(tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
+        dashboardService.deleteDashboardsByTenantId(tenantId);
         edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
@@ -224,6 +228,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         roleService.deleteRolesByTenantId(tenantId);
         apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);
         resourceService.deleteResourcesByTenantId(tenantId);
+        firmwareService.deleteFirmwaresByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
     }
 

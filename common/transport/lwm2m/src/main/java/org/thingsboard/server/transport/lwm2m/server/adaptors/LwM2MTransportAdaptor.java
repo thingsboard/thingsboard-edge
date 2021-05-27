@@ -34,7 +34,7 @@ import com.google.gson.JsonElement;
 import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface LwM2MTransportAdaptor {
 
@@ -42,5 +42,5 @@ public interface LwM2MTransportAdaptor {
 
     TransportProtos.PostAttributeMsg convertToPostAttributes(JsonElement jsonElement) throws AdaptorException;
 
-    TransportProtos.GetAttributeRequestMsg convertToGetAttributes(List<String> clientKeys, List<String> sharedKeys) throws AdaptorException;
+    TransportProtos.GetAttributeRequestMsg convertToGetAttributes(Collection<String> clientKeys, Collection<String> sharedKeys) throws AdaptorException;
 }

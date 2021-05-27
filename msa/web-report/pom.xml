@@ -49,7 +49,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <docker.name>tb-pe-web-report</docker.name>
+        <docker.name>tb-${tb.docker.id}-web-report</docker.name>
         <pkg.name>tb-web-report</pkg.name>
         <pkg.type>js</pkg.type>
         <pkg.disabled>false</pkg.disabled>

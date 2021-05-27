@@ -42,12 +42,14 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationControllerApi;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.service.RemoteIntegrationManagerService;
+import org.thingsboard.server.queue.util.TbIntegrationComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+@TbIntegrationComponent
 @Component
 @Data
 public class RemoteIntegrationControllerApi implements IntegrationControllerApi {

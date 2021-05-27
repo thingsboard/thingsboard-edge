@@ -36,7 +36,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { TimePageLink } from '@shared/models/page/page-link';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { EntityType } from '@shared/models/entity-type.models';
-import { isString } from '@core/utils';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 export enum AlarmSeverity {
   CRITICAL = 'CRITICAL',
@@ -102,6 +102,7 @@ export const alarmSeverityColors = new Map<AlarmSeverity, string>(
 
 export interface Alarm extends BaseData<AlarmId> {
   tenantId: TenantId;
+  customerId: CustomerId;
   type: string;
   originator: EntityId;
   severity: AlarmSeverity;
@@ -125,6 +126,7 @@ export interface AlarmDataInfo extends AlarmInfo {
 export const simulatedAlarm: AlarmInfo = {
   id: new AlarmId(NULL_UUID),
   tenantId: new TenantId(NULL_UUID),
+  customerId: new CustomerId(NULL_UUID),
   createdTime: new Date().getTime(),
   startTs: new Date().getTime(),
   endTs: 0,
@@ -216,17 +218,15 @@ export class AlarmQuery {
   searchStatus: AlarmSearchStatus;
   status: AlarmStatus;
   fetchOriginator: boolean;
-  offset: string;
 
   constructor(entityId: EntityId, pageLink: TimePageLink,
               searchStatus: AlarmSearchStatus, status: AlarmStatus,
-              fetchOriginator: boolean, offset: string) {
+              fetchOriginator: boolean) {
     this.affectedEntityId = entityId;
     this.pageLink = pageLink;
     this.searchStatus = searchStatus;
     this.status = status;
     this.fetchOriginator = fetchOriginator;
-    this.offset = offset;
   }
 
   public toQuery(): string {
@@ -239,9 +239,6 @@ export class AlarmQuery {
     }
     if (typeof this.fetchOriginator !== 'undefined' && this.fetchOriginator !== null) {
       query += `&fetchOriginator=${this.fetchOriginator}`;
-    }
-    if (isString(this.offset) && this.offset.length) {
-      query += `&offset=${this.offset}`;
     }
     return query;
   }

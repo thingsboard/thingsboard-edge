@@ -35,10 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.discovery.ClusterTopologyChangeEvent;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.event.ClusterTopologyChangeEvent;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -78,7 +78,7 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
     private SubscriptionManagerService subscriptionManagerService;
 
     private ExecutorService subscriptionUpdateExecutor;
-    
+
     private TbApplicationEventListener<PartitionChangeEvent> partitionChangeListener = new TbApplicationEventListener<>() {
         @Override
         protected void onTbApplicationEvent(PartitionChangeEvent event) {
@@ -109,7 +109,7 @@ public class DefaultTbLocalSubscriptionService implements TbLocalSubscriptionSer
 
     @PostConstruct
     public void initExecutor() {
-        subscriptionUpdateExecutor = Executors.newWorkStealingPool(20);
+        subscriptionUpdateExecutor = ThingsBoardExecutors.newWorkStealingPool(20, getClass());
     }
 
     @PreDestroy

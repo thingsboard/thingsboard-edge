@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.entity;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -47,10 +46,11 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
+import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -63,10 +63,12 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
@@ -90,19 +92,22 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
+
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
 /**
@@ -162,6 +167,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @Autowired
     private EdgeService edgeService;
+
+    @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
+    private FirmwareService firmwareService;
 
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
@@ -581,11 +592,75 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case EDGE:
                 hasName = edgeService.findEdgeByIdAsync(tenantId, new EdgeId(entityId.getId()));
                 break;
+            case TB_RESOURCE:
+                hasName = resourceService.findResourceInfoByIdAsync(tenantId, new TbResourceId(entityId.getId()));
+                break;
+            case FIRMWARE:
+                hasName = firmwareService.findFirmwareInfoByIdAsync(tenantId, new FirmwareId(entityId.getId()));
+                break;
             default:
                 throw new IllegalStateException("Not Implemented!");
         }
         entityName = Futures.transform(hasName, (com.google.common.base.Function<HasName, String>) hasName1 -> hasName1 != null ? hasName1.getName() : null, MoreExecutors.directExecutor());
         return entityName;
+    }
+
+    @Override
+    public CustomerId fetchEntityCustomerId(TenantId tenantId, EntityId entityId) {
+        log.trace("Executing fetchEntityCustomerId [{}]", entityId);
+        HasCustomerId hasCustomerId = null;
+        switch (entityId.getEntityType()) {
+            case TENANT:
+            case RULE_CHAIN:
+            case RULE_NODE:
+            case ROLE:
+            case GROUP_PERMISSION:
+            case CONVERTER:
+            case INTEGRATION:
+            case WIDGETS_BUNDLE:
+            case WIDGET_TYPE:
+            case TENANT_PROFILE:
+            case DEVICE_PROFILE:
+            case API_USAGE_STATE:
+            case TB_RESOURCE:
+            case FIRMWARE:
+            case SCHEDULER_EVENT:
+            case BLOB_ENTITY:
+                break;
+            case CUSTOMER:
+                hasCustomerId = () -> new CustomerId(entityId.getId());
+                break;
+            case ENTITY_GROUP:
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId()));
+                if (entityGroup != null && EntityType.CUSTOMER == entityGroup.getOwnerId().getEntityType()) {
+                    hasCustomerId = () -> new CustomerId(entityGroup.getOwnerId().getId());
+                }
+                break;
+            case USER:
+                hasCustomerId = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                break;
+            case ASSET:
+                hasCustomerId = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+                break;
+            case DEVICE:
+                hasCustomerId = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                break;
+            case DASHBOARD:
+                hasCustomerId = dashboardService.findDashboardInfoById(tenantId, new DashboardId(entityId.getId()));
+                break;
+            case ALARM:
+                try {
+                    hasCustomerId = alarmService.findAlarmByIdAsync(tenantId, new AlarmId(entityId.getId())).get();
+                } catch (Exception e) {}
+                break;
+            case ENTITY_VIEW:
+                hasCustomerId = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                break;
+            case EDGE:
+                hasCustomerId = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                break;
+        }
+        return hasCustomerId != null ? hasCustomerId.getCustomerId() : new CustomerId(NULL_UUID);
     }
 
     private static void validateEntityCountQuery(EntityCountQuery query) {

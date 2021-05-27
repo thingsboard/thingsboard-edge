@@ -31,6 +31,7 @@
 package org.thingsboard.server.queue.discovery;
 
 import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +45,9 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+import org.thingsboard.server.queue.discovery.event.ClusterTopologyChangeEvent;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 
 import javax.annotation.PostConstruct;
@@ -197,6 +201,8 @@ public class HashPartitionService implements PartitionService {
                 applicationEventPublisher.publishEvent(new ClusterTopologyChangeEvent(this, changes));
             }
         }
+
+        applicationEventPublisher.publishEvent(new ServiceListChangedEvent(otherServices, currentService));
     }
 
     @Override
@@ -228,6 +234,14 @@ public class HashPartitionService implements PartitionService {
             default:
                 return buildNotificationsTopicPartitionInfo(serviceType, serviceId);
         }
+    }
+
+    @Override
+    public int resolvePartitionIndex(UUID entityId, int partitions) {
+        int hash = hashFunction.newHasher()
+                .putLong(entityId.getMostSignificantBits())
+                .putLong(entityId.getLeastSignificantBits()).hash().asInt();
+        return Math.abs(hash % partitions);
     }
 
     private Map<ServiceQueueKey, List<ServiceInfo>> getServiceKeyListMap(List<ServiceInfo> services) {

@@ -34,23 +34,28 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> implements TenantEntity {
+public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> implements TenantEntity, HasName {
 
     private static final long serialVersionUID = 3168391583570815419L;
 
     private TenantId tenantId;
+    private DeviceProfileId deviceProfileId;
+    private FirmwareType type;
     private String title;
     private String version;
     private boolean hasData;
     private String fileName;
     private String contentType;
-    private String checksumAlgorithm;
+    private ChecksumAlgorithm checksumAlgorithm;
     private String checksum;
     private Long dataSize;
 
@@ -66,6 +71,8 @@ public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> 
     public FirmwareInfo(FirmwareInfo firmwareInfo) {
         super(firmwareInfo);
         this.tenantId = firmwareInfo.getTenantId();
+        this.deviceProfileId = firmwareInfo.getDeviceProfileId();
+        this.type = firmwareInfo.getType();
         this.title = firmwareInfo.getTitle();
         this.version = firmwareInfo.getVersion();
         this.hasData = firmwareInfo.isHasData();
@@ -78,6 +85,12 @@ public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> 
 
     @Override
     public String getSearchText() {
+        return title;
+    }
+
+    @Override
+    @JsonIgnore
+    public String getName() {
         return title;
     }
 

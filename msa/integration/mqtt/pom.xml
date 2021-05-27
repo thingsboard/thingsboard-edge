@@ -52,7 +52,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../../..</main.dir>
         <pkg.name>tb-mqtt-integration</pkg.name>
-        <docker.name>tb-pe-mqtt-integration</docker.name>
+        <docker.name>tb-${tb.docker.id}-mqtt-integration</docker.name>
         <pkg.logFolder>/var/log/${pkg.name}</pkg.logFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
     </properties>
@@ -156,7 +156,7 @@
             <id>push-docker-image</id>
             <activation>
                 <property>
-                    <name>push-docker-image</name>
+                    <name>push-integration-docker-image</name>
                 </property>
             </activation>
             <build>

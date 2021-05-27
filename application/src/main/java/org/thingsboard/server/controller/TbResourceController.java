@@ -43,8 +43,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
@@ -117,11 +119,18 @@ public class TbResourceController extends BaseController {
     @RequestMapping(value = "/resource", method = RequestMethod.POST)
     @ResponseBody
     public TbResource saveResource(@RequestBody TbResource resource) throws ThingsboardException {
+        boolean created = resource.getId() == null;
         try {
             resource.setTenantId(getTenantId());
             checkEntity(resource.getId(), resource, Resource.TB_RESOURCE, null);
-            return addResource(resource);
+            TbResource savedResource = checkNotNull(resourceService.saveResource(resource));
+            tbClusterService.onResourceChange(savedResource, null);
+            logEntityAction(savedResource.getId(), savedResource,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+            return savedResource;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.TB_RESOURCE), resource,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -185,15 +194,10 @@ public class TbResourceController extends BaseController {
             TbResource tbResource = checkResourceId(resourceId, Operation.DELETE);
             resourceService.deleteResource(getTenantId(), resourceId);
             tbClusterService.onResourceDeleted(tbResource, null);
+            logEntityAction(resourceId, tbResource, null, ActionType.DELETED, null, strResourceId);
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.TB_RESOURCE), null, null, ActionType.DELETED, e, strResourceId);
             throw handleException(e);
         }
-    }
-
-    private TbResource addResource(TbResource resource) throws Exception {
-            checkEntity(resource.getId(), resource, Resource.TB_RESOURCE, null);
-            TbResource savedResource = checkNotNull(resourceService.saveResource(resource));
-            tbClusterService.onResourceChange(savedResource, null);
-            return savedResource;
     }
 }
