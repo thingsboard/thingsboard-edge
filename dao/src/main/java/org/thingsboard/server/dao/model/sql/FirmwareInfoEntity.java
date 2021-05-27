@@ -37,6 +37,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.firmware.FirmwareInfo;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
@@ -96,8 +97,9 @@ public class FirmwareInfoEntity extends BaseSqlEntity<FirmwareInfo> implements S
     @Column(name = FIRMWARE_CONTENT_TYPE_COLUMN)
     private String contentType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = FIRMWARE_CHECKSUM_ALGORITHM_COLUMN)
-    private String checksumAlgorithm;
+    private ChecksumAlgorithm checksumAlgorithm;
 
     @Column(name = FIRMWARE_CHECKSUM_COLUMN)
     private String checksum;
@@ -138,7 +140,7 @@ public class FirmwareInfoEntity extends BaseSqlEntity<FirmwareInfo> implements S
     }
 
     public FirmwareInfoEntity(UUID id, long createdTime, UUID tenantId, UUID deviceProfileId, FirmwareType type, String title, String version,
-                              String fileName, String contentType, String checksumAlgorithm, String checksum, Long dataSize,
+                              String fileName, String contentType, ChecksumAlgorithm checksumAlgorithm, String checksum, Long dataSize,
                               Object additionalInfo, boolean hasData) {
         this.id = id;
         this.createdTime = createdTime;

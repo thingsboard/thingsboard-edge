@@ -36,6 +36,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.firmware.Firmware;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
@@ -97,8 +98,9 @@ public class FirmwareEntity extends BaseSqlEntity<Firmware> implements SearchTex
     @Column(name = FIRMWARE_CONTENT_TYPE_COLUMN)
     private String contentType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = FIRMWARE_CHECKSUM_ALGORITHM_COLUMN)
-    private String checksumAlgorithm;
+    private ChecksumAlgorithm checksumAlgorithm;
 
     @Column(name = FIRMWARE_CHECKSUM_COLUMN)
     private String checksum;

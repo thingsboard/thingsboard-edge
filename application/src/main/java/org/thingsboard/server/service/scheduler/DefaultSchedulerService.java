@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
 import org.thingsboard.server.common.data.firmware.FirmwareInfo;
@@ -127,7 +128,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     @PostConstruct
     public void init() {
         // Should be always single threaded due to absence of locks.
-        queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor());
+        queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
         deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultSchedulerService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 

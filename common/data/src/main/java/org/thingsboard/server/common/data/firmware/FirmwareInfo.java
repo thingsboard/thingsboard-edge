@@ -38,6 +38,8 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -57,7 +59,7 @@ public class FirmwareInfo extends SearchTextBasedWithAdditionalInfo<FirmwareId> 
     private boolean hasData;
     private String fileName;
     private String contentType;
-    private String checksumAlgorithm;
+    private ChecksumAlgorithm checksumAlgorithm;
     private String checksum;
     private Long dataSize;
 

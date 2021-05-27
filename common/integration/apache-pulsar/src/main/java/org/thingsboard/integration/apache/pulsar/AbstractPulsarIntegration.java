@@ -35,6 +35,7 @@ import org.apache.pulsar.client.api.BatchReceivePolicy;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -56,7 +57,7 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor();
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
         this.ctx = params.getContext();
         pulsarConfiguration = getClientConfiguration(configuration, PulsarConfiguration.class);
 

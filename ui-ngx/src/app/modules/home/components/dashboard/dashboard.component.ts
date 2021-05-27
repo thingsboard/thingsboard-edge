@@ -67,8 +67,6 @@ import { MediaBreakpoints } from '@shared/models/constants';
 import { IAliasController, IStateController } from '@app/core/api/widget-api.models';
 import {
   Widget,
-  WidgetExportType,
-  widgetExportTypeTranslationMap,
   WidgetPosition
 } from '@app/shared/models/widget.models';
 import { MatMenuTrigger } from '@angular/material/menu';
@@ -77,6 +75,7 @@ import { distinct } from 'rxjs/operators';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { UtilsService } from '@core/services/utils.service';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { WidgetComponentAction, WidgetComponentActionType } from '@home/components/widget/widget-container.component';
 
 @Component({
   selector: 'tb-dashboard',
@@ -161,9 +160,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   @Input()
   embedded = false;
-
-  widgetExportType = WidgetExportType;
-  widgetExportTypeTranslations = widgetExportTypeTranslationMap;
 
   embeddedDashboardBackground = this.whiteLabelingService.getPrimaryColor('A100');
 
@@ -384,7 +380,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     }
   }
 
-  openWidgetContextMenu($event: MouseEvent, widget: DashboardWidget) {
+  private openWidgetContextMenu($event: MouseEvent, widget: DashboardWidget) {
     if (this.callbacks && this.callbacks.prepareWidgetContextMenu) {
       const items = this.callbacks.prepareWidgetContextMenu($event, widget.widget);
       if (items && items.length) {
@@ -399,23 +395,47 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     }
   }
 
-  onWidgetFullscreenChanged(expanded: boolean, widget: DashboardWidget) {
+  onWidgetFullscreenChanged(expanded: boolean) {
     this.isWidgetExpanded = expanded;
   }
 
-  widgetMouseDown($event: Event, widget: DashboardWidget) {
+  onWidgetComponentAction(action: WidgetComponentAction, widget: DashboardWidget) {
+    const $event = action.event;
+    switch (action.actionType) {
+      case WidgetComponentActionType.MOUSE_DOWN:
+        this.widgetMouseDown($event, widget);
+        break;
+      case WidgetComponentActionType.CLICKED:
+        this.widgetClicked($event, widget);
+        break;
+      case WidgetComponentActionType.CONTEXT_MENU:
+        this.openWidgetContextMenu($event, widget);
+        break;
+      case WidgetComponentActionType.EDIT:
+        this.editWidget($event, widget);
+        break;
+      case WidgetComponentActionType.EXPORT:
+        this.exportWidget($event, widget);
+        break;
+      case WidgetComponentActionType.REMOVE:
+        this.removeWidget($event, widget);
+        break;
+    }
+  }
+
+  private widgetMouseDown($event: Event, widget: DashboardWidget) {
     if (this.callbacks && this.callbacks.onWidgetMouseDown) {
       this.callbacks.onWidgetMouseDown($event, widget.widget);
     }
   }
 
-  widgetClicked($event: Event, widget: DashboardWidget) {
+  private widgetClicked($event: Event, widget: DashboardWidget) {
     if (this.callbacks && this.callbacks.onWidgetClicked) {
       this.callbacks.onWidgetClicked($event, widget.widget);
     }
   }
 
-  editWidget($event: Event, widget: DashboardWidget) {
+  private editWidget($event: Event, widget: DashboardWidget) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -424,7 +444,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     }
   }
 
-  exportWidget($event: Event, widget: DashboardWidget) {
+  private exportWidget($event: Event, widget: DashboardWidget) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -433,7 +453,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     }
   }
 
-  removeWidget($event: Event, widget: DashboardWidget) {
+  private removeWidget($event: Event, widget: DashboardWidget) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -488,14 +508,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
         this.scrollToWidget(highlighted, 0);
       }, 0);
     }
-  }
-
-  isHighlighted(widget: DashboardWidget) {
-    return this.dashboardWidgets.isHighlighted(widget);
-  }
-
-  isNotHighlighted(widget: DashboardWidget) {
-    return this.dashboardWidgets.isNotHighlighted(widget);
   }
 
   private scrollToWidget(widget: DashboardWidget, delay?: number) {
@@ -568,10 +580,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   public notifyLayoutUpdated() {
     this.updateWidgetLayouts();
-  }
-
-  public detectChanges() {
-    this.cd.detectChanges();
   }
 
   private detectRowSize(isMobile: boolean, autofillHeight: boolean, parentHeight?: number): number | null {

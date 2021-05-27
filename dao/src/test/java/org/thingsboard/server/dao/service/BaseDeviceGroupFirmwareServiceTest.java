@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.firmware.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
 import org.thingsboard.server.common.data.firmware.Firmware;
 import org.thingsboard.server.common.data.firmware.FirmwareInfo;
@@ -69,7 +70,7 @@ public abstract class BaseDeviceGroupFirmwareServiceTest extends AbstractService
     private static final String FILE_NAME = "filename.txt";
     private static final String VERSION = "v1.0";
     private static final String CONTENT_TYPE = "text/plain";
-    private static final String CHECKSUM_ALGORITHM = "sha256";
+    private static final ChecksumAlgorithm CHECKSUM_ALGORITHM = ChecksumAlgorithm.SHA256;
     private static final String CHECKSUM = "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a";
     private static final ByteBuffer DATA = ByteBuffer.wrap(new byte[]{1});
 
