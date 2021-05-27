@@ -43,6 +43,7 @@ import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -85,7 +86,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor();
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
         producerExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         this.ctx = params.getContext();
         rabbitMQConsumerConfiguration = getClientConfiguration(configuration, RabbitMQConsumerConfiguration.class);

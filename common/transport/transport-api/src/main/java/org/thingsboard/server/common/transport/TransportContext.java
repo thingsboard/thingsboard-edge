@@ -43,7 +43,6 @@ import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by ashvayka on 15.10.18.
