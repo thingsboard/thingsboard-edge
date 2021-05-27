@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -53,6 +54,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
@@ -111,11 +113,15 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                    entityId, msg.getCustomerId(), metaData, JacksonUtil.toString(data));
+            TbMsg newMsg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                    entityId, metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, SUCCESS);
         });
         ctx.ack(msg);
+    }
+
+    protected String getQueueName() {
+        return StringUtils.isEmpty(config.getQueueName()) ? ServiceQueue.MAIN : config.getQueueName();
     }
 
     private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {
