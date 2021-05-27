@@ -123,71 +123,68 @@ public class DefaultFirmwareStateService implements FirmwareStateService {
     public void update(TenantId tenantId, DeviceGroupFirmware newDeviceGroupFirmware, DeviceGroupFirmware oldDeviceGroupFirmware) {
         long ts = System.currentTimeMillis();
 
-        boolean isNewFirmwarePresent = newDeviceGroupFirmware != null;
-        boolean isOldFirmwareIsPresent = oldDeviceGroupFirmware != null;
-        boolean isFirmwareIdChanged = isNewFirmwarePresent && isOldFirmwareIsPresent && !newDeviceGroupFirmware.getFirmwareId().equals(oldDeviceGroupFirmware.getFirmwareId());
-
-        if (oldDeviceGroupFirmware == null){
-            // A
-            // We need to find all devices using NEW firmware device profile and empty firmware and update it.
-        } else if (newDeviceGroupFirmware == null){
-            // B
-            // We need to find all devices using OLD firmware device profile and empty firmware and use findFirmwareInfoByDeviceIdAndFirmwareType.
+        if (oldDeviceGroupFirmware == null) {
+            FirmwareInfo newFirmware = firmwareService.findFirmwareInfoById(tenantId, newDeviceGroupFirmware.getFirmwareId());
+            update(newDeviceGroupFirmware, newFirmware, ts);
+        } else if (newDeviceGroupFirmware == null) {
+            FirmwareInfo oldFirmware = firmwareService.findFirmwareInfoById(tenantId, oldDeviceGroupFirmware.getFirmwareId());
+            remove(oldDeviceGroupFirmware, oldFirmware, ts);
         } else {
-            // if profile ids match and firmware id changed - do A
-            // if profile ids do not match - do A and B
+            FirmwareInfo newFirmware = firmwareService.findFirmwareInfoById(tenantId, newDeviceGroupFirmware.getFirmwareId());
+            FirmwareInfo oldFirmware = firmwareService.findFirmwareInfoById(tenantId, oldDeviceGroupFirmware.getFirmwareId());
+            update(newDeviceGroupFirmware, newFirmware, ts);
+            if (!newFirmware.getDeviceProfileId().equals(oldFirmware.getDeviceProfileId())) {
+                remove(oldDeviceGroupFirmware, oldFirmware, ts);
+            }
         }
+    }
 
-        if (isNewFirmwarePresent && (!isOldFirmwareIsPresent || isFirmwareIdChanged)) {
-            FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, newDeviceGroupFirmware.getFirmwareId());
+    private void update(DeviceGroupFirmware deviceGroupFirmware, FirmwareInfo firmwareFromGroup, long ts) {
+        PageLink pageLink = createPageLink();
+        PageData<Device> pageData;
+        do {
+            pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyFirmware(deviceGroupFirmware.getGroupId(),
+                    firmwareFromGroup.getDeviceProfileId(), deviceGroupFirmware.getFirmwareType(), pageLink);
+            pageData.getData().forEach(d ->
+                    send(d.getTenantId(), d.getId(), deviceGroupFirmware.getFirmwareId(), ts, deviceGroupFirmware.getFirmwareType()));
 
-            PageLink pageLink = createPageLink();
-            PageData<Device> pageData;
-            do {
-                pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyFirmware(newDeviceGroupFirmware.getGroupId(),
-                        firmwareInfo.getDeviceProfileId(), newDeviceGroupFirmware.getFirmwareType(), pageLink);
-                pageData.getData().forEach(d ->
-                        send(d.getTenantId(), d.getId(), newDeviceGroupFirmware.getFirmwareId(), ts, newDeviceGroupFirmware.getFirmwareType()));
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+    }
 
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
-                }
-            } while (pageData.hasNext());
-        }
-        if (isOldFirmwareIsPresent && (!isNewFirmwarePresent || isFirmwareIdChanged)) {
-            FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, oldDeviceGroupFirmware.getFirmwareId());
-            FirmwareType firmwareType = oldDeviceGroupFirmware.getFirmwareType();
-
-            PageLink pageLink = createPageLink();
-            PageData<Device> pageData;
-            do {
-                pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyFirmware(oldDeviceGroupFirmware.getGroupId(),
-                        firmwareInfo.getDeviceProfileId(), firmwareType, pageLink);
-                pageData.getData().forEach(device -> {
-                    FirmwareInfo firmware = firmwareService.findFirmwareInfoByDeviceIdAndFirmwareType(device.getId(), oldDeviceGroupFirmware.getFirmwareType());
-                    if (firmware != null) {
-                        ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
-                                attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(firmwareType, ID));
-                        DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
-                            if (oldIdOpt.isPresent()) {
-                                FirmwareId oldFirmwareId = new FirmwareId(UUID.fromString(oldIdOpt.get().getValueAsString()));
-                                if (!firmware.getId().equals(oldFirmwareId)) {
-                                    send(device.getTenantId(), device.getId(), firmware.getId(), ts, firmwareType);
-                                }
-                            } else {
-                                log.trace("[{}] Firmware id attribute not found!", device.getId());
+    private void remove(DeviceGroupFirmware deviceGroupFirmware, FirmwareInfo firmwareFromGroup, long ts) {
+        FirmwareType firmwareType = deviceGroupFirmware.getFirmwareType();
+        PageLink pageLink = createPageLink();
+        PageData<Device> pageData;
+        do {
+            pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyFirmware(deviceGroupFirmware.getGroupId(),
+                    firmwareFromGroup.getDeviceProfileId(), firmwareType, pageLink);
+            pageData.getData().forEach(device -> {
+                FirmwareInfo firmwareForDevice = firmwareService.findFirmwareInfoByDeviceIdAndFirmwareType(device.getId(), deviceGroupFirmware.getFirmwareType());
+                if (firmwareForDevice != null) {
+                    ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
+                            attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(firmwareType, ID));
+                    DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
+                        if (oldIdOpt.isPresent()) {
+                            FirmwareId oldFirmwareId = new FirmwareId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+                            if (!firmwareForDevice.getId().equals(oldFirmwareId)) {
+                                send(device.getTenantId(), device.getId(), firmwareForDevice.getId(), ts, firmwareType);
                             }
-                        }, (e) -> log.error("Failed to get firmware id attribute for device!", e), dbExecutor);
-                    } else {
-                        remove(device, firmwareType);
-                    }
-                });
-
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
+                        } else {
+                            log.trace("[{}] Firmware id attribute not found!", device.getId());
+                        }
+                    }, (e) -> log.error("Failed to get firmware id attribute for device!", e), dbExecutor);
+                } else {
+                    remove(device, firmwareType);
                 }
-            } while (pageData.hasNext());
-        }
+            });
+
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
     }
 
     @Override

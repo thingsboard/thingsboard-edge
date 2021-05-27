@@ -75,40 +75,24 @@ public interface FirmwareInfoRepository extends CrudRepository<FirmwareInfoEntit
     @Query(value =
             "SELECT * FROM firmware " +
                     "WHERE id = " +
-                    "(SELECT COALESCE(d.firmware_id, g.firmware_id, dp.firmware_id) " +
-                    "FROM (SELECT d.firmware_id FROM device d WHERE d.id = :deviceId LIMIT 1) d " +
-                    "FULL JOIN " +
-                    "(SELECT dgf.firmware_id " +
-                    "FROM device_group_firmware dgf " +
-                    "INNER JOIN firmware f ON dgf.firmware_id = f.id AND dgf.firmware_type = 'FIRMWARE' AND f.device_profile_id = " +
-                    "(SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId LIMIT 1) " +
-                    "INNER JOIN relation r " +
-                    "ON dgf.group_id = r.from_id AND r.to_type = 'DEVICE' AND " +
-                    "r.relation_type_group = 'FROM_ENTITY_GROUP' AND r.to_id = :deviceId " +
-                    "ORDER BY dgf.firmware_update_time DESC LIMIT 1) g ON true " +
-                    "FULL JOIN " +
-                    "(SELECT dp.firmware_id FROM device_profile dp " +
-                    "WHERE id = (SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId)) dp ON true)",
+                    "(SELECT COALESCE(d.firmware_id, " +
+                    "(SELECT dgf.firmware_id FROM device_group_firmware dgf " +
+                    "INNER JOIN firmware f ON dgf.firmware_id = f.id AND dgf.firmware_type = 'FIRMWARE' AND f.device_profile_id = (SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId LIMIT 1) " +
+                    "INNER JOIN relation r ON dgf.group_id = r.from_id AND r.to_type = 'DEVICE' AND r.relation_type_group = 'FROM_ENTITY_GROUP' AND r.to_id = :deviceId ORDER BY dgf.firmware_update_time DESC LIMIT 1), " +
+                    "(SELECT dp.software_id FROM device_profile dp where dp.id = d.device_profile_id)) " +
+                    "FROM device d WHERE d.id = :deviceId)",
             nativeQuery = true)
     FirmwareInfoEntity findFirmwareByDeviceId(@Param("deviceId") UUID deviceId);
 
     @Query(value =
             "SELECT * FROM firmware " +
                     "WHERE id = " +
-                    "(SELECT COALESCE(d.software_id, g.software_id, dp.software_id) " +
-                    "FROM (SELECT d.software_id FROM device d WHERE d.id = :deviceId LIMIT 1) d " +
-                    "FULL JOIN " +
-                    "(SELECT dgf.firmware_id software_id " +
-                    "FROM device_group_firmware dgf " +
-                    "INNER JOIN firmware f ON dgf.firmware_id = f.id AND dgf.firmware_type = 'SOFTWARE' AND f.device_profile_id = " +
-                    "(SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId LIMIT 1) " +
-                    "INNER JOIN relation r " +
-                    "ON dgf.group_id = r.from_id AND r.to_type = 'DEVICE' AND " +
-                    "r.relation_type_group = 'FROM_ENTITY_GROUP' AND r.to_id = :deviceId " +
-                    "ORDER BY dgf.firmware_update_time DESC LIMIT 1) g ON true " +
-                    "FULL JOIN " +
-                    "(SELECT dp.software_id FROM device_profile dp " +
-                    "WHERE id = (SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId)) dp ON true)",
+                    "(SELECT COALESCE(d.software_id, " +
+                    "(SELECT dgf.firmware_id FROM device_group_firmware dgf " +
+                    "INNER JOIN firmware f ON dgf.firmware_id = f.id AND dgf.firmware_type = 'SOFTWARE' AND f.device_profile_id = (SELECT d.device_profile_id FROM device d WHERE d.id = :deviceId LIMIT 1) " +
+                    "INNER JOIN relation r ON dgf.group_id = r.from_id AND r.to_type = 'DEVICE' AND r.relation_type_group = 'FROM_ENTITY_GROUP' AND r.to_id = :deviceId ORDER BY dgf.firmware_update_time DESC LIMIT 1), " +
+                    "(SELECT dp.software_id FROM device_profile dp where dp.id = d.device_profile_id)) " +
+                    "FROM device d WHERE d.id = :deviceId)",
             nativeQuery = true)
     FirmwareInfoEntity findSoftwareByDeviceId(@Param("deviceId") UUID deviceId);
 
