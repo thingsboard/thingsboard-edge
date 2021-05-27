@@ -127,6 +127,17 @@ public class DefaultFirmwareStateService implements FirmwareStateService {
         boolean isOldFirmwareIsPresent = oldDeviceGroupFirmware != null;
         boolean isFirmwareIdChanged = isNewFirmwarePresent && isOldFirmwareIsPresent && !newDeviceGroupFirmware.getFirmwareId().equals(oldDeviceGroupFirmware.getFirmwareId());
 
+        if (oldDeviceGroupFirmware == null){
+            // A
+            // We need to find all devices using NEW firmware device profile and empty firmware and update it.
+        } else if (newDeviceGroupFirmware == null){
+            // B
+            // We need to find all devices using OLD firmware device profile and empty firmware and use findFirmwareInfoByDeviceIdAndFirmwareType.
+        } else {
+            // if profile ids match and firmware id changed - do A
+            // if profile ids do not match - do A and B
+        }
+
         if (isNewFirmwarePresent && (!isOldFirmwareIsPresent || isFirmwareIdChanged)) {
             FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, newDeviceGroupFirmware.getFirmwareId());
 
