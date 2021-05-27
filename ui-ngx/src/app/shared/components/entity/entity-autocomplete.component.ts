@@ -69,7 +69,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   selectEntityFormGroup: FormGroup;
 
-  modelValue: string | null;
+  modelValue: string | EntityId | null;
 
   entityTypeValue: EntityType | AliasEntityType;
 
