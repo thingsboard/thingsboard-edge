@@ -370,6 +370,15 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
+    public void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId) {
+        log.trace("Executing assignTenantAdministratorsAndUsersGroupToEdge, tenantId [{}], edgeId [{}]", tenantId, edgeId);
+        EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, admins.getId(), edgeId, admins.getType());
+        EntityGroup users = entityGroupService.findOrCreateTenantUsersGroup(tenantId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, users.getId(), edgeId, users.getType());
+    }
+
+    @Override
     public PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
         log.trace("Executing findEdgesByTenantIdAndEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);

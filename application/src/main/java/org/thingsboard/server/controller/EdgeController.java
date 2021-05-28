@@ -147,6 +147,7 @@ public class EdgeController extends BaseController {
                 ruleChainService.assignRuleChainToEdge(tenantId, edgeTemplateRootRuleChain.getId(), savedEdge.getId());
                 edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
+                edgeService.assignTenantAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId());
             }
 
             if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
