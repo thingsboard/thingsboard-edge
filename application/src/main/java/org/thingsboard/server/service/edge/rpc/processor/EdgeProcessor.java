@@ -52,7 +52,6 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -107,25 +106,19 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void unassignEntityGroupsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId previousOwnerId) {
-        ListenableFuture<List<EntityGroup>> future = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType);
-        Futures.addCallback(future, new FutureCallback<List<EntityGroup>>() {
-            @Override
-            public void onSuccess(@Nullable List<EntityGroup> entityGroups) {
-                if (entityGroups != null && !entityGroups.isEmpty()) {
-                    for (EntityGroup entityGroup : entityGroups) {
-                        if (entityGroup.getOwnerId().equals(previousOwnerId)) {
-                            entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
-                            saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.UNASSIGNED_FROM_EDGE, entityGroup.getId(), null);
-                        }
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EntityGroup> pageData;
+        do {
+            pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType, pageLink);
+            if (!pageData.getData().isEmpty()) {
+                for (EntityGroup entityGroup : pageData.getData()) {
+                    if (entityGroup.getOwnerId().equals(previousOwnerId)) {
+                        entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
+                        saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.UNASSIGNED_FROM_EDGE, entityGroup.getId(), null);
                     }
                 }
             }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                log.error("[{}] Failed to find edge entity groups by type [{}][{}]", tenantId, edgeId, groupType, throwable);
-            }
-        }, dbCallbackExecutorService);
+        } while (pageData.hasNext());
     }
 
     private void unassignSchedulerEventsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {

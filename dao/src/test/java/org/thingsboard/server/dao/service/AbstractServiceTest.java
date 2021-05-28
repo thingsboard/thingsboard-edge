@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.service;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.Tenant;
@@ -76,6 +78,7 @@ import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -189,6 +192,8 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected ResourceService resourceService;
 
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
 
     @Autowired
     protected FirmwareService firmwareService;
@@ -269,6 +274,18 @@ public abstract class AbstractServiceTest {
         Tenant savedTenant = tenantService.saveTenant(tenant);
         assertNotNull(savedTenant);
         return savedTenant.getId();
+    }
+
+    protected Edge constructEdge(TenantId tenantId, String name, String type) {
+        Edge edge = new Edge();
+        edge.setTenantId(tenantId);
+        edge.setName(name);
+        edge.setType(type);
+        edge.setSecret(RandomStringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setCloudEndpoint("http://localhost:8080");
+        return edge;
     }
 
 }

@@ -293,7 +293,7 @@ public class SchedulerEventController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/{edgeId}/schedulerEvents", method = RequestMethod.GET)
+    @RequestMapping(value = "/edge/{edgeId}/schedulerEvents", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<SchedulerEventInfo> getEdgeSchedulerEvents(
             @PathVariable("edgeId") String strEdgeId,

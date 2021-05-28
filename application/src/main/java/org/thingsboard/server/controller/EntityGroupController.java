@@ -857,25 +857,39 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public List<EntityGroupInfo> getEdgeEntityGroups(
+    public PageData<EntityGroupInfo> getEdgeEntityGroups(
             @PathVariable("edgeId") String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         try {
             EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             checkEdgeId(edgeId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType).get());
+                return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink));
             } else {
                 throw permissionDenied();
             }
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private PageData<EntityGroupInfo> toEntityGroupsInfo(PageData<EntityGroup> data) throws ThingsboardException {
+        List<EntityGroupInfo> entityGroupsInfo = new ArrayList<>(data.getData().size());
+        for (EntityGroup entityGroup : data.getData()) {
+            entityGroupsInfo.add(toEntityGroupInfo(entityGroup));
+        }
+        return new PageData<>(entityGroupsInfo, data.getTotalPages(), data.getTotalElements(), data.hasNext());
     }
 
     private void shareGroup(Role role, EntityGroup userGroup, EntityGroup entityGroup, Set<Operation> mergedOperations) throws ThingsboardException, IOException {

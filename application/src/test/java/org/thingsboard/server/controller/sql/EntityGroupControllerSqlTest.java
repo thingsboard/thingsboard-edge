@@ -28,30 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.group;
+package org.thingsboard.server.controller.sql;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.controller.BaseEntityGroupControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.Set;
-
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityGroupInfo extends EntityGroup {
-
-    private Set<EntityId> ownerIds;
-
-    public EntityGroupInfo() {
-        super();
-    }
-
-    public EntityGroupInfo(EntityGroupId id) {
-        super(id);
-    }
-
-    public EntityGroupInfo(EntityGroup entityGroup) {
-        super(entityGroup);
-    }
+@DaoSqlTest
+public class EntityGroupControllerSqlTest extends BaseEntityGroupControllerTest {
 }

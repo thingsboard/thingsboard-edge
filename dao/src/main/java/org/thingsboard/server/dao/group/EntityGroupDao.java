@@ -67,5 +67,5 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
 
     boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 
-    ListenableFuture<List<EntityGroup>> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType);
+    PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);
 }

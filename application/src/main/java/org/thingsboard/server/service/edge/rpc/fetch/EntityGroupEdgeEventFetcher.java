@@ -38,7 +38,6 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -54,39 +53,23 @@ import java.util.List;
 public class EntityGroupEdgeEventFetcher extends BasePageableEdgeEventFetcher {
 
     private final EntityGroupService entityGroupService;
+    private final EntityType groupType;
 
     @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
+        log.trace("[{}] start fetching edge events [{}]", tenantId, edge.getId());
+        PageData<EntityGroup> pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edge.getId(), groupType, pageLink);
         List<EdgeEvent> result = new ArrayList<>();
-        result.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.DEVICE));
-        result.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.ASSET));
-        // TODO: entity view must be in sync with assets/devices
-        result.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.ENTITY_VIEW));
-        result.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.DASHBOARD));
-        result.addAll(getEntityGroupsEdgeEvents(tenantId, edge.getId(), EntityType.USER));
-        // @voba - returns PageData object to be in sync with other fetchers
-        return new PageData<>(result, 1, result.size(), false);
-    }
-
-    private List<EdgeEvent> getEntityGroupsEdgeEvents(TenantId tenantId, EdgeId edgeId, EntityType entityGroupType) {
-        try {
-            List<EntityGroup> list = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, entityGroupType).get();
-            List<EdgeEvent> result = new ArrayList<>();
-            if (list != null && !list.isEmpty()) {
-                for (EntityGroup entityGroup : list) {
-                    if (!entityGroup.isEdgeGroupAll()) {
-                        result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP,
-                                EdgeEventActionType.ADDED, entityGroup.getId(), null, null));
-                    }
+        if (!pageData.getData().isEmpty()) {
+            for (EntityGroup entityGroup : pageData.getData()) {
+                if (!entityGroup.isEdgeGroupAll()) {
+                    result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_GROUP,
+                            EdgeEventActionType.ADDED, entityGroup.getId(), null, null));
                 }
             }
-            return result;
-        } catch (Exception e) {
-            log.error("Exception during loading edge entity groups(s) on sync!", e);
-            throw new RuntimeException(e);
         }
+        return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
     }
-
 }
 
 

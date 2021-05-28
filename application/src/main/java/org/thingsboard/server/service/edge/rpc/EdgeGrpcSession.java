@@ -222,7 +222,11 @@ public final class EdgeGrpcSession implements Closeable {
                 startProcessingEdgeEvents(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
                 startProcessingEdgeEvents(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
                 startProcessingEdgeEvents(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
-                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService()));
+                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
+                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
+                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));
+                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DASHBOARD));
+                startProcessingEdgeEvents(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
                 startProcessingEdgeEvents(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
 
                 DownlinkMsg syncCompleteDownlinkMsg = DownlinkMsg.newBuilder()
