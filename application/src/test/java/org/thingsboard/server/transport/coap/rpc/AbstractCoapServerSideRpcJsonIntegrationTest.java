@@ -57,7 +57,7 @@ public abstract class AbstractCoapServerSideRpcJsonIntegrationTest extends Abstr
 
     @Test
     public void testServerCoapTwoWayRpc() throws Exception {
-        processTwoWayRpcTest();
+        processTwoWayRpcTest("{\"value1\":\"A\",\"value2\":\"B\"}");
     }
 
 }
