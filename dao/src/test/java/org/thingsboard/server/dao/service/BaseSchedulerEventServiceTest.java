@@ -161,6 +161,7 @@ public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest 
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
         schedulerEvent.setSchedule(schedule);
+        schedulerEvent.setConfiguration(mapper.createObjectNode());
         return schedulerEvent;
     }
 }
