@@ -74,6 +74,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.firmware.FirmwareStateService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.utils.EventDeduplicationExecutor;
@@ -100,6 +101,7 @@ import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
 /**
  * Created by ashvayka on 25.06.18.
  */
+@TbCoreComponent
 @Service
 @Slf4j
 @RequiredArgsConstructor
