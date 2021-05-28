@@ -57,7 +57,7 @@ import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  convertValue,
+  checkNumericStringAndConvert,
   createLabelFromDatasource,
   deepClone,
   hashCode,
@@ -197,7 +197,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     }
   };
 
-  private convertPostProcFunction = new Map<string, any>();
+  private postProcessingFunctionMap = new Map<string, any>();
 
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
@@ -796,17 +796,18 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
             }
           }
           if (column.usePostProcessing && column.postFuncBody) {
-            if (!this.convertPostProcFunction.has(column.label)) {
-              const postFunction = new Function('time', 'value', 'prevValue', 'timePrev', 'prevOrigValue', column.postFuncBody);
-              this.convertPostProcFunction.set(column.label, postFunction);
+            if (!this.postProcessingFunctionMap.has(column.label)) {
+              const postFunction = new Function('time', 'value', 'prevValue', 'timePrev', 'prevOrigValue',
+                column.postFuncBody);
+              this.postProcessingFunctionMap.set(column.label, postFunction);
             }
 
-            dataValue = convertValue(dataValue);
+            dataValue = checkNumericStringAndConvert(dataValue);
             let dataTs = 0;
             if (tsValue && isDefinedAndNotNull(tsValue.ts)) {
               dataTs = tsValue.ts;
             }
-            dataValue = this.convertPostProcFunction.get(column.label)(dataTs, dataValue, 0, 0, 0);
+            dataValue = this.postProcessingFunctionMap.get(column.label)(dataTs, dataValue, 0, 0, 0);
           }
           entity[column.label] = dataValue;
         } else {
