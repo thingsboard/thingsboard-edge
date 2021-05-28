@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.edge;
 
+import com.datastax.oss.driver.internal.core.util.CollectionsUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -53,6 +54,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.server.common.data.Customer;
@@ -500,7 +502,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     }  catch (Exception e) {
                         log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
                     }
-                    if (entityGroupsForEntity == null) {
+                    if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
                         return createEmptyEdgeIdPageData();
                     }
                     return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink));
