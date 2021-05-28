@@ -494,15 +494,16 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 case ASSET:
                 case ENTITY_VIEW:
                 case DASHBOARD:
+                    List<EntityGroupId> entityGroupsForEntity = null;
                     try {
-                        List<EntityGroupId> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
-                        if (entityGroupsForEntity == null) {
-                            entityGroupsForEntity = new ArrayList<>();
-                        }
-                        return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink));
+                        entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
                     }  catch (Exception e) {
                         log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
                     }
+                    if (entityGroupsForEntity == null) {
+                        return createEmptyEdgeIdPageData();
+                    }
+                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink));
                 case ENTITY_GROUP:
                     EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                     if (groupType == null) {
