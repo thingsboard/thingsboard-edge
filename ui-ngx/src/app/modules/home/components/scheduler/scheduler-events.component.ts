@@ -132,7 +132,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
-  assignToEdgeEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ) && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
 
   authUser = getCurrentAuthUser(this.store);
 
@@ -158,6 +157,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   pageLink: PageLink;
 
   textSearchMode = false;
+
+  assignEnabled = false;
 
   dataSource: SchedulerEventsDatasource;
 
@@ -211,7 +212,19 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
       if (this.edgeId) {
+        const isEdgeWriteAllowed: boolean = this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
+        this.assignEnabled = isEdgeWriteAllowed;
+        if (isEdgeWriteAllowed) {
+          if (!this.deleteEnabled) {
+            this.displayedColumns.unshift('select');
+          }
+        } else {
+          if (this.deleteEnabled) {
+            this.displayedColumns.shift();
+          }
+        }
         this.deleteEnabled = false;
+        this.addEnabled = false;
         this.editEnabled = false;
       }
     }

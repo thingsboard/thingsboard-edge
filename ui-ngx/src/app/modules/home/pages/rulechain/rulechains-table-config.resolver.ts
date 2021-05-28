@@ -60,7 +60,7 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { isUndefined } from '@core/utils';
+import { deepClone, isUndefined } from '@core/utils';
 import { PageLink } from '@shared/models/page/page-link';
 import { Edge } from '@shared/models/edge.models';
 import { mergeMap } from 'rxjs/operators';
@@ -129,6 +129,18 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
       });
       this.config.entitiesDeleteEnabled = false;
+      this.config.addEnabled = false;
+      if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+        this.config.headerActionDescriptors.push({
+            name: this.translate.instant('edge.assign-to-edge'),
+            icon: 'add',
+            isEnabled: () => true,
+            onAction: ($event) => {
+              this.assignRuleChainsToEdge($event);
+            }
+          }
+        );
+      }
     }
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
@@ -152,7 +164,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
     this.config.entitiesDeleteEnabled = false;
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
-    return this.config;
+    return { ...this.config };
   }
 
   configureEntityTableColumns(ruleChainScope: string): Array<EntityColumn<RuleChain>> {
@@ -212,10 +224,10 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     if (ruleChainScope === 'edge') {
       actions.push(
         {
-          name: this.translate.instant('rulechain.assign-rulechains'),
+          name: this.translate.instant('edge.assign-to-edge'),
           icon: 'add',
           isEnabled: () => true,
-          onAction: ($event) => this.addRuleChainsToEdge($event)
+          onAction: ($event) => this.assignRuleChainsToEdge($event)
         }
       );
     }
@@ -249,7 +261,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         {
           name: this.translate.instant('rulechain.unassign-rulechains'),
           icon: 'assignment_return',
-          isEnabled: true,
+          isEnabled: this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entities) => this.unassignRuleChainsFromEdge($event, entities)
         }
       );
@@ -315,13 +327,14 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           name: this.translate.instant('rulechain.set-root'),
           icon: 'flag',
           isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
-            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
-          onAction: ($event, entity) => this.setRootRuleChain($event, entity)
+            this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
+          onAction: ($event, entity) => this.setEdgeRootRuleChain($event, entity)
         },
         {
           name: this.translate.instant('edge.unassign-from-edge'),
           icon: 'assignment_return',
-          isEnabled: (entity) => entity.id.id !== this.config.componentsData.edge.rootRuleChainId.id,
+          isEnabled: (entity) => entity.id.id !== this.config.componentsData.edge.rootRuleChainId.id &&
+            this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entity) => this.unassignFromEdge($event, entity)
         }
       );
@@ -402,20 +415,34 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       true
     ).subscribe((res) => {
         if (res) {
-          if (this.config.componentsData.ruleChainScope === 'edge') {
-            this.ruleChainService.setEdgeRootRuleChain(this.config.componentsData.edgeId, ruleChain.id.id).subscribe(
-              (edge) => {
-                this.config.componentsData.edge = edge;
-                this.config.table.updateData();
-              }
-            );
-          } else {
-            this.ruleChainService.setRootRuleChain(ruleChain.id.id).subscribe(
-              () => {
-                this.config.table.updateData();
-              }
-            );
-          }
+          this.ruleChainService.setRootRuleChain(ruleChain.id.id).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          );
+        }
+      }
+    );
+  }
+
+  setEdgeRootRuleChain($event: Event, ruleChain: RuleChain) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('rulechain.set-root-rulechain-title', {ruleChainName: ruleChain.name}),
+      this.translate.instant('rulechain.set-root-rulechain-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          this.ruleChainService.setEdgeRootRuleChain(this.config.componentsData.edgeId, ruleChain.id.id).subscribe(
+            (edge) => {
+              this.config.componentsData.edge = edge;
+              this.config.table.updateData();
+            }
+          );
         }
       }
     );
@@ -431,6 +458,9 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         return true;
       case 'setRoot':
         this.setRootRuleChain(action.event, action.entity);
+        return true;
+      case 'setEdgeRoot':
+        this.setEdgeRootRuleChain(action.event, action.entity);
         return true;
       case 'setEdgeTemplateRoot':
         this.setEdgeTemplateRootRuleChain(action.event, action.entity);
@@ -470,7 +500,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     );
   }
 
-  addRuleChainsToEdge($event: Event) {
+  assignRuleChainsToEdge($event: Event): void {
     if ($event) {
       $event.stopPropagation();
     }

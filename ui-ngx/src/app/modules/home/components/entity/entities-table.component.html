@@ -62,16 +62,8 @@
             <div [fxShow]="addEnabled()">
               <button mat-icon-button [disabled]="isLoading$ | async"
                       *ngIf="!entitiesTableConfig.addActionDescriptors.length; else addActions"
-                      [fxShow]="!assignEnabled()"
                       (click)="addEntity($event)"
                       matTooltip="{{ translations.add | translate }}"
-                      matTooltipPosition="above">
-                <mat-icon>add</mat-icon>
-              </button>
-              <button mat-icon-button [disabled]="isLoading$ | async"
-                      *ngIf="assignEnabled()"
-                      (click)="assignEntityGroupsToEdge($event)"
-                      matTooltip="{{ translations.assign | translate }}"
                       matTooltipPosition="above">
                 <mat-icon>add</mat-icon>
               </button>

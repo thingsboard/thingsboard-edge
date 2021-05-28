@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -231,10 +232,10 @@ public class SchedulerEventController extends BaseController {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            checkSchedulerEventId(schedulerEventId, Operation.ASSIGN_TO_EDGE);
+            checkSchedulerEventId(schedulerEventId, Operation.READ);
 
             SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.assignSchedulerEventToEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
 
@@ -264,9 +265,9 @@ public class SchedulerEventController extends BaseController {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-            SchedulerEventInfo schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.UNASSIGN_FROM_EDGE);
+            SchedulerEventInfo schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.READ);
 
             SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
 
@@ -297,7 +298,8 @@ public class SchedulerEventController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             checkEdgeId(edgeId, Operation.READ);
-            return checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId).get());
+            List<SchedulerEventInfo> schedulerEventInfos = checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId).get());
+            return filterSchedulerEventsByReadPermission(schedulerEventInfos);
         } catch (Exception e) {
             throw handleException(e);
         }

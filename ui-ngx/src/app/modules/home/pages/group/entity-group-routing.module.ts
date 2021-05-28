@@ -583,7 +583,6 @@ const routes: Routes = [
                 data: {
                   title: 'entity-group.edge-group',
                   groupType: EntityType.EDGE,
-                  childGroupScope: 'customer',
                   breadcrumb: {
                     labelFunction: (route, translate, component, data) => {
                       return data.entityGroup.edgeGroupName ? data.entityGroup.edgeGroupName : data.entityGroup.name;
@@ -730,7 +729,6 @@ const routes: Routes = [
       {
         path: ':entityGroupId',
         data: {
-          childGroupScope: 'edge',
           groupType: EntityType.EDGE,
           breadcrumb: {
             icon: 'router',

@@ -83,7 +83,6 @@ export interface EntityTypeTranslation {
   group?: string;
   groupList?: string;
   groupNameStartsWith?: string;
-  assign?: string;
 }
 
 export interface EntityTypeResource<T> {
@@ -319,8 +318,7 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'entity-group.add',
         noEntities: 'entity-group.no-entity-groups-text',
         search: 'entity-group.search',
-        selectedEntities: 'entity-group.selected-entity-groups',
-        assign: 'edge.assign-to-edge'
+        selectedEntities: 'entity-group.selected-entity-groups'
       }
     ],
     [
