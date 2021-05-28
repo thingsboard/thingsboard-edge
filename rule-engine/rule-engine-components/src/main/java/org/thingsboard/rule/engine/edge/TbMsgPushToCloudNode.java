@@ -38,7 +38,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
-import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -57,7 +56,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import javax.annotation.Nullable;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +67,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 @RuleNode(
         type = ComponentType.ACTION,
         name = "push to cloud",
-        configClazz = EmptyNodeConfiguration.class,
+        configClazz = TbMsgPushToCloudNodeConfiguration.class,
         nodeDescription = "Pushes messages from edge to cloud",
         nodeDetails = "Push messages from edge to cloud. " +
                 "This node used only on edge to push messages from edge to cloud. " +
@@ -97,7 +95,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 public class TbMsgPushToCloudNode implements TbNode {
 
-    private EmptyNodeConfiguration config;
+    private TbMsgPushToCloudNodeConfiguration config;
 
     private static final ObjectMapper json = new ObjectMapper();
 
@@ -105,7 +103,7 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
+        this.config = TbNodeUtils.convert(configuration, TbMsgPushToCloudNodeConfiguration.class);
     }
 
     @Override
@@ -195,8 +193,7 @@ public class TbMsgPushToCloudNode implements TbNode {
     private String getScope(Map<String, String> metadata) {
         String scope = metadata.get(SCOPE);
         if (StringUtils.isEmpty(scope)) {
-            // TODO: voba - move this to configuration of the node or some other place
-            scope = DataConstants.SERVER_SCOPE;
+            scope = config.getScope();
         }
         return scope;
     }
