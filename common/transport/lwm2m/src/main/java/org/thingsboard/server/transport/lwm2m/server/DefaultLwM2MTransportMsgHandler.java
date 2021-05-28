@@ -129,6 +129,7 @@ import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.c
 import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.convertPathFromIdVerToObjectId;
 import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.convertPathFromObjectIdToIdVer;
 import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.getAckCallback;
+import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.isFwSwWords;
 import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.setValidTypeOper;
 import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.validateObjectVerFromKey;
 
@@ -371,7 +372,6 @@ public class DefaultLwM2MTransportMsgHandler implements LwM2mTransportMsgHandler
                 String pathName = tsKvProto.getKv().getKey();
                 String pathIdVer = this.getPresentPathIntoProfile(sessionInfo, pathName);
                 Object valueNew = getValueFromKvProto(tsKvProto.getKv());
-                log.warn("12)  Shared AttributeUpdate start pathName  [{}], pathIdVer [{}], valueNew [{}]", pathName, pathIdVer, valueNew);
                 if ((FirmwareUtil.getAttributeKey(FirmwareType.FIRMWARE, FirmwareKey.VERSION).equals(pathName)
                         && (!valueNew.equals(lwM2MClient.getFwUpdate().getCurrentVersion())))
                         || (FirmwareUtil.getAttributeKey(FirmwareType.FIRMWARE, FirmwareKey.TITLE).equals(pathName)
@@ -394,7 +394,7 @@ public class DefaultLwM2MTransportMsgHandler implements LwM2mTransportMsgHandler
                                 LOG_LW2M_ERROR, pathIdVer, valueNew);
                         this.sendLogsToThingsboard(logMsg, lwM2MClient.getRegistration().getId());
                     }
-                } else {
+                } else if (!isFwSwWords(pathName)) {
                     log.error("Resource name name - [{}] value - [{}] is not present as attribute/telemetry in profile and cannot be updated", pathName, valueNew);
                     String logMsg = String.format("%s: attributeUpdate: attribute name - %s value - %s is not present as attribute in profile and cannot be updated",
                             LOG_LW2M_ERROR, pathName, valueNew);
@@ -461,7 +461,6 @@ public class DefaultLwM2MTransportMsgHandler implements LwM2mTransportMsgHandler
         String bodyParams = StringUtils.trimToNull(toDeviceRpcRequestMsg.getParams()) != null ? toDeviceRpcRequestMsg.getParams() : "null";
         LwM2mTypeOper lwM2mTypeOper = setValidTypeOper(toDeviceRpcRequestMsg.getMethodName());
         UUID requestUUID = new UUID(toDeviceRpcRequestMsg.getRequestIdMSB(), toDeviceRpcRequestMsg.getRequestIdLSB());
-        log.warn("4) RPC-OK finish to [{}], keys: [{}]", requestUUID, this.rpcSubscriptions.keySet());
         if (!this.rpcSubscriptions.containsKey(requestUUID)) {
             this.rpcSubscriptions.put(requestUUID, toDeviceRpcRequestMsg.getExpirationTime());
             Lwm2mClientRpcRequest lwm2mClientRpcRequest = null;
@@ -662,7 +661,7 @@ public class DefaultLwM2MTransportMsgHandler implements LwM2mTransportMsgHandler
              * set setClient_fw_info... = value
              **/
             if (lwM2MClient.getFwUpdate().isInfoFwSwUpdate()) {
-                lwM2MClient.getFwUpdate().initReadValue(this, this.lwM2mTransportRequest,  path);
+                lwM2MClient.getFwUpdate().initReadValue(this, this.lwM2mTransportRequest, path);
             }
             if (lwM2MClient.getSwUpdate().isInfoFwSwUpdate()) {
                 lwM2MClient.getSwUpdate().initReadValue(this, this.lwM2mTransportRequest, path);
@@ -1244,7 +1243,6 @@ public class DefaultLwM2MTransportMsgHandler implements LwM2mTransportMsgHandler
     public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg attributesResponse, TransportProtos.SessionInfoProto sessionInfo) {
         try {
             List<TransportProtos.TsKvProto> tsKvProtos = attributesResponse.getSharedAttributeListList();
-
             this.updateAttributeFromThingsboard(tsKvProtos, sessionInfo);
         } catch (Exception e) {
             log.error("", e);
@@ -1361,7 +1359,6 @@ public class DefaultLwM2MTransportMsgHandler implements LwM2mTransportMsgHandler
         if (lwM2MClient.getRegistration().getSupportedVersion(FW_ID) != null) {
             SessionInfoProto sessionInfo = this.getSessionInfoOrCloseSession(lwM2MClient);
             if (sessionInfo != null) {
-                DefaultLwM2MTransportMsgHandler serviceImpl = this;
                 transportService.process(sessionInfo, createFirmwareRequestMsg(sessionInfo, FirmwareType.FIRMWARE.name()),
                         new TransportServiceCallback<>() {
                             @Override

@@ -212,10 +212,14 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         Device savedDevice = this.saveDeviceWithoutCredentials(device);
         deviceCredentials.setDeviceId(savedDevice.getId());
         if (device.getId() == null) {
-            deviceCredentials = deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+            deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
         } else {
-            deviceCredentials.setId(deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), savedDevice.getId()).getId());
-            deviceCredentials = deviceCredentialsService.updateDeviceCredentials(device.getTenantId(), deviceCredentials);
+            DeviceCredentials foundDeviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(savedDevice.getTenantId(), savedDevice.getId());
+            if (foundDeviceCredentials == null) {
+                deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+            } else {
+                deviceCredentialsService.updateDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+            }
         }
         return savedDevice;
     }
