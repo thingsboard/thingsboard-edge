@@ -60,7 +60,7 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { deepClone, isUndefined } from '@core/utils';
+import { isUndefined } from '@core/utils';
 import { PageLink } from '@shared/models/page/page-link';
 import { Edge } from '@shared/models/edge.models';
 import { mergeMap } from 'rxjs/operators';
