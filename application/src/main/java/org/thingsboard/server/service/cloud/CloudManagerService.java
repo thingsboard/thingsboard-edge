@@ -649,13 +649,17 @@ public class CloudManagerService extends BaseCloudEventService {
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
-                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder().setSuccess(true).build();
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
+                        .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
+                        .setSuccess(true).build();
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder().setSuccess(false).setErrorMsg(t.getMessage()).build();
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
+                        .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
+                        .setSuccess(false).setErrorMsg(t.getMessage()).build();
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
         }, MoreExecutors.directExecutor());

@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -123,6 +124,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
         if (alarm != null) {
             AlarmUpdateMsg alarmUpdateMsg = alarmUpdateMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
             msg = UplinkMsg.newBuilder()
+                    .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addAllAlarmUpdateMsg(Collections.singletonList(alarmUpdateMsg)).build();
         } else {
             log.info("Skipping event as alarm was not found [{}]", cloudEvent);

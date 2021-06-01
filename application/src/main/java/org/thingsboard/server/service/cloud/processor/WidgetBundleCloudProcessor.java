@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -106,6 +107,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                 .setWidgetBundleIdLSB(widgetBundleId.getId().getLeastSignificantBits())
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllWidgetBundleTypesRequestMsg(Collections.singletonList(widgetBundleTypesRequestMsg));
         return builder.build();
     }

@@ -44,6 +44,7 @@ import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -307,6 +308,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
     private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
         EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllEntityData(Collections.singletonList(entityDataProto));
         return builder.build();
     }
@@ -333,6 +335,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                 allAttributesRequestMsg.add(sharedAttributesRequestMsg);
             }
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                    .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addAllAttributesRequestMsg(allAttributesRequestMsg);
             return builder.build();
         } catch (Exception e) {

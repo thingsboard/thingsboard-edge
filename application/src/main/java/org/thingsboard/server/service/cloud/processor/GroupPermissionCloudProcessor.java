@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -125,6 +126,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                 .setType(type)
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllEntityGroupPermissionsRequestMsg(Collections.singletonList(entityGroupPermissionsRequestMsg));
         return builder.build();
     }

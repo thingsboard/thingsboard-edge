@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -163,6 +164,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                 .setEntityType(entityId.getEntityType().name())
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllEntityViewsRequestMsg(Collections.singletonList(entityViewsRequestMsg));
         return builder.build();
     }

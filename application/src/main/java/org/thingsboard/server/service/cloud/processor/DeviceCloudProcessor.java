@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -300,6 +301,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         DeviceRpcCallMsg rpcResponseMsg = deviceUpdateMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllDeviceRpcCallMsg(Collections.singletonList(rpcResponseMsg)).build();
     }
 
@@ -314,6 +316,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                     DeviceUpdateMsg deviceUpdateMsg =
                             deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
                     msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
                 } else {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
@@ -323,6 +326,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 DeviceUpdateMsg deviceUpdateMsg =
                         deviceUpdateMsgConstructor.constructDeviceDeleteMsg(deviceId);
                 msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
                 break;
             case CREDENTIALS_UPDATED:
@@ -331,6 +335,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                     DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg =
                             deviceUpdateMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                     msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllDeviceCredentialsUpdateMsg(Collections.singletonList(deviceCredentialsUpdateMsg)).build();
                 } else {
                     log.info("Skipping event as device credentials was not found [{}]", cloudEvent);

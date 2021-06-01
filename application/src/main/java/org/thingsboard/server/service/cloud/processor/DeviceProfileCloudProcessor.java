@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -138,6 +139,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 .setDeviceProfileIdLSB(deviceProfileId.getId().getLeastSignificantBits())
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllDeviceProfileDevicesRequestMsg(Collections.singletonList(deviceProfileDevicesRequestMsg));
         return builder.build();
     }

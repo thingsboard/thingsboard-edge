@@ -32,6 +32,7 @@ package org.thingsboard.server.service.cloud.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -57,6 +58,7 @@ public class EntityCloudProcessor extends BaseCloudProcessor {
                         .setUserIdLSB(entityId.getId().getLeastSignificantBits())
                         .build();
                 msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllUserCredentialsRequestMsg(Collections.singletonList(userCredentialsRequestMsg))
                         .build();
                 break;
@@ -66,6 +68,7 @@ public class EntityCloudProcessor extends BaseCloudProcessor {
                         .setDeviceIdLSB(entityId.getId().getLeastSignificantBits())
                         .build();
                 msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllDeviceCredentialsRequestMsg(Collections.singletonList(deviceCredentialsRequestMsg))
                         .build();
                 break;

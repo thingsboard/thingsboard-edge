@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -134,6 +135,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                 .setEntityType(entityId.getEntityType().name())
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
         return builder.build();
     }
@@ -144,6 +146,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
         if (entityRelation != null) {
             RelationUpdateMsg relationUpdateMsg = relationUpdateMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
             msg = UplinkMsg.newBuilder()
+                    .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addAllRelationUpdateMsg(Collections.singletonList(relationUpdateMsg)).build();
         }
         return msg;
