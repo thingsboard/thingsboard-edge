@@ -313,4 +313,32 @@ public class SchedulerEventController extends BaseController {
             throw handleException(e);
         }
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/{edgeId}/allSchedulerEvents", method = RequestMethod.GET)
+    @ResponseBody
+    public List<SchedulerEventInfo> getAllSchedulerEvents(
+            @PathVariable("edgeId") String strEdgeId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            checkEdgeId(edgeId, Operation.READ);
+            List<SchedulerEventInfo> result = new ArrayList<>();
+            PageLink pageLink = new PageLink(DEFAULT_SCHEDULER_EVENT_LIMIT);
+            PageData<SchedulerEventInfo> pageData;
+            do {
+                pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+                if (pageData.getData().size() > 0) {
+                    result.addAll(pageData.getData());
+                    if (pageData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
+                }
+            } while (pageData.hasNext());
+            return checkNotNull(result);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
 }

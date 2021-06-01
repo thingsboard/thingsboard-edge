@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -106,6 +107,8 @@ public class EntityGroupController extends BaseController {
     public static final String ENTITY_GROUP_ID = "entityGroupId";
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
 
     @Autowired
     private OwnersCacheService ownersCacheService;
@@ -852,6 +855,40 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, e, strEntityGroupId);
 
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/allEntityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityGroupInfo> getAllEdgeEntityGroups(
+            @PathVariable("edgeId") String strEdgeId,
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        try {
+            EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            checkEdgeId(edgeId, Operation.READ);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead()) {
+                List<EntityGroup> result = new ArrayList<>();
+                PageLink pageLink = new PageLink(DEFAULT_ENTITY_GROUP_LIMIT);
+                PageData<EntityGroup> pageData;
+                do {
+                    pageData = entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink);
+                    if (pageData.getData().size() > 0) {
+                        result.addAll(pageData.getData());
+                        if (pageData.hasNext()) {
+                            pageLink = pageLink.nextPageLink();
+                        }
+                    }
+                } while (pageData.hasNext());
+                return checkNotNull(toEntityGroupsInfo(result));
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
             throw handleException(e);
         }
     }
