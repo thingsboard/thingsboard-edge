@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -59,6 +60,7 @@ public class WidgetBundleEdgeProcessor extends BaseEdgeProcessor {
                     WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
                             widgetsBundleMsgConstructor.constructWidgetsBundleUpdateMsg(msgType, widgetsBundle);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllWidgetsBundleUpdateMsg(Collections.singletonList(widgetsBundleUpdateMsg))
                             .build();
                 }
@@ -67,6 +69,7 @@ public class WidgetBundleEdgeProcessor extends BaseEdgeProcessor {
                 WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
                         widgetsBundleMsgConstructor.constructWidgetsBundleDeleteMsg(widgetsBundleId);
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllWidgetsBundleUpdateMsg(Collections.singletonList(widgetsBundleUpdateMsg))
                         .build();
                 break;

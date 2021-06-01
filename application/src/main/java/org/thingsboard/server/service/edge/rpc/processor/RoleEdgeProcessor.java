@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -70,12 +71,14 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 Role role = roleService.findRoleById(edgeEvent.getTenantId(), roleId);
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleProto(msgType, role)))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleDeleteMsg(roleId)))
                         .build();
                 break;

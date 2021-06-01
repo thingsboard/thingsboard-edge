@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -59,6 +60,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                     CustomerUpdateMsg customerUpdateMsg =
                             customerMsgConstructor.constructCustomerUpdatedMsg(msgType, customer);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllCustomerUpdateMsg(Collections.singletonList(customerUpdateMsg))
                             .build();
                 }
@@ -68,6 +70,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                 CustomerUpdateMsg customerUpdateMsg =
                         customerMsgConstructor.constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllCustomerUpdateMsg(Collections.singletonList(customerUpdateMsg))
                         .build();
                 break;

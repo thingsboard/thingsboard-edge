@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -54,6 +55,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         WhiteLabelingParamsProto whiteLabelingParamsProto =
                 whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
         return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllWhiteLabelingParams(Collections.singletonList(whiteLabelingParamsProto))
                 .build();
     }
@@ -63,6 +65,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
                 whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
         return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllLoginWhiteLabelingParams(Collections.singletonList(loginWhiteLabelingParamsProto))
                 .build();
     }
@@ -72,6 +75,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         CustomTranslationProto customTranslationProto =
                 customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
         return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                 .addAllCustomTranslationMsg(Collections.singletonList(customTranslationProto))
                 .build();
     }

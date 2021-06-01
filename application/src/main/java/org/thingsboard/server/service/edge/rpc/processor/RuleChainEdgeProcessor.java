@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -63,6 +64,7 @@ public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
                     RuleChainUpdateMsg ruleChainUpdateMsg =
                             ruleChainMsgConstructor.constructRuleChainUpdatedMsg(edge.getRootRuleChainId(), msgType, ruleChain);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainUpdateMsg))
                             .build();
                 }
@@ -70,6 +72,7 @@ public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainMsgConstructor.constructRuleChainDeleteMsg(ruleChainId)))
                         .build();
                 break;
@@ -87,6 +90,7 @@ public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
                     ruleChainMsgConstructor.constructRuleChainMetadataUpdatedMsg(msgType, ruleChainMetaData);
             if (ruleChainMetadataUpdateMsg != null) {
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllRuleChainMetadataUpdateMsg(Collections.singletonList(ruleChainMetadataUpdateMsg))
                         .build();
             }

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -64,6 +65,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
                     AssetUpdateMsg assetUpdateMsg =
                             assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllAssetUpdateMsg(Collections.singletonList(assetUpdateMsg))
                             .build();
                 }
@@ -75,6 +77,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
                 AssetUpdateMsg assetUpdateMsg =
                         assetMsgConstructor.constructAssetDeleteMsg(assetId);
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllAssetUpdateMsg(Collections.singletonList(assetUpdateMsg))
                         .build();
                 break;

@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -57,6 +58,7 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
                 if (entityGroup != null) {
                     EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
                             .build();
                 }
@@ -64,6 +66,7 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupDeleteMsg(entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
                         .build();
                 break;

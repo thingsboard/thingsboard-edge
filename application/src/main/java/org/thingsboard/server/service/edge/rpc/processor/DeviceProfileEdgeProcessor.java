@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -59,6 +60,7 @@ public class DeviceProfileEdgeProcessor extends BaseEdgeProcessor {
                     DeviceProfileUpdateMsg deviceProfileUpdateMsg =
                             deviceProfileMsgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllDeviceProfileUpdateMsg(Collections.singletonList(deviceProfileUpdateMsg))
                             .build();
                 }
@@ -67,6 +69,7 @@ public class DeviceProfileEdgeProcessor extends BaseEdgeProcessor {
                 DeviceProfileUpdateMsg deviceProfileUpdateMsg =
                         deviceProfileMsgConstructor.constructDeviceProfileDeleteMsg(deviceProfileId);
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllDeviceProfileUpdateMsg(Collections.singletonList(deviceProfileUpdateMsg))
                         .build();
                 break;

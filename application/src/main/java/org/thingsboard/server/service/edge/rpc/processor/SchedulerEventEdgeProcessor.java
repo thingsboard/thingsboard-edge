@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -57,6 +58,7 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
                 if (schedulerEvent != null) {
                     SchedulerEventUpdateMsg msg = schedulerEventMsgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
                     downlinkMsg = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addAllSchedulerEventUpdateMsg(Collections.singletonList(msg))
                             .build();
                 }
@@ -64,6 +66,7 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 SchedulerEventUpdateMsg msg = schedulerEventMsgConstructor.constructEventDeleteMsg(schedulerEventId);
                 downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAllSchedulerEventUpdateMsg(Collections.singletonList(msg))
                         .build();
                 break;
