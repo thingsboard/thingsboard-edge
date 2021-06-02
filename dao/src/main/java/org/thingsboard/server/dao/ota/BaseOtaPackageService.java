@@ -255,8 +255,6 @@ public class BaseOtaPackageService implements OtaPackageService {
         @Override
         protected void validateUpdate(TenantId tenantId, OtaPackageInfo otaPackage) {
             OtaPackageInfo otaPackageOld = otaPackageInfoDao.findById(tenantId, otaPackage.getUuidId());
-
-            validateUpdateDeviceProfile(otaPackage, otaPackageOld);
             BaseOtaPackageService.validateUpdate(otaPackage, otaPackageOld);
         }
     };
@@ -295,7 +293,6 @@ public class BaseOtaPackageService implements OtaPackageService {
         protected void validateUpdate(TenantId tenantId, OtaPackage otaPackage) {
             OtaPackage otaPackageOld = otaPackageDao.findById(tenantId, otaPackage.getUuidId());
 
-            validateUpdateDeviceProfile(otaPackage, otaPackageOld);
             BaseOtaPackageService.validateUpdate(otaPackage, otaPackageOld);
 
             if (otaPackageOld.getData() != null && !otaPackageOld.getData().equals(otaPackage.getData())) {
@@ -303,14 +300,6 @@ public class BaseOtaPackageService implements OtaPackageService {
             }
         }
     };
-
-    private void validateUpdateDeviceProfile(OtaPackageInfo otaPackage, OtaPackageInfo otaPackageOld) {
-        if (otaPackageOld.getDeviceProfileId() != null && !otaPackageOld.getDeviceProfileId().equals(otaPackage.getDeviceProfileId())) {
-            if (otaPackageInfoDao.isOtaPackageUsed(otaPackageOld.getId(), otaPackage.getType(), otaPackageOld.getDeviceProfileId())) {
-                throw new DataValidationException("Can`t update deviceProfileId because otaPackage is already in use!");
-            }
-        }
-    }
 
     private static void validateUpdate(OtaPackageInfo otaPackage, OtaPackageInfo otaPackageOld) {
         if (!otaPackageOld.getType().equals(otaPackage.getType())) {
@@ -323,6 +312,10 @@ public class BaseOtaPackageService implements OtaPackageService {
 
         if (!otaPackageOld.getVersion().equals(otaPackage.getVersion())) {
             throw new DataValidationException("Updating otaPackage version is prohibited!");
+        }
+
+        if (!otaPackageOld.getDeviceProfileId().equals(otaPackage.getDeviceProfileId())) {
+            throw new DataValidationException("Updating otaPackage deviceProfile is prohibited!");
         }
 
         if (otaPackageOld.getFileName() != null && !otaPackageOld.getFileName().equals(otaPackage.getFileName())) {
