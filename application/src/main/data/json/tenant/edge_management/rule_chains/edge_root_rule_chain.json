@@ -14,8 +14,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 226,
-          "layoutY": 387
+          "layoutX": 250,
+          "layoutY": 370
         },
         "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
         "name": "Is Entity Group",
@@ -59,8 +59,8 @@
       {
         "additionalInfo": {
           "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
-          "layoutX": 70,
-          "layoutY": 269
+          "layoutX": 132,
+          "layoutY": 474
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
@@ -108,8 +108,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 821,
-          "layoutY": 388
+          "layoutX": 827,
+          "layoutY": 368
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
@@ -120,8 +120,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 490
+          "layoutX": 830,
+          "layoutY": 474
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -132,8 +132,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 823,
-          "layoutY": 590
+          "layoutX": 838,
+          "layoutY": 576
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
@@ -144,14 +144,14 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1098,
-          "layoutY": 268
+          "layoutX": 1134,
+          "layoutY": 154
         },
         "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
         "name": "Push to cloud",
         "debugMode": false,
         "configuration": {
-          "version": 0
+          "scope": "SERVER_SCOPE"
         }
       }
     ],
@@ -222,9 +222,9 @@
         "type": "RPC Request from Device"
       },
       {
-        "fromIndex": 7,
+        "fromIndex": 6,
         "toIndex": 10,
-        "type": "Success"
+        "type": "Attributes Updated"
       }
     ],
     "ruleChainConnections": null
