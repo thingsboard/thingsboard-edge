@@ -554,15 +554,15 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.FIRMWARE)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       sections.push(
         {
           id: guid(),
-          name: 'firmware.firmware',
+          name: 'ota-update.ota-updates',
           type: 'link',
-          path: '/firmwares',
+          path: '/otaUpdates',
           icon: 'memory',
-          disabled: disabledItems.indexOf('firmwares') > -1
+          disabled: disabledItems.indexOf('otaUpdates') > -1
         }
       );
     }
@@ -864,13 +864,13 @@ export class MenuService {
           }
         );
       }
-      if (this.userPermissionsService.hasReadGenericPermission(Resource.FIRMWARE)) {
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
         deviceManagementSection.places.push(
           {
-            name: 'firmware.firmware',
+            name: 'ota-update.ota-updates',
             icon: 'memory',
-            path: '/firmwares',
-            disabled: disabledItems.indexOf('firmwares') > -1
+            path: '/otaUpdates',
+            disabled: disabledItems.indexOf('otaUpdates') > -1
           }
         );
       }

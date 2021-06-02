@@ -41,8 +41,9 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.ota.OtaPackageUtil;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -222,44 +223,43 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     }
 
     @Override
-    public PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyFirmware(UUID groupId,
-                                                                              UUID deviceProfileId,
-                                                                              FirmwareType firmwareType,
-                                                                              PageLink pageLink) {
-        Page<DeviceEntity> page;
-        switch (firmwareType) {
-            case FIRMWARE:
-                page = deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(
-                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink));
-                break;
-            case SOFTWARE:
-                page = deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(
-                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink));
-                break;
-            default:
-                log.warn("Unsupported firmware type: [{}]", firmwareType);
-                return PageData.emptyPageData();
-        }
+    public PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(UUID groupId,
+                                                                                UUID deviceProfileId,
+                                                                                OtaPackageType type,
+                                                                                PageLink pageLink) {
+        Page<DeviceEntity> page = OtaPackageUtil.getByOtaPackageType(
+                () -> deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(
+                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink)),
+                () -> deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(
+                        groupId, deviceProfileId, Objects.toString(pageLink.getTextSearch(), ""), DaoUtil.toPageable(pageLink)),
+                type);
         return DaoUtil.toPageData(page);
     }
 
     @Override
-    public PageData<Device> findByDeviceProfileAndEmptyFirmware(UUID tenantId, UUID deviceProfileId,
-                                                                FirmwareType firmwareType,
-                                                                PageLink pageLink) {
-        Page<DeviceEntity> page;
-        switch (firmwareType) {
-            case FIRMWARE:
-                page = deviceRepository.findByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId, DaoUtil.toPageable(pageLink));
-                break;
-            case SOFTWARE:
-                page = deviceRepository.findByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId, DaoUtil.toPageable(pageLink));
-                break;
-            default:
-                log.warn("Unsupported firmware type: [{}]", firmwareType);
-                return PageData.emptyPageData();
-        }
+    public PageData<Device> findByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId,
+                                                                  OtaPackageType type,
+                                                                  PageLink pageLink) {
+        Page<DeviceEntity> page = OtaPackageUtil.getByOtaPackageType(
+                () -> deviceRepository.findByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId, DaoUtil.toPageable(pageLink)),
+                () -> deviceRepository.findByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId, DaoUtil.toPageable(pageLink)),
+                type);
         return DaoUtil.toPageData(page);
     }
 
+    @Override
+    public Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(UUID groupId, UUID deviceProfileId, OtaPackageType type) {
+        return OtaPackageUtil.getByOtaPackageType(
+                () -> deviceRepository.countByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(groupId, deviceProfileId),
+                () -> deviceRepository.countByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(groupId, deviceProfileId),
+                type);
+    }
+
+    @Override
+    public Long countByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId, OtaPackageType type) {
+        return OtaPackageUtil.getByOtaPackageType(
+                () -> deviceRepository.countByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId),
+                () -> deviceRepository.countByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId),
+                type);
+    }
 }

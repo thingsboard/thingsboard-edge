@@ -41,8 +41,8 @@ import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@share
 import { PageLink } from '@shared/models/page/page-link';
 import { RoleId } from '@shared/models/id/role-id';
 import { Edge } from '@shared/models/edge.models';
-import { FirmwareId } from '@shared/models/id/firmware-id';
-import { FirmwareGroupInfo } from '@shared/models/firmware.models';
+import { OtaPackageId } from '@shared/models/id/ota-package-id';
+import { DeviceGroupOtaPackage } from '@shared/models/ota-package.models';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -264,10 +264,10 @@ export interface EntityGroup extends BaseData<EntityGroupId> {
 
 export interface EntityGroupInfo extends EntityGroup {
   ownerIds: EntityId[];
-  softwareId?: FirmwareId;
-  softwareGroup?: FirmwareGroupInfo;
-  firmwareId?: FirmwareId;
-  firmwareGroup?: FirmwareGroupInfo;
+  softwareId?: OtaPackageId;
+  softwareGroup?: DeviceGroupOtaPackage;
+  firmwareId?: OtaPackageId;
+  firmwareGroup?: DeviceGroupOtaPackage;
 }
 
 export function prepareEntityGroupConfiguration(groupType: EntityType,

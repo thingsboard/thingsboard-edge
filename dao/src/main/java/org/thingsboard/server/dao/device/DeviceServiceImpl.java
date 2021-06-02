@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
@@ -65,14 +66,13 @@ import org.thingsboard.server.common.data.device.data.DeviceTransportConfigurati
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfiguration;
-import org.thingsboard.server.common.data.firmware.Firmware;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -89,7 +89,7 @@ import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -157,7 +157,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
-    private FirmwareService firmwareService;
+    private OtaPackageService otaPackageService;
 
     @Override
     public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
@@ -214,11 +214,11 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         if (device.getId() == null) {
             deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
         } else {
-            DeviceCredentials foundDeviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(savedDevice.getTenantId(), savedDevice.getId());
+            DeviceCredentials foundDeviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), savedDevice.getId());
             if (foundDeviceCredentials == null) {
                 deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
             } else {
-                deviceCredentialsService.updateDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+                deviceCredentialsService.updateDeviceCredentials(device.getTenantId(), deviceCredentials);
             }
         }
         return savedDevice;
@@ -604,11 +604,11 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                             .ifPresent(DeviceTransportConfiguration::validate);
 
                     if (device.getFirmwareId() != null) {
-                        Firmware firmware = firmwareService.findFirmwareById(tenantId, device.getFirmwareId());
+                        OtaPackage firmware = otaPackageService.findOtaPackageById(tenantId, device.getFirmwareId());
                         if (firmware == null) {
                             throw new DataValidationException("Can't assign non-existent firmware!");
                         }
-                        if (!firmware.getType().equals(FirmwareType.FIRMWARE)) {
+                        if (!firmware.getType().equals(OtaPackageType.FIRMWARE)) {
                             throw new DataValidationException("Can't assign firmware with type: " + firmware.getType());
                         }
                         if (firmware.getData() == null) {
@@ -620,11 +620,11 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     }
 
                     if (device.getSoftwareId() != null) {
-                        Firmware software = firmwareService.findFirmwareById(tenantId, device.getSoftwareId());
+                        OtaPackage software = otaPackageService.findOtaPackageById(tenantId, device.getSoftwareId());
                         if (software == null) {
                             throw new DataValidationException("Can't assign non-existent software!");
                         }
-                        if (!software.getType().equals(FirmwareType.SOFTWARE)) {
+                        if (!software.getType().equals(OtaPackageType.SOFTWARE)) {
                             throw new DataValidationException("Can't assign software with type: " + software.getType());
                         }
                         if (software.getData() == null) {
@@ -665,26 +665,43 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     };
 
     @Override
-    public PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyFirmware(EntityGroupId groupId,
-                                                                              DeviceProfileId deviceProfileId,
-                                                                              FirmwareType firmwareType,
-                                                                              PageLink pageLink) {
+    public PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId,
+                                                                                DeviceProfileId deviceProfileId,
+                                                                                OtaPackageType type,
+                                                                                PageLink pageLink) {
         log.trace("Executing findByEntityGroupIdAndDeviceProfileAndFirmwareIsNull, groupId [{}], deviceProfileId [{}], " +
-                "deviceProfileId [{}] firmwareType [{}]", groupId, deviceProfileId, firmwareType, pageLink);
+                " firmwareType [{}]", groupId, deviceProfileId, type);
         validateId(groupId, "Incorrect groupId" + groupId);
         validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
         validatePageLink(pageLink);
-        return deviceDao.findByEntityGroupAndDeviceProfileAndEmptyFirmware(groupId.getId(), deviceProfileId.getId(), firmwareType, pageLink);
+        return deviceDao.findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(groupId.getId(), deviceProfileId.getId(), type, pageLink);
     }
 
     @Override
-    public PageData<Device> findByDeviceProfileAndEmptyFirmware(TenantId tenantId, DeviceProfileId deviceProfileId,
-                                                                FirmwareType firmwareType,
-                                                                PageLink pageLink) {
-        log.trace("Executing findByDeviceProfileAndEmptyFirmware,  deviceProfileId [{}], deviceProfileId [{}] firmwareType [{}]",
-                deviceProfileId, firmwareType, pageLink);
+    public PageData<Device> findByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId,
+                                                                  OtaPackageType type,
+                                                                  PageLink pageLink) {
+        log.trace("Executing findByDeviceProfileAndEmptyFirmware,  deviceProfileId [{}], firmwareType [{}]",
+                deviceProfileId, type);
         validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
         validatePageLink(pageLink);
-        return deviceDao.findByDeviceProfileAndEmptyFirmware(tenantId.getId(), deviceProfileId.getId(), firmwareType, pageLink);
+        return deviceDao.findByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type, pageLink);
+    }
+
+    @Override
+    public Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId, DeviceProfileId deviceProfileId, OtaPackageType type) {
+        log.trace("Executing countByEntityGroupAndDeviceProfileAndEmptyOtaPackage, groupId [{}], deviceProfileId [{}], firmwareType [{}]", groupId, deviceProfileId, type);
+        validateId(groupId, "Incorrect groupId" + groupId);
+        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+
+        return deviceDao.countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(groupId.getId(), deviceProfileId.getId(), type);
+    }
+
+    @Override
+    public Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type) {
+        log.trace("Executing countByDeviceProfileAndEmptyOtaPackage,  deviceProfileId [{}], firmwareType [{}]", deviceProfileId, type);
+        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+
+        return deviceDao.countByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type);
     }
 }

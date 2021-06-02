@@ -49,5 +49,5 @@ public class CacheConstants {
     public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
     public static final String ATTRIBUTES_CACHE = "attributes";
     public static final String TOKEN_OUTDATAGE_TIME_CACHE = "tokensOutdatageTime";
-    public static final String FIRMWARE_CACHE = "firmwares";
+    public static final String OTA_PACKAGE_CACHE = "otaPackages";
 }

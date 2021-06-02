@@ -111,6 +111,9 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   @Input()
   disabled: boolean;
 
+  @Input()
+  hint: string;
+
   @Output()
   deviceProfileUpdated = new EventEmitter<DeviceProfileId>();
 

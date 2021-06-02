@@ -43,18 +43,18 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.firmware.FirmwareInfo;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -68,7 +68,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -112,7 +112,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     private EdgeService edgeService;
 
     @Autowired
-    private FirmwareService firmwareService;
+    private OtaPackageService otaPackageService;
 
     @Autowired
     private DeviceService deviceService;
@@ -328,18 +328,18 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                     boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(schedulerEvent.getType());
 
                     if (isFirmwareUpdate || isSoftwareUpdate) {
-                        FirmwareId firmwareId =
-                                JacksonUtil.convertValue(schedulerEvent.getConfiguration().get("msgBody"), FirmwareId.class);
+                        OtaPackageId firmwareId =
+                                JacksonUtil.convertValue(schedulerEvent.getConfiguration().get("msgBody"), OtaPackageId.class);
                         if (firmwareId == null) {
                             throw new DataValidationException("SchedulerEvent firmwareId should be specified!");
                         }
-                        FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, firmwareId);
+                        OtaPackageInfo firmwareInfo = otaPackageService.findOtaPackageById(tenantId, firmwareId);
                         if (firmwareInfo == null) {
                             throw new DataValidationException("Can't assign non-existent firmware!");
                         }
 
-                        if ((isFirmwareUpdate && !FirmwareType.FIRMWARE.equals(firmwareInfo.getType()))
-                                || (isSoftwareUpdate && !FirmwareType.SOFTWARE.equals(firmwareInfo.getType()))) {
+                        if ((isFirmwareUpdate && !OtaPackageType.FIRMWARE.equals(firmwareInfo.getType()))
+                                || (isSoftwareUpdate && !OtaPackageType.SOFTWARE.equals(firmwareInfo.getType()))) {
                             throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
                         }
 

@@ -57,8 +57,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -71,6 +70,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
@@ -362,13 +362,13 @@ public class EntityGroupController extends BaseController {
                     userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
                 }
             } else if (entityGroup.getType() == EntityType.DEVICE) {
-                DeviceGroupFirmware fw =
-                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.FIRMWARE);
-                DeviceGroupFirmware sw =
-                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.SOFTWARE);
+                DeviceGroupOtaPackage fw =
+                        deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroupId, OtaPackageType.FIRMWARE);
+                DeviceGroupOtaPackage sw =
+                        deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroupId, OtaPackageType.SOFTWARE);
                 if (fw != null || sw != null) {
                     List<DeviceId> deviceIds = entityIds.stream().map(id -> new DeviceId(id.getId())).collect(Collectors.toList());
-                    firmwareStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
+                    otaPackageStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
                 }
             }
 
@@ -419,13 +419,13 @@ public class EntityGroupController extends BaseController {
                     userPermissionsService.onUserUpdatedOrRemoved(userService.findUserById(getTenantId(), new UserId(entityId.getId())));
                 }
             } else if (entityGroup.getType() == EntityType.DEVICE) {
-                DeviceGroupFirmware fw =
-                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.FIRMWARE);
-                DeviceGroupFirmware sw =
-                        deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(entityGroupId, FirmwareType.SOFTWARE);
+                DeviceGroupOtaPackage fw =
+                        deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroupId, OtaPackageType.FIRMWARE);
+                DeviceGroupOtaPackage sw =
+                        deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroupId, OtaPackageType.SOFTWARE);
                 if (fw != null || sw != null) {
                     List<DeviceId> deviceIds = entityIds.stream().map(id -> new DeviceId(id.getId())).collect(Collectors.toList());
-                    firmwareStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
+                    otaPackageStateService.update(getTenantId(), deviceIds, fw != null, sw != null);
                 }
             }
 

@@ -38,14 +38,14 @@
       (currentEntity)="currentEntity($event)"
       required>
     </tb-target-firmware-select>
-    <tb-firmware-autocomplete
+    <tb-ota-package-autocomplete
       formControlName="firmwareId"
-      [type]="firmwareType"
+      [type]="packageType"
       [deviceProfileId]="profileId"
       [deviceGroupId]="groupId"
       [deviceGroupAll]="groupAll"
       [useFullEntityId]="true"
       required
-    ></tb-firmware-autocomplete>
+    ></tb-ota-package-autocomplete>
   </div>
 </section>
