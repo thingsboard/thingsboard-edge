@@ -65,9 +65,11 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
@@ -122,13 +124,6 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         boolean created = device.getId() == null;
         try {
-            Device oldDevice;
-            if (!created) {
-                oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
-            } else {
-                oldDevice = null;
-            }
-
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
@@ -143,7 +138,7 @@ public class DeviceController extends BaseController {
                 deviceStateService.onDeviceUpdated(savedDevice);
             }
 
-            firmwareStateService.update(savedDevice, oldDevice);
+            otaPackageStateService.update(savedDevice);
             return savedDevice;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), device,
@@ -565,4 +560,37 @@ public class DeviceController extends BaseController {
         metaData.putValue("assignedFromTenantName", tenant.getName());
         return metaData;
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/devices/count/{otaPackageType}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long countByEntityTypeAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
+                                                    @RequestParam EntityType entityType,
+                                                    @RequestParam String deviceProfileId,
+                                                    @RequestParam(required = false) String deviceGroupId) throws ThingsboardException {
+        checkParameter("OtaPackageType", otaPackageType);
+        checkParameter("DeviceProfileId", deviceProfileId);
+        try {
+            switch (entityType) {
+                case DEVICE_PROFILE: {
+                    return deviceService.countByDeviceProfileAndEmptyOtaPackage(
+                            getTenantId(),
+                            new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                            OtaPackageType.valueOf(otaPackageType));
+                }
+                case ENTITY_GROUP: {
+                    checkParameter("DeviceGroupId", deviceGroupId);
+                    return deviceService.countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(
+                            new EntityGroupId(UUID.fromString(deviceGroupId)),
+                            new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                            OtaPackageType.valueOf(otaPackageType));
+                }
+                default:
+                    throw new IllegalArgumentException("Not implemented!");
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

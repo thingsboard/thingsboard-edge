@@ -41,28 +41,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cache.firmware.FirmwareDataCache;
+import org.thingsboard.server.cache.ota.OtaPackageDataCache;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
+import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.credentials.ProvisionDeviceCredentialsData;
 import org.thingsboard.server.common.data.device.profile.ProvisionDeviceProfileCredentials;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
-import org.thingsboard.server.common.data.firmware.FirmwareUtil;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.ota.OtaPackageUtil;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -79,7 +79,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.device.provision.ProvisionFailedException;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.device.provision.ProvisionResponse;
-import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -139,8 +139,8 @@ public class DefaultTransportApiService implements TransportApiService {
     private final DataDecodingEncodingService dataDecodingEncodingService;
     private final DeviceProvisionService deviceProvisionService;
     private final TbResourceService resourceService;
-    private final FirmwareService firmwareService;
-    private final FirmwareDataCache firmwareDataCache;
+    private final OtaPackageService otaPackageService;
+    private final OtaPackageDataCache otaPackageDataCache;
 
     private final ConcurrentMap<String, ReentrantLock> deviceCreationLocks = new ConcurrentHashMap<>();
 
@@ -149,7 +149,7 @@ public class DefaultTransportApiService implements TransportApiService {
                                       RelationService relationService, DeviceCredentialsService deviceCredentialsService,
                                       DeviceStateService deviceStateService, DbCallbackExecutorService dbCallbackExecutorService,
                                       TbClusterService tbClusterService, DataDecodingEncodingService dataDecodingEncodingService,
-                                      DeviceProvisionService deviceProvisionService, TbResourceService resourceService, FirmwareService firmwareService, FirmwareDataCache firmwareDataCache) {
+                                      DeviceProvisionService deviceProvisionService, TbResourceService resourceService, OtaPackageService otaPackageService, OtaPackageDataCache otaPackageDataCache) {
         this.deviceProfileCache = deviceProfileCache;
         this.tenantProfileCache = tenantProfileCache;
         this.apiUsageStateService = apiUsageStateService;
@@ -162,8 +162,8 @@ public class DefaultTransportApiService implements TransportApiService {
         this.dataDecodingEncodingService = dataDecodingEncodingService;
         this.deviceProvisionService = deviceProvisionService;
         this.resourceService = resourceService;
-        this.firmwareService = firmwareService;
-        this.firmwareDataCache = firmwareDataCache;
+        this.otaPackageService = otaPackageService;
+        this.otaPackageDataCache = otaPackageDataCache;
     }
 
     @Override
@@ -199,8 +199,8 @@ public class DefaultTransportApiService implements TransportApiService {
             result = handle(transportApiRequestMsg.getDeviceRequestMsg());
         } else if (transportApiRequestMsg.hasDeviceCredentialsRequestMsg()) {
             result = handle(transportApiRequestMsg.getDeviceCredentialsRequestMsg());
-        } else if (transportApiRequestMsg.hasFirmwareRequestMsg()) {
-            result = handle(transportApiRequestMsg.getFirmwareRequestMsg());
+        } else if (transportApiRequestMsg.hasOtaPackageRequestMsg()) {
+            result = handle(transportApiRequestMsg.getOtaPackageRequestMsg());
         }
 
         return Futures.transform(Optional.ofNullable(result).orElseGet(this::getEmptyTransportApiResponseFuture),
@@ -526,50 +526,41 @@ public class DefaultTransportApiService implements TransportApiService {
         }
     }
 
-    private ListenableFuture<TransportApiResponseMsg> handle(TransportProtos.GetFirmwareRequestMsg requestMsg) {
+    private ListenableFuture<TransportApiResponseMsg> handle(TransportProtos.GetOtaPackageRequestMsg requestMsg) {
         TenantId tenantId = new TenantId(new UUID(requestMsg.getTenantIdMSB(), requestMsg.getTenantIdLSB()));
         DeviceId deviceId = new DeviceId(new UUID(requestMsg.getDeviceIdMSB(), requestMsg.getDeviceIdLSB()));
-        FirmwareType firmwareType = FirmwareType.valueOf(requestMsg.getType());
+        OtaPackageType otaPackageType = OtaPackageType.valueOf(requestMsg.getType());
         Device device = deviceService.findDeviceById(tenantId, deviceId);
 
         if (device == null) {
             return getEmptyTransportApiResponseFuture();
         }
 
-        FirmwareId firmwareId = FirmwareUtil.getFirmwareId(device, firmwareType);
-        if (firmwareId == null) {
-            DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
-            firmwareId = FirmwareUtil.getFirmwareId(deviceProfile, firmwareType);
-        }
+        OtaPackageInfo otaPackageInfo = otaPackageService.findOtaPackageInfoByDeviceIdAndType(deviceId, otaPackageType);
 
-        TransportProtos.GetFirmwareResponseMsg.Builder builder = TransportProtos.GetFirmwareResponseMsg.newBuilder();
+        TransportProtos.GetOtaPackageResponseMsg.Builder builder = TransportProtos.GetOtaPackageResponseMsg.newBuilder();
 
-        if (firmwareId == null) {
+        if (otaPackageInfo == null) {
             builder.setResponseStatus(TransportProtos.ResponseStatus.NOT_FOUND);
         } else {
-            FirmwareInfo firmwareInfo = firmwareService.findFirmwareInfoById(tenantId, firmwareId);
+            OtaPackageId otaPackageId = otaPackageInfo.getId();
 
-            if (firmwareInfo == null) {
-                builder.setResponseStatus(TransportProtos.ResponseStatus.NOT_FOUND);
-            } else {
-                builder.setResponseStatus(TransportProtos.ResponseStatus.SUCCESS);
-                builder.setFirmwareIdMSB(firmwareId.getId().getMostSignificantBits());
-                builder.setFirmwareIdLSB(firmwareId.getId().getLeastSignificantBits());
-                builder.setType(firmwareInfo.getType().name());
-                builder.setTitle(firmwareInfo.getTitle());
-                builder.setVersion(firmwareInfo.getVersion());
-                builder.setFileName(firmwareInfo.getFileName());
-                builder.setContentType(firmwareInfo.getContentType());
-                if (!firmwareDataCache.has(firmwareId.toString())) {
-                    Firmware firmware = firmwareService.findFirmwareById(tenantId, firmwareId);
-                    firmwareDataCache.put(firmwareId.toString(), firmware.getData().array());
-                }
+            builder.setResponseStatus(TransportProtos.ResponseStatus.SUCCESS);
+            builder.setOtaPackageIdMSB(otaPackageId.getId().getMostSignificantBits());
+            builder.setOtaPackageIdLSB(otaPackageId.getId().getLeastSignificantBits());
+            builder.setType(otaPackageInfo.getType().name());
+            builder.setTitle(otaPackageInfo.getTitle());
+            builder.setVersion(otaPackageInfo.getVersion());
+            builder.setFileName(otaPackageInfo.getFileName());
+            builder.setContentType(otaPackageInfo.getContentType());
+            if (!otaPackageDataCache.has(otaPackageId.toString())) {
+                OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
+                otaPackageDataCache.put(otaPackageId.toString(), otaPackage.getData().array());
             }
         }
-
         return Futures.immediateFuture(
                 TransportApiResponseMsg.newBuilder()
-                        .setFirmwareResponseMsg(builder.build())
+                        .setOtaPackageResponseMsg(builder.build())
                         .build());
     }
 

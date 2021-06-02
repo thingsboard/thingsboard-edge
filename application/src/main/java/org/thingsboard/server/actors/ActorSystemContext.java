@@ -108,7 +108,6 @@ import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
-import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
@@ -330,10 +329,6 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private TbCoreToTransportService tbCoreToTransportService;
-
-    @Autowired
-    @Getter
-    private SchedulerService schedulerService;
 
     @Autowired
     @Getter

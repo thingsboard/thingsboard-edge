@@ -30,7 +30,7 @@
 ///
 
 import { PageComponent } from '@shared/components/page.component';
-import { Inject, Injector, OnDestroy, OnInit, Directive } from '@angular/core';
+import { Directive, Injector, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { IDynamicWidgetComponent, WidgetContext } from '@home/models/widget-component.models';
@@ -58,8 +58,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { TbInject } from '@shared/decorators/tb-inject';
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export class DynamicWidgetComponent extends PageComponent implements IDynamicWidgetComponent, OnInit, OnDestroy {
 
   executingRpcRequest: boolean;
@@ -71,12 +73,12 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
 
   validators = Validators;
 
-  constructor(@Inject(RafService) public raf: RafService,
-              @Inject(Store) protected store: Store<AppState>,
-              @Inject(FormBuilder) public fb: FormBuilder,
-              @Inject(Injector) public readonly $injector: Injector,
-              @Inject('widgetContext') public readonly ctx: WidgetContext,
-              @Inject('errorMessages') public readonly errorMessages: string[]) {
+  constructor(@TbInject(RafService) public raf: RafService,
+              @TbInject(Store) protected store: Store<AppState>,
+              @TbInject(FormBuilder) public fb: FormBuilder,
+              @TbInject(Injector) public readonly $injector: Injector,
+              @TbInject('widgetContext') public readonly ctx: WidgetContext,
+              @TbInject('errorMessages') public readonly errorMessages: string[]) {
     super(store);
     this.ctx.$injector = $injector;
     this.ctx.deviceService = $injector.get(DeviceService);

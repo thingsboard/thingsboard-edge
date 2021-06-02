@@ -34,6 +34,7 @@ import { ControlValueAccessor } from '@angular/forms';
 import { SendRpcRequestComponent } from '@home/components/scheduler/config/send-rpc-request.component';
 import { UpdateAttributesComponent } from '@home/components/scheduler/config/update-attributes.component';
 import { GenerateReportComponent } from '@home/components/scheduler/config/generate-report.component';
+import { UpdateFirmwareComponent } from '@home/components/scheduler/config/update-firmware.component';
 
 export interface SchedulerEventConfigType {
   name: string;
@@ -81,6 +82,20 @@ export const defaultSchedulerEventConfigTypes: {[eventType: string]: SchedulerEv
   sendRpcRequest: {
     name: 'Send RPC Request to Device',
     componentType: SendRpcRequestComponent,
+    originator: false,
+    msgType: false,
+    metadata: false
+  },
+  updateFirmware: {
+    name: 'Update Firmware',
+    componentType: UpdateFirmwareComponent,
+    originator: false,
+    msgType: false,
+    metadata: false
+  },
+  updateSoftware: {
+    name: 'Update Software',
+    componentType: UpdateFirmwareComponent,
     originator: false,
     msgType: false,
     metadata: false

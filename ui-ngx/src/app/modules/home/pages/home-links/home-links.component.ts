@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MenuService } from '@core/services/menu.service';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
@@ -41,7 +41,8 @@ import { HomeDashboard } from '@shared/models/dashboard.models';
 @Component({
   selector: 'tb-home-links',
   templateUrl: './home-links.component.html',
-  styleUrls: ['./home-links.component.scss']
+  styleUrls: ['./home-links.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeLinksComponent implements OnInit {
 
@@ -58,6 +59,7 @@ export class HomeLinksComponent implements OnInit {
 
   constructor(private menuService: MenuService,
               public breakpointObserver: BreakpointObserver,
+              private cd: ChangeDetectorRef,
               private route: ActivatedRoute) {
   }
 
@@ -78,6 +80,7 @@ export class HomeLinksComponent implements OnInit {
     if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-lg'])) {
       this.cols = 4;
     }
+    this.cd.detectChanges();
   }
 
   sectionPlaces(section: HomeSection): HomeSectionPlace[] {

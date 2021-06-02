@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -150,7 +150,7 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
             this.firmwareId = deviceProfile.getFirmwareId().getId();
         }
         if (deviceProfile.getSoftwareId() != null) {
-            this.firmwareId = deviceProfile.getSoftwareId().getId();
+            this.softwareId = deviceProfile.getSoftwareId().getId();
         }
     }
 
@@ -193,11 +193,11 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         deviceProfile.setProvisionDeviceKey(provisionDeviceKey);
 
         if (firmwareId != null) {
-            deviceProfile.setFirmwareId(new FirmwareId(firmwareId));
+            deviceProfile.setFirmwareId(new OtaPackageId(firmwareId));
         }
 
         if (softwareId != null) {
-            deviceProfile.setSoftwareId(new FirmwareId(softwareId));
+            deviceProfile.setSoftwareId(new OtaPackageId(softwareId));
         }
 
         return deviceProfile;

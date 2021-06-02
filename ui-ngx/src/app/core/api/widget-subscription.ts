@@ -53,12 +53,14 @@ import {
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   calculateIntervalStartEndTime,
-  calculateTsOffset, ComparisonDuration,
+  calculateTsOffset,
+  ComparisonDuration,
   createSubscriptionTimewindow,
   createTimewindowForComparison,
   isHistoryTypeTimewindow,
   SubscriptionTimewindow,
-  Timewindow, timewindowTypeChanged,
+  Timewindow,
+  timewindowTypeChanged,
   toHistoryTimewindow,
   WidgetTimewindow
 } from '@app/shared/models/time/time.models';
@@ -659,12 +661,12 @@ export class WidgetSubscription implements IWidgetSubscription {
     }
   }
 
-  sendOneWayCommand(method: string, params?: any, timeout?: number): Observable<any> {
-    return this.sendCommand(true, method, params, timeout);
+  sendOneWayCommand(method: string, params?: any, timeout?: number, requestUUID?: string): Observable<any> {
+    return this.sendCommand(true, method, params, timeout, requestUUID);
   }
 
-  sendTwoWayCommand(method: string, params?: any, timeout?: number): Observable<any> {
-    return this.sendCommand(false, method, params, timeout);
+  sendTwoWayCommand(method: string, params?: any, timeout?: number, requestUUID?: string): Observable<any> {
+    return this.sendCommand(false, method, params, timeout, requestUUID);
   }
 
   clearRpcError(): void {
@@ -673,7 +675,7 @@ export class WidgetSubscription implements IWidgetSubscription {
     this.callbacks.onRpcErrorCleared(this);
   }
 
-  sendCommand(oneWayElseTwoWay: boolean, method: string, params?: any, timeout?: number): Observable<any> {
+  sendCommand(oneWayElseTwoWay: boolean, method: string, params?: any, timeout?: number, requestUUID?: string): Observable<any> {
     if (!this.rpcEnabled) {
       return throwError(new Error('Rpc disabled!'));
     } else {
@@ -684,7 +686,8 @@ export class WidgetSubscription implements IWidgetSubscription {
       }
       const requestBody: any = {
         method,
-        params
+        params,
+        requestUUID
       };
       if (timeout && timeout > 0) {
         requestBody.timeout = timeout;

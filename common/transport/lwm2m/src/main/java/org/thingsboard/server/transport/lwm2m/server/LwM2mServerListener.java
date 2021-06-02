@@ -101,7 +101,7 @@ public class LwM2mServerListener {
 
         @Override
         public void cancelled(Observation observation) {
-            String msg = String.format("%s:  Cancel Observation  %s.", LOG_LW2M_INFO, observation.getPath());
+            String msg = String.format("%s:  Canceled Observation  %s.", LOG_LW2M_INFO, observation.getPath());
             service.sendLogsToThingsboard(msg, observation.getRegistrationId());
             log.warn(msg);
         }
@@ -109,13 +109,8 @@ public class LwM2mServerListener {
         @Override
         public void onResponse(Observation observation, Registration registration, ObserveResponse response) {
             if (registration != null) {
-                try {
-                    service.onUpdateValueAfterReadResponse(registration, convertPathFromObjectIdToIdVer(observation.getPath().toString(),
-                            registration), response, null);
-                } catch (Exception e) {
-                    log.error("Observation/Read onResponse", e);
-
-                }
+                service.onUpdateValueAfterReadResponse(registration, convertPathFromObjectIdToIdVer(observation.getPath().toString(),
+                        registration), response, null);
             }
         }
 
@@ -128,9 +123,8 @@ public class LwM2mServerListener {
         public void newObservation(Observation observation, Registration registration) {
             String msg = String.format("%s: Successful start newObservation  %s.", LOG_LW2M_INFO,
                     observation.getPath());
+            log.warn(msg);
             service.sendLogsToThingsboard(msg, registration.getId());
-            log.trace(msg);
         }
     };
-
 }

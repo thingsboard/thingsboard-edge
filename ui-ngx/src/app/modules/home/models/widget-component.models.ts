@@ -156,6 +156,10 @@ export class WidgetContext {
     this.changeDetectorValue = cd;
   }
 
+  set containerChangeDetector(cd: ChangeDetectorRef) {
+    this.containerChangeDetectorValue = cd;
+  }
+
   get currentUser(): AuthUser {
     if (this.store) {
       return getCurrentAuthUser(this.store);
@@ -184,6 +188,7 @@ export class WidgetContext {
   router: Router;
 
   private changeDetectorValue: ChangeDetectorRef;
+  private containerChangeDetectorValue: ChangeDetectorRef;
 
   inited = false;
   destroyed = false;
@@ -205,16 +210,16 @@ export class WidgetContext {
   };
 
   controlApi: RpcApi = {
-    sendOneWayCommand: (method, params, timeout) => {
+    sendOneWayCommand: (method, params, timeout, requestUUID) => {
       if (this.defaultSubscription) {
-        return this.defaultSubscription.sendOneWayCommand(method, params, timeout);
+        return this.defaultSubscription.sendOneWayCommand(method, params, timeout, requestUUID);
       } else {
         return of(null);
       }
     },
-    sendTwoWayCommand: (method, params, timeout) => {
+    sendTwoWayCommand: (method, params, timeout, requestUUID) => {
       if (this.defaultSubscription) {
-        return this.defaultSubscription.sendTwoWayCommand(method, params, timeout);
+        return this.defaultSubscription.sendTwoWayCommand(method, params, timeout, requestUUID);
       } else {
         return of(null);
       }
@@ -328,6 +333,16 @@ export class WidgetContext {
       }
       try {
         this.changeDetectorValue.detectChanges();
+      } catch (e) {
+        // console.log(e);
+      }
+    }
+  }
+
+  detectContainerChanges() {
+    if (!this.destroyed) {
+      try {
+        this.containerChangeDetectorValue.detectChanges();
       } catch (e) {
         // console.log(e);
       }

@@ -145,6 +145,8 @@ export class SecurityConfigLwm2mServerComponent implements OnDestroy, ControlVal
       case Lwm2mSecurityType.NO_SEC:
         this.serverFormGroup.get('clientPublicKeyOrId').clearValidators();
         this.serverFormGroup.get('clientSecretKey').clearValidators();
+        this.serverFormGroup.get('clientPublicKeyOrId').disable({emitEvent: false});
+        this.serverFormGroup.get('clientSecretKey').disable();
         break;
       case Lwm2mSecurityType.PSK:
         this.lenMinClientPublicKeyOrId = 0;
@@ -187,5 +189,8 @@ export class SecurityConfigLwm2mServerComponent implements OnDestroy, ControlVal
       Validators.minLength(this.lengthClientSecretKey),
       Validators.maxLength(this.lengthClientSecretKey)
     ]);
+
+    this.serverFormGroup.get('clientPublicKeyOrId').enable({emitEvent: false});
+    this.serverFormGroup.get('clientSecretKey').enable();
   }
 }

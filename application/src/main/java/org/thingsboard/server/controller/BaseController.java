@@ -54,11 +54,11 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Firmware;
-import org.thingsboard.server.common.data.FirmwareInfo;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
@@ -92,9 +92,9 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -152,13 +152,14 @@ import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -178,8 +179,8 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
-import org.thingsboard.server.service.firmware.FirmwareStateService;
 import org.thingsboard.server.service.lwm2m.LwM2MServerSecurityInfoRepository;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -346,10 +347,13 @@ public abstract class BaseController {
     protected TbResourceService resourceService;
 
     @Autowired
-    protected FirmwareService firmwareService;
+    protected OtaPackageService otaPackageService;
 
     @Autowired
-    protected FirmwareStateService firmwareStateService;
+    protected OtaPackageStateService otaPackageStateService;
+
+    @Autowired
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;
@@ -498,7 +502,7 @@ public abstract class BaseController {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
-            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
             throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
@@ -607,7 +611,7 @@ public abstract class BaseController {
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> T
-                saveGroupEntity(T entity, String strEntityGroupId, Function<T, T> saveEntityFunction) throws ThingsboardException {
+    saveGroupEntity(T entity, String strEntityGroupId, Function<T, T> saveEntityFunction) throws ThingsboardException {
         try {
             entity.setTenantId(getCurrentUser().getTenantId());
 
@@ -744,8 +748,8 @@ public abstract class BaseController {
                 case TB_RESOURCE:
                     checkResourceId(new TbResourceId(entityId.getId()), operation);
                     return;
-                case FIRMWARE:
-                    checkFirmwareId(new FirmwareId(entityId.getId()), operation);
+                case OTA_PACKAGE:
+                    checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
@@ -997,7 +1001,7 @@ public abstract class BaseController {
     SchedulerEvent checkSchedulerEventId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
         try {
             validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
-            SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(getTenantId(),schedulerEventId);
+            SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(getTenantId(), schedulerEventId);
             checkNotNull(schedulerEvent);
             accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation, schedulerEventId, schedulerEvent);
             return schedulerEvent;
@@ -1079,25 +1083,25 @@ public abstract class BaseController {
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
-    Firmware checkFirmwareId(FirmwareId firmwareId, Operation operation) throws ThingsboardException {
+    OtaPackage checkOtaPackageId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {
         try {
-            validateId(firmwareId, "Incorrect firmwareId " + firmwareId);
-            Firmware firmware = firmwareService.findFirmwareById(getCurrentUser().getTenantId(), firmwareId);
-            checkNotNull(firmware);
-            accessControlService.checkPermission(getCurrentUser(), Resource.FIRMWARE, operation, firmwareId, firmware);
-            return firmware;
+            validateId(otaPackageId, "Incorrect otaPackageId " + otaPackageId);
+            OtaPackage otaPackage = otaPackageService.findOtaPackageById(getCurrentUser().getTenantId(), otaPackageId);
+            checkNotNull(otaPackage);
+            accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, operation, otaPackageId, otaPackage);
+            return otaPackage;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    FirmwareInfo checkFirmwareInfoId(FirmwareId firmwareId, Operation operation) throws ThingsboardException {
+    OtaPackageInfo checkOtaPackageInfoId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {
         try {
-            validateId(firmwareId, "Incorrect firmwareId " + firmwareId);
-            FirmwareInfo firmwareInfo = firmwareService.findFirmwareInfoById(getCurrentUser().getTenantId(), firmwareId);
-            checkNotNull(firmwareInfo);
-            accessControlService.checkPermission(getCurrentUser(), Resource.FIRMWARE, operation, firmwareId, firmwareInfo);
-            return firmwareInfo;
+            validateId(otaPackageId, "Incorrect otaPackageId " + otaPackageId);
+            OtaPackageInfo otaPackageIn = otaPackageService.findOtaPackageInfoById(getCurrentUser().getTenantId(), otaPackageId);
+            checkNotNull(otaPackageIn);
+            accessControlService.checkPermission(getCurrentUser(), Resource.OTA_PACKAGE, operation, otaPackageId, otaPackageIn);
+            return otaPackageIn;
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -1340,7 +1344,7 @@ public abstract class BaseController {
 
     protected <E> PageData<E> toPageData(List<E> entities, PageLink pageLink) {
         int totalElements = entities.size();
-        int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil((float)totalElements / pageLink.getPageSize()) : 1;
+        int totalPages = pageLink.getPageSize() > 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;
         boolean hasNext = false;
         if (pageLink.getPageSize() > 0) {
             int startIndex = pageLink.getPageSize() * pageLink.getPage();
@@ -1361,7 +1365,7 @@ public abstract class BaseController {
     protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
         int result = e1.getSearchText().compareToIgnoreCase(e2.getSearchText());
         if (result == 0) {
-            result = (int)(e2.getCreatedTime() - e1.getCreatedTime());
+            result = (int) (e2.getCreatedTime() - e1.getCreatedTime());
         }
         return result;
     };
@@ -1458,7 +1462,7 @@ public abstract class BaseController {
     }
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
-                                                EntityGroupId entityGroupId) {
+                                                  EntityGroupId entityGroupId) {
         sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 

@@ -464,6 +464,7 @@
       [callbacks]="widgetConfigCallbacks"
       [actionTypes]="widgetActionTypesList"
       [customFunctionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+      [widgetType] = "modelValue.widgetType"
       formControlName="actionsData">
     </tb-manage-widget-actions>
   </mat-tab>

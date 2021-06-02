@@ -37,14 +37,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Device;
 import org.junit.rules.ExpectedException;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.Firmware;
+import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -57,7 +58,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.thingsboard.server.common.data.firmware.FirmwareType.FIRMWARE;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
@@ -200,7 +201,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         Assert.assertEquals(20, deviceCredentials.getCredentialsId().length());
 
 
-        Firmware firmware = new Firmware();
+        OtaPackage firmware = new OtaPackage();
         firmware.setTenantId(tenantId);
         firmware.setDeviceProfileId(device.getDeviceProfileId());
         firmware.setType(FIRMWARE);
@@ -208,10 +209,10 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         firmware.setVersion("v1.0");
         firmware.setFileName("test.txt");
         firmware.setContentType("text/plain");
-        firmware.setChecksumAlgorithm("sha256");
+        firmware.setChecksumAlgorithm(ChecksumAlgorithm.SHA256);
         firmware.setChecksum("4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a");
         firmware.setData(ByteBuffer.wrap(new byte[]{1}));
-        Firmware savedFirmware = firmwareService.saveFirmware(firmware);
+        OtaPackage savedFirmware = otaPackageService.saveOtaPackage(firmware);
 
         savedDevice.setFirmwareId(savedFirmware.getId());
 
@@ -234,7 +235,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         DeviceProfile savedProfile = deviceProfileService.saveDeviceProfile(deviceProfile);
         Assert.assertNotNull(savedProfile);
 
-        Firmware firmware = new Firmware();
+        OtaPackage firmware = new OtaPackage();
         firmware.setTenantId(tenantId);
         firmware.setDeviceProfileId(savedProfile.getId());
         firmware.setType(FIRMWARE);
@@ -242,10 +243,10 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         firmware.setVersion("v1.0");
         firmware.setFileName("test.txt");
         firmware.setContentType("text/plain");
-        firmware.setChecksumAlgorithm("sha256");
+        firmware.setChecksumAlgorithm(ChecksumAlgorithm.SHA256);
         firmware.setChecksum("4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a");
         firmware.setData(ByteBuffer.wrap(new byte[]{1}));
-        Firmware savedFirmware = firmwareService.saveFirmware(firmware);
+        OtaPackage savedFirmware = otaPackageService.saveOtaPackage(firmware);
 
         savedDevice.setFirmwareId(savedFirmware.getId());
 
@@ -253,7 +254,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         thrown.expectMessage("Can't assign firmware with different deviceProfile!");
         deviceService.saveDevice(savedDevice);
     }
-    
+
     @Test(expected = DataValidationException.class)
     public void testSaveDeviceWithEmptyName() {
         Device device = new Device();
@@ -296,24 +297,24 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     public void testFindDeviceTypesByTenantId() throws Exception {
         List<Device> devices = new ArrayList<>();
         try {
-            for (int i=0;i<3;i++) {
+            for (int i = 0; i < 3; i++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
-                device.setName("My device B"+i);
+                device.setName("My device B" + i);
                 device.setType("typeB");
                 devices.add(deviceService.saveDevice(device));
             }
-            for (int i=0;i<7;i++) {
+            for (int i = 0; i < 7; i++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
-                device.setName("My device C"+i);
+                device.setName("My device C" + i);
                 device.setType("typeC");
                 devices.add(deviceService.saveDevice(device));
             }
-            for (int i=0;i<9;i++) {
+            for (int i = 0; i < 9; i++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
-                device.setName("My device A"+i);
+                device.setName("My device A" + i);
                 device.setType("typeA");
                 devices.add(deviceService.saveDevice(device));
             }
@@ -324,7 +325,9 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
             Assert.assertEquals("typeB", deviceTypes.get(1).getType());
             Assert.assertEquals("typeC", deviceTypes.get(2).getType());
         } finally {
-            devices.forEach((device) -> { deviceService.deleteDevice(tenantId, device.getId()); });
+            devices.forEach((device) -> {
+                deviceService.deleteDevice(tenantId, device.getId());
+            });
         }
     }
 
@@ -353,10 +356,10 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         TenantId tenantId = tenant.getId();
 
         List<Device> devices = new ArrayList<>();
-        for (int i=0;i<178;i++) {
+        for (int i = 0; i < 178; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            device.setName("Device"+i);
+            device.setName("Device" + i);
             device.setType("default");
             devices.add(deviceService.saveDevice(device));
         }
@@ -391,11 +394,11 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     public void testFindDevicesByTenantIdAndName() {
         String title1 = "Device title 1";
         List<Device> devicesTitle1 = new ArrayList<>();
-        for (int i=0;i<143;i++) {
+        for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1+suffix;
+            String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
@@ -403,17 +406,17 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         }
         String title2 = "Device title 2";
         List<Device> devicesTitle2 = new ArrayList<>();
-        for (int i=0;i<175;i++) {
+        for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2+suffix;
+            String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
             devicesTitle2.add(deviceService.saveDevice(device));
         }
-        
+
         List<Device> loadedDevicesTitle1 = new ArrayList<>();
 
         PageLink pageLink = new PageLink(15, 0, title1);
@@ -471,11 +474,11 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         String title1 = "Device title 1";
         String type1 = "typeA";
         List<Device> devicesType1 = new ArrayList<>();
-        for (int i=0;i<143;i++) {
+        for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1+suffix;
+            String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType(type1);
@@ -484,11 +487,11 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         String title2 = "Device title 2";
         String type2 = "typeB";
         List<Device> devicesType2 = new ArrayList<>();
-        for (int i=0;i<175;i++) {
+        for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2+suffix;
+            String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType(type2);

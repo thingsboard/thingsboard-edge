@@ -54,7 +54,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
 import { EdgeService } from '@core/http/edge.service';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
-import { FirmwareService } from '@core/http/firmware.service';
+import { OtaPackageService } from '@core/http/ota-package.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -82,6 +82,6 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['importExport', ImportExportService],
    ['schedulerEventService', SchedulerEventService],
    ['deviceProfileService', DeviceProfileService],
-   ['firmwareService', FirmwareService]
+   ['otaPackageService', OtaPackageService]
   ]
 );

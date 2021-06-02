@@ -63,8 +63,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.FirmwareId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -92,8 +92,8 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -172,7 +172,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     private ResourceService resourceService;
 
     @Autowired
-    private FirmwareService firmwareService;
+    private OtaPackageService otaPackageService;
 
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
@@ -396,7 +396,8 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 String assignedCustomersStr = assignedCustomers.toString();
                 if (!StringUtils.isEmpty(assignedCustomersStr)) {
                     try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {}));
+                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {
+                        }));
                     } catch (IllegalArgumentException e) {
                         log.warn("Unable to parse assigned customers!", e);
                     }
@@ -595,8 +596,8 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case TB_RESOURCE:
                 hasName = resourceService.findResourceInfoByIdAsync(tenantId, new TbResourceId(entityId.getId()));
                 break;
-            case FIRMWARE:
-                hasName = firmwareService.findFirmwareInfoByIdAsync(tenantId, new FirmwareId(entityId.getId()));
+            case OTA_PACKAGE:
+                hasName = otaPackageService.findOtaPackageInfoByIdAsync(tenantId, new OtaPackageId(entityId.getId()));
                 break;
             default:
                 throw new IllegalStateException("Not Implemented!");
@@ -623,9 +624,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case DEVICE_PROFILE:
             case API_USAGE_STATE:
             case TB_RESOURCE:
-            case FIRMWARE:
             case SCHEDULER_EVENT:
             case BLOB_ENTITY:
+            case OTA_PACKAGE:
                 break;
             case CUSTOMER:
                 hasCustomerId = () -> new CustomerId(entityId.getId());
@@ -651,7 +652,8 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case ALARM:
                 try {
                     hasCustomerId = alarmService.findAlarmByIdAsync(tenantId, new AlarmId(entityId.getId())).get();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
                 break;
             case ENTITY_VIEW:
                 hasCustomerId = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));

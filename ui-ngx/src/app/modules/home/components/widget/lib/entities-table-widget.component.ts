@@ -56,7 +56,16 @@ import {
 import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { createLabelFromDatasource, deepClone, hashCode, isDefined, isNumber, isObject } from '@core/utils';
+import {
+  checkNumericStringAndConvert,
+  createLabelFromDatasource,
+  deepClone,
+  hashCode,
+  isDefined,
+  isDefinedAndNotNull,
+  isNumber,
+  isObject
+} from '@core/utils';
 import cssjs from '@core/css/css';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -187,6 +196,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.editColumnsToDisplay($event);
     }
   };
+
+  private postProcessingFunctionMap = new Map<string, any>();
 
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
@@ -681,7 +692,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         entityName = entity.entityName;
         entityLabel = entity.entityLabel;
       }
-      this.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName, null, entityLabel);
+      this.ctx.actionsApi.handleWidgetAction($event, descriptors[0], entityId, entityName, {entity}, entityLabel);
     }
   }
 
@@ -697,7 +708,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       entityName = entity.entityName;
       entityLabel = entity.entityLabel;
     }
-    this.ctx.actionsApi.handleWidgetAction($event, actionDescriptor, entityId, entityName, null, entityLabel);
+    this.ctx.actionsApi.handleWidgetAction($event, actionDescriptor, entityId, entityName, {entity}, entityLabel);
   }
 
   customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
@@ -775,7 +786,30 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     columns.forEach(column => {
       if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
         if (latest) {
-          entity[column.label] = getLatestDataValue(latest, column.entityKey.type, column.entityKey.key, '');
+          let dataValue: any = '';
+          let tsValue;
+          const fields = latest[column.entityKey.type];
+          if (fields) {
+            tsValue = fields[column.entityKey.key];
+            if (tsValue && isDefinedAndNotNull(tsValue.value)) {
+              dataValue = tsValue.value;
+            }
+          }
+          if (column.usePostProcessing && column.postFuncBody) {
+            if (!this.postProcessingFunctionMap.has(column.label)) {
+              const postFunction = new Function('time', 'value', 'prevValue', 'timePrev', 'prevOrigValue',
+                column.postFuncBody);
+              this.postProcessingFunctionMap.set(column.label, postFunction);
+            }
+
+            dataValue = checkNumericStringAndConvert(dataValue);
+            let dataTs = 0;
+            if (tsValue && isDefinedAndNotNull(tsValue.ts)) {
+              dataTs = tsValue.ts;
+            }
+            dataValue = this.postProcessingFunctionMap.get(column.label)(dataTs, dataValue, 0, 0, 0);
+          }
+          entity[column.label] = dataValue;
         } else {
           entity[column.label] = '';
         }
@@ -787,7 +821,6 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     });
     return dataObj;
   }
-
 }
 
 class EntityDatasource implements DataSource<EntityData> {
