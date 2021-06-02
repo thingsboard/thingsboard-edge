@@ -93,20 +93,20 @@
         </mat-error>
       </mat-form-field>
       <section *ngIf="!isAdd && entity?.type === 'DEVICE'">
-        <tb-firmware-autocomplete
+        <tb-ota-package-autocomplete
           [useFullEntityId]="true"
-          [type]="firmwareTypes.FIRMWARE"
+          [type]="packageTypes.FIRMWARE"
           [deviceGroupId]="entity?.id?.id"
           [deviceGroupAll]="isGroupAll"
           formControlName="firmwareId">
-        </tb-firmware-autocomplete>
-        <tb-firmware-autocomplete
+        </tb-ota-package-autocomplete>
+        <tb-ota-package-autocomplete
           [useFullEntityId]="true"
-          [type]="firmwareTypes.SOFTWARE"
+          [type]="packageTypes.SOFTWARE"
           [deviceGroupId]="entity?.id?.id"
           [deviceGroupAll]="isGroupAll"
           formControlName="softwareId">
-        </tb-firmware-autocomplete>
+        </tb-ota-package-autocomplete>
       </section>
       <div formGroupName="additionalInfo" fxLayout="column">
         <mat-form-field class="mat-block">

@@ -41,7 +41,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
-import { FirmwareType } from '@shared/models/firmware.models';
+import { OtaUpdateType } from '@shared/models/ota-package.models';
 
 @Component({
   selector: 'tb-update-firmware-event-config',
@@ -59,7 +59,7 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
   modelValue: SchedulerEventConfiguration | null;
   updateFirmwareForm: FormGroup;
   currentGroupType: EntityType;
-  firmwareType = FirmwareType.FIRMWARE;
+  packageType = OtaUpdateType.FIRMWARE;
   profileId: string;
   groupId: string;
   groupAll = false;
@@ -106,7 +106,7 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
 
   ngOnInit() {
     if (isDefinedAndNotNull(this.updateFirmwareForm) && this.schedulerEventType === 'updateSoftware') {
-      this.firmwareType = FirmwareType.SOFTWARE;
+      this.packageType = OtaUpdateType.SOFTWARE;
     }
   }
 

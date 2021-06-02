@@ -50,7 +50,7 @@ import { ClipboardService } from 'ngx-clipboard';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { Subject } from 'rxjs';
-import { FirmwareType } from '@shared/models/firmware.models';
+import { OtaUpdateType } from '@shared/models/ota-package.models';
 
 @Component({
   selector: 'tb-device',
@@ -65,7 +65,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
 //  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
 
-  firmwareTypes = FirmwareType;
+  otaUpdateType = OtaUpdateType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,

@@ -50,9 +50,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportContext;
 import org.thingsboard.server.common.transport.TransportService;
@@ -62,7 +62,10 @@ import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsRes
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetOtaPackageRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetOtaPackageResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ResponseStatus;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
@@ -73,9 +76,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseM
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetFirmwareRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetFirmwareResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -231,7 +231,7 @@ public class DeviceApiController implements TbTransportService {
                                                       @RequestParam(value = "version") String version,
                                                       @RequestParam(value = "size", required = false, defaultValue = "0") int size,
                                                       @RequestParam(value = "chunk", required = false, defaultValue = "0") int chunk) {
-        return getFirmwareCallback(deviceToken, title, version, size, chunk, FirmwareType.FIRMWARE);
+        return getOtaPackageCallback(deviceToken, title, version, size, chunk, OtaPackageType.FIRMWARE);
     }
 
     @RequestMapping(value = "/{deviceToken}/software", method = RequestMethod.GET)
@@ -240,7 +240,7 @@ public class DeviceApiController implements TbTransportService {
                                                       @RequestParam(value = "version") String version,
                                                       @RequestParam(value = "size", required = false, defaultValue = "0") int size,
                                                       @RequestParam(value = "chunk", required = false, defaultValue = "0") int chunk) {
-        return getFirmwareCallback(deviceToken, title, version, size, chunk, FirmwareType.SOFTWARE);
+        return getOtaPackageCallback(deviceToken, title, version, size, chunk, OtaPackageType.SOFTWARE);
     }
 
     @RequestMapping(value = "/provision", method = RequestMethod.POST)
@@ -251,17 +251,17 @@ public class DeviceApiController implements TbTransportService {
         return responseWriter;
     }
 
-    private DeferredResult<ResponseEntity> getFirmwareCallback(String deviceToken, String title, String version, int size, int chunk, FirmwareType firmwareType) {
+    private DeferredResult<ResponseEntity> getOtaPackageCallback(String deviceToken, String title, String version, int size, int chunk, OtaPackageType firmwareType) {
         DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
         transportContext.getTransportService().process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(deviceToken).build(),
                 new DeviceAuthCallback(transportContext, responseWriter, sessionInfo -> {
-                    GetFirmwareRequestMsg requestMsg = GetFirmwareRequestMsg.newBuilder()
+                    GetOtaPackageRequestMsg requestMsg = GetOtaPackageRequestMsg.newBuilder()
                             .setTenantIdMSB(sessionInfo.getTenantIdMSB())
                             .setTenantIdLSB(sessionInfo.getTenantIdLSB())
                             .setDeviceIdMSB(sessionInfo.getDeviceIdMSB())
                             .setDeviceIdLSB(sessionInfo.getDeviceIdLSB())
                             .setType(firmwareType.name()).build();
-                    transportContext.getTransportService().process(sessionInfo, requestMsg, new GetFirmwareCallback(responseWriter, title, version, size, chunk));
+                    transportContext.getTransportService().process(sessionInfo, requestMsg, new GetOtaPackageCallback(responseWriter, title, version, size, chunk));
                 }));
         return responseWriter;
     }
@@ -312,14 +312,14 @@ public class DeviceApiController implements TbTransportService {
         }
     }
 
-    private class GetFirmwareCallback implements TransportServiceCallback<GetFirmwareResponseMsg> {
+    private class GetOtaPackageCallback implements TransportServiceCallback<GetOtaPackageResponseMsg> {
         private final DeferredResult<ResponseEntity> responseWriter;
         private final String title;
         private final String version;
         private final int chuckSize;
         private final int chuck;
 
-        GetFirmwareCallback(DeferredResult<ResponseEntity> responseWriter, String title, String version, int chuckSize, int chuck) {
+        GetOtaPackageCallback(DeferredResult<ResponseEntity> responseWriter, String title, String version, int chuckSize, int chuck) {
             this.responseWriter = responseWriter;
             this.title = title;
             this.version = version;
@@ -328,17 +328,17 @@ public class DeviceApiController implements TbTransportService {
         }
 
         @Override
-        public void onSuccess(GetFirmwareResponseMsg firmwareResponseMsg) {
-            if (!ResponseStatus.SUCCESS.equals(firmwareResponseMsg.getResponseStatus())) {
+        public void onSuccess(GetOtaPackageResponseMsg otaPackageResponseMsg) {
+            if (!ResponseStatus.SUCCESS.equals(otaPackageResponseMsg.getResponseStatus())) {
                 responseWriter.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-            } else if (title.equals(firmwareResponseMsg.getTitle()) && version.equals(firmwareResponseMsg.getVersion())) {
-                String firmwareId = new UUID(firmwareResponseMsg.getFirmwareIdMSB(), firmwareResponseMsg.getFirmwareIdLSB()).toString();
-                ByteArrayResource resource = new ByteArrayResource(transportContext.getFirmwareDataCache().get(firmwareId, chuckSize, chuck));
+            } else if (title.equals(otaPackageResponseMsg.getTitle()) && version.equals(otaPackageResponseMsg.getVersion())) {
+                String otaPackageId = new UUID(otaPackageResponseMsg.getOtaPackageIdMSB(), otaPackageResponseMsg.getOtaPackageIdLSB()).toString();
+                ByteArrayResource resource = new ByteArrayResource(transportContext.getOtaPackageDataCache().get(otaPackageId, chuckSize, chuck));
                 ResponseEntity<ByteArrayResource> response = ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + firmwareResponseMsg.getFileName())
-                        .header("x-filename", firmwareResponseMsg.getFileName())
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + otaPackageResponseMsg.getFileName())
+                        .header("x-filename", otaPackageResponseMsg.getFileName())
                         .contentLength(resource.contentLength())
-                        .contentType(parseMediaType(firmwareResponseMsg.getContentType()))
+                        .contentType(parseMediaType(otaPackageResponseMsg.getContentType()))
                         .body(resource);
                 responseWriter.setResult(response);
             } else {

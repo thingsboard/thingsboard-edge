@@ -39,21 +39,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.firmware.DeviceGroupFirmware;
-import org.thingsboard.server.common.data.firmware.FirmwareInfo;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.FirmwareId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
@@ -65,9 +65,9 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.firmware.DeviceGroupFirmwareService;
-import org.thingsboard.server.dao.firmware.FirmwareService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -75,7 +75,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.firmware.FirmwareStateService;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
@@ -111,12 +111,12 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private final TbClusterService clusterService;
     private final PartitionService partitionService;
     private final SchedulerEventService schedulerEventService;
-    private final FirmwareStateService firmwareStateService;
+    private final OtaPackageStateService firmwareStateService;
     private final DeviceService deviceService;
     private final DeviceProfileService deviceProfileService;
     private final EntityGroupService entityGroupService;
-    private final DeviceGroupFirmwareService deviceGroupFirmwareService;
-    private final FirmwareService firmwareService;
+    private final DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+    private final OtaPackageService otaPackageService;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
@@ -282,12 +282,12 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                     boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(event.getType());
 
                     if (isFirmwareUpdate || isSoftwareUpdate) {
-                        FirmwareId firmwareId = JacksonUtil.convertValue(configuration.get("msgBody"), FirmwareId.class);
+                        OtaPackageId firmwareId = JacksonUtil.convertValue(configuration.get("msgBody"), OtaPackageId.class);
 
-                        FirmwareInfo firmwareInfo = firmwareService.findFirmwareById(tenantId, firmwareId);
+                        OtaPackageInfo firmwareInfo = otaPackageService.findOtaPackageInfoById(tenantId, firmwareId);
 
                         if (firmwareInfo == null) {
-                            throw new RuntimeException("Failed to process event: Firmware with id [" + firmwareId + "] not found!");
+                            throw new RuntimeException("Failed to process event: OtaPackage with id [" + firmwareId + "] not found!");
                         }
 
                         switch (originatorId.getEntityType()) {
@@ -308,15 +308,15 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                                 if (deviceGroup == null) {
                                     throw new RuntimeException("Failed to process event: Device group with id [" + originatorId + "] not found!");
                                 }
-                                DeviceGroupFirmware oldDgf = deviceGroupFirmwareService.findDeviceGroupFirmwareByGroupIdAndFirmwareType(deviceGroup.getId(), firmwareInfo.getType());
-                                DeviceGroupFirmware dgf = new DeviceGroupFirmware();
-                                dgf.setFirmwareType(firmwareInfo.getType());
-                                dgf.setGroupId(deviceGroup.getId());
-                                dgf.setFirmwareId(firmwareId);
+                                DeviceGroupOtaPackage oldDgf = deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(deviceGroup.getId(), firmwareInfo.getType());
+                                DeviceGroupOtaPackage dgop = new DeviceGroupOtaPackage();
+                                dgop.setOtaPackageType(firmwareInfo.getType());
+                                dgop.setGroupId(deviceGroup.getId());
+                                dgop.setOtaPackageId(firmwareId);
                                 if (oldDgf != null) {
-                                    dgf.setId(oldDgf.getId());
+                                    dgop.setId(oldDgf.getId());
                                 }
-                                firmwareStateService.update(tenantId, deviceGroupFirmwareService.saveDeviceGroupFirmware(tenantId, dgf), oldDgf);
+                                firmwareStateService.update(tenantId, deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, dgop), oldDgf);
                                 break;
                             case DEVICE_PROFILE:
                                 DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, (DeviceProfileId) originatorId);

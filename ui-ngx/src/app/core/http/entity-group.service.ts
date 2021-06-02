@@ -49,9 +49,9 @@ import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { map, mergeMap } from 'rxjs/operators';
 import { BaseData, HasId, sortEntitiesByIds } from '@shared/models/base-data';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
-import { FirmwareService } from '@core/http/firmware.service';
-import { FirmwareGroupInfo, FirmwareType } from '@shared/models/firmware.models';
-import { FirmwareId } from '@shared/models/id/firmware-id';
+import { OtaPackageService } from '@core/http/ota-package.service';
+import { DeviceGroupOtaPackage, OtaUpdateType} from '@shared/models/ota-package.models';
+import { OtaPackageId } from '@shared/models/id/ota-package-id';
 
 @Injectable({
   providedIn: 'root'
@@ -60,7 +60,7 @@ export class EntityGroupService {
 
   constructor(
     private http: HttpClient,
-    private firmwareService: FirmwareService
+    private otaPackageService: OtaPackageService
   ) {}
 
   public getOwners(pageLink: PageLink, config?: RequestConfig): Observable<PageData<ContactBased<EntityId>>> {
@@ -75,24 +75,24 @@ export class EntityGroupService {
           group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
           return group;
         }),
-        mergeMap(group => this.fetchFirmwareGroupInfo(group, config))
+        mergeMap(group => this.fetchOtaPackageGroupInfo(group, config))
     );
   }
 
-  public fetchFirmwareGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<EntityGroupInfo> {
+  public fetchOtaPackageGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<EntityGroupInfo> {
     if (isDefinedAndNotNull(group) && group.type === EntityType.DEVICE && !group.groupAll) {
       const tasks = [];
-      tasks.push(this.firmwareService.getFirmwareInfoByDeviceGroupId(group.id.id, FirmwareType.FIRMWARE, config));
-      tasks.push(this.firmwareService.getFirmwareInfoByDeviceGroupId(group.id.id, FirmwareType.SOFTWARE, config));
+      tasks.push(this.otaPackageService.getOtaPackageInfoByDeviceGroupId(group.id.id, OtaUpdateType.FIRMWARE, config));
+      tasks.push(this.otaPackageService.getOtaPackageInfoByDeviceGroupId(group.id.id, OtaUpdateType.SOFTWARE, config));
       return forkJoin(tasks).pipe(
-        map(([firmware, software]: FirmwareGroupInfo[]) => {
+        map(([firmware, software]: DeviceGroupOtaPackage[]) => {
           if (isDefinedAndNotNull(firmware)) {
             group.firmwareGroup = firmware;
-            group.firmwareId = deepClone(firmware.firmwareId);
+            group.firmwareId = deepClone(firmware.otaPackageId);
           }
           if (isDefinedAndNotNull(software)) {
             group.softwareGroup = software;
-            group.softwareId = deepClone(software.firmwareId);
+            group.softwareId = deepClone(software.otaPackageId);
           }
           return group;
         })
@@ -101,51 +101,52 @@ export class EntityGroupService {
     return of(group);
   }
 
-  public updateDeviceGroupFirmware(firmwareGroup: FirmwareGroupInfo, firmwareId: FirmwareId | null,
-                                   groupId: EntityGroupId, firmwareType: FirmwareType,
-                                   config?: RequestConfig): Observable<FirmwareGroupInfo> {
-    if (isDefinedAndNotNull(firmwareGroup)) {
-      if (firmwareId === null) {
-        return this.deleteDeviceGroupFirmware(firmwareGroup.id, config);
-      } else if (firmwareId.id !== firmwareGroup.firmwareId.id) {
-        firmwareGroup.firmwareId = firmwareId;
-        return this.saveDeviceGroupFirmware(firmwareGroup, config);
+  public updateDeviceGroupOtaPackage(deviceGroupOtaPackage: DeviceGroupOtaPackage, otaPackageId: OtaPackageId | null,
+                                     groupId: EntityGroupId, otaPackageType: OtaUpdateType,
+                                     config?: RequestConfig): Observable<DeviceGroupOtaPackage> {
+    if (isDefinedAndNotNull(deviceGroupOtaPackage)) {
+      if (otaPackageId === null) {
+        return this.deleteDeviceGroupOtaPackage(deviceGroupOtaPackage.id, config);
+      } else if (otaPackageId.id !== deviceGroupOtaPackage.otaPackageId.id) {
+        deviceGroupOtaPackage.otaPackageId = otaPackageId;
+        return this.saveDeviceGroupOtaPackage(deviceGroupOtaPackage, config);
       } else {
-        return of(firmwareGroup);
+        return of(deviceGroupOtaPackage);
       }
-    } else if (isDefinedAndNotNull(firmwareId)) {
-      const newFirmwareGroup: FirmwareGroupInfo = {
-        firmwareId,
-        firmwareType,
+    } else if (isDefinedAndNotNull(otaPackageId)) {
+      const groupOtaPackage: DeviceGroupOtaPackage = {
+        otaPackageId,
+        otaPackageType,
         groupId
       };
-      return this.saveDeviceGroupFirmware(newFirmwareGroup, config);
+      return this.saveDeviceGroupOtaPackage(groupOtaPackage, config);
     }
     return of(null);
   }
 
-  public saveDeviceGroupFirmware(firmwareGroup: FirmwareGroupInfo, config?: RequestConfig ): Observable<FirmwareGroupInfo> {
-    return this.http.post<FirmwareGroupInfo>('/api/deviceGroupFirmware', firmwareGroup, defaultHttpOptionsFromConfig(config));
+  public saveDeviceGroupOtaPackage(deviceGroupOtaPackage: DeviceGroupOtaPackage,
+                                   config?: RequestConfig ): Observable<DeviceGroupOtaPackage> {
+    return this.http.post<DeviceGroupOtaPackage>('/api/deviceGroupOtaPackage', deviceGroupOtaPackage, defaultHttpOptionsFromConfig(config));
   }
 
   public saveDeviceEntityGroup(entityGroup: EntityGroupInfo, config?: RequestConfig) {
     if (isDefinedAndNotNull(entityGroup.id)) {
       const tasks = [];
-      tasks.push(this.updateDeviceGroupFirmware(entityGroup.firmwareGroup, entityGroup.firmwareId,
-        entityGroup.id, FirmwareType.FIRMWARE, config));
-      tasks.push(this.updateDeviceGroupFirmware(entityGroup.softwareGroup, entityGroup.softwareId,
-        entityGroup.id, FirmwareType.SOFTWARE, config));
+      tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.firmwareGroup, entityGroup.firmwareId,
+        entityGroup.id, OtaUpdateType.FIRMWARE, config));
+      tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.softwareGroup, entityGroup.softwareId,
+        entityGroup.id, OtaUpdateType.SOFTWARE, config));
       delete entityGroup.firmwareId;
       delete entityGroup.firmwareGroup;
       delete entityGroup.softwareId;
       delete entityGroup.softwareGroup;
       tasks.push(this.saveEntityGroup(entityGroup, config));
       return forkJoin(tasks).pipe(
-        map(([firmware, software, savedEntityGroup]: [FirmwareGroupInfo, FirmwareGroupInfo, EntityGroupInfo]) => {
+        map(([firmware, software, savedEntityGroup]: [DeviceGroupOtaPackage, DeviceGroupOtaPackage, EntityGroupInfo]) => {
             return Object.assign(savedEntityGroup, {
-              firmwareId: deepClone(firmware?.firmwareId),
+              firmwareId: deepClone(firmware?.otaPackageId),
               firmwareGroup: firmware,
-              softwareId: deepClone(software?.firmwareId),
+              softwareId: deepClone(software?.otaPackageId),
               softwareGroup: software
             });
           }
@@ -154,8 +155,8 @@ export class EntityGroupService {
     return this.saveEntityGroup(entityGroup, config);
   }
 
-  public deleteDeviceGroupFirmware(deviceGroupFirmwareId: string, config?: RequestConfig ) {
-    return this.http.delete<null>(`/api/DeviceGroupFirmware/${deviceGroupFirmwareId}`, defaultHttpOptionsFromConfig(config));
+  public deleteDeviceGroupOtaPackage(otaPackageId: string, config?: RequestConfig ) {
+    return this.http.delete<null>(`/api/deviceGroupOtaPackage/${otaPackageId}`, defaultHttpOptionsFromConfig(config));
   }
 
   public saveEntityGroup(entityGroup: EntityGroup, config?: RequestConfig): Observable<EntityGroupInfo> {

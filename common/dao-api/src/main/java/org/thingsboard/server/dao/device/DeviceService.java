@@ -36,12 +36,12 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
-import org.thingsboard.server.common.data.firmware.FirmwareType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -100,13 +100,17 @@ public interface DeviceService {
 
     long countByTenantId(TenantId tenantId);
 
-    PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyFirmware(EntityGroupId groupId,
-                                                                       DeviceProfileId deviceProfileId,
-                                                                       FirmwareType firmwareType,
-                                                                       PageLink pageLink);
+    PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId,
+                                                                         DeviceProfileId deviceProfileId,
+                                                                         OtaPackageType type,
+                                                                         PageLink pageLink);
 
-    PageData<Device> findByDeviceProfileAndEmptyFirmware(TenantId tenantId,
-                                                         DeviceProfileId deviceProfileId,
-                                                         FirmwareType firmwareType,
-                                                         PageLink pageLink);
+    PageData<Device> findByDeviceProfileAndEmptyOtaPackage(TenantId tenantId,
+                                                           DeviceProfileId deviceProfileId,
+                                                           OtaPackageType type,
+                                                           PageLink pageLink);
+
+    Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId, DeviceProfileId deviceProfileId, OtaPackageType type);
+
+    Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type);
 }

@@ -40,7 +40,7 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { FirmwareType } from '@shared/models/firmware.models';
+import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 
@@ -56,7 +56,7 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
   makePublicEnabled = false;
   makePrivateEnabled = false;
   isGroupAll = false;
-  firmwareTypes = FirmwareType;
+  packageTypes = OtaUpdateType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
