@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.AbstractMessage;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.edge.rpc.EdgeGrpcClient;
@@ -78,6 +79,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -96,6 +98,11 @@ public class EdgeImitator {
     private CountDownLatch messagesLatch;
     private CountDownLatch responsesLatch;
     private List<Class<? extends AbstractMessage>> ignoredTypes;
+
+    @Setter
+    private boolean randomFailuresOnTimeseriesDownlink = false;
+    @Setter
+    private double failureProbability = 0.0;
 
     @Getter
     private EdgeConfiguration configuration;
@@ -231,7 +238,15 @@ public class EdgeImitator {
         }
         if (downlinkMsg.getEntityDataCount() > 0) {
             for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                result.add(saveDownlinkMsg(entityData));
+                if (randomFailuresOnTimeseriesDownlink) {
+                    if (getRandomBoolean()) {
+                        result.add(Futures.immediateFailedFuture(new RuntimeException("Random failure")));
+                    } else {
+                        result.add(saveDownlinkMsg(entityData));
+                    }
+                } else {
+                    result.add(saveDownlinkMsg(entityData));
+                }
             }
         }
         if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
@@ -318,6 +333,11 @@ public class EdgeImitator {
         return Futures.allAsList(result);
     }
 
+    private boolean getRandomBoolean() {
+        double randomValue = ThreadLocalRandom.current().nextDouble() * 100;
+        return randomValue <= this.failureProbability;
+    }
+
     private ListenableFuture<Void> saveDownlinkMsg(AbstractMessage message) {
         if (!ignoredTypes.contains(message.getClass())) {
             try {
@@ -335,8 +355,8 @@ public class EdgeImitator {
         return waitForMessages(5);
     }
 
-    public boolean waitForMessages(int timeout) throws InterruptedException {
-        return messagesLatch.await(timeout, TimeUnit.SECONDS);
+    public boolean waitForMessages(int timeoutInSeconds) throws InterruptedException {
+        return messagesLatch.await(timeoutInSeconds, TimeUnit.SECONDS);
     }
 
     public void expectMessageAmount(int messageAmount) {

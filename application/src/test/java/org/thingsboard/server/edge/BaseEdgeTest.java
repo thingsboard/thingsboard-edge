@@ -206,6 +206,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.expectMessageAmount(13);
         edgeImitator.connect();
+
+        testReceivedInitialData();
     }
 
     @After
@@ -221,9 +223,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     @Test
-    public void test() throws Exception {
-        testReceivedInitialData();
-
+    public void generalTest() throws Exception {
         testDevices();
 
         testAssets();
@@ -250,6 +250,55 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         testSendMessagesToCloud();
 
         testRpcCall();
+    }
+
+    @Test
+    public void testTimeseriesWithFailures() throws Exception {
+        log.info("Testing timeseries with failures");
+
+        int numberOfTimeseriesToSend = 1000;
+
+        edgeImitator.setRandomFailuresOnTimeseriesDownlink(true);
+        // imitator will generate failure in 5% of cases
+        edgeImitator.setFailureProbability(5.0);
+
+        edgeImitator.expectMessageAmount(numberOfTimeseriesToSend);
+        Device device = saveDevice("Edge Device 1", CUSTOM_DEVICE_PROFILE_NAME);
+        for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
+            String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
+            JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
+            EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED,
+                    device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
+            edgeEventService.saveAsync(edgeEvent);
+            clusterService.onEdgeEventUpdate(tenantId, edge.getId());
+        }
+
+        Assert.assertTrue(edgeImitator.waitForMessages(60));
+
+        List<EntityDataProto> allTelemetryMsgs = edgeImitator.findAllMessagesByType(EntityDataProto.class);
+        Assert.assertEquals(numberOfTimeseriesToSend, allTelemetryMsgs.size());
+
+        for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
+            Assert.assertTrue(isIdxExistsInTheDownlinkList(idx, allTelemetryMsgs));
+        }
+
+        edgeImitator.setRandomFailuresOnTimeseriesDownlink(false);
+        log.info("Timeseries with failures tested successfully");
+    }
+
+    private boolean isIdxExistsInTheDownlinkList(int idx, List<EntityDataProto> allTelemetryMsgs) {
+        for (EntityDataProto proto : allTelemetryMsgs) {
+            TransportProtos.PostTelemetryMsg postTelemetryMsg = proto.getPostTelemetryMsg();
+            Assert.assertEquals(1, postTelemetryMsg.getTsKvListCount());
+            TransportProtos.TsKvListProto tsKvListProto = postTelemetryMsg.getTsKvList(0);
+            Assert.assertEquals(1, tsKvListProto.getKvCount());
+            TransportProtos.KeyValueProto keyValueProto = tsKvListProto.getKv(0);
+            Assert.assertEquals("idx", keyValueProto.getKey());
+            if (keyValueProto.getLongV() == idx) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Device saveDevice(String deviceName, String type) throws Exception {
