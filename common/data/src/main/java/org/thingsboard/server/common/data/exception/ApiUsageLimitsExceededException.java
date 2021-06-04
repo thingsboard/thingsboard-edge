@@ -28,14 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.ota;
+package org.thingsboard.server.common.data.exception;
 
-import org.thingsboard.server.common.data.OtaPackage;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.TenantEntityDao;
-import org.thingsboard.server.dao.TenantEntityWithDataDao;
+public class ApiUsageLimitsExceededException extends RuntimeException {
+    public ApiUsageLimitsExceededException(String message) {
+        super(message);
+    }
 
-public interface OtaPackageDao extends Dao<OtaPackage>, TenantEntityWithDataDao {
-    Long sumDataSizeByTenantId(TenantId tenantId);
+    public ApiUsageLimitsExceededException() {
+    }
 }

@@ -111,6 +111,7 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         firmware.setChecksumAlgorithm(CHECKSUM_ALGORITHM);
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
+        firmware.setDataSize((long) DATA.capacity());
         OtaPackage savedOtaPackage = otaPackageService.saveOtaPackage(firmware);
         Assert.assertNotNull(savedOtaPackage);
         return savedOtaPackage;

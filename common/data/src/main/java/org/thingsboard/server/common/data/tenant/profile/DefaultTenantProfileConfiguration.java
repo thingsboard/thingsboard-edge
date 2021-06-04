@@ -52,6 +52,8 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private long maxIntegrations;
     private long maxConverters;
     private long maxSchedulerEvents;
+    private long maxResourcesInBytes;
+    private long maxOtaPackagesInBytes;
 
     private String transportTenantMsgRateLimit;
     private String transportTenantTelemetryMsgRateLimit;
@@ -71,6 +73,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private long maxCreatedAlarms;
 
     private int defaultStorageTtlDays;
+    private int alarmsTtlDays;
 
     private double warnThreshold;
 

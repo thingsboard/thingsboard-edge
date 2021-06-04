@@ -83,8 +83,10 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -371,6 +373,14 @@ public class ActorSystemContext {
     @Lazy
     @Autowired(required = false)
     @Getter private EdgeRpcService edgeRpcService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter private ResourceService resourceService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter private OtaPackageService otaPackageService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter

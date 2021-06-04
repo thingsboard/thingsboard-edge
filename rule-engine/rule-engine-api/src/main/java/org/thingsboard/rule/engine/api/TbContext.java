@@ -63,7 +63,9 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -217,6 +219,10 @@ public interface TbContext {
     RelationService getRelationService();
 
     EntityViewService getEntityViewService();
+
+    ResourceService getResourceService();
+
+    OtaPackageService getOtaPackageService();
 
     RuleEngineDeviceProfileCache getDeviceProfileCache();
 
