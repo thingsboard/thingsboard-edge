@@ -247,13 +247,13 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected EntityGroupMsgConstructor entityGroupMsgConstructor;
 
-    protected void saveEdgeEvent(TenantId tenantId,
+    protected ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
                                EdgeId edgeId,
                                EdgeEventType type,
                                EdgeEventActionType action,
                                EntityId entityId,
                                JsonNode body) {
-        saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
+        return saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
     }
 
     protected ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,

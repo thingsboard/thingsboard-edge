@@ -58,6 +58,8 @@ public interface DeviceService {
 
     Device findDeviceByTenantIdAndName(TenantId tenantId, String name);
 
+    Device saveDevice(Device device, boolean doValidate);
+
     Device saveDevice(Device device);
 
     Device saveDeviceWithAccessToken(Device device, String accessToken);
