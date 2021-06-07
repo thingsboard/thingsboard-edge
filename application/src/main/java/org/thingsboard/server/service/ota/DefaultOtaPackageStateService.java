@@ -493,7 +493,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        log.error("[{}] Failed to remove OtaPackage id attribute!!", device.getId(), t);
+                        log.error("[{}] Failed to remove target {} attributes!", device.getId(), otaPackageType, t);
                     }
                 });
     }

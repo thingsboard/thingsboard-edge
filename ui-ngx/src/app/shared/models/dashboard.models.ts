@@ -62,7 +62,6 @@ export interface WidgetLayouts {
 
 export interface GridSettings {
   backgroundColor?: string;
-  color?: string;
   columns?: number;
   margin?: number;
   backgroundSizeMode?: string;
@@ -110,6 +109,7 @@ export interface DashboardSettings {
   showDashboardExport?: boolean;
   showUpdateDashboardImage?: boolean;
   toolbarAlwaysOpen?: boolean;
+  hideToolbar?: boolean;
   titleColor?: string;
 }
 

@@ -47,6 +47,7 @@ import { OtaPackageService } from '@core/http/ota-package.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { isDefinedAndNotNull } from '@core/utils';
+import {PageData} from "@shared/models/page/page-data";
 
 @Component({
   selector: 'tb-ota-package-autocomplete',
@@ -249,11 +250,13 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
       property: 'title',
       direction: Direction.ASC
     });
-    let fetchFirmware$ = this.otaPackageService
-      .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, true, {ignoreLoading: true});
+    let fetchFirmware$: Observable<PageData<OtaPackageInfo>>;
     if (isDefinedAndNotNull(this.deviceGroupId)) {
       fetchFirmware$ = this.otaPackageService
         .getOtaPackagesInfoByDeviceGroupId(pageLink, this.deviceGroupId, this.type, {ignoreLoading: true});
+    } else{
+      fetchFirmware$ = this.otaPackageService
+        .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, {ignoreLoading: true});
     }
     return fetchFirmware$.pipe(
       map((data) => data && data.data.length ? data.data : null)

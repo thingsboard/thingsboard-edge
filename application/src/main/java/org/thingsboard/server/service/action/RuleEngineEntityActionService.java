@@ -1,4 +1,5 @@
 /**
+<<<<<<< HEAD
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -27,6 +28,21 @@
  * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+=======
+ * Copyright © 2016-2021 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+>>>>>>> opensource/master
  */
 package org.thingsboard.server.service.action;
 
@@ -69,8 +85,18 @@ public class RuleEngineEntityActionService {
 
     private static final ObjectMapper json = new ObjectMapper();
 
-    public void pushEntityActionToRuleEngine(EntityId entityId, HasName entity, TenantId tenantId, CustomerId customerId,
-                                             ActionType actionType, User user, Object... additionalInfo) {
+    public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, TenantId tenantId, CustomerId customerId,
+                                                                                     ActionType actionType, Object... additionalInfo) {
+        pushEntityActionToRuleEngine(entityId, entity, null, tenantId, customerId, actionType, additionalInfo);
+    }
+
+    public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, CustomerId customerId,
+                                                                                     ActionType actionType, Object... additionalInfo) {
+        pushEntityActionToRuleEngine(entityId, entity, user, user.getTenantId(), customerId, actionType, additionalInfo);
+    }
+
+    public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, User user, TenantId tenantId, CustomerId customerId,
+                                                                                      ActionType actionType, Object... additionalInfo) {
         String msgType = null;
         switch (actionType) {
             case ADDED:
@@ -85,6 +111,9 @@ public class RuleEngineEntityActionService {
             case ASSIGNED_TO_CUSTOMER:
                 msgType = DataConstants.ENTITY_ASSIGNED;
                 break;
+            case CHANGE_OWNER:
+                msgType = DataConstants.OWNER_CHANGED;
+                break;
             case UNASSIGNED_FROM_CUSTOMER:
                 msgType = DataConstants.ENTITY_UNASSIGNED;
                 break;
@@ -94,14 +123,17 @@ public class RuleEngineEntityActionService {
             case ATTRIBUTES_DELETED:
                 msgType = DataConstants.ATTRIBUTES_DELETED;
                 break;
+            case ADDED_TO_ENTITY_GROUP:
+                msgType = DataConstants.ADDED_TO_ENTITY_GROUP;
+                break;
+            case REMOVED_FROM_ENTITY_GROUP:
+                msgType = DataConstants.REMOVED_FROM_ENTITY_GROUP;
+                break;
             case ALARM_ACK:
                 msgType = DataConstants.ALARM_ACK;
                 break;
             case ALARM_CLEAR:
                 msgType = DataConstants.ALARM_CLEAR;
-                break;
-            case ALARM_DELETE:
-                msgType = DataConstants.ALARM_DELETE;
                 break;
             case ASSIGNED_FROM_TENANT:
                 msgType = DataConstants.ENTITY_ASSIGNED_FROM_TENANT;
@@ -131,7 +163,7 @@ public class RuleEngineEntityActionService {
         if (!StringUtils.isEmpty(msgType)) {
             try {
                 TbMsgMetaData metaData = new TbMsgMetaData();
-                if (user != null) {
+                if(user != null) {
                     metaData.putValue("userId", user.getId().toString());
                     metaData.putValue("userName", user.getName());
                 }
@@ -148,6 +180,16 @@ public class RuleEngineEntityActionService {
                     String strCustomerName = extractParameter(String.class, 2, additionalInfo);
                     metaData.putValue("unassignedCustomerId", strCustomerId);
                     metaData.putValue("unassignedCustomerName", strCustomerName);
+                } else if (actionType == ActionType.ADDED_TO_ENTITY_GROUP) {
+                    String strEntityGroupId = extractParameter(String.class, 1, additionalInfo);
+                    String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("addedToEntityGroupId", strEntityGroupId);
+                    metaData.putValue("addedToEntityGroupName", strEntityGroupName);
+                } else if (actionType == ActionType.REMOVED_FROM_ENTITY_GROUP) {
+                    String strEntityGroupId = extractParameter(String.class, 1, additionalInfo);
+                    String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
+                    metaData.putValue("removedFromEntityGroupId", strEntityGroupId);
+                    metaData.putValue("removedFromEntityGroupName", strEntityGroupName);
                 } else if (actionType == ActionType.ASSIGNED_FROM_TENANT) {
                     String strTenantId = extractParameter(String.class, 0, additionalInfo);
                     String strTenantName = extractParameter(String.class, 1, additionalInfo);
@@ -158,6 +200,10 @@ public class RuleEngineEntityActionService {
                     String strTenantName = extractParameter(String.class, 1, additionalInfo);
                     metaData.putValue("assignedToTenantId", strTenantId);
                     metaData.putValue("assignedToTenantName", strTenantName);
+                } else if (actionType == ActionType.CHANGE_OWNER) {
+                    EntityId targetOwnerId = extractParameter(EntityId.class, 0, additionalInfo);
+                    metaData.putValue("targetOwnerId", targetOwnerId.toString());
+                    metaData.putValue("targetOwnerType", targetOwnerId.getEntityType().name());
                 } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
                     String strEdgeId = extractParameter(String.class, 1, additionalInfo);
                     String strEdgeName = extractParameter(String.class, 2, additionalInfo);
@@ -224,6 +270,21 @@ public class RuleEngineEntityActionService {
         }
     }
 
+    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
+        if (kvEntry.getDataType() == DataType.BOOLEAN) {
+            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
+            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.LONG) {
+            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.JSON) {
+            if (kvEntry.getJsonValue().isPresent()) {
+                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
+            }
+        } else {
+            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
+        }
+    }
 
     private <T> T extractParameter(Class<T> clazz, int index, Object... additionalInfo) {
         T result = null;
@@ -253,19 +314,5 @@ public class RuleEngineEntityActionService {
         }
     }
 
-    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
-        if (kvEntry.getDataType() == DataType.BOOLEAN) {
-            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
-            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.LONG) {
-            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.JSON) {
-            if (kvEntry.getJsonValue().isPresent()) {
-                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
-            }
-        } else {
-            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
-        }
-    }
 }
+

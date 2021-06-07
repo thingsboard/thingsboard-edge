@@ -33,6 +33,7 @@ import { ContactBased } from '@shared/models/contact-based.model';
 import { TenantId } from './id/tenant-id';
 import { TenantProfileId } from '@shared/models/id/tenant-profile-id';
 import { BaseData } from '@shared/models/base-data';
+import {Validators} from "@angular/forms";
 
 export enum TenantProfileType {
   DEFAULT = 'DEFAULT'
