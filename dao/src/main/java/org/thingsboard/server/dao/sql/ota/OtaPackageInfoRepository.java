@@ -41,27 +41,26 @@ import org.thingsboard.server.dao.model.sql.OtaPackageInfoEntity;
 import java.util.UUID;
 
 public interface OtaPackageInfoRepository extends CrudRepository<OtaPackageInfoEntity, UUID> {
-    @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, f.data IS NOT NULL) FROM OtaPackageEntity f WHERE " +
+    @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.url, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, CASE WHEN (f.data IS NOT NULL OR f.url IS NOT NULL)  THEN true ELSE false END) FROM OtaPackageEntity f WHERE " +
             "f.tenantId = :tenantId " +
             "AND LOWER(f.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantId(@Param("tenantId") UUID tenantId,
                                                  @Param("searchText") String searchText,
                                                  Pageable pageable);
 
-    @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, f.data IS NOT NULL) FROM OtaPackageEntity f WHERE " +
+    @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.url, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, true) FROM OtaPackageEntity f WHERE " +
             "f.tenantId = :tenantId " +
             "AND f.deviceProfileId = :deviceProfileId " +
             "AND f.type = :type " +
-            "AND ((f.data IS NOT NULL AND :hasData = true) OR (f.data IS NULL AND :hasData = false ))" +
+            "AND (f.data IS NOT NULL OR f.url IS NOT NULL) " +
             "AND LOWER(f.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantIdAndTypeAndDeviceProfileIdAndHasData(@Param("tenantId") UUID tenantId,
                                                                                     @Param("deviceProfileId") UUID deviceProfileId,
                                                                                     @Param("type") OtaPackageType type,
-                                                                                    @Param("hasData") boolean hasData,
                                                                                     @Param("searchText") String searchText,
                                                                                     Pageable pageable);
 
-    @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, f.data IS NOT NULL) FROM OtaPackageEntity f WHERE f.id = :id")
+    @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.url, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, CASE WHEN (f.data IS NOT NULL OR f.url IS NOT NULL)  THEN true ELSE false END) FROM OtaPackageEntity f WHERE f.id = :id")
     OtaPackageInfoEntity findOtaPackageInfoById(@Param("id") UUID id);
 
     @Query(value = "SELECT exists(SELECT * " +
@@ -96,12 +95,12 @@ public interface OtaPackageInfoRepository extends CrudRepository<OtaPackageInfoE
             nativeQuery = true)
     OtaPackageInfoEntity findSoftwareByDeviceId(@Param("deviceId") UUID deviceId);
 
-    @Query("SELECT new OtaPackageInfoEntity(ota.id, ota.createdTime, ota.tenantId, ota.deviceProfileId, ota.type, ota.title, ota.version, ota.fileName, ota.contentType, ota.checksumAlgorithm, ota.checksum, ota.dataSize, ota.additionalInfo, ota.data IS NOT NULL) FROM OtaPackageEntity ota " +
+    @Query("SELECT new OtaPackageInfoEntity(ota.id, ota.createdTime, ota.tenantId, ota.deviceProfileId, ota.type, ota.title, ota.version, ota.url, ota.fileName, ota.contentType, ota.checksumAlgorithm, ota.checksum, ota.dataSize, ota.additionalInfo, true) FROM OtaPackageEntity ota " +
             "WHERE ota.deviceProfileId IN (SELECT d.deviceProfileId FROM DeviceEntity d " +
             "WHERE d.id IN (SELECT r.toId FROM RelationEntity r " +
             "WHERE r.fromId = :groupId AND r.fromType = 'ENTITY_GROUP' AND r.relationTypeGroup = 'FROM_ENTITY_GROUP')) " +
             "AND ota.type = :type " +
-            "AND ota.data IS NOT NULL " +
+            "AND (ota.data IS NOT NULL OR ota.url IS NOT NULL) " +
             "AND LOWER(ota.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantIdAndDeviceGroupAndTypeAndHasData(@Param("groupId") UUID groupId,
                                                                                 @Param("type") OtaPackageType type,

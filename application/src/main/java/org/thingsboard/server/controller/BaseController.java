@@ -176,6 +176,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.action.RuleEngineEntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.edge.rpc.EdgeGrpcService;
@@ -383,6 +384,9 @@ public abstract class BaseController {
 
     @Autowired(required = false)
     protected EdgeGrpcService edgeGrpcService;
+
+    @Autowired
+    protected RuleEngineEntityActionService ruleEngineEntityActionService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -1125,7 +1129,7 @@ public abstract class BaseController {
             customerId = user.getCustomerId();
         }
         if (e == null) {
-            pushEntityActionToRuleEngine(entityId, entity, user, customerId, actionType, additionalInfo);
+            ruleEngineEntityActionService.pushEntityActionToRuleEngine(entityId, entity, user.getTenantId(), customerId, actionType, user, additionalInfo);
         }
         auditLogService.logEntityAction(user.getTenantId(), customerId, user.getId(), user.getName(), entityId, entity, actionType, e, additionalInfo);
     }

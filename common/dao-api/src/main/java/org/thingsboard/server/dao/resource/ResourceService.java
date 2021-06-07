@@ -64,5 +64,5 @@ public interface ResourceService {
 
     void deleteResourcesByTenantId(TenantId tenantId);
 
-
+    long sumDataSizeByTenantId(TenantId tenantId);
 }

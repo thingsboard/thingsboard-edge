@@ -99,8 +99,10 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -523,6 +525,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityViewService getEntityViewService() {
         return mainCtx.getEntityViewService();
+    }
+
+    @Override
+    public ResourceService getResourceService() {
+        return mainCtx.getResourceService();
+    }
+
+    @Override
+    public OtaPackageService getOtaPackageService() {
+        return mainCtx.getOtaPackageService();
     }
 
     @Override

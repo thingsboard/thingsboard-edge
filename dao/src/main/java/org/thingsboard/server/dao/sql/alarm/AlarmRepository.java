@@ -32,11 +32,13 @@ package org.thingsboard.server.dao.sql.alarm;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.AlarmInfoEntity;
 
@@ -211,5 +213,8 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                          @Param("typesList") List<String> typesList,
                          @Param("severityList") List<AlarmSeverity> severityList,
                          @Param("statusList") List<AlarmStatus> statusList);
+
+    @Query("SELECT a.id FROM AlarmEntity a WHERE a.tenantId = :tenantId AND a.createdTime < :time AND a.endTs < :time")
+    Page<UUID> findAlarmsIdsByEndTsBeforeAndTenantId(@Param("time") Long time, @Param("tenantId") UUID tenantId, Pageable pageable);
 
 }
