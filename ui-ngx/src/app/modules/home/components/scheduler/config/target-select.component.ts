@@ -59,16 +59,16 @@ interface FormValue {
 }
 
 @Component({
-  selector: 'tb-target-firmware-select',
-  templateUrl: './target-firmware-select.component.html',
+  selector: 'tb-target-select',
+  templateUrl: './target-select.component.html',
   styleUrls: [],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => TargetFirmwareSelectComponent),
+    useExisting: forwardRef(() => TargetSelectComponent),
     multi: true
   }]
 })
-export class TargetFirmwareSelectComponent implements ControlValueAccessor, OnDestroy {
+export class TargetSelectComponent implements ControlValueAccessor, OnDestroy {
 
   targetFormGroup: FormGroup;
   entityType = EntityType.DEVICE;

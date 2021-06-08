@@ -30,16 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="updateFirmwareForm" fxLayout="column">
+<section [formGroup]="updatePackageForm" fxLayout="column">
   <div>
     <small translate>scheduler.target</small>
-    <tb-target-firmware-select
+    <tb-target-select
       formControlName="originatorId"
       (currentEntity)="currentEntity($event)"
       required>
-    </tb-target-firmware-select>
+    </tb-target-select>
     <tb-ota-package-autocomplete
-      formControlName="firmwareId"
+      formControlName="packageId"
       [type]="packageType"
       [deviceProfileId]="profileId"
       [deviceGroupId]="groupId"

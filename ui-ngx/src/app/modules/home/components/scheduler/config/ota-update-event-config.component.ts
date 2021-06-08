@@ -44,20 +44,20 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 
 @Component({
-  selector: 'tb-update-firmware-event-config',
-  templateUrl: './update-firmware.component.html',
+  selector: 'tb-ota-update-event-config',
+  templateUrl: './ota-update-config-event.component.html',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => UpdateFirmwareComponent),
+    useExisting: forwardRef(() => OtaUpdateEventConfigComponent),
     multi: true
   }]
 })
-export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy, OnInit {
+export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDestroy, OnInit {
 
   private destroy$ = new Subject();
 
   modelValue: SchedulerEventConfiguration | null;
-  updateFirmwareForm: FormGroup;
+  updatePackageForm: FormGroup;
   currentGroupType: EntityType;
   packageType = OtaUpdateType.FIRMWARE;
   profileId: string;
@@ -74,23 +74,23 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
 
   constructor(private store: Store<AppState>,
               private fb: FormBuilder) {
-    this.updateFirmwareForm = this.fb.group({
+    this.updatePackageForm = this.fb.group({
       originatorId: [null, Validators.required],
-      firmwareId: [{value: null, disabled: true}, Validators.required]
+      packageId: [{value: null, disabled: true}, Validators.required]
     });
 
-    this.updateFirmwareForm.get('originatorId').valueChanges.pipe(
+    this.updatePackageForm.get('originatorId').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((entityId) => {
       if (isDefinedAndNotNull(entityId)) {
-        this.updateFirmwareForm.get('firmwareId').enable({emitEvent: false});
+        this.updatePackageForm.get('packageId').enable({emitEvent: false});
       } else {
-        this.updateFirmwareForm.get('firmwareId').disable({emitEvent: false});
-        this.updateFirmwareForm.get('firmwareId').patchValue(null, {emitEvent: false});
+        this.updatePackageForm.get('packageId').disable({emitEvent: false});
+        this.updatePackageForm.get('packageId').patchValue(null, {emitEvent: false});
       }
     });
 
-    this.updateFirmwareForm.valueChanges.pipe(
+    this.updatePackageForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.updateModel();
@@ -105,7 +105,7 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
   }
 
   ngOnInit() {
-    if (isDefinedAndNotNull(this.updateFirmwareForm) && this.schedulerEventType === 'updateSoftware') {
+    if (isDefinedAndNotNull(this.updatePackageForm) && this.schedulerEventType === 'updateSoftware') {
       this.packageType = OtaUpdateType.SOFTWARE;
     }
   }
@@ -118,11 +118,11 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (this.disabled) {
-      this.updateFirmwareForm.disable({emitEvent: false});
-    } else if (isDefinedAndNotNull(this.updateFirmwareForm.get('originatorId').value)){
-      this.updateFirmwareForm.enable({emitEvent: false});
+      this.updatePackageForm.disable({emitEvent: false});
+    } else if (isDefinedAndNotNull(this.updatePackageForm.get('originatorId').value)){
+      this.updatePackageForm.enable({emitEvent: false});
     } else {
-      this.updateFirmwareForm.get('originatorId').enable({emitEvent: false});
+      this.updatePackageForm.get('originatorId').enable({emitEvent: false});
     }
   }
 
@@ -137,13 +137,13 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
       }
       let formValue = deepClone(this.modelValue);
       if (!isEqual(this.modelValue.msgBody, {})) {
-        formValue = Object.assign(formValue, {firmwareId: this.modelValue.msgBody});
-        this.updateFirmwareForm.get('firmwareId').enable({emitEvent: false});
+        formValue = Object.assign(formValue, {packageId: this.modelValue.msgBody});
+        this.updatePackageForm.get('packageId').enable({emitEvent: false});
       } else {
-        this.updateFirmwareForm.get('firmwareId').disable({emitEvent: false});
+        this.updatePackageForm.get('packageId').disable({emitEvent: false});
       }
       delete formValue.msgBody;
-      this.updateFirmwareForm.patchValue(formValue, {emitEvent: false});
+      this.updatePackageForm.patchValue(formValue, {emitEvent: false});
     }
     if (doUpdate) {
       setTimeout(() => {
@@ -153,11 +153,11 @@ export class UpdateFirmwareComponent implements ControlValueAccessor, OnDestroy,
   }
 
   private updateModel() {
-    if (this.updateFirmwareForm.valid) {
-      const value = this.updateFirmwareForm.getRawValue();
+    if (this.updatePackageForm.valid) {
+      const value = this.updatePackageForm.getRawValue();
       const msgValue = {
         originatorId: value.originatorId,
-        msgBody: value.firmwareId !== null ? value.firmwareId : {}
+        msgBody: value.packageId !== null ? value.packageId : {}
       };
       this.modelValue = {...this.modelValue, ...msgValue};
       this.propagateChange(this.modelValue);
