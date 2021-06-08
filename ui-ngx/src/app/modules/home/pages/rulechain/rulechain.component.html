@@ -47,7 +47,14 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'setRoot')"
           *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.WRITE"
-          [fxShow]="!isEdit && ((!entity?.root && ruleChainScope === 'tenant') || (!isEdgeRootRuleChain() && ruleChainScope === 'edge'))">
+          [fxShow]="!isEdit && !entity?.root && ruleChainScope === 'tenant'">
+    {{'rulechain.set-root' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'setEdgeRoot')"
+          *ngIf="resource.EDGE | hasGenericPermission: operation.WRITE"
+          [fxShow]="!isEdit && !isEdgeRootRuleChain() && ruleChainScope === 'edge'">
     {{'rulechain.set-root' | translate }}
   </button>
   <button mat-raised-button color="primary"
@@ -68,12 +75,13 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unsetAutoAssignToEdge')"
           *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.WRITE"
-          [fxShow]="!isEdit && isNotAutoAssignToEdgeRuleChain() && ruleChainScope === 'edges'">
+          [fxShow]="!isEdit && isAutoAssignToEdgeRuleChain() && ruleChainScope === 'edges'">
     {{'rulechain.unset-auto-assign-to-edge' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassignFromEdge')"
+          *ngIf="resource.EDGE | hasGenericPermission: operation.WRITE"
           [fxShow]="!isEdit && !isEdgeRootRuleChain() && ruleChainScope === 'edge'">
     {{'edge.unassign-from-edge' | translate }}
   </button>

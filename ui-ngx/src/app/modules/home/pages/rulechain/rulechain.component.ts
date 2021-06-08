@@ -126,4 +126,5 @@ export class RuleChainComponent extends EntityComponent<RuleChain> {
       return false;
     }
   }
+
 }

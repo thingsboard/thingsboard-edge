@@ -144,8 +144,8 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
       this.isWidgetsBundleEditable(widgetsBundle, authUser.authority) &&
       this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.DELETE);
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
-    const authState = getCurrentAuthState(this.store);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink);
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

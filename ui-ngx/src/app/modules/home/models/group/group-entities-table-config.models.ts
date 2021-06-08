@@ -83,6 +83,7 @@ export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityG
   parentEntityGroup?: EntityGroupInfo;
   entityGroupConfig?: GroupEntityTableConfig<T>;
   edgeGroupsTitle?: string;
+  edgeGroupName?: string;
 }
 
 export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTableConfig<T, PageLink, ShortEntityView> {

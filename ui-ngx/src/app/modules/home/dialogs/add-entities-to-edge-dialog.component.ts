@@ -89,8 +89,8 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
         this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
         break;
       case EntityType.SCHEDULER_EVENT:
-        this.assignToEdgeTitle = 'rulechain.assign-scheduler-event-to-edge-title';
-        this.assignToEdgeText = 'rulechain.assign-scheduler-event-to-edge-text';
+        this.assignToEdgeTitle = 'edge.assign-scheduler-event-to-edge-title';
+        this.assignToEdgeText = 'edge.assign-scheduler-event-to-edge-text';
         break;
     }
     this.subType = RuleChainType.EDGE;
