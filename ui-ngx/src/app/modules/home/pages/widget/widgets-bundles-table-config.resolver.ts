@@ -145,15 +145,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
       this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.DELETE);
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
     const authState = getCurrentAuthState(this.store);
-    this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink).pipe(
-      map((widgetBundles) => {
-        if (!authState.edgesSupportEnabled) {
-          widgetBundles.data = widgetBundles.data.filter(widgetBundle => widgetBundle.alias !== 'edge_widgets');
-        }
-        return widgetBundles;
-      })
-    );
-    defaultEntityTablePermissions(this.userPermissionsService, this.config);
+    this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink);
     return this.config;
   }
 

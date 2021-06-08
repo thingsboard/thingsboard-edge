@@ -303,7 +303,7 @@ public class EdgeController extends BaseController {
             }
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : result.getData()) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(result);
@@ -356,7 +356,7 @@ public class EdgeController extends BaseController {
             List<Edge> edges = edgesFuture.get();
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(edges);
@@ -387,7 +387,7 @@ public class EdgeController extends BaseController {
             }).collect(Collectors.toList());
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return edges;
@@ -467,11 +467,7 @@ public class EdgeController extends BaseController {
         }
     }
 
-    private void cleanUpSensitiveData(Edge edge) {
+    private void cleanUpLicenseKey(Edge edge) {
         edge.setEdgeLicenseKey(null);
-        edge.setRoutingKey(null);
-        edge.setSecret(null);
-        edge.setCloudEndpoint(null);
-        edge.setRootRuleChainId(null);
     }
 }

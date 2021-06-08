@@ -77,7 +77,6 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     this.entityType = this.data.entityType;
-    this.edgeId = this.data.edgeId;
   }
 
   ngOnInit(): void {
@@ -113,14 +112,7 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
     const tasks: Observable<any>[] = [];
     entityIds.forEach(
       (entityId) => {
-        switch (this.entityType) {
-          case EntityType.RULE_CHAIN:
-            tasks.push(this.ruleChainService.assignRuleChainToEdge(this.edgeId, entityId));
-            break;
-          case EntityType.SCHEDULER_EVENT:
-            tasks.push(this.schedulerEventService.assignSchedulerEventToEdge(this.edgeId, entityId));
-            break;
-        }
+        tasks.push(this.getAssignToEdgeTask(this.data.edgeId, entityId, this.entityType));
       }
     );
     forkJoin(tasks).subscribe(
@@ -128,6 +120,15 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
         this.dialogRef.close(true);
       }
     );
+  }
+
+  private getAssignToEdgeTask(edgeId: string, entityId: string, entityType: EntityType): Observable<any> {
+    switch (entityType) {
+      case EntityType.RULE_CHAIN:
+        return this.ruleChainService.assignRuleChainToEdge(edgeId, entityId);
+      case EntityType.SCHEDULER_EVENT:
+        return this.schedulerEventService.assignSchedulerEventToEdge(edgeId, entityId);
+    }
   }
 
 }
