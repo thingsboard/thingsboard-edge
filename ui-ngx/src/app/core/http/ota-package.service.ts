@@ -165,9 +165,9 @@ export class OtaPackageService {
                                              packageId?: string, config?: RequestConfig): Observable<number> {
     let url;
     if (entityId.entityType === EntityType.ENTITY_GROUP) {
-      url = `/api/devices/count/${type}?deviceGroupId=${entityId.id}&entityType=${entityId.entityType}&packageId=${packageId}`;
+      url = `/api/devices/count/${type}/${packageId}/${entityId.id}`;
     } else {
-      url = `/api/devices/count/${type}?deviceProfileId=${entityId.id}&entityType=${entityId.entityType}`;
+      url = `/api/devices/count/${type}/${entityId.id}`;
     }
     return this.http.get<number>(url, defaultHttpOptionsFromConfig(config));
   }
@@ -176,12 +176,14 @@ export class OtaPackageService {
                                     originEntity: BaseData<EntityId>&OtaPagesIds): Observable<boolean> {
     const tasks: Observable<number>[] = [];
     if (originEntity?.id?.id && originEntity.firmwareId?.id !== entity.firmwareId?.id) {
-      tasks.push(this.countUpdateDeviceAfterChangePackage(OtaUpdateType.FIRMWARE, entity.id));
+      const packageId = entity.firmwareId?.id || originEntity.firmwareId?.id;
+      tasks.push(this.countUpdateDeviceAfterChangePackage(OtaUpdateType.FIRMWARE, entity.id, packageId));
     } else {
       tasks.push(of(0));
     }
     if (originEntity?.id?.id && originEntity.softwareId?.id !== entity.softwareId?.id) {
-      tasks.push(this.countUpdateDeviceAfterChangePackage(OtaUpdateType.SOFTWARE, entity.id));
+      const packageId = entity.softwareId?.id || originEntity.softwareId?.id;
+      tasks.push(this.countUpdateDeviceAfterChangePackage(OtaUpdateType.SOFTWARE, entity.id, packageId));
     } else {
       tasks.push(of(0));
     }
