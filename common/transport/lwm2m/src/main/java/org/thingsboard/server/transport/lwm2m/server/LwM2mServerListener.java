@@ -102,7 +102,7 @@ public class LwM2mServerListener {
         @Override
         public void cancelled(Observation observation) {
             String msg = String.format("%s:  Canceled Observation  %s.", LOG_LW2M_INFO, observation.getPath());
-            service.sendLogsToThingsboard(msg, observation.getRegistrationId());
+            service.sendLogsToThingsboard(observation.getRegistrationId(), msg);
             log.warn(msg);
         }
 
@@ -124,7 +124,7 @@ public class LwM2mServerListener {
             String msg = String.format("%s: Successful start newObservation  %s.", LOG_LW2M_INFO,
                     observation.getPath());
             log.warn(msg);
-            service.sendLogsToThingsboard(msg, registration.getId());
+            service.sendLogsToThingsboard(registration.getId(), msg);
         }
     };
 }

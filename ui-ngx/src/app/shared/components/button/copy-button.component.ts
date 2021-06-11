@@ -41,7 +41,6 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class CopyButtonComponent {
 
-  private copedIcon = '';
   private timer;
 
   copied = false;
@@ -67,6 +66,9 @@ export class CopyButtonComponent {
   @Input()
   style: {[key: string]: any} = {};
 
+  @Input()
+  color: string;
+
   @Output()
   successCopied = new EventEmitter<string>();
 
@@ -82,21 +84,11 @@ export class CopyButtonComponent {
     }
     this.clipboardService.copy(this.copyText);
     this.successCopied.emit(this.copyText);
-    this.copedIcon = 'done';
     this.copied = true;
     this.timer = setTimeout(() => {
-      this.copedIcon = null;
       this.copied = false;
       this.cd.detectChanges();
     }, 1500);
-  }
-
-  get iconSymbol(): string {
-    return this.copedIcon || this.icon;
-  }
-
-  get mdiIconSymbol(): string {
-    return this.copedIcon ? '' : this.mdiIcon;
   }
 
   get matTooltipText(): string {
