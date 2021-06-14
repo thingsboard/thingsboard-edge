@@ -41,8 +41,6 @@ import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -56,18 +54,20 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
                 if (schedulerEvent != null) {
-                    SchedulerEventUpdateMsg msg = schedulerEventMsgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
+                    SchedulerEventUpdateMsg schedulerEventUpdateMsg =
+                            schedulerEventMsgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllSchedulerEventUpdateMsg(Collections.singletonList(msg))
+                            .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                SchedulerEventUpdateMsg msg = schedulerEventMsgConstructor.constructEventDeleteMsg(schedulerEventId);
+                SchedulerEventUpdateMsg schedulerEventUpdateMsg =
+                        schedulerEventMsgConstructor.constructEventDeleteMsg(schedulerEventId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllSchedulerEventUpdateMsg(Collections.singletonList(msg))
+                        .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
                         .build();
                 break;
         }

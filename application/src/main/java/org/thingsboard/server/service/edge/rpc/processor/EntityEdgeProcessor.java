@@ -57,7 +57,6 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,11 +76,11 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
             if (edgeEvent.getBody() != null) {
                 conflictName = edgeEvent.getBody().get("conflictName").asText();
             }
-            DeviceUpdateMsg d = deviceMsgConstructor
+            DeviceUpdateMsg deviceUpdateMsg = deviceMsgConstructor
                     .constructDeviceUpdatedMsg(UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE, device, null, conflictName);
             downlinkMsg = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addAllDeviceUpdateMsg(Collections.singletonList(d))
+                    .addDeviceUpdateMsg(deviceUpdateMsg)
                     .build();
         }
         return downlinkMsg;
@@ -97,7 +96,7 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
                     .build();
             DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addAllDeviceCredentialsRequestMsg(Collections.singletonList(deviceCredentialsRequestMsg));
+                    .addDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg);
             downlinkMsg = builder.build();
         }
         return downlinkMsg;

@@ -43,8 +43,6 @@ import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -56,7 +54,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllWhiteLabelingParams(Collections.singletonList(whiteLabelingParamsProto))
+                .addWhiteLabelingParams(whiteLabelingParamsProto)
                 .build();
     }
 
@@ -66,7 +64,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllLoginWhiteLabelingParams(Collections.singletonList(loginWhiteLabelingParamsProto))
+                .addLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
                 .build();
     }
 
@@ -76,7 +74,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllCustomTranslationMsg(Collections.singletonList(customTranslationProto))
+                .addCustomTranslationMsg(customTranslationProto)
                 .build();
     }
 }

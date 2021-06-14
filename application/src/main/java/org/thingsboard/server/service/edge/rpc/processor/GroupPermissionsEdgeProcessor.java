@@ -54,7 +54,6 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -72,18 +71,16 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                 if (groupPermission != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllGroupPermissionMsg(
-                                    Collections.singletonList(
-                                            groupPermissionProtoConstructor.constructGroupPermissionProto(msgType, groupPermission)))
+                            .addGroupPermissionMsg(
+                                    groupPermissionProtoConstructor.constructGroupPermissionProto(msgType, groupPermission))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllGroupPermissionMsg(
-                                Collections.singletonList(
-                                        groupPermissionProtoConstructor.constructGroupPermissionDeleteMsg(groupPermissionId)))
+                        .addGroupPermissionMsg(
+                                groupPermissionProtoConstructor.constructGroupPermissionDeleteMsg(groupPermissionId))
                         .build();
                 break;
         }

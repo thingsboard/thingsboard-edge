@@ -42,8 +42,6 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -61,7 +59,7 @@ public class WidgetTypeEdgeProcessor extends BaseEdgeProcessor {
                             widgetTypeMsgConstructor.constructWidgetTypeUpdateMsg(msgType, widgetType);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
+                            .addWidgetTypeUpdateMsg(widgetTypeUpdateMsg)
                             .build();
                 }
                 break;
@@ -70,7 +68,7 @@ public class WidgetTypeEdgeProcessor extends BaseEdgeProcessor {
                         widgetTypeMsgConstructor.constructWidgetTypeDeleteMsg(widgetTypeId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
+                        .addWidgetTypeUpdateMsg(widgetTypeUpdateMsg)
                         .build();
                 break;
         }

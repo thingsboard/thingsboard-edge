@@ -45,8 +45,6 @@ import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -65,7 +63,7 @@ public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
                             ruleChainMsgConstructor.constructRuleChainUpdatedMsg(edge.getRootRuleChainId(), msgType, ruleChain);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainUpdateMsg))
+                            .addRuleChainUpdateMsg(ruleChainUpdateMsg)
                             .build();
                 }
                 break;
@@ -73,7 +71,7 @@ public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
             case UNASSIGNED_FROM_EDGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllRuleChainUpdateMsg(Collections.singletonList(ruleChainMsgConstructor.constructRuleChainDeleteMsg(ruleChainId)))
+                        .addRuleChainUpdateMsg(ruleChainMsgConstructor.constructRuleChainDeleteMsg(ruleChainId))
                         .build();
                 break;
         }
@@ -91,7 +89,7 @@ public class RuleChainEdgeProcessor extends BaseEdgeProcessor {
             if (ruleChainMetadataUpdateMsg != null) {
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllRuleChainMetadataUpdateMsg(Collections.singletonList(ruleChainMetadataUpdateMsg))
+                        .addRuleChainMetadataUpdateMsg(ruleChainMetadataUpdateMsg)
                         .build();
             }
         }

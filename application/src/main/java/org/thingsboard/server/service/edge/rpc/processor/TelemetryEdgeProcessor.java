@@ -82,7 +82,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -352,7 +351,7 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
         EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllEntityData(Collections.singletonList(entityDataProto))
+                .addEntityData(entityDataProto)
                 .build();
     }
 

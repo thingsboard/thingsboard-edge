@@ -54,7 +54,6 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -72,14 +71,14 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleProto(msgType, role)))
+                            .addRoleMsg(roleProtoConstructor.constructRoleProto(msgType, role))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllRoleMsg(Collections.singletonList(roleProtoConstructor.constructRoleDeleteMsg(roleId)))
+                        .addRoleMsg(roleProtoConstructor.constructRoleDeleteMsg(roleId))
                         .build();
                 break;
         }

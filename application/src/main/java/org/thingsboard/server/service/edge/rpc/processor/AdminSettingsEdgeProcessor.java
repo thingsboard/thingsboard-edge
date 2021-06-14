@@ -39,8 +39,6 @@ import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -48,10 +46,10 @@ public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
 
     public DownlinkMsg processAdminSettingsToEdge(EdgeEvent edgeEvent) {
         AdminSettings adminSettings = mapper.convertValue(edgeEvent.getBody(), AdminSettings.class);
-        AdminSettingsUpdateMsg t = adminSettingsMsgConstructor.constructAdminSettingsUpdateMsg(adminSettings);
+        AdminSettingsUpdateMsg adminSettingsUpdateMsg = adminSettingsMsgConstructor.constructAdminSettingsUpdateMsg(adminSettings);
         return DownlinkMsg.newBuilder()
                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllAdminSettingsUpdateMsg(Collections.singletonList(t))
+                .addAdminSettingsUpdateMsg(adminSettingsUpdateMsg)
                 .build();
     }
 

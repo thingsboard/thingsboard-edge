@@ -42,8 +42,6 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -61,7 +59,7 @@ public class DeviceProfileEdgeProcessor extends BaseEdgeProcessor {
                             deviceProfileMsgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllDeviceProfileUpdateMsg(Collections.singletonList(deviceProfileUpdateMsg))
+                            .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg)
                             .build();
                 }
                 break;
@@ -70,7 +68,7 @@ public class DeviceProfileEdgeProcessor extends BaseEdgeProcessor {
                         deviceProfileMsgConstructor.constructDeviceProfileDeleteMsg(deviceProfileId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllDeviceProfileUpdateMsg(Collections.singletonList(deviceProfileUpdateMsg))
+                        .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg)
                         .build();
                 break;
         }

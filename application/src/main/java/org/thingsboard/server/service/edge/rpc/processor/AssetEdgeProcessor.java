@@ -44,8 +44,6 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -66,7 +64,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
                             assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllAssetUpdateMsg(Collections.singletonList(assetUpdateMsg))
+                            .addAssetUpdateMsg(assetUpdateMsg)
                             .build();
                 }
                 break;
@@ -78,7 +76,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
                         assetMsgConstructor.constructAssetDeleteMsg(assetId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllAssetUpdateMsg(Collections.singletonList(assetUpdateMsg))
+                        .addAssetUpdateMsg(assetUpdateMsg)
                         .build();
                 break;
         }

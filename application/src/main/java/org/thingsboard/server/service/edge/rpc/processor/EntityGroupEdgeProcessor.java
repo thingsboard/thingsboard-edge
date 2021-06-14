@@ -41,8 +41,6 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Collections;
-
 @Component
 @Slf4j
 @TbCoreComponent
@@ -56,18 +54,20 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
                 if (entityGroup != null) {
-                    EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
+                    EntityGroupUpdateMsg entityGroupUpdateMsg =
+                            entityGroupMsgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
+                            .addEntityGroupUpdateMsg(entityGroupUpdateMsg)
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                EntityGroupUpdateMsg msg = entityGroupMsgConstructor.constructEntityGroupDeleteMsg(entityGroupId);
+                EntityGroupUpdateMsg entityGroupUpdateMsg =
+                        entityGroupMsgConstructor.constructEntityGroupDeleteMsg(entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllEntityGroupUpdateMsg(Collections.singletonList(msg))
+                        .addEntityGroupUpdateMsg(entityGroupUpdateMsg)
                         .build();
                 break;
         }
