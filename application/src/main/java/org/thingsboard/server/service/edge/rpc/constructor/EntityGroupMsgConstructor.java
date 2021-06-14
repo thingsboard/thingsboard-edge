@@ -35,8 +35,8 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 @Component
 @Slf4j

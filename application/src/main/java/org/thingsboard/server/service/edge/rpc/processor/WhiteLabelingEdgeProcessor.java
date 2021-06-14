@@ -37,10 +37,10 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.gen.edge.CustomTranslationProto;
-import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
