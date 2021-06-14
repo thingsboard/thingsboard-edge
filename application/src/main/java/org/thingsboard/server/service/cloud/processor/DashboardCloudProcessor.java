@@ -46,7 +46,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -106,7 +106,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + dashboardUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + dashboardUpdateMsg.getMsgType()));
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId), future -> null, dbCallbackExecutor);

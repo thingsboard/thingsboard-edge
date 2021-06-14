@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -100,7 +100,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + assetUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + assetUpdateMsg.getMsgType()));
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId), future -> null, dbCallbackExecutor);

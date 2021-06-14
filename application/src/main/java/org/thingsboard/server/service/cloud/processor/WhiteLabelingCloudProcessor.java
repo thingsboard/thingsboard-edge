@@ -44,12 +44,12 @@ import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.gen.edge.CustomTranslationProto;
-import org.thingsboard.server.gen.edge.FaviconProto;
-import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.PaletteProto;
-import org.thingsboard.server.gen.edge.PaletteSettingsProto;
-import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.FaviconProto;
+import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.v1.PaletteProto;
+import org.thingsboard.server.gen.edge.v1.PaletteSettingsProto;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
 @Component
 @Slf4j

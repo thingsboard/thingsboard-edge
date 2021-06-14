@@ -52,9 +52,9 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.user.UserServiceImpl;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -121,7 +121,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + userUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + userUpdateMsg.getMsgType()));
         }
         ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId), future -> null, dbCallbackExecutor);
 

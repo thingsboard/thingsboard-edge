@@ -53,11 +53,11 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
-import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
-import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
-import org.thingsboard.server.gen.edge.RuleNodeProto;
-import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
+import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RuleNodeProto;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -128,7 +128,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + ruleChainUpdateMsg.getMsgType()));
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + ruleChainUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process RuleChainUpdateMsg [{}]", ruleChainUpdateMsg, e);
@@ -158,7 +158,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + ruleChainMetadataUpdateMsg.getMsgType()));
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + ruleChainMetadataUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
@@ -167,9 +167,9 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
+    private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.v1.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
         List<RuleChainConnectionInfo> result = new ArrayList<>();
-        for (org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto proto : ruleChainConnectionsList) {
+        for (org.thingsboard.server.gen.edge.v1.RuleChainConnectionInfoProto proto : ruleChainConnectionsList) {
             RuleChainConnectionInfo info = new RuleChainConnectionInfo();
             info.setFromIndex(proto.getFromIndex());
             info.setTargetRuleChainId(new RuleChainId(new UUID(proto.getTargetRuleChainIdMSB(), proto.getTargetRuleChainIdLSB())));
@@ -180,9 +180,9 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
         return result;
     }
 
-    private List<NodeConnectionInfo> parseConnectionProtos(List<org.thingsboard.server.gen.edge.NodeConnectionInfoProto> connectionsList) {
+    private List<NodeConnectionInfo> parseConnectionProtos(List<org.thingsboard.server.gen.edge.v1.NodeConnectionInfoProto> connectionsList) {
         List<NodeConnectionInfo> result = new ArrayList<>();
-        for (org.thingsboard.server.gen.edge.NodeConnectionInfoProto proto : connectionsList) {
+        for (org.thingsboard.server.gen.edge.v1.NodeConnectionInfoProto proto : connectionsList) {
             NodeConnectionInfo info = new NodeConnectionInfo();
             info.setFromIndex(proto.getFromIndex());
             info.setToIndex(proto.getToIndex());

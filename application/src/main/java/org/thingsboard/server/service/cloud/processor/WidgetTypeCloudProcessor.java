@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 
 import java.util.UUID;
 
@@ -83,7 +83,7 @@ public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetTypeUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + widgetTypeUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
     }

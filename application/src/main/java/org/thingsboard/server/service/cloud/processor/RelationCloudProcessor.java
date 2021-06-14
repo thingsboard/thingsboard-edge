@@ -52,10 +52,10 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.gen.edge.RelationRequestMsg;
-import org.thingsboard.server.gen.edge.RelationUpdateMsg;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
+import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -94,7 +94,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + relationUpdateMsg.getMsgType()));
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + relationUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Error during relation update msg", e);

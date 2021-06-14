@@ -53,9 +53,9 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.gen.edge.DeviceProfileDevicesRequestMsg;
-import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -112,9 +112,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     }
                     deviceProfileService.saveDeviceProfile(deviceProfile);
 
-                    if (created) {
-                        saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, ActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
-                    }
+                    saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, ActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
                 } finally {
                     deviceCreationLock.unlock();
                 }
@@ -127,7 +125,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + deviceProfileUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + deviceProfileUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
     }

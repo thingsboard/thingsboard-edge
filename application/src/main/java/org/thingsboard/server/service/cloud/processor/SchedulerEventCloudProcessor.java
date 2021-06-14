@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 
 import java.util.UUID;
@@ -97,7 +97,7 @@ public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + schedulerEventUpdateMsg.getMsgType()));
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + schedulerEventUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process SchedulerEventUpdateMsg [{}]", schedulerEventUpdateMsg, e);

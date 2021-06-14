@@ -86,12 +86,14 @@ import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
-import org.thingsboard.server.gen.edge.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.server.gen.edge.UplinkResponseMsg;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.v1.RequestMsg;
+import org.thingsboard.server.gen.edge.v1.RequestMsgType;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceProfileCloudProcessor;
@@ -102,7 +104,6 @@ import org.thingsboard.server.service.cloud.processor.GroupPermissionCloudProces
 import org.thingsboard.server.service.cloud.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.TelemetryCloudProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetTypeCloudProcessor;
 import org.thingsboard.server.service.cloud.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -113,8 +114,11 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -124,11 +128,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class CloudManagerService extends BaseCloudEventService {
+
+    private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
@@ -259,6 +266,8 @@ public class CloudManagerService extends BaseCloudEventService {
     private ScheduledFuture<?> scheduledFuture;
     private volatile boolean initialized;
 
+    private final Map<Integer, UplinkMsg> pendingMsgsMap = new HashMap<>();
+
     private TenantId tenantId;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -321,31 +330,13 @@ public class CloudManagerService extends BaseCloudEventService {
                             if (initialized && !pageData.getData().isEmpty()) {
                                 log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                 List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
-                                log.trace("[{}] uplink msg(s) are going to be send.", uplinkMsgsPack.size());
-
-                                latch = new CountDownLatch(uplinkMsgsPack.size());
-                                for (UplinkMsg uplinkMsg : uplinkMsgsPack) {
-                                    edgeRpcClient.sendUplinkMsg(uplinkMsg);
-                                }
-
+                                success = sendUplinkMsgsPack(uplinkMsgsPack);
                                 ifOffset = pageData.getData().get(pageData.getData().size() - 1).getUuidId();
-                                success = latch.await(10, TimeUnit.SECONDS);
-                                if (!success) {
-                                    log.warn("Failed to deliver the batch: {}", uplinkMsgsPack);
-                                }
-                            }
-                            if (initialized && (!success || pageData.hasNext())) {
-                                try {
-                                    Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
-                                } catch (InterruptedException e) {
-                                    log.error("Error during sleep between batches", e);
-                                }
                                 if (success) {
                                     pageLink = pageLink.nextPageLink();
                                 }
                             }
                         } while (initialized && (!success || pageData.hasNext()));
-
                         if (ifOffset != null) {
                             Long newStartTs = Uuids.unixTimestamp(ifOffset);
                             updateQueueStartTs(newStartTs);
@@ -363,6 +354,37 @@ public class CloudManagerService extends BaseCloudEventService {
                 }
             }
         });
+    }
+
+    private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
+        try {
+            uplinkMsgsPackLock.lock();
+            boolean success;
+            pendingMsgsMap.clear();
+            uplinkMsgsPack.forEach(msg -> pendingMsgsMap.put(msg.getUplinkMsgId(), msg));
+            do {
+                log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgsMap.values().size());
+                latch = new CountDownLatch(pendingMsgsMap.values().size());
+                List<UplinkMsg> copy = new ArrayList<>(pendingMsgsMap.values());
+                for (UplinkMsg uplinkMsg : copy) {
+                    edgeRpcClient.sendUplinkMsg(uplinkMsg);
+                }
+                success = latch.await(10, TimeUnit.SECONDS);
+                if (!success || pendingMsgsMap.values().size() > 0) {
+                    log.warn("Failed to deliver the batch: {}", pendingMsgsMap.values());
+                }
+                if (initialized && (!success || pendingMsgsMap.values().size() > 0)) {
+                    try {
+                        Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
+                    } catch (InterruptedException e) {
+                        log.error("Error during sleep between batches", e);
+                    }
+                }
+            } while (initialized && (!success || pendingMsgsMap.values().size() > 0));
+            return success;
+        } finally {
+            uplinkMsgsPackLock.unlock();
+        }
     }
 
     private List<UplinkMsg> convertToUplinkMsgsPack(List<CloudEvent> cloudEvents) {
@@ -488,6 +510,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private void onUplinkResponse(UplinkResponseMsg msg) {
         try {
             if (msg.getSuccess()) {
+                pendingMsgsMap.remove(msg.getUplinkMsgId());
                 log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
             } else {
                 log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());

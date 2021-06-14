@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -116,7 +116,7 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + customerUpdateMsg.getMsgType()));
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + customerUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
     }

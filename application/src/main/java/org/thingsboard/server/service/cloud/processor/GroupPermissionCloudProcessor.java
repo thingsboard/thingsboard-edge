@@ -48,9 +48,9 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
-import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
-import org.thingsboard.server.gen.edge.GroupPermissionProto;
-import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
+import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.io.IOException;
@@ -108,7 +108,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + groupPermissionProto.getMsgType()));
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + groupPermissionProto.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process groupPermissionProto [{}]", groupPermissionProto, e);

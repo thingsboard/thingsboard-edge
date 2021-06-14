@@ -50,7 +50,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.RoleProto;
+import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.ArrayList;
@@ -120,7 +120,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + roleProto.getMsgType()));
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + roleProto.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process roleProto [{}]", roleProto, e);
