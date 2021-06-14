@@ -76,9 +76,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -309,15 +307,15 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
         EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllEntityData(Collections.singletonList(entityDataProto));
+                .addEntityData(entityDataProto);
         return builder.build();
     }
 
-    public UplinkMsg processAttributesRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+    public UplinkMsg processAttributesRequestMsgToCloud(CloudEvent cloudEvent) {
         log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
         try {
-            ArrayList<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
+            List<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
             AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()
                     .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                     .setEntityIdLSB(entityId.getId().getLeastSignificantBits())

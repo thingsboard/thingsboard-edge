@@ -41,7 +41,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Component
 @Slf4j
@@ -59,7 +58,7 @@ public class EntityCloudProcessor extends BaseCloudProcessor {
                         .build();
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllUserCredentialsRequestMsg(Collections.singletonList(userCredentialsRequestMsg))
+                        .addUserCredentialsRequestMsg(userCredentialsRequestMsg)
                         .build();
                 break;
             case DEVICE:
@@ -69,7 +68,7 @@ public class EntityCloudProcessor extends BaseCloudProcessor {
                         .build();
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllDeviceCredentialsRequestMsg(Collections.singletonList(deviceCredentialsRequestMsg))
+                        .addDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg)
                         .build();
                 break;
             default:

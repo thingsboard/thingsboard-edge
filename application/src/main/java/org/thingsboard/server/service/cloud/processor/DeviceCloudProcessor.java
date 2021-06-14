@@ -69,7 +69,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.state.DeviceStateService;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -302,7 +301,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         DeviceRpcCallMsg rpcResponseMsg = deviceUpdateMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllDeviceRpcCallMsg(Collections.singletonList(rpcResponseMsg)).build();
+                .addDeviceRpcCallMsg(rpcResponseMsg).build();
     }
 
     public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, ActionType edgeActionType) {
@@ -317,7 +316,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                             deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
+                            .addDeviceUpdateMsg(deviceUpdateMsg).build();
                 } else {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
                 }
@@ -327,7 +326,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                         deviceUpdateMsgConstructor.constructDeviceDeleteMsg(deviceId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
+                        .addDeviceUpdateMsg(deviceUpdateMsg).build();
                 break;
             case CREDENTIALS_UPDATED:
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
@@ -336,7 +335,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                             deviceUpdateMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addAllDeviceCredentialsUpdateMsg(Collections.singletonList(deviceCredentialsUpdateMsg)).build();
+                            .addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg).build();
                 } else {
                     log.info("Skipping event as device credentials was not found [{}]", cloudEvent);
                 }

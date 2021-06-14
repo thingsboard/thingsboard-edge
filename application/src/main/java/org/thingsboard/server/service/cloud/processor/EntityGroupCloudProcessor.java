@@ -66,7 +66,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -218,7 +217,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllEntityGroupEntitiesRequestMsg(Collections.singletonList(entityGroupEntitiesRequestMsg));
+                .addEntityGroupEntitiesRequestMsg(entityGroupEntitiesRequestMsg);
         return builder.build();
     }
 }

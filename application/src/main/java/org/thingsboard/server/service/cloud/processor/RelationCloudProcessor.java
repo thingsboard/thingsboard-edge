@@ -58,7 +58,6 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -136,7 +135,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
+                .addRelationRequestMsg(relationRequestMsg);
         return builder.build();
     }
 
@@ -147,7 +146,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
             RelationUpdateMsg relationUpdateMsg = relationUpdateMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
             msg = UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addAllRelationUpdateMsg(Collections.singletonList(relationUpdateMsg)).build();
+                    .addRelationUpdateMsg(relationUpdateMsg).build();
         }
         return msg;
     }

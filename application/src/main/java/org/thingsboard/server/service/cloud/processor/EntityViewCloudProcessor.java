@@ -54,7 +54,6 @@ import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -165,7 +164,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllEntityViewsRequestMsg(Collections.singletonList(entityViewsRequestMsg));
+                .addEntityViewsRequestMsg(entityViewsRequestMsg);
         return builder.build();
     }
 }

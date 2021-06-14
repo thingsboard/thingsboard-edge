@@ -47,7 +47,6 @@ import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
-import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 @Component
@@ -125,7 +124,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
             AlarmUpdateMsg alarmUpdateMsg = alarmUpdateMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
             msg = UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addAllAlarmUpdateMsg(Collections.singletonList(alarmUpdateMsg)).build();
+                    .addAlarmUpdateMsg(alarmUpdateMsg).build();
         } else {
             log.info("Skipping event as alarm was not found [{}]", cloudEvent);
         }

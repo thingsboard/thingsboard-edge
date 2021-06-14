@@ -48,7 +48,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 
-import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -108,7 +107,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllWidgetBundleTypesRequestMsg(Collections.singletonList(widgetBundleTypesRequestMsg));
+                .addWidgetBundleTypesRequestMsg(widgetBundleTypesRequestMsg);
         return builder.build();
     }
 }

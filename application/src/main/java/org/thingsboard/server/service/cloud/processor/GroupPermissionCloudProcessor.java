@@ -54,7 +54,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.UUID;
 
 @Component
@@ -127,7 +126,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllEntityGroupPermissionsRequestMsg(Collections.singletonList(entityGroupPermissionsRequestMsg));
+                .addEntityGroupPermissionsRequestMsg(entityGroupPermissionsRequestMsg);
         return builder.build();
     }
 }

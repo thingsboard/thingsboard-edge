@@ -57,7 +57,6 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -138,7 +137,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 .build();
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addAllDeviceProfileDevicesRequestMsg(Collections.singletonList(deviceProfileDevicesRequestMsg));
+                .addDeviceProfileDevicesRequestMsg(deviceProfileDevicesRequestMsg);
         return builder.build();
     }
 }
