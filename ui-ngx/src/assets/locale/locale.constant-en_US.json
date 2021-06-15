@@ -453,14 +453,12 @@
         "import": "Import assets",
         "asset-file": "Asset file",
         "label": "Label",
-        "search": "Search assets",
         "assign-asset-to-edge": "Assign Asset(s) To Edge",
         "unassign-asset-from-edge": "Unassign asset",
         "unassign-asset-from-edge-title": "Are you sure you want to unassign the asset '{{assetName}}'?",
         "unassign-asset-from-edge-text": "After the confirmation the asset will be unassigned and won't be accessible by the edge.",
         "unassign-assets-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 asset} other {# assets} }?",
-        "unassign-assets-from-edge-text": "After the confirmation all selected assets will be unassigned and won't be accessible by the edge.",
-        "selected-assets": "{ count, plural, 1 {1 asset} other {# assets} } selected"
+        "unassign-assets-from-edge-text": "After the confirmation all selected assets will be unassigned and won't be accessible by the edge."
     },
     "attribute": {
         "attributes": "Attributes",
