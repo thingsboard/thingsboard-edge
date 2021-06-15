@@ -233,62 +233,62 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         //   onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         // },
         {
-          name: this.translate.instant('edge.manage-edge-users'),
+          name: this.translate.instant('edge.edge-users'),
           nameFunction: (edge) => {
             return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-users')
-              : this.translate.instant('edge.manage-edge-users');
+              ? this.translate.instant('edge.edge-public-users')
+              : this.translate.instant('edge.edge-users');
           },
           icon: 'account_circle',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.manageEdgeUsers($event, entity)
         },
         {
-          name: this.translate.instant('edge.manage-edge-assets'),
+          name: this.translate.instant('edge.edge-assets'),
           nameFunction: (edge) => {
             return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-assets')
-              : this.translate.instant('edge.manage-edge-assets');
+              ? this.translate.instant('edge.edge-public-assets')
+              : this.translate.instant('edge.edge-assets');
           },
           icon: 'domain',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
         },
         {
-          name: this.translate.instant('edge.manage-edge-devices'),
+          name: this.translate.instant('edge.edge-devices'),
           nameFunction: (edge) => {
             return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-devices')
-              : this.translate.instant('edge.manage-edge-devices');
+              ? this.translate.instant('edge.edge-public-devices')
+              : this.translate.instant('edge.edge-devices');
           },
           icon: 'devices_other',
           isEnabled: (entity) => true,
           onAction: ($event,entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
         },
         {
-          name: this.translate.instant('edge.manage-edge-entity-views'),
+          name: this.translate.instant('edge.edge-entity-views'),
           nameFunction: (edge) => {
             return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-entity-views')
-              : this.translate.instant('edge.manage-edge-entity-views');
+              ? this.translate.instant('edge.edge-public-entity-views')
+              : this.translate.instant('edge.edge-entity-views');
           },
           icon: 'view_quilt',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
         },
         {
-          name: this.translate.instant('edge.manage-edge-dashboards'),
+          name: this.translate.instant('edge.edge-dashboards'),
           nameFunction: (edge) => {
             return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-dashboards')
-              : this.translate.instant('edge.manage-edge-dashboards');
+              ? this.translate.instant('edge.edge-public-dashboards')
+              : this.translate.instant('edge.edge-dashboards');
           },
           icon: 'dashboard',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
         },
         {
-          name: this.translate.instant('edge.manage-edge-rulechains'),
+          name: this.translate.instant('edge.edge-rulechains'),
           icon: 'settings_ethernet',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.RULE_CHAIN)
@@ -315,25 +315,25 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     // if (edgeScope === 'customer_user') {
     //   actions.push(
     //     {
-    //       name: this.translate.instant('edge.manage-edge-assets'),
+    //       name: this.translate.instant('edge.edge-assets'),
     //       icon: 'domain',
     //       isEnabled: (entity) => true,
     //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
     //     },
     //     {
-    //       name: this.translate.instant('edge.manage-edge-devices'),
+    //       name: this.translate.instant('edge.edge-devices'),
     //       icon: 'devices_other',
     //       isEnabled: (entity) => true,
     //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
     //     },
     //     {
-    //       name: this.translate.instant('edge.manage-edge-entity-views'),
+    //       name: this.translate.instant('edge.edge-entity-views'),
     //       icon: 'view_quilt',
     //       isEnabled: (entity) => true,
     //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
     //     },
     //     {
-    //       name: this.translate.instant('edge.manage-edge-dashboards'),
+    //       name: this.translate.instant('edge.edge-dashboards'),
     //       icon: 'dashboard',
     //       isEnabled: (entity) => true,
     //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
