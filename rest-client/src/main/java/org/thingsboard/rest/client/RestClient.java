@@ -2443,7 +2443,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         return restTemplate.postForEntity(baseURL + "/api/otaPackage", otaPackageInfo, OtaPackageInfo.class).getBody();
     }
 
-    public OtaPackage saveOtaPackageData(OtaPackageId otaPackageId, String checkSum, ChecksumAlgorithm checksumAlgorithm, MultipartFile file) throws Exception {
+    public OtaPackageInfo saveOtaPackageData(OtaPackageId otaPackageId, String checkSum, ChecksumAlgorithm checksumAlgorithm, MultipartFile file) throws Exception {
         HttpHeaders header = new HttpHeaders();
         header.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -2465,7 +2465,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
 
         return restTemplate.postForEntity(
-                baseURL + url, requestEntity, OtaPackage.class, params
+                baseURL + url, requestEntity, OtaPackageInfo.class, params
         ).getBody();
     }
 
