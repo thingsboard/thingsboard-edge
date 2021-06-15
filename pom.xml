@@ -1779,6 +1779,10 @@
 
     <repositories>
         <repository>
+            <id>snapshots</id>
+            <url>https://edge.jfrog.io/artifactory/edge-libs-snapshot-local/</url>
+        </repository>
+        <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
