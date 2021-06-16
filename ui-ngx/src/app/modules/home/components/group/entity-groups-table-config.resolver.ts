@@ -116,5 +116,4 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
     );
   }
 
-
 }
