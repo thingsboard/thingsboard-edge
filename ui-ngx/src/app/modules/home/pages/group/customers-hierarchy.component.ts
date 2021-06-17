@@ -36,7 +36,11 @@ import { AppState } from '@core/core.state';
 import { LoadNodesCallback, NavTreeEditCallbacks, NodeSelectedCallback } from '@shared/components/nav-tree.component';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityGroupInfo, EntityGroupParams, HierarchyCallbacks } from '@shared/models/entity-group.models';
+import {
+  EntityGroupInfo,
+  EntityGroupParams,
+  HierarchyCallbacks
+} from '@shared/models/entity-group.models';
 import {
   CustomerNodeData,
   customerNodeText,
@@ -70,6 +74,7 @@ import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-
 import { Authority } from "@shared/models/authority.enum";
 import { EdgeService } from '@core/http/edge.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { RuleChainParams } from '@shared/models/rule-chain.models';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -345,7 +350,9 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         this.updateSchedulerView('scheduler', edge);
         break;
       case EntityType.RULE_CHAIN:
-        this.updateRuleChains(entityGroupParams, edge);
+        const ruleChainParams = entityGroupParams as RuleChainParams;
+        ruleChainParams.ruleChainScope = 'edge';
+        this.updateRuleChains(ruleChainParams);
         break;
     }
   }
@@ -360,16 +367,13 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     this.viewMode = viewMode;
   }
 
-  private updateRuleChains(entityGroupParams: EntityGroupParams, edge: Edge) {
-    this.edgeService.getEdge(edge.id.id).subscribe((edge) => {
-      entityGroupParams.edge = edge;
-      const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(entityGroupParams);
-      this.updateView('groups', entityGroupParams, ruleChainsTableConfig, null);
-    });
+  private updateRuleChains(ruleChainParams: RuleChainParams) {
+    const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(ruleChainParams);
+    this.updateView('groups', ruleChainParams, ruleChainsTableConfig, null);
   }
 
-  private resolveRuleChainsTableConfig(ruleChainsParams: EntityGroupParams): EntityTableConfig<BaseData<HasId>> {
-    return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainsParams);
+  private resolveRuleChainsTableConfig(ruleChainParams: RuleChainParams): EntityTableConfig<BaseData<HasId>> {
+    return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainParams);
   }
 
   selectRootNode() {
