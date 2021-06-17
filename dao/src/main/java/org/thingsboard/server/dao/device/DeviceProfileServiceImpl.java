@@ -242,7 +242,6 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
     public DeviceProfile findOrCreateDeviceProfile(TenantId tenantId, String name) {
         log.trace("Executing findOrCreateDefaultDeviceProfile");
         DeviceProfile deviceProfile = findDeviceProfileByName(tenantId, name);
-        /* TODO: default device profiles are not created on edge
         if (deviceProfile == null) {
             try {
                 findOrCreateLock.lock();
@@ -254,7 +253,6 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
                 findOrCreateLock.unlock();
             }
         }
-        */
         return deviceProfile;
     }
 
