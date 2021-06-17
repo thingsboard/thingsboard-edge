@@ -40,10 +40,16 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.queue.TbClusterService;
 
 import java.util.HashSet;
@@ -81,6 +87,19 @@ public class DefaultSchedulerServiceTest {
     @Mock
     SchedulerEventService schedulerEventService;
 
+    @Mock
+    OtaPackageStateService firmwareStateService;
+    @Mock
+    DeviceService deviceService;
+    @Mock
+    DeviceProfileService deviceProfileService;
+    @Mock
+    EntityGroupService entityGroupService;
+    @Mock
+    DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+    @Mock
+    OtaPackageService otaPackageService;
+
     DefaultSchedulerService schedulerService;
 
     final Tenant sysTenant = new Tenant(TenantId.SYS_TENANT_ID);
@@ -88,7 +107,10 @@ public class DefaultSchedulerServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        schedulerService = spy(new DefaultSchedulerService(tenantService, clusterService, partitionService, schedulerEventService));
+        schedulerService = spy(new DefaultSchedulerService(
+                tenantService, clusterService, partitionService, schedulerEventService,
+                firmwareStateService, deviceService, deviceProfileService, entityGroupService, deviceGroupOtaPackageService, otaPackageService)
+        );
         schedulerService.init();
     }
 
