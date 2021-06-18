@@ -338,7 +338,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       if (ruleChainImport) {
         this.itembuffer.storeRuleChainImport(ruleChainImport);
         if (this.config.componentsData.ruleChainScope === 'edges') {
-          this.router.navigateByUrl(`edges/ruleChains/ruleChain/import`);
+          this.router.navigateByUrl(`edgeManagement/ruleChains/ruleChain/import`);
         } else {
           this.router.navigateByUrl(`ruleChains/ruleChain/import`);
         }
@@ -363,7 +363,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     } else if (this.config.componentsData.ruleChainScope === 'edges') {
       this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
     } else if (this.config.componentsData.ruleChainScope === 'edge') {
-      this.router.navigateByUrl(`edges/${this.config.componentsData.edgeId}/ruleChains/${ruleChain.id.id}`);
+      this.router.navigateByUrl(`edgeInstances/${this.config.componentsData.edgeId}/ruleChains/${ruleChain.id.id}`);
     } else {
       this.router.navigateByUrl(`ruleChains/${ruleChain.id.id}`);
     }
