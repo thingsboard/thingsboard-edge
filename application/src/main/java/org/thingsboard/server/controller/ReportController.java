@@ -152,13 +152,4 @@ public class ReportController extends BaseController {
         return result;
     }
 
-    private static MediaType parseMediaType(String contentType) {
-        try {
-            MediaType mediaType = MediaType.parseMediaType(contentType);
-            return mediaType;
-        } catch (Exception e) {
-            return MediaType.APPLICATION_OCTET_STREAM;
-        }
-    }
-
 }

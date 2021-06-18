@@ -1,0 +1,180 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-details-buttons" fxLayout.xs="column">
+  <button mat-raised-button color="primary" fxFlex.xs
+          [disabled]="(isLoading$ | async) || !(entity?.hasData && !entity?.url)"
+          (click)="onEntityAction($event, 'uploadPackage')"
+          [fxShow]="!isEdit">
+    {{ 'ota-update.download' | translate }}
+  </button>
+  <button mat-raised-button color="primary" fxFlex.xs
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'delete')"
+          [fxShow]="!hideDelete() && !isEdit">
+    {{ 'ota-update.delete' | translate }}
+  </button>
+  <div fxLayout="row" fxLayout.xs="column">
+    <button mat-raised-button
+            ngxClipboard
+            (cbOnSuccess)="onPackageIdCopied()"
+            [cbContent]="entity?.id?.id"
+            [fxShow]="!isEdit">
+      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      <span translate>ota-update.copyId</span>
+    </button>
+    <button mat-raised-button
+            ngxClipboard
+            (cbOnSuccess)="onPackageChecksumCopied()"
+            [cbContent]="entity?.checksum"
+            [fxShow]="!isEdit && entity?.checksum">
+      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      <span translate>ota-update.copy-checksum</span>
+    </button>
+    <button mat-raised-button
+            ngxClipboard
+            (cbOnSuccess)="onPackageDirectUrlCopied()"
+            [cbContent]="entity?.url"
+            [fxShow]="!isEdit && entity?.url">
+      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      <span translate>ota-update.copy-direct-url</span>
+    </button>
+  </div>
+</div>
+<div class="mat-padding" fxLayout="column" fxLayoutGap="8px">
+  <form [formGroup]="entityForm">
+    <fieldset [disabled]="(isLoading$ | async) || !isEdit" fxLayout="column">
+      <div fxLayout="row" fxLayoutGap.gt-xs="8px" fxLayout.xs="column">
+        <mat-form-field class="mat-block" fxFlex="45">
+          <mat-label translate>ota-update.title</mat-label>
+          <input matInput formControlName="title" type="text" required [readonly]="!isAdd">
+          <mat-error *ngIf="entityForm.get('title').hasError('required')">
+            {{ 'ota-update.title-required' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field class="mat-block" fxFlex>
+          <mat-label translate>ota-update.version</mat-label>
+          <input matInput formControlName="version" type="text" required [readonly]="!isAdd">
+          <mat-error *ngIf="entityForm.get('version').hasError('required')">
+            {{ 'ota-update.version-required' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <tb-device-profile-autocomplete
+        formControlName="deviceProfileId"
+        required
+        [ngStyle]="{'padding-bottom': isAdd ? '16px': 0}"
+        [hint]="'ota-update.chose-compatible-device-profile'"
+        [editProfileEnabled]="false"
+        [addNewProfile]="false"
+        [selectDefaultProfile]="true">
+      </tb-device-profile-autocomplete>
+      <mat-form-field class="mat-block">
+        <mat-label translate>ota-update.package-type</mat-label>
+        <mat-select formControlName="type" required>
+          <mat-option *ngFor="let packageType of packageTypes" [value]="packageType">
+            {{ otaUpdateTypeTranslationMap.get(packageType) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <section *ngIf="isAdd">
+        <div class="mat-caption" style="margin: -8px 0 8px;" translate>ota-update.warning-after-save-no-edit</div>
+        <mat-radio-group formControlName="resource" fxLayoutGap="16px">
+          <mat-radio-button value="file">Upload binary file</mat-radio-button>
+          <mat-radio-button value="url">Use external URL</mat-radio-button>
+        </mat-radio-group>
+      </section>
+      <section *ngIf="entityForm.get('resource').value === 'file'">
+        <section *ngIf="isAdd">
+          <tb-file-input
+            formControlName="file"
+            workFromFileObj="true"
+            [required]="entityForm.get('resource').value === 'file'"
+            dropLabel="{{'ota-update.drop-file' | translate}}">
+          </tb-file-input>
+          <mat-checkbox formControlName="generateChecksum" style="margin-top: 16px">
+            {{ 'ota-update.auto-generate-checksum' | translate }}
+          </mat-checkbox>
+        </section>
+        <div fxLayout="row" fxLayoutGap.gt-xs="8px" fxLayoutGap.sm="8px"
+             fxLayout.xs="column" fxLayout.md="column" *ngIf="!(isAdd && this.entityForm.get('generateChecksum').value)">
+          <mat-form-field class="mat-block" fxFlex="33">
+            <mat-label translate>ota-update.checksum-algorithm</mat-label>
+            <mat-select formControlName="checksumAlgorithm">
+              <mat-option *ngFor="let checksumAlgorithm of checksumAlgorithms" [value]="checksumAlgorithm">
+                {{ checksumAlgorithmTranslationMap.get(checksumAlgorithm) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="mat-block" fxFlex>
+            <mat-label translate>ota-update.checksum</mat-label>
+            <input matInput formControlName="checksum" type="text">
+            <mat-hint *ngIf="isAdd" translate>ota-update.checksum-hint</mat-hint>
+          </mat-form-field>
+        </div>
+        <section *ngIf="!isAdd">
+          <div fxLayout="row" fxLayoutGap.gt-md="8px" fxLayoutGap.sm="8px" fxLayout.xs="column" fxLayout.md="column">
+            <mat-form-field class="mat-block" fxFlex="33">
+              <mat-label translate>ota-update.file-name</mat-label>
+              <input matInput formControlName="fileName" type="text">
+            </mat-form-field>
+            <mat-form-field class="mat-block" fxFlex>
+              <mat-label translate>ota-update.file-size-bytes</mat-label>
+              <input matInput formControlName="dataSize" type="text">
+            </mat-form-field>
+            <mat-form-field class="mat-block" fxFlex>
+              <mat-label translate>ota-update.content-type</mat-label>
+              <input matInput formControlName="contentType" type="text">
+            </mat-form-field>
+          </div>
+        </section>
+      </section>
+      <section *ngIf="entityForm.get('resource').value === 'url'" style="margin-top: 8px">
+        <mat-form-field class="mat-block">
+          <mat-label translate>ota-update.direct-url</mat-label>
+          <input matInput formControlName="url"
+                 type="text"
+                 [required]="entityForm.get('resource').value === 'url'">
+          <mat-error *ngIf="entityForm.get('url').hasError('required') || entityForm.get('url').hasError('pattern')" translate>
+            ota-update.direct-url-required
+          </mat-error>
+        </mat-form-field>
+      </section>
+      <div formGroupName="additionalInfo">
+        <mat-form-field class="mat-block">
+          <mat-label translate>ota-update.description</mat-label>
+          <textarea matInput formControlName="description" rows="2"></textarea>
+        </mat-form-field>
+      </div>
+    </fieldset>
+  </form>
+</div>

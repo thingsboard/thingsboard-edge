@@ -38,15 +38,18 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationControllerApi;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.service.RemoteIntegrationManagerService;
+import org.thingsboard.server.queue.util.TbIntegrationComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+@TbIntegrationComponent
 @Component
 @Data
 public class RemoteIntegrationControllerApi implements IntegrationControllerApi {
@@ -61,7 +64,7 @@ public class RemoteIntegrationControllerApi implements IntegrationControllerApi 
 
     @PostConstruct
     public void init() {
-        this.service = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(executorThreadPoolSize));
+        this.service = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(executorThreadPoolSize, getClass()));
     }
 
     @PreDestroy

@@ -37,18 +37,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId> {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -64,6 +64,9 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
     private transient DeviceData deviceData;
     @JsonIgnore
     private byte[] deviceDataBytes;
+
+    private OtaPackageId firmwareId;
+    private OtaPackageId softwareId;
 
     public Device() {
         super();
@@ -82,6 +85,8 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.label = device.getLabel();
         this.deviceProfileId = device.getDeviceProfileId();
         this.setDeviceData(device.getDeviceData());
+        this.firmwareId = device.getFirmwareId();
+        this.softwareId = device.getSoftwareId();
     }
 
     public Device updateDevice(Device device) {
@@ -92,6 +97,8 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.label = device.getLabel();
         this.deviceProfileId = device.getDeviceProfileId();
         this.setDeviceData(device.getDeviceData());
+        this.setFirmwareId(device.getFirmwareId());
+        this.setSoftwareId(device.getSoftwareId());
         return this;
     }
 
@@ -190,6 +197,22 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         return getName();
     }
 
+    public OtaPackageId getFirmwareId() {
+        return firmwareId;
+    }
+
+    public void setFirmwareId(OtaPackageId firmwareId) {
+        this.firmwareId = firmwareId;
+    }
+
+    public OtaPackageId getSoftwareId() {
+        return softwareId;
+    }
+
+    public void setSoftwareId(OtaPackageId softwareId) {
+        this.softwareId = softwareId;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -206,6 +229,8 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         builder.append(", deviceProfileId=");
         builder.append(deviceProfileId);
         builder.append(", deviceData=");
+        builder.append(firmwareId);
+        builder.append(", firmwareId=");
         builder.append(deviceData);
         builder.append(", additionalInfo=");
         builder.append(getAdditionalInfo());

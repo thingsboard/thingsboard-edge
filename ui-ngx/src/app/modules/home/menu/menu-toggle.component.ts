@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
 import { Observable, combineLatest } from 'rxjs';
 import { distinctUntilChanged, filter, map, share, startWith } from 'rxjs/operators';
@@ -40,7 +40,8 @@ import { ActivationEnd, Router } from '@angular/router';
 @Component({
   selector: 'tb-menu-toggle',
   templateUrl: './menu-toggle.component.html',
-  styleUrls: ['./menu-toggle.component.scss']
+  styleUrls: ['./menu-toggle.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MenuToggleComponent implements OnInit {
 

@@ -105,15 +105,6 @@ public class BlobEntityController extends BaseController {
         }
     }
 
-    private static MediaType parseMediaType(String contentType) {
-        try {
-            MediaType mediaType = MediaType.parseMediaType(contentType);
-            return mediaType;
-        } catch (Exception e) {
-            return MediaType.APPLICATION_OCTET_STREAM;
-        }
-    }
-
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/{blobEntityId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)

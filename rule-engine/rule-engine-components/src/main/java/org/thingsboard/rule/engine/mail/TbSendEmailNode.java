@@ -94,7 +94,7 @@ public class TbSendEmailNode implements TbNode {
             validateType(msg.getType());
             EmailPojo email = getEmail(msg);
             withCallback(ctx.getMailExecutor().executeAsync(() -> {
-                        sendEmail(ctx, email);
+                        sendEmail(ctx, msg, email);
                         return null;
                     }),
                     ok -> ctx.tellSuccess(msg),
@@ -104,9 +104,9 @@ public class TbSendEmailNode implements TbNode {
         }
     }
 
-    private void sendEmail(TbContext ctx, EmailPojo email) throws Exception {
+    private void sendEmail(TbContext ctx, TbMsg msg, EmailPojo email) throws Exception {
         if (this.config.isUseSystemSmtpSettings()) {
-            ctx.getMailService().send(ctx.getTenantId(), email.getFrom(), email.getTo(), email.getCc(),
+            ctx.getMailService().send(ctx.getTenantId(), msg.getCustomerId(), email.getFrom(), email.getTo(), email.getCc(),
                     email.getBcc(), email.getSubject(), email.getBody(), email.getAttachments());
         } else {
             MimeMessage mailMsg = mailSender.createMimeMessage();

@@ -55,8 +55,9 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -140,6 +141,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private ResourceService resourceService;
 
+    @Autowired
+    private OtaPackageService otaPackageService;
+
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
@@ -190,6 +194,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         if (tenant.getId() == null || forceCreate) {
             // TODO: voba - devices profiles are created by cloud manager service
             // deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
@@ -201,7 +206,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             // TODO: voba - these entity groups are created by cloud manager service
             // entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
             // entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
-            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId());
+            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
         return savedTenant;
     }
@@ -213,11 +218,11 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        dashboardService.deleteDashboardsByTenantId(tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
+        dashboardService.deleteDashboardsByTenantId(tenantId);
         edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
@@ -231,6 +236,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         roleService.deleteRolesByTenantId(tenantId);
         apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);
         resourceService.deleteResourcesByTenantId(tenantId);
+        otaPackageService.deleteOtaPackagesByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
     }
 

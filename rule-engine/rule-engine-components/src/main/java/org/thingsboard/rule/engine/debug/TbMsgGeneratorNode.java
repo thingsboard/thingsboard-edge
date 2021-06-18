@@ -119,7 +119,7 @@ public class TbMsgGeneratorNode implements TbNode {
             if (!initialized) {
                 initialized = true;
                 this.jsEngine = ctx.createJsScriptEngine(config.getJsScript(), "prevMsg", "prevMetadata", "prevMsgType");
-                scheduleTickMsg(ctx);
+                scheduleTickMsg(ctx, null);
             }
         } else if (initialized) {
             initialized = false;
@@ -130,20 +130,20 @@ public class TbMsgGeneratorNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (initialized && msg.getType().equals(TB_MSG_GENERATOR_NODE_MSG) && msg.getId().equals(nextTickId)) {
-            withCallback(generate(ctx),
+            withCallback(generate(ctx, msg),
                     m -> {
                         if (initialized && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
                             if (getEntityByEntityType(ctx, originatorId.getEntityType()) != null) {
                                 ctx.enqueueForTellNext(m, SUCCESS);
                                 currentMsgCount++;
                             }
-                            scheduleTickMsg(ctx);
+                            scheduleTickMsg(ctx, msg);
                         }
                     },
                     t -> {
                         if (initialized && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
                             ctx.tellFailure(msg, t);
-                            scheduleTickMsg(ctx);
+                            scheduleTickMsg(ctx, msg);
                             currentMsgCount++;
                         }
                     });
@@ -199,28 +199,29 @@ public class TbMsgGeneratorNode implements TbNode {
         return entity;
     }
 
-    private void scheduleTickMsg(TbContext ctx) {
+    private void scheduleTickMsg(TbContext ctx, TbMsg msg) {
         long curTs = System.currentTimeMillis();
         if (lastScheduledTs == 0L) {
             lastScheduledTs = curTs;
         }
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_MSG_GENERATOR_NODE_MSG, ctx.getSelfId(),
+                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }
 
-    private ListenableFuture<TbMsg> generate(TbContext ctx) {
+    private ListenableFuture<TbMsg> generate(TbContext ctx, TbMsg msg) {
         return ctx.getJsExecutor().executeAsync(() -> {
             if (prevMsg == null) {
-                prevMsg = ctx.newMsg(ServiceQueue.MAIN, "", originatorId, new TbMsgMetaData(), "{}");
+                prevMsg = ctx.newMsg(ServiceQueue.MAIN, "", originatorId, msg.getCustomerId(), new TbMsgMetaData(), "{}");
             }
             if (initialized) {
                 ctx.logJsEvalRequest();
                 TbMsg generated = jsEngine.executeGenerate(prevMsg);
                 ctx.logJsEvalResponse();
-                prevMsg = ctx.newMsg(ServiceQueue.MAIN, generated.getType(), originatorId, generated.getMetaData(), generated.getData());
+                prevMsg = ctx.newMsg(ServiceQueue.MAIN, generated.getType(), originatorId, msg.getCustomerId(), generated.getMetaData(), generated.getData());
             }
             return prevMsg;
         });

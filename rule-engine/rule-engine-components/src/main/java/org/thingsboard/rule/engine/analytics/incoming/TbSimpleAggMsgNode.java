@@ -52,7 +52,6 @@ import org.thingsboard.rule.engine.analytics.incoming.state.TbIntervalState;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
@@ -112,9 +111,9 @@ public class TbSimpleAggMsgNode implements TbNode {
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
         this.intervalReportCheckPeriod = Math.max(TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue()), TimeUnit.MINUTES.toMillis(1));
         this.statePersistCheckPeriod = Math.max(TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue()), TimeUnit.MINUTES.toMillis(1));
-        scheduleReportTickMsg(ctx);
+        scheduleReportTickMsg(ctx, null);
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
-            scheduleStatePersistTickMsg(ctx);
+            scheduleStatePersistTickMsg(ctx, null);
         }
         if (config.isAutoCreateIntervals()) {
             this.entitiesCheckPeriod = Math.max(config.getPeriodTimeUnit().toMillis(config.getPeriodValue()), TimeUnit.MINUTES.toMillis(1));
@@ -123,7 +122,7 @@ public class TbSimpleAggMsgNode implements TbNode {
             } catch (Exception e) {
                 throw new TbNodeException(e);
             }
-            scheduleEntitiesTickMsg(ctx);
+            scheduleEntitiesTickMsg(ctx, null);
         }
     }
 
@@ -188,7 +187,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!msg.getId().equals(nextReportTickId)) {
             return;
         }
-        scheduleReportTickMsg(ctx);
+        scheduleReportTickMsg(ctx, msg);
         log.trace("Reporting intervals!");
         intervals.getStatesToReport(intervalPersistPolicy).forEach((entityId, entityStates) -> entityStates.forEach((ts, interval) -> {
             reportInterval(ctx, entityId, ts, interval);
@@ -209,7 +208,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!msg.getId().equals(nextPersistTickId)) {
             return;
         }
-        scheduleStatePersistTickMsg(ctx);
+        scheduleStatePersistTickMsg(ctx, msg);
         log.trace("[{}] Persisting states!", ctx.getSelfId());
         intervals.getStatesToPersist().forEach((entityId, entityStates) -> entityStates.forEach((ts, state) -> {
             log.trace("[{}] Persisting state: [{}][{}]", ctx.getSelfId(), ts, state);
@@ -223,7 +222,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!msg.getId().equals(nextEntitiesTickId)) {
             return;
         }
-        scheduleEntitiesTickMsg(ctx);
+        scheduleEntitiesTickMsg(ctx, msg);
         initEntities(ctx, msg);
     }
 
@@ -254,20 +253,23 @@ public class TbSimpleAggMsgNode implements TbNode {
         };
     }
 
-    private void scheduleReportTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_REPORT_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+    private void scheduleReportTickMsg(TbContext ctx, TbMsg msg) {
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_REPORT_TICK_MSG, ctx.getSelfId(),
+                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextReportTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
     }
 
-    private void scheduleStatePersistTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_PERSIST_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+    private void scheduleStatePersistTickMsg(TbContext ctx, TbMsg msg) {
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_PERSIST_TICK_MSG, ctx.getSelfId(),
+                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextPersistTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, statePersistCheckPeriod);
     }
 
-    private void scheduleEntitiesTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_ENTITIES_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+    private void scheduleEntitiesTickMsg(TbContext ctx, TbMsg msg) {
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_ENTITIES_TICK_MSG, ctx.getSelfId(),
+                msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextEntitiesTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, entitiesCheckPeriod);
     }

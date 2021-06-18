@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="resourceFormGroup" class="mat-padding">
+<section [formGroup]="resourceFormGroup">
   <div fxLayout="row" fxFill formArrayName="resources"
        *ngFor="let resourceLwM2M of resourceFormArray.controls; let i = index; trackBy: trackByParams">
     <div class="vertical-padding" fxLayout="column" fxFill [formGroupName]="i">
@@ -61,14 +61,14 @@
         </div>
         <div fxFlex="10" fxLayoutAlign="center center">
           <mat-checkbox formControlName="attribute" color="warn"
-                        [checked]="updateObserve(i)"
+                        (change)="updateObserve(i)"
                         matTooltip="{{'device-profile.lwm2m.is-attr-tip' | translate}}"
                         matTooltipPosition="above">
           </mat-checkbox>
         </div>
         <div fxFlex="10" fxLayoutAlign="center center">
           <mat-checkbox formControlName="telemetry" color="primary"
-                        [checked]="updateObserve(i)"
+                        (change)="updateObserve(i)"
                         matTooltip="{{'device-profile.lwm2m.is-telemetry-tip' | translate}}"
                         matTooltipPosition="above">
           </mat-checkbox>

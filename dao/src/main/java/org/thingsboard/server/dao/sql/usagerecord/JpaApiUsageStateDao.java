@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.usagerecord;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.ApiUsageStateEntity;
@@ -69,7 +70,17 @@ public class JpaApiUsageStateDao extends JpaAbstractDao<ApiUsageStateEntity, Api
     }
 
     @Override
+    public ApiUsageState findApiUsageStateByEntityId(EntityId entityId) {
+        return DaoUtil.getData(apiUsageStateRepository.findByEntityIdAndEntityType(entityId.getId(), entityId.getEntityType().name()));
+    }
+
+    @Override
     public void deleteApiUsageStateByTenantId(TenantId tenantId) {
         apiUsageStateRepository.deleteApiUsageStateByTenantId(tenantId.getId());
+    }
+
+    @Override
+    public void deleteApiUsageStateByEntityId(EntityId entityId) {
+        apiUsageStateRepository.deleteByEntityIdAndEntityType(entityId.getId(), entityId.getEntityType().name());
     }
 }

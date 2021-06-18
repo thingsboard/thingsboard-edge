@@ -101,9 +101,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
         context = ctx;
         this.configuration = integration;
         try {
-            mqttClientConfiguration = mapper.readValue(
-                    mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                    MqttClientConfiguration.class);
+            mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
             mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
         } catch (RuntimeException e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);

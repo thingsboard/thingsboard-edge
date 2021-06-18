@@ -50,7 +50,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>tb-edge</pkg.name>
-        <tb.docker.name>tb-edge</tb.docker.name>
+        <docker.name>tb-edge</docker.name>
+        <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.upgradeVersion>3.3.0-edge</pkg.upgradeVersion>
     </properties>

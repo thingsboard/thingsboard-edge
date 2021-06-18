@@ -35,7 +35,6 @@ export const INSTANCE = 'instance';
 export const RESOURCES = 'resources';
 export const ATTRIBUTE_LWM2M = 'attributeLwm2m';
 export const CLIENT_LWM2M = 'clientLwM2M';
-export const CLIENT_LWM2M_SETTINGS = 'clientLwM2mSettings';
 export const OBSERVE_ATTR_TELEMETRY = 'observeAttrTelemetry';
 export const OBSERVE = 'observe';
 export const ATTRIBUTE = 'attribute';
@@ -43,7 +42,7 @@ export const TELEMETRY = 'telemetry';
 export const KEY_NAME = 'keyName';
 export const DEFAULT_ID_SERVER = 123;
 export const DEFAULT_ID_BOOTSTRAP = 111;
-export const DEFAULT_HOST_NAME = 'localhost';
+export const DEFAULT_LOCAL_HOST_NAME = 'localhost';
 export const DEFAULT_PORT_SERVER_NO_SEC = 5685;
 export const DEFAULT_PORT_BOOTSTRAP_NO_SEC = 5687;
 export const DEFAULT_CLIENT_HOLD_OFF_TIME = 1;
@@ -58,6 +57,38 @@ export const KEY_REGEXP_HEX_DEC = /^[-+]?[0-9A-Fa-f]+\.?[0-9A-Fa-f]*?$/;
 export const KEY_REGEXP_NUMBER = /^(\-?|\+?)\d*$/;
 export const INSTANCES_ID_VALUE_MIN = 0;
 export const INSTANCES_ID_VALUE_MAX = 65535;
+export const DEFAULT_OTA_UPDATE_PROTOCOL = 'coap://';
+export const DEFAULT_FW_UPDATE_RESOURCE = DEFAULT_OTA_UPDATE_PROTOCOL + DEFAULT_LOCAL_HOST_NAME + ':' + DEFAULT_PORT_SERVER_NO_SEC;
+export const DEFAULT_SW_UPDATE_RESOURCE = DEFAULT_OTA_UPDATE_PROTOCOL + DEFAULT_LOCAL_HOST_NAME + ':' + DEFAULT_PORT_SERVER_NO_SEC;
+
+
+export enum BINDING_MODE {
+  U = 'U',
+  UQ = 'UQ',
+  T = 'T',
+  TQ = 'TQ',
+  S = 'S',
+  SQ = 'SQ',
+  US = 'US',
+  TS = 'TS',
+  UQS = 'UQS',
+  TQS = 'TQS'
+}
+
+export const BINDING_MODE_NAMES = new Map<BINDING_MODE, string>(
+  [
+    [BINDING_MODE.U, 'U: UDP connection in standard mode'],
+    [BINDING_MODE.UQ, 'UQ: UDP connection in queue mode'],
+    [BINDING_MODE.US, 'US: both UDP and SMS connections active, both in standard mode'],
+    [BINDING_MODE.UQS, 'UQS: both UDP and SMS connections active; UDP in queue mode, SMS in standard mode'],
+    [BINDING_MODE.T, 'T: TCP connection in standard mode'],
+    [BINDING_MODE.TQ, 'TQ: TCP connection in queue mode'],
+    [BINDING_MODE.TS, 'TS: both TCP and SMS connections active, both in standard mode'],
+    [BINDING_MODE.TQS, 'TQS: both TCP and SMS connections active; TCP in queue mode, SMS in standard mode'],
+    [BINDING_MODE.S, 'S: SMS connection in standard mode'],
+    [BINDING_MODE.SQ, 'SQ: SMS connection in queue mode']
+  ]
+);
 
 export enum ATTRIBUTE_LWM2M_ENUM {
   dim = 'dim',
@@ -77,8 +108,7 @@ export const ATTRIBUTE_LWM2M_LABEL = new Map<ATTRIBUTE_LWM2M_ENUM, string>(
     [ATTRIBUTE_LWM2M_ENUM.pmax, 'pmax='],
     [ATTRIBUTE_LWM2M_ENUM.gt, '>'],
     [ATTRIBUTE_LWM2M_ENUM.lt, '<'],
-    [ATTRIBUTE_LWM2M_ENUM.st, 'st='],
-
+    [ATTRIBUTE_LWM2M_ENUM.st, 'st=']
   ]
 );
 
@@ -97,25 +127,25 @@ export const ATTRIBUTE_LWM2M_MAP = new Map<ATTRIBUTE_LWM2M_ENUM, string>(
 
 export const ATTRIBUTE_KEYS = Object.keys(ATTRIBUTE_LWM2M_ENUM) as string[];
 
-export enum SECURITY_CONFIG_MODE {
+export enum securityConfigMode {
   PSK = 'PSK',
   RPK = 'RPK',
   X509 = 'X509',
   NO_SEC = 'NO_SEC'
 }
 
-export const SECURITY_CONFIG_MODE_NAMES = new Map<SECURITY_CONFIG_MODE, string>(
+export const securityConfigModeNames = new Map<securityConfigMode, string>(
   [
-    [SECURITY_CONFIG_MODE.PSK, 'Pre-Shared Key'],
-    [SECURITY_CONFIG_MODE.RPK, 'Raw Public Key'],
-    [SECURITY_CONFIG_MODE.X509, 'X.509 Certificate'],
-    [SECURITY_CONFIG_MODE.NO_SEC, 'No Security']
+    [securityConfigMode.PSK, 'Pre-Shared Key'],
+    [securityConfigMode.RPK, 'Raw Public Key'],
+    [securityConfigMode.X509, 'X.509 Certificate'],
+    [securityConfigMode.NO_SEC, 'No Security']
   ]
 );
 
 export interface ModelValue {
-  objectIds: string[],
-  objectsList: ObjectLwM2M[]
+  objectIds: string[];
+  objectsList: ObjectLwM2M[];
 }
 
 export interface BootstrapServersSecurityConfig {
@@ -128,9 +158,10 @@ export interface BootstrapServersSecurityConfig {
 
 export interface ServerSecurityConfig {
   host?: string;
+  securityHost?: string;
   port?: number;
-  bootstrapServerIs?: boolean;
-  securityMode: string;
+  securityPort?: number;
+  securityMode: securityConfigMode;
   clientPublicKeyOrId?: string;
   clientSecretKey?: string;
   serverPublicKey?: string;
@@ -149,11 +180,14 @@ export interface Lwm2mProfileConfigModels {
   clientLwM2mSettings: ClientLwM2mSettings;
   observeAttr: ObservableAttributes;
   bootstrap: BootstrapSecurityConfig;
-
 }
 
 export interface ClientLwM2mSettings {
-  clientOnlyObserveAfterConnect: number;
+  clientStrategy: string;
+  fwUpdateStrategy: number;
+  swUpdateStrategy: number;
+  fwUpdateRecourse: string;
+  swUpdateRecourse: string;
 }
 
 export interface ObservableAttributes {
@@ -174,12 +208,11 @@ export function getDefaultBootstrapServersSecurityConfig(): BootstrapServersSecu
   };
 }
 
-export function getDefaultBootstrapServerSecurityConfig(hostname: any): ServerSecurityConfig {
+export function getDefaultBootstrapServerSecurityConfig(hostname: string): ServerSecurityConfig {
   return {
     host: hostname,
     port: DEFAULT_PORT_BOOTSTRAP_NO_SEC,
-    bootstrapServerIs: true,
-    securityMode: SECURITY_CONFIG_MODE.NO_SEC.toString(),
+    securityMode: securityConfigMode.NO_SEC,
     serverPublicKey: '',
     clientHoldOffTime: DEFAULT_CLIENT_HOLD_OFF_TIME,
     serverId: DEFAULT_ID_BOOTSTRAP,
@@ -189,7 +222,6 @@ export function getDefaultBootstrapServerSecurityConfig(hostname: any): ServerSe
 
 export function getDefaultLwM2MServerSecurityConfig(hostname): ServerSecurityConfig {
   const DefaultLwM2MServerSecurityConfig = getDefaultBootstrapServerSecurityConfig(hostname);
-  DefaultLwM2MServerSecurityConfig.bootstrapServerIs = false;
   DefaultLwM2MServerSecurityConfig.port = DEFAULT_PORT_SERVER_NO_SEC;
   DefaultLwM2MServerSecurityConfig.serverId = DEFAULT_ID_SERVER;
   return DefaultLwM2MServerSecurityConfig;
@@ -217,13 +249,17 @@ export function getDefaultProfileConfig(hostname?: any): Lwm2mProfileConfigModel
   return {
     clientLwM2mSettings: getDefaultProfileClientLwM2mSettingsConfig(),
     observeAttr: getDefaultProfileObserveAttrConfig(),
-    bootstrap: getDefaultProfileBootstrapSecurityConfig((hostname) ? hostname : DEFAULT_HOST_NAME)
+    bootstrap: getDefaultProfileBootstrapSecurityConfig((hostname) ? hostname : DEFAULT_LOCAL_HOST_NAME)
   };
 }
 
 function getDefaultProfileClientLwM2mSettingsConfig(): ClientLwM2mSettings {
   return {
-    clientOnlyObserveAfterConnect: 1
+    clientStrategy: '1',
+    fwUpdateStrategy: 1,
+    swUpdateStrategy: 1,
+    fwUpdateRecourse: DEFAULT_FW_UPDATE_RESOURCE,
+    swUpdateRecourse: DEFAULT_SW_UPDATE_RESOURCE
   };
 }
 
@@ -233,7 +269,7 @@ export interface ResourceLwM2M {
   observe: boolean;
   attribute: boolean;
   telemetry: boolean;
-  keyName: {};
+  keyName: string;
   attributeLwm2m?: {};
 }
 

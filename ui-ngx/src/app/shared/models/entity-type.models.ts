@@ -56,7 +56,8 @@ export enum EntityType {
   GROUP_PERMISSION = 'GROUP_PERMISSION',
   API_USAGE_STATE = 'API_USAGE_STATE',
   TB_RESOURCE = 'TB_RESOURCE',
-  EDGE = 'EDGE'
+  EDGE = 'EDGE',
+  OTA_PACKAGE = 'OTA_PACKAGE'
 }
 
 export enum AliasEntityType {
@@ -435,6 +436,7 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
     [
       EntityType.TB_RESOURCE,
       {
+        type: 'entity.type-tb-resource',
         details: 'resource.resource-library-details',
         add: 'resource.add',
         noEntities: 'resource.no-resource-text',
@@ -442,6 +444,17 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         selectedEntities: 'resource.selected-resources'
       }
     ],
+    [
+      EntityType.OTA_PACKAGE,
+      {
+        type: 'entity.type-ota-package',
+        details: 'ota-update.ota-update-details',
+        add: 'ota-update.add',
+        noEntities: 'ota-update.no-packages-text',
+        search: 'ota-update.search',
+        selectedEntities: 'ota-update.selected-package'
+      }
+    ]
   ]
 );
 
@@ -535,6 +548,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.TB_RESOURCE,
       {
         helpLinkId: 'resources'
+      }
+    ],
+    [
+      EntityType.OTA_PACKAGE,
+      {
+        helpLinkId: 'otaUpdates'
       }
     ]
   ]

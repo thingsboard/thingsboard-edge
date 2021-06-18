@@ -92,6 +92,22 @@
           {{ 'entity-group.name-required' | translate }}
         </mat-error>
       </mat-form-field>
+      <section *ngIf="!isAdd && entity?.type === 'DEVICE'">
+        <tb-ota-package-autocomplete
+          [useFullEntityId]="true"
+          [type]="packageTypes.FIRMWARE"
+          [deviceGroupId]="entity?.id?.id"
+          [deviceGroupAll]="isGroupAll"
+          formControlName="firmwareId">
+        </tb-ota-package-autocomplete>
+        <tb-ota-package-autocomplete
+          [useFullEntityId]="true"
+          [type]="packageTypes.SOFTWARE"
+          [deviceGroupId]="entity?.id?.id"
+          [deviceGroupAll]="isGroupAll"
+          formControlName="softwareId">
+        </tb-ota-package-autocomplete>
+      </section>
       <div formGroupName="additionalInfo" fxLayout="column">
         <mat-form-field class="mat-block">
           <mat-label translate>entity-group.description</mat-label>

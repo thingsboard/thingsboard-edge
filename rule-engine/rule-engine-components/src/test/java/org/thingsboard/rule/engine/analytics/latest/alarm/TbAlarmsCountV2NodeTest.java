@@ -352,10 +352,7 @@ public class TbAlarmsCountV2NodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    UUID idOffset = alarms.getData().get(alarms.getData().size() - 1).getId().getId();
-                    query = new AlarmQuery(query.getAffectedEntityId(),
-                            query.getPageLink(),
-                            query.getSearchStatus(), query.getStatus(), false, idOffset);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

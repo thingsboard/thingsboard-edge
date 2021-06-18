@@ -57,6 +57,7 @@ import { CustomSchedulerEventConfigComponent } from '@home/components/scheduler/
 import { SharedModule } from '@shared/shared.module';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 import { tap } from 'rxjs/operators';
+import { UpdateFirmwareComponent } from '@home/components/scheduler/config/update-firmware.component';
 
 @Component({
   selector: 'tb-scheduler-event-template-config',
@@ -143,6 +144,9 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
         this.configContentContainer.clear();
         this.configComponentRef = this.configContentContainer.createComponent(factory);
         this.configComponent = this.configComponentRef.instance;
+        if (this.configComponent instanceof UpdateFirmwareComponent) {
+          this.configComponent.schedulerEventType = this.schedulerEventType;
+        }
         this.configComponent.registerOnChange((configuration: SchedulerEventConfiguration) => {
           this.updateModel(configuration);
         });
@@ -153,7 +157,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
   }
 
   private resolveComponentFactory(componentType: Type<ControlValueAccessor>,
-                                  template: string): Observable<ComponentFactory<ControlValueAccessor>> {
+                                  template: string): Observable<ComponentFactory<ControlValueAccessor|UpdateFirmwareComponent>> {
     if (componentType) {
       const factory = this.resolver.resolveComponentFactory(componentType);
       return of(factory);

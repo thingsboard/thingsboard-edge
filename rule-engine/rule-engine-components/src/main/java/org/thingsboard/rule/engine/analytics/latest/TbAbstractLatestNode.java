@@ -47,10 +47,14 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfiguration> implements TbNode {
@@ -72,7 +76,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (msg.getType().equals(tickMessageType()) && msg.getId().equals(nextTickId)) {
-            withCallback(aggregate(ctx),
+            withCallback(aggregate(ctx, msg),
                     m -> scheduleTickMsg(ctx),
                     t -> {
                         ctx.tellFailure(msg, t);
@@ -93,7 +97,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         ctx.tellSelf(tickMsg, curDelay);
     }
 
-    private ListenableFuture<List<TbMsg>> aggregate(TbContext ctx) {
+    private ListenableFuture<List<TbMsg>> aggregate(TbContext ctx, TbMsg tbMsg) {
         ListenableFuture<List<EntityId>> parentEntityIdsFuture = this.config.getParentEntitiesQuery().getParentEntitiesAsync(ctx);
         return Futures.transformAsync(parentEntityIdsFuture, parentEntityIds -> {
             List<ListenableFuture<TbMsg>> msgFutures = new ArrayList<>();
@@ -104,7 +108,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
                         TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                                originatorId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
+                                originatorId, tbMsg.getCustomerId(), new TbMsgMetaData(), TbMsgDataType.JSON, "");
                         ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
                     }, MoreExecutors.directExecutor());
@@ -114,7 +118,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
                             TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                                    originatorId, metaData, gson.toJson(messageData));
+                                    originatorId, tbMsg.getCustomerId(), metaData, gson.toJson(messageData));
                             ctx.enqueueForTellNext(msg, SUCCESS);
                             return msg;
                         } else {

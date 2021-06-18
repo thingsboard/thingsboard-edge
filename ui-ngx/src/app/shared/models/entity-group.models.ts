@@ -41,6 +41,8 @@ import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@share
 import { PageLink } from '@shared/models/page/page-link';
 import { RoleId } from '@shared/models/id/role-id';
 import { Edge } from '@shared/models/edge.models';
+import { OtaPackageId } from '@shared/models/id/ota-package-id';
+import { DeviceGroupOtaPackage } from '@shared/models/ota-package.models';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -262,6 +264,10 @@ export interface EntityGroup extends BaseData<EntityGroupId> {
 
 export interface EntityGroupInfo extends EntityGroup {
   ownerIds: EntityId[];
+  softwareId?: OtaPackageId;
+  softwareGroup?: DeviceGroupOtaPackage;
+  firmwareId?: OtaPackageId;
+  firmwareGroup?: DeviceGroupOtaPackage;
 }
 
 export function prepareEntityGroupConfiguration(groupType: EntityType,
@@ -451,7 +457,7 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
 }
 
 export function entityGroupsTitle(groupType: EntityType) {
-  switch(groupType) {
+  switch (groupType) {
     case EntityType.ASSET:
       return 'entity-group.asset-groups';
     case EntityType.DEVICE:
@@ -520,7 +526,7 @@ export interface ShareGroupRequest {
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
   let routeParams = {...route.params};
   let routeData = {...route.data};
-  var grandChildGroupId;
+  let grandChildGroupId;
   if (routeData.childGroupScope && routeData.childGroupScope === 'customer') {
     grandChildGroupId = routeParams.entityGroupId;
   }
@@ -545,6 +551,6 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     edgeId: routeParams.edgeId,
     childGroupScope: routeData.childGroupScope,
     grandChildGroupType: routeData.grandChildGroupType,
-    grandChildGroupId: grandChildGroupId
-  }
+    grandChildGroupId
+  };
 }

@@ -53,6 +53,8 @@ import { BroadcastService } from '@core/services/broadcast.service';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { EdgeService } from '@core/http/edge.service';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { DeviceProfileService } from '@core/http/device-profile.service';
+import { OtaPackageService } from '@core/http/ota-package.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -78,6 +80,8 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['http', HttpClient],
    ['router', Router],
    ['importExport', ImportExportService],
-   ['schedulerEventService', SchedulerEventService]
+   ['schedulerEventService', SchedulerEventService],
+   ['deviceProfileService', DeviceProfileService],
+   ['otaPackageService', OtaPackageService]
   ]
 );

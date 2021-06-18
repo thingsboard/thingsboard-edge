@@ -48,12 +48,14 @@ import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -92,7 +94,8 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
 
     private volatile boolean stopped = true;
 
-    public ZkDiscoveryService(TbServiceInfoProvider serviceInfoProvider, PartitionService partitionService) {
+    public ZkDiscoveryService(TbServiceInfoProvider serviceInfoProvider,
+                              PartitionService partitionService) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.partitionService = partitionService;
     }
@@ -140,8 +143,10 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             log.debug("Ignoring application ready event, ZK client is not started, ZK client state [{}]", client.getState());
             return;
         }
+        log.info("Going to publish current server...");
         publishCurrentServer();
-        partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
+        log.info("Going to recalculate partitions...");
+        recalculatePartitions();
     }
 
     public synchronized void publishCurrentServer() {
@@ -296,11 +301,19 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
             case CHILD_ADDED:
             case CHILD_UPDATED:
             case CHILD_REMOVED:
-                partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
+                recalculatePartitions();
                 break;
             default:
                 break;
         }
+    }
+
+    /**
+     * A single entry point to recalculate partitions
+     * Synchronized to ensure that other servers info is up to date
+     * */
+    synchronized void recalculatePartitions() {
+        partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
     }
 
 }

@@ -55,7 +55,7 @@ public class CloudEventsCleanUpService extends AbstractCleanUpService {
     @Scheduled(initialDelayString = "${sql.ttl.cloud_events.execution_interval_ms}", fixedDelayString = "${sql.ttl.cloud_events.execution_interval_ms}")
     public void cleanUp() {
         if (ttlTaskExecutionEnabled) {
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+            try (Connection conn = getConnection()) {
                 doCleanUp(conn);
             } catch (SQLException e) {
                 log.error("SQLException occurred during TTL task execution ", e);

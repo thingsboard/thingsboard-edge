@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -110,7 +111,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
         jsExecutor = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(jsExecutorThreadPoolSize));
         if (useJsSandbox()) {
             sandbox = NashornSandboxes.create();
-            monitorExecutorService = Executors.newWorkStealingPool(getMonitorThreadPoolSize());
+            monitorExecutorService = ThingsBoardExecutors.newWorkStealingPool(getMonitorThreadPoolSize(), "nashorn-js-monitor");
             sandbox.setExecutor(monitorExecutorService);
             sandbox.setMaxCPUTime(getMaxCpuTime());
             sandbox.allowNoBraces(false);

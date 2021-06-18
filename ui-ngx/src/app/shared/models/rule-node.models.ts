@@ -383,6 +383,8 @@ export enum MessageType {
   ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
   REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
   REST_API_REQUEST = 'REST_API_REQUEST',
+  FIRMWARE_UPDATED = 'FIRMWARE_UPDATED',
+  SOFTWARE_UPDATED = 'SOFTWARE_UPDATED',
   generateReport = 'generateReport'
 }
 
@@ -408,6 +410,8 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ADDED_TO_ENTITY_GROUP, 'Added to Group'],
     [MessageType.REMOVED_FROM_ENTITY_GROUP, 'Removed from Group'],
     [MessageType.REST_API_REQUEST, 'REST API request'],
+    [MessageType.FIRMWARE_UPDATED, 'Firmware Update'],
+    [MessageType.SOFTWARE_UPDATED, 'Software Update'],
     [MessageType.generateReport, 'Generate Report']
   ]
 );

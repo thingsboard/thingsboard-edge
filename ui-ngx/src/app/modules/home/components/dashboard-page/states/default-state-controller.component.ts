@@ -42,6 +42,7 @@ import { base64toObj, objToBase64URI } from '@app/core/utils';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { EntityService } from '@core/http/entity.service';
 import { WINDOW } from '@core/services/window.service';
+import { MobileService } from '@core/services/mobile.service';
 
 // @dynamic
 @Component({
@@ -58,6 +59,7 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
               protected statesControllerService: StatesControllerService,
               protected utils: UtilsService,
               private entityService: EntityService,
+              private mobileService: MobileService,
               private dashboardUtils: DashboardUtilsService) {
     super(router, route, utils, window, ngZone, statesControllerService);
   }
@@ -201,6 +203,10 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
     return this.utils.customTranslation(state.name, id);
   }
 
+  public getCurrentStateName(): string {
+    return this.getStateName(this.stateObject[0].id, this.statesValue[this.stateObject[0].id]);
+  }
+
   public displayStateSelection(): boolean {
     return this.states && Object.keys(this.states).length > 1;
   }
@@ -247,6 +253,9 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
   private gotoState(stateId: string, update: boolean, openRightLayout?: boolean) {
     if (this.dashboardCtrl.dashboardCtx.state !== stateId) {
       this.dashboardCtrl.openDashboardState(stateId, openRightLayout);
+      if (stateId && this.statesValue[stateId]) {
+        this.mobileService.handleDashboardStateName(this.getStateName(stateId, this.statesValue[stateId]));
+      }
       if (update) {
         this.updateLocation();
       }
