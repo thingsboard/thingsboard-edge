@@ -28,20 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.transport.lwm2m.server.log;
 
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.queue.util.TbLwM2mTransportComponent;
+import org.thingsboard.server.transport.lwm2m.server.LwM2mTransportServerHelper;
+import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import static org.thingsboard.server.transport.lwm2m.server.LwM2mTransportUtil.LOG_LWM2M_TELEMETRY;
 
-@Data
-public class ResultsAnalyzerParameters {
-    Set<String> pathPostParametersAdd;
-    Set<String> pathPostParametersDel;
+@Slf4j
+@Service
+@TbLwM2mTransportComponent
+@RequiredArgsConstructor
+public class DefaultLwM2MTelemetryLogService implements LwM2MTelemetryLogService {
 
-    public ResultsAnalyzerParameters() {
-        this.pathPostParametersAdd = ConcurrentHashMap.newKeySet();
-        this.pathPostParametersDel = ConcurrentHashMap.newKeySet();
+    private final LwM2mClientContext clientContext;
+    private final LwM2mTransportServerHelper helper;
+
+    /**
+     * @param logMsg         - text msg
+     * @param registrationId - Id of Registration LwM2M Client
+     */
+    @Override
+    public void log(String registrationId, String logMsg) {
+        log(clientContext.getClientByRegistrationId(registrationId), logMsg);
     }
+
+    @Override
+    public void log(LwM2mClient client, String logMsg) {
+        if (logMsg != null && client != null && client.getSession() != null) {
+            if (logMsg.length() > 1024) {
+                logMsg = logMsg.substring(0, 1024);
+            }
+            this.helper.sendParametersOnThingsboardTelemetry(this.helper.getKvStringtoThingsboard(LOG_LWM2M_TELEMETRY, logMsg), client.getSession());
+        }
+    }
+
 }

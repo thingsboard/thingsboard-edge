@@ -28,44 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.lwm2m.server.rpc;
 
-import org.eclipse.leshan.core.observation.Observation;
-import org.eclipse.leshan.core.response.ReadResponse;
-import org.eclipse.leshan.server.registration.Registration;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
-import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
-import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientRpcRequest;
 
-import java.util.Collection;
-import java.util.Optional;
-
-public interface LwM2mTransportMsgHandler {
-
-    void onRegistered(Registration registration, Collection<Observation> previousObsersations);
-
-    void updatedReg(Registration registration);
-
-    void unReg(Registration registration, Collection<Observation> observations);
-
-    void onSleepingDev(Registration registration);
-
-    void setCancelObservationsAll(Registration registration);
-
-    void onUpdateValueAfterReadResponse(Registration registration, String path, ReadResponse response, LwM2mClientRpcRequest rpcRequest);
-
-    void onAttributeUpdate(TransportProtos.AttributeUpdateNotificationMsg msg, TransportProtos.SessionInfoProto sessionInfo);
-
-    void onDeviceProfileUpdate(TransportProtos.SessionInfoProto sessionInfo, DeviceProfile deviceProfile);
-
-    void onDeviceUpdate(TransportProtos.SessionInfoProto sessionInfo, Device device, Optional<DeviceProfile> deviceProfileOpt);
-
-    void onResourceUpdate (Optional<TransportProtos.ResourceUpdateMsg> resourceUpdateMsgOpt);
-
-    void onResourceDelete(Optional<TransportProtos.ResourceDeleteMsg> resourceDeleteMsgOpt);
+public interface LwM2MRpcRequestHandler {
 
     void onToDeviceRpcRequest(TransportProtos.ToDeviceRpcRequestMsg toDeviceRequest, TransportProtos.SessionInfoProto sessionInfo);
 
@@ -73,13 +40,5 @@ public interface LwM2mTransportMsgHandler {
 
     void onToServerRpcResponse(TransportProtos.ToServerRpcResponseMsg toServerResponse);
 
-    void doDisconnect(TransportProtos.SessionInfoProto sessionInfo);
 
-    void onAwakeDev(Registration registration);
-
-    void sendLogsToThingsboard(LwM2mClient client, String msg);
-
-    void sendLogsToThingsboard(String registrationId, String msg);
-
-    LwM2MTransportServerConfig getConfig();
 }
