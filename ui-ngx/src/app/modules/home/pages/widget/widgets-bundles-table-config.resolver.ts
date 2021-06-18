@@ -49,12 +49,11 @@ import { WidgetsBundleComponent } from '@modules/home/pages/widget/widgets-bundl
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { getCurrentAuthState, getCurrentAuthUser } from '@app/core/auth/auth.selectors';
+import { getCurrentAuthUser } from '@app/core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { DialogService } from '@core/services/dialog.service';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { Direction } from '@shared/models/page/sort-order';
-import { map } from 'rxjs/operators';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';

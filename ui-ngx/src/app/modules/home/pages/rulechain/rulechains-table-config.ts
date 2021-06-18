@@ -613,38 +613,30 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
   private configureRuleChainScope(): void {
     if (this.componentsData.ruleChainScope === 'tenant' || this.componentsData.ruleChainScope === 'edges') {
-      this.configureTenantEdgesScope();
+      this.entitySelectionEnabled = ruleChain => ruleChain && !ruleChain.root &&
+        this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
+      this.deleteEnabled = (ruleChain) => ruleChain && !ruleChain.root &&
+        this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
+      this.tableTitle = this.configureTableTitle(this.componentsData.ruleChainScope, null);
     } else if (this.componentsData.ruleChainScope === 'edge') {
-      this.configureEdgeScope();
-    }
-  }
-
-  private configureTenantEdgesScope(): void {
-    this.entitySelectionEnabled = ruleChain => ruleChain && !ruleChain.root &&
-      this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
-    this.deleteEnabled = (ruleChain) => ruleChain && !ruleChain.root &&
-      this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
-    this.tableTitle = this.configureTableTitle(this.componentsData.ruleChainScope, null);
-  }
-
-  private configureEdgeScope(): void {
-    this.entitySelectionEnabled = ruleChain => this.componentsData.edge.rootRuleChainId.id !== ruleChain.id.id;
-    this.edgeService.getEdge(this.componentsData.edgeId).subscribe(edge => {
-      this.componentsData.edge = edge;
-      this.tableTitle = this.configureTableTitle(this.componentsData.ruleChainScope, edge);
-    });
-    this.entitiesDeleteEnabled = false;
-    this.addEnabled = false;
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
-      this.headerActionDescriptors.push({
-          name: this.translate.instant('edge.assign-to-edge'),
-          icon: 'add',
-          isEnabled: () => true,
-          onAction: ($event) => {
-            this.assignRuleChainsToEdge($event);
+      this.entitySelectionEnabled = ruleChain => this.componentsData.edge.rootRuleChainId.id !== ruleChain.id.id;
+      this.edgeService.getEdge(this.componentsData.edgeId).subscribe(edge => {
+        this.componentsData.edge = edge;
+        this.tableTitle = this.configureTableTitle(this.componentsData.ruleChainScope, edge);
+      });
+      this.entitiesDeleteEnabled = false;
+      this.addEnabled = false;
+      if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+        this.headerActionDescriptors.push({
+            name: this.translate.instant('edge.assign-to-edge'),
+            icon: 'add',
+            isEnabled: () => true,
+            onAction: ($event) => {
+              this.assignRuleChainsToEdge($event);
+            }
           }
-        }
-      );
+        );
+      }
     }
   }
 
