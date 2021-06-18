@@ -361,7 +361,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         this.router.navigateByUrl(url);
       }
     } else if (this.config.componentsData.ruleChainScope === 'edges') {
-      this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
+      this.router.navigateByUrl(`edgeManagement/ruleChains/${ruleChain.id.id}`);
     } else if (this.config.componentsData.ruleChainScope === 'edge') {
       this.router.navigateByUrl(`edgeInstances/${this.config.componentsData.edgeId}/ruleChains/${ruleChain.id.id}`);
     } else {
