@@ -28,43 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const config = require('config'), logger = require('./config/logger')._logger('main');
+const config = require('config'),
+      logger = require('../config/logger')._logger('httpServer'),
+      express = require('express');
 
-logger.info('===CONFIG BEGIN===');
-logger.info(JSON.stringify(config, null, 4));
-logger.info('===CONFIG END===');
+const httpPort = Number(config.get('http_port'));
 
-const serviceType = config.get('queue_type');
-switch (serviceType) {
-    case 'kafka':
-        logger.info('Starting kafka template.');
-        require('./queue/kafkaTemplate');
-        logger.info('kafka template started.');
-        break;
-    case 'pubsub':
-        logger.info('Starting Pub/Sub template.')
-        require('./queue/pubSubTemplate');
-        logger.info('Pub/Sub template started.')
-        break;
-    case 'aws-sqs':
-        logger.info('Starting Aws Sqs template.')
-        require('./queue/awsSqsTemplate');
-        logger.info('Aws Sqs template started.')
-        break;
-    case 'rabbitmq':
-        logger.info('Starting RabbitMq template.')
-        require('./queue/rabbitmqTemplate');
-        logger.info('RabbitMq template started.')
-        break;
-    case 'service-bus':
-        logger.info('Starting Azure Service Bus template.')
-        require('./queue/serviceBusTemplate');
-        logger.info('Azure Service Bus template started.')
-        break;
-    default:
-        logger.error('Unknown service type: ', serviceType);
-        process.exit(-1);
-}
+const app = express();
 
-require('./api/httpServer');
+app.get('/livenessProbe', async (req, res) => {
+  const date = new Date();
+  const message = { now: date.toISOString() };
+  res.send(message);
+})
 
+app.listen(httpPort, () => logger.info(`Started http endpoint on port ${httpPort}. Please, use /livenessProbe !`))

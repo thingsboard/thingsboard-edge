@@ -150,7 +150,8 @@ export const HelpLinks = {
     entitiesImport: helpBaseUrl + '/docs/pe/user-guide/bulk-provisioning',
     rulechains: helpBaseUrl + '/docs/pe/user-guide/ui/rule-chains',
     dashboards: helpBaseUrl + '/docs/pe/user-guide/ui/dashboards',
-    otaUpdates: helpBaseUrl + '/docs/user-guide/ui/ota-updates',
+    resources: helpBaseUrl + '/docs/pe/user-guide/ui/resources',
+    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ui/ota-updates',
     widgetsBundles: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library#bundles',
     widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#widget-configuration',
     widgetsConfigTimeseries:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#timeseries',
@@ -211,6 +212,22 @@ export enum ValueType {
   BOOLEAN = 'BOOLEAN',
   JSON = 'JSON'
 }
+
+export enum DataType {
+  STRING = 'STRING',
+  LONG = 'LONG',
+  BOOLEAN = 'BOOLEAN',
+  DOUBLE = 'DOUBLE',
+  JSON = 'JSON'
+}
+
+export const DataTypeTranslationMap = new Map([
+  [DataType.STRING, 'value.string'],
+  [DataType.LONG, 'value.integer'],
+  [DataType.BOOLEAN, 'value.boolean'],
+  [DataType.DOUBLE, 'value.double'],
+  [DataType.JSON, 'value.json']
+]);
 
 export const valueTypesMap = new Map<ValueType, ValueTypeData>(
   [

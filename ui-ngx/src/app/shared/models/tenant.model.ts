@@ -67,8 +67,10 @@ export interface DefaultTenantProfileConfiguration {
   maxRuleNodeExecutionsPerMessage: number;
   maxEmails: number;
   maxSms: number;
+  maxCreatedAlarms: number;
 
   defaultStorageTtlDays: number;
+  alarmsTtlDays: number;
 }
 
 export type TenantProfileConfigurations = DefaultTenantProfileConfiguration;
@@ -102,7 +104,9 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxRuleNodeExecutionsPerMessage: 0,
           maxEmails: 0,
           maxSms: 0,
-          defaultStorageTtlDays: 0
+          maxCreatedAlarms: 0,
+          defaultStorageTtlDays: 0,
+          alarmsTtlDays: 0
         };
         configuration = {...defaultConfiguration, type: TenantProfileType.DEFAULT};
         break;

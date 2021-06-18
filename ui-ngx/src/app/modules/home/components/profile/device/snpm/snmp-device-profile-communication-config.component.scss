@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -28,43 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const config = require('config'), logger = require('./config/logger')._logger('main');
+:host {
+  .communication-config {
+    border: 2px groove rgba(0, 0, 0, 0.25);
+    border-radius: 4px;
+    padding: 8px;
+    min-width: 0;
+  }
 
-logger.info('===CONFIG BEGIN===');
-logger.info(JSON.stringify(config, null, 4));
-logger.info('===CONFIG END===');
+  .scope-row {
+    padding-bottom: 8px;
+  }
 
-const serviceType = config.get('queue_type');
-switch (serviceType) {
-    case 'kafka':
-        logger.info('Starting kafka template.');
-        require('./queue/kafkaTemplate');
-        logger.info('kafka template started.');
-        break;
-    case 'pubsub':
-        logger.info('Starting Pub/Sub template.')
-        require('./queue/pubSubTemplate');
-        logger.info('Pub/Sub template started.')
-        break;
-    case 'aws-sqs':
-        logger.info('Starting Aws Sqs template.')
-        require('./queue/awsSqsTemplate');
-        logger.info('Aws Sqs template started.')
-        break;
-    case 'rabbitmq':
-        logger.info('Starting RabbitMq template.')
-        require('./queue/rabbitmqTemplate');
-        logger.info('RabbitMq template started.')
-        break;
-    case 'service-bus':
-        logger.info('Starting Azure Service Bus template.')
-        require('./queue/serviceBusTemplate');
-        logger.info('Azure Service Bus template started.')
-        break;
-    default:
-        logger.error('Unknown service type: ', serviceType);
-        process.exit(-1);
+  .required-text {
+    margin: 16px 0
+  }
 }
 
-require('./api/httpServer');
-
+:host ::ng-deep {
+  .mat-form-field.spec {
+    .mat-form-field-infix {
+      width: 160px;
+    }
+  }
+  .button-icon{
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
