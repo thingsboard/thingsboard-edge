@@ -42,6 +42,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.js.api.AbstractJsInvokeService;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+import org.springframework.util.StopWatch;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
@@ -182,7 +183,8 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
 
     @Override
     protected ListenableFuture<Object> doInvokeFunction(UUID scriptId, String functionName, Object[] args) {
-        String scriptBody = scriptIdToBodysMap.get(scriptId);
+        log.trace("doInvokeFunction js-request for uuid {} with timeout {}ms", scriptId, maxRequestsTimeout);
+        final String scriptBody = scriptIdToBodysMap.get(scriptId);
         if (scriptBody == null) {
             return Futures.immediateFailedFuture(new RuntimeException("No script body found for scriptId: [" + scriptId + "]!"));
         }
@@ -191,7 +193,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
                 .setScriptIdLSB(scriptId.getLeastSignificantBits())
                 .setFunctionName(functionName)
                 .setTimeout((int) maxRequestsTimeout)
-                .setScriptBody(scriptIdToBodysMap.get(scriptId));
+                .setScriptBody(scriptBody);
 
         for (Object arg : args) {
             jsRequestBuilder.addArgs(arg.toString());
@@ -200,6 +202,9 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
         JsInvokeProtos.RemoteJsRequest jsRequestWrapper = JsInvokeProtos.RemoteJsRequest.newBuilder()
                 .setInvokeRequest(jsRequestBuilder.build())
                 .build();
+
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
         ListenableFuture<TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> future = requestTemplate.send(new TbProtoJsQueueMsg<>(UUID.randomUUID(), jsRequestWrapper));
         if (maxRequestsTimeout > 0) {
@@ -214,7 +219,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
 
             @Override
             public void onFailure(Throwable t) {
-                onScriptExecutionError(scriptId);
+                onScriptExecutionError(scriptId, t, scriptBody);
                 if (t instanceof TimeoutException || (t.getCause() != null && t.getCause() instanceof TimeoutException)) {
                     queueTimeoutMsgs.incrementAndGet();
                 }
@@ -222,13 +227,16 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
             }
         }, callbackExecutor);
         return Futures.transform(future, response -> {
+            stopWatch.stop();
+            log.trace("doInvokeFunction js-response took {}ms for uuid {}", stopWatch.getTotalTimeMillis(), response.getKey());
             JsInvokeProtos.JsInvokeResponse invokeResult = response.getValue().getInvokeResponse();
             if (invokeResult.getSuccess()) {
                 return invokeResult.getResult();
             } else {
-                onScriptExecutionError(scriptId);
+                final RuntimeException e = new RuntimeException(invokeResult.getErrorDetails());
+                onScriptExecutionError(scriptId, e, scriptBody);
                 log.debug("[{}] Failed to compile script due to [{}]: {}", scriptId, invokeResult.getErrorCode().name(), invokeResult.getErrorDetails());
-                throw new RuntimeException(invokeResult.getErrorDetails());
+                throw e;
             }
         }, callbackExecutor);
     }

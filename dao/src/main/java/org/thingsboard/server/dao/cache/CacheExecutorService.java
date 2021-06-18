@@ -28,32 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.dao.cache;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
+@Component
+public class CacheExecutorService extends AbstractListeningExecutor {
 
-public interface ScriptEngine {
+    @Value("${cache.maximumPoolSize}")
+    private int poolSize;
 
-    ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
-
-    ListenableFuture<TbMsg> executeGenerateAsync(TbMsg prevMsg);
-
-    ListenableFuture<Boolean> executeAttributesFilterAsync(Map<String,String> attributes);
-
-    ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
-
-    ListenableFuture<Set<String>> executeSwitchAsync(TbMsg msg);
-
-    ListenableFuture<JsonNode> executeJsonAsync(TbMsg msg);
-
-    ListenableFuture<String> executeToStringAsync(TbMsg msg);
-
-    void destroy();
+    @Override
+    protected int getThreadPollSize() {
+        return poolSize;
+    }
 
 }

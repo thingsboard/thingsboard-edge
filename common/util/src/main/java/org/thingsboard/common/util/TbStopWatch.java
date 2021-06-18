@@ -28,32 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.common.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.springframework.util.StopWatch;
 
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
+/**
+ * Utility method that extends Spring Framework StopWatch
+ * It is a MONOTONIC time stopwatch.
+ * It is a replacement for any measurements with a wall-clock like System.currentTimeMillis()
+ * It is not affected by leap second, day-light saving and wall-clock adjustments by manual or network time synchronization
+ * The main features is a single call for common use cases:
+ *  - create and start: TbStopWatch sw = TbStopWatch.startNew()
+ *  - stop and get: sw.stopAndGetTotalTimeMillis() or sw.stopAndGetLastTaskTimeMillis()
+ * */
+public class TbStopWatch extends StopWatch {
 
-public interface ScriptEngine {
+    public static TbStopWatch startNew(){
+        TbStopWatch stopWatch = new TbStopWatch();
+        stopWatch.start();
+        return stopWatch;
+    }
 
-    ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
+    public long stopAndGetTotalTimeMillis(){
+        stop();
+        return getTotalTimeMillis();
+    }
 
-    ListenableFuture<TbMsg> executeGenerateAsync(TbMsg prevMsg);
+    public long stopAndGetTotalTimeNanos(){
+        stop();
+        return getLastTaskTimeNanos();
+    }
 
-    ListenableFuture<Boolean> executeAttributesFilterAsync(Map<String,String> attributes);
+    public long stopAndGetLastTaskTimeMillis(){
+        stop();
+        return getLastTaskTimeMillis();
+    }
 
-    ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
-
-    ListenableFuture<Set<String>> executeSwitchAsync(TbMsg msg);
-
-    ListenableFuture<JsonNode> executeJsonAsync(TbMsg msg);
-
-    ListenableFuture<String> executeToStringAsync(TbMsg msg);
-
-    void destroy();
+    public long stopAndGetLastTaskTimeNanos(){
+        stop();
+        return getLastTaskTimeNanos();
+    }
 
 }
