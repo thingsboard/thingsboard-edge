@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -28,43 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const config = require('config'), logger = require('./config/logger')._logger('main');
+:host {
+  .mapping-config {
+    min-width: 518px;
+  }
+  .mapping-list {
+    padding-bottom: 8px;
+    height: 46px;
+  }
 
-logger.info('===CONFIG BEGIN===');
-logger.info(JSON.stringify(config, null, 4));
-logger.info('===CONFIG END===');
-
-const serviceType = config.get('queue_type');
-switch (serviceType) {
-    case 'kafka':
-        logger.info('Starting kafka template.');
-        require('./queue/kafkaTemplate');
-        logger.info('kafka template started.');
-        break;
-    case 'pubsub':
-        logger.info('Starting Pub/Sub template.')
-        require('./queue/pubSubTemplate');
-        logger.info('Pub/Sub template started.')
-        break;
-    case 'aws-sqs':
-        logger.info('Starting Aws Sqs template.')
-        require('./queue/awsSqsTemplate');
-        logger.info('Aws Sqs template started.')
-        break;
-    case 'rabbitmq':
-        logger.info('Starting RabbitMq template.')
-        require('./queue/rabbitmqTemplate');
-        logger.info('RabbitMq template started.')
-        break;
-    case 'service-bus':
-        logger.info('Starting Azure Service Bus template.')
-        require('./queue/serviceBusTemplate');
-        logger.info('Azure Service Bus template started.')
-        break;
-    default:
-        logger.error('Unknown service type: ', serviceType);
-        process.exit(-1);
+  .required-text {
+    margin: 14px 0;
+  }
 }
 
-require('./api/httpServer');
-
+:host ::ng-deep {
+  .mapping-list {
+    mat-form-field {
+      .mat-form-field-wrapper {
+        padding-bottom: 0;
+        .mat-form-field-infix {
+          border-top-width: 0.2em;
+          width: auto;
+          min-width: auto;
+        }
+        .mat-form-field-underline {
+          bottom: 0;
+        }
+        .mat-form-field-subscript-wrapper{
+          margin-top: 1.8em;
+        }
+      }
+    }
+  }
+}
