@@ -542,6 +542,9 @@ public class DefaultTransportApiService implements TransportApiService {
 
         if (otaPackageInfo == null) {
             builder.setResponseStatus(TransportProtos.ResponseStatus.NOT_FOUND);
+        } else if (otaPackageInfo.hasUrl()) {
+            builder.setResponseStatus(TransportProtos.ResponseStatus.FAILURE);
+            log.trace("[{}] Can`t send OtaPackage with URL data!", otaPackageInfo.getId());
         } else {
             OtaPackageId otaPackageId = otaPackageInfo.getId();
 

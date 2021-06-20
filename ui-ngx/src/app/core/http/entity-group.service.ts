@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { defaultPageLinkSearchFunction, PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
-import { forkJoin, Observable, of } from 'rxjs';
+import { forkJoin, Observable, of, throwError } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -50,7 +50,7 @@ import { map, mergeMap } from 'rxjs/operators';
 import { BaseData, HasId, sortEntitiesByIds } from '@shared/models/base-data';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { OtaPackageService } from '@core/http/ota-package.service';
-import { DeviceGroupOtaPackage, OtaUpdateType} from '@shared/models/ota-package.models';
+import { DeviceGroupOtaPackage, OtaUpdateType } from '@shared/models/ota-package.models';
 import { OtaPackageId } from '@shared/models/id/ota-package-id';
 
 @Injectable({
@@ -129,28 +129,36 @@ export class EntityGroupService {
     return this.http.post<DeviceGroupOtaPackage>('/api/deviceGroupOtaPackage', deviceGroupOtaPackage, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDeviceEntityGroup(entityGroup: EntityGroupInfo, config?: RequestConfig) {
+  public saveDeviceEntityGroup(entityGroup: EntityGroupInfo, originalEntityGroup: EntityGroupInfo,
+                               config?: RequestConfig): Observable<EntityGroupInfo> {
     if (isDefinedAndNotNull(entityGroup.id)) {
-      const tasks = [];
-      tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.firmwareGroup, entityGroup.firmwareId,
-        entityGroup.id, OtaUpdateType.FIRMWARE, config));
-      tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.softwareGroup, entityGroup.softwareId,
-        entityGroup.id, OtaUpdateType.SOFTWARE, config));
-      delete entityGroup.firmwareId;
-      delete entityGroup.firmwareGroup;
-      delete entityGroup.softwareId;
-      delete entityGroup.softwareGroup;
-      tasks.push(this.saveEntityGroup(entityGroup, config));
-      return forkJoin(tasks).pipe(
-        map(([firmware, software, savedEntityGroup]: [DeviceGroupOtaPackage, DeviceGroupOtaPackage, EntityGroupInfo]) => {
-            return Object.assign(savedEntityGroup, {
-              firmwareId: deepClone(firmware?.otaPackageId),
-              firmwareGroup: firmware,
-              softwareId: deepClone(software?.otaPackageId),
-              softwareGroup: software
-            });
+      return this.otaPackageService.confirmDialogUpdatePackage(entityGroup, originalEntityGroup).pipe(
+        mergeMap((update) => {
+          if (update) {
+            const tasks = [];
+            tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.firmwareGroup, entityGroup.firmwareId,
+              entityGroup.id, OtaUpdateType.FIRMWARE, config));
+            tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.softwareGroup, entityGroup.softwareId,
+              entityGroup.id, OtaUpdateType.SOFTWARE, config));
+            delete entityGroup.firmwareId;
+            delete entityGroup.firmwareGroup;
+            delete entityGroup.softwareId;
+            delete entityGroup.softwareGroup;
+            tasks.push(this.saveEntityGroup(entityGroup, config));
+            return forkJoin(tasks).pipe(
+              map(([firmware, software, savedEntityGroup]: [DeviceGroupOtaPackage, DeviceGroupOtaPackage, EntityGroupInfo]) => {
+                  return Object.assign(savedEntityGroup, {
+                    firmwareId: deepClone(firmware?.otaPackageId),
+                    firmwareGroup: firmware,
+                    softwareId: deepClone(software?.otaPackageId),
+                    softwareGroup: software
+                  });
+                }
+              ));
           }
-        ));
+          return throwError('Canceled saving device group');
+        })
+      );
     }
     return this.saveEntityGroup(entityGroup, config);
   }

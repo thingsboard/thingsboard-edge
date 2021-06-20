@@ -248,10 +248,10 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     }
 
     @Override
-    public Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(UUID groupId, UUID deviceProfileId, OtaPackageType type) {
+    public Long countByEntityGroupAndEmptyOtaPackage(UUID groupId, UUID otaPackageId, OtaPackageType type) {
         return OtaPackageUtil.getByOtaPackageType(
-                () -> deviceRepository.countByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(groupId, deviceProfileId),
-                () -> deviceRepository.countByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(groupId, deviceProfileId),
+                () -> deviceRepository.countByEntityGroupIdAndFirmwareIdIsNull(groupId, otaPackageId),
+                () -> deviceRepository.countByEntityGroupIdAndSoftwareIdIsNull(groupId, otaPackageId),
                 type);
     }
 

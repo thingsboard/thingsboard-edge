@@ -51,6 +51,7 @@ import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { Subject } from 'rxjs';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-device',
@@ -112,7 +113,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   } */
 
   buildForm(entity: Device): FormGroup {
-    return this.fb.group(
+    const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
         deviceProfileId: [entity ? entity.deviceProfileId : null, [Validators.required]],
@@ -129,6 +130,17 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
         )
       }
     );
+    form.get('deviceProfileId').valueChanges.pipe(
+      distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+    ).subscribe(profileId => {
+      if (profileId && this.isEdit) {
+        this.entityForm.patchValue({
+          firmwareId: null,
+          softwareId: null
+        }, {emitEvent: false});
+      }
+    });
+    return form;
   }
 
   updateForm(entity: Device) {
@@ -190,10 +202,6 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
           this.entityForm.markAsDirty();
         }
       }
-      this.entityForm.patchValue({
-        firmwareId: null,
-        softwareId: null
-      });
     }
   }
 }

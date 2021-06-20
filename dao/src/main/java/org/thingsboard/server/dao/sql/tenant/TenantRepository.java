@@ -68,4 +68,8 @@ public interface TenantRepository extends PagingAndSortingRepository<TenantEntit
     Page<TenantInfoEntity> findTenantInfoByRegionNextPage(@Param("region") String region,
                                                           @Param("textSearch") String textSearch,
                                                           Pageable pageable);
+
+    @Query("SELECT t.id FROM TenantEntity t")
+    Page<UUID> findTenantsIds(Pageable pageable);
+
 }

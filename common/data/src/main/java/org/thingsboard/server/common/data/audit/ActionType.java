@@ -55,6 +55,7 @@ public enum ActionType {
     RELATIONS_DELETED (false),
     ALARM_ACK (false),
     ALARM_CLEAR (false),
+    ALARM_DELETE(false),
     ADDED_TO_ENTITY_GROUP(false), // log entity group name
     REMOVED_FROM_ENTITY_GROUP(false), // log entity group name
     REST_API_RULE_ENGINE_CALL(false), // log call to rule engine from REST API

@@ -224,11 +224,12 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
-        if (!connected || scheduleReconnect) {
-            return false;
-        }
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
+        if (!connected || scheduleReconnect) {
+            persistDebug(context, "Downlink", "ERROR", "Cannot process downlink message because of connection was lost.", "FAILURE", new OpcUaIntegrationException("Not connected", new RuntimeException()));
+            return false;
+        }
         List<WriteValue> writeValues = prepareWriteValues(result);
         List<CallMethodRequest> callMethods = prepareCallMethods(result);
 
@@ -294,6 +295,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             client = new OpcUaClient(config);
             client.connect().get();
+            connected = true;
             log.info("[{}] OPC-UA Client connected successfully!", this.configuration.getName());
             sendConnectionSucceededMessageToRuleEngine();
             subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
@@ -338,7 +340,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         stopped = true;
         if (connected) {
             try {
-                connected = false;
                 disconnect();
             } catch (Exception e) {
                 log.warn("[{}] Failed to disconnect", this.configuration.getName(), e);
@@ -370,6 +371,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void disconnect() {
+        connected = false;
         if (client != null) {
             try {
                 client.disconnect().get(10, TimeUnit.SECONDS);
@@ -377,7 +379,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 log.warn("Error: ", e);
             }
             client = null;
-            connected = false;
             log.info("[{}] OPC-UA client disconnected", this.configuration.getName());
         }
     }

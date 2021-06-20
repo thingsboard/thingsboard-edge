@@ -1,0 +1,96 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxFlex fxLayout="column" class="mapping-config">
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" fxFlex="100">
+    <div fxFlex fxLayout="row" fxLayoutGap="8px">
+      <label fxFlex="26" class="tb-title no-padding" translate>device-profile.snmp.data-type</label>
+      <label fxFlex="37" class="tb-title no-padding" translate>device-profile.snmp.data-key</label>
+      <label fxFlex="37" class="tb-title no-padding" translate>device-profile.snmp.oid</label>
+      <span style="min-width: 40px" [fxShow]="!disabled"></span>
+    </div>
+  </div>
+  <mat-divider></mat-divider>
+  <div *ngFor="let mappingConfig of mappingsConfigFormArray().controls; let $index = index;
+               last as isLast;" fxLayout="row" fxLayoutAlign="start center"
+       fxLayoutGap="8px" [formGroup]="mappingConfig" class="mapping-list">
+    <div fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start">
+      <mat-form-field fxFlex="26" floatLabel="always" hideRequiredMarker>
+        <mat-label></mat-label>
+        <mat-select formControlName="dataType" required>
+          <mat-option *ngFor="let dataType of dataTypes" [value]="dataType">
+            {{ dataTypesTranslationMap.get(dataType) | translate }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="mappingConfig.get('dataType').hasError('required')">
+          {{ 'device-profile.snmp.data-type-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field floatLabel="always" hideRequiredMarker fxFlex="37">
+        <mat-label></mat-label>
+        <input matInput formControlName="key" required/>
+        <mat-error *ngIf="mappingConfig.get('key').hasError('required')">
+          {{ 'device-profile.snmp.data-key-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field floatLabel="always" hideRequiredMarker fxFlex="37">
+        <mat-label></mat-label>
+        <input matInput formControlName="oid" required/>
+        <mat-error *ngIf="mappingConfig.get('oid').hasError('required')">
+          {{ 'device-profile.snmp.oid-required' | translate }}
+        </mat-error>
+        <mat-error *ngIf="mappingConfig.get('oid').hasError('pattern')">
+          {{ 'device-profile.snmp.oid-pattern' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <button *ngIf="!disabled"
+              mat-icon-button color="primary"
+              type="button"
+              (click)="removeMappingConfig($index)"
+              matTooltip="{{ 'action.remove' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div *ngIf="!mappingsConfigFormArray().controls.length && !disabled">
+      <span fxLayoutAlign="center center" class="tb-prompt required required-text" translate>device-profile.snmp.please-add-mapping-config</span>
+  </div>
+  <div *ngIf="!disabled">
+    <button mat-stroked-button color="primary"
+            type="button"
+            (click)="addMappingConfig()">
+      <mat-icon class="button-icon">add_circle_outline</mat-icon>
+      {{ 'device-profile.snmp.add-mapping' | translate }}
+    </button>
+  </div>
+</div>

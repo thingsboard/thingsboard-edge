@@ -52,6 +52,7 @@ public class OtaPackageInfo extends SearchTextBasedWithAdditionalInfo<OtaPackage
     private OtaPackageType type;
     private String title;
     private String version;
+    private String url;
     private boolean hasData;
     private String fileName;
     private String contentType;
@@ -75,6 +76,7 @@ public class OtaPackageInfo extends SearchTextBasedWithAdditionalInfo<OtaPackage
         this.type = otaPackageInfo.getType();
         this.title = otaPackageInfo.getTitle();
         this.version = otaPackageInfo.getVersion();
+        this.url = otaPackageInfo.getUrl();
         this.hasData = otaPackageInfo.isHasData();
         this.fileName = otaPackageInfo.getFileName();
         this.contentType = otaPackageInfo.getContentType();
@@ -98,5 +100,10 @@ public class OtaPackageInfo extends SearchTextBasedWithAdditionalInfo<OtaPackage
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.OTA_PACKAGE;
+    }
+
+    @JsonIgnore
+    public boolean hasUrl() {
+        return StringUtils.isNotEmpty(url);
     }
 }

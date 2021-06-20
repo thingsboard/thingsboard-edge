@@ -122,13 +122,13 @@ CREATE TABLE IF NOT EXISTS group_permission (
     is_public boolean
 );
 
-CREATE TABLE IF NOT EXISTS device_group_firmware (
+CREATE TABLE IF NOT EXISTS device_group_ota_package (
     id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,
     group_id uuid NOT NULL,
-    firmware_type varchar(32) NOT NULL,
-    firmware_id uuid NOT NULL,
-    firmware_update_time bigint NOT NULL,
-    CONSTRAINT device_group_firmware_unq_key UNIQUE (group_id, firmware_type),
-    CONSTRAINT fk_firmware_device_group_firmware FOREIGN KEY (firmware_id) REFERENCES firmware(id),
-    CONSTRAINT fk_entity_group_device_group_firmware FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
+    ota_package_type varchar(32) NOT NULL,
+    ota_package_id uuid NOT NULL,
+    ota_package_update_time bigint NOT NULL,
+    CONSTRAINT device_group_ota_package_unq_key UNIQUE (group_id, ota_package_type),
+    CONSTRAINT fk_ota_package_device_group_ota_package FOREIGN KEY (ota_package_id) REFERENCES ota_package(id),
+    CONSTRAINT fk_entity_group_device_group_ota_package FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
 );

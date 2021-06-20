@@ -31,71 +31,84 @@
 
 -->
 <section [formGroup]="form" fxLayout="column" autocomplte="off">
-    <fieldset>
-            <mat-form-field class="mat-block">
-                <mat-label translate>integration.hostname</mat-label>
-                <input matInput required formControlName="host">
-                <mat-error translate *ngIf="form.get('host').hasError('required')">integration.hostname-required
-                </mat-error>
-            </mat-form-field>
-        <mat-form-field class="mat-block">
-            <mat-label translate>integration.device-id</mat-label>
-            <input required matInput formControlName="clientId" autocomplete="new-clientId" maxlength="65535">
-          <mat-error translate *ngIf="form.get('clientId').hasError('required')">
-            integration.device-id-required
-          </mat-error>
-            <mat-error translate *ngIf="form.get('clientId').hasError('maxlength')">
-              integration.device-id-range
+  <fieldset>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.hostname</mat-label>
+      <input matInput required formControlName="host">
+      <mat-error translate *ngIf="form.get('host').hasError('required')">integration.hostname-required
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.device-id</mat-label>
+      <input required matInput formControlName="clientId" autocomplete="new-clientId" maxlength="65535">
+      <mat-error translate *ngIf="form.get('clientId').hasError('required')">
+        integration.device-id-required
+      </mat-error>
+      <mat-error translate *ngIf="form.get('clientId').hasError('maxlength')">
+        integration.device-id-range
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.max-bytes-in-message</mat-label>
+      <input matInput type="number" formControlName="maxBytesInMessage">
+      <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('min')">
+        integration.max-bytes-in-message-range
+      </mat-error>
+      <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('max')">
+        integration.max-bytes-in-message-range
+      </mat-error>
+    </mat-form-field>
+    <mat-accordion class="tb-integration-panel-group">
+      <mat-expansion-panel id="expansion-panel">
+        <mat-expansion-panel-header fxFlex>
+          <mat-panel-title translate>integration.credentials</mat-panel-title>
+          <mat-panel-description>
+            {{ azureIotHubCredentialTypes[form.get('credentials.type').value]?.name | translate }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div formGroupName="credentials">
+          <mat-form-field class="mat-block">
+            <mat-label translate>integration.credentials-type</mat-label>
+            <mat-select required formControlName="type">
+              <mat-option *ngFor="let credentialsType of azureIotHubCredentialTypes | keyvalue"
+                          [value]="credentialsType?.value.value">
+                {{credentialsType?.value.name | translate}}
+              </mat-option>
+            </mat-select>
+            <mat-error translate *ngIf="form.get('credentials.type')?.hasError('required')">
+              integration.credentials-type-required
             </mat-error>
-        </mat-form-field>
-        <mat-accordion class="tb-integration-panel-group">
-            <mat-expansion-panel id="expansion-panel">
-                <mat-expansion-panel-header fxFlex>
-                    <mat-panel-title translate>integration.credentials</mat-panel-title>
-                    <mat-panel-description>
-                        {{ azureIotHubCredentialTypes[form.get('credentials.type').value]?.name | translate }}
-                    </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div formGroupName="credentials">
-                    <mat-form-field class="mat-block">
-                        <mat-label translate>integration.credentials-type</mat-label>
-                        <mat-select required formControlName="type">
-                            <mat-option *ngFor="let credentialsType of azureIotHubCredentialTypes | keyvalue"
-                                [value]="credentialsType?.value.value">
-                                {{credentialsType?.value.name | translate}}
-                            </mat-option>
-                        </mat-select>
-                        <mat-error translate *ngIf="form.get('credentials.type')?.hasError('required')">
-                            integration.credentials-type-required</mat-error>
-                    </mat-form-field>
-                    <section *ngIf="form.get('credentials.type').value === azureIotHubCredentialTypes.sas.value">
-                        <mat-form-field class="mat-block">
-                            <mat-label translate>integration.sas-key</mat-label>
-                            <input matInput type="password" required formControlName="sasKey"
-                                autocomplete="new-password">
-                            <mat-error translate *ngIf="form.get('credentials.sasKey')?.hasError('required')">
-                                integration.sas-key-required</mat-error>
-                        </mat-form-field>
-                        <tb-file-input [existingFileName]="form.get('credentials.caCertFileName')?.value" formControlName="caCert"
-                                       dropLabel="{{ 'integration.drop-file' | translate }}" [label]="'integration.azure-ca-cert' | translate"
-                                       (fileNameChanged)="form?.get('credentials.caCertFileName').patchValue($event)"
-                                       inputId="ca-cert">
-                        </tb-file-input>
-                    </section>
-                    <section
-                        *ngIf="form.get('credentials.type').value === azureIotHubCredentialTypes['cert.PEM'].value"
-                        class="dropdown-section">
-                        <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
-                        <mat-form-field class="mat-block">
-                            <mat-label translate>integration.private-key-password</mat-label>
-                            <input matInput type="password" formControlName="privateKeyPassword">
-                        </mat-form-field>
-                    </section>
-                </div>
-            </mat-expansion-panel>
-        </mat-accordion>
-                  <tb-mqtt-topic-filters [topicFilters]="topicFilters">
-                  </tb-mqtt-topic-filters>
-    </fieldset>
-    <div style="height: 30px;"></div>
+          </mat-form-field>
+          <section *ngIf="form.get('credentials.type').value === azureIotHubCredentialTypes.sas.value">
+            <mat-form-field class="mat-block">
+              <mat-label translate>integration.sas-key</mat-label>
+              <input matInput type="password" required formControlName="sasKey"
+                     autocomplete="new-password">
+              <mat-error translate *ngIf="form.get('credentials.sasKey')?.hasError('required')">
+                integration.sas-key-required
+              </mat-error>
+            </mat-form-field>
+            <tb-file-input [existingFileName]="form.get('credentials.caCertFileName')?.value" formControlName="caCert"
+                           dropLabel="{{ 'integration.drop-file' | translate }}"
+                           [label]="'integration.azure-ca-cert' | translate"
+                           (fileNameChanged)="form?.get('credentials.caCertFileName').patchValue($event)"
+                           inputId="ca-cert">
+            </tb-file-input>
+          </section>
+          <section
+            *ngIf="form.get('credentials.type').value === azureIotHubCredentialTypes['cert.PEM'].value"
+            class="dropdown-section">
+            <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
+            <mat-form-field class="mat-block">
+              <mat-label translate>integration.private-key-password</mat-label>
+              <input matInput type="password" formControlName="privateKeyPassword">
+            </mat-form-field>
+          </section>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters">
+    </tb-mqtt-topic-filters>
+  </fieldset>
+  <div style="height: 30px;"></div>
 </section>

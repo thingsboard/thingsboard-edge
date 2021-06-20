@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.device.profile;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import javax.validation.Valid;
@@ -46,5 +47,6 @@ public class AlarmRule implements Serializable {
     // Advanced
     @NoXss
     private String alarmDetails;
+    private DashboardId dashboardId;
 
 }

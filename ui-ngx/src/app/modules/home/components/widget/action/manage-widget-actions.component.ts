@@ -202,6 +202,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         isAdd,
         callbacks: this.callbacks,
         actionsData,
+        action: deepClone(action),
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
         widgetType: this.widgetType
