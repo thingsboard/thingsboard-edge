@@ -80,6 +80,10 @@ public class OtaPackageController extends BaseController {
             OtaPackageId otaPackageId = new OtaPackageId(toUUID(strOtaPackageId));
             OtaPackage otaPackage = checkOtaPackageId(otaPackageId, Operation.READ);
 
+            if (otaPackage.hasUrl()) {
+                return ResponseEntity.badRequest().build();
+            }
+
             ByteArrayResource resource = new ByteArrayResource(otaPackage.getData().array());
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + otaPackage.getFileName())
@@ -140,7 +144,7 @@ public class OtaPackageController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/otaPackage/{otaPackageId}", method = RequestMethod.POST)
     @ResponseBody
-    public OtaPackage saveOtaPackageData(@PathVariable(OTA_PACKAGE_ID) String strOtaPackageId,
+    public OtaPackageInfo saveOtaPackageData(@PathVariable(OTA_PACKAGE_ID) String strOtaPackageId,
                                          @RequestParam(required = false) String checksum,
                                          @RequestParam(CHECKSUM_ALGORITHM) String checksumAlgorithmStr,
                                          @RequestBody MultipartFile file) throws ThingsboardException {
@@ -172,7 +176,7 @@ public class OtaPackageController extends BaseController {
             otaPackage.setContentType(file.getContentType());
             otaPackage.setData(ByteBuffer.wrap(bytes));
             otaPackage.setDataSize((long) bytes.length);
-            OtaPackage savedOtaPackage = otaPackageService.saveOtaPackage(otaPackage);
+            OtaPackageInfo savedOtaPackage = otaPackageService.saveOtaPackage(otaPackage);
             logEntityAction(savedOtaPackage.getId(), savedOtaPackage, null, ActionType.UPDATED, null);
             return savedOtaPackage;
         } catch (Exception e) {
@@ -198,11 +202,10 @@ public class OtaPackageController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/otaPackages/{deviceProfileId}/{type}/{hasData}", method = RequestMethod.GET)
+    @RequestMapping(value = "/otaPackages/{deviceProfileId}/{type}", method = RequestMethod.GET)
     @ResponseBody
     public PageData<OtaPackageInfo> getOtaPackages(@PathVariable("deviceProfileId") String strDeviceProfileId,
                                                    @PathVariable("type") String strType,
-                                                   @PathVariable("hasData") boolean hasData,
                                                    @RequestParam int pageSize,
                                                    @RequestParam int page,
                                                    @RequestParam(required = false) String textSearch,
@@ -213,7 +216,7 @@ public class OtaPackageController extends BaseController {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(otaPackageService.findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(getTenantId(),
-                    new DeviceProfileId(toUUID(strDeviceProfileId)), OtaPackageType.valueOf(strType), hasData, pageLink));
+                    new DeviceProfileId(toUUID(strDeviceProfileId)), OtaPackageType.valueOf(strType), pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -236,9 +239,9 @@ public class OtaPackageController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/otaPackages/{groupId}/{type}", method = RequestMethod.GET)
+    @RequestMapping(value = "/otaPackages/group/{groupId}/{type}", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<OtaPackageInfo> getOtaPackages(@PathVariable("groupId") String strGroupId,
+    public PageData<OtaPackageInfo> getGroupOtaPackages(@PathVariable("groupId") String strGroupId,
                                                    @PathVariable("type") String strType,
                                                    @RequestParam int pageSize,
                                                    @RequestParam int page,

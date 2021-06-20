@@ -72,7 +72,7 @@ public class AggLatestMappingFilter {
                     ScriptEngine attributesScriptEngine = attributesScriptEngineMap.computeIfAbsent(filterFunction,
                             function -> ctx.getPeContext().createAttributesJsScriptEngine(function));
 
-                    return attributesScriptEngine.executeAttributesFilter(attributes);
+                    return attributesScriptEngine.executeAttributesFilterAsync(attributes).get();
                 } catch (Exception e) {
                     throw new RuntimeException("[" + entityId + "] Failed to execute attributes mapping filter!", e);
                 }

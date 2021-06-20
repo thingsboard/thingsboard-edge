@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +70,7 @@ import java.util.stream.Collectors;
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
+@Slf4j
 public class SchedulerEventController extends BaseController {
 
     private static final int DEFAULT_SCHEDULER_EVENT_LIMIT = 100;
@@ -105,6 +107,7 @@ public class SchedulerEventController extends BaseController {
     @RequestMapping(value = "/schedulerEvent", method = RequestMethod.POST)
     @ResponseBody
     public SchedulerEvent saveSchedulerEvent(@RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
+        log.trace("saveSchedulerEvent {}", schedulerEvent);
         try {
             schedulerEvent.setTenantId(getCurrentUser().getTenantId());
             if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
@@ -132,6 +135,7 @@ public class SchedulerEventController extends BaseController {
 
             return savedSchedulerEvent;
         } catch (Exception e) {
+            log.warn("Failed to save or update schedulerEvent " + schedulerEvent, e);
             logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
                     null, schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
 

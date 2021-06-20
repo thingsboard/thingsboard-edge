@@ -34,8 +34,7 @@ import lombok.Getter;
 
 public enum OtaPackageKey {
 
-    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"),
-    ID("id");
+    TITLE("title"), VERSION("version"), TS("ts"), STATE("state"), SIZE("size"), CHECKSUM("checksum"), CHECKSUM_ALGORITHM("checksum_algorithm"), URL("url"), ID("id");
 
     @Getter
     private final String value;

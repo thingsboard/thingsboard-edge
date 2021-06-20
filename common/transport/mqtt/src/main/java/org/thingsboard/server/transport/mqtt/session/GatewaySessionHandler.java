@@ -58,6 +58,7 @@ import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
@@ -65,6 +66,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFro
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
@@ -282,8 +284,10 @@ public class GatewaySessionHandler {
                                     transportService.process(TransportToDeviceActorMsg.newBuilder()
                                             .setSessionInfo(deviceSessionInfo)
                                             .setSessionEvent(DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN))
-                                            .setSubscribeToAttributes(SubscribeToAttributeUpdatesMsg.newBuilder().build())
-                                            .setSubscribeToRPC(SubscribeToRPCMsg.newBuilder().build())
+                                            .setSubscribeToAttributes(SubscribeToAttributeUpdatesMsg.newBuilder()
+                                                    .setSessionType(SessionType.ASYNC).build())
+                                            .setSubscribeToRPC(SubscribeToRPCMsg.newBuilder()
+                                                    .setSessionType(SessionType.ASYNC).build())
                                             .build(), null);
                                 }
                                 futureToSet.set(devices.get(deviceName));

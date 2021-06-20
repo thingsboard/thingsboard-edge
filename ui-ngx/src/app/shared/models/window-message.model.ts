@@ -29,9 +29,21 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export type WindowMessageType = 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected';
+export type WindowMessageType = 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected' | 'openDashboardMessage' | 'reloadUserMessage' | 'toggleDashboardLayout';
 
 export interface WindowMessage {
   type: WindowMessageType;
   data?: any;
+}
+
+export interface OpenDashboardMessage {
+  dashboardId: string;
+  state?: string;
+  hideToolbar?: boolean;
+  embedded?: boolean;
+}
+
+export interface ReloadUserMessage {
+  accessToken: string;
+  refreshToken: string;
 }
