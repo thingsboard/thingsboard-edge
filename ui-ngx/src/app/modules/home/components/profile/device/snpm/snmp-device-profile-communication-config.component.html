@@ -1,0 +1,87 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxLayout="column">
+  <div *ngFor="let deviceProfileCommunication of communicationConfigFormArray().controls; let $index = index;
+               last as isLast;" fxLayout="row" fxLayoutAlign="start center"
+       fxLayoutGap="8px" class="scope-row" [formGroup]="deviceProfileCommunication">
+    <div class="communication-config" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start">
+      <mat-form-field class="spec mat-block" floatLabel="always" hideRequiredMarker>
+        <mat-label translate>device-profile.snmp.scope</mat-label>
+        <mat-select formControlName="spec" required>
+          <mat-option *ngFor="let snmpSpecType of snmpSpecTypes" [value]="snmpSpecType"
+                      [disabled]="isDisabledSeverity(snmpSpecType, $index)">
+            {{ snmpSpecTypeTranslationMap.get(snmpSpecType) }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="deviceProfileCommunication.get('spec').hasError('required')">
+          {{ 'device-profile.snmp.scope-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <mat-divider vertical></mat-divider>
+      <section fxFlex fxLayout="column">
+        <mat-form-field *ngIf="isShowFrequency(deviceProfileCommunication.get('spec').value)">
+          <mat-label translate>device-profile.snmp.querying-frequency</mat-label>
+          <input matInput formControlName="queryingFrequencyMs" type="number" min="0" required/>
+          <mat-error *ngIf="deviceProfileCommunication.get('queryingFrequencyMs').hasError('required')">
+            {{ 'device-profile.snmp.querying-frequency-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="deviceProfileCommunication.get('queryingFrequencyMs').hasError('pattern') ||
+    deviceProfileCommunication.get('queryingFrequencyMs').hasError('min')">
+            {{ 'device-profile.snmp.querying-frequency-invalid-format' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <tb-snmp-device-profile-mapping formControlName="mappings">
+        </tb-snmp-device-profile-mapping>
+      </section>
+    </div>
+    <button *ngIf="!disabled"
+            mat-icon-button color="primary" style="min-width: 40px;"
+            type="button"
+            (click)="removeCommunicationConfig($index)"
+            matTooltip="{{ 'action.remove' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>remove_circle_outline</mat-icon>
+    </button>
+  </div>
+  <div *ngIf="!communicationConfigFormArray().controls.length && !disabled">
+      <span fxLayoutAlign="center center" class="tb-prompt required required-text" translate>device-profile.snmp.please-add-communication-config</span>
+  </div>
+  <div *ngIf="!disabled && isAddEnabled">
+    <button mat-stroked-button color="primary"
+            type="button"
+            (click)="addCommunicationConfig()">
+      <mat-icon class="button-icon">add_circle_outline</mat-icon>
+      {{ 'device-profile.snmp.add-communication-config' | translate }}
+    </button>
+  </div>
+</div>

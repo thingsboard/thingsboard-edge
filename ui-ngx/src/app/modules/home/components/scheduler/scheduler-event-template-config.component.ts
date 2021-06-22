@@ -57,7 +57,7 @@ import { CustomSchedulerEventConfigComponent } from '@home/components/scheduler/
 import { SharedModule } from '@shared/shared.module';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 import { tap } from 'rxjs/operators';
-import { UpdateFirmwareComponent } from '@home/components/scheduler/config/update-firmware.component';
+import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config/ota-update-event-config.component';
 
 @Component({
   selector: 'tb-scheduler-event-template-config',
@@ -144,7 +144,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
         this.configContentContainer.clear();
         this.configComponentRef = this.configContentContainer.createComponent(factory);
         this.configComponent = this.configComponentRef.instance;
-        if (this.configComponent instanceof UpdateFirmwareComponent) {
+        if (this.configComponent instanceof OtaUpdateEventConfigComponent) {
           this.configComponent.schedulerEventType = this.schedulerEventType;
         }
         this.configComponent.registerOnChange((configuration: SchedulerEventConfiguration) => {
@@ -157,7 +157,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
   }
 
   private resolveComponentFactory(componentType: Type<ControlValueAccessor>,
-                                  template: string): Observable<ComponentFactory<ControlValueAccessor|UpdateFirmwareComponent>> {
+                                  template: string): Observable<ComponentFactory<ControlValueAccessor|OtaUpdateEventConfigComponent>> {
     if (componentType) {
       const factory = this.resolver.resolveComponentFactory(componentType);
       return of(factory);

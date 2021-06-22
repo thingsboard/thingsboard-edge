@@ -55,6 +55,14 @@
             <mat-label translate>integration.client-id</mat-label>
             <input matInput formControlName="clientId">
         </mat-form-field>
+        <mat-form-field class="mat-block">
+            <mat-label translate>integration.max-bytes-in-message</mat-label>
+            <input matInput type="number" formControlName="maxBytesInMessage">
+            <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('min')">
+                integration.max-bytes-in-message-range</mat-error>
+            <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('max')">
+                integration.max-bytes-in-message-range</mat-error>
+        </mat-form-field>
         <mat-panel-title translate>integration.aws-iot-credentials</mat-panel-title>
         <section class="dropdown-section" formGroupName="credentials">
             <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>

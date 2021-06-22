@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -110,7 +111,7 @@ public interface DeviceService {
                                                            OtaPackageType type,
                                                            PageLink pageLink);
 
-    Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId, DeviceProfileId deviceProfileId, OtaPackageType type);
+    Long countByEntityGroupAndEmptyOtaPackage(EntityGroupId groupId, OtaPackageId otaPackageId, OtaPackageType type);
 
     Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type);
 }

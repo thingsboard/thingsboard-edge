@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -685,12 +686,12 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId, DeviceProfileId deviceProfileId, OtaPackageType type) {
-        log.trace("Executing countByEntityGroupAndDeviceProfileAndEmptyOtaPackage, groupId [{}], deviceProfileId [{}], firmwareType [{}]", groupId, deviceProfileId, type);
+    public Long countByEntityGroupAndEmptyOtaPackage(EntityGroupId groupId, OtaPackageId otaPackageId, OtaPackageType type) {
+        log.trace("Executing countByEntityGroupAndDeviceProfileAndEmptyOtaPackage, groupId [{}], otaPackageId [{}], firmwareType [{}]", groupId, otaPackageId, type);
         validateId(groupId, "Incorrect groupId" + groupId);
-        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+        validateId(otaPackageId, "Incorrect deviceProfileId" + otaPackageId);
 
-        return deviceDao.countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(groupId.getId(), deviceProfileId.getId(), type);
+        return deviceDao.countByEntityGroupAndEmptyOtaPackage(groupId.getId(), otaPackageId.getId(), type);
     }
 
     @Override
