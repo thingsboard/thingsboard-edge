@@ -51,7 +51,7 @@ public class JSUplinkEvaluator extends AbstractJSEvaluator {
     public String execute(byte[] data, UplinkMetaData metadata) throws Exception {
         validateSuccessfulScriptLazyInit();
         String[] inArgs = prepareArgs(data, metadata);
-        return jsInvokeService.invokeFunction(tenantId, this.scriptId, inArgs[0], inArgs[1]).get().toString();
+        return jsInvokeService.invokeFunction(tenantId, null, this.scriptId, inArgs[0], inArgs[1]).get().toString();
     }
 
     private static String[] prepareArgs(byte[] data, UplinkMetaData metadata) {

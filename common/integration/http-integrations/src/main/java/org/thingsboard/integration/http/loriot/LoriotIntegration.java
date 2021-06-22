@@ -160,7 +160,7 @@ public class LoriotIntegration extends BasicHttpIntegration {
     @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
-        logDownlink(context, msg.getType(), msg);
+        logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null && loriotConfiguration.isSendDownlink()) {
             processDownLinkMsg(context, msg);
         }

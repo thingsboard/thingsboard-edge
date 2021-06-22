@@ -271,12 +271,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("entity_admin_widgets");
         this.deleteSystemWidgetBundle("navigation_widgets");
         this.deleteSystemWidgetBundle("edge_widgets");
-        installScripts.loadSystemWidgets();
-    }
 
-    @Override
-    public void loadSystemLwm2mResources() throws Exception {
-        installScripts.loadSystemLwm2mResources();
+        // @voba merge comment - widgets on edge created by sync process
+        //installScripts.loadSystemWidgets();
     }
 
     private User createUser(Authority authority,

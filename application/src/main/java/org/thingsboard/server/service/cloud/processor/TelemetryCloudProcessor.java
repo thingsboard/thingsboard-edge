@@ -181,8 +181,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
         }
     }
 
-    private ListenableFuture<Void> processPostTelemetry(TenantId tenantId, EntityId entityId,
-                                                        TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
+    private ListenableFuture<Void> processPostTelemetry(TenantId tenantId, EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
@@ -207,8 +206,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
         pushEntityActionToRuleEngine(tenantId, entityId, null, null, ActionType.ATTRIBUTES_UPDATED, scope, attributes);
     }
 
-    private ListenableFuture<Void> processPostAttributes(TenantId tenantId, EntityId entityId, TransportProtos.PostAttributeMsg msg,
-                                                         TbMsgMetaData metaData) {
+    private ListenableFuture<Void> processPostAttributes(TenantId tenantId, EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));

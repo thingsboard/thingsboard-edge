@@ -29,18 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {Observable} from 'rxjs';
-import {filter, map, mergeMap, publishReplay, refCount, tap} from 'rxjs/operators';
-import {ModelValue, ObjectLwM2M, PAGE_SIZE_LIMIT} from './lwm2m-profile-config.models';
-import {DeviceProfileService} from '@core/http/device-profile.service';
-import {Direction} from '@shared/models/page/sort-order';
-import {isDefined, isDefinedAndNotNull, isString} from '@core/utils';
-import {PageLink} from "@shared/models/page/page-link";
+import { Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { Observable } from 'rxjs';
+import { distinctUntilChanged, filter, mergeMap, share, tap } from 'rxjs/operators';
+import { ModelValue, ObjectLwM2M, PAGE_SIZE_LIMIT } from './lwm2m-profile-config.models';
+import { DeviceProfileService } from '@core/http/device-profile.service';
+import { Direction } from '@shared/models/page/sort-order';
+import { isDefined, isDefinedAndNotNull, isString } from '@core/utils';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Component({
   selector: 'tb-profile-lwm2m-object-list',
@@ -50,13 +57,18 @@ import {PageLink} from "@shared/models/page/page-link";
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => Lwm2mObjectListComponent),
       multi: true
-    }]
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => Lwm2mObjectListComponent),
+      multi: true
+    }
+  ]
 })
-export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, Validators {
+export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, Validator {
 
   private requiredValue: boolean;
   private dirty = false;
-  private lw2mModels: Observable<Array<ObjectLwM2M>>;
   private modelValue: Array<string> = [];
 
   lwm2mListFormGroup: FormGroup;
@@ -86,8 +98,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   private propagateChange = (v: any) => {
   }
 
-  constructor(private store: Store<AppState>,
-              private deviceProfileService: DeviceProfileService,
+  constructor(private deviceProfileService: DeviceProfileService,
               private fb: FormBuilder) {
     this.lwm2mListFormGroup = this.fb.group({
       objectsList: [this.objectsList],
@@ -96,8 +107,8 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   }
 
   private updateValidators = (): void => {
-    this.lwm2mListFormGroup.get('objectLwm2m').setValidators(this.required ? [Validators.required] : []);
-    this.lwm2mListFormGroup.get('objectLwm2m').updateValueAndValidity();
+    this.lwm2mListFormGroup.get('objectsList').setValidators(this.required ? [Validators.required] : []);
+    this.lwm2mListFormGroup.get('objectsList').updateValueAndValidity();
   }
 
   registerOnChange(fn: any): void {
@@ -110,6 +121,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   ngOnInit() {
     this.filteredObjectsList = this.lwm2mListFormGroup.get('objectLwm2m').valueChanges
       .pipe(
+        distinctUntilChanged(),
         tap((value) => {
           if (value && typeof value !== 'string') {
             this.add(value);
@@ -118,7 +130,8 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
           }
         }),
         filter(searchText => isString(searchText)),
-        mergeMap(searchText => this.fetchListObjects(searchText))
+        mergeMap(searchText => this.fetchListObjects(searchText)),
+        share()
       );
   }
 
@@ -149,6 +162,12 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
     }
   }
 
+  validate(): ValidationErrors | null {
+    return this.lwm2mListFormGroup.valid ? null : {
+      lwm2mListObj: false
+    };
+  }
+
   private add(object: ObjectLwM2M): void {
     if (isDefinedAndNotNull(this.modelValue) && this.modelValue.indexOf(object.keyId) === -1) {
       this.modelValue.push(object.keyId);
@@ -175,23 +194,13 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
     return object ? object.name : undefined;
   }
 
-  private fetchListObjects = (searchText?: string): Observable<Array<ObjectLwM2M>> =>  {
+  private fetchListObjects = (searchText: string): Observable<Array<ObjectLwM2M>> =>  {
     this.searchText = searchText;
-      return this.getLwM2mModelsPage().pipe(
-        map(objectLwM2Ms =>  objectLwM2Ms)
-      );
-  }
-
-  private getLwM2mModelsPage(): Observable<Array<ObjectLwM2M>> {
-      const pageLink = new PageLink(PAGE_SIZE_LIMIT, 0, this.searchText, {
-        property: 'id',
-        direction: Direction.ASC
-      });
-      this.lw2mModels = this.deviceProfileService.getLwm2mObjectsPage(pageLink).pipe(
-        publishReplay(1),
-        refCount()
-      );
-    return this.lw2mModels;
+    const pageLink = new PageLink(PAGE_SIZE_LIMIT, 0, this.searchText, {
+      property: 'id',
+      direction: Direction.ASC
+    });
+    return this.deviceProfileService.getLwm2mObjectsPage(pageLink);
   }
 
   onFocus = (): void => {
@@ -201,10 +210,9 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
     }
   }
 
-  private clear = (value: string = ''): void => {
-    this.objectInput.nativeElement.value = value;
+  private clear = (): void => {
     this.searchText = '';
-    this.lwm2mListFormGroup.get('objectLwm2m').patchValue(value);
+    this.lwm2mListFormGroup.get('objectLwm2m').patchValue(null);
     setTimeout(() => {
       this.objectInput.nativeElement.blur();
       this.objectInput.nativeElement.focus();

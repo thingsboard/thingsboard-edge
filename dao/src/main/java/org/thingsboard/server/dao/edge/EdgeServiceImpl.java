@@ -74,6 +74,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -195,15 +196,16 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
         Edge edge = edgeDao.findById(tenantId, edgeId.getId());
 
-        List<Object> list = new ArrayList<>();
-        list.add(edge.getTenantId());
-        list.add(edge.getName());
-        Cache cache = cacheManager.getCache(EDGE_CACHE);
-        cache.evict(list);
-
         deleteEntityRelations(tenantId, edgeId);
 
+        removeEdgeFromCacheByName(edge.getTenantId(), edge.getName());
+
         edgeDao.removeById(tenantId, edgeId.getId());
+    }
+
+    private void removeEdgeFromCacheByName(TenantId tenantId, String name) {
+        Cache cache = cacheManager.getCache(EDGE_CACHE);
+        cache.evict(Arrays.asList(tenantId, name));
     }
 
     @Override
@@ -408,6 +410,10 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Edge edge) {
+                    Edge old = edgeDao.findById(edge.getTenantId(), edge.getId().getId());
+                    if (!old.getName().equals(edge.getName())) {
+                        removeEdgeFromCacheByName(tenantId, old.getName());
+                    }
                 }
 
                 @Override

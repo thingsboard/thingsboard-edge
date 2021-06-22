@@ -35,47 +35,123 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
-public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
-    
+public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
+
     private IdComparator<Device> idComparator = new IdComparator<>();
-    
+
     private TenantId tenantId;
+    private TenantId anotherTenantId;
 
     @Before
-    public void beforeRun() {
-        tenantId = before();
+    public void before() {
+        tenantId = createTenant();
+        anotherTenantId = createTenant();
     }
 
     @After
     public void after() {
         tenantService.deleteTenant(tenantId);
+        tenantService.deleteTenant(anotherTenantId);
+
+        tenantProfileService.deleteTenantProfiles(tenantId);
+        tenantProfileService.deleteTenantProfiles(anotherTenantId);
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void testSaveDevicesWithoutMaxDeviceLimit() {
+        Device device = this.saveDevice(tenantId, "My device");
+        deleteDevice(tenantId, device);
     }
 
     @Test
-    public void testSaveDevice() {
+    public void testSaveDevicesWithInfiniteMaxDeviceLimit() {
+        TenantProfile defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(tenantId);
+        defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxDevices(Long.MAX_VALUE).build());
+        tenantProfileService.saveTenantProfile(tenantId, defaultTenantProfile);
+
+        Device device = this.saveDevice(tenantId, "My device");
+        deleteDevice(tenantId, device);
+    }
+
+    @Test(expected = DataValidationException.class)
+    public void testSaveDevicesWithMaxDeviceOutOfLimit() {
+        TenantProfile defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(tenantId);
+        defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxDevices(1).build());
+        tenantProfileService.saveTenantProfile(tenantId, defaultTenantProfile);
+
+        Assert.assertEquals(0, deviceService.countByTenantId(tenantId));
+
+        this.saveDevice(tenantId, "My first device");
+        Assert.assertEquals(1, deviceService.countByTenantId(tenantId));
+
+        this.saveDevice(tenantId, "My second device that out of maxDeviceCount limit");
+    }
+
+    @Test
+    public void testCountByTenantId() {
+        Assert.assertEquals(0, deviceService.countByTenantId(tenantId));
+        Assert.assertEquals(0, deviceService.countByTenantId(anotherTenantId));
+        Assert.assertEquals(0, deviceService.countByTenantId(TenantId.SYS_TENANT_ID));
+
+        Device anotherDevice = this.saveDevice(anotherTenantId, "My device 1");
+        Assert.assertEquals(1, deviceService.countByTenantId(anotherTenantId));
+
+        int maxDevices = 8;
+        List<Device> devices = new ArrayList<>(maxDevices);
+
+        for (int i = 1; i <= maxDevices; i++) {
+            devices.add(this.saveDevice(tenantId, "My device " + i));
+            Assert.assertEquals(i, deviceService.countByTenantId(tenantId));
+        }
+
+        Assert.assertEquals(maxDevices, deviceService.countByTenantId(tenantId));
+        Assert.assertEquals(1, deviceService.countByTenantId(anotherTenantId));
+        Assert.assertEquals(0, deviceService.countByTenantId(TenantId.SYS_TENANT_ID));
+
+        devices.forEach(device -> deleteDevice(tenantId, device));
+        deleteDevice(anotherTenantId, anotherDevice);
+    }
+
+    void deleteDevice(TenantId tenantId, Device device) {
+        deviceService.deleteDevice(tenantId, device.getId());
+    }
+
+    Device saveDevice(TenantId tenantId, final String name) {
         Device device = new Device();
         device.setTenantId(tenantId);
-        device.setName("My device");
+        device.setName(name);
         device.setType("default");
         Device savedDevice = deviceService.saveDevice(device);
-        
+
         Assert.assertNotNull(savedDevice);
         Assert.assertNotNull(savedDevice.getId());
         Assert.assertTrue(savedDevice.getCreatedTime() > 0);
@@ -83,7 +159,7 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         Assert.assertNotNull(savedDevice.getCustomerId());
         Assert.assertEquals(NULL_UUID, savedDevice.getCustomerId().getId());
         Assert.assertEquals(device.getName(), savedDevice.getName());
-        
+
         DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, savedDevice.getId());
         Assert.assertNotNull(deviceCredentials);
         Assert.assertNotNull(deviceCredentials.getId());
@@ -91,16 +167,96 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(DeviceCredentialsType.ACCESS_TOKEN, deviceCredentials.getCredentialsType());
         Assert.assertNotNull(deviceCredentials.getCredentialsId());
         Assert.assertEquals(20, deviceCredentials.getCredentialsId().length());
-        
-        savedDevice.setName("My new device");
-        
+
+        savedDevice.setName("New " + savedDevice.getName());
+
         deviceService.saveDevice(savedDevice);
         Device foundDevice = deviceService.findDeviceById(tenantId, savedDevice.getId());
         Assert.assertEquals(foundDevice.getName(), savedDevice.getName());
-        
-        deviceService.deleteDevice(tenantId, savedDevice.getId());
+        return foundDevice;
     }
-    
+
+    @Test
+    public void testSaveDeviceWithFirmware() {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName("My device");
+        device.setType("default");
+        Device savedDevice = deviceService.saveDevice(device);
+
+        Assert.assertNotNull(savedDevice);
+        Assert.assertNotNull(savedDevice.getId());
+        Assert.assertTrue(savedDevice.getCreatedTime() > 0);
+        Assert.assertEquals(device.getTenantId(), savedDevice.getTenantId());
+        Assert.assertNotNull(savedDevice.getCustomerId());
+        Assert.assertEquals(NULL_UUID, savedDevice.getCustomerId().getId());
+        Assert.assertEquals(device.getName(), savedDevice.getName());
+
+        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, savedDevice.getId());
+        Assert.assertNotNull(deviceCredentials);
+        Assert.assertNotNull(deviceCredentials.getId());
+        Assert.assertEquals(savedDevice.getId(), deviceCredentials.getDeviceId());
+        Assert.assertEquals(DeviceCredentialsType.ACCESS_TOKEN, deviceCredentials.getCredentialsType());
+        Assert.assertNotNull(deviceCredentials.getCredentialsId());
+        Assert.assertEquals(20, deviceCredentials.getCredentialsId().length());
+
+
+        OtaPackage firmware = new OtaPackage();
+        firmware.setTenantId(tenantId);
+        firmware.setDeviceProfileId(device.getDeviceProfileId());
+        firmware.setType(FIRMWARE);
+        firmware.setTitle("my firmware");
+        firmware.setVersion("v1.0");
+        firmware.setFileName("test.txt");
+        firmware.setContentType("text/plain");
+        firmware.setChecksumAlgorithm(ChecksumAlgorithm.SHA256);
+        firmware.setChecksum("4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a");
+        firmware.setData(ByteBuffer.wrap(new byte[]{1}));
+        firmware.setDataSize(1L);
+        OtaPackage savedFirmware = otaPackageService.saveOtaPackage(firmware);
+
+        savedDevice.setFirmwareId(savedFirmware.getId());
+
+        deviceService.saveDevice(savedDevice);
+        Device foundDevice = deviceService.findDeviceById(tenantId, savedDevice.getId());
+        Assert.assertEquals(foundDevice.getName(), savedDevice.getName());
+    }
+
+    @Test
+    public void testAssignFirmwareToDeviceWithDifferentDeviceProfile() {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName("My device");
+        device.setType("default");
+        Device savedDevice = deviceService.saveDevice(device);
+
+        Assert.assertNotNull(savedDevice);
+
+        DeviceProfile deviceProfile = createDeviceProfile(tenantId, "New device Profile");
+        DeviceProfile savedProfile = deviceProfileService.saveDeviceProfile(deviceProfile);
+        Assert.assertNotNull(savedProfile);
+
+        OtaPackage firmware = new OtaPackage();
+        firmware.setTenantId(tenantId);
+        firmware.setDeviceProfileId(savedProfile.getId());
+        firmware.setType(FIRMWARE);
+        firmware.setTitle("my firmware");
+        firmware.setVersion("v1.0");
+        firmware.setFileName("test.txt");
+        firmware.setContentType("text/plain");
+        firmware.setChecksumAlgorithm(ChecksumAlgorithm.SHA256);
+        firmware.setChecksum("4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a");
+        firmware.setData(ByteBuffer.wrap(new byte[]{1}));
+        firmware.setDataSize(1L);
+        OtaPackage savedFirmware = otaPackageService.saveOtaPackage(firmware);
+
+        savedDevice.setFirmwareId(savedFirmware.getId());
+
+        thrown.expect(DataValidationException.class);
+        thrown.expectMessage("Can't assign firmware with different deviceProfile!");
+        deviceService.saveDevice(savedDevice);
+    }
+
     @Test(expected = DataValidationException.class)
     public void testSaveDeviceWithEmptyName() {
         Device device = new Device();
@@ -108,7 +264,7 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         device.setTenantId(tenantId);
         deviceService.saveDevice(device);
     }
-    
+
     @Test(expected = DataValidationException.class)
     public void testSaveDeviceWithEmptyTenant() {
         Device device = new Device();
@@ -116,7 +272,7 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         device.setType("default");
         deviceService.saveDevice(device);
     }
-    
+
     @Test(expected = DataValidationException.class)
     public void testSaveDeviceWithInvalidTenant() {
         Device device = new Device();
@@ -125,7 +281,7 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         device.setTenantId(new TenantId(Uuids.timeBased()));
         deviceService.saveDevice(device);
     }
-    
+
     @Test
     public void testFindDeviceById() {
         Device device = new Device();
@@ -143,24 +299,24 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
     public void testFindDeviceTypesByTenantId() throws Exception {
         List<Device> devices = new ArrayList<>();
         try {
-            for (int i=0;i<3;i++) {
+            for (int i = 0; i < 3; i++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
-                device.setName("My device B"+i);
+                device.setName("My device B" + i);
                 device.setType("typeB");
                 devices.add(deviceService.saveDevice(device));
             }
-            for (int i=0;i<7;i++) {
+            for (int i = 0; i < 7; i++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
-                device.setName("My device C"+i);
+                device.setName("My device C" + i);
                 device.setType("typeC");
                 devices.add(deviceService.saveDevice(device));
             }
-            for (int i=0;i<9;i++) {
+            for (int i = 0; i < 9; i++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
-                device.setName("My device A"+i);
+                device.setName("My device A" + i);
                 device.setType("typeA");
                 devices.add(deviceService.saveDevice(device));
             }
@@ -171,10 +327,12 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
             Assert.assertEquals("typeB", deviceTypes.get(1).getType());
             Assert.assertEquals("typeC", deviceTypes.get(2).getType());
         } finally {
-            devices.forEach((device) -> { deviceService.deleteDevice(tenantId, device.getId()); });
+            devices.forEach((device) -> {
+                deviceService.deleteDevice(tenantId, device.getId());
+            });
         }
     }
-    
+
     @Test
     public void testDeleteDevice() {
         Device device = new Device();
@@ -190,24 +348,24 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         DeviceCredentials foundDeviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, savedDevice.getId());
         Assert.assertNull(foundDeviceCredentials);
     }
-    
+
     @Test
     public void testFindDevicesByTenantId() {
         Tenant tenant = new Tenant();
         tenant.setTitle("Test tenant");
         tenant = tenantService.saveTenant(tenant);
-        
+
         TenantId tenantId = tenant.getId();
-        
+
         List<Device> devices = new ArrayList<>();
-        for (int i=0;i<178;i++) {
+        for (int i = 0; i < 178; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            device.setName("Device"+i);
+            device.setName("Device" + i);
             device.setType("default");
             devices.add(deviceService.saveDevice(device));
         }
-        
+
         List<Device> loadedDevices = new ArrayList<>();
         PageLink pageLink = new PageLink(23);
         PageData<Device> pageData = null;
@@ -218,19 +376,19 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
                 pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
-        
+
         Collections.sort(devices, idComparator);
         Collections.sort(loadedDevices, idComparator);
-        
+
         Assert.assertEquals(devices, loadedDevices);
-        
+
         deviceService.deleteDevicesByTenantId(tenantId);
 
         pageLink = new PageLink(33);
         pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-        
+
         tenantService.deleteTenant(tenantId);
     }
 
@@ -238,11 +396,11 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
     public void testFindDevicesByTenantIdAndName() {
         String title1 = "Device title 1";
         List<Device> devicesTitle1 = new ArrayList<>();
-        for (int i=0;i<143;i++) {
+        for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1+suffix;
+            String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
@@ -250,18 +408,19 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         }
         String title2 = "Device title 2";
         List<Device> devicesTitle2 = new ArrayList<>();
-        for (int i=0;i<175;i++) {
+        for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2+suffix;
+            String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
             devicesTitle2.add(deviceService.saveDevice(device));
         }
-        
+
         List<Device> loadedDevicesTitle1 = new ArrayList<>();
+
         PageLink pageLink = new PageLink(15, 0, title1);
         PageData<Device> pageData = null;
         do {
@@ -271,13 +430,14 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
                 pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
-        
+
         Collections.sort(devicesTitle1, idComparator);
         Collections.sort(loadedDevicesTitle1, idComparator);
-        
+
         Assert.assertEquals(devicesTitle1, loadedDevicesTitle1);
-        
+
         List<Device> loadedDevicesTitle2 = new ArrayList<>();
+
         pageLink = new PageLink(4, 0, title2);
         do {
             pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
@@ -289,22 +449,22 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
 
         Collections.sort(devicesTitle2, idComparator);
         Collections.sort(loadedDevicesTitle2, idComparator);
-        
+
         Assert.assertEquals(devicesTitle2, loadedDevicesTitle2);
 
         for (Device device : loadedDevicesTitle1) {
             deviceService.deleteDevice(tenantId, device.getId());
         }
-        
+
         pageLink = new PageLink(4, 0, title1);
         pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
-        
+
         for (Device device : loadedDevicesTitle2) {
             deviceService.deleteDevice(tenantId, device.getId());
         }
-        
+
         pageLink = new PageLink(4, 0, title2);
         pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
@@ -316,11 +476,11 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         String title1 = "Device title 1";
         String type1 = "typeA";
         List<Device> devicesType1 = new ArrayList<>();
-        for (int i=0;i<143;i++) {
+        for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1+suffix;
+            String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType(type1);
@@ -329,11 +489,11 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         String title2 = "Device title 2";
         String type2 = "typeB";
         List<Device> devicesType2 = new ArrayList<>();
-        for (int i=0;i<175;i++) {
+        for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2+suffix;
+            String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType(type2);
@@ -390,4 +550,25 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Test
+    public void testCleanCacheIfDeviceRenamed() {
+        String deviceNameBeforeRename = RandomStringUtils.randomAlphanumeric(15);
+        String deviceNameAfterRename = RandomStringUtils.randomAlphanumeric(15);
+
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName(deviceNameBeforeRename);
+        device.setType("default");
+        deviceService.saveDevice(device);
+
+        Device savedDevice = deviceService.findDeviceByTenantIdAndName(tenantId, deviceNameBeforeRename);
+
+        savedDevice.setName(deviceNameAfterRename);
+        deviceService.saveDevice(savedDevice);
+
+        Device renamedDevice = deviceService.findDeviceByTenantIdAndName(tenantId, deviceNameBeforeRename);
+
+        Assert.assertNull("Can't find device by name in cache if it was renamed", renamedDevice);
+        deviceService.deleteDevice(tenantId, savedDevice.getId());
+    }
 }

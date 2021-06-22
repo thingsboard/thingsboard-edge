@@ -76,7 +76,8 @@ public enum Resource {
     WHITE_LABELING(),
     AUDIT_LOG(),
     API_USAGE_STATE(EntityType.API_USAGE_STATE),
-    TB_RESOURCE(EntityType.TB_RESOURCE);
+    TB_RESOURCE(EntityType.TB_RESOURCE),
+    OTA_PACKAGE(EntityType.OTA_PACKAGE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -113,6 +114,7 @@ public enum Resource {
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
                 Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT)));
         operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.OTA_PACKAGE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
@@ -193,7 +195,8 @@ public enum Resource {
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG,
-                Resource.TB_RESOURCE)));
+                Resource.TB_RESOURCE,
+                Resource.OTA_PACKAGE)));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,

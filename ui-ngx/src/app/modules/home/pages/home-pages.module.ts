@@ -35,10 +35,15 @@ import { AdminModule } from './admin/admin.module';
 import { HomeLinksModule } from './home-links/home-links.module';
 import { ProfileModule } from './profile/profile.module';
 import { TenantModule } from '@modules/home/pages/tenant/tenant.module';
+import { CustomerModule } from '@modules/home/pages/customer/customer.module';
 import { AuditLogModule } from '@modules/home/pages/audit-log/audit-log.module';
 import { UserModule } from '@modules/home/pages/user/user.module';
+import { DeviceModule } from '@modules/home/pages/device/device.module';
+import { AssetModule } from '@modules/home/pages/asset/asset.module';
+import { EntityViewModule } from '@modules/home/pages/entity-view/entity-view.module';
 import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module';
 import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.module';
+import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
 import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
 import { ConverterModule } from '@home/pages/converter/converter.module';
 import { IntegrationModule } from '@home/pages/integration/integration.module';
@@ -50,9 +55,10 @@ import { MODULES_MAP } from '@shared/public-api';
 import { modulesMap } from '../../common/modules-map';
 import { DeviceProfileModule } from './device-profile/device-profile.module';
 import { ApiUsageModule } from '@home/pages/api-usage/api-usage.module';
+import { EdgeModule } from '@home/pages/edge/edge.module';
+import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { CloudEventModule } from "@home/pages/cloud-event/cloud-event.module";
 import { EdgeStatusModule } from "@home/pages/edge-status/edge-status.module";
-import { ResourceModule } from '@home/pages/resource/resource.module';
 
 @NgModule({
   exports: [
@@ -62,8 +68,14 @@ import { ResourceModule } from '@home/pages/resource/resource.module';
     TenantProfileModule,
     TenantModule,
     DeviceProfileModule,
+    DeviceModule,
+    AssetModule,
+    EdgeModule,
+    EntityViewModule,
+    CustomerModule,
     RuleChainModule,
     WidgetLibraryModule,
+    DashboardModule,
     AuditLogModule,
     ApiUsageModule,
     UserModule,
@@ -73,9 +85,9 @@ import { ResourceModule } from '@home/pages/resource/resource.module';
     EntityGroupModule,
     IFrameViewModule,
     SchedulerModule,
+    OtaUpdateModule,
     CloudEventModule,
-    EdgeStatusModule,
-    ResourceModule
+    EdgeStatusModule
   ],
   providers: [
     {

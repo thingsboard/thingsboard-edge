@@ -47,7 +47,6 @@ import org.thingsboard.mqtt.MqttHandler;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.net.ssl.SSLException;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -66,9 +65,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         this.ctx = params.getContext();
-        mqttClientConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                MqttClientConfiguration.class);
+        mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
         setupConfiguration(mqttClientConfiguration);
     }
 
@@ -76,10 +73,8 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
         MqttClientConfiguration mqttClientConfiguration;
         try {
-            mqttClientConfiguration = mapper.readValue(
-                    mapper.writeValueAsString(configuration.get("clientConfiguration")),
-                    MqttClientConfiguration.class);
-        } catch (IOException e) {
+            mqttClientConfiguration = getClientConfiguration(configuration.get("clientConfiguration"), MqttClientConfiguration.class);
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid MQTT Integration Configuration structure!");
         }
         if (!allowLocalNetworkHosts && isLocalNetworkHost(mqttClientConfiguration.getHost())) {

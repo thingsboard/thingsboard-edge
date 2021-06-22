@@ -56,8 +56,8 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2MapperConfig;
+import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -130,9 +130,9 @@ public abstract class AbstractOAuth2ClientMapper {
     
     private final Lock userCreationLock = new ReentrantLock();
 
-    protected SecurityUser getOrCreateSecurityUserFromOAuth2User(OAuth2User oauth2User, OAuth2ClientRegistrationInfo clientRegistration) {
+    protected SecurityUser getOrCreateSecurityUserFromOAuth2User(OAuth2User oauth2User, OAuth2Registration registration) {
 
-        OAuth2MapperConfig config = clientRegistration.getMapperConfig();
+        OAuth2MapperConfig config = registration.getMapperConfig();
 
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, oauth2User.getEmail());
 
@@ -169,9 +169,9 @@ public abstract class AbstractOAuth2ClientMapper {
 
                     ObjectNode additionalInfo = mapper.createObjectNode();
 
-                    if (clientRegistration.getAdditionalInfo() != null &&
-                            clientRegistration.getAdditionalInfo().has("providerName")) {
-                        additionalInfo.put("authProviderName", clientRegistration.getAdditionalInfo().get("providerName").asText());
+                    if (registration.getAdditionalInfo() != null &&
+                            registration.getAdditionalInfo().has("providerName")) {
+                        additionalInfo.put("authProviderName", registration.getAdditionalInfo().get("providerName").asText());
                     }
 
                     user.setAdditionalInfo(additionalInfo);

@@ -66,9 +66,11 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
@@ -82,8 +84,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -123,6 +123,7 @@ public class DeviceController extends BaseController {
     public Device saveDevice(@RequestBody Device device,
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+        boolean created = device.getId() == null;
         try {
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
@@ -130,8 +131,7 @@ public class DeviceController extends BaseController {
             tbClusterService.onDeviceChange(savedDevice, null);
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
-            tbClusterService.onEntityStateChange(savedDevice.getTenantId(), savedDevice.getId(),
-                    device.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            tbClusterService.onEntityStateChange(savedDevice.getTenantId(), savedDevice.getId(), created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
@@ -139,10 +139,14 @@ public class DeviceController extends BaseController {
                 deviceStateService.onDeviceUpdated(savedDevice);
             }
 
+            otaPackageStateService.update(savedDevice);
             return savedDevice;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.DEVICE), device,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
+
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -557,7 +561,7 @@ public class DeviceController extends BaseController {
     private void pushAssignedFromNotification(Tenant currentTenant, TenantId newTenantId, Device assignedDevice) {
         String data = entityToStr(assignedDevice);
         if (data != null) {
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_ASSIGNED_FROM_TENANT, assignedDevice.getId(), getMetaDataForAssignedFrom(currentTenant), TbMsgDataType.JSON, data);
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_ASSIGNED_FROM_TENANT, assignedDevice.getId(), assignedDevice.getCustomerId(), getMetaDataForAssignedFrom(currentTenant), TbMsgDataType.JSON, data);
             tbClusterService.pushMsgToRuleEngine(newTenantId, assignedDevice.getId(), tbMsg, null);
         }
     }
@@ -568,4 +572,37 @@ public class DeviceController extends BaseController {
         metaData.putValue("assignedFromTenantName", tenant.getName());
         return metaData;
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/devices/count/{otaPackageType}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long countByEntityTypeAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
+                                                    @RequestParam EntityType entityType,
+                                                    @RequestParam String deviceProfileId,
+                                                    @RequestParam(required = false) String deviceGroupId) throws ThingsboardException {
+        checkParameter("OtaPackageType", otaPackageType);
+        checkParameter("DeviceProfileId", deviceProfileId);
+        try {
+            switch (entityType) {
+                case DEVICE_PROFILE: {
+                    return deviceService.countByDeviceProfileAndEmptyOtaPackage(
+                            getTenantId(),
+                            new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                            OtaPackageType.valueOf(otaPackageType));
+                }
+                case ENTITY_GROUP: {
+                    checkParameter("DeviceGroupId", deviceGroupId);
+                    return deviceService.countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(
+                            new EntityGroupId(UUID.fromString(deviceGroupId)),
+                            new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                            OtaPackageType.valueOf(otaPackageType));
+                }
+                default:
+                    throw new IllegalArgumentException("Not implemented!");
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

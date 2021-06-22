@@ -32,8 +32,10 @@ package org.thingsboard.server.dao.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
@@ -165,4 +167,20 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao {
      * @return the list of device objects
      */
     PageData<Device> findDevicesByTenantIdAndProfileId(UUID tenantId, UUID profileId, PageLink pageLink);
+
+    PageData<UUID> findDevicesIdsByDeviceProfileTransportType(DeviceTransportType transportType, PageLink pageLink);
+
+    PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(UUID groupId,
+                                                                         UUID deviceProfileId,
+                                                                         OtaPackageType otaPackageType,
+                                                                         PageLink pageLink);
+
+    PageData<Device> findByDeviceProfileAndEmptyOtaPackage(UUID tenantId,
+                                                           UUID deviceProfileId,
+                                                           OtaPackageType otaPackageType,
+                                                           PageLink pageLink);
+
+    Long countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(UUID groupId, UUID deviceProfileId, OtaPackageType type);
+
+    Long countByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId, OtaPackageType type);
 }

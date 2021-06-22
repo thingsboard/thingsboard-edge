@@ -44,7 +44,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -52,6 +51,8 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
@@ -66,6 +67,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
+import org.thingsboard.integration.coap.CoapIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
 import org.thingsboard.integration.http.loriot.LoriotIntegration;
@@ -83,6 +85,7 @@ import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -143,17 +146,16 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
-import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.EventDeduplicationExecutor;
@@ -254,6 +256,9 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     @Autowired
     private DefaultTbDeviceProfileCache deviceProfileCache;
 
+    @Autowired(required = false)
+    private CoapServerService coapServerService;
+
     @Value("${transport.rate_limits.enabled}")
     private boolean rateLimitEnabled;
 
@@ -301,20 +306,19 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
 
 
-
     @PostConstruct
     public void init() {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
-        this.callbackExecutor = Executors.newWorkStealingPool(20);
-        refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
+        this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
+        refreshExecutorService = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(4, "default-integration-refresh"));
         deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultPlatformIntegrationService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
         if (reinitEnabled) {
-            reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
+            reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-reinit"));
             reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-stats"));
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
     }
@@ -572,7 +576,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 dataPoints += tsKv.getKvCount();
             }
-            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, dataPoints, callback));
+            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), dataPoints, callback));
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 metaData.putValue("deviceName", sessionInfo.getDeviceName());
@@ -595,13 +599,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             metaData.putValue("deviceName", sessionInfo.getDeviceName());
             metaData.putValue("deviceType", sessionInfo.getDeviceType());
             sendToRuleEngine(tenantId, deviceId, sessionInfo, json, metaData, SessionMsgType.POST_ATTRIBUTES_REQUEST,
-                    new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, msg.getKvList().size(), callback)));
+                    new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, getCustomerId(sessionInfo), msg.getKvList().size(), callback)));
         }
     }
 
     @Override
     public void process(TenantId tenantId, TbMsg tbMsg, IntegrationCallback<Void> callback) {
-        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, 1, callback)));
+        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, tbMsg.getCustomerId(), 1, callback)));
     }
 
 
@@ -759,8 +763,23 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private void pushDeviceCreatedEventToRuleEngine(Integration integration, Device device) {
         try {
+            DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
+            RuleChainId ruleChainId;
+            String queueName;
+
+            if (deviceProfile == null) {
+                ruleChainId = null;
+                queueName = ServiceQueue.MAIN;
+            } else {
+                ruleChainId = deviceProfile.getDefaultRuleChainId();
+                String defaultQueueName = deviceProfile.getDefaultQueueName();
+                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+            }
+
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
+                    mapper.writeValueAsString(entityNode), ruleChainId, null);
+
             process(device.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
@@ -770,7 +789,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     private void pushAssetCreatedEventToRuleEngine(Integration integration, Asset asset) {
         try {
             ObjectNode entityNode = mapper.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
             process(integration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
@@ -791,7 +810,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     private void pushCustomerCreatedEventToRuleEngine(Integration integration, Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
             process(customer.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
@@ -833,7 +852,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
-                                    TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
+                                  TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
@@ -850,7 +869,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
@@ -1048,6 +1067,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
                 return new BasicRabbitMQIntegration();
             case APACHE_PULSAR:
                 return new BasicPulsarIntegration();
+            case COAP:
+                return new CoapIntegration(coapServerService);
             case CUSTOM:
             case TCP:
             case UDP:
@@ -1109,11 +1130,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private class ApiStatsProxyCallback<T> implements IntegrationCallback<T> {
         private final TenantId tenantId;
+        private final CustomerId customerId;
         private final int dataPoints;
         private final IntegrationCallback<T> callback;
 
-        public ApiStatsProxyCallback(TenantId tenantId, int dataPoints, IntegrationCallback<T> callback) {
+        public ApiStatsProxyCallback(TenantId tenantId, CustomerId customerId, int dataPoints, IntegrationCallback<T> callback) {
             this.tenantId = tenantId;
+            this.customerId = customerId;
             this.dataPoints = dataPoints;
             this.callback = callback;
         }
@@ -1121,8 +1144,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         @Override
         public void onSuccess(T msg) {
             try {
-                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
-                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
+                apiUsageReportClient.report(tenantId, customerId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
+                apiUsageReportClient.report(tenantId, customerId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
             } finally {
                 callback.onSuccess(msg);
             }
@@ -1134,4 +1157,14 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         }
     }
 
+
+    private static CustomerId getCustomerId(SessionInfoProto sessionInfo) {
+        CustomerId customerId;
+        if (sessionInfo.getCustomerIdMSB() > 0 && sessionInfo.getCustomerIdLSB() > 0) {
+            customerId = new CustomerId(new UUID(sessionInfo.getCustomerIdMSB(), sessionInfo.getCustomerIdLSB()));
+        } else {
+            customerId = null;
+        }
+        return customerId;
+    }
 }

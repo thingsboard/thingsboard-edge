@@ -37,16 +37,17 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.util.mapping.JsonBinaryType;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
@@ -57,8 +58,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TypeDefs({
-    @TypeDef(name = "json", typeClass = JsonStringType.class),
-    @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
+        @TypeDef(name = "json", typeClass = JsonStringType.class),
+        @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class)
 })
 @MappedSuperclass
 public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
@@ -88,6 +89,12 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
     @Column(name = ModelConstants.DEVICE_DEVICE_PROFILE_ID_PROPERTY, columnDefinition = "uuid")
     private UUID deviceProfileId;
 
+    @Column(name = ModelConstants.DEVICE_FIRMWARE_ID_PROPERTY, columnDefinition = "uuid")
+    private UUID firmwareId;
+
+    @Column(name = ModelConstants.DEVICE_SOFTWARE_ID_PROPERTY, columnDefinition = "uuid")
+    private UUID softwareId;
+
     @Type(type = "jsonb")
     @Column(name = ModelConstants.DEVICE_DEVICE_DATA_PROPERTY, columnDefinition = "jsonb")
     private JsonNode deviceData;
@@ -110,6 +117,12 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
         if (device.getDeviceProfileId() != null) {
             this.deviceProfileId = device.getDeviceProfileId().getId();
         }
+        if (device.getFirmwareId() != null) {
+            this.firmwareId = device.getFirmwareId().getId();
+        }
+        if (device.getSoftwareId() != null) {
+            this.softwareId = device.getSoftwareId().getId();
+        }
         this.deviceData = JacksonUtil.convertValue(device.getDeviceData(), ObjectNode.class);
         this.name = device.getName();
         this.type = device.getType();
@@ -129,6 +142,8 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
         this.label = deviceEntity.getLabel();
         this.searchText = deviceEntity.getSearchText();
         this.additionalInfo = deviceEntity.getAdditionalInfo();
+        this.firmwareId = deviceEntity.getFirmwareId();
+        this.softwareId = deviceEntity.getSoftwareId();
     }
 
     @Override
@@ -152,6 +167,12 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
         }
         if (deviceProfileId != null) {
             device.setDeviceProfileId(new DeviceProfileId(deviceProfileId));
+        }
+        if (firmwareId != null) {
+            device.setFirmwareId(new OtaPackageId(firmwareId));
+        }
+        if (softwareId != null) {
+            device.setSoftwareId(new OtaPackageId(softwareId));
         }
         device.setDeviceData(JacksonUtil.convertValue(deviceData, DeviceData.class));
         device.setName(name);

@@ -33,6 +33,7 @@ import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
+import { DeviceTransportType } from '@shared/models/device.models';
 
 export enum IntegrationType {
   HTTP = 'HTTP',
@@ -59,8 +60,23 @@ export enum IntegrationType {
   RABBITMQ = 'RABBITMQ',
   APACHE_PULSAR = 'APACHE_PULSAR',
   PUB_SUB = 'PUB_SUB',
+  COAP = 'COAP',
   CUSTOM = 'CUSTOM'
 }
+
+export enum CoapSecurityMode {
+  NO_SECURE = 'NO_SECURE',
+  DTLS = 'DTLS',
+  MIXED = 'MIXED',
+}
+
+export const coapSecurityModeTranslationsMap = new Map<CoapSecurityMode, string>(
+  [
+    [CoapSecurityMode.NO_SECURE, 'integration.coap-security-mode-no-secure'],
+    [CoapSecurityMode.DTLS, 'integration.coap-security-mode-dtls'],
+    [CoapSecurityMode.MIXED, 'integration.coap-security-mode-mixed']
+  ]
+);
 
 export interface IntegrationTypeInfo {
   name: string;
@@ -168,6 +184,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       { name: 'integration.type-pubsub' }
     ],
     [
+      IntegrationType.COAP,
+      { name: 'integration.type-coap' }
+    ],
+    [
       IntegrationType.CUSTOM,
       { name: 'integration.type-custom', remote: true }
     ]
@@ -200,6 +220,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.RABBITMQ, 'integrationRabbitmq'],
     [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
     [IntegrationType.PUB_SUB, 'integrationPubsub'],
+    [IntegrationType.COAP, 'integrationCoAP'],
     [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );

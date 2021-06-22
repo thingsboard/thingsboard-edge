@@ -112,7 +112,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
             TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                    entityId, metaData, JacksonUtil.toString(data));
+                    entityId, msg.getCustomerId(), metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, SUCCESS);
         });
         ctx.ack(msg);
@@ -151,7 +151,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         } else {
             pageLink = new TimePageLink(alarmSearchPageLink, null, null);
         }
-        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false, null);
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         ObjectNode obj = JacksonUtil.newObjectNode();
         for (int i = 0; i < mappings.size(); i++) {

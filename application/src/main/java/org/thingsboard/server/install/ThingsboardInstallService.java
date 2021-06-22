@@ -95,27 +95,10 @@ public class ThingsboardInstallService {
                 switch (upgradeFromVersion) {
                     case "3.3.0":
                         log.info("Updating system data...");
-
-                        systemDataLoaderService.deleteSystemWidgetBundle("charts");
-                        systemDataLoaderService.deleteSystemWidgetBundle("cards");
-                        systemDataLoaderService.deleteSystemWidgetBundle("maps");
-                        systemDataLoaderService.deleteSystemWidgetBundle("analogue_gauges");
-                        systemDataLoaderService.deleteSystemWidgetBundle("digital_gauges");
-                        systemDataLoaderService.deleteSystemWidgetBundle("gpio_widgets");
-                        systemDataLoaderService.deleteSystemWidgetBundle("alarm_widgets");
-                        systemDataLoaderService.deleteSystemWidgetBundle("control_widgets");
-                        systemDataLoaderService.deleteSystemWidgetBundle("maps_v2");
-                        systemDataLoaderService.deleteSystemWidgetBundle("gateway_widgets");
-                        systemDataLoaderService.deleteSystemWidgetBundle("scheduling");
-                        systemDataLoaderService.deleteSystemWidgetBundle("files");
-                        systemDataLoaderService.deleteSystemWidgetBundle("input_widgets");
-                        systemDataLoaderService.deleteSystemWidgetBundle("date");
-                        systemDataLoaderService.deleteSystemWidgetBundle("entity_admin_widgets");
-
-                        //systemDataLoaderService.loadSystemWidgets();
+                        systemDataLoaderService.updateSystemWidgets();
                         break;
                     default:
-                        throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
+                        throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
 
 
                 }

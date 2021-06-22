@@ -83,8 +83,10 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
@@ -108,7 +110,6 @@ import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
-import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
@@ -345,10 +346,6 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private SchedulerService schedulerService;
-
-    @Autowired
-    @Getter
     private RuleEngineCallService ruleEngineCallService;
 
     @Autowired
@@ -384,6 +381,14 @@ public class ActorSystemContext {
     @Lazy
     @Autowired(required = false)
     @Getter private EdgeEventService edgeEventService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter private ResourceService resourceService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter private OtaPackageService otaPackageService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter

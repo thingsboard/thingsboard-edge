@@ -145,7 +145,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           } else {
             modelValue = value.id.id;
           }
-          this.updateView(modelValue);
+          this.updateView(modelValue, value);
           if (value === null) {
             this.clear();
           }
@@ -230,10 +230,11 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
   }
 
-  updateView(value: string | null) {
+  updateView(value: string | null, entityGroup: EntityGroupInfo) {
     if (this.modelValue !== value) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
+      this.entityGroupLoaded.next(entityGroup);
     }
   }
 

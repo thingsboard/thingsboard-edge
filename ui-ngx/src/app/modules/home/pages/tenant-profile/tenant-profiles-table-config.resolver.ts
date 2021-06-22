@@ -36,7 +36,8 @@ import {
   checkBoxCell,
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
-  EntityTableConfig
+  EntityTableConfig,
+  HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
@@ -49,6 +50,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { UserPermissionsService } from '../../../../core/http/user-permissions.service';
 import { UtilsService } from '../../../../core/services/utils.service';
 import { Operation, Resource } from '../../../../shared/models/security.models';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
 
 @Injectable()
 export class TenantProfilesTableConfigResolver implements Resolve<EntityTableConfig<TenantProfile>> {
@@ -56,6 +58,7 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
   private readonly config: EntityTableConfig<TenantProfile> = new EntityTableConfig<TenantProfile>();
 
   constructor(private tenantProfileService: TenantProfileService,
+              private importExport: ImportExportService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialogService: DialogService,
@@ -83,6 +86,12 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
 
     this.config.cellActionDescriptors.push(
       {
+        name: this.translate.instant('tenant-profile.export'),
+        icon: 'file_download',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.exportTenantProfile($event, entity)
+      },
+      {
         name: this.translate.instant('tenant-profile.set-default'),
         icon: 'flag',
         isEnabled: (tenantProfile) => !tenantProfile.default &&
@@ -104,12 +113,32 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.onEntityAction = action => this.onTenantProfileAction(action);
     this.config.deleteEnabled = (tenantProfile) => tenantProfile && !tenantProfile.default;
     this.config.entitySelectionEnabled = (tenantProfile) => tenantProfile && !tenantProfile.default;
+    this.config.addActionDescriptors = this.configureAddActions();
   }
 
   resolve(): EntityTableConfig<TenantProfile> {
     this.config.tableTitle = this.translate.instant('tenant-profile.tenant-profiles');
     defaultEntityTablePermissions(this.userPermissionService, this.config);
     return this.config;
+  }
+
+  configureAddActions(): Array<HeaderActionDescriptor> {
+    const actions: Array<HeaderActionDescriptor> = [];
+    actions.push(
+      {
+        name: this.translate.instant('tenant-profile.create-tenant-profile'),
+        icon: 'insert_drive_file',
+        isEnabled: () => true,
+        onAction: ($event) => this.config.table.addEntity($event)
+      },
+      {
+        name: this.translate.instant('tenant-profile.import'),
+        icon: 'file_upload',
+        isEnabled: () => true,
+        onAction: ($event) => this.importTenantProfile($event)
+      }
+    );
+    return actions;
   }
 
   setDefaultTenantProfile($event: Event, tenantProfile: TenantProfile) {
@@ -132,6 +161,23 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
         }
       }
     );
+  }
+
+  importTenantProfile($event: Event) {
+    this.importExport.importTenantProfile().subscribe(
+      (deviceProfile) => {
+        if (deviceProfile) {
+          this.config.table.updateData();
+        }
+      }
+    );
+  }
+
+  exportTenantProfile($event: Event, tenantProfile: TenantProfile) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.importExport.exportTenantProfile(tenantProfile.id.id);
   }
 
   onTenantProfileAction(action: EntityAction<TenantProfile>): boolean {

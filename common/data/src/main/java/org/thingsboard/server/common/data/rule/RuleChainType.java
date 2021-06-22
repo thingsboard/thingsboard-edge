@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.rule;
 
 public enum RuleChainType {
     CORE
-    /* merge comment
+    /* @voba - merge comment - on edge EDGE type replaced by CORE to avoid updates in multiple rule chain core classes
     , EDGE
      */
 }

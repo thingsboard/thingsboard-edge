@@ -98,7 +98,7 @@ public abstract class AbstractCoapServerSideRpcDefaultIntegrationTest extends Ab
 
     @Test
     public void testServerCoapTwoWayRpc() throws Exception {
-        processTwoWayRpcTest();
+        processTwoWayRpcTest("{\"value1\":\"A\",\"value2\":\"B\"}");
     }
 
 }

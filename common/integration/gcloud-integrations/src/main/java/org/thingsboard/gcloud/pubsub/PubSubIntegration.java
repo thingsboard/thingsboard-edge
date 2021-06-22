@@ -66,9 +66,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
         }
         stopped = false;
         this.context = params.getContext();
-        this.pubSubConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                PubSubIntegrationConfiguration.class);
+        this.pubSubConfiguration = getClientConfiguration(configuration, PubSubIntegrationConfiguration.class);
         ServiceAccountCredentials credentials =
                 ServiceAccountCredentials.fromStream(new ByteArrayInputStream(pubSubConfiguration.getServiceAccountKey().getBytes()));
         CredentialsProvider credProvider = FixedCredentialsProvider.create(credentials);

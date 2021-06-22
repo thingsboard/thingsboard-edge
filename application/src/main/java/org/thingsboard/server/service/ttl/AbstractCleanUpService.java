@@ -32,9 +32,9 @@ package org.thingsboard.server.service.ttl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.thingsboard.server.dao.util.PsqlDao;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -76,5 +76,9 @@ public abstract class AbstractCleanUpService {
     }
 
     protected abstract void doCleanUp(Connection connection) throws SQLException;
+
+    protected Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+    }
 
 }

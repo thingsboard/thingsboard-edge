@@ -56,7 +56,7 @@ public class JSDownlinkEvaluator extends AbstractJSEvaluator {
         try {
             validateSuccessfulScriptLazyInit();
             String[] inArgs = prepareArgs(msg, metadata);
-            String eval = jsInvokeService.invokeFunction(this.tenantId, this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
+            String eval = jsInvokeService.invokeFunction(this.tenantId, msg.getCustomerId(), this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {

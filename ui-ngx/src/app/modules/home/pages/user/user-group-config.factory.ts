@@ -105,7 +105,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
             this.translate.instant('user.login-as-tenant-admin') :
             this.translate.instant('user.login-as-customer-user'),
           mdiIcon: 'mdi:login',
-          isEnabled: () => true,
+          isEnabled: config.loginAsUserEnabled,
           onAction: ($event, entity) => this.loginAsUser($event, entity)
         }
       );

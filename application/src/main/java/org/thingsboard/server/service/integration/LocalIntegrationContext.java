@@ -87,7 +87,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
         UUID sessionId = UUID.randomUUID();
-        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+        TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
                 .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
@@ -97,8 +97,14 @@ public class LocalIntegrationContext implements IntegrationContext {
                 .setDeviceName(device.getName())
                 .setDeviceType(device.getType())
                 .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
-                .build();
+                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
+
+        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
+            builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        }
+
+        TransportProtos.SessionInfoProto sessionInfo = builder.build();
 
         if (data.hasPostTelemetryMsg()) {
             ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
@@ -121,7 +127,7 @@ public class LocalIntegrationContext implements IntegrationContext {
                         metaData.putValue("assetType", data.getAssetType());
                         metaData.putValue("ts", tsKv.getTs() + "");
                         JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
+                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
                         ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
                     });
         }
@@ -131,7 +137,7 @@ public class LocalIntegrationContext implements IntegrationContext {
             metaData.putValue("assetName", data.getAssetName());
             metaData.putValue("assetType", data.getAssetType());
             JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
+            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
             ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
         }
     }
