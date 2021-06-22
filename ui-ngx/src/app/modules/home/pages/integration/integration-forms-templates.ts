@@ -283,6 +283,7 @@ export const templates = {
       port: 8883,
       cleanSession: true,
       ssl: true,
+      maxBytesInMessage: 32368,
       connectTimeoutSec: 10,
       clientId: 'device_id',
       credentials: {
@@ -301,6 +302,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.clientId': [Validators.required],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.credentials.sasKey': [Validators.required],
       'clientConfiguration.credentials.certFileName': [Validators.required],
       'clientConfiguration.credentials.cert': [Validators.required],
@@ -316,6 +318,7 @@ export const templates = {
       clientId: '',
       connectTimeoutSec: 10,
       ssl: true,
+      maxBytesInMessage: 32368,
       credentials: {
         type: 'cert.PEM',
         caCertFileName: '',
@@ -332,6 +335,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.caCertFileName': [Validators.required],
       'clientConfiguration.credentials.caCert': [Validators.required],
@@ -388,6 +392,7 @@ export const templates = {
       host: '',
       port: 8883,
       ssl: true,
+      maxBytesInMessage: 32368,
       cleanSession: true,
       credentials: {
         type: 'basic',
@@ -404,6 +409,7 @@ export const templates = {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required, Validators.pattern(/^a-\w+-\w+$/)],
       'clientConfiguration.credentials.password': [Validators.required],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       downlinkTopicPattern: [Validators.required],
       topicFilters: [Validators.required]
     }
@@ -427,6 +433,7 @@ export const templates = {
       customHost: false,
       port: 8883,
       ssl: true,
+      maxBytesInMessage: 32368,
       connectTimeoutSec: 10,
       credentials: {
         type: 'basic',
@@ -444,6 +451,7 @@ export const templates = {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required],
       'clientConfiguration.credentials.password': [Validators.required],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       downlinkTopicPattern: [Validators.required],
       topicFilters: [Validators.required]
     }

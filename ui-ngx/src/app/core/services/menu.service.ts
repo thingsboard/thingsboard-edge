@@ -549,7 +549,7 @@ export class MenuService {
           id: guid(),
           name: 'edge.rulechain-templates',
           type: 'link',
-          path: '/edges/ruleChains',
+          path: '/edgeManagement/ruleChains',
           icon: 'settings_ethernet',
           disabled: disabledItems.indexOf('rulechain_templates') > -1
         }
@@ -560,7 +560,7 @@ export class MenuService {
           id: guid(),
           name: 'edge.management',
           type: 'toggle',
-          path: '/edges',
+          path: '/edgeManagement',
           icon: 'settings_input_antenna',
           pages,
           asyncPages: of(pages)
@@ -957,7 +957,7 @@ export class MenuService {
             {
               name: 'edge.rulechain-templates',
               icon: 'settings_ethernet',
-              path: '/edges/ruleChains',
+              path: '/edgeManagement/ruleChains',
               disabled: disabledItems.indexOf('edge_groups') > -1
             }
           ]

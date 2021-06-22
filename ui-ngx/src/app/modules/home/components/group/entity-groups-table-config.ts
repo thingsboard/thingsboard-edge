@@ -148,7 +148,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.loadEntity = id => this.entityGroupService.getEntityGroup(id.id);
 
-    this.saveEntity = entityGroup => {
+    this.saveEntity = (entityGroup, originalEntityGroup) => {
       entityGroup.type = this.groupType;
       if (this.customerId) {
         entityGroup.ownerId = {
@@ -156,8 +156,12 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
           id: this.customerId
         };
       }
-      const saveEntity$ = entityGroup.type === EntityType.DEVICE ?
-        this.entityGroupService.saveDeviceEntityGroup(entityGroup) : this.entityGroupService.saveEntityGroup(entityGroup);
+      let saveEntity$: Observable<EntityGroupInfo>;
+      if (entityGroup.type === EntityType.DEVICE) {
+        saveEntity$ = this.entityGroupService.saveDeviceEntityGroup(entityGroup, originalEntityGroup);
+      } else {
+        saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
+      }
       return saveEntity$.pipe(
         tap((savedEntityGroup) => {
             this.notifyEntityGroupUpdated();

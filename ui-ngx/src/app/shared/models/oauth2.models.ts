@@ -69,7 +69,8 @@ export const domainSchemaTranslations = new Map<DomainSchema, string>(
 export enum MapperConfigType{
   BASIC = 'BASIC',
   CUSTOM = 'CUSTOM',
-  GITHUB = 'GITHUB'
+  GITHUB = 'GITHUB',
+  APPLE = 'APPLE'
 }
 
 export enum TenantNameStrategy{
