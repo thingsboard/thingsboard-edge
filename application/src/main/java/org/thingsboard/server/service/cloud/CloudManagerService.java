@@ -680,9 +680,10 @@ public class CloudManagerService extends BaseCloudEventService {
 
             @Override
             public void onFailure(Throwable t) {
+                String errorMsg = t.getMessage() != null ? t.getMessage() : "";
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
-                        .setSuccess(false).setErrorMsg(t.getMessage()).build();
+                        .setSuccess(false).setErrorMsg(errorMsg).build();
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
         }, MoreExecutors.directExecutor());
