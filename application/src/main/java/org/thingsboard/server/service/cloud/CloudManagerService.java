@@ -578,7 +578,7 @@ public class CloudManagerService extends BaseCloudEventService {
         edge.setEdgeLicenseKey(edgeConfiguration.getEdgeLicenseKey());
         edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
         edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
-        edgeService.saveEdge(edge);
+        edgeService.saveEdge(edge, false);
         saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.ATTRIBUTES_REQUEST, edgeId, null);
         saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.RELATION_REQUEST, edgeId, null);
     }
