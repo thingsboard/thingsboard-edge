@@ -85,6 +85,12 @@ public interface EdgeDao extends Dao<Edge> {
      */
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> edgeIds);
 
+    PageData<Edge> findEdgesByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<Edge> findEdgesByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<Edge> findEdgesByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
+
     /**
      * Find edges by tenantId, customerId and page link.
      *

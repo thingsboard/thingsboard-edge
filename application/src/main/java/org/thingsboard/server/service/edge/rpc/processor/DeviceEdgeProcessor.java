@@ -239,6 +239,11 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             createRelationFromEdge(tenantId, edge.getId(), device.getId());
             pushDeviceCreatedEventToRuleEngine(tenantId, edge, device);
             addDeviceToDeviceGroup(tenantId, edge, device.getId());
+            if (deviceUpdateMsg.getEntityGroupIdMSB() != 0 && deviceUpdateMsg.getEntityGroupIdLSB() != 0) {
+                EntityGroupId entityGroupId = new EntityGroupId(
+                        new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, deviceId);
+            }
         } finally {
             deviceCreationLock.unlock();
         }
