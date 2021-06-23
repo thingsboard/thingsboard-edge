@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,6 +42,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
@@ -79,6 +81,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
+
+    private IdComparator<EntityGroup> idComparator = new IdComparator<>();
 
     @Autowired
     private AttributesService attributesService;
@@ -407,6 +411,91 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
 
         tenantService.deleteTenant(tenantId);
     }
+
+    /* merge comment
+    @Test
+    public void testFindEdgeEntityGroupsByTenantIdAndNameAndType() {
+        Edge edge = constructEdge(tenantId, "My edge", "default");
+        Edge savedEdge = edgeService.saveEdge(edge, true);
+
+        String name1 = "Edge Entity Group name 1";
+        List<EntityGroup> entityGroupsName1 = new ArrayList<>();
+        for (int i = 0; i < 123; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String name = name1 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            entityGroup.setName(name);
+            entityGroup.setType(EntityType.DEVICE);
+            entityGroupsName1.add(entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup));
+        }
+        entityGroupsName1.forEach(entityGroup ->
+                entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(), savedEdge.getId(), EntityType.DEVICE));
+
+        String name2 = "Edge Entity Group name 2";
+        List<EntityGroup> entityGroupsName2 = new ArrayList<>();
+        for (int i = 0; i < 193; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String name = name2 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            entityGroup.setName(name);
+            entityGroup.setType(EntityType.ASSET);
+            entityGroupsName2.add(entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup));
+        }
+        entityGroupsName2.forEach(entityGroup ->
+                entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(), savedEdge.getId(), EntityType.ASSET));
+
+        List<EntityGroup> loadedEntityGroupsName1 = new ArrayList<>();
+        PageLink pageLink = new PageLink(19, 0, name1);
+        PageData<EntityGroup> pageData = null;
+        do {
+            pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, savedEdge.getId(), EntityType.DEVICE, pageLink);
+            loadedEntityGroupsName1.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(entityGroupsName1, idComparator);
+        Collections.sort(loadedEntityGroupsName1, idComparator);
+
+        Assert.assertEquals(entityGroupsName1, loadedEntityGroupsName1);
+
+        List<EntityGroup> loadedEntityGroupsName2 = new ArrayList<>();
+        pageLink = new PageLink(4, 0, name2);
+        do {
+            pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, savedEdge.getId(), EntityType.ASSET, pageLink);
+            loadedEntityGroupsName2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(entityGroupsName2, idComparator);
+        Collections.sort(loadedEntityGroupsName2, idComparator);
+
+        Assert.assertEquals(entityGroupsName2, loadedEntityGroupsName2);
+
+        for (EntityGroup entityGroup : loadedEntityGroupsName1) {
+            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+        }
+
+        pageLink = new PageLink(4, 0, name1);
+        pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, savedEdge.getId(), EntityType.DEVICE, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+
+        for (EntityGroup entityGroup : loadedEntityGroupsName2) {
+            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+        }
+
+        pageLink = new PageLink(4, 0, name2);
+        pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, savedEdge.getId(), EntityType.ASSET, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+    }
+     */
 
     private ListenableFuture<List<Void>> saveStringAttribute(EntityId entityId, String key, String value, String scope) {
         KvEntry attrValue = new StringDataEntry(key, value);

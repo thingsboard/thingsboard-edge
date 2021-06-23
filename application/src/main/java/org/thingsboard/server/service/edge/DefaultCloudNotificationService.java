@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -156,7 +157,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             case UPDATED:
             case CREDENTIALS_UPDATED:
                 try {
-                    saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, null);
+                    EntityGroupId entityGroupId = null;
+                    if (cloudNotificationMsg.getEntityGroupIdMSB() != 0 && cloudNotificationMsg.getEntityGroupIdLSB() != 0) {
+                        entityGroupId = new EntityGroupId(
+                                new UUID(cloudNotificationMsg.getEntityGroupIdMSB(), cloudNotificationMsg.getEntityGroupIdLSB()));
+                    }
+                    saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId);
                 } catch (Exception e) {
                     log.error("[{}] Failed to push event to cloud [{}], cloudEventType [{}], cloudEventActionType [{}], entityId [{}]",
                             tenantId, cloudEventType, cloudEventActionType, entityId, e);

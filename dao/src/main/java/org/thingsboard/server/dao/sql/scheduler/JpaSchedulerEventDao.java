@@ -30,37 +30,25 @@
  */
 package org.thingsboard.server.dao.sql.scheduler;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
-import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component
 @Slf4j
 public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
-
-    @Autowired
-    private RelationDao relationDao;
 
     @Autowired
     SchedulerEventRepository schedulerEventRepository;
@@ -76,27 +64,14 @@ public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEven
     }
 
     @Override
-    public ListenableFuture<List<SchedulerEvent>> findSchedulerEventsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
+    public PageData<SchedulerEvent> findSchedulerEventsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
         log.debug("Try to find scheduler events by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
-        ListenableFuture<PageData<EntityRelation>> relations =
-                relationDao.findRelations(
-                        new TenantId(tenantId),
-                        new EdgeId(edgeId),
-                        EntityRelation.CONTAINS_TYPE,
-                        RelationTypeGroup.EDGE,
-                        EntityType.SCHEDULER_EVENT,
-                        pageLink);
-        return Futures.transformAsync(relations, input -> {
-            if (input != null && input.getData() != null) {
-                List<ListenableFuture<SchedulerEvent>> schedulerEventFutures = new ArrayList<>(input.getData().size());
-                for (EntityRelation relation : input.getData()) {
-                    schedulerEventFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
-                }
-                return Futures.successfulAsList(schedulerEventFutures);
-            } else {
-                return Futures.immediateFuture(new ArrayList<>());
-            }
-        }, MoreExecutors.directExecutor());
+        return DaoUtil.toPageData(schedulerEventRepository
+                .findByTenantIdAndEdgeId(
+                        tenantId,
+                        edgeId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override

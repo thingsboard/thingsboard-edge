@@ -296,8 +296,10 @@ public abstract class AbstractOAuth2ClientMapper {
             tenant = new Tenant();
             tenant.setTitle(tenantName);
             tenant = tenantService.saveTenant(tenant);
-            // TODO: voba - fix
-            // installScripts.createDefaultRuleChains(tenant.getId());
+            /* voba - merge comment
+            installScripts.createDefaultRuleChains(tenant.getId());
+            installScripts.createDefaultEdgeRuleChains(tenant.getId());
+             */
             tenantProfileCache.evict(tenant.getId());
             tbClusterService.onTenantChange(tenant, null);
             tbClusterService.onEntityStateChange(tenant.getId(), tenant.getId(),

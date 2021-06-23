@@ -677,6 +677,8 @@ message CloudNotificationMsgProto {
   string entityBody = 8;
   PostTelemetryMsg postTelemetryMsg = 9;
   PostAttributeMsg postAttributesMsg = 10;
+  int64 entityGroupIdMSB = 11;
+  int64 entityGroupIdLSB = 12;
 }
 
 /**

@@ -86,7 +86,7 @@ export class SchedulerEventService {
   }
 
   public getEdgeSchedulerEvents(edgeId: string, config?: RequestConfig): Observable<Array<SchedulerEventWithCustomerInfo>> {
-    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/edge/${edgeId}/schedulerEvents`,
+    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/edge/${edgeId}/allSchedulerEvents`,
       defaultHttpOptionsFromConfig(config));
   }
 

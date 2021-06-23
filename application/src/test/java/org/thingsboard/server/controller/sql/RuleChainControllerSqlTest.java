@@ -28,33 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor;
+package org.thingsboard.server.controller.sql;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.controller.BaseRuleChainControllerTest;
 
-@Component
-@TbCoreComponent
-public class RelationMsgConstructor {
-
-    public RelationUpdateMsg constructRelationUpdatedMsg(UpdateMsgType msgType, EntityRelation entityRelation) {
-        RelationUpdateMsg.Builder builder = RelationUpdateMsg.newBuilder()
-                .setMsgType(msgType)
-                .setFromIdMSB(entityRelation.getFrom().getId().getMostSignificantBits())
-                .setFromIdLSB(entityRelation.getFrom().getId().getLeastSignificantBits())
-                .setFromEntityType(entityRelation.getFrom().getEntityType().name())
-                .setToIdMSB(entityRelation.getTo().getId().getMostSignificantBits())
-                .setToIdLSB(entityRelation.getTo().getId().getLeastSignificantBits())
-                .setToEntityType(entityRelation.getTo().getEntityType().name())
-                .setType(entityRelation.getType())
-                .setAdditionalInfo(JacksonUtil.toString(entityRelation.getAdditionalInfo()));
-        if (entityRelation.getTypeGroup() != null) {
-            builder.setTypeGroup(entityRelation.getTypeGroup().name());
-        }
-        return builder.build();
-    }
+public class RuleChainControllerSqlTest extends BaseRuleChainControllerTest {
 }

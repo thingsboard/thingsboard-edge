@@ -82,6 +82,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -109,6 +110,8 @@ public class EntityGroupController extends BaseController {
     public static final String ENTITY_GROUP_ID = "entityGroupId";
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
 
     @Autowired
     private OwnersCacheService ownersCacheService;
@@ -221,15 +224,17 @@ public class EntityGroupController extends BaseController {
             for (GroupPermission groupPermission : groupPermissions) {
                 userPermissionsService.onGroupPermissionDeleted(groupPermission);
             }
+            /* voba - merge comment
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId, entityGroup.getType());
+             */
 
             entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
             logEntityAction(entityGroupId, entityGroup,
                     null,
                     ActionType.DELETED, null, strEntityGroupId);
-
-            /* merge comment
-            sendEntityNotificationMsg(getTenantId(), entityGroupId, EdgeEventActionType.DELETED);
+            /* voba - merge comment
+            sendDeleteNotificationMsg(getTenantId(), entityGroupId, relatedEdgeIds);
              */
         } catch (Exception e) {
 
@@ -887,9 +892,9 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
+    @RequestMapping(value = "/allEntityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntityGroupInfo> getEdgeEntityGroups(
+    public List<EntityGroupInfo> getAllEdgeEntityGroups(
             @PathVariable("edgeId") String strEdgeId,
             @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
@@ -899,7 +904,47 @@ public class EntityGroupController extends BaseController {
             checkEdgeId(edgeId, Operation.READ);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType).get());
+                List<EntityGroup> result = new ArrayList<>();
+                PageLink pageLink = new PageLink(DEFAULT_ENTITY_GROUP_LIMIT);
+                PageData<EntityGroup> pageData;
+                do {
+                    pageData = entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink);
+                    if (pageData.getData().size() > 0) {
+                        result.addAll(pageData.getData());
+                        if (pageData.hasNext()) {
+                            pageLink = pageLink.nextPageLink();
+                        }
+                    }
+                } while (pageData.hasNext());
+                return checkNotNull(toEntityGroupsInfo(result));
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityGroupInfo> getEdgeEntityGroups(
+            @PathVariable("edgeId") String strEdgeId,
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        try {
+            EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            checkEdgeId(edgeId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead()) {
+                return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink));
             } else {
                 throw permissionDenied();
             }
@@ -908,6 +953,14 @@ public class EntityGroupController extends BaseController {
         }
     }
      */
+
+    private PageData<EntityGroupInfo> toEntityGroupsInfo(PageData<EntityGroup> data) throws ThingsboardException {
+        List<EntityGroupInfo> entityGroupsInfo = new ArrayList<>(data.getData().size());
+        for (EntityGroup entityGroup : data.getData()) {
+            entityGroupsInfo.add(toEntityGroupInfo(entityGroup));
+        }
+        return new PageData<>(entityGroupsInfo, data.getTotalPages(), data.getTotalElements(), data.hasNext());
+    }
 
     private void shareGroup(Role role, EntityGroup userGroup, EntityGroup entityGroup, Set<Operation> mergedOperations) throws ThingsboardException, IOException {
         CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);

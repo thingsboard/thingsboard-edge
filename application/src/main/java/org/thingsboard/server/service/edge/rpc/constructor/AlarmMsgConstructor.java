@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -44,9 +43,10 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
-@Slf4j
+@TbCoreComponent
 public class AlarmMsgConstructor {
 
     @Autowired

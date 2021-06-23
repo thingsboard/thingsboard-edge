@@ -35,6 +35,8 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
@@ -75,8 +77,8 @@ public interface SchedulerEventService {
 
     SchedulerEventInfo unassignSchedulerEventFromEdge(TenantId tenantId, SchedulerEventId schedulerEventId, EdgeId edgeId);
 
-    ListenableFuture<List<SchedulerEvent>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
+    PageData<SchedulerEvent> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 
-    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
+    PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 
 }

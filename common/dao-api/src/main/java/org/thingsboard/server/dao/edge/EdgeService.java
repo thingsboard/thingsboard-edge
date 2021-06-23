@@ -40,8 +40,6 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -61,19 +59,11 @@ public interface EdgeService {
 
     Edge saveEdge(Edge edge, boolean doValidate);
 
-    Edge assignEdgeToCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId);
-
-    Edge unassignEdgeFromCustomer(TenantId tenantId, EdgeId edgeId);
-
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
     PageData<Edge> findEdgesByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<Edge> findEdgesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
-
-    PageData<EdgeInfo> findEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
-
-    PageData<EdgeInfo> findEdgeInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndIdsAsync(TenantId tenantId, List<EdgeId> edgeIds);
 
@@ -83,17 +73,40 @@ public interface EdgeService {
 
     PageData<Edge> findEdgesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
 
-    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-
-    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
-
     ListenableFuture<List<Edge>> findEdgesByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<EdgeId> edgeIds);
 
     ListenableFuture<List<Edge>> findEdgesByQuery(TenantId tenantId, EdgeSearchQuery query);
 
     ListenableFuture<List<EntitySubtype>> findEdgeTypesByTenantId(TenantId tenantId);
 
+    /* merge comment
+    void assignDefaultRuleChainsToEdge(TenantId tenantId, EdgeId edgeId);
+
+    void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId);
+
+    PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId ruleChainId, PageLink pageLink);
+
+    PageData<Edge> findEdgesByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupId, EntityType groupType, PageLink pageLink);
+
+    PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
+
+    PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType, PageLink pageLink);
+     */
+
+    PageData<Edge> findEdgesByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
+
     PageData<Edge> findEdgesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
 
     PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
+
+    /* merge comment
+    void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
+
+    Object checkInstance(Object request);
+
+    Object activateInstance(String licenseSecret, String releaseDate);
+
+    String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
+     */
+
 }

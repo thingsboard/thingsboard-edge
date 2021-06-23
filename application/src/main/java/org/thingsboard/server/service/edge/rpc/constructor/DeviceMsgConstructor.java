@@ -31,25 +31,38 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RpcResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
 
 @Component
-@Slf4j
+@TbCoreComponent
 public class DeviceMsgConstructor {
 
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device) {
+        return constructDeviceUpdatedMsg(msgType, device, null, null);
+    }
+
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
+                                                     String conflictName) {
+        return constructDeviceUpdatedMsg(msgType, device, customerId, conflictName, null);
+    }
+
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
+                                                     String conflictName, EntityGroupId entityGroupId) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(device.getId().getId().getMostSignificantBits())
@@ -59,12 +72,23 @@ public class DeviceMsgConstructor {
         if (device.getLabel() != null) {
             builder.setLabel(device.getLabel());
         }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        }
+        if (device.getDeviceProfileId() != null) {
+            builder.setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits());
+            builder.setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
+        }
         if (device.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
         }
-        if (device.getDeviceProfileId() != null) {
-            builder.setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                    .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
+        if (conflictName != null) {
+            builder.setConflictName(conflictName);
         }
         return builder.build();
     }
@@ -88,6 +112,29 @@ public class DeviceMsgConstructor {
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(deviceId.getId().getMostSignificantBits())
                 .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
+    }
+
+    public DeviceRpcCallMsg constructDeviceRpcCallMsg(UUID deviceId, JsonNode body) {
+        int requestId = body.get("requestId").asInt();
+        boolean oneway = body.get("oneway").asBoolean();
+        UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
+        long expirationTime = body.get("expirationTime").asLong();
+        String method = body.get("method").asText();
+        String params = body.get("params").asText();
+
+        RpcRequestMsg.Builder requestBuilder = RpcRequestMsg.newBuilder();
+        requestBuilder.setMethod(method);
+        requestBuilder.setParams(params);
+        DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
+                .setDeviceIdMSB(deviceId.getMostSignificantBits())
+                .setDeviceIdLSB(deviceId.getLeastSignificantBits())
+                .setRequestUuidMSB(requestUUID.getMostSignificantBits())
+                .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
+                .setRequestId(requestId)
+                .setExpirationTime(expirationTime)
+                .setOneway(oneway)
+                .setRequestMsg(requestBuilder.build());
+        return builder.build();
     }
 
     public DeviceRpcCallMsg constructDeviceRpcResponseMsg(DeviceId deviceId, JsonNode body) {
