@@ -148,7 +148,13 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-                removeDeviceFromDeviceGroup(tenantId, edge, deviceId);
+                if (deviceUpdateMsg.getEntityGroupIdMSB() != 0 && deviceUpdateMsg.getEntityGroupIdLSB() != 0) {
+                    EntityGroupId entityGroupId = new EntityGroupId(
+                            new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                } else {
+                    removeDeviceFromDeviceGroup(tenantId, edge, deviceId);
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type {}", deviceUpdateMsg.getMsgType());
@@ -389,8 +395,9 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
+                EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                 DeviceUpdateMsg deviceUpdateMsg =
-                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId);
+                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg)
