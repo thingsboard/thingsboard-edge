@@ -85,10 +85,10 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.service.edge.rpc.constructor.AlarmUpdateMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.RelationUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
@@ -184,13 +184,13 @@ public abstract class BaseCloudProcessor {
     protected EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Autowired
-    protected AlarmUpdateMsgConstructor alarmUpdateMsgConstructor;
+    protected AlarmMsgConstructor alarmMsgConstructor;
 
     @Autowired
-    protected RelationUpdateMsgConstructor relationUpdateMsgConstructor;
+    protected RelationMsgConstructor relationMsgConstructor;
 
     @Autowired
-    protected DeviceUpdateMsgConstructor deviceUpdateMsgConstructor;
+    protected DeviceMsgConstructor deviceMsgConstructor;
 
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
         TimePageLink pageLink = new TimePageLink(100);

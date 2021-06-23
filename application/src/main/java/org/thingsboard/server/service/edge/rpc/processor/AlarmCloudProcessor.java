@@ -121,7 +121,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
         Alarm alarm = alarmService.findAlarmByIdAsync(cloudEvent.getTenantId(), alarmId).get();
         UplinkMsg msg = null;
         if (alarm != null) {
-            AlarmUpdateMsg alarmUpdateMsg = alarmUpdateMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
+            AlarmUpdateMsg alarmUpdateMsg = alarmMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
             msg = UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addAlarmUpdateMsg(alarmUpdateMsg).build();

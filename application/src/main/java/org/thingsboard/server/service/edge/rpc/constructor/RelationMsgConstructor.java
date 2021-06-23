@@ -39,7 +39,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 @Component
 @Slf4j
-public class RelationUpdateMsgConstructor {
+public class RelationMsgConstructor {
 
     public RelationUpdateMsg constructRelationUpdatedMsg(UpdateMsgType msgType, EntityRelation entityRelation) {
         RelationUpdateMsg.Builder builder = RelationUpdateMsg.newBuilder()

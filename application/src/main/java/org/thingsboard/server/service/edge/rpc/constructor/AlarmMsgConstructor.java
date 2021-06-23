@@ -47,7 +47,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 @Component
 @Slf4j
-public class AlarmUpdateMsgConstructor {
+public class AlarmMsgConstructor {
 
     @Autowired
     private DeviceService deviceService;

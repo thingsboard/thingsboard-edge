@@ -47,7 +47,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class DeviceUpdateMsgConstructor {
+public class DeviceMsgConstructor {
 
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()

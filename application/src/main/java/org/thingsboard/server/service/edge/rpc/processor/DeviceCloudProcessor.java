@@ -302,7 +302,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
 
     public UplinkMsg processRpcCallResponseMsgToCloud(CloudEvent cloudEvent) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
-        DeviceRpcCallMsg rpcResponseMsg = deviceUpdateMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
+        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();
@@ -317,7 +317,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
                     DeviceUpdateMsg deviceUpdateMsg =
-                            deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
+                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg).build();
@@ -327,7 +327,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 break;
             case DELETED:
                 DeviceUpdateMsg deviceUpdateMsg =
-                        deviceUpdateMsgConstructor.constructDeviceDeleteMsg(deviceId);
+                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg).build();
@@ -336,7 +336,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
                 if (deviceCredentials != null) {
                     DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg =
-                            deviceUpdateMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
+                            deviceMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg).build();
