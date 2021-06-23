@@ -91,7 +91,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
                     safeSetCustomerId(userUpdateMsg, user);
-                    User savedUser = userService.saveUser(user);
+                    User savedUser = userService.saveUser(user, false);
                     if (created) {
                         UserCredentials userCredentials = new UserCredentials();
                         userCredentials.setEnabled(false);

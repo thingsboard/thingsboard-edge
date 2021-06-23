@@ -95,7 +95,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     entityView.setEntityId(entityId);
                     entityView.setAdditionalInfo(JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()));
                     CustomerId entityViewCustomerId = safeSetCustomerId(entityViewUpdateMsg, cloudType, entityView);
-                    EntityView savedEntityView = entityViewService.saveEntityView(entityView);
+                    EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
 
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());

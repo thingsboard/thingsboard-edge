@@ -400,6 +400,8 @@ public class CloudManagerService extends BaseCloudEventService {
                     case CREDENTIALS_UPDATED:
                     case RELATION_ADD_OR_UPDATE:
                     case RELATION_DELETED:
+                    case ADDED_TO_ENTITY_GROUP:
+                    case REMOVED_FROM_ENTITY_GROUP:
                         uplinkMsg = processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
                         break;
                     case ATTRIBUTES_UPDATED:
@@ -472,9 +474,11 @@ public class CloudManagerService extends BaseCloudEventService {
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
             case RELATION_ADD_OR_UPDATE:
+            case ADDED_TO_ENTITY_GROUP:
                 return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case RELATION_DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
                 return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;

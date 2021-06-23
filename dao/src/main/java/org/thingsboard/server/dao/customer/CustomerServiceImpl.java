@@ -163,10 +163,17 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
-    public Customer saveCustomer(Customer customer) {
+    public Customer saveCustomer(Customer customer, boolean doValidate) {
         log.trace("Executing saveCustomer [{}]", customer);
-        customerValidator.validate(customer, Customer::getTenantId);
+        if (doValidate) {
+            customerValidator.validate(customer, Customer::getTenantId);
+        }
         return saveCustomerInternal(customer);
+    }
+
+    @Override
+    public Customer saveCustomer(Customer customer) {
+        return saveCustomer(customer, true);
     }
 
     private Customer saveCustomerInternal(Customer customer) {

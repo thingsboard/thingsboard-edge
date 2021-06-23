@@ -86,7 +86,7 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                     customer.setPhone(customerUpdateMsg.getPhone());
                     customer.setEmail(customerUpdateMsg.getEmail());
                     customer.setAdditionalInfo(JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()));
-                    Customer savedCustomer = customerService.saveCustomer(customer);
+                    Customer savedCustomer = customerService.saveCustomer(customer, false);
 
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());

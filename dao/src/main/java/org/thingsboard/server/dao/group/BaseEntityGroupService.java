@@ -160,17 +160,24 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
-        return doSaveEntityGroup(tenantId, parentEntityId, entityGroup);
+    public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean doValidate) {
+        return doSaveEntityGroup(tenantId, parentEntityId, entityGroup, doValidate);
     }
 
-    private EntityGroup doSaveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
+    @Override
+    public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
+        return doSaveEntityGroup(tenantId, parentEntityId, entityGroup, true);
+    }
+
+    private EntityGroup doSaveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean doValidate) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
-        new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
+        if (doValidate) {
+            new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
+        }
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());

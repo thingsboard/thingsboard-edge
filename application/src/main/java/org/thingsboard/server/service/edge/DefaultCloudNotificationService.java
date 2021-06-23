@@ -156,6 +156,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             case ADDED:
             case UPDATED:
             case CREDENTIALS_UPDATED:
+            case ADDED_TO_ENTITY_GROUP:
                 try {
                     EntityGroupId entityGroupId = null;
                     if (cloudNotificationMsg.getEntityGroupIdMSB() != 0 && cloudNotificationMsg.getEntityGroupIdLSB() != 0) {
@@ -169,7 +170,13 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 }
                 break;
             case DELETED:
-                saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, null);
+            case REMOVED_FROM_ENTITY_GROUP:
+                EntityGroupId entityGroupId = null;
+                if (cloudNotificationMsg.getEntityGroupIdMSB() != 0 && cloudNotificationMsg.getEntityGroupIdLSB() != 0) {
+                    entityGroupId = new EntityGroupId(
+                            new UUID(cloudNotificationMsg.getEntityGroupIdMSB(), cloudNotificationMsg.getEntityGroupIdLSB()));
+                }
+                saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId);
                 break;
         }
     }

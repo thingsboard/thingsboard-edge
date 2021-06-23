@@ -109,7 +109,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                                 new UUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB()));
                         deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
                     }
-                    deviceProfileService.saveDeviceProfile(deviceProfile);
+                    deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
                     saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, ActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
                 } finally {

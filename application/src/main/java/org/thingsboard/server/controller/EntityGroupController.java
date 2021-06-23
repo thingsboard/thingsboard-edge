@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
@@ -448,6 +449,9 @@ public class EntityGroupController extends BaseController {
                 sendGroupEntityNotificationMsg(getTenantId(), entityId,
                         EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
                  */
+                sendGroupEntityNotificationMsg(getTenantId(), entityId,
+                        CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+                        ActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {

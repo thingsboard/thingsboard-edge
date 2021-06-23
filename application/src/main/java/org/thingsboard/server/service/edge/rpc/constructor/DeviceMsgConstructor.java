@@ -107,11 +107,16 @@ public class DeviceMsgConstructor {
         return builder.build();
     }
 
-    public DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId) {
-        return DeviceUpdateMsg.newBuilder()
+    public DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId, EntityGroupId entityGroupId) {
+        DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(deviceId.getId().getMostSignificantBits())
-                .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
+                .setIdLSB(deviceId.getId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
     }
 
     public DeviceRpcCallMsg constructDeviceRpcCallMsg(UUID deviceId, JsonNode body) {

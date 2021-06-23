@@ -104,7 +104,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                         ownerId = new CustomerId(new UUID(entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB()));
                     }
                     entityGroup.setOwnerId(ownerId);
-                    EntityGroup savedEntityGroup = entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup);
+                    EntityGroup savedEntityGroup = entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
 
                     if (created) {
                         EntityRelation entityRelation = new EntityRelation();

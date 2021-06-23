@@ -207,7 +207,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             }
             device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
             CustomerId deviceCustomerId = safeSetCustomerId(deviceUpdateMsg, cloudType, device);
-            Device savedDevice = deviceService.saveDevice(device);
+            Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();
                 deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
@@ -314,10 +314,12 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         switch (edgeActionType) {
             case ADDED:
             case UPDATED:
+            case ADDED_TO_ENTITY_GROUP:
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
+                    EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
                     DeviceUpdateMsg deviceUpdateMsg =
-                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
+                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, null, entityGroupId);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg).build();
@@ -326,8 +328,10 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
+                EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
                 DeviceUpdateMsg deviceUpdateMsg =
-                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId);
+                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg).build();

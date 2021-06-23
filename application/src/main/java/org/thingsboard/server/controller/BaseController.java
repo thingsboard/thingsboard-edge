@@ -652,9 +652,11 @@ public abstract class BaseController {
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
-                    CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            if (entity.getId() != null) {
+                sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        ActionType.UPDATED);
+            }
 
             return savedEntity;
 

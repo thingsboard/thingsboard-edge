@@ -144,13 +144,21 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
     @CacheEvict(cacheNames = ASSET_CACHE, key = "{#asset.tenantId, #asset.name}")
     @Override
-    public Asset saveAsset(Asset asset) {
-        return doSaveAsset(asset);
+    public Asset saveAsset(Asset asset, boolean doValidate) {
+        return doSaveAsset(asset, doValidate);
     }
 
-    private Asset doSaveAsset(Asset asset) {
+    @CacheEvict(cacheNames = ASSET_CACHE, key = "{#asset.tenantId, #asset.name}")
+    @Override
+    public Asset saveAsset(Asset asset) {
+        return doSaveAsset(asset, true);
+    }
+
+    private Asset doSaveAsset(Asset asset, boolean doValidate) {
         log.trace("Executing saveAsset [{}]", asset);
-        assetValidator.validate(asset, Asset::getTenantId);
+        if (doValidate) {
+            assetValidator.validate(asset, Asset::getTenantId);
+        }
         Asset savedAsset;
         try {
             savedAsset = assetDao.save(asset.getTenantId(), asset);
