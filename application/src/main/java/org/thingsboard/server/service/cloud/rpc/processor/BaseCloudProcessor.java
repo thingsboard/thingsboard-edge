@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud.processor;
+package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,10 +85,10 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
-import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
-import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.cloud.constructor.RelationUpdateMsgConstructor;
+import org.thingsboard.server.service.cloud.rpc.constructor.AlarmUpdateMsgConstructor;
+import org.thingsboard.server.service.cloud.rpc.constructor.DeviceUpdateMsgConstructor;
+import org.thingsboard.server.service.cloud.rpc.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.cloud.rpc.constructor.RelationUpdateMsgConstructor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
