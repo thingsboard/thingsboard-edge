@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +61,9 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -75,6 +79,13 @@ import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GRO
 public class EdgeController extends BaseController {
 
     public static final String EDGE_ID = "edgeId";
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edges/enabled", method = RequestMethod.GET)
+    @ResponseBody
+    public boolean isEdgesSupportEnabled() {
+        return edgesEnabled;
+    }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}", method = RequestMethod.GET)
@@ -130,7 +141,7 @@ public class EdgeController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
                     edge.getId(), edge, entityGroupId);
 
-            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
+            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge, true));
 
             if (entityGroupId != null && operation == Operation.CREATE) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());
@@ -177,6 +188,12 @@ public class EdgeController extends BaseController {
                     ActionType.DELETED, null, strEdgeId);
 
         } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.EDGE),
+                    null,
+                    null,
+                    ActionType.DELETED, e, strEdgeId);
+
             throw handleException(e);
         }
     }
@@ -234,6 +251,38 @@ public class EdgeController extends BaseController {
         }
     }
 
+    /* voba - merge comment
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/{ruleChainId}/root", method = RequestMethod.POST)
+    @ResponseBody
+    public Edge setRootRuleChain(@PathVariable(EDGE_ID) String strEdgeId,
+                                 @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
+        checkParameter(EDGE_ID, strEdgeId);
+        checkParameter("ruleChainId", strRuleChainId);
+        try {
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            checkRuleChain(ruleChainId, Operation.WRITE);
+
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+
+            Edge updatedEdge = edgeNotificationService.setEdgeRootRuleChain(getTenantId(), edge, ruleChainId);
+
+            tbClusterService.onEntityStateChange(updatedEdge.getTenantId(), updatedEdge.getId(), ComponentLifecycleEvent.UPDATED);
+
+            logEntityAction(updatedEdge.getId(), updatedEdge, null, ActionType.UPDATED, null);
+
+            return updatedEdge;
+        } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.EDGE),
+                    null,
+                    null,
+                    ActionType.UPDATED, e, strEdgeId);
+            throw handleException(e);
+        }
+    }
+     */
+
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -247,63 +296,24 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
-            TenantId tenantId = getCurrentUser().getTenantId();
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            PageData<Edge> result;
             if (type != null && type.trim().length() > 0) {
-                return checkNotNull(edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                result = edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink);
             } else {
-                return checkNotNull(edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
             }
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edges", method = RequestMethod.POST)
-    @ResponseBody
-    public List<Edge> findByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException {
-        checkNotNull(query);
-        checkNotNull(query.getParameters());
-        checkNotNull(query.getEdgeTypes());
-        checkEntityId(query.getParameters().getEntityId(), Operation.READ);
-        try {
-            List<Edge> edges = checkNotNull(edgeService.findEdgesByQuery(getCurrentUser().getTenantId(), query).get());
-            edges = edges.stream().filter(edge -> {
-                try {
-                    accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ, edge.getId(), edge);
-                    return true;
-                } catch (ThingsboardException e) {
-                    return false;
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                for (Edge edge : result.getData()) {
+                    cleanUpSensitiveData(edge);
                 }
-            }).collect(Collectors.toList());
-            return edges;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
-    @ResponseBody
-    public PageData<Edge> getEdgesByEntityGroupId(
-            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
-            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder
-    ) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
-        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
-        EntityType entityType = entityGroup.getType();
-        checkEntityGroupType(entityType);
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(edgeService.findEdgesByEntityGroupId(entityGroupId, pageLink));
+            }
+            return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -344,13 +354,74 @@ public class EdgeController extends BaseController {
             for (String strEdgeId : strEdgeIds) {
                 edgeIds.add(new EdgeId(toUUID(strEdgeId)));
             }
-            ListenableFuture<List<Edge>> edges;
+            ListenableFuture<List<Edge>> edgesFuture;
             if (customerId == null || customerId.isNullUid()) {
-                edges = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);
+                edgesFuture = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);
             } else {
-                edges = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
+                edgesFuture = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
             }
-            return checkNotNull(edges.get());
+            List<Edge> edges = edgesFuture.get();
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                for (Edge edge : edges) {
+                    cleanUpSensitiveData(edge);
+                }
+            }
+            return checkNotNull(edges);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edges", method = RequestMethod.POST)
+    @ResponseBody
+    public List<Edge> findByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException {
+        checkNotNull(query);
+        checkNotNull(query.getParameters());
+        checkNotNull(query.getEdgeTypes());
+        checkEntityId(query.getParameters().getEntityId(), Operation.READ);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<Edge> edges = checkNotNull(edgeService.findEdgesByQuery(tenantId, query).get());
+            edges = edges.stream().filter(edge -> {
+                try {
+                    accessControlService.checkPermission(user, Resource.EDGE, Operation.READ, edge.getId(), edge);
+                    return true;
+                } catch (ThingsboardException e) {
+                    return false;
+                }
+            }).collect(Collectors.toList());
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+                for (Edge edge : edges) {
+                    cleanUpSensitiveData(edge);
+                }
+            }
+            return edges;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<Edge> getEdgesByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(edgeService.findEdgesByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
