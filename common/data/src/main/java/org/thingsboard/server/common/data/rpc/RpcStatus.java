@@ -28,22 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.device.credentials.lwm2m;
+package org.thingsboard.server.common.data.rpc;
 
-import lombok.SneakyThrows;
-import org.apache.commons.codec.binary.Hex;
-
-public abstract class HasKey extends AbstractLwM2MClientCredentials {
-    private byte[] key;
-
-    @SneakyThrows
-    public void setKey(String key) {
-        if (key != null) {
-            this.key = Hex.decodeHex(key.toLowerCase().toCharArray());
-        }
-    }
-
-    public byte[] getKey() {
-        return key;
-    }
+public enum RpcStatus {
+    QUEUED, DELIVERED, SUCCESSFUL, TIMEOUT, FAILED
 }

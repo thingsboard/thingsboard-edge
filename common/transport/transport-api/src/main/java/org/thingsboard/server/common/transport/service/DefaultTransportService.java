@@ -578,6 +578,15 @@ public class DefaultTransportService implements TransportService {
         }
     }
 
+    @Override
+    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ToDevicePersistedRpcResponseMsg msg, TransportServiceCallback<Void> callback) {
+        if (checkLimits(sessionInfo, msg, callback)) {
+            reportActivityInternal(sessionInfo);
+            sendToDeviceActor(sessionInfo, TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setPersistedRpcResponseMsg(msg).build(),
+                    new ApiStatsProxyCallback<>(getTenantId(sessionInfo), getCustomerId(sessionInfo), 1, callback));
+        }
+    }
+
     private void processTimeout(String requestId) {
         RpcRequestMetadata data = toServerRpcPendingMap.remove(requestId);
         if (data != null) {
@@ -764,7 +773,7 @@ public class DefaultTransportService implements TransportService {
                     listener.onGetAttributesResponse(toSessionMsg.getGetAttributesResponse());
                 }
                 if (toSessionMsg.hasAttributeUpdateNotification()) {
-                    listener.onAttributeUpdate(toSessionMsg.getAttributeUpdateNotification());
+                    listener.onAttributeUpdate(sessionId, toSessionMsg.getAttributeUpdateNotification());
                 }
                 if (toSessionMsg.hasSessionCloseNotification()) {
                     listener.onRemoteSessionCloseCommand(sessionId, toSessionMsg.getSessionCloseNotification());
@@ -773,7 +782,7 @@ public class DefaultTransportService implements TransportService {
                     listener.onToTransportUpdateCredentials(toSessionMsg.getToTransportUpdateCredentialsNotification());
                 }
                 if (toSessionMsg.hasToDeviceRequest()) {
-                    listener.onToDeviceRpcRequest(toSessionMsg.getToDeviceRequest());
+                    listener.onToDeviceRpcRequest(sessionId, toSessionMsg.getToDeviceRequest());
                 }
                 if (toSessionMsg.hasToServerResponse()) {
                     String requestId = sessionId + "-" + toSessionMsg.getToServerResponse().getRequestId();

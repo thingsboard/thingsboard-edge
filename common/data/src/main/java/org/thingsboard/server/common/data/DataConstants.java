@@ -99,6 +99,12 @@ public class DataConstants {
 
     public static final String GENERATE_REPORT = "generateReport";
 
+    public static final String RPC_QUEUED = "RPC_QUEUED";
+    public static final String RPC_DELIVERED = "RPC_DELIVERED";
+    public static final String RPC_SUCCESSFUL = "RPC_SUCCESSFUL";
+    public static final String RPC_TIMEOUT = "RPC_TIMEOUT";
+    public static final String RPC_FAILED = "RPC_FAILED";
+
     public static final String DEFAULT_SECRET_KEY = "";
     public static final String SECRET_KEY_FIELD_NAME = "secretKey";
     public static final String DURATION_MS_FIELD_NAME = "durationMs";

@@ -133,6 +133,7 @@ import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.oauth2.OAuth2Info;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -1445,13 +1446,22 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }).getBody();
     }
 
-    public List<OAuth2ClientInfo> getOAuth2Clients(String pkgName) {
+    public List<OAuth2ClientInfo> getOAuth2Clients(String pkgName, PlatformType platformType) {
         Map<String, String> params = new HashMap<>();
         StringBuilder urlBuilder = new StringBuilder(baseURL);
         urlBuilder.append("/api/noauth/oauth2Clients");
         if (pkgName != null) {
             urlBuilder.append("?pkgName={pkgName}");
             params.put("pkgName", pkgName);
+        }
+        if (platformType != null) {
+            if (pkgName != null) {
+                urlBuilder.append("&");
+            } else {
+                urlBuilder.append("?");
+            }
+            urlBuilder.append("platform={platform}");
+            params.put("platform", platformType.name());
         }
         return restTemplate.exchange(
                 urlBuilder.toString(),
@@ -2041,7 +2051,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public void setUserCredentialsEnabled(UserId userId, boolean userCredentialsEnabled) {
         restTemplate.postForLocation(
-                baseURL + "/api/user/{userId}/userCredentialsEnabled?serCredentialsEnabled={serCredentialsEnabled}",
+                baseURL + "/api/user/{userId}/userCredentialsEnabled?userCredentialsEnabled={userCredentialsEnabled}",
                 null,
                 userId.getId(),
                 userCredentialsEnabled);

@@ -32,6 +32,7 @@ package org.thingsboard.server.transport.mqtt;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonParseException;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
@@ -65,6 +66,7 @@ import org.thingsboard.server.common.data.TransportPayloadType;
 import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.transport.SessionMsgListener;
@@ -829,7 +831,8 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void onAttributeUpdate(AttributeUpdateNotificationMsg notification) {
+    public void onAttributeUpdate(UUID sessionId, TransportProtos.AttributeUpdateNotificationMsg notification) {
+        log.trace("[{}] Received attributes update notification to device", sessionId);
         try {
             deviceSessionCtx.getPayloadAdaptor().convertToPublish(deviceSessionCtx, notification).ifPresent(deviceSessionCtx.getChannel()::writeAndFlush);
         } catch (Exception e) {
@@ -844,10 +847,34 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg rpcRequest) {
+    public void onToDeviceRpcRequest(UUID sessionId, TransportProtos.ToDeviceRpcRequestMsg rpcRequest) {
         log.trace("[{}] Received RPC command to device", sessionId);
         try {
-            deviceSessionCtx.getPayloadAdaptor().convertToPublish(deviceSessionCtx, rpcRequest).ifPresent(deviceSessionCtx.getChannel()::writeAndFlush);
+            deviceSessionCtx.getPayloadAdaptor().convertToPublish(deviceSessionCtx, rpcRequest)
+                    .ifPresent(payload -> {
+                        ChannelFuture channelFuture = deviceSessionCtx.getChannel().writeAndFlush(payload);
+                        if (rpcRequest.getPersisted()) {
+                            channelFuture.addListener(future -> {
+                                RpcStatus status;
+                                Throwable t = future.cause();
+                                if (t != null) {
+                                    log.error("Failed delivering RPC command to device!", t);
+                                    status = RpcStatus.FAILED;
+                                } else if (rpcRequest.getOneway()) {
+                                    status = RpcStatus.SUCCESSFUL;
+                                } else {
+                                    status = RpcStatus.DELIVERED;
+                                }
+                                TransportProtos.ToDevicePersistedRpcResponseMsg msg = TransportProtos.ToDevicePersistedRpcResponseMsg.newBuilder()
+                                        .setRequestId(rpcRequest.getRequestId())
+                                        .setRequestIdLSB(rpcRequest.getRequestIdLSB())
+                                        .setRequestIdMSB(rpcRequest.getRequestIdMSB())
+                                        .setStatus(status.name())
+                                        .build();
+                                transportService.process(deviceSessionCtx.getSessionInfo(), msg, TransportServiceCallback.EMPTY);
+                            });
+                        }
+                    });
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device RPC command to MQTT msg", sessionId, e);
         }

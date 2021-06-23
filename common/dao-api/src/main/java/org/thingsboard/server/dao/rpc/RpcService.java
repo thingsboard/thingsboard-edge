@@ -28,36 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.dao.rpc;
 
-public enum LwM2MFirmwareUpdateStrategy {
-    OBJ_5_BINARY(1, "ObjectId 5, Binary"),
-    OBJ_5_TEMP_URL(2, "ObjectId 5, URI"),
-    OBJ_19_BINARY(3, "ObjectId 19, Binary");
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.RpcId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rpc.Rpc;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
 
-    public int code;
-    public String type;
+public interface RpcService {
+    Rpc save(Rpc rpc);
 
-    LwM2MFirmwareUpdateStrategy(int code, String type) {
-        this.code = code;
-        this.type = type;
-    }
+    void deleteRpc(TenantId tenantId, RpcId id);
 
-    public static LwM2MFirmwareUpdateStrategy fromStrategyFwByType(String type) {
-        for (LwM2MFirmwareUpdateStrategy to : LwM2MFirmwareUpdateStrategy.values()) {
-            if (to.type.equals(type)) {
-                return to;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Unsupported FW State type  : %s", type));
-    }
+    void deleteAllRpcByTenantId(TenantId tenantId);
 
-    public static LwM2MFirmwareUpdateStrategy fromStrategyFwByCode(int code) {
-        for (LwM2MFirmwareUpdateStrategy to : LwM2MFirmwareUpdateStrategy.values()) {
-            if (to.code == code) {
-                return to;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Unsupported FW Strategy code : %s", code));
-    }
+    Rpc findById(TenantId tenantId, RpcId id);
+
+    ListenableFuture<Rpc> findRpcByIdAsync(TenantId tenantId, RpcId id);
+
+    PageData<Rpc> findAllByDeviceIdAndStatus(TenantId tenantId, DeviceId deviceId, RpcStatus rpcStatus, PageLink pageLink);
 }

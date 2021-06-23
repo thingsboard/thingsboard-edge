@@ -157,7 +157,7 @@ public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
         URI uri = null;
         try {
             uri = Resources.getResource(keyStorePathFile).toURI();
-            log.error("URI: {}", uri);
+            log.info("URI: {}", uri);
             File keyStoreFile = new File(uri);
             InputStream inKeyStore = new FileInputStream(keyStoreFile);
             keyStoreValue = KeyStore.getInstance(keyStoreType);

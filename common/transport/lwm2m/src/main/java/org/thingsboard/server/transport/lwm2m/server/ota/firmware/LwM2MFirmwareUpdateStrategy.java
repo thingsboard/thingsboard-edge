@@ -28,31 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.lwm2m.server.ota.firmware;
 
-/**
- * /** State R
- * 0: Idle (before downloading or after successful updating)
- * 1: Downloading (The data sequence is on the way)
- * 2: Downloaded
- * 3: Updating
- */
-public enum UpdateStateFw {
-    IDLE(0, "Idle"),
-    DOWNLOADING(1, "Downloading"),
-    DOWNLOADED(2, "Downloaded"),
-    UPDATING(3, "Updating");
+public enum LwM2MFirmwareUpdateStrategy {
+    OBJ_5_BINARY(1, "ObjectId 5, Binary"),
+    OBJ_5_TEMP_URL(2, "ObjectId 5, URI"),
+    OBJ_19_BINARY(3, "ObjectId 19, Binary");
 
     public int code;
     public String type;
 
-    UpdateStateFw(int code, String type) {
+    LwM2MFirmwareUpdateStrategy(int code, String type) {
         this.code = code;
         this.type = type;
     }
 
-    public static UpdateStateFw fromStateFwByType(String type) {
-        for (UpdateStateFw to : UpdateStateFw.values()) {
+    public static LwM2MFirmwareUpdateStrategy fromStrategyFwByType(String type) {
+        for (LwM2MFirmwareUpdateStrategy to : LwM2MFirmwareUpdateStrategy.values()) {
             if (to.type.equals(type)) {
                 return to;
             }
@@ -60,12 +52,12 @@ public enum UpdateStateFw {
         throw new IllegalArgumentException(String.format("Unsupported FW State type  : %s", type));
     }
 
-    public static UpdateStateFw fromStateFwByCode(int code) {
-        for (UpdateStateFw to : UpdateStateFw.values()) {
+    public static LwM2MFirmwareUpdateStrategy fromStrategyFwByCode(int code) {
+        for (LwM2MFirmwareUpdateStrategy to : LwM2MFirmwareUpdateStrategy.values()) {
             if (to.code == code) {
                 return to;
             }
         }
-        throw new IllegalArgumentException(String.format("Unsupported FW State code : %s", code));
+        throw new IllegalArgumentException(String.format("Unsupported FW Strategy code : %s", code));
     }
 }

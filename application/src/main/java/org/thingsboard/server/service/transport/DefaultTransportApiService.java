@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -123,6 +124,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @TbCoreComponent
+@RequiredArgsConstructor
 public class DefaultTransportApiService implements TransportApiService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -143,28 +145,6 @@ public class DefaultTransportApiService implements TransportApiService {
     private final OtaPackageDataCache otaPackageDataCache;
 
     private final ConcurrentMap<String, ReentrantLock> deviceCreationLocks = new ConcurrentHashMap<>();
-
-    public DefaultTransportApiService(TbDeviceProfileCache deviceProfileCache,
-                                      TbTenantProfileCache tenantProfileCache, TbApiUsageStateService apiUsageStateService, DeviceService deviceService,
-                                      RelationService relationService, DeviceCredentialsService deviceCredentialsService,
-                                      DeviceStateService deviceStateService, DbCallbackExecutorService dbCallbackExecutorService,
-                                      TbClusterService tbClusterService, DataDecodingEncodingService dataDecodingEncodingService,
-                                      DeviceProvisionService deviceProvisionService, TbResourceService resourceService, OtaPackageService otaPackageService, OtaPackageDataCache otaPackageDataCache) {
-        this.deviceProfileCache = deviceProfileCache;
-        this.tenantProfileCache = tenantProfileCache;
-        this.apiUsageStateService = apiUsageStateService;
-        this.deviceService = deviceService;
-        this.relationService = relationService;
-        this.deviceCredentialsService = deviceCredentialsService;
-        this.deviceStateService = deviceStateService;
-        this.dbCallbackExecutorService = dbCallbackExecutorService;
-        this.tbClusterService = tbClusterService;
-        this.dataDecodingEncodingService = dataDecodingEncodingService;
-        this.deviceProvisionService = deviceProvisionService;
-        this.resourceService = resourceService;
-        this.otaPackageService = otaPackageService;
-        this.otaPackageDataCache = otaPackageDataCache;
-    }
 
     @Override
     public ListenableFuture<TbProtoQueueMsg<TransportApiResponseMsg>> handle(TbProtoQueueMsg<TransportApiRequestMsg> tbProtoQueueMsg) {
