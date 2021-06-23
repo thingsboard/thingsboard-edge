@@ -52,7 +52,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
                 "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
                 "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Added to Group",
                 "Removed from Group", "REST API request", "Generate Report", "Other", "Entity Assigned From Tenant", "Entity Assigned To Tenant",
-                "Timeseries Updated", "Timeseries Deleted"},
+                "Timeseries Updated", "Timeseries Deleted", "Owner changed"},
         nodeDescription = "Route incoming messages by Message Type",
         nodeDetails = "Sends messages with message types <b>\"Post attributes\", \"Post telemetry\", \"RPC Request\"</b> etc. via corresponding chain, otherwise <b>Other</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -119,6 +119,8 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Timeseries Updated";
         } else if (msg.getType().equals(DataConstants.TIMESERIES_DELETED)) {
             relationType = "Timeseries Deleted";
+        } else if (msg.getType().equals(DataConstants.OWNER_CHANGED)) {
+            relationType = "Owner changed";
         } else {
             relationType = "Other";
         }
