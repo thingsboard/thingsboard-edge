@@ -415,7 +415,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
     @Test
     public void testFindEdgeEntityGroupsByTenantIdAndNameAndType() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
-        Edge savedEdge = edgeService.saveEdge(edge);
+        Edge savedEdge = edgeService.saveEdge(edge, true);
 
         String name1 = "Edge Entity Group name 1";
         List<EntityGroup> entityGroupsName1 = new ArrayList<>();

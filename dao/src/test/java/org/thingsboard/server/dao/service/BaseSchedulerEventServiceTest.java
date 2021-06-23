@@ -73,7 +73,7 @@ public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest 
     @Test
     public void testFindEdgeSchedulerEventsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
-        Edge savedEdge = edgeService.saveEdge(edge);
+        Edge savedEdge = edgeService.saveEdge(edge, true);
 
         String name1 = "Edge Scheduler Event name 1";
         List<SchedulerEvent> schedulerEventsName1 = new ArrayList<>();

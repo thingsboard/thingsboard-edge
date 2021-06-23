@@ -140,7 +140,7 @@ public class EdgeController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
                     edge.getId(), edge, entityGroupId);
 
-            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
+            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge, true));
 
             if (entityGroupId != null && operation == Operation.CREATE) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());

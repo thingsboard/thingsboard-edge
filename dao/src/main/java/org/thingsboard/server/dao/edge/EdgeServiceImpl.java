@@ -191,9 +191,11 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     @CacheEvict(cacheNames = EDGE_CACHE, key = "{#edge.tenantId, #edge.name}")
     @Override
-    public Edge saveEdge(Edge edge) {
+    public Edge saveEdge(Edge edge, boolean doValidate) {
         log.trace("Executing saveEdge [{}]", edge);
-        edgeValidator.validate(edge, Edge::getTenantId);
+        if (doValidate) {
+            edgeValidator.validate(edge, Edge::getTenantId);
+        }
         Edge savedEdge;
         try {
             savedEdge = edgeDao.save(edge.getTenantId(), edge);

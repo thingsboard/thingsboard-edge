@@ -56,7 +56,7 @@ public interface EdgeService {
 
     Optional<Edge> findEdgeByRoutingKey(TenantId tenantId, String routingKey);
 
-    Edge saveEdge(Edge edge);
+    Edge saveEdge(Edge edge, boolean doValidate);
 
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
