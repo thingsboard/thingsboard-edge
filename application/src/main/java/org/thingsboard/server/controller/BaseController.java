@@ -73,6 +73,7 @@ import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -92,6 +93,7 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -104,10 +106,6 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
@@ -173,6 +171,7 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.RuleEngineEntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.lwm2m.LwM2MServerSecurityInfoRepository;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -217,6 +216,8 @@ public abstract class BaseController {
 
     protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
     protected static final String HOME_DASHBOARD = "homeDashboardId";
+
+    private static final int DEFAULT_PAGE_SIZE = 1000;
 
     private static final ObjectMapper json = new ObjectMapper();
 
@@ -370,14 +371,13 @@ public abstract class BaseController {
     @Autowired(required = false)
     protected EdgeService edgeService;
 
-//    @Autowired(required = false)
-//    protected EdgeNotificationService edgeNotificationService;
-//
-//    @Autowired(required = false)
-//    protected SyncEdgeService syncEdgeService;
-//
-//    @Autowired(required = false)
-//    protected EdgeGrpcService edgeGrpcService;
+    /* voba - merge comment
+    @Autowired(required = false)
+    protected EdgeNotificationService edgeNotificationService;
+
+    @Autowired(required = false)
+    protected EdgeRpcService edgeGrpcService;
+    */
 
     @Autowired
     protected RuleEngineEntityActionService ruleEngineEntityActionService;
@@ -643,15 +643,20 @@ public abstract class BaseController {
                 sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
                         EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
                  */
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
-                    CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            if (entity.getId() != null) {
+                sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        ActionType.UPDATED);
+            }
 
             return savedEntity;
 
@@ -1202,14 +1207,20 @@ public abstract class BaseController {
     }
 
 
-
-    /* merge comment
-    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
-        try {
-            sendNotificationMsgToEdgeService(tenantId, null, entityId,
-                    json.writeValueAsString(previousOwnerId), EdgeEventActionType.CHANGE_OWNER);
-        } catch (Exception e) {
-            log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
+    /* voba - merge comment
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, EntityId previousOwnerId) {
+        if (edgeIds != null && !edgeIds.isEmpty()) {
+            for (EdgeId edgeId : edgeIds) {
+                String body = null;
+                if (EntityType.EDGE.equals(entityId.getEntityType())) {
+                    try {
+                        body = json.writeValueAsString(previousOwnerId);
+                    } catch (Exception e) {
+                        log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
+                    }
+                }
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
+            }
         }
     }
 
@@ -1299,15 +1310,28 @@ public abstract class BaseController {
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        return findRelatedEdgeIds(tenantId, entityId, null);
+    }
+
+    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId, EntityType groupType) {
         if (!edgesEnabled) {
             return null;
         }
-        List<EdgeId> result = null;
-        try {
-            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, null).get();
-        } catch (Exception e) {
-            log.error("[{}] can't find related edge ids for entity [{}]", tenantId, entityId, e);
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            return Collections.singletonList(new EdgeId(entityId.getId()));
         }
+        List<EdgeId> result = new ArrayList<>();
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EdgeId> pageData;
+        do {
+            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, groupType, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                result.addAll(pageData.getData());
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
         return result;
     }
 
@@ -1332,7 +1356,7 @@ public abstract class BaseController {
 
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, ActionType cloudEventAction) {
         try {
-            sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);
+            sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
         }
@@ -1341,15 +1365,23 @@ public abstract class BaseController {
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, ActionType cloudEventAction) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
-            sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
+            sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType, ActionType cloudEventAction) {
-        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                                     ActionType cloudEventAction) {
+        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
     }
 
-    private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, ActionType cloudEventAction) {
+    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                                  ActionType cloudEventAction, EntityGroupId entityGroupId) {
+        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
+    }
+
+    private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
+                                                   CloudEventType cloudEventType, ActionType cloudEventAction,
+                                                   EntityGroupId entityGroupId) {
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
@@ -1362,6 +1394,10 @@ public abstract class BaseController {
         }
         if (entityBody != null) {
             builder.setEntityBody(entityBody);
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         TransportProtos.CloudNotificationMsgProto msg = builder.build();
         tbClusterService.pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,

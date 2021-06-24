@@ -31,9 +31,10 @@
 package org.thingsboard.server.dao.edge;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -113,28 +114,6 @@ public interface EdgeDao extends Dao<Edge> {
     PageData<Edge> findEdgesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink);
 
     /**
-     * Find edge infos by tenantId, customerId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param customerId the customerId
-     * @param pageLink the page link
-     * @return the list of edge info objects
-     */
-    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
-
-    /**
-     * Find edge infos by tenantId, customerId, type and page link.
-     *
-     * @param tenantId the tenantId
-     * @param customerId the customerId
-     * @param type the type
-     * @param pageLink the page link
-     * @return the list of edge info objects
-     */
-    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink);
-
-
-    /**
      * Find edges by tenantId, customerId and edges Ids.
      *
      * @param tenantId the tenantId
@@ -168,8 +147,24 @@ public interface EdgeDao extends Dao<Edge> {
      */
     Optional<Edge> findByRoutingKey(UUID tenantId, String routingKey);
 
-    PageData<EdgeInfo> findEdgeInfosByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
+    /**
+     * Find edges by tenantId and entityId.
+     *
+     * @param tenantId the tenantId
+     * @param entityId the entityId
+     * @param entityType the entityType
+     * @return the list of edge objects
+     */
+    PageData<Edge> findEdgesByTenantIdAndEntityId(UUID tenantId, UUID entityId, EntityType entityType, PageLink pageLink);
 
-    PageData<EdgeInfo> findEdgeInfosByTenantId(UUID tenantId, PageLink pageLink);
+    /**
+     * Find edges by tenantId, entityGroupId and groupType.
+     *
+     * @param tenantId the tenantId
+     * @param entityGroupId the entityGroupId
+     * @param groupType the groupType
+     * @return the list of rule chain objects
+     */
+    PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupId, EntityType groupType, PageLink pageLink);
+
 }
-

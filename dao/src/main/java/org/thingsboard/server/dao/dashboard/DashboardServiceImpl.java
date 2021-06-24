@@ -146,13 +146,20 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     @Override
-    public Dashboard saveDashboard(Dashboard dashboard) {
-        return doSaveDashboard(dashboard);
+    public Dashboard saveDashboard(Dashboard dashboard, boolean doValidate) {
+        return doSaveDashboard(dashboard, doValidate);
     }
 
-    private Dashboard doSaveDashboard(Dashboard dashboard) {
+    @Override
+    public Dashboard saveDashboard(Dashboard dashboard) {
+        return doSaveDashboard(dashboard, true);
+    }
+
+    private Dashboard doSaveDashboard(Dashboard dashboard, boolean doValidate) {
         log.trace("Executing saveDashboard [{}]", dashboard);
-        dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
+        if (doValidate) {
+            dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
+        }
         Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
         if (dashboard.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());

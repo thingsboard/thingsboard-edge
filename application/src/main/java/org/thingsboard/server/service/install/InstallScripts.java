@@ -131,9 +131,6 @@ public class InstallScripts {
     @Autowired
     private OAuth2ConfigTemplateService oAuth2TemplateService;
 
-    @Autowired
-    private ResourceService resourceService;
-
     private Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
@@ -194,21 +191,6 @@ public class InstallScripts {
         } catch (Exception e) {
             log.error("Unable to load rule chain from json: [{}]", path.toString());
             throw new RuntimeException("Unable to load rule chain from json", e);
-        }
-    }
-
-    private void loadRuleChainsFromPath(TenantId tenantId, Path ruleChainsPath) throws IOException {
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
-            dirStream.forEach(
-                    path -> {
-                        try {
-                            createRuleChainFromFile(tenantId, path, null);
-                        } catch (Exception e) {
-                            log.error("Unable to load rule chain from json: [{}]", path.toString());
-                            throw new RuntimeException("Unable to load rule chain from json", e);
-                        }
-                    }
-            );
         }
     }
 
@@ -294,15 +276,15 @@ public class InstallScripts {
         return objectMapper.readTree(mailTemplatesFile.toFile());
     }
 
-    public void loadDemoRuleChains(TenantId tenantId) throws Exception {
-        createDefaultRuleChains(tenantId);
-        createDefaultRuleChain(tenantId, "Thermostat");
-        loadEdgeDemoRuleChains(tenantId);
-    }
-
-    private void loadEdgeDemoRuleChains(TenantId tenantId) throws Exception {
-        Path edgeDemoRuleChainsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
-        loadRuleChainsFromPath(tenantId, edgeDemoRuleChainsDir);
+    public void loadDemoRuleChains(TenantId tenantId) {
+        try {
+            createDefaultRuleChains(tenantId);
+            createDefaultRuleChain(tenantId, "Thermostat");
+            createDefaultEdgeRuleChains(tenantId);
+        } catch (Exception e) {
+            log.error("Unable to load rule chain from json", e);
+            throw new RuntimeException("Unable to load rule chain from json", e);
+        }
     }
 
     private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {

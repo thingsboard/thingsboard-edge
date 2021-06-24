@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.group;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -37,6 +38,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import java.util.Set;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityGroupInfo extends EntityGroup {
 
     private Set<EntityId> ownerIds;

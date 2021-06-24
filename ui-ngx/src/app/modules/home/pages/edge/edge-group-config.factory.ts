@@ -55,6 +55,7 @@ import { EdgeComponent } from "@home/pages/edge/edge.component";
 import { Router } from "@angular/router";
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
@@ -212,6 +213,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'manageRuleChains':
         this.manageRuleChains(action.event, action.entity, config, params);
         return true;
+      case 'syncEdge':
+        this.syncEdge(action.event, action.entity);
+        return true;
     }
     return false;
   }
@@ -312,6 +316,24 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
     }
+  }
+
+  syncEdge($event, edge) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.edgeService.syncEdge(edge.id.id).subscribe(
+      () => {
+        this.store.dispatch(new ActionNotificationShow(
+          {
+            message: this.translate.instant('edge.sync-process-started-successfully'),
+            type: 'success',
+            duration: 750,
+            verticalPosition: 'bottom',
+            horizontalPosition: 'right'
+          }));
+      }
+    );
   }
 
   private isCustomerScope(params: EntityGroupParams): boolean {

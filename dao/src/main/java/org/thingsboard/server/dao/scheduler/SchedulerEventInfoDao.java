@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.scheduler;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
@@ -101,5 +102,5 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
      * @param pageLink the page link
      * @return the list of scheduler event objects
      */
-    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
+    PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 }

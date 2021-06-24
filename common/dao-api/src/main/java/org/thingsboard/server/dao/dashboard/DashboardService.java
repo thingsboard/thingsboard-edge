@@ -56,6 +56,8 @@ public interface DashboardService {
 
     ListenableFuture<List<DashboardInfo>> findDashboardInfoByIdsAsync(TenantId tenantId, List<DashboardId> dashboardIds);
 
+    Dashboard saveDashboard(Dashboard dashboard, boolean doValidate);
+
     Dashboard saveDashboard(Dashboard dashboard);
 
     Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId);
