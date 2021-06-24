@@ -465,54 +465,54 @@ export class MenuService {
         }
       );
     }
-    // if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
-    //   sections.push(
-    //     {
-    //       id: guid(),
-    //       name: 'converter.converters',
-    //       type: 'link',
-    //       path: '/converters',
-    //       icon: 'transform',
-    //       disabled: disabledItems.indexOf('converters') > -1
-    //     }
-    //   );
-    // }
-    // if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
-    //   sections.push(
-    //     {
-    //       id: guid(),
-    //       name: 'integration.integrations',
-    //       type: 'link',
-    //       path: '/integrations',
-    //       icon: 'input',
-    //       disabled: disabledItems.indexOf('integrations') > -1
-    //     }
-    //   );
-    // }
-    // if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
-    //   sections.push(
-    //     {
-    //       id: guid(),
-    //       name: 'role.roles',
-    //       type: 'link',
-    //       path: '/roles',
-    //       icon: 'security',
-    //       disabled: disabledItems.indexOf('roles') > -1
-    //     }
-    //   );
-    // }
-    // if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
-    //   sections.push(
-    //     {
-    //       id: guid(),
-    //       name: 'customers-hierarchy.customers-hierarchy',
-    //       type: 'link',
-    //       path: '/customersHierarchy',
-    //       icon: 'sort',
-    //       disabled: disabledItems.indexOf('customers_hierarchy') > -1
-    //     }
-    //   );
-    // }
+    /*if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'converter.converters',
+          type: 'link',
+          path: '/converters',
+          icon: 'transform',
+          disabled: disabledItems.indexOf('converters') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'integration.integrations',
+          type: 'link',
+          path: '/integrations',
+          icon: 'input',
+          disabled: disabledItems.indexOf('integrations') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'role.roles',
+          type: 'link',
+          path: '/roles',
+          icon: 'security',
+          disabled: disabledItems.indexOf('roles') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'customers-hierarchy.customers-hierarchy',
+          type: 'link',
+          path: '/customersHierarchy',
+          icon: 'sort',
+          disabled: disabledItems.indexOf('customers_hierarchy') > -1
+        }
+      );
+    }*/
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.USER) && disabledItems.indexOf('user_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.USER));
     }
@@ -582,7 +582,7 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
+    /*if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       sections.push(
         {
           id: guid(),
@@ -593,7 +593,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('otaUpdates') > -1
         }
       );
-    }
+    }*/
     if (this.authService.isPEMenuAllowed() && this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
@@ -717,17 +717,17 @@ export class MenuService {
             icon: 'sms',
             disabled: disabledItems.indexOf('sms_provider') > -1
           },
-          {
+          /*{
             id: guid(),
             name: 'self-registration.self-registration',
             type: 'link',
             path: '/settings/selfRegistration',
             icon: 'group_add',
             disabled: disabledItems.indexOf('self_registration') > -1
-          }
+          }*/
         );
       }
-      if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+      /*if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
         pages.push({
           id: guid(),
           name: 'resource.resources-library',
@@ -736,7 +736,7 @@ export class MenuService {
           icon: 'folder',
           disabled: disabledItems.indexOf('resources_library') > -1
         });
-      }
+      }*/
       sections.push(
         {
           id: guid(),
@@ -916,7 +916,7 @@ export class MenuService {
           }
         );
       }
-      if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
+      /*if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
         deviceManagementSection.places.push(
           {
             name: 'ota-update.ota-updates',
@@ -925,7 +925,7 @@ export class MenuService {
             disabled: disabledItems.indexOf('otaUpdates') > -1
           }
         );
-      }
+      }*/
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       homeSections.push(
@@ -1125,22 +1125,22 @@ export class MenuService {
             icon: 'sms',
             disabled: disabledItems.indexOf('sms_provider') > -1
           },
-          {
+          /*{
             name: 'self-registration.self-registration',
             path: '/settings/selfRegistration',
             icon: 'group_add',
             disabled: disabledItems.indexOf('self_registration') > -1
-          }
+          }*/
         );
       }
-      if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+      /*if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
         settings.places.push({
           name: 'resource.resources-library',
           path: '/settings/resources-library',
           icon: 'folder',
           disabled: disabledItems.indexOf('resources_library') > -1
         });
-      }
+      }*/
     }
     return homeSections;
   }
