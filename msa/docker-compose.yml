@@ -35,8 +35,8 @@ services:
     restart: always
     image: "volodymyrbabak/tb-edge:3.3.0-EDGE-SNAPSHOT"
     ports:
-      - "8081:8080"
-      - "1884:1883"
+      - "18080:8080"
+      - "11883:1883"
     environment:
       CLOUD_ROUTING_KEY: 6a1565030465563f58a3770f7ae939e8
       CLOUD_ROUTING_SECRET: ef05o7vsepi4jn7w3epj

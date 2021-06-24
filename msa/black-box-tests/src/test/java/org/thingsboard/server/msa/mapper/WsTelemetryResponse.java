@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -28,18 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const config = require('config'),
-      logger = require('../config/logger')._logger('httpServer'),
-      express = require('express');
+package org.thingsboard.server.msa.mapper;
 
-const httpPort = Number(config.get('http_port'));
+import lombok.Data;
 
-const app = express();
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-app.get('/livenessProbe', async (req, res) => {
-  const date = new Date();
-  const message = { now: date.toISOString() };
-  res.send(message);
-})
+@Data
+public class WsTelemetryResponse implements Serializable {
+    private int subscriptionId;
+    private int errorCode;
+    private String errorMsg;
+    private Map<String, List<List<Object>>> data;
+    private Map<String, Object> latestValues;
 
-app.listen(httpPort, () => logger.info(`Started http endpoint on port ${httpPort}. Please, use /livenessProbe !`))
+    public List<Object> getDataValuesByKey(String key) {
+        return data.entrySet().stream()
+                .filter(e -> e.getKey().equals(key))
+                .flatMap(e -> e.getValue().stream().flatMap(Collection::stream))
+                .collect(Collectors.toList());
+    }
+}
