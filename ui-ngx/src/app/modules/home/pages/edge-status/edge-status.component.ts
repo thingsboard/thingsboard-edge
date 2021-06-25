@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PageComponent } from "@shared/components/page.component";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { Store } from "@ngrx/store";
@@ -55,17 +55,16 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
               private edgeService: EdgeService,
               private attributeService: AttributeService,
               private datePipe: DatePipe,
-              private cd: ChangeDetectorRef,
               private route: ActivatedRoute) {
     super(store);
-    this.buildEdgeStatusForm();
+    this.buildForm();
   }
 
   ngOnInit(): void {
     this.init();
   }
 
-  buildEdgeStatusForm() {
+  buildForm() {
     this.edgeStatusGroup = this.fb.group({
       name: '',
       id: '',
