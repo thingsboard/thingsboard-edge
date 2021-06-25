@@ -37,7 +37,6 @@ import { HomeSection, HomeSectionPlace } from '@core/services/menu.models';
 import { map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { HomeDashboard } from '@shared/models/dashboard.models';
-import { EdgeService } from "@core/http/edge.service";
 
 @Component({
   selector: 'tb-home-links',
@@ -53,7 +52,6 @@ export class HomeLinksComponent implements OnInit {
       return sections.filter((section) => this.sectionPlaces(section).length > 0);
     })
   );
-  edgeName: string;
   cols = 2;
 
   homeDashboard: HomeDashboard = this.route.snapshot.data.homeDashboard;
@@ -61,8 +59,7 @@ export class HomeLinksComponent implements OnInit {
   constructor(private menuService: MenuService,
               public breakpointObserver: BreakpointObserver,
               private cd: ChangeDetectorRef,
-              private route: ActivatedRoute,
-              private edgeService: EdgeService) {
+              private route: ActivatedRoute) {
   }
 
   ngOnInit() {
@@ -71,7 +68,6 @@ export class HomeLinksComponent implements OnInit {
       this.breakpointObserver
         .observe([MediaBreakpoints.lg, MediaBreakpoints['gt-lg']])
         .subscribe((state: BreakpointState) => this.updateColumnCount());
-      this.edgeService.getEdgeSettings().subscribe(edgeSettings => this.edgeName = edgeSettings.name);
     }
   }
 
