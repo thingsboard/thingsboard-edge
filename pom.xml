@@ -163,7 +163,7 @@
         <module>tools</module>
         <module>application</module>
         <module>msa</module>
-        <module>rest-client</module>
+<!--        <module>rest-client</module>-->
     </modules>
 
     <profiles>
@@ -1068,7 +1068,7 @@
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>rest-client</artifactId>
-                <version>${project.version}</version>
+                <version>${thingsboard-cloud.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
