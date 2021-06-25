@@ -77,11 +77,6 @@ export enum cloudConnectionStatus {
   false = 'edge.disconnected'
 }
 
-export interface CloudStatus {
-  label: string,
-  isActive: boolean
-}
-
 export enum CloudEventType {
   DASHBOARD = "DASHBOARD",
   ASSET = "ASSET",

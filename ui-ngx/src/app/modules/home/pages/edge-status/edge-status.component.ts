@@ -35,13 +35,10 @@ import { FormBuilder, FormGroup } from "@angular/forms";
 import { Store } from "@ngrx/store";
 import { AppState } from "@core/core.state";
 import { EdgeService } from "@core/http/edge.service";
-import { CloudStatus } from "@shared/models/edge.models";
+import { EdgeSettings } from "@shared/models/edge.models";
 import { AttributeService } from "@core/http/attribute.service";
-import { AttributeScope } from "@shared/models/telemetry/telemetry.models";
-import { getCurrentAuthUser } from "@core/auth/auth.selectors";
-import { EntityId } from "@shared/models/id/entity-id";
-import { EntityType } from "@shared/models/entity-type.models";
 import { DatePipe } from "@angular/common";
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'tb-edge-status',
@@ -50,24 +47,22 @@ import { DatePipe } from "@angular/common";
 })
 export class EdgeStatusComponent extends PageComponent implements OnInit {
 
+  isActive: boolean;
   edgeStatusGroup: FormGroup;
-  cloudStatus: CloudStatus = {
-    label: '',
-    isActive: false
-  }
 
-  constructor(protected store: Store<AppState>,
+  constructor(public fb: FormBuilder,
+              protected store: Store<AppState>,
               private edgeService: EdgeService,
               private attributeService: AttributeService,
               private datePipe: DatePipe,
-              public fb: FormBuilder,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private route: ActivatedRoute) {
     super(store);
     this.buildEdgeStatusForm();
   }
 
   ngOnInit(): void {
-    this.loadEdgeStatus();
+    this.init();
   }
 
   buildEdgeStatusForm() {
@@ -83,37 +78,30 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
     this.edgeStatusGroup.disable();
   }
 
-  loadEdgeStatus() {
-    const authUser = getCurrentAuthUser(this.store);
-    const currentTenant: EntityId = {
-      id: authUser.tenantId,
-      entityType: EntityType.TENANT
-    }
-    this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE)
-      .subscribe(attributes => {
-        const edge: any = attributes.reduce(function (map, attribute) {
+  private init(): void {
+    this.route.data.subscribe(data => {
+        const edgeAttributes = data.edgeAttributes.reduce(function (map, attribute) {
           map[attribute.key] = attribute;
           return map;
         }, {});
-        const edgeSettings = JSON.parse(edge.edgeSettings.value);
-        this.cloudStatus = {
-          label: edge.active.value ? "edge.connected" : "edge.disconnected",
-          isActive: edge.active.value
-        }
-        const lastDisconnectTime = edge.lastDisconnectTime ?
-          this.datePipe.transform(edge.lastDisconnectTime?.value, 'yyyy-MM-dd HH:mm:ss') : 'N/A';
+
+        const isActive: boolean = edgeAttributes.active.value;
+        const lastConnectTime: number = edgeAttributes.lastConnectTime.value;
+        const lastDisconnectTime: number = edgeAttributes.lastDisconnectTime?.value;
+        const edgeSettings: EdgeSettings = JSON.parse(edgeAttributes.edgeSettings.value);
+
+        this.isActive = isActive;
         this.edgeStatusGroup.setValue({
           name: edgeSettings.name,
           id: edgeSettings.edgeId,
           type: edgeSettings.type,
           routingKey: edgeSettings.routingKey,
           cloudType: edgeSettings.cloudType,
-          lastConnectTime: this.datePipe.transform(edge.lastConnectTime.value, 'yyyy-MM-dd HH:mm:ss'),
-          lastDisconnectTime: lastDisconnectTime
-        })
-
-        this.cd.detectChanges();
-      })
+          lastConnectTime: this.datePipe.transform(lastConnectTime, 'yyyy-MM-dd HH:mm:ss'),
+          lastDisconnectTime: lastDisconnectTime ? this.datePipe.transform(lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss') : 'N/A'
+        });
+      }
+    );
   }
 
 }
