@@ -35,7 +35,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { EntityType, EntityTypeResource } from '@shared/models/entity-type.models';
+import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { Direction } from '@shared/models/page/sort-order';
@@ -66,11 +66,12 @@ import { EntityService } from '@core/http/entity.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Observable } from 'rxjs';
 import { ContentType } from "@shared/models/constants";
-import { map } from "rxjs/operators";
+import { map, mergeMap } from "rxjs/operators";
+import { PageData } from '@shared/models/page/page-data';
 
 export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePageLink> {
 
-  queueStartTs: number = 0;
+  queueStartTs: number;
 
   constructor(private translate: TranslateService,
               private utils: UtilsService,
@@ -81,6 +82,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
               private attributeService: AttributeService,
               private entityService: EntityService) {
     super();
+
     this.tableTitle = '';
     this.useTimePageLink = true;
     this.detailsPanelEnabled = false;
@@ -91,17 +93,22 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     this.defaultSortOrder = { property: 'createdTime', direction: Direction.DESC };
     this.entityTranslations = { noEntities: 'cloud-event.no-cloud-events-prompt' };
 
-    this.entitiesFetchFunction = pageLink => this.edgeService.getCloudEvents(pageLink);
+    this.entitiesFetchFunction = pageLink => this.fetchCloudEvents(pageLink);
 
+    this.updateColumns();
+  }
+
+  private updateColumns() {
+    this.columns = [];
     this.columns.push(
       new DateEntityTableColumn<CloudEvent>('createdTime', 'cloud-event.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<CloudEvent>('cloudEventAction', 'cloud-event.action', '20%',
+      new EntityTableColumn<CloudEvent>('cloudEventAction', 'cloud-event.action', '25%',
         entity => this.translate.instant(cloudEventActionTypeTranslations.get(entity.cloudEventAction)), entity => ({}), false),
-      new EntityTableColumn<CloudEvent>('cloudEventType', 'cloud-event.entity-type', '20%',
+      new EntityTableColumn<CloudEvent>('cloudEventType', 'cloud-event.entity-type', '25%',
         entity => this.translate.instant(cloudEventTypeTranslations.get(entity.cloudEventType)), entity => ({}), false),
       new EntityTableColumn<CloudEvent>('entityId', 'cloud-event.entity-id', '30%'),
       new EntityTableColumn<CloudEvent>('status', 'event.status', '10%',
-        (entity) => this.updateEdgeEventStatus(entity.createdTime),
+        (entity) => this.updateCloudEventStatus(entity.createdTime),
         entity => ({
           color: this.isPending(entity.createdTime) ? edgeEventStatusColor.get(EdgeEventStatus.PENDING) : edgeEventStatusColor.get(EdgeEventStatus.DEPLOYED)
         }), false),
@@ -109,8 +116,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
           name: this.translate.instant('cloud-event.details'),
           icon: 'more_horiz',
           isEnabled: (entity) => this.isCloudEventHasData(entity),
-          onAction: ($event, entity) =>
-          {
+          onAction: ($event, entity) => {
             this.prepareCloudEventContent(entity).subscribe(
               (content) => this.showCloudEventDetails($event, content, 'event.data'),
               () => this.showEntityNotFoundError()
@@ -118,12 +124,25 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
           }
         },
         '10%')
-      );
-
-    this.loadEdgeStatus();
+    );
   }
 
-  prepareCloudEventContent(entity: CloudEvent): Observable<any> {
+  private fetchCloudEvents(pageLink: TimePageLink): Observable<PageData<CloudEvent>> {
+    const authUser = getCurrentAuthUser(this.store);
+    const currentTenant: EntityId = {
+      id: authUser.tenantId,
+      entityType: EntityType.TENANT
+    };
+    return this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs']).pipe(
+      map((attributes) => {
+        const queueStartTs = attributes[0];
+        this.queueStartTs = queueStartTs ? queueStartTs.lastUpdateTs : 0;
+      }),
+      mergeMap(() => this.edgeService.getCloudEvents(pageLink))
+    );
+  }
+
+  prepareCloudEventContent(entity: CloudEvent): Observable<string> {
     return this.entityService.getCloudEventByType(entity).pipe(
       map((result) => JSON.stringify(result))
     );
@@ -148,34 +167,21 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     return createdTime > this.queueStartTs;
   }
 
-  updateEdgeEventStatus(createdTime): string {
-    if (this.queueStartTs && createdTime < this.queueStartTs) {
+  updateCloudEventStatus(createdTime: number): string {
+    if (createdTime < this.queueStartTs) {
       return this.translate.instant('edge.deployed');
     } else {
       return this.translate.instant('edge.pending');
     }
   }
 
-  isCloudEventHasData(entity): boolean {
+  isCloudEventHasData(entity: CloudEvent): boolean {
     return !(entity.cloudEventType === CloudEventType.EDGE ||
              entity.cloudEventAction === CloudEventActionType.DELETED ||
              entity.cloudEventAction === CloudEventActionType.ADDED)
   }
 
-  loadEdgeStatus(): void {
-    const authUser = getCurrentAuthUser(this.store);
-    const currentTenant: EntityId = {
-      id: authUser.tenantId,
-      entityType: EntityType.TENANT
-    }
-    this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
-      .subscribe(attributes => {
-        this.queueStartTs = attributes[0].lastUpdateTs;
-        this.table.updateData();
-      });
-  }
-
-  showEntityNotFoundError() {
+  showEntityNotFoundError(): void {
     this.store.dispatch(new ActionNotificationShow(
       {
         message: this.translate.instant('edge.load-entity-error'),

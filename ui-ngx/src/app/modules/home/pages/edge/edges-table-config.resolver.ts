@@ -73,11 +73,6 @@ import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.com
 import { EdgeId } from '@shared/models/id/edge-id';
 import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Edge } from "@shared/models/edge.models";
-import { EdgeService } from '@core/http/edge.service';
-import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
-import { EdgeId } from "@shared/models/id/edge-id";
-import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";
 import { UtilsService } from "@core/services/utils.service";
 
 @Injectable()
@@ -576,7 +571,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     );
   }
 
-  onEdgeAction(action: EntityAction<EdgeInfo>): boolean {
+  onEdgeAction(action: EntityAction<Edge>): boolean {
     switch (action.action) {
       // case 'makePublic':
       //   this.makePublic(action.event, action.entity);

@@ -29,11 +29,39 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Injectable, NgModule } from '@angular/core';
+import { Resolve, RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { EdgeStatusComponent } from "@home/pages/edge-status/edge-status.component";
 import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
+import { EdgeService } from '@core/http/edge.service';
+import { Observable } from 'rxjs';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { EntityId } from '@shared/models/id/entity-id';
+import { EntityType } from '@shared/models/entity-type.models';
+import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetry.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { AttributeService } from '@core/http/attribute.service';
+
+@Injectable()
+export class EdgeAttributesResolver implements Resolve<Array<AttributeData>> {
+
+  constructor(private edgeService: EdgeService,
+              private store: Store<AppState>,
+              private attributeService: AttributeService) {
+  }
+
+  resolve(): Observable<Array<AttributeData>> {
+    const authUser = getCurrentAuthUser(this.store);
+    const currentTenant: EntityId = {
+      id: authUser.tenantId,
+      entityType: EntityType.TENANT
+    };
+    return this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE)
+  }
+
+}
 
 const routes: Routes = [
   {
@@ -67,6 +95,9 @@ const routes: Routes = [
             label: 'edge.status',
             icon: 'info'
           }
+        },
+        resolve: {
+          edgeAttributes: EdgeAttributesResolver
         }
       },
       {
@@ -87,6 +118,9 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [
+    EdgeAttributesResolver
+  ]
 })
 export class EdgeStatusRoutingModule { }
