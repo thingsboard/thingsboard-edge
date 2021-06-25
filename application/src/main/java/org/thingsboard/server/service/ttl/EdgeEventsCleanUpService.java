@@ -28,32 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.timeseries;
+package org.thingsboard.server.service.ttl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-@SqlTsDao
-@PsqlDao
-@Service
+@TbCoreComponent
 @Slf4j
-public class PsqlTimeseriesCleanUpService extends AbstractTimeseriesCleanUpService {
+@Service
+public class EdgeEventsCleanUpService extends AbstractCleanUpService {
 
-    @Value("${sql.postgres.ts_key_value_partitioning}")
-    private String partitionType;
+    @Value("${sql.ttl.edge_events.edge_events_ttl}")
+    private long ttl;
 
-    @Override
-    protected void doCleanUp(Connection connection) throws SQLException {
-            long totalPartitionsRemoved = executeQuery(connection, "call drop_partitions_by_max_ttl('" + partitionType + "'," + systemTtl + ", 0);");
-            log.info("Total partitions removed by TTL: [{}]", totalPartitionsRemoved);
-            long totalEntitiesTelemetryRemoved = executeQuery(connection, "call cleanup_timeseries_by_ttl('" + ModelConstants.NULL_UUID + "'," + systemTtl + ", 0);");
-            log.info("Total telemetry removed stats by TTL for entities: [{}]", totalEntitiesTelemetryRemoved);
+    @Value("${sql.ttl.edge_events.enabled}")
+    private boolean ttlTaskExecutionEnabled;
+
+    private final EdgeService edgeService;
+
+    public EdgeEventsCleanUpService(PartitionService partitionService, EdgeService edgeService) {
+        super(partitionService);
+        this.edgeService = edgeService;
     }
+
+    @Scheduled(initialDelayString = "${sql.ttl.edge_events.execution_interval_ms}", fixedDelayString = "${sql.ttl.edge_events.execution_interval_ms}")
+    public void cleanUp() {
+        if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
+            edgeService.cleanupEvents(ttl);
+        }
+    }
+
 }

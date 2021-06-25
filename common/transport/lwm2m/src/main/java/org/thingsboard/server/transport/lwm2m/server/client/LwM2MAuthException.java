@@ -28,35 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.timeseries;
+package org.thingsboard.server.transport.lwm2m.server.client;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
+public class LwM2MAuthException extends RuntimeException {
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-@Slf4j
-public abstract class AbstractTimeseriesCleanUpService extends AbstractCleanUpService {
-
-    @Value("${sql.ttl.ts.ts_key_value_ttl}")
-    protected long systemTtl;
-
-    @Value("${sql.ttl.ts.enabled}")
-    private boolean ttlTaskExecutionEnabled;
-
-    @Scheduled(initialDelayString = "${sql.ttl.ts.execution_interval_ms}", fixedDelayString = "${sql.ttl.ts.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = getConnection()) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
-        }
-    }
+    private static final long serialVersionUID = 4202690897971364044L;
 
 }

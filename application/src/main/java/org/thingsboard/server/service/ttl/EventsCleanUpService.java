@@ -28,19 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.device.data.lwm2m;
+package org.thingsboard.server.service.ttl;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.device.data.PowerMode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-@Data
-public class OtherConfiguration {
+@TbCoreComponent
+@Slf4j
+@Service
+public class EventsCleanUpService extends AbstractCleanUpService {
 
-    private Integer fwUpdateStrategy;
-    private Integer swUpdateStrategy;
-    private Integer clientOnlyObserveAfterConnect;
-    private PowerMode powerMode;
-    private String fwUpdateResource;
-    private String swUpdateResource;
+    @Value("${sql.ttl.events.events_ttl}")
+    private long ttl;
+
+    @Value("${sql.ttl.events.debug_events_ttl}")
+    private long debugTtl;
+
+    @Value("${sql.ttl.events.enabled}")
+    private boolean ttlTaskExecutionEnabled;
+
+    private final EventService eventService;
+
+    public EventsCleanUpService(PartitionService partitionService, EventService eventService) {
+        super(partitionService);
+        this.eventService = eventService;
+    }
+
+    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
+    public void cleanUp() {
+        if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
+            eventService.cleanupEvents(ttl, debugTtl);
+        }
+    }
 
 }

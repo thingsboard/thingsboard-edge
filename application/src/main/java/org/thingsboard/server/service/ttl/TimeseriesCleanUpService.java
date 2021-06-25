@@ -28,47 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.events;
+package org.thingsboard.server.service.ttl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-@PsqlDao
+@TbCoreComponent
 @Slf4j
 @Service
-public class EventsCleanUpService extends AbstractCleanUpService {
+public class TimeseriesCleanUpService extends AbstractCleanUpService {
 
-    @Value("${sql.ttl.events.events_ttl}")
-    private long ttl;
+    @Value("${sql.ttl.ts.ts_key_value_ttl}")
+    protected long systemTtl;
 
-    @Value("${sql.ttl.events.debug_events_ttl}")
-    private long debugTtl;
-
-    @Value("${sql.ttl.events.enabled}")
+    @Value("${sql.ttl.ts.enabled}")
     private boolean ttlTaskExecutionEnabled;
 
-    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
+    private final TimeseriesService timeseriesService;
+
+    public TimeseriesCleanUpService(PartitionService partitionService, TimeseriesService timeseriesService) {
+        super(partitionService);
+        this.timeseriesService = timeseriesService;
+    }
+
+    @Scheduled(initialDelayString = "${sql.ttl.ts.execution_interval_ms}", fixedDelayString = "${sql.ttl.ts.execution_interval_ms}")
     public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = getConnection()) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
+        if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
+            timeseriesService.cleanup(systemTtl);
         }
     }
 
-    @Override
-    protected void doCleanUp(Connection connection) throws SQLException {
-        long totalEventsRemoved = executeQuery(connection, "call cleanup_events_by_ttl(" + ttl + ", " + debugTtl + ", 0);");
-        log.info("Total events removed by TTL: [{}]", totalEventsRemoved);
-    }
 }

@@ -28,44 +28,57 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.edge;
+:host {
+  .name-value-map {
+    span.no-data-found {
+      position: relative;
+      display: flex;
+      height: 40px;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
+      &.disabled {
+        color: rgba(0, 0, 0, .38);
+      }
+    }
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+    .map-list{
+      height: 45px;
+    }
+  }
+}
 
-@PsqlDao
-@Slf4j
-@Service
-public class EdgeEventsCleanUpService extends AbstractCleanUpService {
+:host ::ng-deep {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+  .mat-form-field-infix {
+    border-top: 0;
+  }
+  .mat-form-field-underline {
+    bottom: 0;
+  }
 
-    @Value("${sql.ttl.edge_events.edge_events_ttl}")
-    private long ttl;
+  .button-icon{
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
 
-    @Value("${sql.ttl.edge_events.enabled}")
-    private boolean ttlTaskExecutionEnabled;
-
-    @Scheduled(initialDelayString = "${sql.ttl.edge_events.execution_interval_ms}", fixedDelayString = "${sql.ttl.edge_events.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = getConnection()) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
+  .map-list {
+    mat-form-field {
+      .mat-form-field-wrapper {
+        padding-bottom: 0;
+        .mat-form-field-infix {
+          border-top-width: 0.2em;
+          width: auto;
+          min-width: auto;
         }
+        .mat-form-field-underline {
+          bottom: 0;
+        }
+        .mat-form-field-subscript-wrapper{
+          margin-top: 1.8em;
+        }
+      }
     }
-
-    @Override
-    protected void doCleanUp(Connection connection) throws SQLException {
-        long totalEdgeEventsRemoved = executeQuery(connection, "call cleanup_edge_events_by_ttl(" + ttl + ", 0);");
-        log.info("Total edge events removed by TTL: [{}]", totalEdgeEventsRemoved);
-    }
+  }
 }
