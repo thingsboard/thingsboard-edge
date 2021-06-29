@@ -35,8 +35,6 @@ export const PAGE_SIZE_LIMIT = 50;
 export const INSTANCES = 'instances';
 export const INSTANCE = 'instance';
 export const RESOURCES = 'resources';
-export const ATTRIBUTE_LWM2M = 'attributeLwm2m';
-export const CLIENT_LWM2M = 'clientLwM2M';
 export const OBSERVE_ATTR_TELEMETRY = 'observeAttrTelemetry';
 export const OBSERVE = 'observe';
 export const ATTRIBUTE = 'attribute';
@@ -199,7 +197,7 @@ export interface ObservableAttributes {
   attribute: string[];
   telemetry: string[];
   keyName: {};
-  attributeLwm2m?: AttributesNameValueMap;
+  attributeLwm2m?: AttributesNameValueMap[];
 }
 
 export function getDefaultBootstrapServersSecurityConfig(): BootstrapServersSecurityConfig {
@@ -237,7 +235,7 @@ export function getDefaultProfileObserveAttrConfig(): ObservableAttributes {
     attribute: [],
     telemetry: [],
     keyName: {},
-    attributeLwm2m: {}
+    attributeLwm2m: []
   };
 }
 
@@ -252,6 +250,8 @@ export function getDefaultProfileClientLwM2mSettingsConfig(): ClientLwM2mSetting
   };
 }
 
+export type ResourceSettingTelemetry = 'observe' | 'attribute' | 'telemetry';
+
 export interface ResourceLwM2M {
   id: number;
   name: string;
@@ -259,12 +259,12 @@ export interface ResourceLwM2M {
   attribute: boolean;
   telemetry: boolean;
   keyName: string;
-  attributeLwm2m?: AttributesNameValueMap;
+  attributes?: AttributesNameValueMap;
 }
 
 export interface Instance {
   id: number;
-  attributeLwm2m?: AttributesNameValueMap;
+  attributes?: AttributesNameValueMap;
   resources: ResourceLwM2M[];
 }
 
@@ -280,7 +280,7 @@ export interface ObjectLwM2M {
   name: string;
   multiple?: boolean;
   mandatory?: boolean;
-  attributeLwm2m?: AttributesNameValueMap;
+  attributes?: AttributesNameValueMap;
   instances?: Instance [];
 }
 
