@@ -643,9 +643,6 @@ public abstract class BaseController {
                 sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
                         EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
                  */
-                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
-                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                        ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,
@@ -656,6 +653,14 @@ public abstract class BaseController {
                 sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
                         CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
                         ActionType.UPDATED);
+            } else if (entityGroup != null) {
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+            } else {
+                sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        ActionType.ADDED);
             }
 
             return savedEntity;
