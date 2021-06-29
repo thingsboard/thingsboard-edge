@@ -43,8 +43,6 @@ import java.util.UUID;
 
 public interface LwM2mClientContext {
 
-    LwM2mClient getClientByRegistrationId(String registrationId);
-
     LwM2mClient getClientByEndpoint(String endpoint);
 
     LwM2mClient getClientBySessionInfo(TransportProtos.SessionInfoProto sessionInfo);
@@ -68,10 +66,9 @@ public interface LwM2mClientContext {
 
     LwM2mClient getClientByDeviceId(UUID deviceId);
 
-    String getObjectIdByKeyNameFromProfile(TransportProtos.SessionInfoProto sessionInfo, String keyName);
-
     String getObjectIdByKeyNameFromProfile(LwM2mClient lwM2mClient, String keyName);
 
     void registerClient(Registration registration, ValidateDeviceCredentialsResponse credentials);
 
+    void update(LwM2mClient lwM2MClient);
 }
