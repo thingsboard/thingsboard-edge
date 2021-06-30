@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.ota.software;
 
+import lombok.Getter;
+
 /**
  * SW Update Result
  * Contains the result of downloading or installing/uninstalling the software
@@ -71,6 +73,7 @@ public enum SoftwareUpdateResult {
 
     public int code;
     public String type;
+    @Getter
     public boolean isAgain;
 
     SoftwareUpdateResult(int code, String type, boolean isAgain) {

@@ -190,6 +190,7 @@ export interface ClientLwM2mSettings {
   fwUpdateResource: string;
   swUpdateResource: string;
   powerMode: PowerMode;
+  compositeOperationsSupport: boolean;
 }
 
 export interface ObservableAttributes {
@@ -246,7 +247,8 @@ export function getDefaultProfileClientLwM2mSettingsConfig(): ClientLwM2mSetting
     swUpdateStrategy: 1,
     fwUpdateResource: DEFAULT_FW_UPDATE_RESOURCE,
     swUpdateResource: DEFAULT_SW_UPDATE_RESOURCE,
-    powerMode: PowerMode.DRX
+    powerMode: PowerMode.DRX,
+    compositeOperationsSupport: false
   };
 }
 
