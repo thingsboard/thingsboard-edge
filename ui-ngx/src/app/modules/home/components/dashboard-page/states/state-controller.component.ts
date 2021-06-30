@@ -225,4 +225,6 @@ export abstract class StateControllerComponent implements IStateControllerCompon
 
   public abstract updateState(id?: string, params?: StateParams, openRightLayout?: boolean): void;
 
+  public abstract getCurrentStateName(): string;
+
 }

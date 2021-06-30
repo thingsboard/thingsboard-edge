@@ -38,9 +38,11 @@ import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -52,9 +54,10 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
-public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
+public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, HasCustomerId {
 
     private TenantId tenantId;
+    private CustomerId customerId;
     private String type;
     private EntityId originator;
     private AlarmSeverity severity;
@@ -79,6 +82,7 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
         super(alarm.getId());
         this.createdTime = alarm.getCreatedTime();
         this.tenantId = alarm.getTenantId();
+        this.customerId = alarm.getCustomerId();
         this.type = alarm.getType();
         this.originator = alarm.getOriginator();
         this.severity = alarm.getSeverity();

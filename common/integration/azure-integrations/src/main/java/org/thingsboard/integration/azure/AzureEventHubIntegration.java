@@ -86,9 +86,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             return;
         }
 
-        AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                AzureEventHubClientConfiguration.class);
+        AzureEventHubClientConfiguration clientConfiguration = getClientConfiguration(configuration, AzureEventHubClientConfiguration.class);
 
         initReceiver(clientConfiguration);
 

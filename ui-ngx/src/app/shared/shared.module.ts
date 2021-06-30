@@ -173,7 +173,9 @@ import { GroupPermissionsComponent } from '@shared/components/role/group-permiss
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
 import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-entity-group-list.component';
+import { OtaPackageAutocompleteComponent } from '@shared/components/ota-package/ota-package-autocomplete.component';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { CopyButtonComponent } from '@shared/components/button/copy-button.component';
 
 @NgModule({
   providers: [
@@ -290,7 +292,10 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
     WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
-    ShareEntityGroupComponent
+    ShareEntityGroupComponent,
+    OtaPackageAutocompleteComponent,
+    WidgetsBundleSearchComponent,
+    CopyButtonComponent
   ],
   imports: [
     CommonModule,
@@ -477,7 +482,10 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
     WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
-    ShareEntityGroupComponent
+    ShareEntityGroupComponent,
+    OtaPackageAutocompleteComponent,
+    WidgetsBundleSearchComponent,
+    CopyButtonComponent
   ]
 })
 export class SharedModule { }

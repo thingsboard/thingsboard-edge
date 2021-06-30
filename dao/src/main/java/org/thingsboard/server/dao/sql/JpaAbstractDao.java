@@ -41,6 +41,7 @@ import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -100,6 +101,12 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         getCrudRepository().deleteById(id);
         log.debug("Remove request: {}", id);
         return !getCrudRepository().existsById(id);
+    }
+
+    @Transactional
+    public void removeAllByIds(Collection<UUID> ids) {
+        CrudRepository<E, UUID> repository = getCrudRepository();
+        ids.forEach(repository::deleteById);
     }
 
     @Override

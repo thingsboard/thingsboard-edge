@@ -43,6 +43,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ProtocolStringList;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
@@ -58,12 +59,15 @@ import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
@@ -210,8 +214,8 @@ public class GatewaySessionHandler {
         }
     }
 
-    void writeAndFlush(MqttMessage mqttMessage) {
-        channel.writeAndFlush(mqttMessage);
+    ChannelFuture writeAndFlush(MqttMessage mqttMessage) {
+        return channel.writeAndFlush(mqttMessage);
     }
 
     int nextMsgId() {
@@ -273,14 +277,19 @@ public class GatewaySessionHandler {
                         new TransportServiceCallback<GetOrCreateDeviceFromGatewayResponse>() {
                             @Override
                             public void onSuccess(GetOrCreateDeviceFromGatewayResponse msg) {
-                                GatewayDeviceSessionCtx deviceSessionCtx = new GatewayDeviceSessionCtx(GatewaySessionHandler.this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap);
+                                GatewayDeviceSessionCtx deviceSessionCtx = new GatewayDeviceSessionCtx(GatewaySessionHandler.this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
                                 if (devices.putIfAbsent(deviceName, deviceSessionCtx) == null) {
                                     log.trace("[{}] First got or created device [{}], type [{}] for the gateway session", sessionId, deviceName, deviceType);
                                     SessionInfoProto deviceSessionInfo = deviceSessionCtx.getSessionInfo();
                                     transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
-                                    transportService.process(deviceSessionInfo, DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
-                                    transportService.process(deviceSessionInfo, SubscribeToRPCMsg.getDefaultInstance(), null);
-                                    transportService.process(deviceSessionInfo, SubscribeToAttributeUpdatesMsg.getDefaultInstance(), null);
+                                    transportService.process(TransportToDeviceActorMsg.newBuilder()
+                                            .setSessionInfo(deviceSessionInfo)
+                                            .setSessionEvent(DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN))
+                                            .setSubscribeToAttributes(SubscribeToAttributeUpdatesMsg.newBuilder()
+                                                    .setSessionType(SessionType.ASYNC).build())
+                                            .setSubscribeToRPC(SubscribeToRPCMsg.newBuilder()
+                                                    .setSessionType(SessionType.ASYNC).build())
+                                            .build(), null);
                                 }
                                 futureToSet.set(devices.get(deviceName));
                                 deviceFutures.remove(deviceName);

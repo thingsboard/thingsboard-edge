@@ -30,6 +30,10 @@
  */
 const config = require('config'), logger = require('./config/logger')._logger('main');
 
+logger.info('===CONFIG BEGIN===');
+logger.info(JSON.stringify(config, null, 4));
+logger.info('===CONFIG END===');
+
 const serviceType = config.get('queue_type');
 switch (serviceType) {
     case 'kafka':
@@ -61,4 +65,6 @@ switch (serviceType) {
         logger.error('Unknown service type: ', serviceType);
         process.exit(-1);
 }
+
+require('./api/httpServer');
 

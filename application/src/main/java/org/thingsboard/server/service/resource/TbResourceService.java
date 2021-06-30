@@ -46,7 +46,7 @@ public interface TbResourceService {
 
     TbResource saveResource(TbResource resource) throws ThingsboardException;
 
-    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceKey);
 
     TbResource findResourceById(TenantId tenantId, TbResourceId resourceId);
 
@@ -70,4 +70,5 @@ public interface TbResourceService {
 
     void deleteResourcesByTenantId(TenantId tenantId);
 
+    long sumDataSizeByTenantId(TenantId tenantId);
 }

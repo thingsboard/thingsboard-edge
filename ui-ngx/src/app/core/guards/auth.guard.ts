@@ -48,6 +48,7 @@ import { SelfRegistrationService } from '@core/http/self-register.service';
 import { isDefined, isObject } from '@core/utils';
 import { MenuService } from '@core/services/menu.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { MobileService } from '@core/services/mobile.service';
 
 @Injectable({
   providedIn: 'root'
@@ -64,6 +65,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               private selfRegistrationService: SelfRegistrationService,
               private userPermissionsService: UserPermissionsService,
               private menuService: MenuService,
+              private mobileService: MobileService,
               private zone: NgZone) {}
 
   getAuthState(): Observable<AuthState> {
@@ -138,6 +140,10 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               return of(false);
             }
           }
+          if (this.mobileService.isMobileApp() && !path.startsWith('dashboard.')) {
+            this.mobileService.handleMobileNavigation(path, params);
+            return of(false);
+          }
           const defaultUrl = this.authService.defaultUrl(true, authState, path, params);
           if (defaultUrl) {
             // this.authService.gotoDefaultPlace(true);
@@ -158,10 +164,15 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               return of(false);
             } else if (data.redirectTo) {
               let redirect;
-              if (isObject(data.redirectTo)) {
+              if (isObject(data.redirectTo) && !data.redirectTo.hasOwnProperty('condition')) {
                 redirect = data.redirectTo[authority];
               } else {
                 redirect = data.redirectTo;
+              }
+              if (isObject(redirect) && redirect.hasOwnProperty('condition')) {
+                const userPermissionsService = this.userPermissionsService; // used in eval
+                // tslint:disable-next-line:no-eval
+                redirect = eval(redirect.condition);
               }
               return this.menuService.getRedirectPath(path, redirect).pipe(
                 map((redirectPath) => {

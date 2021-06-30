@@ -1,0 +1,182 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.transport.lwm2m.config;
+
+import com.google.common.io.Resources;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.leshan.server.model.LwM2mModelProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URI;
+import java.security.KeyStore;
+
+@Slf4j
+@Component
+@ConditionalOnExpression("('${service.type:null}'=='tb-transport' && '${transport.lwm2m.enabled:false}'=='true') || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core'")
+public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
+
+    @Getter
+    @Setter
+    private LwM2mModelProvider modelProvider;
+
+    @Getter
+    @Value("${transport.lwm2m.timeout:}")
+    private Long timeout;
+
+    @Getter
+    @Value("${transport.sessions.report_timeout}")
+    private long sessionReportTimeout;
+
+    @Getter
+    @Value("${transport.lwm2m.recommended_ciphers:}")
+    private boolean recommendedCiphers;
+
+    @Getter
+    @Value("${transport.lwm2m.recommended_supported_groups:}")
+    private boolean recommendedSupportedGroups;
+
+    @Getter
+    @Value("${transport.lwm2m.downlink_pool_size:}")
+    private int downlinkPoolSize;
+
+    @Getter
+    @Value("${transport.lwm2m.uplink_pool_size:}")
+    private int uplinkPoolSize;
+
+    @Getter
+    @Value("${transport.lwm2m.ota_pool_size:}")
+    private int otaPoolSize;
+
+    @Getter
+    @Value("${transport.lwm2m.clean_period_in_sec:}")
+    private int cleanPeriodInSec;
+
+    @Getter
+    @Value("${transport.lwm2m.security.key_store_type:}")
+    private String keyStoreType;
+
+    @Getter
+    @Value("${transport.lwm2m.security.key_store:}")
+    private String keyStoreFilePath;
+
+    @Getter
+    @Setter
+    private KeyStore keyStoreValue;
+
+    @Getter
+    @Value("${transport.lwm2m.security.key_store_password:}")
+    private String keyStorePassword;
+
+    @Getter
+    @Value("${transport.lwm2m.security.root_alias:}")
+    private String rootCertificateAlias;
+
+    @Getter
+    @Value("${transport.lwm2m.security.enable_gen_new_key_psk_rpk:}")
+    private Boolean enableGenNewKeyPskRpk;
+
+    @Getter
+    @Value("${transport.lwm2m.server.id:}")
+    private Integer id;
+
+    @Getter
+    @Value("${transport.lwm2m.server.bind_address:}")
+    private String host;
+
+    @Getter
+    @Value("${transport.lwm2m.server.bind_port:}")
+    private Integer port;
+
+    @Getter
+    @Value("${transport.lwm2m.server.security.bind_address:}")
+    private String secureHost;
+
+    @Getter
+    @Value("${transport.lwm2m.server.security.bind_port:}")
+    private Integer securePort;
+
+    @Getter
+    @Value("${transport.lwm2m.server.security.public_x:}")
+    private String publicX;
+
+    @Getter
+    @Value("${transport.lwm2m.server.security.public_y:}")
+    private String publicY;
+
+    @Getter
+    @Value("${transport.lwm2m.server.security.private_encoded:}")
+    private String privateEncoded;
+
+    @Getter
+    @Value("${transport.lwm2m.server.security.alias:}")
+    private String certificateAlias;
+
+    @Getter
+    @Value("${transport.lwm2m.log_max_length:}")
+    private int logMaxLength;
+
+
+    @PostConstruct
+    public void init() {
+        URI uri = null;
+        try {
+            InputStream keyStoreInputStream;
+            File keyStoreFile = new File(keyStoreFilePath);
+            if (keyStoreFile.exists()) {
+                log.info("Reading key store from file {}", keyStoreFilePath);
+                keyStoreInputStream = new FileInputStream(keyStoreFile);
+            } else {
+                InputStream classPathStream = this.getClass().getClassLoader().getResourceAsStream(keyStoreFilePath);
+                if (classPathStream != null) {
+                    log.info("Reading key store from class path {}", keyStoreFilePath);
+                    keyStoreInputStream = classPathStream;
+                } else {
+                    uri = Resources.getResource(keyStoreFilePath).toURI();
+                    log.info("Reading key store from URI {}", keyStoreFilePath);
+                    keyStoreInputStream = new FileInputStream(new File(uri));
+                }
+            }
+            keyStoreValue = KeyStore.getInstance(keyStoreType);
+            keyStoreValue.load(keyStoreInputStream, keyStorePassword == null ? null : keyStorePassword.toCharArray());
+        } catch (Exception e) {
+            log.info("Unable to lookup LwM2M keystore. Reason: {}, {}", uri, e.getMessage());
+        }
+    }
+
+}

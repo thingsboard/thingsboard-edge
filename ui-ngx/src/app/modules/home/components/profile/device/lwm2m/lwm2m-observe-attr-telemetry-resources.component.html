@@ -1,0 +1,90 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="resourcesFormGroup">
+  <div fxLayout="row" fxLayoutAlign="start center">
+    <div fxFlex="30">
+      <mat-label translate>device-profile.lwm2m.resource-label</mat-label>
+    </div>
+    <div fxFlex="10" class="checkbox-column-title">
+      <mat-label translate>device-profile.lwm2m.attribute-label</mat-label>
+    </div>
+    <div fxFlex="10" class="checkbox-column-title">
+      <mat-label translate>device-profile.lwm2m.telemetry-label</mat-label>
+    </div>
+    <div fxFlex="10" class="checkbox-column-title">
+      <mat-label translate>device-profile.lwm2m.observe-label</mat-label>
+    </div>
+    <div fxFlex>
+      <mat-label translate>device-profile.lwm2m.key-name</mat-label>
+    </div>
+  </div>
+  <mat-divider></mat-divider>
+  <div formArrayName="resources"
+    *ngFor="let resourceLwM2M of resourcesFormArray.controls; let $index = index; trackBy: trackByParams">
+    <div [formGroupName]="$index" fxLayout="row" fxLayoutAlign="start center" class="resource-list">
+      <div class="resource-name" fxFlex="30">
+        <<b>{{resourceLwM2M.get('id').value}}</b>> <b>{{resourceLwM2M.get('name').value}}</b>
+      </div>
+      <div fxFlex="10" fxLayoutAlign="center center">
+        <mat-checkbox formControlName="attribute" color="warn">
+        </mat-checkbox>
+      </div>
+      <div fxFlex="10" fxLayoutAlign="center center">
+        <mat-checkbox formControlName="telemetry" color="primary">
+        </mat-checkbox>
+      </div>
+      <div fxFlex="10" fxLayoutAlign="center center">
+        <mat-checkbox fxFlex="10" formControlName="observe" color="primary"
+                      matTooltip="{{ 'device-profile.lwm2m.edit-observe-select'  | translate }}"
+                      [matTooltipDisabled]="disabled || !isDisabledObserve($index)"
+                      matTooltipPosition="above">
+        </mat-checkbox>
+      </div>
+      <mat-form-field fxFlex="33" hideRequiredMarker>
+        <mat-label></mat-label>
+        <input matInput type="text" formControlName="keyName" required>
+        <mat-error *ngIf="resourceLwM2M.get('keyName').hasError('required') ||
+                            resourceLwM2M.get('keyName').hasError('pattern')">
+          {{ 'device-profile.lwm2m.key-name-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <span fxFlex></span>
+      <tb-profile-lwm2m-attributes
+        formControlName="attributes"
+        [isAttributeTelemetry]="isDisabledObserve($index)"
+        isResource="true"
+        [modelName]="getNameResourceLwm2m(resourceLwM2M.value)">
+      </tb-profile-lwm2m-attributes>
+    </div>
+  </div>
+</section>

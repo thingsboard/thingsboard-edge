@@ -30,12 +30,10 @@
  */
 package org.thingsboard.integration.rabbitmq;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -45,6 +43,7 @@ import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -57,7 +56,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,12 +86,10 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor();
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
         producerExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         this.ctx = params.getContext();
-        rabbitMQConsumerConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                RabbitMQConsumerConfiguration.class);
+        rabbitMQConsumerConfiguration = getClientConfiguration(configuration, RabbitMQConsumerConfiguration.class);
         routingKeys = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getRoutingKeys().trim().split(",")));
         queues = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getQueues().trim().split(",")));
         createConnection();
@@ -154,9 +150,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         context = ctx;
         this.configuration = integration;
         try {
-        rabbitMQConsumerConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                RabbitMQConsumerConfiguration.class);
+            rabbitMQConsumerConfiguration = getClientConfiguration(configuration, RabbitMQConsumerConfiguration.class);
             queues = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getQueues().trim().split(",")));
             createConnection();
         } catch (Exception e) {

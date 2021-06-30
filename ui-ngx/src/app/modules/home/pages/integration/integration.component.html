@@ -211,6 +211,11 @@
         <tb-custom-integration-form #integrationFormComponent [form]="integrationForm">
         </tb-custom-integration-form>
       </section>
+      <section *ngIf="integrationType === integrationTypes.COAP">
+        <tb-coap-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [integrationType]="integrationType"
+          [routingKey]="entityForm.get('routingKey').value">
+        </tb-coap-integration-form>
+      </section>
     </fieldset>
     <div formGroupName="additionalInfo" fxLayout="column">
       <mat-form-field class="mat-block">

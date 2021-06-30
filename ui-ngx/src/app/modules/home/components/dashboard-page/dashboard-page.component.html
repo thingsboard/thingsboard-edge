@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-dashboard-page mat-content" tb-toast style="padding-top: 150px;"
+<div class="tb-dashboard-page mat-content" [ngClass]="{'mobile-app': isMobileApp && !isEdit}" style="padding-top: 150px;"
      fxFlex tb-fullscreen [fullscreen]="widgetEditMode || iframeMode || forceFullscreen || isFullscreen || reportView">
   <tb-hotkeys-cheatsheet #cheatSheetComponent></tb-hotkeys-cheatsheet>
   <section class="tb-dashboard-toolbar" [fxShow]="!reportView"
@@ -40,7 +40,7 @@
                           [toolbarOpened]="toolbarOpened" (triggerClick)="openToolbar()">
       <div class="tb-dashboard-action-panels" fxLayout="column" fxLayout.gt-sm="row"
            fxLayoutAlign="center stretch" fxLayoutAlign.gt-sm="space-between center">
-        <div class="tb-dashboard-action-panel" fxFlex="auto" fxLayout="row-reverse"
+        <div class="tb-dashboard-action-panel" fxFlex="auto" fxLayout="row-reverse" [fxHide]="isMobileApp && !isEdit"
              fxLayoutAlign.gt-sm="end center" fxLayoutAlign="space-between center" fxLayoutGap="12px">
           <tb-user-menu *ngIf="!isPublicUser() && forceFullscreen" fxHide.gt-sm displayUserInfo="true">
           </tb-user-menu>
@@ -64,7 +64,7 @@
           <tb-states-component fxFlex.lt-md
                                [statesControllerId]="isEdit ? 'default' : dashboardConfiguration.settings.stateControllerId"
                                [dashboardCtrl]="this"
-                               [dashboardId]="(!embedded && dashboard.id) ? dashboard.id.id : ''"
+                               [dashboardId]="setStateDashboardId ? dashboard.id.id : ''"
                                [isMobile]="isMobile"
                                [state]="dashboardCtx.state"
                                [currentState]="currentState"
@@ -96,7 +96,13 @@
                   (click)="isFullscreen = !isFullscreen">
             <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
           </button>
-          <button [fxShow]="currentDashboardId && (isEdit || displayExport())" mat-icon-button
+          <button [fxShow]="currentDashboardId && !isEdit && !isMobileApp && canEdit() && !readonly && displayUpdateDashboardImage()" mat-icon-button
+                  matTooltip="{{'dashboard.update-image' | translate}}"
+                  matTooltipPosition="below"
+                  (click)="updateDashboardImage($event)">
+            <mat-icon>wallpaper</mat-icon>
+          </button>
+          <button [fxShow]="currentDashboardId && !isMobileApp && (isEdit || displayExport())" mat-icon-button
                   [matMenuTriggerFor]="exportMenu"
                   matTooltip="{{'dashboard.export' | translate}}"
                   matTooltipPosition="below">
@@ -166,6 +172,7 @@
     </tb-dashboard-toolbar>
   </section>
   <section class="tb-dashboard-container tb-absolute-fill"
+           #dashboardContainer
            [ngClass]="{ 'is-fullscreen': forceFullscreen,
            'tb-dashboard-toolbar-opened': toolbarOpened,
            'tb-dashboard-toolbar-animated': isToolbarOpenedAnimate,
@@ -220,14 +227,14 @@
             </tb-dashboard-layout>
           </mat-drawer-content>
         </mat-drawer-container>
-        <section fxLayout="row" class="layout-wrap tb-footer-buttons" fxLayoutAlign="start end"
+        <section data-html2canvas-ignore fxLayout="row" class="layout-wrap tb-footer-buttons" fxLayoutAlign="start end"
                  *ngIf="!readonly && !reportView && !stateSelectView">
-          <tb-footer-fab-buttons *ngIf="!embedded"
+          <tb-footer-fab-buttons *ngIf="!embedded && !isMobileApp"
                                  [fxShow]="!isAddingWidget && isEdit && !widgetEditMode"
                                  relative
                                  [footerFabButtons]="addWidgetFabButtons">
           </tb-footer-fab-buttons>
-          <button *ngIf="canEdit() && !forceFullscreen && !embedded"
+          <button *ngIf="canEdit() && !forceFullscreen && !embedded && !isMobileApp"
                   mat-fab color="accent" class="tb-btn-footer"
                   [ngClass]="{'tb-hide': !isEdit || isAddingWidget}"
                   [disabled]="isLoading$ | async"
@@ -236,7 +243,7 @@
                   matTooltipPosition="above">
             <mat-icon>done</mat-icon>
           </button>
-          <button *ngIf="canEdit() && !forceFullscreen"
+          <button *ngIf="canEdit() && !forceFullscreen && !isMobileApp"
                   mat-fab color="accent" class="tb-btn-footer"
                   [ngClass]="{'tb-hide': isAddingWidget || (isLoading$ | async)}"
                   [disabled]="isLoading$ | async"
@@ -250,8 +257,6 @@
       <mat-drawer class="tb-details-drawer"
                   [opened]="isEditingWidget || isAddingWidget"
                   (openedStart)="detailsDrawerOpenedStart()"
-                  (opened)="detailsDrawerOpened()"
-                  (closedStart)="detailsDrawerClosedStart()"
                   (closed)="detailsDrawerClosed()"
                   mode="over"
                   position="end">

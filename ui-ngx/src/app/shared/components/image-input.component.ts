@@ -64,6 +64,9 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   accept = 'image/*';
 
   @Input()
+  emptyImageText = this.translate.instant('dashboard.empty-image');
+
+  @Input()
   noImageText = this.translate.instant('dashboard.no-image');
 
   @Input()

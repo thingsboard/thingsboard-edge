@@ -50,6 +50,7 @@ import { PulsarIntegrationFormComponent } from './apache-pulsar-integration-form
 import { RabbitmqIntegrationFormComponent } from '@home/pages/integration/configurations/rabbitmq-integration-form/rabbitmq-integration-form.component';
 import { ChirpstackIntegrationFormComponent } from './chirpstack-integration-form/chirpstack-integration-form.component';
 import { PubSubIntegrationFormComponent } from '@home/pages/integration/configurations/gcp-pubsub-integration-form/pubsub-integration-form.component';
+import { CoapIntegrationFormComponent } from '@home/pages/integration/configurations/coap-integration-form/coap-integration-form.component';
 
 export const integrations = [
     CertUploadComponent,
@@ -73,5 +74,6 @@ export const integrations = [
     UdpIntegrationFormComponent,
     OpcUaSubscriptionTagsComponent,
     PulsarIntegrationFormComponent,
-    PubSubIntegrationFormComponent
+    PubSubIntegrationFormComponent,
+    CoapIntegrationFormComponent
 ];

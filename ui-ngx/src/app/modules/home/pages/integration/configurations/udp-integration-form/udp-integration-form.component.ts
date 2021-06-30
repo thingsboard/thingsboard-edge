@@ -45,7 +45,7 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
   @Input() isSetDownlink: boolean;
   handlerConfigurationTypes = handlerConfigurationTypes;
 
-  defaultHandlerConfigurations = {
+  private defaultHandlerConfigurations = {
     [handlerConfigurationTypes.binary.value]: {
       handlerType: handlerConfigurationTypes.binary.value
     },
@@ -62,14 +62,26 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
     },
   };
 
+  private fieldsSet = {
+    BINARY: [],
+    TEXT: [
+      'charsetName'
+    ],
+    JSON: [],
+    HEX: [
+      'maxFrameLength'
+    ]
+  };
+
   constructor() {
     super();
   }
 
   onIntegrationFormSet() {
     if (this.form.enabled) {
-      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe(() => {
+      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe((handlerType) => {
         this.handlerConfigurationTypeChanged();
+        this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[handlerType], {emitEvent: false});
       });
       this.handlerConfigurationTypeChanged();
     }
@@ -77,14 +89,10 @@ export class UdpIntegrationFormComponent extends IntegrationFormComponent {
 
   handlerConfigurationTypeChanged() {
     const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
-    disableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName', 'maxFrameLength']);
-    if (type === handlerConfigurationTypes.hex.value) {
-      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['maxFrameLength']);
-    }
-    if (type === handlerConfigurationTypes.text.value) {
-      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName']);
-    }
-    this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type], {emitEvent: false});
+    const controls = this.form.get('handlerConfiguration') as FormGroup;
+    const enableField = this.fieldsSet[type];
+    const disableField  = Object.values(this.fieldsSet).flat().filter(item => !enableField.includes(item));
+    enableFields(controls, enableField);
+    disableFields(controls, disableField);
   }
-
 }

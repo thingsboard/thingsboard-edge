@@ -61,7 +61,7 @@ import {
 import {
   AddEntityGroupsToEdgeDialogComponent,
   AddEntityGroupsToEdgeDialogData
-} from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
+} from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -148,7 +148,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.loadEntity = id => this.entityGroupService.getEntityGroup(id.id);
 
-    this.saveEntity = entityGroup => {
+    this.saveEntity = (entityGroup, originalEntityGroup) => {
       entityGroup.type = this.groupType;
       if (this.customerId) {
         entityGroup.ownerId = {
@@ -156,7 +156,13 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
           id: this.customerId
         };
       }
-      return this.entityGroupService.saveEntityGroup(entityGroup).pipe(
+      let saveEntity$: Observable<EntityGroupInfo>;
+      if (entityGroup.type === EntityType.DEVICE) {
+        saveEntity$ = this.entityGroupService.saveDeviceEntityGroup(entityGroup, originalEntityGroup);
+      } else {
+        saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
+      }
+      return saveEntity$.pipe(
         tap((savedEntityGroup) => {
             this.notifyEntityGroupUpdated();
           }
@@ -198,7 +204,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.entityGroupsHasEdgeScope()) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) ||
+      this.entityGroupsHasEdgeScope()) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
@@ -215,7 +222,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.assignEntity = () => this.assignEntityGroupsToEdge();
       this.componentsData = {
         isEdgeScope: true
-      }
+      };
     }
   }
 
@@ -225,7 +232,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       {
         name: this.translate.instant('action.open'),
         icon: 'view_list',
-        isEnabled: (entity) => true,
+        isEnabled: () => true,
         onAction: ($event, entity) => this.open($event, entity)
       }
     );
@@ -234,7 +241,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
           icon: 'assignment_return',
-          isEnabled: (entity) => true,
+          isEnabled: () => true,
           onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }
       );
@@ -307,7 +314,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        ownerId: ownerId,
+        ownerId,
         groupType: this.groupType,
         edgeId: this.params.edgeId,
         customerId: this.params.customerId,

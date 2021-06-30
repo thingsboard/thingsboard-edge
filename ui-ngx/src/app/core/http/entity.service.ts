@@ -110,6 +110,7 @@ import { alarmFields } from '@shared/models/alarm.models';
 import { EdgeService } from "@core/http/edge.service";
 import { RuleChainMetaData, RuleChainType, RuleChain } from "@shared/models/rule-chain.models";
 import { Edge, EdgeEventType, EdgeEvent } from '@shared/models/edge.models';
+import { OtaPackageService } from '@core/http/ota-package.service';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 
@@ -132,6 +133,7 @@ export class EntityService {
     private dashboardService: DashboardService,
     private entityRelationService: EntityRelationService,
     private attributeService: AttributeService,
+    private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
     private converterService: ConverterService,
@@ -201,6 +203,9 @@ export class EntityService {
         break;
       case EntityType.ENTITY_GROUP:
         observable = this.entityGroupService.getEntityGroup(entityId, config);
+        break;
+      case EntityType.OTA_PACKAGE:
+        observable = this.otaPackageService.getOtaPackageInfo(entityId, config);
         break;
     }
     return observable;
@@ -540,6 +545,10 @@ export class EntityService {
       case EntityType.ROLE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.roleService.getRoles(pageLink, subType as RoleType, config);
+        break;
+      case EntityType.OTA_PACKAGE:
+        pageLink.sortOrder.property = 'title';
+        entitiesObservable = this.otaPackageService.getOtaPackages(pageLink, config);
         break;
     }
     return entitiesObservable;

@@ -50,6 +50,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
 
     @NoXss
     private String title;
+    private String image;
     @Valid
     private Set<ShortCustomerInfo> assignedCustomers;
 
@@ -66,6 +67,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.tenantId = dashboardInfo.getTenantId();
         this.customerId = dashboardInfo.getCustomerId();
         this.title = dashboardInfo.getTitle();
+        this.image = dashboardInfo.getImage();
         this.assignedCustomers = dashboardInfo.getAssignedCustomers();
     }
 
@@ -105,6 +107,14 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public Set<ShortCustomerInfo> getAssignedCustomers() {

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -54,6 +54,8 @@ import {
   transportPayloadTypeTranslationMap
 } from '@shared/models/device.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-mqtt-device-profile-transport-configuration',
@@ -65,7 +67,7 @@ import { isDefinedAndNotNull } from '@core/utils';
     multi: true
   }]
 })
-export class MqttDeviceProfileTransportConfigurationComponent implements ControlValueAccessor, OnInit {
+export class MqttDeviceProfileTransportConfigurationComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   transportPayloadTypes = Object.keys(TransportPayloadType);
 
@@ -73,6 +75,7 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
 
   mqttDeviceProfileTransportConfigurationFormGroup: FormGroup;
 
+  private destroy$ = new Subject();
   private requiredValue: boolean;
 
   get required(): boolean {
@@ -113,13 +116,21 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
         })
       }, {validator: this.uniqueDeviceTopicValidator}
     );
-    this.mqttDeviceProfileTransportConfigurationFormGroup.get('transportPayloadTypeConfiguration.transportPayloadType')
-      .valueChanges.subscribe(payloadType => {
+    this.mqttDeviceProfileTransportConfigurationFormGroup.get('transportPayloadTypeConfiguration.transportPayloadType').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(payloadType => {
       this.updateTransportPayloadBasedControls(payloadType, true);
     });
-    this.mqttDeviceProfileTransportConfigurationFormGroup.valueChanges.subscribe(() => {
+    this.mqttDeviceProfileTransportConfigurationFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -207,8 +218,8 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
   }
 
   private uniqueDeviceTopicValidator(control: FormGroup): { [key: string]: boolean } | null {
-    if (control.value) {
-      const formValue = control.value as MqttDeviceProfileTransportConfiguration;
+    if (control.getRawValue()) {
+      const formValue = control.getRawValue() as MqttDeviceProfileTransportConfiguration;
       if (formValue.deviceAttributesTopic === formValue.deviceTelemetryTopic) {
         return {unique: true};
       }

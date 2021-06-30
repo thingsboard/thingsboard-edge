@@ -36,6 +36,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.springframework.util.StopWatch;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueMsg;
 import org.thingsboard.server.queue.common.AbstractTbQueueConsumerTemplate;
@@ -65,7 +66,7 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> extends AbstractTbQue
                                     String clientId, String groupId, String topic,
                                     TbQueueAdmin admin, TbKafkaConsumerStatsService statsService) {
         super(topic);
-        Properties props = settings.toConsumerProps();
+        Properties props = settings.toConsumerProps(topic);
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);
         if (groupId != null) {
             props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -97,7 +98,16 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> extends AbstractTbQue
 
     @Override
     protected List<ConsumerRecord<String, byte[]>> doPoll(long durationInMillis) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+        log.trace("poll topic {} maxDuration {}", getTopic(), durationInMillis);
+
         ConsumerRecords<String, byte[]> records = consumer.poll(Duration.ofMillis(durationInMillis));
+
+        stopWatch.stop();
+        log.trace("poll topic {} took {}ms", getTopic(), stopWatch.getTotalTimeMillis());
+
         if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -114,7 +124,7 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> extends AbstractTbQue
 
     @Override
     protected void doCommit() {
-        consumer.commitAsync();
+        consumer.commitSync();
     }
 
     @Override

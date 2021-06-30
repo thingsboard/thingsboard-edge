@@ -169,18 +169,64 @@ export class MenuService {
         path: '/widgets-bundles',
         icon: 'now_widgets',
         disabled: disabledItems.indexOf('widget_library') > -1
-      },
-      {
-        id: guid(),
-        name: 'resource.resources-library',
-        type: 'link',
-        path: '/resources-library',
-        icon: 'folder',
-        disabled: disabledItems.indexOf('resources_library') > -1
       }
     );
 
-    const pages: Array<MenuSection> = [
+    const whiteLabelPages: Array<MenuSection> = [
+      {
+        id: guid(),
+        name: 'white-labeling.white-labeling',
+        type: 'link',
+        path: '/white-labeling/whiteLabel',
+        icon: 'format_paint',
+        disabled: disabledItems.indexOf('white_labeling') > -1
+      },
+      {
+        id: guid(),
+        name: 'white-labeling.login-white-labeling',
+        type: 'link',
+        path: '/white-labeling/loginWhiteLabel',
+        icon: 'format_paint',
+        disabled: disabledItems.indexOf('login_white_labeling') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.mail-templates',
+        type: 'link',
+        path: '/white-labeling/mail-template',
+        icon: 'format_shapes',
+        disabled: disabledItems.indexOf('mail_templates') > -1
+      },
+      {
+        id: guid(),
+        name: 'custom-translation.custom-translation',
+        type: 'link',
+        path: '/white-labeling/customTranslation',
+        icon: 'language',
+        disabled: disabledItems.indexOf('custom_translation') > -1
+      },
+      {
+        id: guid(),
+        name: 'custom-menu.custom-menu',
+        type: 'link',
+        path: '/white-labeling/customMenu',
+        icon: 'list',
+        disabled: disabledItems.indexOf('custom_menu') > -1
+      }
+    ];
+
+    const whiteLabelSection: MenuSection = {
+      id: guid(),
+      name: 'white-labeling.white-labeling',
+      type: 'toggle',
+      path: '/white-labeling',
+      icon: 'format_paint',
+      pages: whiteLabelPages,
+      asyncPages: of(whiteLabelPages)
+    };
+    sections.push(whiteLabelSection);
+
+    const settingPages: Array<MenuSection> = [
       {
         id: guid(),
         name: 'admin.general',
@@ -199,51 +245,11 @@ export class MenuService {
       },
       {
         id: guid(),
-        name: 'admin.mail-templates',
-        type: 'link',
-        path: '/settings/mail-template',
-        icon: 'format_shapes',
-        disabled: disabledItems.indexOf('mail_templates') > -1
-      },
-      {
-        id: guid(),
         name: 'admin.sms-provider',
         type: 'link',
         path: '/settings/sms-provider',
         icon: 'sms',
         disabled: disabledItems.indexOf('sms_provider') > -1
-      },
-      {
-        id: guid(),
-        name: 'white-labeling.white-labeling',
-        type: 'link',
-        path: '/settings/whiteLabel',
-        icon: 'format_paint',
-        disabled: disabledItems.indexOf('white_labeling') > -1
-      },
-      {
-        id: guid(),
-        name: 'white-labeling.login-white-labeling',
-        type: 'link',
-        path: '/settings/loginWhiteLabel',
-        icon: 'format_paint',
-        disabled: disabledItems.indexOf('login_white_labeling') > -1
-      },
-      {
-        id: guid(),
-        name: 'custom-translation.custom-translation',
-        type: 'link',
-        path: '/settings/customTranslation',
-        icon: 'language',
-        disabled: disabledItems.indexOf('custom_translation') > -1
-      },
-      {
-        id: guid(),
-        name: 'custom-menu.custom-menu',
-        type: 'link',
-        path: '/settings/customMenu',
-        icon: 'list',
-        disabled: disabledItems.indexOf('custom_menu') > -1
       },
       {
         id: guid(),
@@ -260,20 +266,28 @@ export class MenuService {
         path: '/settings/oauth2',
         icon: 'security',
         disabled: disabledItems.indexOf('oauth2') > -1
+      },
+      {
+        id: guid(),
+        name: 'resource.resources-library',
+        type: 'link',
+        path: '/settings/resources-library',
+        icon: 'folder',
+        disabled: disabledItems.indexOf('resources_library') > -1
       }
     ];
 
-    const section: MenuSection = {
+    const settingSection: MenuSection = {
       id: guid(),
       name: 'admin.system-settings',
       type: 'toggle',
       path: '/settings',
       icon: 'settings',
-      pages,
-      asyncPages: of(pages)
+      pages: settingPages,
+      asyncPages: of(settingPages)
     };
+    sections.push(settingSection);
 
-    sections.push(section);
     return sections;
   }
 
@@ -310,17 +324,6 @@ export class MenuService {
         ]
       },
       {
-        name: 'resource.management',
-        places: [
-          {
-            name: 'resource.resources-library',
-            icon: 'folder',
-            path: '/resources-library',
-            disabled: disabledItems.indexOf('resources_library') > -1
-          }
-        ]
-      },
-      {
         name: 'admin.system-settings',
         places: [
           {
@@ -334,12 +337,6 @@ export class MenuService {
             icon: 'mail',
             path: '/settings/outgoing-mail',
             disabled: disabledItems.indexOf('mail_server') > -1
-          },
-          {
-            name: 'admin.mail-templates',
-            icon: 'format_shapes',
-            path: '/settings/mail-template',
-            disabled: disabledItems.indexOf('mail_templates') > -1
           },
           {
             name: 'admin.sms-provider',
@@ -358,6 +355,12 @@ export class MenuService {
             icon: 'security',
             path: '/settings/oauth2',
             disabled: disabledItems.indexOf('oauth2') > -1
+          },
+          {
+            name: 'resource.resources-library',
+            icon: 'folder',
+            path: '/settings/resources-library',
+            disabled: disabledItems.indexOf('resources_library') > -1
           }
         ]
       },
@@ -367,14 +370,20 @@ export class MenuService {
           {
             name: 'white-labeling.white-labeling',
             icon: 'format_paint',
-            path: '/settings/whiteLabel',
+            path: '/white-labeling/whiteLabel',
             disabled: disabledItems.indexOf('white_labeling') > -1
           },
           {
             name: 'white-labeling.login-white-labeling',
             icon: 'format_paint',
-            path: '/settings/loginWhiteLabel',
+            path: '/white-labeling/loginWhiteLabel',
             disabled: disabledItems.indexOf('login_white_labeling') > -1
+          },
+          {
+            name: 'admin.mail-templates',
+            icon: 'format_shapes',
+            path: '/white-labeling/mail-template',
+            disabled: disabledItems.indexOf('mail_templates') > -1
           }
         ]
       },
@@ -384,7 +393,7 @@ export class MenuService {
           {
             name: 'custom-translation.custom-translation',
             icon: 'language',
-            path: '/settings/customTranslation',
+            path: '/white-labeling/customTranslation',
             disabled: disabledItems.indexOf('custom_translation') > -1
           }
         ]
@@ -395,7 +404,7 @@ export class MenuService {
           {
             name: 'custom-menu.custom-menu',
             icon: 'list',
-            path: '/settings/customMenu',
+            path: '/white-labeling/customMenu',
             disabled: disabledItems.indexOf('custom_menu') > -1
           }
         ]
@@ -512,7 +521,7 @@ export class MenuService {
           id: guid(),
           name: 'edge.rulechain-templates',
           type: 'link',
-          path: '/edges/ruleChains',
+          path: '/edgeManagement/ruleChains',
           icon: 'settings_ethernet',
           disabled: disabledItems.indexOf('rulechain_templates') > -1
         }
@@ -523,13 +532,12 @@ export class MenuService {
           id: guid(),
           name: 'edge.management',
           type: 'toggle',
-          path: '/edges',
+          path: '/edgeManagement',
           icon: 'settings_input_antenna',
           pages,
           asyncPages: of(pages)
         }
       );
-      sections.push();
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       sections.push(
@@ -546,15 +554,15 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       sections.push(
         {
           id: guid(),
-          name: 'resource.resources-library',
+          name: 'ota-update.ota-updates',
           type: 'link',
-          path: '/resources-library',
-          icon: 'folder',
-          disabled: disabledItems.indexOf('resources_library') > -1
+          path: '/otaUpdates',
+          icon: 'memory',
+          disabled: disabledItems.indexOf('otaUpdates') > -1
         }
       );
     }
@@ -574,57 +582,9 @@ export class MenuService {
       const pages: Array<MenuSection> = [
         {
           id: guid(),
-          name: 'admin.home-settings',
-          type: 'link',
-          path: '/settings/home',
-          icon: 'settings_applications',
-          disabled: disabledItems.indexOf('home_settings') > -1
-        },
-        {
-          id: guid(),
-          name: 'admin.outgoing-mail',
-          type: 'link',
-          path: '/settings/outgoing-mail',
-          icon: 'mail',
-          disabled: disabledItems.indexOf('mail_server') > -1
-        },
-        {
-          id: guid(),
-          name: 'admin.mail-templates',
-          type: 'link',
-          path: '/settings/mail-template',
-          icon: 'format_shapes',
-          disabled: disabledItems.indexOf('mail_templates') > -1
-        },
-        {
-          id: guid(),
-          name: 'admin.sms-provider',
-          type: 'link',
-          path: '/settings/sms-provider',
-          icon: 'sms',
-          disabled: disabledItems.indexOf('sms_provider') > -1
-        },
-        {
-          id: guid(),
-          name: 'custom-translation.custom-translation',
-          type: 'link',
-          path: '/settings/customTranslation',
-          icon: 'language',
-          disabled: disabledItems.indexOf('custom_translation') > -1
-        },
-        {
-          id: guid(),
-          name: 'custom-menu.custom-menu',
-          type: 'link',
-          path: '/settings/customMenu',
-          icon: 'list',
-          disabled: disabledItems.indexOf('custom_menu') > -1
-        },
-        {
-          id: guid(),
           name: 'white-labeling.white-labeling',
           type: 'link',
-          path: '/settings/whiteLabel',
+          path: '/white-labeling/whiteLabel',
           icon: 'format_paint',
           disabled: disabledItems.indexOf('white_labeling') > -1
         },
@@ -632,17 +592,33 @@ export class MenuService {
           id: guid(),
           name: 'white-labeling.login-white-labeling',
           type: 'link',
-          path: '/settings/loginWhiteLabel',
+          path: '/white-labeling/loginWhiteLabel',
           icon: 'format_paint',
           disabled: disabledItems.indexOf('login_white_labeling') > -1
         },
         {
           id: guid(),
-          name: 'self-registration.self-registration',
+          name: 'admin.mail-templates',
           type: 'link',
-          path: '/settings/selfRegistration',
-          icon: 'group_add',
-          disabled: disabledItems.indexOf('self_registration') > -1
+          path: '/white-labeling/mail-template',
+          icon: 'format_shapes',
+          disabled: disabledItems.indexOf('mail_templates') > -1
+        },
+        {
+          id: guid(),
+          name: 'custom-translation.custom-translation',
+          type: 'link',
+          path: '/white-labeling/customTranslation',
+          icon: 'language',
+          disabled: disabledItems.indexOf('custom_translation') > -1
+        },
+        {
+          id: guid(),
+          name: 'custom-menu.custom-menu',
+          type: 'link',
+          path: '/white-labeling/customMenu',
+          icon: 'list',
+          disabled: disabledItems.indexOf('custom_menu') > -1
         }
       ];
       sections.push(
@@ -650,7 +626,7 @@ export class MenuService {
           id: guid(),
           name: 'white-labeling.white-labeling',
           type: 'toggle',
-          path: '/settings',
+          path: '/white-labeling',
           icon: 'format_paint',
           pages,
           asyncPages: of(pages)
@@ -680,6 +656,67 @@ export class MenuService {
           icon: 'insert_chart',
           notExact: true,
           disabled: disabledItems.indexOf('api_usage') > -1
+        }
+      );
+    }
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING) ||
+      this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+      const pages: Array<MenuSection> = [];
+      if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+        pages.push(
+          {
+            id: guid(),
+            name: 'admin.home-settings',
+            type: 'link',
+            path: '/settings/home',
+            icon: 'settings_applications',
+            disabled: disabledItems.indexOf('home_settings') > -1
+          },
+          {
+            id: guid(),
+            name: 'admin.outgoing-mail',
+            type: 'link',
+            path: '/settings/outgoing-mail',
+            icon: 'mail',
+            disabled: disabledItems.indexOf('mail_server') > -1
+          },
+          {
+            id: guid(),
+            name: 'admin.sms-provider',
+            type: 'link',
+            path: '/settings/sms-provider',
+            icon: 'sms',
+            disabled: disabledItems.indexOf('sms_provider') > -1
+          },
+          {
+            id: guid(),
+            name: 'self-registration.self-registration',
+            type: 'link',
+            path: '/settings/selfRegistration',
+            icon: 'group_add',
+            disabled: disabledItems.indexOf('self_registration') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+        pages.push({
+          id: guid(),
+          name: 'resource.resources-library',
+          type: 'link',
+          path: '/settings/resources-library',
+          icon: 'folder',
+          disabled: disabledItems.indexOf('resources_library') > -1
+        });
+      }
+      sections.push(
+        {
+          id: guid(),
+          name: 'admin.system-settings',
+          type: 'toggle',
+          path: '/settings',
+          icon: 'settings',
+          pages,
+          asyncPages: of(pages)
         }
       );
     }
@@ -827,6 +864,16 @@ export class MenuService {
           }
         );
       }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
+        deviceManagementSection.places.push(
+          {
+            name: 'ota-update.ota-updates',
+            icon: 'memory',
+            path: '/otaUpdates',
+            disabled: disabledItems.indexOf('otaUpdates') > -1
+          }
+        );
+      }
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       homeSections.push(
@@ -857,23 +904,8 @@ export class MenuService {
             {
               name: 'edge.rulechain-templates',
               icon: 'settings_ethernet',
-              path: '/edges/ruleChains',
+              path: '/edgeManagement/ruleChains',
               disabled: disabledItems.indexOf('edge_groups') > -1
-            }
-          ]
-        }
-      );
-    }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
-      homeSections.push(
-        {
-          name: 'resource.management',
-          places: [
-            {
-              name: 'resource.resources-library',
-              icon: 'folder',
-              path: '/resources-library',
-              disabled: disabledItems.indexOf('resources_library') > -1
             }
           ]
         }
@@ -930,40 +962,22 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
-              name: 'admin.home-settings',
-              icon: 'settings_applications',
-              path: '/settings/home',
-              disabled: disabledItems.indexOf('home_settings') > -1
-            },
-            {
-              name: 'admin.outgoing-mail',
-              icon: 'mail',
-              path: '/settings/outgoing-mail',
-              disabled: disabledItems.indexOf('mail_server') > -1
-            },
-            {
-              name: 'admin.mail-templates',
-              icon: 'format_shapes',
-              path: '/settings/mail-template',
-              disabled: disabledItems.indexOf('mail_templates') > -1
-            },
-            {
-              name: 'admin.sms-provider',
-              icon: 'sms',
-              path: '/settings/sms-provider',
-              disabled: disabledItems.indexOf('sms_provider') > -1
-            },
-            {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',
-              path: '/settings/whiteLabel',
+              path: '/white-labeling/whiteLabel',
               disabled: disabledItems.indexOf('white_labeling') > -1
             },
             {
               name: 'white-labeling.login-white-labeling',
               icon: 'format_paint',
-              path: '/settings/loginWhiteLabel',
+              path: '/white-labeling/loginWhiteLabel',
               disabled: disabledItems.indexOf('login_white_labeling') > -1
+            },
+            {
+              name: 'admin.mail-templates',
+              icon: 'format_shapes',
+              path: '/white-labeling/mail-template',
+              disabled: disabledItems.indexOf('mail_templates') > -1
             }
           ]
         }
@@ -975,7 +989,7 @@ export class MenuService {
             {
               name: 'custom-translation.custom-translation',
               icon: 'language',
-              path: '/settings/customTranslation',
+              path: '/white-labeling/customTranslation',
               disabled: disabledItems.indexOf('custom_translation') > -1
             }
           ]
@@ -988,7 +1002,7 @@ export class MenuService {
             {
               name: 'custom-menu.custom-menu',
               icon: 'list',
-              path: '/settings/customMenu',
+              path: '/white-labeling/customMenu',
               disabled: disabledItems.indexOf('custom_menu') > -1
             }
           ]
@@ -1026,6 +1040,52 @@ export class MenuService {
             disabled: disabledItems.indexOf('api_usage') > -1
           }
         );
+      }
+    }
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING) ||
+      this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+      const settings: HomeSection = {
+        name: 'admin.system-settings',
+        places: []
+      };
+      homeSections.push(
+        settings
+      );
+      if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+        settings.places.push(
+          {
+            name: 'admin.home-settings',
+            path: '/settings/home',
+            icon: 'settings_applications',
+            disabled: disabledItems.indexOf('home_settings') > -1
+          },
+          {
+            name: 'admin.outgoing-mail',
+            path: '/settings/outgoing-mail',
+            icon: 'mail',
+            disabled: disabledItems.indexOf('mail_server') > -1
+          },
+          {
+            name: 'admin.sms-provider',
+            path: '/settings/sms-provider',
+            icon: 'sms',
+            disabled: disabledItems.indexOf('sms_provider') > -1
+          },
+          {
+            name: 'self-registration.self-registration',
+            path: '/settings/selfRegistration',
+            icon: 'group_add',
+            disabled: disabledItems.indexOf('self_registration') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
+        settings.places.push({
+          name: 'resource.resources-library',
+          path: '/settings/resources-library',
+          icon: 'folder',
+          disabled: disabledItems.indexOf('resources_library') > -1
+        });
       }
     }
     return homeSections;
@@ -1105,33 +1165,9 @@ export class MenuService {
       const pages: Array<MenuSection> = [
         {
           id: guid(),
-          name: 'admin.home-settings',
-          type: 'link',
-          path: '/settings/home',
-          icon: 'settings_applications',
-          disabled: disabledItems.indexOf('home_settings') > -1
-        },
-        {
-          id: guid(),
-          name: 'custom-translation.custom-translation',
-          type: 'link',
-          path: '/settings/customTranslation',
-          icon: 'language',
-          disabled: disabledItems.indexOf('custom_translation') > -1
-        },
-        {
-          id: guid(),
-          name: 'custom-menu.custom-menu',
-          type: 'link',
-          path: '/settings/customMenu',
-          icon: 'list',
-          disabled: disabledItems.indexOf('custom_menu') > -1
-        },
-        {
-          id: guid(),
           name: 'white-labeling.white-labeling',
           type: 'link',
-          path: '/settings/whiteLabel',
+          path: '/white-labeling/whiteLabel',
           icon: 'format_paint',
           disabled: disabledItems.indexOf('white_labeling') > -1
         },
@@ -1139,9 +1175,25 @@ export class MenuService {
           id: guid(),
           name: 'white-labeling.login-white-labeling',
           type: 'link',
-          path: '/settings/loginWhiteLabel',
+          path: '/white-labeling/loginWhiteLabel',
           icon: 'format_paint',
           disabled: disabledItems.indexOf('login_white_labeling') > -1
+        },
+        {
+          id: guid(),
+          name: 'custom-translation.custom-translation',
+          type: 'link',
+          path: '/white-labeling/customTranslation',
+          icon: 'language',
+          disabled: disabledItems.indexOf('custom_translation') > -1
+        },
+        {
+          id: guid(),
+          name: 'custom-menu.custom-menu',
+          type: 'link',
+          path: '/white-labeling/customMenu',
+          icon: 'list',
+          disabled: disabledItems.indexOf('custom_menu') > -1
         }
       ];
       sections.push(
@@ -1149,7 +1201,7 @@ export class MenuService {
           id: guid(),
           name: 'white-labeling.white-labeling',
           type: 'toggle',
-          path: '/settings',
+          path: '/white-labeling',
           icon: 'format_paint',
           pages,
           asyncPages: of(pages)
@@ -1165,6 +1217,29 @@ export class MenuService {
           path: '/auditLogs',
           icon: 'track_changes',
           disabled: disabledItems.indexOf('audit_log') > -1
+        }
+      );
+    }
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+      const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        }
+      ];
+      sections.push(
+        {
+          id: guid(),
+          name: 'admin.system-settings',
+          type: 'toggle',
+          path: '/settings',
+          icon: 'settings',
+          pages,
+          asyncPages: of(pages)
         }
       );
     }
@@ -1318,21 +1393,15 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
-              name: 'admin.home-settings',
-              icon: 'settings_applications',
-              path: '/settings/home',
-              disabled: disabledItems.indexOf('home_settings') > -1
-            },
-            {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',
-              path: '/settings/whiteLabel',
+              path: '/white-labeling/whiteLabel',
               disabled: disabledItems.indexOf('white_labeling') > -1
             },
             {
               name: 'white-labeling.login-white-labeling',
               icon: 'format_paint',
-              path: '/settings/loginWhiteLabel',
+              path: '/white-labeling/loginWhiteLabel',
               disabled: disabledItems.indexOf('login_white_labeling') > -1
             }
           ]
@@ -1345,7 +1414,7 @@ export class MenuService {
             {
               name: 'custom-translation.custom-translation',
               icon: 'language',
-              path: '/settings/customTranslation',
+              path: '/white-labeling/customTranslation',
               disabled: disabledItems.indexOf('custom_translation') > -1
             }
           ]
@@ -1358,7 +1427,7 @@ export class MenuService {
             {
               name: 'custom-menu.custom-menu',
               icon: 'list',
-              path: '/settings/customMenu',
+              path: '/white-labeling/customMenu',
               disabled: disabledItems.indexOf('custom_menu') > -1
             }
           ]
@@ -1375,6 +1444,21 @@ export class MenuService {
               icon: 'track_changes',
               path: '/auditLogs',
               disabled: disabledItems.indexOf('audit_log') > -1
+            }
+          ]
+        }
+      );
+    }
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+      homeSections.push(
+        {
+          name: 'admin.system-settings',
+          places: [
+            {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
             }
           ]
         }

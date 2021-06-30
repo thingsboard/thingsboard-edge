@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Created by Valerii Sosliuk on 5/12/2017.
@@ -62,7 +63,7 @@ public class JacksonUtil {
             throw new IllegalArgumentException("The given object value: "
                     + fromValue + " cannot be converted to " + toValueTypeRef, e);
         }
-   }
+    }
 
     public static <T> T fromString(String string, Class<T> clazz) {
         try {
@@ -91,6 +92,24 @@ public class JacksonUtil {
         }
     }
 
+    public static <T> T fromBytes(byte[] bytes, Class<T> clazz) {
+        try {
+            return bytes != null ? OBJECT_MAPPER.readValue(bytes, clazz) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value: "
+                    + Arrays.toString(bytes) + " cannot be transformed to Json object", e);
+        }
+    }
+
+    public static JsonNode fromBytes(byte[] bytes) {
+        try {
+            return OBJECT_MAPPER.readTree(bytes);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given byte[] value: "
+                    + Arrays.toString(bytes) + " cannot be transformed to Json object", e);
+        }
+    }
+
     public static String toString(Object value) {
         try {
             return value != null ? OBJECT_MAPPER.writeValueAsString(value) : null;
@@ -111,7 +130,7 @@ public class JacksonUtil {
         }
     }
 
-    public static ObjectNode newObjectNode(){
+    public static ObjectNode newObjectNode() {
         return OBJECT_MAPPER.createObjectNode();
     }
 

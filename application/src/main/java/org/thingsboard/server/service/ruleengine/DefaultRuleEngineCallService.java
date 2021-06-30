@@ -32,6 +32,7 @@ package org.thingsboard.server.service.ruleengine;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
@@ -69,7 +70,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     @PostConstruct
     public void initExecutor() {
-        rpcCallBackExecutor = Executors.newSingleThreadScheduledExecutor();
+        rpcCallBackExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("re-rpc-callback"));
     }
 
     @PreDestroy

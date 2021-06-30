@@ -54,7 +54,7 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
   tcpBinaryByteOrder = tcpBinaryByteOrder;
   tcpTextMessageSeparator = tcpTextMessageSeparator;
 
-  defaultHandlerConfigurations = {
+  private defaultHandlerConfigurations = {
     [handlerConfigurationTypes.binary.value]: {
       handlerType: handlerConfigurationTypes.binary.value,
       byteOrder: tcpBinaryByteOrder.littleEndian.value,
@@ -75,6 +75,24 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
     }
   };
 
+  private fieldsSet = {
+    BINARY: [
+      'byteOrder',
+      'maxFrameLength',
+      'lengthFieldOffset',
+      'lengthFieldLength',
+      'lengthAdjustment',
+      'initialBytesToStrip',
+      'failFast'
+    ],
+    TEXT: [
+      'maxFrameLength',
+      'stripDelimiter',
+      'messageSeparator'
+    ],
+    JSON: []
+  };
+
   constructor() {
     super();
     delete this.handlerTypes.hex;
@@ -82,37 +100,24 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
 
   onIntegrationFormSet() {
     if (this.form.enabled) {
-      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe(() => {
-        this.handlerConfigurationTypeChanged();
+      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe((handlerType) => {
+        this.handlerConfigurationTypeChanged(handlerType);
+        this.setDefaultValue(handlerType);
       });
-      this.handlerConfigurationTypeChanged();
+      this.handlerConfigurationTypeChanged(this.form.get('handlerConfiguration').get('handlerType').value);
     }
   }
 
-  handlerConfigurationTypeChanged() {
-    const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
+  setDefaultValue(type: string){
     const handlerConf = this.defaultHandlerConfigurations[type];
-    const controls = this.form.get('handlerConfiguration') as FormGroup;
-    const fieldsSet = {
-      BINARY: [
-        'byteOrder',
-        'maxFrameLength',
-        'lengthFieldOffset',
-        'lengthFieldLength',
-        'lengthAdjustment',
-        'initialBytesToStrip',
-        'failFast'
-      ],
-      TEXT: [
-        'maxFrameLength',
-        'stripDelimiter',
-        'messageSeparator'
-      ],
-      JSON: []
-    };
-    disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
-    enableFields(controls, fieldsSet[type]);
     this.form.get('handlerConfiguration').patchValue(handlerConf, {emitEvent: false});
   }
 
+  handlerConfigurationTypeChanged(type: string) {
+    const controls = this.form.get('handlerConfiguration') as FormGroup;
+    const enableField = this.fieldsSet[type];
+    const disableField = Object.values(this.fieldsSet).flat().filter(item => !enableField.includes(item));
+    disableFields(controls, disableField);
+    enableFields(controls, enableField);
+  }
 }
