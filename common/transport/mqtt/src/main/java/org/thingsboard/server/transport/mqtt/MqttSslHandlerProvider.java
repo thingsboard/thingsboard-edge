@@ -30,12 +30,10 @@
  */
 package org.thingsboard.server.transport.mqtt;
 
-import com.google.common.io.Resources;
 import io.netty.handler.ssl.SslHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -55,10 +53,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -88,16 +83,16 @@ public class MqttSslHandlerProvider {
     @Autowired
     private TransportService transportService;
 
-    private SslHandler sslHandler;
+    private SSLEngine sslEngine;
 
     public SslHandler getSslHandler() {
-        if (sslHandler == null) {
-            sslHandler = createSslHandler();
+        if (sslEngine == null) {
+            sslEngine = createSslEngine();
         }
-        return sslHandler;
+        return new SslHandler(sslEngine);
     }
 
-    private SslHandler createSslHandler() {
+    private SSLEngine createSslEngine() {
         try {
             TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             KeyStore trustStore = KeyStore.getInstance(keyStoreType);
@@ -128,10 +123,10 @@ public class MqttSslHandlerProvider {
             sslEngine.setEnabledProtocols(sslEngine.getSupportedProtocols());
             sslEngine.setEnabledCipherSuites(sslEngine.getSupportedCipherSuites());
             sslEngine.setEnableSessionCreation(true);
-            return new SslHandler(sslEngine);
+            return sslEngine;
         } catch (Exception e) {
             log.error("Unable to set up SSL context. Reason: " + e.getMessage(), e);
-            throw new RuntimeException("Failed to get SSL handler", e);
+            throw new RuntimeException("Failed to get SSL engine", e);
         }
     }
 
