@@ -168,9 +168,20 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
     }
 
     @Override
+    public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
+        return doSaveDeviceProfile(deviceProfile,  doValidate);
+    }
+
+    @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile) {
+        return doSaveDeviceProfile(deviceProfile,  true);
+    }
+
+    private DeviceProfile doSaveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
         log.trace("Executing saveDeviceProfile [{}]", deviceProfile);
-        deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
+        if (doValidate) {
+            deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
+        }
         DeviceProfile oldDeviceProfile = null;
         if (deviceProfile.getId() != null) {
             oldDeviceProfile = deviceProfileDao.findById(deviceProfile.getTenantId(), deviceProfile.getId().getId());
@@ -477,25 +488,23 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
                 @Override
                 protected void validateUpdate(TenantId tenantId, DeviceProfile deviceProfile) {
                     DeviceProfile old = deviceProfileDao.findById(deviceProfile.getTenantId(), deviceProfile.getId().getId());
-
-                    // TODO: voba - validate disabled to be able to sync with a cloud
-//                    if (old == null) {
-//                        throw new DataValidationException("Can't update non existing device profile!");
-//                    }
-//                    boolean profileTypeChanged = !old.getType().equals(deviceProfile.getType());
-//                    boolean transportTypeChanged = !old.getTransportType().equals(deviceProfile.getTransportType());
-//                    if (profileTypeChanged || transportTypeChanged) {
-//                        Long profileDeviceCount = deviceDao.countDevicesByDeviceProfileId(deviceProfile.getTenantId(), deviceProfile.getId().getId());
-//                        if (profileDeviceCount > 0) {
-//                            String message = null;
-//                            if (profileTypeChanged) {
-//                                message = "Can't change device profile type because devices referenced it!";
-//                            } else if (transportTypeChanged) {
-//                                message = "Can't change device profile transport type because devices referenced it!";
-//                            }
-//                            throw new DataValidationException(message);
-//                        }
-//                    }
+                    if (old == null) {
+                        throw new DataValidationException("Can't update non existing device profile!");
+                    }
+                    boolean profileTypeChanged = !old.getType().equals(deviceProfile.getType());
+                    boolean transportTypeChanged = !old.getTransportType().equals(deviceProfile.getTransportType());
+                    if (profileTypeChanged || transportTypeChanged) {
+                        Long profileDeviceCount = deviceDao.countDevicesByDeviceProfileId(deviceProfile.getTenantId(), deviceProfile.getId().getId());
+                        if (profileDeviceCount > 0) {
+                            String message = null;
+                            if (profileTypeChanged) {
+                                message = "Can't change device profile type because devices referenced it!";
+                            } else if (transportTypeChanged) {
+                                message = "Can't change device profile transport type because devices referenced it!";
+                            }
+                            throw new DataValidationException(message);
+                        }
+                    }
                 }
 
                 private void validateProtoSchemas(ProtoTransportPayloadConfiguration protoTransportPayloadTypeConfiguration) {

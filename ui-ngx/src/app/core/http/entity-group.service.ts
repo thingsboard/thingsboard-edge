@@ -273,6 +273,9 @@ export class EntityGroupService {
         case EntityType.DASHBOARD:
           url += 'dashboards';
           break;
+        case EntityType.EDGE:
+          url += 'edges';
+          break;
         default:
           url += 'entities';
       }
@@ -284,7 +287,7 @@ export class EntityGroupService {
   }
 
   public getEdgeEntityGroups(edgeId: string, groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
-    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/edge/${edgeId}/${groupType}`,
+    return this.http.get<Array<EntityGroupInfo>>(`/api/allEntityGroups/edge/${edgeId}/${groupType}`,
       defaultHttpOptionsFromConfig(config));
   }
 

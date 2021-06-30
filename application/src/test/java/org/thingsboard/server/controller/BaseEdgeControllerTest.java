@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
@@ -400,7 +401,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         Device device = new Device();
         device.setName("Edge Device 1");
-        device.setType("test");
+        device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
 
         doPost("/api/edge/" + edge.getId().getId().toString()
@@ -421,33 +422,34 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.expectMessageAmount(13);
+
+        edgeImitator.expectMessageAmount(15);
         edgeImitator.connect();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        Assert.assertEquals(13, edgeImitator.getDownlinkMsgs().size());
-        Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
-
-        edgeImitator.getDownlinkMsgs().clear();
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size()); // one msg during sync process, another from edge creation
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size()); // one msg during sync process for 'default' device profile
+        Assert.assertEquals(6, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size()); // two msgs during sync process, four msgs from assign to edge
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size()); // two msgs during sync process
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size()); // one msg during sync process
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size()); // one msg during sync process
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size()); // one msg during sync process
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
+        Assert.assertEquals(15, edgeImitator.getDownlinkMsgs().size());
 
         edgeImitator.expectMessageAmount(10);
-
         doPost("/api/edge/sync/" + edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
+        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
         Assert.assertEquals(10, edgeImitator.getDownlinkMsgs().size());
-        Assert.assertTrue(edgeImitator.findMessageByType(RuleChainUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(EntityGroupUpdateMsg.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(RoleProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(LoginWhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(WhiteLabelingParamsProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(CustomTranslationProto.class).isPresent());
-        Assert.assertTrue(edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class).isPresent());
 
         edgeImitator.allowIgnoredTypes();
         try {

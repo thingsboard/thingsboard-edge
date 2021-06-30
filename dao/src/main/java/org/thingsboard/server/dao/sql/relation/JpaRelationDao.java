@@ -33,18 +33,9 @@ package org.thingsboard.server.dao.sql.relation;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.SortOrder;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.DaoUtil;
@@ -53,8 +44,6 @@ import org.thingsboard.server.dao.model.sql.RelationEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 
-import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -206,43 +195,5 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
                     }
                     return relationExistsBeforeDelete;
                 });
-    }
-
-    @Override
-    public ListenableFuture<PageData<EntityRelation>> findRelations(TenantId tenantId, EntityId from, String relationType, RelationTypeGroup typeGroup, EntityType childType, PageLink pageLink) {
-        Specification<RelationEntity> fieldsSpec = getEntityFieldsSpec(from, relationType, typeGroup, childType);
-        Sort.Direction sortDirection = Sort.Direction.DESC;
-        if (pageLink.getSortOrder() != null) {
-            sortDirection = pageLink.getSortOrder().getDirection() == SortOrder.Direction.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
-        }
-        Pageable pageable = PageRequest.of(pageLink.getPage(), pageLink.getPageSize(), sortDirection, "toId");
-        return service.submit(() ->
-                DaoUtil.toPageData(relationRepository.findAll(Specification.where(fieldsSpec), pageable)));
-    }
-
-
-    private Specification<RelationEntity> getEntityFieldsSpec(EntityId from, String relationType, RelationTypeGroup typeGroup, EntityType childType) {
-        return (root, criteriaQuery, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (from != null) {
-                Predicate fromIdPredicate = criteriaBuilder.equal(root.get("fromId"), from.getId());
-                predicates.add(fromIdPredicate);
-                Predicate fromEntityTypePredicate = criteriaBuilder.equal(root.get("fromType"), from.getEntityType().name());
-                predicates.add(fromEntityTypePredicate);
-            }
-            if (relationType != null) {
-                Predicate relationTypePredicate = criteriaBuilder.equal(root.get("relationType"), relationType);
-                predicates.add(relationTypePredicate);
-            }
-            if (typeGroup != null) {
-                Predicate typeGroupPredicate = criteriaBuilder.equal(root.get("relationTypeGroup"), typeGroup.name());
-                predicates.add(typeGroupPredicate);
-            }
-            if (childType != null) {
-                Predicate childTypePredicate = criteriaBuilder.equal(root.get("toType"), childType.name());
-                predicates.add(childTypePredicate);
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
     }
 }

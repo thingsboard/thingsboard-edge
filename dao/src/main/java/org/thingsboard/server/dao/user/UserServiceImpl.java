@@ -150,9 +150,20 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public User saveUser(User user, boolean doValidate) {
+        return doSaveUser(user, doValidate);
+    }
+
+    @Override
     public User saveUser(User user) {
+        return doSaveUser(user, true);
+    }
+
+    private User doSaveUser(User user, boolean doValidate) {
         log.trace("Executing saveUser [{}]", user);
-        userValidator.validate(user, User::getTenantId);
+        if (doValidate) {
+            userValidator.validate(user, User::getTenantId);
+        }
         if (!userLoginCaseSensitive) {
             user.setEmail(user.getEmail().toLowerCase());
         }

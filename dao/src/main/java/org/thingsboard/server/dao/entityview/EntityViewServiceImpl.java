@@ -113,13 +113,24 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.name}"),
             @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
     @Override
-    public EntityView saveEntityView(EntityView entityView) {
-        return doSaveEntityView(entityView);
+    public EntityView saveEntityView(EntityView entityView, boolean doValidate) {
+        return doSaveEntityView(entityView, doValidate);
     }
 
-    private EntityView doSaveEntityView(EntityView entityView) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.entityId}"),
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.name}"),
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
+    @Override
+    public EntityView saveEntityView(EntityView entityView) {
+        return doSaveEntityView(entityView, true);
+    }
+
+    private EntityView doSaveEntityView(EntityView entityView, boolean doValidate) {
         log.trace("Executing save entity view [{}]", entityView);
-        entityViewValidator.validate(entityView, EntityView::getTenantId);
+        if (doValidate) {
+            entityViewValidator.validate(entityView, EntityView::getTenantId);
+        }
         EntityView savedEntityView = entityViewDao.save(entityView.getTenantId(), entityView);
         if (entityView.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());

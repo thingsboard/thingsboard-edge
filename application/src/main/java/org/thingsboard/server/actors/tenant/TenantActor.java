@@ -288,7 +288,19 @@ public class TenantActor extends RuleChainManagerActor {
                 log.info("[{}] Received API state update. Going to ENABLE Rule Engine execution.", tenantId);
                 initRuleChains();
             }
-        } else if (isRuleEngineForCurrentTenant) {
+        } /* voba - merge comment
+        else if (msg.getEntityId().getEntityType() == EntityType.EDGE) {
+            EdgeId edgeId = new EdgeId(msg.getEntityId().getId());
+            EdgeRpcService edgeRpcService = systemContext.getEdgeRpcService();
+            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+                edgeRpcService.deleteEdge(tenantId, edgeId);
+            } else {
+                Edge edge = systemContext.getEdgeService().findEdgeById(tenantId, edgeId);
+                if (msg.getEvent() == ComponentLifecycleEvent.UPDATED) {
+                    edgeRpcService.updateEdge(tenantId, edge);
+                }
+            }
+        } */ else if (isRuleEngineForCurrentTenant) {
             TbActorRef target = getEntityActorRef(msg.getEntityId());
             if (target != null) {
                 if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
@@ -310,6 +322,13 @@ public class TenantActor extends RuleChainManagerActor {
                 () -> DefaultActorService.DEVICE_DISPATCHER_NAME,
                 () -> new DeviceActorCreator(systemContext, tenantId, deviceId));
     }
+
+    /* voba - merge comment
+    private void onToEdgeSessionMsg(EdgeEventUpdateMsg msg) {
+        log.trace("[{}] onToEdgeSessionMsg [{}]", msg.getTenantId(), msg);
+        systemContext.getEdgeRpcService().onEdgeEvent(tenantId, msg.getEdgeId());
+    }
+     */
 
     public static class ActorCreator extends ContextBasedCreator {
 

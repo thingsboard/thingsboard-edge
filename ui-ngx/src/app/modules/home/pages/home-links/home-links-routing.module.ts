@@ -38,6 +38,8 @@ import { Observable } from 'rxjs';
 import { HomeDashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeSettings } from '@shared/models/edge.models';
 
 @Injectable()
 export class HomeDashboardResolver implements Resolve<HomeDashboard> {
@@ -50,10 +52,20 @@ export class HomeDashboardResolver implements Resolve<HomeDashboard> {
   }
 }
 
+@Injectable()
+export class EdgeSettingsResolver implements Resolve<EdgeSettings> {
+
+  constructor(private edgeService: EdgeService) {
+  }
+
+  resolve(): Observable<EdgeSettings> {
+    return this.edgeService.getEdgeSettings();
+  }
+
+}
+
 export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
-  ((route, translate, component) =>
-      component.edgeName ? component.edgeName : translate.instant('home.home')
-  );
+  ((route, translate, component) => route.data.edgeSettings.name);
 
 const routes: Routes = [
   {
@@ -68,7 +80,8 @@ const routes: Routes = [
       } as BreadCrumbConfig<HomeLinksComponent>
     },
     resolve: {
-      homeDashboard: HomeDashboardResolver
+      homeDashboard: HomeDashboardResolver,
+      edgeSettings: EdgeSettingsResolver
     }
   }
 ];
@@ -77,7 +90,8 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    HomeDashboardResolver
+    HomeDashboardResolver,
+    EdgeSettingsResolver
   ]
 })
 export class HomeLinksRoutingModule { }

@@ -19,11 +19,11 @@ version: '2.2'
 services:
   mytbedge:
     restart: always
-    image: "thingsboard/tb-edge:2.6.0"
+    image: "volodymyrbabak/tb-edge:3.3.0-EDGE-SNAPSHOT"
     ports:
-      - "8080:8080"
-      - "1883:1883"
-      - "5683:5683/udp"
+      - "18080:8080"
+      - "11883:1883"
+      - "15683:5683/udp"
     environment:
       CLOUD_ROUTING_KEY: PUT_YOUR_EDGE_KEY_HERE # e.g. 19ea7ee8-5e6d-e642-4f32-05440a529015
       CLOUD_ROUTING_SECRET: PUT_YOUR_EDGE_SECRET_HERE # e.g. bztvkvfqsye7omv9uxlp
@@ -34,9 +34,9 @@ services:
 ```
 
 Where:    
-- `8080:8080` - connect local port 8080 to exposed internal HTTP port 8080
-- `1883:1883` - connect local port 1883 to exposed internal MQTT port 1883  
-- `5683:5683` - connect local port 5683 to exposed internal COAP port 5683   
+- `18080:8080` - connect local port 18080 to exposed internal HTTP port 8080
+- `11883:1883` - connect local port 11883 to exposed internal MQTT port 1883  
+- `15683:5683` - connect local port 15683 to exposed internal COAP port 5683   
 - `mytb-edge-data:/data` - mounts the host's dir `mytb-edge-data` to ThingsBoard Edge DataBase data directory
 - `mytb-edge-logs:/var/log/tb-edge` - mounts the host's dir `mytb-edge-logs` to ThingsBoard Edge logs directory
 - `thingsboard/tb-edge` - docker image

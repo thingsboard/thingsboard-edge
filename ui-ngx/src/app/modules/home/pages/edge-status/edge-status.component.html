@@ -36,8 +36,8 @@
       <div fxLayout="column">
         <span class="mat-headline" translate>edge.status</span>
         <span class="mat-subheading-1"
-              [ngClass]="{'connected': cloudStatus.isActive, 'disconnected': !cloudStatus.isActive}"
-              translate>{{ cloudStatus.label }}</span>
+              [ngStyle]="{ color: isActive ? '#008000' : '#f00' }"
+              translate>{{ isActive ? "edge.connected" : "edge.disconnected" }}</span>
       </div>
     </mat-card-title>
 <!--    <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">-->
