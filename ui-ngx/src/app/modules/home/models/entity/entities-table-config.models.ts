@@ -48,7 +48,6 @@ import { EntityTabsComponent } from '../../components/entity/entity-tabs.compone
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, resourceByEntityType } from '@shared/models/security.models';
 import { DAY, historyInterval } from '@shared/models/time/time.models';
-import { EntityGroupParams } from '@shared/models/entity-group.models';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;

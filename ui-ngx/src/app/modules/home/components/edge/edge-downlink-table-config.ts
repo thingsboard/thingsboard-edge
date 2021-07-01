@@ -49,7 +49,7 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityTypeResource } from '@shared/models/entity-type.models';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { Direction } from '@shared/models/page/sort-order';
 import { DialogService } from '@core/services/dialog.service';
@@ -63,7 +63,7 @@ import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityService } from '@core/http/entity.service';
-import { map, mergeMap } from "rxjs/operators";
+import { map, tap } from "rxjs/operators";
 
 export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePageLink> {
 
@@ -100,12 +100,15 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
   }
 
   fetchEvents(pageLink: TimePageLink): Observable<PageData<EdgeEvent>> {
-    return this.attributeService.getEntityAttributes(this.entityId, AttributeScope.SERVER_SCOPE, ['queueStartTs']).pipe(
-      map((attributes) => {
-          const queueStartTs = attributes[0];
-          this.queueStartTs = queueStartTs ? queueStartTs.lastUpdateTs : 0;
-      }),
-      mergeMap(() => this.edgeService.getEdgeEvents(this.entityId, pageLink))
+    const edgeEventsObservable = this.edgeService.getEdgeEvents(this.entityId, pageLink);
+    const entityAttributesObservable = this.attributeService.getEntityAttributes(this.entityId, AttributeScope.SERVER_SCOPE, ['queueStartTs']).pipe(
+      tap(attributes => {
+        const queueStartTs = attributes[0];
+        this.queueStartTs = queueStartTs ? queueStartTs.lastUpdateTs : 0;
+      })
+    );
+    return forkJoin([edgeEventsObservable, entityAttributesObservable]).pipe(
+      map(([events]) => events)
     );
   }
 
