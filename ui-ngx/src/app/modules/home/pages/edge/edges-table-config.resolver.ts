@@ -73,18 +73,11 @@ import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.com
 import { EdgeId } from '@shared/models/id/edge-id';
 import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Edge } from "@shared/models/edge.models";
-import { EdgeService } from '@core/http/edge.service';
-import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
-import { EdgeId } from "@shared/models/id/edge-id";
-import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";
-import { UtilsService } from "@core/services/utils.service";
 
 @Injectable()
-export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>> {
+export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
 
-  private readonly config: EntityTableConfig<Edge> = new EntityTableConfig<Edge>();
-
+  private readonly config: EntityTableConfig<EdgeInfo> = new EntityTableConfig<EdgeInfo>();
   private customerId: string;
 
   constructor(private store: Store<AppState>,
@@ -95,39 +88,35 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private utils: UtilsService,
               private router: Router,
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.EDGE;
-    // this.config.entityComponent = EdgeComponent;
-    this.config.entityTabsComponent = EdgeTabsComponent;
+    /*this.config.entityComponent = EdgeComponent;
+    this.config.entityTabsComponent = EdgeTabsComponent;*/
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.EDGE);
     this.config.entityResources = entityTypeResources.get(EntityType.EDGE);
-
-    this.config.entityTitle = (edge) => edge ?
-      this.utils.customTranslation(edge.name, edge.name) : '';
 
     this.config.deleteEntityTitle = edge => this.translate.instant('edge.delete-edge-title', {edgeName: edge.name});
     this.config.deleteEntityContent = () => this.translate.instant('edge.delete-edge-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('edge.delete-edges-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('edge.delete-edges-text');
 
-    this.config.loadEntity = id => this.edgeService.getEdge(id.id);
+    /*this.config.loadEntity = id => this.edgeService.getEdgeInfo(id.id);
     this.config.saveEntity = edge => {
       return this.edgeService.saveEdge(edge).pipe(
         tap(() => {
           this.broadcast.broadcast('edgeSaved');
         }),
-        mergeMap((savedEdge) => this.edgeService.getEdge(savedEdge.id.id)
+        mergeMap((savedEdge) => this.edgeService.getEdgeInfo(savedEdge.id.id)
         ));
     };
     this.config.onEntityAction = action => this.onEdgeAction(action);
     this.config.detailsReadonly = () => this.config.componentsData.edgeScope === 'customer_user';
-    this.config.headerComponent = EdgeTableHeaderComponent;
+    this.config.headerComponent = EdgeTableHeaderComponent;*/
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<Edge>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EdgeInfo>> {
     const routeParams = route.params;
     this.config.componentsData = {
       edgeScope: route.data.edgesType,
@@ -167,27 +156,27 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     );
   }
 
-  configureColumns(edgeScope: string): Array<EntityTableColumn<Edge>> {
-    const columns: Array<EntityTableColumn<Edge>> = [
-      new DateEntityTableColumn<Edge>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Edge>('name', 'edge.name', '25%', this.config.entityTitle),
-      new EntityTableColumn<Edge>('type', 'edge.edge-type', '25%'),
-      new EntityTableColumn<Edge>('label', 'edge.label', '25%')
+  configureColumns(edgeScope: string): Array<EntityTableColumn<EdgeInfo>> {
+    const columns: Array<EntityTableColumn<EdgeInfo>> = [
+      new DateEntityTableColumn<EdgeInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<EdgeInfo>('name', 'edge.name', '25%'),
+      new EntityTableColumn<EdgeInfo>('type', 'edge.edge-type', '25%'),
+      new EntityTableColumn<EdgeInfo>('label', 'edge.label', '25%')
     ];
-    // if (edgeScope === 'tenant') {
-    //   columns.push(
-    //     new EntityTableColumn<EdgeInfo>('customerTitle', 'customer.customer', '25%'),
-    //     new EntityTableColumn<EdgeInfo>('customerIsPublic', 'edge.public', '60px',
-    //       entity => {
-    //         return checkBoxCell(entity.customerIsPublic);
-    //       }, () => ({}), false)
-    //   );
-    // }
+    if (edgeScope === 'tenant') {
+      columns.push(
+        new EntityTableColumn<EdgeInfo>('customerTitle', 'customer.customer', '25%'),
+        new EntityTableColumn<EdgeInfo>('customerIsPublic', 'edge.public', '60px',
+          entity => {
+            return checkBoxCell(entity.customerIsPublic);
+          }, () => ({}), false)
+      );
+    }
     return columns;
   }
 
   configureEntityFunctions(edgeScope: string): void {
-    if (edgeScope === 'tenant') {
+    /*if (edgeScope === 'tenant') {
       this.config.entitiesFetchFunction = pageLink =>
         this.edgeService.getTenantEdgeInfos(pageLink, this.config.componentsData.edgeType);
       this.config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
@@ -201,88 +190,57 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
       this.config.entitiesFetchFunction = pageLink =>
         this.edgeService.getCustomerEdgeInfos(this.customerId, pageLink, this.config.componentsData.edgeType);
       this.config.deleteEntity = id => this.edgeService.unassignEdgeFromCustomer(id.id);
-    }
+    }*/
   }
 
-  configureCellActions(edgeScope: string): Array<CellActionDescriptor<Edge>> {
-    const actions: Array<CellActionDescriptor<Edge>> = [];
+  configureCellActions(edgeScope: string): Array<CellActionDescriptor<EdgeInfo>> {
+    const actions: Array<CellActionDescriptor<EdgeInfo>> = [];
     if (edgeScope === 'tenant') {
       actions.push(
-        // {
-        //   name: this.translate.instant('edge.make-public'),
-        //   icon: 'share',
-        //   isEnabled: (entity) => (!entity.customerId || entity.customerId.id === NULL_UUID),
-        //   onAction: ($event, entity) => this.makePublic()
-        // },
-        // {
-        //   name: this.translate.instant('edge.assign-to-customer'),
-        //   icon: 'assignment_ind',
-        //   isEnabled: (entity) => (!entity.customerId || entity.customerId.id === NULL_UUID),
-        //   onAction: ($event, entity) => this.assignToCustomer($event, [entity.id])
-        // },
-        // {
-        //   name: this.translate.instant('edge.unassign-from-customer'),
-        //   icon: 'assignment_return',
-        //   isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && !entity.customerIsPublic),
-        //   onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
-        // },
-        // {
-        //   name: this.translate.instant('edge.make-private'),
-        //   icon: 'reply',
-        //   isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && entity.customerIsPublic),
-        //   onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
-        // },
         {
-          name: this.translate.instant('edge.manage-edge-users'),
-          nameFunction: (edge) => {
-            return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-users')
-              : this.translate.instant('edge.manage-edge-users');
-          },
-          icon: 'account_circle',
-          isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.manageEdgeUsers($event, entity)
+          name: this.translate.instant('edge.make-public'),
+          icon: 'share',
+          isEnabled: (entity) => (!entity.customerId || entity.customerId.id === NULL_UUID),
+          onAction: ($event, entity) => this.makePublic($event, entity)
+        },
+        {
+          name: this.translate.instant('edge.assign-to-customer'),
+          icon: 'assignment_ind',
+          isEnabled: (entity) => (!entity.customerId || entity.customerId.id === NULL_UUID),
+          onAction: ($event, entity) => this.assignToCustomer($event, [entity.id])
+        },
+        {
+          name: this.translate.instant('edge.unassign-from-customer'),
+          icon: 'assignment_return',
+          isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && !entity.customerIsPublic),
+          onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
+        },
+        {
+          name: this.translate.instant('edge.make-private'),
+          icon: 'reply',
+          isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && entity.customerIsPublic),
+          onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         },
         {
           name: this.translate.instant('edge.manage-edge-assets'),
-          nameFunction: (edge) => {
-            return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-assets')
-              : this.translate.instant('edge.manage-edge-assets');
-          },
           icon: 'domain',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
         },
         {
           name: this.translate.instant('edge.manage-edge-devices'),
-          nameFunction: (edge) => {
-            return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-devices')
-              : this.translate.instant('edge.manage-edge-devices');
-          },
           icon: 'devices_other',
           isEnabled: (entity) => true,
-          onAction: ($event,entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
         },
         {
           name: this.translate.instant('edge.manage-edge-entity-views'),
-          nameFunction: (edge) => {
-            return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-entity-views')
-              : this.translate.instant('edge.manage-edge-entity-views');
-          },
           icon: 'view_quilt',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
         },
         {
           name: this.translate.instant('edge.manage-edge-dashboards'),
-          nameFunction: (edge) => {
-            return edge.additionalInfo && edge.additionalInfo.isPublic
-              ? this.translate.instant('edge.manage-public-dashboards')
-              : this.translate.instant('edge.manage-edge-dashboards');
-          },
           icon: 'dashboard',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
@@ -293,59 +251,58 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.RULE_CHAIN)
         }
-      )
+      );
     }
     if (edgeScope === 'customer') {
       actions.push(
-        // {
-        //   name: this.translate.instant('edge.unassign-from-customer'),
-        //   icon: 'assignment_return',
-        //   isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && !entity.customerIsPublic),
-        //   onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
-        // },
-        // {
-        //   name: this.translate.instant('edge.make-private'),
-        //   icon: 'reply',
-        //   isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && entity.customerIsPublic),
-        //   onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
-        // },
+        {
+          name: this.translate.instant('edge.unassign-from-customer'),
+          icon: 'assignment_return',
+          isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && !entity.customerIsPublic),
+          onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
+        },
+        {
+          name: this.translate.instant('edge.make-private'),
+          icon: 'reply',
+          isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && entity.customerIsPublic),
+          onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
+        },
       );
     }
-
-    // if (edgeScope === 'customer_user') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('edge.manage-edge-assets'),
-    //       icon: 'domain',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.manage-edge-devices'),
-    //       icon: 'devices_other',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.manage-edge-entity-views'),
-    //       icon: 'view_quilt',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.manage-edge-dashboards'),
-    //       icon: 'dashboard',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
-    //     }
-    //   );
-    // }
+    if (edgeScope === 'customer_user') {
+      actions.push(
+        {
+          name: this.translate.instant('edge.manage-edge-assets'),
+          icon: 'domain',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
+        },
+        {
+          name: this.translate.instant('edge.manage-edge-devices'),
+          icon: 'devices_other',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
+        },
+        {
+          name: this.translate.instant('edge.manage-edge-entity-views'),
+          icon: 'view_quilt',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
+        },
+        {
+          name: this.translate.instant('edge.manage-edge-dashboards'),
+          icon: 'dashboard',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
+        }
+      );
+    }
     return actions;
   }
 
-  configureGroupActions(edgeScope: string): Array<GroupActionDescriptor<Edge>> {
-    const actions: Array<GroupActionDescriptor<Edge>> = [];
-    /* if (edgeScope === 'tenant') {
+  configureGroupActions(edgeScope: string): Array<GroupActionDescriptor<EdgeInfo>> {
+    const actions: Array<GroupActionDescriptor<EdgeInfo>> = [];
+    if (edgeScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('edge.assign-edge-to-customer-text'),
@@ -364,13 +321,13 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           onAction: ($event, entities) => this.unassignEdgesFromCustomer($event, entities)
         }
       );
-    }*/
+    }
     return actions;
   }
 
   configureAddActions(edgeScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    /*if (edgeScope === 'tenant') {
+    if (edgeScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('edge.add-edge-text'),
@@ -395,12 +352,12 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
           onAction: ($event) => this.addEdgesToCustomer($event)
         }
       );
-    }*/
+    }
     return actions;
   }
 
   importEdges($event: Event) {
-    /*this.homeDialogs.importEntities(customerId, EntityType.EDGE, entityGroupId).subscribe((res) => {
+    /*this.homeDialogs.importEntities(EntityType.EDGE).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('edgeSaved');
         this.config.table.updateData();
@@ -475,7 +432,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         suffix = 'ruleChains';
         break;
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/${suffix}`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/${suffix}`);
   }
 
   assignToCustomer($event: Event, edgesIds: Array<EdgeId>) {
@@ -498,7 +455,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
       });
   }
 
-  /*unassignFromCustomer($event: Event, edge: EdgeInfo) {
+  unassignFromCustomer($event: Event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -556,7 +513,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         }
       }
     );
-  }*/
+  }
 
   syncEdge($event, edge) {
     if ($event) {
@@ -578,15 +535,15 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
 
   onEdgeAction(action: EntityAction<EdgeInfo>): boolean {
     switch (action.action) {
-      // case 'makePublic':
-      //   this.makePublic(action.event, action.entity);
-      //   return true;
-      // case 'assignToCustomer':
-      //   this.assignToCustomer(action.event, [action.entity.id]);
-      //   return true;
-      // case 'unassignFromCustomer':
-      //   this.unassignFromCustomer(action.event, action.entity);
-      //   return true;
+      case 'makePublic':
+        this.makePublic(action.event, action.entity);
+        return true;
+      case 'assignToCustomer':
+        this.assignToCustomer(action.event, [action.entity.id]);
+        return true;
+      case 'unassignFromCustomer':
+        this.unassignFromCustomer(action.event, action.entity);
+        return true;
       case 'openEdgeAssets':
         this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ASSET);
         return true;
@@ -606,49 +563,6 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         this.syncEdge(action.event, action.entity);
         return true;
     }
-    return true;
-  }
-
-  manageEdgeUsers($event: Event, edge: Edge) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.router.navigateByUrl(`edges/${edge.id.id}/users`);
-  }
-
-  manageEdgeAssets($event: Event, edge: Edge) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.router.navigateByUrl(`edges/${edge.id.id}/assets`);
-  }
-
-  manageEdgeDevices($event: Event, edge: Edge) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.router.navigateByUrl(`edges/${edge.id.id}/devices`);
-  }
-
-  manageEdgeEntityViews($event: Event, edge: Edge) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.router.navigateByUrl(`edges/${edge.id.id}/entityViews`);
-  }
-
-  manageEdgeDashboards($event: Event, edge: Edge) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.router.navigateByUrl(`edges/${edge.id.id}/dashboards`);
-  }
-
-  manageEdgeRuleChains($event: Event, edge: Edge) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.router.navigateByUrl(`edges/${edge.id.id}/ruleChains`);
   }
 
 }
