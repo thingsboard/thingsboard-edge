@@ -188,7 +188,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`customers/${customer.id.id}/edges`);
+    this.router.navigateByUrl(`customers/${customer.id.id}/edgeInstances`);
   }
 
   onCustomerAction(action: EntityAction<Customer>): boolean {

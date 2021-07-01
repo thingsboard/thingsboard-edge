@@ -1,0 +1,88 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="instancesFormGroup">
+  <mat-accordion multi="true" formArrayName="instances">
+    <mat-expansion-panel
+      class="instance-row"
+      *ngFor="let instances of instancesFormArray.controls; let $index = index; trackBy: trackByParams"
+      [formGroupName]="$index"
+      [expanded]="isExpend"
+      [disabled]="isExpend">
+      <mat-expansion-panel-header>
+        <mat-panel-title class="tb-panel-title-height" fxLayout="row">
+          <div fxFlex="30" fxLayoutAlign="start center">
+            {{ 'device-profile.lwm2m.instance' | translate }} <<b>{{instances.get('id').value}}</b>>
+          </div>
+          <div fxLayoutAlign="center center" fxFlex="10">
+            <mat-checkbox color="warn"
+                          [disabled]="this.disabled"
+                          [checked]="getChecked(instances, 'attribute')"
+                          (click)="$event.stopPropagation()"
+                          (change)="changeInstanceResourcesCheckBox($event.checked, instances, 'attribute')"
+                          [indeterminate]="getIndeterminate(instances, 'attribute')">
+            </mat-checkbox>
+          </div>
+          <div fxLayoutAlign="center center" fxFlex="10">
+            <mat-checkbox color="primary"
+                          [disabled]="this.disabled"
+                          [checked]="getChecked(instances, 'telemetry')"
+                          (click)="$event.stopPropagation()"
+                          (change)="changeInstanceResourcesCheckBox($event.checked, instances, 'telemetry')"
+                          [indeterminate]="getIndeterminate(instances, 'telemetry')">
+            </mat-checkbox>
+          </div>
+          <div fxLayoutAlign="center center" fxFlex="10">
+            <mat-checkbox color="primary"
+                          [disabled]="disableObserve(instances)"
+                          [checked]="getChecked(instances, 'observe')"
+                          (click)="$event.stopPropagation()"
+                          (change)="changeInstanceResourcesCheckBox($event.checked, instances, 'observe')"
+                          [indeterminate]="getIndeterminate(instances, 'observe')">
+            </mat-checkbox>
+          </div>
+          <span fxFlex></span>
+          <tb-profile-lwm2m-attributes
+            formControlName="attributes"
+            [isAttributeTelemetry]="disableObserveInstance(instances)"
+            [modelName]="getNameInstance(instances.value)">
+          </tb-profile-lwm2m-attributes>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <tb-profile-lwm2m-observe-attr-telemetry-resource
+          formControlName="resources">
+        </tb-profile-lwm2m-observe-attr-telemetry-resource>
+      </ng-template>
+    </mat-expansion-panel>
+  </mat-accordion>
+</section>

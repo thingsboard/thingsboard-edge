@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -562,32 +563,37 @@ public class DeviceController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/devices/count/{otaPackageType}", method = RequestMethod.GET)
+    @RequestMapping(value = "/devices/count/{otaPackageType}/{deviceProfileId}", method = RequestMethod.GET)
     @ResponseBody
-    public Long countByEntityTypeAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
-                                                    @RequestParam EntityType entityType,
-                                                    @RequestParam String deviceProfileId,
-                                                    @RequestParam(required = false) String deviceGroupId) throws ThingsboardException {
+    public Long countByDeviceProfileAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
+                                                       @PathVariable("deviceProfileId") String deviceProfileId) throws ThingsboardException {
         checkParameter("OtaPackageType", otaPackageType);
         checkParameter("DeviceProfileId", deviceProfileId);
         try {
-            switch (entityType) {
-                case DEVICE_PROFILE: {
-                    return deviceService.countByDeviceProfileAndEmptyOtaPackage(
-                            getTenantId(),
-                            new DeviceProfileId(UUID.fromString(deviceProfileId)),
-                            OtaPackageType.valueOf(otaPackageType));
-                }
-                case ENTITY_GROUP: {
-                    checkParameter("DeviceGroupId", deviceGroupId);
-                    return deviceService.countByEntityGroupAndDeviceProfileAndEmptyOtaPackage(
-                            new EntityGroupId(UUID.fromString(deviceGroupId)),
-                            new DeviceProfileId(UUID.fromString(deviceProfileId)),
-                            OtaPackageType.valueOf(otaPackageType));
-                }
-                default:
-                    throw new IllegalArgumentException("Not implemented!");
-            }
+            return deviceService.countByDeviceProfileAndEmptyOtaPackage(
+                    getTenantId(),
+                    new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                    OtaPackageType.valueOf(otaPackageType));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/devices/count/{otaPackageType}/{otaPackageId}/{entityGroupId}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long countByDeviceGroupAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
+                                                     @PathVariable("otaPackageId") String otaPackageId,
+                                                     @PathVariable("entityGroupId") String deviceGroupId) throws ThingsboardException {
+        checkParameter("OtaPackageType", otaPackageType);
+        checkParameter("OtaPackageId", otaPackageId);
+        checkParameter("EntityGroupId", deviceGroupId);
+        try {
+            checkParameter("DeviceGroupId", deviceGroupId);
+            return deviceService.countByEntityGroupAndEmptyOtaPackage(
+                    new EntityGroupId(UUID.fromString(deviceGroupId)),
+                    new OtaPackageId(UUID.fromString(otaPackageId)),
+                    OtaPackageType.valueOf(otaPackageType));
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -289,10 +289,10 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND d.deviceProfileId = (SELECT op.deviceProfileId FROM OtaPackageInfoEntity op WHERE op.id = :otaPackageId) " +
             "AND d.firmwareId = null")
-    Long countByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
-                                                                   @Param("deviceProfileId") UUID deviceProfileId);
+    Long countByEntityGroupIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
+                                                 @Param("otaPackageId") UUID otaPackageId);
 
     @Query("SELECT count(*) FROM DeviceEntity d, " +
             "RelationEntity re " +
@@ -300,10 +300,10 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND d.deviceProfileId = (SELECT op.deviceProfileId FROM OtaPackageInfoEntity op WHERE op.id = :otaPackageId) " +
             "AND d.softwareId = null")
-    Long countByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
-                                                                   @Param("deviceProfileId") UUID deviceProfileId);
+    Long countByEntityGroupIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
+                                                 @Param("otaPackageId") UUID otaPackageId);
 
     @Query(value = COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL,
             nativeQuery = true)

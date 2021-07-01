@@ -35,15 +35,19 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.server.model.LwM2mModelProvider;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.ResourceUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 
 @Slf4j
@@ -72,28 +76,20 @@ public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
     private boolean recommendedSupportedGroups;
 
     @Getter
-    @Value("${transport.lwm2m.response_pool_size:}")
-    private int responsePoolSize;
+    @Value("${transport.lwm2m.downlink_pool_size:}")
+    private int downlinkPoolSize;
 
     @Getter
-    @Value("${transport.lwm2m.registered_pool_size:}")
-    private int registeredPoolSize;
+    @Value("${transport.lwm2m.uplink_pool_size:}")
+    private int uplinkPoolSize;
 
     @Getter
-    @Value("${transport.lwm2m.registration_store_pool_size:}")
-    private int registrationStorePoolSize;
+    @Value("${transport.lwm2m.ota_pool_size:}")
+    private int otaPoolSize;
 
     @Getter
     @Value("${transport.lwm2m.clean_period_in_sec:}")
     private int cleanPeriodInSec;
-
-    @Getter
-    @Value("${transport.lwm2m.update_registered_pool_size:}")
-    private int updateRegisteredPoolSize;
-
-    @Getter
-    @Value("${transport.lwm2m.un_registered_pool_size:}")
-    private int unRegisteredPoolSize;
 
     @Getter
     @Value("${transport.lwm2m.security.key_store_type:}")
@@ -101,7 +97,7 @@ public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
 
     @Getter
     @Value("${transport.lwm2m.security.key_store:}")
-    private String keyStorePathFile;
+    private String keyStoreFilePath;
 
     @Getter
     @Setter
@@ -162,16 +158,15 @@ public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
 
     @PostConstruct
     public void init() {
-        URI uri = null;
         try {
-            uri = Resources.getResource(keyStorePathFile).toURI();
-            log.error("URI: {}", uri);
-            File keyStoreFile = new File(uri);
-            InputStream inKeyStore = new FileInputStream(keyStoreFile);
+            InputStream keyStoreInputStream = ResourceUtils.getInputStream(this, keyStoreFilePath);
             keyStoreValue = KeyStore.getInstance(keyStoreType);
-            keyStoreValue.load(inKeyStore, keyStorePassword == null ? null : keyStorePassword.toCharArray());
+            keyStoreValue.load(keyStoreInputStream, keyStorePassword == null ? null : keyStorePassword.toCharArray());
         } catch (Exception e) {
-            log.info("Unable to lookup LwM2M keystore. Reason: {}, {}" , uri, e.getMessage());
+            log.info("Unable to lookup LwM2M keystore. Reason: {}, {}", keyStoreFilePath, e.getMessage());
         }
     }
+
+
+
 }

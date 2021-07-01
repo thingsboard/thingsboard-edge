@@ -33,28 +33,30 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { forkJoin, Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { DeviceProfile, DeviceProfileInfo, DeviceTransportType } from '@shared/models/device.models';
-import { isDefinedAndNotNull, isEmptyStr } from '@core/utils';
-import { ObjectLwM2M, ServerSecurityConfig } from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
+import { deepClone, isDefinedAndNotNull, isEmptyStr } from '@core/utils';
+import {
+  ObjectLwM2M,
+  securityConfigMode,
+  ServerSecurityConfig,
+  ServerSecurityConfigInfo
+} from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
 import { SortOrder } from '@shared/models/page/sort-order';
 import { OtaPackageService } from '@core/http/ota-package.service';
-import { OtaUpdateType } from '@shared/models/ota-package.models';
-import { mergeMap } from 'rxjs/operators';
-import { DialogService } from '@core/services/dialog.service';
-import { TranslateService } from '@ngx-translate/core';
+import { map, mergeMap, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceProfileService {
 
+  private lwm2mBootstrapSecurityInfoInMemoryCache = new Map<boolean, ServerSecurityConfigInfo>();
+
   constructor(
     private http: HttpClient,
-    private otaPackageService: OtaPackageService,
-    private dialogService: DialogService,
-    private translate: TranslateService
+    private otaPackageService: OtaPackageService
   ) {
   }
 
@@ -78,11 +80,42 @@ export class DeviceProfileService {
     return this.http.get<Array<ObjectLwM2M>>(url, defaultHttpOptionsFromConfig(config));
   }
 
-  public getLwm2mBootstrapSecurityInfo(securityMode: string, bootstrapServerIs: boolean,
-                                       config?: RequestConfig): Observable<ServerSecurityConfig> {
-    return this.http.get<ServerSecurityConfig>(
-      `/api/lwm2m/deviceProfile/bootstrap/${securityMode}/${bootstrapServerIs}`,
-      defaultHttpOptionsFromConfig(config)
+  public getLwm2mBootstrapSecurityInfo(isBootstrapServer: boolean, config?: RequestConfig): Observable<ServerSecurityConfigInfo> {
+    const securityConfig = this.lwm2mBootstrapSecurityInfoInMemoryCache.get(isBootstrapServer);
+    if (securityConfig) {
+      return of(securityConfig);
+    } else {
+      return this.http.get<ServerSecurityConfigInfo>(
+        `/api/lwm2m/deviceProfile/bootstrap/${isBootstrapServer}`,
+        defaultHttpOptionsFromConfig(config)
+      ).pipe(
+        tap(serverConfig => this.lwm2mBootstrapSecurityInfoInMemoryCache.set(isBootstrapServer, serverConfig))
+      );
+    }
+  }
+
+  public getLwm2mBootstrapSecurityInfoBySecurityType(isBootstrapServer: boolean, securityMode = securityConfigMode.NO_SEC,
+                                                     config?: RequestConfig): Observable<ServerSecurityConfig> {
+    return this.getLwm2mBootstrapSecurityInfo(isBootstrapServer, config).pipe(
+      map(securityConfig => {
+        const serverSecurityConfigInfo = deepClone(securityConfig);
+        switch (securityMode) {
+          case securityConfigMode.PSK:
+            serverSecurityConfigInfo.port = serverSecurityConfigInfo.securityPort;
+            serverSecurityConfigInfo.host = serverSecurityConfigInfo.securityHost;
+            serverSecurityConfigInfo.serverPublicKey = '';
+            break;
+          case securityConfigMode.RPK:
+          case securityConfigMode.X509:
+            serverSecurityConfigInfo.port = serverSecurityConfigInfo.securityPort;
+            serverSecurityConfigInfo.host = serverSecurityConfigInfo.securityHost;
+            break;
+          case securityConfigMode.NO_SEC:
+            serverSecurityConfigInfo.serverPublicKey = '';
+            break;
+        }
+        return serverSecurityConfigInfo;
+      })
     );
   }
 
@@ -95,30 +128,9 @@ export class DeviceProfileService {
 
   public saveDeviceProfileAndConfirmOtaChange(originDeviceProfile: DeviceProfile, deviceProfile: DeviceProfile,
                                               config?: RequestConfig): Observable<DeviceProfile> {
-    const tasks: Observable<number>[] = [];
-    if (originDeviceProfile?.id?.id && originDeviceProfile.firmwareId?.id !== deviceProfile.firmwareId?.id) {
-      tasks.push(this.otaPackageService.countUpdateDeviceAfterChangePackage(OtaUpdateType.FIRMWARE, deviceProfile.id.id));
-    } else {
-      tasks.push(of(0));
-    }
-    if (originDeviceProfile?.id?.id && originDeviceProfile.softwareId?.id !== deviceProfile.softwareId?.id) {
-      tasks.push(this.otaPackageService.countUpdateDeviceAfterChangePackage(OtaUpdateType.SOFTWARE, deviceProfile.id.id));
-    } else {
-      tasks.push(of(0));
-    }
-    return forkJoin(tasks).pipe(
-      mergeMap(([deviceFirmwareUpdate, deviceSoftwareUpdate]) => {
-        let text = '';
-        if (deviceFirmwareUpdate > 0) {
-          text += this.translate.instant('ota-update.change-firmware', {count: deviceFirmwareUpdate});
-        }
-        if (deviceSoftwareUpdate > 0) {
-          text += text.length ? ' ' : '';
-          text += this.translate.instant('ota-update.change-software', {count: deviceSoftwareUpdate});
-        }
-        return text !== '' ? this.dialogService.confirm('', text, null, this.translate.instant('common.proceed')) : of(true);
-      }),
-      mergeMap((update) => update ? this.saveDeviceProfile(deviceProfile, config) : throwError('Canceled saving device profiles')));
+    return this.otaPackageService.confirmDialogUpdatePackage(deviceProfile, originDeviceProfile).pipe(
+      mergeMap((update) => update ? this.saveDeviceProfile(deviceProfile, config) : throwError('Canceled saving device profiles'))
+    );
   }
 
   public saveDeviceProfile(deviceProfile: DeviceProfile, config?: RequestConfig): Observable<DeviceProfile> {

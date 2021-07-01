@@ -385,6 +385,11 @@ export enum MessageType {
   REST_API_REQUEST = 'REST_API_REQUEST',
   FIRMWARE_UPDATED = 'FIRMWARE_UPDATED',
   SOFTWARE_UPDATED = 'SOFTWARE_UPDATED',
+  RPC_QUEUED = 'RPC_QUEUED',
+  RPC_DELIVERED = 'RPC_DELIVERED',
+  RPC_SUCCESSFUL = 'RPC_SUCCESSFUL',
+  RPC_TIMEOUT = 'RPC_TIMEOUT',
+  RPC_FAILED = 'RPC_FAILED',
   generateReport = 'generateReport'
 }
 
@@ -412,6 +417,11 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.REST_API_REQUEST, 'REST API request'],
     [MessageType.FIRMWARE_UPDATED, 'Firmware Update'],
     [MessageType.SOFTWARE_UPDATED, 'Software Update'],
+    [MessageType.RPC_QUEUED, 'RPC Queued'],
+    [MessageType.RPC_DELIVERED, 'RPC Delivered'],
+    [MessageType.RPC_SUCCESSFUL, 'RPC Successful'],
+    [MessageType.RPC_TIMEOUT, 'RPC Timeout'],
+    [MessageType.RPC_FAILED, 'RPC Failed'],
     [MessageType.generateReport, 'Generate Report']
   ]
 );

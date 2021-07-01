@@ -36,10 +36,11 @@ import org.eclipse.leshan.core.request.BindingMode;
 import org.eclipse.leshan.core.util.Hex;
 import org.eclipse.leshan.server.bootstrap.BootstrapConfig;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
 @Data
-public class LwM2MBootstrapConfig {
+public class LwM2MBootstrapConfig implements Serializable {
     /*
       interface BootstrapSecurityConfig
         servers: BootstrapServersSecurityConfig,
@@ -84,7 +85,7 @@ public class LwM2MBootstrapConfig {
         server0.lifetime = servers.getLifetime();
         server0.defaultMinPeriod = servers.getDefaultMinPeriod();
         server0.notifIfDisabled = servers.isNotifIfDisabled();
-        server0.binding = BindingMode.valueOf(servers.getBinding());
+        server0.binding = BindingMode.parse(servers.getBinding());
         configBs.servers.put(0, server0);
         /* Security Configuration (object 0) as defined in LWM2M 1.0.x TS. Bootstrap instance = 0 */
         this.bootstrapServer.setBootstrapServerIs(true);

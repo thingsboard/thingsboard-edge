@@ -47,7 +47,7 @@ import { OtaPackageService } from '@core/http/ota-package.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { isDefinedAndNotNull } from '@core/utils';
-import {PageData} from "@shared/models/page/page-data";
+import { PageData } from '@shared/models/page/page-data';
 
 @Component({
   selector: 'tb-ota-package-autocomplete',
@@ -264,7 +264,7 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
   }
 
   clear() {
-    this.otaPackageFormGroup.get('packageId').patchValue('', {emitEvent: true});
+    this.otaPackageFormGroup.get('packageId').patchValue('', {emitEvent: false});
     setTimeout(() => {
       this.packageInput.nativeElement.blur();
       this.packageInput.nativeElement.focus();

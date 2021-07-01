@@ -68,10 +68,7 @@ import {
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { Edge, EdgeInfo } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
-import { EdgeComponent } from '@home/pages/edge/edge.component';
-import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
 import { EdgeId } from '@shared/models/id/edge-id';
-import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Injectable()

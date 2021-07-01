@@ -79,7 +79,7 @@ class EventStorageWriter {
                 }
                 return;
             }
-            if (files.getDataFiles().size() == settings.getMaxFileCount()) {
+            while (files.getDataFiles().size() >= settings.getMaxFileCount()) {
                 File firstFile = files.getDataFiles().get(0);
                 if (firstFile.delete()) {
                     files.getDataFiles().remove(0);

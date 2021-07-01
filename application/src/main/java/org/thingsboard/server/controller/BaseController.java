@@ -94,6 +94,8 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.RpcId;
+import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -123,6 +125,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -157,6 +160,7 @@ import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -348,6 +352,9 @@ public abstract class BaseController {
 
     @Autowired
     protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+
+    @Autowired
+    protected RpcService rpcService;
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;
@@ -1107,6 +1114,18 @@ public abstract class BaseController {
         }
     }
 
+    Rpc checkRpcId(RpcId rpcId) throws ThingsboardException {
+        try {
+            validateId(rpcId, "Incorrect rpcId " + rpcId);
+            Rpc rpc = rpcService.findById(getCurrentUser().getTenantId(), rpcId);
+            checkNotNull(rpc);
+            checkDeviceId(rpc.getDeviceId(), Operation.RPC_CALL);
+            return rpc;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
@@ -1199,7 +1218,6 @@ public abstract class BaseController {
         }
         return null;
     }
-
 
 
     protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {

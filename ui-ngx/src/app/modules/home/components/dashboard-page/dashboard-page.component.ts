@@ -148,6 +148,7 @@ import {
   DashboardImageDialogComponent,
   DashboardImageDialogData, DashboardImageDialogResult
 } from '@home/components/dashboard-page/dashboard-image-dialog.component';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 // @dynamic
 @Component({
@@ -235,7 +236,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   addingLayoutCtx: DashboardPageLayoutContext;
 
-  logo = this.wl.logoImageUrl();
+  private dashboardLogoCache: SafeUrl;
+  private defaultDashboardLogo = this.wl.logoImageUrl();
 
   dashboardCtx: DashboardContext = {
     instanceId: this.utils.guid(),
@@ -339,7 +341,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private ngZone: NgZone,
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private sanitizer: DomSanitizer) {
     super(store);
 
   }
@@ -446,6 +449,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   private reset() {
     this.dashboard = null;
     this.dashboardConfiguration = null;
+    this.dashboardLogoCache = undefined;
     this.prevDashboard = null;
 
     this.widgetEditMode = false;
@@ -601,8 +605,12 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }
   }
 
-  public get dashboardLogo(): string {
-    return this.dashboard.configuration.settings.dashboardLogoUrl || this.logo;
+  public get dashboardLogo(): SafeUrl {
+    if (!this.dashboardLogoCache) {
+      const logo = this.dashboard.configuration.settings.dashboardLogoUrl || this.defaultDashboardLogo;
+      this.dashboardLogoCache = this.sanitizer.bypassSecurityTrustUrl(logo);
+    }
+    return this.dashboardLogoCache;
   }
 
   public showRightLayoutSwitch(): boolean {
@@ -748,6 +756,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }).afterClosed().subscribe((data) => {
       if (data) {
         this.dashboard.configuration.settings = data.settings;
+        this.dashboardLogoCache = undefined;
         const newGridSettings = data.gridSettings;
         if (newGridSettings) {
           const layout = this.dashboard.configuration.states[layoutKeys.state].layouts[layoutKeys.layout];
@@ -894,11 +903,13 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       if (this.widgetEditMode) {
         if (revert) {
           this.dashboard = this.prevDashboard;
+          this.dashboardLogoCache = undefined;
         }
       } else {
         this.resetHighlight();
         if (revert) {
           this.dashboard = this.prevDashboard;
+          this.dashboardLogoCache = undefined;
           this.dashboardConfiguration = this.dashboard.configuration;
           this.dashboardCtx.dashboardTimewindow = this.dashboardConfiguration.timewindow;
           this.entityAliasesUpdated();

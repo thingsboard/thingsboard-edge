@@ -33,24 +33,32 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, defaultHttpUploadOptions, RequestConfig } from '@core/http/http-utils';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import {
   ChecksumAlgorithm,
-  OtaPackage,
   DeviceGroupOtaPackage,
+  OtaPackage,
   OtaPackageInfo,
+  OtaPagesIds,
   OtaUpdateType
 } from '@shared/models/ota-package.models';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { deepClone } from '@core/utils';
+import { BaseData } from '@shared/models/base-data';
+import { EntityId } from '@shared/models/id/entity-id';
+import { TranslateService } from '@ngx-translate/core';
+import { DialogService } from '@core/services/dialog.service';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OtaPackageService {
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private translate: TranslateService,
+    private dialogService: DialogService
   ) {
 
   }
@@ -153,8 +161,44 @@ export class OtaPackageService {
     return this.http.get<PageData<OtaPackageInfo>>(url, defaultHttpOptionsFromConfig(config));
   }
 
-  public countUpdateDeviceAfterChangePackage(type: OtaUpdateType, deviceProfileId: string, config?: RequestConfig): Observable<number> {
-      return this.http.get<number>(`/api/devices/count/${type}?deviceProfileId=${deviceProfileId}`, defaultHttpOptionsFromConfig(config));
+  public countUpdateDeviceAfterChangePackage(type: OtaUpdateType, entityId: EntityId,
+                                             packageId?: string, config?: RequestConfig): Observable<number> {
+    let url;
+    if (entityId.entityType === EntityType.ENTITY_GROUP) {
+      url = `/api/devices/count/${type}/${packageId}/${entityId.id}`;
+    } else {
+      url = `/api/devices/count/${type}/${entityId.id}`;
+    }
+    return this.http.get<number>(url, defaultHttpOptionsFromConfig(config));
   }
 
+  public confirmDialogUpdatePackage(entity: BaseData<EntityId>&OtaPagesIds,
+                                    originEntity: BaseData<EntityId>&OtaPagesIds): Observable<boolean> {
+    const tasks: Observable<number>[] = [];
+    if (originEntity?.id?.id && originEntity.firmwareId?.id !== entity.firmwareId?.id) {
+      const packageId = entity.firmwareId?.id || originEntity.firmwareId?.id;
+      tasks.push(this.countUpdateDeviceAfterChangePackage(OtaUpdateType.FIRMWARE, entity.id, packageId));
+    } else {
+      tasks.push(of(0));
+    }
+    if (originEntity?.id?.id && originEntity.softwareId?.id !== entity.softwareId?.id) {
+      const packageId = entity.softwareId?.id || originEntity.softwareId?.id;
+      tasks.push(this.countUpdateDeviceAfterChangePackage(OtaUpdateType.SOFTWARE, entity.id, packageId));
+    } else {
+      tasks.push(of(0));
+    }
+    return forkJoin(tasks).pipe(
+      mergeMap(([deviceFirmwareUpdate, deviceSoftwareUpdate]) => {
+        let text = '';
+        if (deviceFirmwareUpdate > 0) {
+          text += this.translate.instant('ota-update.change-firmware', {count: deviceFirmwareUpdate});
+        }
+        if (deviceSoftwareUpdate > 0) {
+          text += text.length ? ' ' : '';
+          text += this.translate.instant('ota-update.change-software', {count: deviceSoftwareUpdate});
+        }
+        return text !== '' ? this.dialogService.confirm('', text, null, this.translate.instant('common.proceed')) : of(true);
+      })
+    );
+  }
 }

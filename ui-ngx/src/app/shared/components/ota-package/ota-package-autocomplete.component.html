@@ -36,7 +36,8 @@
          formControlName="packageId"
          (focusin)="onFocus()"
          [required]="required"
-         [matAutocomplete]="packageAutocomplete">
+         [matAutocomplete]="packageAutocomplete"
+         [matAutocompleteDisabled]="disabled">
   <button *ngIf="otaPackageFormGroup.get('packageId').value && !disabled"
           type="button"
           matSuffix mat-button mat-icon-button aria-label="Clear"
@@ -63,7 +64,7 @@
       </div>
     </mat-option>
   </mat-autocomplete>
-  <mat-hint *ngIf="deviceGroupAll" translate>firmware.no-compatible-group-all</mat-hint>
+  <mat-hint *ngIf="deviceGroupAll" translate>ota-update.cant-applied-group-all</mat-hint>
   <mat-error *ngIf="otaPackageFormGroup.get('packageId').hasError('required')">
     {{ requiredErrorText | translate }}
   </mat-error>

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectDashboardFormGroup" class="mat-block">
+<mat-form-field [formGroup]="selectDashboardFormGroup" class="mat-block" [floatLabel]="floatLabel">
   <input matInput type="text" placeholder="{{ placeholder || ('dashboard.dashboard' | translate) }}"
          #dashboardInput
          formControlName="dashboard"

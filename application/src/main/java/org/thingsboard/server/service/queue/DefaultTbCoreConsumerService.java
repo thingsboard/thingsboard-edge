@@ -263,6 +263,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         }
                                     }
                                     callback.onSuccess();
+                                } else {
+                                    log.warn("[{}] No rule how to forward message from main consumer for message: {}", id, toCoreMsg);
                                 }
                             } catch (Throwable e) {
                                 log.warn("[{}] Failed to process message: {}", id, msg, e);

@@ -49,5 +49,6 @@ public class ToDeviceRpcRequest implements Serializable {
     private final boolean oneway;
     private final long expirationTime;
     private final ToDeviceRpcRequestBody body;
+    private final boolean persisted;
 }
 
