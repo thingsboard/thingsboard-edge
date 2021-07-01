@@ -3072,6 +3072,7 @@
         "assign-software": "Assigned software",
         "assign-software-required": "Assigned software is required",
         "auto-generate-checksum": "Auto-generate checksum",
+        "cant-applied-group-all": "Can't be applied for group All",
         "checksum": "Checksum",
         "checksum-hint": "If checksum is empty, it will be generated automatically",
         "checksum-algorithm": "Checksum algorithm",
