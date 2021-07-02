@@ -34,7 +34,7 @@ import { EMPTY, forkJoin, Observable, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { DeviceService } from '@core/http/device.service';
 import { TenantService } from '@core/http/tenant.service';
@@ -81,7 +81,6 @@ import { RoleService } from '@core/http/role.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
-import { RuleChain, RuleChainType } from '@shared/models/rule-chain.models';
 import { Converter } from '@shared/models/converter.models';
 import { Integration } from '@shared/models/integration.models';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
@@ -108,9 +107,10 @@ import {
   StringOperation
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
+import { EdgeService } from "@core/http/edge.service";
+import { RuleChainMetaData, RuleChainType, RuleChain } from "@shared/models/rule-chain.models";
+import { Edge, EdgeEventType, EdgeEvent } from '@shared/models/edge.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
-import { EdgeService } from '@core/http/edge.service';
-import { Edge, EdgeEventType } from '@shared/models/edge.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 
@@ -1758,8 +1758,8 @@ export class EntityService {
     return entitiesObservable;
   }
 
-  public getEdgeEventContent(entity: any): Observable<any> {
-    let entityObservable: Observable<any>;
+  public getEdgeEventContent(entity: EdgeEvent): Observable<BaseData<HasId> | RuleChainMetaData | string> {
+    let entityObservable: Observable<BaseData<HasId> | RuleChainMetaData | string>;
     const entityId: string = entity.entityId;
     const entityType: any = entity.type;
     switch (entityType) {
