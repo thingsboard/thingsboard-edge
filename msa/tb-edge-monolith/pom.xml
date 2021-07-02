@@ -31,7 +31,7 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
@@ -39,20 +39,20 @@
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
-    <artifactId>tb-edge</artifactId>
+    <artifactId>tb-edge-monolith</artifactId>
     <packaging>pom</packaging>
 
-    <name>ThingsBoard Edge</name>
+    <name>ThingsBoard Edge Docker Images</name>
     <url>https://thingsboard.io</url>
-    <description>ThingsBoard Edge</description>
+    <description>ThingsBoard Edge Docker Images</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>tb-edge</pkg.name>
-        <docker.name>tb-${tb.docker.id}</docker.name>
-        <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
+        <tb.docker.name>tb-${tb.docker.id}-monolith</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
+        <pkg.upgradeVersion>3.3.0-EDGE</pkg.upgradeVersion>
     </properties>
 
     <dependencies>
@@ -86,7 +86,7 @@
                                     <classifier>deb</classifier>
                                     <type>deb</type>
                                     <destFileName>${pkg.name}.deb</destFileName>
-                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                    <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -98,16 +98,20 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-docker-config</id>
+                        <id>copy-docker-tb-edge-config</id>
                         <phase>process-resources</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>docker</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>docker-tb-edge</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
@@ -120,28 +124,28 @@
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>build-docker-image</id>
+                        <id>build-docker-tb-edge-image</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
                         <configuration>
                             <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${docker.name}</repository>
+                            <repository>${docker.repo}/${tb.docker.name}</repository>
                             <verbose>true</verbose>
                             <googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
-                            <contextDirectory>${project.build.directory}</contextDirectory>
+                            <contextDirectory>${project.build.directory}/docker-tb-edge</contextDirectory>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>tag-docker-image</id>
+                        <id>tag-docker-tb-edge-image</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>tag</goal>
                         </goals>
                         <configuration>
                             <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${docker.name}</repository>
+                            <repository>${docker.repo}/${tb.docker.name}</repository>
                             <tag>${project.version}</tag>
                         </configuration>
                     </execution>
@@ -164,25 +168,25 @@
                         <artifactId>dockerfile-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>push-latest-docker-image</id>
+                                <id>push-latest-docker-tb-edge-image</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
                                     <tag>latest</tag>
-                                    <repository>${docker.repo}/${docker.name}</repository>
+                                    <repository>${docker.repo}/${tb.docker.name}</repository>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>push-version-docker-image</id>
+                                <id>push-version-docker-tb-edge-image</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
                                     <tag>${project.version}</tag>
-                                    <repository>${docker.repo}/${docker.name}</repository>
+                                    <repository>${docker.repo}/${tb.docker.name}</repository>
                                 </configuration>
                             </execution>
                         </executions>

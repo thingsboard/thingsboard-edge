@@ -46,29 +46,41 @@ import java.util.List;
 import java.util.Map;
 
 @RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.*Test"})
+@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.connectivity.EdgeClientTest"})
 public class ContainerTestSuite {
 
-    private static DockerComposeContainer<?> testContainer;
+    public static DockerComposeContainer<?> testContainer;
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
 
+//    @ClassRule
+//    public static TbEdgeInstaller installEdge = new TbEdgeInstaller();
+
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
+        HashMap<String, String> env = new HashMap<>();
+        env.put("EDGE_DOCKER_REPO", "volodymyrbabak");
+        env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
+        env.put("TB_EDGE_VERSION", "3.3.0-EDGE-SNAPSHOT");
+        env.put("CLOUD_ROUTING_KEY", "280629c7-f853-ee3d-01c0-fffbb6f2ef38");
+        env.put("CLOUD_ROUTING_SECRET", "g9ta4soeylw6smqkky8g");
+        env.put("CLOUD_PRC_HOST", "tb-monolith");
+
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
             testContainer = new DockerComposeContainer<>(
-                    new File("./../../docker/advanced/docker-compose.yml"),
-                    new File("./../../docker/advanced/docker-compose.postgres.yml"),
-                    new File("./../../docker/advanced/docker-compose.postgres.volumes.yml"),
-                    new File("./../../docker/advanced/docker-compose.kafka.yml"))
+                    new File("./../../docker/cloud/docker-compose.yml"),
+                    new File("./../../docker/cloud/docker-compose.postgres.yml"),
+                    new File("./../../docker/cloud/docker-compose.postgres.volumes.yml"))
                     .withPull(false)
                     .withLocalCompose(true)
                     .withTailChildContainers(!skipTailChildContainers)
                     .withEnv(installTb.getEnv())
+                    .withEnv(env)
                     .withEnv("LOAD_BALANCER_NAME", "")
-                    .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(400)));
+                    .withExposedService("tb-edge", 8080)
+                    .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
         }
         return testContainer;
     }

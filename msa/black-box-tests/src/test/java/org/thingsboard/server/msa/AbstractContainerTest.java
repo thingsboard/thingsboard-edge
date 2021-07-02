@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import jnr.ffi.annotations.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.cassandra.cql3.Json;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -60,6 +61,7 @@ import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -85,10 +87,17 @@ public abstract class AbstractContainerTest {
     protected static RestClient restClient;
     protected ObjectMapper mapper = new ObjectMapper();
 
+    protected static RestClient edgeRestClient;
+
+
     @BeforeClass
     public static void before() throws Exception {
         restClient = new RestClient(HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+
+        String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8080);
+        Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8080);
+        edgeRestClient = new RestClient("http://" + edgeHost + ":" + edgePort);
     }
 
     @Rule
@@ -247,6 +256,17 @@ public abstract class AbstractContainerTest {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
         return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+    protected Edge createEdge(String name, String routingKey, String secret) {
+        Edge edge = new Edge();
+        edge.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        edge.setType("DEFAULT");
+        edge.setRoutingKey(routingKey);
+        edge.setSecret(secret);
+        edge.setEdgeLicenseKey("123");
+        edge.setCloudEndpoint("tb-monolith");
+        return restClient.saveEdge(edge);
     }
 
 }
