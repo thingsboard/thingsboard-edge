@@ -1593,7 +1593,7 @@
     "type-mqtt": "MQTT",
     "type-aws-iot": "AWS IoT",
     "type-ibm-watson-iot": "IBM Watson IoT",
-    "type-ttn": "TheThingsNetwork",
+    "type-ttn": "The Things Stack Community",
     "type-azure-event-hub": "Azure Event Hub",
     "type-opc-ua": "OPC-UA",
     "opc-ua-application-name": "Aplikācijas nosaukums",

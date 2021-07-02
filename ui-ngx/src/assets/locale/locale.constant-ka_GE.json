@@ -1686,7 +1686,7 @@
     "type-aws-sqs": "AWS SQS",
     "type-aws-kinesis": "AWS Kinesis",
     "type-ibm-watson-iot": "IBM Watson IoT",
-    "type-ttn": "TheThingsNetwork",
+    "type-ttn": "The Things Stack Community",
     "type-azure-event-hub": "ტიპის-აზური-ღონისძიების ცენტრი",
     "type-opc-ua": "OPC-UA",
     "type-custom": "უჩვეულო",
