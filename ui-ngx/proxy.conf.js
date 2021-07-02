@@ -42,7 +42,7 @@ const PROXY_CONFIG = {
     "secure": false,
   },
   "/static/widgets": {
-    "target": "http://localhost:5000",
+    "target": forwardUrl,
     "secure": false,
   },
   "/oauth2": {
