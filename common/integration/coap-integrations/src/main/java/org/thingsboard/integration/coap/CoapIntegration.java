@@ -143,6 +143,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         CoapSecurityMode securityMode = coapClientConfiguration.getSecurityMode();
         switch (securityMode) {
             case MIXED:
+                checkDtlsEnabled();
                 validateUri(allowLocalNetworkHosts, coapClientConfiguration.getCoapEndpoint());
                 validateUri(allowLocalNetworkHosts, coapClientConfiguration.getDtlsCoapEndpoint());
                 break;
@@ -150,6 +151,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
                 validateUri(allowLocalNetworkHosts, coapClientConfiguration.getCoapEndpoint());
                 break;
             case DTLS:
+                checkDtlsEnabled();
                 validateUri(allowLocalNetworkHosts, coapClientConfiguration.getDtlsCoapEndpoint());
                 break;
             default:

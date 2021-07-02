@@ -440,6 +440,7 @@ export const templates = {
         username: '',
         password: ''
       },
+      apiVersion: false,
     },
     topicFilters: [{
       filter: '+/devices/+/up',

@@ -29,8 +29,12 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host{
-  .tb-panel-title-height {
+  .tb-panel {
     min-height: 42px;
+
+    .tb-panel-title {
+      font-weight: 500;
+    }
   }
 
   .instance-row {

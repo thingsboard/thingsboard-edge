@@ -120,6 +120,8 @@ export class Lwm2mObserveAttrTelemetryResourcesComponent implements ControlValue
       this.resourcesFormGroup.disable({emitEvent: false});
     } else {
       this.resourcesFormArray.controls.forEach(resource => {
+        resource.get('id').enable({emitEvent: false});
+        resource.get('name').enable({emitEvent: false});
         resource.get('keyName').enable({emitEvent: false});
         resource.get('attribute').enable({emitEvent: false});
         resource.get('telemetry').enable({onlySelf: true});
@@ -139,7 +141,7 @@ export class Lwm2mObserveAttrTelemetryResourcesComponent implements ControlValue
   }
 
   getNameResourceLwm2m(resourceLwM2M: ResourceLwM2M): string {
-    return `<${resourceLwM2M.id}> ${resourceLwM2M.name}`;
+    return `#${resourceLwM2M.id} ${resourceLwM2M.name}`;
   }
 
   private updatedResources(resources: ResourceLwM2M[]): void {

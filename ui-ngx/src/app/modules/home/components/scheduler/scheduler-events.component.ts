@@ -629,7 +629,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         schedule: {
           startTime: date.utc().valueOf()
         },
-        configuration: {}
+        configuration: {
+          originatorId: null,
+          msgType: null,
+          msgBody: {},
+          metadata: {}
+        }
       } as SchedulerEvent;
       this.openSchedulerEventDialog(event.jsEvent, schedulerEvent);
     }
