@@ -38,6 +38,7 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 @Slf4j
@@ -49,7 +50,8 @@ import org.thingsboard.server.common.msg.TbMsg;
         nodeDetails = "Finds target Entity Group by group name pattern and then removes Originator Entity from this group.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeRemoveFromGroupConfig",
-        icon = "remove_circle"
+        icon = "remove_circle",
+        ruleChainTypes = RuleChainType.CORE
 )
 public class TbRemoveFromGroupNode extends TbAbstractGroupActionNode<TbRemoveFromGroupConfiguration> {
 
