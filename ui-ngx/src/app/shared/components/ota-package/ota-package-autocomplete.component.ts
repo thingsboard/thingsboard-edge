@@ -31,8 +31,8 @@
 
 import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map, mergeMap, share, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -47,7 +47,7 @@ import { OtaPackageService } from '@core/http/ota-package.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { isDefinedAndNotNull } from '@core/utils';
-import { PageData } from '@shared/models/page/page-data';
+import { PageData, emptyPageData } from '@shared/models/page/page-data';
 
 @Component({
   selector: 'tb-ota-package-autocomplete',
@@ -144,6 +144,7 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
   ngOnInit() {
     this.filteredPackages = this.otaPackageFormGroup.get('packageId').valueChanges
       .pipe(
+        debounceTime(150),
         tap(value => {
           let modelValue;
           if (typeof value === 'string' || !value) {
@@ -157,7 +158,8 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
           }
         }),
         map(value => value ? (typeof value === 'string' ? value : value.title) : ''),
-        mergeMap(name => this.fetchPackages(name)),
+        distinctUntilChanged(),
+        switchMap(name => this.fetchPackages(name)),
         share()
       );
   }
@@ -259,6 +261,7 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
         .getOtaPackagesInfoByDeviceProfileId(pageLink, this.deviceProfileId, this.type, {ignoreLoading: true});
     }
     return fetchFirmware$.pipe(
+      catchError(() => of(emptyPageData<OtaPackageInfo>())),
       map((data) => data && data.data.length ? data.data : null)
     );
   }
