@@ -114,11 +114,15 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       ruleChainScope = params.ruleChainScope;
     } else {
       edgeId = params.params?.edgeId;
-      ruleChainScope = params.data?.ruleChainsType ? params.data?.ruleChainsType : 'tenant';
+      ruleChainScope = params.data.ruleChainsType ? params.data.ruleChainsType : 'tenant';
     }
     return {
       edgeId,
-      ruleChainScope
+      ruleChainScope,
+      hierarchyView: params?.hierarchyView,
+      entityGroupId: params?.entityGroupId,
+      customerGroupId: params?.customerGroupId,
+      customerId: params?.customerId
     };
   }
 
@@ -241,7 +245,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       if (ruleChainImport) {
         this.itembuffer.storeRuleChainImport(ruleChainImport);
         if (this.componentsData.ruleChainScope === 'edges') {
-          this.router.navigateByUrl(`edges/ruleChains/ruleChain/import`);
+          this.router.navigateByUrl(`edgeManagement/ruleChains/ruleChain/import`);
         } else {
           this.router.navigateByUrl(`ruleChains/ruleChain/import`);
         }
@@ -447,9 +451,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         this.router.navigateByUrl(url);
       }
     } else if (this.componentsData.ruleChainScope === 'edges') {
-      this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
-    } else if (this.componentsData.ruleChainScope === 'edge') {
-      this.router.navigateByUrl(`edges/${this.componentsData.edgeId}/ruleChains/${ruleChain.id.id}`);
+      this.router.navigateByUrl(`edgeManagement/ruleChains/${ruleChain.id.id}`);
     } else {
       this.router.navigateByUrl(`ruleChains/${ruleChain.id.id}`);
     }
