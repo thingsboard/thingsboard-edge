@@ -86,7 +86,6 @@ services:
       - tb-web-ui.env
   haproxy:
     restart: always
-    container_name: "${LOAD_BALANCER_NAME}"
     image: thingsboard/haproxy-certbot:1.3.0
     volumes:
       - ./haproxy/config:/config
