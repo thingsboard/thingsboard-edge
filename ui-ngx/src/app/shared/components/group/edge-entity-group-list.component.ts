@@ -42,7 +42,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { filter, map, mergeMap, publishReplay, refCount, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -59,6 +59,7 @@ import { EntityId } from "@shared/models/id/entity-id";
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from "@shared/models/authority.enum";
 import { RequestConfig } from '@core/http/http-utils';
+import { AuthUser } from '@shared/models/user.model';
 
 @Component({
   selector: 'tb-edge-entity-group-list',
@@ -257,23 +258,23 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   }
 
   getEntityGroups(): Observable<Array<EntityGroupInfo>> {
-    const entityGroupsObservable: Array<Observable<Array<EntityGroupInfo>>> = this.getEntityGroupsObservable();
-    return forkJoin(entityGroupsObservable)
-      .pipe(map(data => {
-          const entityGroups = [...data[0]||[], ...data[1]||[]];
-          if (entityGroups) {
-            if (this.excludeGroupAll) {
-              return entityGroups.filter(group => !group.groupAll);
-            } else {
-              return entityGroups;
-            }
+    const tasks: Array<Observable<Array<EntityGroupInfo>>> = this.getEntityGroupsTasks();
+    return forkJoin(tasks).pipe(
+      map(([ownerGroups, parentGroups]) => {
+        const entityGroups = [...ownerGroups, ...parentGroups];
+        if (entityGroups) {
+          if (this.excludeGroupAll) {
+            return entityGroups.filter(group => !group.groupAll);
           } else {
-            return [];
+            return entityGroups;
           }
-        }),
-        publishReplay(1),
-        refCount()
-      );
+        } else {
+          return [];
+        }
+      }),
+      publishReplay(1),
+      refCount()
+  );
 }
 
   onFocus() {
@@ -292,29 +293,33 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
     }, 0);
   }
 
-  private getEntityGroupsObservable(): Array<Observable<Array<EntityGroupInfo>>> {
-    const currentUser = getCurrentAuthUser(this.store);
-    const groupType: EntityType = this.groupType;
+  private getEntityGroupsTasks(): Array<Observable<EntityGroupInfo[]>> {
+    const currentUser: AuthUser = getCurrentAuthUser(this.store);
     const config: RequestConfig = { ignoreLoading: true };
-    let entityGroupsObservables: Array<Observable<Array<EntityGroupInfo>>> = [];
-    let entityGroups: Observable<Array<EntityGroupInfo>>;
-    if (currentUser.authority === Authority.TENANT_ADMIN) {
-      entityGroups = this.entityGroupService.getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, groupType, config);
-      if (this.customerId) {
-        let tenantGroups: Observable<Array<EntityGroupInfo>>;
-        tenantGroups = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.TENANT as EntityType, currentUser.tenantId, groupType, config);
-        entityGroupsObservables.push(tenantGroups);
-      }
-    } else if (currentUser.authority === Authority.CUSTOMER_USER) {
-      entityGroups = this.entityGroupService.getEntityGroups(groupType, config);
-      if (this.customerId) {
-        let customerUserGroups: Observable<Array<EntityGroupInfo>>;
-        customerUserGroups = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER as EntityType, this.customerId, groupType, config);
-        entityGroupsObservables.push(customerUserGroups);
-      }
+    const tasks: Array<Observable<EntityGroupInfo[]>> = [];
+    tasks.push(this.getOwnerGroups(currentUser, this.ownerId, this.groupType, config));
+    if (this.customerId) {
+      tasks.push(this.getParentGroups(currentUser, this.groupType, config));
+    } else {
+      tasks.push(of([]));
     }
-    entityGroupsObservables.push(entityGroups);
-    return entityGroupsObservables;
+    return tasks;
+  }
+
+  private getOwnerGroups(currentUser: AuthUser, ownerId: EntityId, groupType: EntityType, config: RequestConfig): Observable<EntityGroupInfo[]> {
+    if (currentUser.authority === Authority.TENANT_ADMIN) {
+      return this.entityGroupService.getEntityGroupsByOwnerId(ownerId.entityType as EntityType, ownerId.id, groupType, config);
+    } else {
+      return this.entityGroupService.getEntityGroups(groupType, config);
+    }
+  }
+
+  private getParentGroups(currentUser: AuthUser, groupType: EntityType, config: RequestConfig): Observable<EntityGroupInfo[]> {
+    if (currentUser.authority === Authority.TENANT_ADMIN) {
+      return this.entityGroupService.getEntityGroupsByOwnerId(EntityType.TENANT, currentUser.tenantId, groupType, config);
+    } else {
+      return this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, groupType, config);
+    }
   }
 
 }
