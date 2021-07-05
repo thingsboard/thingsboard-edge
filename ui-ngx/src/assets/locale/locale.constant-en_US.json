@@ -1500,6 +1500,8 @@
     "edge": {
         "edge": "Edge",
         "id": "ID",
+        "name": "Name",
+        "type": "Type",
         "last-connect-time": "Last time connected to Cloud",
         "last-disconnect-time": "Last time disconnected from Cloud",
         "routing-key": "Routing Key",
