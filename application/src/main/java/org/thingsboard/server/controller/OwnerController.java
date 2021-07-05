@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
@@ -63,7 +63,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

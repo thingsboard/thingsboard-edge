@@ -31,27 +31,23 @@
 package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.cassandra.cql3.Json;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.json.simple.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -60,21 +56,16 @@ import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
 import java.net.URI;
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 
 @Slf4j
@@ -85,10 +76,17 @@ public abstract class AbstractContainerTest {
     protected static RestClient restClient;
     protected ObjectMapper mapper = new ObjectMapper();
 
+    protected static RestClient edgeRestClient;
+
+
     @BeforeClass
     public static void before() throws Exception {
         restClient = new RestClient(HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+
+        String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8080);
+        Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8080);
+        edgeRestClient = new RestClient("http://" + edgeHost + ":" + edgePort);
     }
 
     @Rule
@@ -247,6 +245,17 @@ public abstract class AbstractContainerTest {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
         return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+    protected Edge createEdge(String name, String routingKey, String secret) {
+        Edge edge = new Edge();
+        edge.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        edge.setType("DEFAULT");
+        edge.setRoutingKey(routingKey);
+        edge.setSecret(secret);
+        edge.setEdgeLicenseKey("123");
+        edge.setCloudEndpoint("tb-monolith");
+        return restClient.saveEdge(edge);
     }
 
 }

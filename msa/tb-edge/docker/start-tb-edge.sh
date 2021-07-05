@@ -30,25 +30,59 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db.sh
-
-CONF_FOLDER="${pkg.installFolder}/conf"
+CONF_FOLDER="/config"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
-firstlaunch=${DATA_FOLDER}/.firstlaunch
+run_user=${pkg.user}
 
 source "${CONF_FOLDER}/${configfile}"
 
-if [ ! -f ${firstlaunch} ]; then
-    install-tb-edge.sh --loadDemo
-    touch ${firstlaunch}
-fi
+export LOADER_PATH=/config,${LOADER_PATH}
 
-echo "Starting ThingsBoard Edge ..."
+cd ${pkg.installFolder}/bin
 
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
+if [ "$INSTALL_TB_EDGE" == "true" ]; then
+
+    if [ "$LOAD_DEMO" == "true" ]; then
+        loadDemo=true
+    else
+        loadDemo=false
+    fi
+
+    echo "Starting ThingsBoard Edge installation ..."
+
+    exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
+                        -Dinstall.load_demo=${loadDemo} \
+                        -Dspring.jpa.hibernate.ddl-auto=none \
+                        -Dinstall.upgrade=false \
+                        -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
+                        org.springframework.boot.loader.PropertiesLauncher
+
+elif [ "$UPGRADE_TB_EDGE" == "true" ]; then
+
+    echo "Starting ThingsBoard Edge upgrade ..."
+
+    if [[ -z "${FROM_VERSION// }" ]]; then
+        echo "FROM_VERSION variable is invalid or unspecified!"
+        exit 1
+    else
+        fromVersion="${FROM_VERSION// }"
+    fi
+
+    exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
                     -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
+                    -Dinstall.upgrade=true \
+                    -Dinstall.upgrade.from_version=${fromVersion} \
+                    -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
                     org.springframework.boot.loader.PropertiesLauncher
 
-stop-db.sh
+else
+
+    echo "Starting '${project.name}' ..."
+
+    exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
+                        -Dspring.jpa.hibernate.ddl-auto=none \
+                        -Dlogging.config=/config/logback.xml \
+                        org.springframework.boot.loader.PropertiesLauncher
+
+fi

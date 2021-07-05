@@ -30,10 +30,10 @@
  */
 package org.thingsboard.server.msa;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
-import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
 import java.util.Arrays;
@@ -45,42 +45,30 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
     private final static String POSTGRES_DATA_VOLUME = "tb-postgres-test-data-volume";
     private final static String TB_LOG_VOLUME = "tb-log-test-volume";
-    private final static String TB_COAP_TRANSPORT_LOG_VOLUME = "tb-coap-transport-log-test-volume";
-    private final static String TB_LWM2M_TRANSPORT_LOG_VOLUME = "tb-lwm2m-transport-log-test-volume";
-    private final static String TB_HTTP_TRANSPORT_LOG_VOLUME = "tb-http-transport-log-test-volume";
-    private final static String TB_MQTT_TRANSPORT_LOG_VOLUME = "tb-mqtt-transport-log-test-volume";
-    private final static String TB_SNMP_TRANSPORT_LOG_VOLUME = "tb-snmp-transport-log-test-volume";
+    private final static String TB_EDGE_LOG_VOLUME = "tb-edge-log-test-volume";
 
     private final DockerComposeExecutor dockerCompose;
 
     private final String postgresDataVolume;
     private final String tbLogVolume;
-    private final String tbCoapTransportLogVolume;
-    private final String tbLwm2mTransportLogVolume;
-    private final String tbHttpTransportLogVolume;
-    private final String tbMqttTransportLogVolume;
-    private final String tbSnmpTransportLogVolume;
+    private final String tbEdgeLogVolume;
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
-        List<File> composeFiles = Arrays.asList(new File("./../../docker/advanced/docker-compose.yml"),
-                new File("./../../docker/advanced/docker-compose.postgres.yml"),
-                new File("./../../docker/advanced/docker-compose.postgres.volumes.yml"));
+        List<File> composeFiles = Arrays.asList(new File("./../../docker/cloud/docker-compose.yml"),
+                new File("./../../docker/cloud/docker-compose.postgres.yml"),
+                new File("./../../docker/cloud/docker-compose.postgres.volumes.yml"));
 
         String identifier = Base58.randomString(6).toLowerCase();
         String project = identifier + Base58.randomString(6).toLowerCase();
 
         postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
         tbLogVolume = project + "_" + TB_LOG_VOLUME;
-        tbCoapTransportLogVolume = project + "_" + TB_COAP_TRANSPORT_LOG_VOLUME;
-        tbLwm2mTransportLogVolume = project + "_" + TB_LWM2M_TRANSPORT_LOG_VOLUME;
-        tbHttpTransportLogVolume = project + "_" + TB_HTTP_TRANSPORT_LOG_VOLUME;
-        tbMqttTransportLogVolume = project + "_" + TB_MQTT_TRANSPORT_LOG_VOLUME;
-        tbSnmpTransportLogVolume = project + "_" + TB_SNMP_TRANSPORT_LOG_VOLUME;
+        tbEdgeLogVolume = project + "_" + TB_EDGE_LOG_VOLUME;
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
-        Dotenv dotenv = Dotenv.configure().directory("./../../docker").filename(".env").load();
+        Dotenv dotenv = Dotenv.configure().directory("./../../docker/cloud").filename(".env").load();
 
         env = new HashMap<>();
         for (DotenvEntry entry : dotenv.entries()) {
@@ -88,14 +76,14 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         }
         env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
         env.put("TB_LOG_VOLUME", tbLogVolume);
-        env.put("TB_COAP_TRANSPORT_LOG_VOLUME", tbCoapTransportLogVolume);
-        env.put("TB_LWM2M_TRANSPORT_LOG_VOLUME", tbLwm2mTransportLogVolume);
-        env.put("TB_HTTP_TRANSPORT_LOG_VOLUME", tbHttpTransportLogVolume);
-        env.put("TB_MQTT_TRANSPORT_LOG_VOLUME", tbMqttTransportLogVolume);
-        env.put("TB_SNMP_TRANSPORT_LOG_VOLUME", tbSnmpTransportLogVolume);
+        env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
 
         env.put("DOCKER_REPO", "thingsboard");
         env.put("TB_VERSION", "latest");
+
+        env.put("EDGE_DOCKER_REPO", "volodymyrbabak");
+        env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
+        env.put("TB_EDGE_VERSION", "3.3.0-EDGE-SNAPSHOT");
 
         dockerCompose.withEnv(env);
     }
@@ -114,25 +102,16 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("volume create " + tbLogVolume);
             dockerCompose.invokeDocker();
 
-            dockerCompose.withCommand("volume create " + tbCoapTransportLogVolume);
+            dockerCompose.withCommand("volume create " + tbEdgeLogVolume);
             dockerCompose.invokeDocker();
 
-            dockerCompose.withCommand("volume create " + tbLwm2mTransportLogVolume);
-            dockerCompose.invokeDocker();
-
-            dockerCompose.withCommand("volume create " + tbHttpTransportLogVolume);
-            dockerCompose.invokeDocker();
-
-            dockerCompose.withCommand("volume create " + tbMqttTransportLogVolume);
-            dockerCompose.invokeDocker();
-
-            dockerCompose.withCommand("volume create " + tbSnmpTransportLogVolume);
-            dockerCompose.invokeDocker();
-
-            dockerCompose.withCommand("up -d redis postgres");
+            dockerCompose.withCommand("up -d postgres");
             dockerCompose.invokeCompose();
 
-            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb-core1");
+            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb-monolith");
+            dockerCompose.invokeCompose();
+
+            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge");
             dockerCompose.invokeCompose();
 
         } finally {
@@ -146,15 +125,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     @Override
     protected void after() {
         copyLogs(tbLogVolume, "./target/tb-logs/");
-        copyLogs(tbCoapTransportLogVolume, "./target/tb-coap-transport-logs/");
-        copyLogs(tbLwm2mTransportLogVolume, "./target/tb-lwm2m-transport-logs/");
-        copyLogs(tbHttpTransportLogVolume, "./target/tb-http-transport-logs/");
-        copyLogs(tbMqttTransportLogVolume, "./target/tb-mqtt-transport-logs/");
-        copyLogs(tbSnmpTransportLogVolume, "./target/tb-snmp-transport-logs/");
+        copyLogs(tbEdgeLogVolume, "./target/tb-edge-logs/");
 
-        dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume +
-                " " + tbCoapTransportLogVolume + " " + tbLwm2mTransportLogVolume + " " + tbHttpTransportLogVolume +
-                " " + tbMqttTransportLogVolume + " " + tbSnmpTransportLogVolume);
+        dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume);
         dockerCompose.invokeDocker();
     }
 
