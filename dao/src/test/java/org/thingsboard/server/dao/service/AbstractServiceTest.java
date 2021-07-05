@@ -49,7 +49,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.Tenant;

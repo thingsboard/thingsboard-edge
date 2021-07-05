@@ -48,7 +48,7 @@ import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;

@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;

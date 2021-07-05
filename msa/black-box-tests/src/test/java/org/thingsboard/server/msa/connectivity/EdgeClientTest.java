@@ -32,7 +32,7 @@ package org.thingsboard.server.msa.connectivity;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
