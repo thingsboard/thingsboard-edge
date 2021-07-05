@@ -155,7 +155,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
+    /*if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
       config.cellActionDescriptors.push(
         {
           name: this.translate.instant('customer.manage-customer-edge-groups'),
@@ -164,7 +164,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
           onAction: ($event, entity) => this.manageEdges($event, entity, config, params)
         }
       );
-    }
+    }*/
 
     if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.READ)) {
       config.cellActionDescriptors.push(
