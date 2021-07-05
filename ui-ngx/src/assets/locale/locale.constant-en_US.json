@@ -3457,7 +3457,7 @@
                 "API_USAGE_STATE": "API Usage State",
                 "TB_RESOURCE": "Resource",
                 "EDGE_GROUP": "Edge Group",
-                "FIRMWARE": "Firmware"
+                "OTA_PACKAGE": "Ota package"
             }
         },
         "operation": {
