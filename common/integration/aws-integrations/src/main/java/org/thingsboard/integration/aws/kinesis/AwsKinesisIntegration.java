@@ -310,6 +310,10 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
             }
             log.info("Completed, shutting down now.");
         }
+
+        if(kinesisProducer != null) {
+            kinesisProducer.destroy();
+        }
     }
 
     @Override

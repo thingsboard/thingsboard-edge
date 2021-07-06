@@ -652,6 +652,16 @@ public class ModelConstants {
     public static final String DEVICE_GROUP_OTA_PACKAGE_FIRMWARE_ID = "ota_package_id";
     public static final String DEVICE_GROUP_OTA_PACKAGE_FIRMWARE_UPDATE_TIME = "ota_package_update_time";
 
+    /**
+     * Persisted RPC constants.
+     */
+    public static final String RPC_TABLE_NAME = "rpc";
+    public static final String RPC_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
+    public static final String RPC_DEVICE_ID = "device_id";
+    public static final String RPC_EXPIRATION_TIME = "expiration_time";
+    public static final String RPC_REQUEST = "request";
+    public static final String RPC_RESPONSE = "response";
+    public static final String RPC_STATUS = "status";
 
     /**
      * Edge constants.

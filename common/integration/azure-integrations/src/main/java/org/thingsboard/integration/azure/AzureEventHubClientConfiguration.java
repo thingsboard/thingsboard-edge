@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.azure;
 
+import com.azure.messaging.eventhubs.EventHubClientBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -39,7 +40,14 @@ public class AzureEventHubClientConfiguration {
 
     private String connectionString;
     private String iotHubName;
+    private String consumerGroup;
 
     private int connectTimeoutSec;
+
+    public String getConsumerGroup() {
+        return (consumerGroup == null || consumerGroup.isEmpty())
+                ? EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME
+                : consumerGroup;
+    }
 
 }
