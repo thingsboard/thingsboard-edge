@@ -72,7 +72,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private int rpcPort;
     @Value("${rpc.timeout}")
     private int timeoutSecs;
-    @Value("${rpc.keep_alive_time_sec}")
+    @Value("${rpc.keep_alive_time_sec:300}")
     private int keepAliveTimeSec;
     @Value("${rpc.ssl.enabled}")
     private boolean sslEnabled;
