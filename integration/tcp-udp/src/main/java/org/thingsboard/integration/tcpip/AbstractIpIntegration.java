@@ -126,7 +126,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
-        logDownlink(context, msg.getType(), msg);
+        logDownlink(context,"Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
             Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
             String status;

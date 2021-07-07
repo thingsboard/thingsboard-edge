@@ -110,7 +110,7 @@ export enum Resource {
   TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
   EDGE_GROUP = 'EDGE_GROUP',
-  FIRMWARE = 'FIRMWARE'
+  OTA_PACKAGE = 'OTA_PACKAGE'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
@@ -142,7 +142,7 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION],
     [EntityType.TB_RESOURCE, Resource.TB_RESOURCE],
     [EntityType.EDGE, Resource.EDGE],
-    [EntityType.FIRMWARE, Resource.FIRMWARE]
+    [EntityType.OTA_PACKAGE, Resource.OTA_PACKAGE]
   ]
 );
 

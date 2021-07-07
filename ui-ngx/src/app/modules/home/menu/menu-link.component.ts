@@ -29,14 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
 import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-menu-link',
   templateUrl: './menu-link.component.html',
-  styleUrls: ['./menu-link.component.scss']
+  styleUrls: ['./menu-link.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MenuLinkComponent implements OnInit {
 

@@ -32,18 +32,19 @@ package org.thingsboard.server.common.transport;
 
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ResourceDeleteMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ResourceUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportUpdateCredentialsProto;
-import org.thingsboard.server.gen.transport.TransportProtos.ResourceUpdateMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ResourceDeleteMsg;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Created by ashvayka on 04.10.18.
@@ -52,11 +53,11 @@ public interface SessionMsgListener {
 
     void onGetAttributesResponse(GetAttributeResponseMsg getAttributesResponse);
 
-    void onAttributeUpdate(AttributeUpdateNotificationMsg attributeUpdateNotification);
+    void onAttributeUpdate(UUID sessionId, AttributeUpdateNotificationMsg attributeUpdateNotification);
 
-    void onRemoteSessionCloseCommand(SessionCloseNotificationProto sessionCloseNotification);
+    void onRemoteSessionCloseCommand(UUID sessionId, SessionCloseNotificationProto sessionCloseNotification);
 
-    void onToDeviceRpcRequest(ToDeviceRpcRequestMsg toDeviceRequest);
+    void onToDeviceRpcRequest(UUID sessionId, ToDeviceRpcRequestMsg toDeviceRequest);
 
     void onToServerRpcResponse(ToServerRpcResponseMsg toServerResponse);
 
@@ -66,6 +67,8 @@ public interface SessionMsgListener {
 
     default void onDeviceUpdate(SessionInfoProto sessionInfo, Device device,
                                 Optional<DeviceProfile> deviceProfileOpt) {}
+
+    default void onDeviceDeleted(DeviceId deviceId) {}
 
     default void onResourceUpdate(Optional<ResourceUpdateMsg> resourceUpdateMsgOpt) {}
 

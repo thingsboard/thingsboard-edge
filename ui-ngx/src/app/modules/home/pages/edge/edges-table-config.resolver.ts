@@ -475,7 +475,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         suffix = 'ruleChains';
         break;
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/${suffix}`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/${suffix}`);
   }
 
   assignToCustomer($event: Event, edgesIds: Array<EdgeId>) {
@@ -613,42 +613,42 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/users`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/users`);
   }
 
   manageEdgeAssets($event: Event, edge: Edge) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/assets`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/assets`);
   }
 
   manageEdgeDevices($event: Event, edge: Edge) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/devices`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/devices`);
   }
 
   manageEdgeEntityViews($event: Event, edge: Edge) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/entityViews`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/entityViews`);
   }
 
   manageEdgeDashboards($event: Event, edge: Edge) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/dashboards`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/dashboards`);
   }
 
   manageEdgeRuleChains($event: Event, edge: Edge) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`edges/${edge.id.id}/ruleChains`);
+    this.router.navigateByUrl(`edgeInstances/${edge.id.id}/ruleChains`);
   }
 
 }

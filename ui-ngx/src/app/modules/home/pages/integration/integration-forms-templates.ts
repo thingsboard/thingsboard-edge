@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { IntegrationType, IntegrationTypeInfo } from '@shared/models/integration.models';
-import { baseUrl, generateId } from '@app/core/utils';
+import { CoapSecurityMode, IntegrationType, IntegrationTypeInfo } from '@shared/models/integration.models';
+import { baseUrl, coapBaseUrl, generateId } from '@app/core/utils';
 import { AbstractControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 
 export const handlerConfigurationTypes = {
@@ -221,6 +221,21 @@ export const templates = {
       'credentials.token': []
     }
   },
+  [IntegrationType.COAP]: {
+    clientConfiguration: {
+      baseUrl: coapBaseUrl(false),
+      dtlsBaseUrl: coapBaseUrl(true),
+      securityMode: CoapSecurityMode.NO_SECURE,
+      coapEndpoint: '',
+      dtlsCoapEndpoint: ''
+    },
+    ignoreNonPrimitiveFields: [],
+    fieldValidators: {
+      'clientConfiguration.baseUrl': [Validators.required],
+      'clientConfiguration.dtlsBaseUrl': [Validators.required],
+      'clientConfiguration.securityMode': [Validators.required]
+    }
+  },
   [IntegrationType.MQTT]: {
     clientConfiguration: {
       host: 'localhost',
@@ -268,6 +283,7 @@ export const templates = {
       port: 8883,
       cleanSession: true,
       ssl: true,
+      maxBytesInMessage: 32368,
       connectTimeoutSec: 10,
       clientId: 'device_id',
       credentials: {
@@ -286,6 +302,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.clientId': [Validators.required],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.credentials.sasKey': [Validators.required],
       'clientConfiguration.credentials.certFileName': [Validators.required],
       'clientConfiguration.credentials.cert': [Validators.required],
@@ -301,6 +318,7 @@ export const templates = {
       clientId: '',
       connectTimeoutSec: 10,
       ssl: true,
+      maxBytesInMessage: 32368,
       credentials: {
         type: 'cert.PEM',
         caCertFileName: '',
@@ -317,6 +335,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.caCertFileName': [Validators.required],
       'clientConfiguration.credentials.caCert': [Validators.required],
@@ -373,6 +392,7 @@ export const templates = {
       host: '',
       port: 8883,
       ssl: true,
+      maxBytesInMessage: 32368,
       cleanSession: true,
       credentials: {
         type: 'basic',
@@ -389,6 +409,7 @@ export const templates = {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required, Validators.pattern(/^a-\w+-\w+$/)],
       'clientConfiguration.credentials.password': [Validators.required],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       downlinkTopicPattern: [Validators.required],
       topicFilters: [Validators.required]
     }
@@ -412,12 +433,14 @@ export const templates = {
       customHost: false,
       port: 8883,
       ssl: true,
+      maxBytesInMessage: 32368,
       connectTimeoutSec: 10,
       credentials: {
         type: 'basic',
         username: '',
         password: ''
       },
+      apiVersion: false,
     },
     topicFilters: [{
       filter: '+/devices/+/up',
@@ -429,6 +452,7 @@ export const templates = {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required],
       'clientConfiguration.credentials.password': [Validators.required],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       downlinkTopicPattern: [Validators.required],
       topicFilters: [Validators.required]
     }
@@ -464,6 +488,7 @@ export const templates = {
     clientConfiguration: {
       connectTimeoutSec: 10,
       connectionString: '',
+      consumerGroup: '',
       iotHubName: ''
     },
     fieldValidators: {

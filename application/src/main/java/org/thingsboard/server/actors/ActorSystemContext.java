@@ -83,8 +83,10 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -106,9 +108,9 @@ import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+import org.thingsboard.server.service.rpc.TbRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
-import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
@@ -333,10 +335,6 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private SchedulerService schedulerService;
-
-    @Autowired
-    @Getter
     private RuleEngineCallService ruleEngineCallService;
 
     @Autowired
@@ -367,15 +365,33 @@ public class ActorSystemContext {
 
     @Lazy
     @Autowired(required = false)
-    @Getter private EdgeService edgeService;
+    @Getter
+    private EdgeService edgeService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private EdgeEventService edgeEventService;
+    @Getter
+    private EdgeEventService edgeEventService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private EdgeRpcService edgeRpcService;
+    @Getter
+    private EdgeRpcService edgeRpcService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private ResourceService resourceService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private OtaPackageService otaPackageService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private TbRpcService tbRpcService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter

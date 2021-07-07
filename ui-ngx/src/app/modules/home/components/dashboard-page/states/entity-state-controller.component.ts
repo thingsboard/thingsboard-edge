@@ -45,6 +45,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { map, tap } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { MobileService } from '@core/services/mobile.service';
 
 // @dynamic
 @Component({
@@ -63,6 +64,7 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
               protected statesControllerService: StatesControllerService,
               protected utils: UtilsService,
               private entityService: EntityService,
+              private mobileService: MobileService,
               private dashboardUtils: DashboardUtilsService) {
     super(router, route, utils, window, ngZone, statesControllerService);
   }
@@ -252,6 +254,10 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
     return result;
   }
 
+  public getCurrentStateName(): string {
+    return this.getStateName(this.stateObject.length - 1);
+  }
+
   public selectedStateIndexChanged() {
     this.navigatePrevState(this.selectedStateIndex);
   }
@@ -288,13 +294,15 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
   }
 
   private gotoState(stateId: string, update: boolean, openRightLayout?: boolean) {
+    const isStateIdChanged = this.dashboardCtrl.dashboardCtx.state !== stateId;
     this.dashboardCtrl.openDashboardState(stateId, openRightLayout);
+    this.mobileService.handleDashboardStateName(this.getStateName(this.stateObject.length - 1));
     if (update) {
-      this.updateLocation();
+      this.updateLocation(isStateIdChanged);
     }
   }
 
-  private updateLocation() {
+  private updateLocation(isStateIdChanged: boolean) {
     if (this.stateObject[this.stateObject.length - 1].id) {
       let newState;
       if (this.isDefaultState()) {
@@ -302,7 +310,7 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
       } else {
         newState = objToBase64URI(this.stateObject);
       }
-      this.updateStateParam(newState);
+      this.updateStateParam(newState, !isStateIdChanged);
     }
   }
 

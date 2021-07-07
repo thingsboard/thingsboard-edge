@@ -146,7 +146,7 @@ export abstract class StateControllerComponent implements IStateControllerCompon
     this.rxSubscriptions.length = 0;
   }
 
-  protected updateStateParam(newState: string) {
+  protected updateStateParam(newState: string, replaceCurrentHistoryUrl = false) {
     this.currentState = newState;
     if (this.syncStateWithQueryParam) {
       const queryParams: Params = {state: this.currentState};
@@ -157,6 +157,7 @@ export abstract class StateControllerComponent implements IStateControllerCompon
             relativeTo: this.route,
             queryParams,
             queryParamsHandling: 'merge',
+            replaceUrl: replaceCurrentHistoryUrl
           });
       });
     }
@@ -224,5 +225,7 @@ export abstract class StateControllerComponent implements IStateControllerCompon
   public abstract resetState(): void;
 
   public abstract updateState(id?: string, params?: StateParams, openRightLayout?: boolean): void;
+
+  public abstract getCurrentStateName(): string;
 
 }

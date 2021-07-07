@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.analytics.latest.telemetry;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -194,24 +195,20 @@ public class TbAggLatestTelemetryNodeTest {
 
         when(peCtx.createAttributesJsScriptEngine(attributesFilterScript)).thenReturn(scriptEngine);
 
-        try {
-            when(scriptEngine.executeAttributesFilter(ArgumentMatchers.anyMap())).then(
-                    (Answer<Boolean>) invocation -> {
-                        Map<String, String> attributes = (Map<String, String>) (invocation.getArguments())[0];
-                        if (attributes.containsKey("temperature")) {
-                            try {
-                                double temperature = Double.parseDouble(attributes.get("temperature"));
-                                return temperature > 21;
-                            } catch (NumberFormatException e) {
-                                return false;
-                            }
+        when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
+                (Answer<ListenableFuture<Boolean>>) invocation -> {
+                    Map<String, String> attributes = (Map<String, String>) (invocation.getArguments())[0];
+                    if (attributes.containsKey("temperature")) {
+                        try {
+                            double temperature = Double.parseDouble(attributes.get("temperature"));
+                            return Futures.immediateFuture(temperature > 21);
+                        } catch (NumberFormatException e) {
+                            return Futures.immediateFuture(false);
                         }
-                        return false;
                     }
-            );
-        } catch (ScriptException e) {
-            log.error("Failed to execute script", e);
-        }
+                    return Futures.immediateFuture(false);
+                }
+        );
 
         relationsQuery = new RelationsQuery();
         relationsQuery.setDirection(EntitySearchDirection.FROM);

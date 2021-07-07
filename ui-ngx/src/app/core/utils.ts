@@ -224,6 +224,13 @@ export function base64toObj(b64Encoded: string): any {
   return JSON.parse(json);
 }
 
+export function checkNumericStringAndConvert(val: string): number | string {
+  if (val && isNumeric(val) && Number(val).toString() === val) {
+    return Number(val);
+  }
+  return val;
+}
+
 const scrollRegex = /(auto|scroll)/;
 
 function parentNodes(node: Node, nodes: Node[]): Node[] {
@@ -469,6 +476,13 @@ export function baseUrl(): string {
   return url;
 }
 
+export function coapBaseUrl(dtlsEnabled: boolean): string {
+  if (dtlsEnabled) {
+    return "coaps:" + '//' + window.location.hostname;
+  }
+  return "coap:" + '//' + window.location.hostname;
+}
+
 export function generateId(length: number): string {
   if (!length || isNaN(length)) {
     length = 1;
@@ -515,6 +529,21 @@ export function generateSecret(length?: number): string {
   return str.concat(generateSecret(length - str.length));
 }
 
-export function validateEntityId(entityId: EntityId): boolean {
-  return isDefinedAndNotNull(entityId.id) && entityId.id !== NULL_UUID && isDefinedAndNotNull(entityId.entityType);
+export function validateEntityId(entityId: EntityId | null): boolean {
+    return isDefinedAndNotNull(entityId?.id) && entityId.id !== NULL_UUID && isDefinedAndNotNull(entityId?.entityType);
+}
+
+export function isMobileApp(): boolean {
+  return isDefined((window as any).flutter_inappwebview);
+}
+
+const alphanumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const alphanumericCharactersLength = alphanumericCharacters.length;
+
+export function randomAlphanumeric(length: number): string {
+  let result = '';
+  for ( let i = 0; i < length; i++ ) {
+    result += alphanumericCharacters.charAt(Math.floor(Math.random() * alphanumericCharactersLength));
+  }
+  return result;
 }

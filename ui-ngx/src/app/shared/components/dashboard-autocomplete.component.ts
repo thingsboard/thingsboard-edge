@@ -34,7 +34,7 @@ import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from 
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { map, mergeMap, startWith, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
@@ -45,6 +45,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import { FloatLabelType } from '@angular/material/form-field/form-field';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -79,6 +80,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   @Input()
   operation: Operation;
+
+  @Input()
+  floatLabel: FloatLabelType = 'auto';
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -119,6 +123,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   ngOnInit() {
     this.filteredDashboards = this.selectDashboardFormGroup.get('dashboard').valueChanges
       .pipe(
+        debounceTime(150),
         tap(value => {
           let modelValue;
           if (typeof value === 'string' || !value) {
@@ -130,7 +135,8 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
         }),
         startWith<string | DashboardInfo>(''),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-        mergeMap(name => this.fetchDashboards(name) )
+        distinctUntilChanged(),
+        switchMap(name => this.fetchDashboards(name) )
       );
   }
 
@@ -155,6 +161,11 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    if (this.disabled) {
+      this.selectDashboardFormGroup.disable({emitEvent: false});
+    } else {
+      this.selectDashboardFormGroup.enable({emitEvent: false});
+    }
   }
 
   writeValue(value: DashboardInfo | string | null): void {
@@ -196,6 +207,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
       direction: Direction.ASC
     });
     return this.getDashboards(pageLink).pipe(
+      catchError(() => of(emptyPageData<DashboardInfo>())),
       map(pageData => {
         return pageData.data;
       })

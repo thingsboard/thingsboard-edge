@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DownlinkData;
@@ -143,6 +144,19 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         IntegrationStatistics statistics = this.integrationStatistics;
         this.integrationStatistics = new IntegrationStatistics();
         return statistics;
+    }
+
+    protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
+        JsonNode clientConfiguration = configuration.getConfiguration().get("clientConfiguration");
+        return getClientConfiguration(clientConfiguration, clazz);
+    }
+
+    protected <T> T getClientConfiguration(JsonNode clientConfiguration, Class<T> clazz) {
+        if (clientConfiguration == null) {
+            throw new IllegalArgumentException("clientConfiguration field is missing!");
+        } else {
+            return JacksonUtil.convertValue(clientConfiguration, clazz);
+        }
     }
 
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {

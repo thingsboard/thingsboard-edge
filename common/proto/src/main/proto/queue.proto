@@ -49,6 +49,7 @@ message ServiceInfo {
   int64 tenantIdMSB = 3;
   int64 tenantIdLSB = 4;
   repeated QueueInfo ruleEngineQueues = 5;
+  repeated string transports = 6;
 }
 
 /**
@@ -129,6 +130,7 @@ message DeviceInfoProto {
   int64 deviceProfileIdLSB = 9;
   int64 customerIdMSB = 10;
   int64 customerIdLSB = 11;
+  string powerMode = 12;
 }
 
 /**
@@ -151,6 +153,7 @@ message GetAttributeRequestMsg {
   int32 requestId = 1;
   repeated string clientAttributeNames = 2;
   repeated string sharedAttributeNames = 3;
+  bool onlyShared = 4;
 }
 
 message GetAttributeResponseMsg {
@@ -158,6 +161,7 @@ message GetAttributeResponseMsg {
   repeated TsKvProto clientAttributeList = 2;
   repeated TsKvProto sharedAttributeList = 3;
   string error = 5;
+  bool sharedStateMsg = 6;
 }
 
 message AttributeUpdateNotificationMsg {
@@ -261,6 +265,36 @@ message GetEntityProfileResponseMsg {
   bytes apiState = 3;
 }
 
+message GetDeviceRequestMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+}
+
+message GetDeviceResponseMsg {
+  int64 deviceProfileIdMSB = 1;
+  int64 deviceProfileIdLSB = 2;
+  bytes deviceTransportConfiguration = 3;
+}
+
+message GetDeviceCredentialsRequestMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+}
+
+message GetDeviceCredentialsResponseMsg {
+  bytes deviceCredentialsData = 1;
+}
+
+message GetSnmpDevicesRequestMsg {
+  int32 page = 1;
+  int32 pageSize = 2;
+}
+
+message GetSnmpDevicesResponseMsg {
+  repeated string ids = 1;
+  bool hasNextPage = 2;
+}
+
 message EntityUpdateMsg {
   string entityType = 1;
   bytes data = 2;
@@ -292,21 +326,38 @@ message SessionCloseNotificationProto {
 
 message SubscribeToAttributeUpdatesMsg {
   bool unsubscribe = 1;
+  SessionType sessionType = 2;
 }
 
 message SubscribeToRPCMsg {
   bool unsubscribe = 1;
+  SessionType sessionType = 2;
+}
+
+message SendPendingRPCMsg {
 }
 
 message ToDeviceRpcRequestMsg {
   int32 requestId = 1;
   string methodName = 2;
   string params = 3;
+  int64 expirationTime = 4;
+  int64 requestIdMSB = 5;
+  int64 requestIdLSB = 6;
+  bool oneway = 7;
+  bool persisted = 8;
 }
 
 message ToDeviceRpcResponseMsg {
   int32 requestId = 1;
   string payload = 2;
+}
+
+message ToDevicePersistedRpcResponseMsg {
+  int32 requestId = 1;
+  int64 requestIdMSB = 2;
+  int64 requestIdLSB = 3;
+  string status = 4;
 }
 
 message ToServerRpcRequestMsg {
@@ -367,21 +418,23 @@ enum ResponseStatus {
   FAILURE = 3;
 }
 
-message GetFirmwareRequestMsg {
+message GetOtaPackageRequestMsg {
   int64 deviceIdMSB = 1;
   int64 deviceIdLSB = 2;
   int64 tenantIdMSB = 3;
   int64 tenantIdLSB = 4;
+  string type = 5;
 }
 
-message GetFirmwareResponseMsg {
+message GetOtaPackageResponseMsg {
   ResponseStatus responseStatus = 1;
-  int64 firmwareIdMSB = 2;
-  int64 firmwareIdLSB = 3;
-  string title = 4;
-  string version = 5;
-  string contentType = 6;
-  string fileName = 7;
+  int64 otaPackageIdMSB = 2;
+  int64 otaPackageIdLSB = 3;
+  string type = 4;
+  string title = 5;
+  string version = 6;
+  string contentType = 7;
+  string fileName = 8;
 }
 
 //Used to report session state to tb-Service and persist this state in the cache on the tb-Service level.
@@ -410,6 +463,8 @@ message TransportToDeviceActorMsg {
   SubscriptionInfoProto subscriptionInfo = 7;
   ClaimDeviceMsg claimDevice = 8;
   ProvisionDeviceRequestMsg provisionDevice = 9;
+  ToDevicePersistedRpcResponseMsg persistedRpcResponseMsg = 10;
+  SendPendingRPCMsg sendPendingRPC = 11;
 }
 
 message TransportToRuleEngineMsg {
@@ -659,7 +714,10 @@ message TransportApiRequestMsg {
   ProvisionDeviceRequestMsg provisionDeviceRequestMsg = 7;
   ValidateDeviceLwM2MCredentialsRequestMsg validateDeviceLwM2MCredentialsRequestMsg = 8;
   GetResourceRequestMsg resourceRequestMsg = 9;
-  GetFirmwareRequestMsg firmwareRequestMsg = 10;
+  GetOtaPackageRequestMsg otaPackageRequestMsg = 10;
+  GetSnmpDevicesRequestMsg snmpDevicesRequestMsg = 11;
+  GetDeviceRequestMsg deviceRequestMsg = 12;
+  GetDeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 13;
 }
 
 /* Response from ThingsBoard Core Service to Transport Service */
@@ -668,9 +726,12 @@ message TransportApiResponseMsg {
   GetOrCreateDeviceFromGatewayResponseMsg getOrCreateDeviceResponseMsg = 2;
   GetEntityProfileResponseMsg entityProfileResponseMsg = 3;
   ProvisionDeviceResponseMsg provisionDeviceResponseMsg = 4;
+  GetSnmpDevicesResponseMsg snmpDevicesResponseMsg = 5;
   LwM2MResponseMsg lwM2MResponseMsg = 6;
   GetResourceResponseMsg resourceResponseMsg = 7;
-  GetFirmwareResponseMsg firmwareResponseMsg = 8;
+  GetOtaPackageResponseMsg otaPackageResponseMsg = 8;
+  GetDeviceResponseMsg deviceResponseMsg = 9;
+  GetDeviceCredentialsResponseMsg deviceCredentialsResponseMsg = 10;
 }
 
 /* Messages that are handled by ThingsBoard Core Service */
@@ -740,12 +801,13 @@ message ToUsageStatsServiceMsg {
   int64 customerIdLSB = 7;
 }
 
-message ToFirmwareStateServiceMsg {
+message ToOtaPackageStateServiceMsg {
   int64 ts = 1;
   int64 tenantIdMSB = 2;
   int64 tenantIdLSB = 3;
   int64 deviceIdMSB = 4;
   int64 deviceIdLSB = 5;
-  int64 firmwareIdMSB = 6;
-  int64 firmwareIdLSB = 7;
+  int64 otaPackageIdMSB = 6;
+  int64 otaPackageIdLSB = 7;
+  string type = 8;
 }

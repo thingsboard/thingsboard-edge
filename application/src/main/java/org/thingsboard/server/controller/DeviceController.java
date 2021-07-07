@@ -65,9 +65,12 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
@@ -81,8 +84,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -90,7 +91,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
@@ -123,15 +123,8 @@ public class DeviceController extends BaseController {
     public Device saveDevice(@RequestBody Device device,
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+        boolean created = device.getId() == null;
         try {
-            boolean created = device.getId() == null;
-            Device oldDevice;
-            if (!created) {
-                oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
-            } else {
-                oldDevice = null;
-            }
-
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
@@ -146,9 +139,11 @@ public class DeviceController extends BaseController {
                 deviceStateService.onDeviceUpdated(savedDevice);
             }
 
-            firmwareStateService.update(savedDevice, oldDevice);
+            otaPackageStateService.update(savedDevice);
             return savedDevice;
         } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.DEVICE), device,
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
 
@@ -566,4 +561,42 @@ public class DeviceController extends BaseController {
         metaData.putValue("assignedFromTenantName", tenant.getName());
         return metaData;
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/devices/count/{otaPackageType}/{deviceProfileId}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long countByDeviceProfileAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
+                                                       @PathVariable("deviceProfileId") String deviceProfileId) throws ThingsboardException {
+        checkParameter("OtaPackageType", otaPackageType);
+        checkParameter("DeviceProfileId", deviceProfileId);
+        try {
+            return deviceService.countByDeviceProfileAndEmptyOtaPackage(
+                    getTenantId(),
+                    new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                    OtaPackageType.valueOf(otaPackageType));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/devices/count/{otaPackageType}/{otaPackageId}/{entityGroupId}", method = RequestMethod.GET)
+    @ResponseBody
+    public Long countByDeviceGroupAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
+                                                     @PathVariable("otaPackageId") String otaPackageId,
+                                                     @PathVariable("entityGroupId") String deviceGroupId) throws ThingsboardException {
+        checkParameter("OtaPackageType", otaPackageType);
+        checkParameter("OtaPackageId", otaPackageId);
+        checkParameter("EntityGroupId", deviceGroupId);
+        try {
+            checkParameter("DeviceGroupId", deviceGroupId);
+            return deviceService.countByEntityGroupAndEmptyOtaPackage(
+                    new EntityGroupId(UUID.fromString(deviceGroupId)),
+                    new OtaPackageId(UUID.fromString(otaPackageId)),
+                    OtaPackageType.valueOf(otaPackageType));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

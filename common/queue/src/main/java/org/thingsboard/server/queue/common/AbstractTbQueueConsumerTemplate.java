@@ -53,6 +53,7 @@ import static java.util.Collections.emptyList;
 @Slf4j
 public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> implements TbQueueConsumer<T> {
 
+    public static final long ONE_MILLISECOND_IN_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
     private volatile boolean subscribed;
     protected volatile boolean stopped = false;
     protected volatile Set<TopicPartitionInfo> partitions;
@@ -98,7 +99,7 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
         }
 
         if (consumerLock.isLocked()) {
-            log.error("poll. consumerLock is locked. will wait with no timeout. it looks like a race conditions or deadlock", new RuntimeException("stacktrace"));
+            log.error("poll. consumerLock is locked. will wait with no timeout. it looks like a race conditions or deadlock topic " + topic, new RuntimeException("stacktrace"));
         }
 
         consumerLock.lock();
@@ -146,9 +147,12 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
     List<T> sleepAndReturnEmpty(final long startNanos, final long durationInMillis) {
         long durationNanos = TimeUnit.MILLISECONDS.toNanos(durationInMillis);
         long spentNanos = System.nanoTime() - startNanos;
-        if (spentNanos < durationNanos) {
+        long nanosLeft = durationNanos - spentNanos;
+        if (nanosLeft >= ONE_MILLISECOND_IN_NANOS) {
             try {
-                Thread.sleep(Math.max(TimeUnit.NANOSECONDS.toMillis(durationNanos - spentNanos), 1));
+                long sleepMs = TimeUnit.NANOSECONDS.toMillis(nanosLeft);
+                log.trace("Going to sleep after poll: topic {} for {}ms", topic, sleepMs);
+                Thread.sleep(sleepMs);
             } catch (InterruptedException e) {
                 if (!stopped) {
                     log.error("Failed to wait", e);
@@ -161,7 +165,7 @@ public abstract class AbstractTbQueueConsumerTemplate<R, T extends TbQueueMsg> i
     @Override
     public void commit() {
         if (consumerLock.isLocked()) {
-            log.error("commit. consumerLock is locked. will wait with no timeout. it looks like a race conditions or deadlock", new RuntimeException("stacktrace"));
+            log.error("commit. consumerLock is locked. will wait with no timeout. it looks like a race conditions or deadlock topic " + topic, new RuntimeException("stacktrace"));
         }
         consumerLock.lock();
         try {

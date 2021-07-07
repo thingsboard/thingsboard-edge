@@ -97,4 +97,6 @@ public interface EdgeService {
     Object activateInstance(String licenseSecret, String releaseDate);
 
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
+
+    void cleanupEvents(long ttl);
 }

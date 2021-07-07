@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.service;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -70,9 +72,10 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.firmware.FirmwareService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -104,6 +107,9 @@ public abstract class AbstractServiceTest {
     protected ObjectMapper mapper = new ObjectMapper();
 
     public static final TenantId SYSTEM_TENANT_ID = new TenantId(EntityId.NULL_UUID);
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Autowired
     protected UserService userService;
@@ -189,9 +195,11 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected ResourceService resourceService;
 
+    @Autowired
+    protected OtaPackageService otaPackageService;
 
     @Autowired
-    protected FirmwareService firmwareService;
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
     public class IdComparator<D extends HasId> implements Comparator<D> {
         @Override

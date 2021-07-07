@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.springframework.context.ApplicationListener;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.Device;
@@ -46,7 +45,6 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 
 /**
  * Created by ashvayka on 02.12.17.

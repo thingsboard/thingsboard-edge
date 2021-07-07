@@ -70,4 +70,5 @@ public interface TbResourceService {
 
     void deleteResourcesByTenantId(TenantId tenantId);
 
+    long sumDataSizeByTenantId(TenantId tenantId);
 }

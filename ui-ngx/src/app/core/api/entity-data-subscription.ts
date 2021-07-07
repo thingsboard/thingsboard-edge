@@ -53,7 +53,7 @@ import {
 } from '@shared/models/telemetry/telemetry.models';
 import { UtilsService } from '@core/services/utils.service';
 import { EntityDataListener, EntityDataLoadResult } from '@core/api/entity-data.service';
-import { deepClone, isDefined, isDefinedAndNotNull, isObject, objectHashCode } from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isNumeric, isObject, objectHashCode } from '@core/utils';
 import { PageData } from '@shared/models/page/page-data';
 import { DataAggregator } from '@core/api/data-aggregator';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
@@ -682,8 +682,7 @@ export class EntityDataSubscription {
         if (prevDataCb) {
           dataAggregator.updateOnDataCb(prevDataCb);
         }
-      }
-      if (!this.history && !isUpdate) {
+      } else if (!this.history && !isUpdate) {
         this.onData(subscriptionData, DataKeyType.timeseries, dataIndex, true, dataUpdatedCb);
       }
     }
@@ -758,16 +757,11 @@ export class EntityDataSubscription {
     }
   }
 
-  private isNumeric(val: any): boolean {
-    return (val - parseFloat( val ) + 1) >= 0;
-  }
-
   private convertValue(val: string): any {
-    if (val && this.isNumeric(val) && Number(val).toString() === val) {
+    if (val && isNumeric(val) && Number(val).toString() === val) {
       return Number(val);
-    } else {
-      return val;
     }
+    return val;
   }
 
   private toSubscriptionData(sourceData: {[key: string]: TsValue | TsValue[]}, isTs: boolean): SubscriptionData {

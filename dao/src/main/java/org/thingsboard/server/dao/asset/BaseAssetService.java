@@ -72,6 +72,7 @@ import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -180,13 +181,14 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             throw new RuntimeException("Exception while finding entity views for assetId [" + assetId + "]", e);
         }
 
-        List<Object> list = new ArrayList<>();
-        list.add(asset.getTenantId());
-        list.add(asset.getName());
-        Cache cache = cacheManager.getCache(ASSET_CACHE);
-        cache.evict(list);
+        removeAssetFromCacheByName(asset.getTenantId(), asset.getName());
 
         assetDao.removeById(tenantId, assetId.getId());
+    }
+
+    private void removeAssetFromCacheByName(TenantId tenantId, String name) {
+        Cache cache = cacheManager.getCache(ASSET_CACHE);
+        cache.evict(Arrays.asList(tenantId, name));
     }
 
     @Override
@@ -346,6 +348,13 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Asset asset) {
+                    Asset old = assetDao.findById(asset.getTenantId(), asset.getId().getId());
+                    if (old == null) {
+                        throw new DataValidationException("Can't update non existing asset!");
+                    }
+                    if (!old.getName().equals(asset.getName())) {
+                        removeAssetFromCacheByName(tenantId, old.getName());
+                    }
                 }
 
                 @Override

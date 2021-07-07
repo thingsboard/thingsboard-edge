@@ -107,4 +107,8 @@ public class JpaTbResourceDao extends JpaAbstractSearchTextDao<TbResourceEntity,
                         resourceType.name(), objectIds));
     }
 
+    @Override
+    public Long sumDataSizeByTenantId(TenantId tenantId) {
+        return resourceRepository.sumDataSizeByTenantId(tenantId.getId());
+    }
 }

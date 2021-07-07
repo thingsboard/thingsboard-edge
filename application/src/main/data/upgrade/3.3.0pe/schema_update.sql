@@ -121,3 +121,14 @@ CREATE TABLE IF NOT EXISTS group_permission (
     entity_group_type varchar(255),
     is_public boolean
 );
+
+CREATE TABLE IF NOT EXISTS device_group_ota_package (
+    id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,
+    group_id uuid NOT NULL,
+    ota_package_type varchar(32) NOT NULL,
+    ota_package_id uuid NOT NULL,
+    ota_package_update_time bigint NOT NULL,
+    CONSTRAINT device_group_ota_package_unq_key UNIQUE (group_id, ota_package_type),
+    CONSTRAINT fk_ota_package_device_group_ota_package FOREIGN KEY (ota_package_id) REFERENCES ota_package(id),
+    CONSTRAINT fk_entity_group_device_group_ota_package FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
+);

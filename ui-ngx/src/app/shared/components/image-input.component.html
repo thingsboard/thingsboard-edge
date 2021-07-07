@@ -36,7 +36,7 @@
                 [flowConfig]="{singleFile: true, allowDuplicateUploads: true}">
     <div class="tb-image-select-container">
       <div *ngIf="showPreview" class="tb-image-preview-container">
-        <div *ngIf="!safeImageUrl;else elseBlock">{{ noImageText }}</div>
+        <div *ngIf="!safeImageUrl;else elseBlock">{{ disabled ? emptyImageText : noImageText }}</div>
         <ng-template #elseBlock><img class="tb-image-preview" [src]="safeImageUrl" /></ng-template>
       </div>
       <div class="tb-image-clear-container" *ngIf="!disabled && showClearButton">
@@ -57,5 +57,5 @@
       </div>
     </div>
   </ng-container>
-  <div class="tb-hint" *ngIf="maxSizeByte" translate [translateParams]="{ size: maxSizeByte | fileSize}">dashboard.maximum-upload-file-size</div>
+  <div class="tb-hint" *ngIf="maxSizeByte && !disabled" translate [translateParams]="{ size: maxSizeByte | fileSize}">dashboard.maximum-upload-file-size</div>
 </div>

@@ -30,17 +30,15 @@
  */
 package org.thingsboard.server.coapserver;
 
-import com.google.common.io.Resources;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.elements.util.SslContextUtil;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
 import org.eclipse.californium.scandium.dtls.CertificateType;
-import org.eclipse.californium.scandium.dtls.x509.StaticNewAdvancedCertificateVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.ResourceUtils;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 
@@ -49,12 +47,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
-import java.security.cert.Certificate;
 import java.util.Collections;
-import java.util.Optional;
 
 @Slf4j
-@ConditionalOnExpression("'${transport.coap.enabled}'=='true'")
 @ConditionalOnProperty(prefix = "transport.coap.dtls", value = "enabled", havingValue = "true", matchIfMissing = false)
 @Component
 public class TbCoapDtlsSettings {
@@ -64,9 +59,6 @@ public class TbCoapDtlsSettings {
 
     @Value("${transport.coap.dtls.bind_port}")
     private Integer port;
-
-    @Value("${transport.coap.dtls.mode}")
-    private String mode;
 
     @Value("${transport.coap.dtls.key_store}")
     private String keyStoreFile;
@@ -80,50 +72,41 @@ public class TbCoapDtlsSettings {
     @Value("${transport.coap.dtls.key_alias}")
     private String keyAlias;
 
-    @Value("${transport.coap.dtls.skip_validity_check_for_client_cert}")
+    @Value("${transport.coap.dtls.x509.skip_validity_check_for_client_cert:false}")
     private boolean skipValidityCheckForClientCert;
 
-    @Value("${transport.coap.dtls.x509.dtls_session_inactivity_timeout}")
+    @Value("${transport.coap.dtls.x509.dtls_session_inactivity_timeout:86400000}")
     private long dtlsSessionInactivityTimeout;
 
-    @Value("${transport.coap.dtls.x509.dtls_session_report_timeout}")
+    @Value("${transport.coap.dtls.x509.dtls_session_report_timeout:1800000}")
     private long dtlsSessionReportTimeout;
 
-    @Autowired
+    @Autowired(required = false)
     private TransportService transportService;
 
-    @Autowired
+    @Autowired(required = false)
     private TbServiceInfoProvider serviceInfoProvider;
 
     public DtlsConnectorConfig dtlsConnectorConfig() throws UnknownHostException {
-        Optional<SecurityMode> securityModeOpt = SecurityMode.parse(mode);
-        if (securityModeOpt.isEmpty()) {
-            log.warn("Incorrect configuration of securityMode {}", mode);
-            throw new RuntimeException("Failed to parse mode property: " + mode + "!");
-        } else {
-            DtlsConnectorConfig.Builder configBuilder = new DtlsConnectorConfig.Builder();
-            configBuilder.setAddress(getInetSocketAddress());
-            String keyStoreFilePath = Resources.getResource(keyStoreFile).getPath();
-            SslContextUtil.Credentials serverCredentials = loadServerCredentials(keyStoreFilePath);
-            SecurityMode securityMode = securityModeOpt.get();
-            if (securityMode.equals(SecurityMode.NO_AUTH)) {
-                configBuilder.setClientAuthenticationRequired(false);
-                configBuilder.setServerOnly(true);
-            } else {
-                configBuilder.setAdvancedCertificateVerifier(
-                        new TbCoapDtlsCertificateVerifier(
-                                transportService,
-                                serviceInfoProvider,
-                                dtlsSessionInactivityTimeout,
-                                dtlsSessionReportTimeout,
-                                skipValidityCheckForClientCert
-                        )
-                );
-            }
-            configBuilder.setIdentity(serverCredentials.getPrivateKey(), serverCredentials.getCertificateChain(),
-                    Collections.singletonList(CertificateType.X_509));
-            return configBuilder.build();
-        }
+        DtlsConnectorConfig.Builder configBuilder = new DtlsConnectorConfig.Builder();
+        configBuilder.setAddress(getInetSocketAddress());
+        String keyStoreFilePath = ResourceUtils.getUri(this, keyStoreFile);
+        SslContextUtil.Credentials serverCredentials = loadServerCredentials(keyStoreFilePath);
+        configBuilder.setServerOnly(true);
+        configBuilder.setClientAuthenticationRequired(false);
+        configBuilder.setClientAuthenticationWanted(true);
+        configBuilder.setAdvancedCertificateVerifier(
+                new TbCoapDtlsCertificateVerifier(
+                        transportService,
+                        serviceInfoProvider,
+                        dtlsSessionInactivityTimeout,
+                        dtlsSessionReportTimeout,
+                        skipValidityCheckForClientCert
+                )
+        );
+        configBuilder.setIdentity(serverCredentials.getPrivateKey(), serverCredentials.getCertificateChain(),
+                Collections.singletonList(CertificateType.X_509));
+        return configBuilder.build();
     }
 
     private SslContextUtil.Credentials loadServerCredentials(String keyStoreFilePath) {
@@ -135,43 +118,9 @@ public class TbCoapDtlsSettings {
         }
     }
 
-    private void loadTrustedCertificates(DtlsConnectorConfig.Builder config, String keyStoreFilePath) {
-        StaticNewAdvancedCertificateVerifier.Builder trustBuilder = StaticNewAdvancedCertificateVerifier.builder();
-        try {
-            Certificate[] trustedCertificates = SslContextUtil.loadTrustedCertificates(
-                    keyStoreFilePath, keyAlias,
-                    keyStorePassword.toCharArray());
-            trustBuilder.setTrustedCertificates(trustedCertificates);
-            if (trustBuilder.hasTrusts()) {
-                config.setAdvancedCertificateVerifier(trustBuilder.build());
-            }
-        } catch (GeneralSecurityException | IOException e) {
-            throw new RuntimeException("Failed to load trusted certificates due to: ", e);
-        }
-    }
-
     private InetSocketAddress getInetSocketAddress() throws UnknownHostException {
         InetAddress addr = InetAddress.getByName(host);
         return new InetSocketAddress(addr, port);
-    }
-
-    private enum SecurityMode {
-        X509,
-        NO_AUTH;
-
-        static Optional<SecurityMode> parse(String name) {
-            SecurityMode mode = null;
-            if (name != null) {
-                for (SecurityMode securityMode : SecurityMode.values()) {
-                    if (securityMode.name().equalsIgnoreCase(name)) {
-                        mode = securityMode;
-                        break;
-                    }
-                }
-            }
-            return Optional.ofNullable(mode);
-        }
-
     }
 
 }

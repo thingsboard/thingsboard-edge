@@ -45,7 +45,6 @@ import {
   DeviceProvisionConfiguration,
   DeviceProvisionType,
   DeviceTransportType,
-  deviceTransportTypeConfigurationInfoMap,
   deviceTransportTypeHintMap,
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
@@ -88,7 +87,6 @@ export class DeviceWizardDialogComponent extends
   showNext = true;
 
   createProfile = false;
-  createTransportConfiguration = false;
 
   entityType = EntityType;
 
@@ -108,7 +106,7 @@ export class DeviceWizardDialogComponent extends
 
   credentialsFormGroup: FormGroup;
 
-  labelPosition = 'end';
+  labelPosition: MatHorizontalStepper['labelPosition'] = 'end';
 
   entitiesTableConfig = this.data.entitiesTableConfig;
 
@@ -132,10 +130,8 @@ export class DeviceWizardDialogComponent extends
     this.deviceWizardFormGroup = this.fb.group({
         name: ['', Validators.required],
         label: [''],
-        firmwareId: [null],
         gateway: [false],
         overwriteActivityTime: [false],
-        transportType: [DeviceTransportType.DEFAULT, Validators.required],
         addProfileType: [0],
         deviceProfileId: [null, Validators.required],
         newDeviceProfileTitle: [{value: null, disabled: true}],
@@ -156,7 +152,6 @@ export class DeviceWizardDialogComponent extends
           this.deviceWizardFormGroup.get('defaultQueueName').disable();
           this.deviceWizardFormGroup.updateValueAndValidity();
           this.createProfile = false;
-          this.createTransportConfiguration = false;
         } else {
           this.deviceWizardFormGroup.get('deviceProfileId').setValidators(null);
           this.deviceWizardFormGroup.get('deviceProfileId').disable();
@@ -167,18 +162,18 @@ export class DeviceWizardDialogComponent extends
 
           this.deviceWizardFormGroup.updateValueAndValidity();
           this.createProfile = true;
-          this.createTransportConfiguration = this.deviceWizardFormGroup.get('transportType').value &&
-            deviceTransportTypeConfigurationInfoMap.get(this.deviceWizardFormGroup.get('transportType').value).hasProfileConfiguration;
         }
       }
     ));
 
     this.transportConfigFormGroup = this.fb.group(
       {
+        transportType: [DeviceTransportType.DEFAULT, Validators.required],
         transportConfiguration: [createDeviceProfileTransportConfiguration(DeviceTransportType.DEFAULT), Validators.required]
       }
     );
-    this.subscriptions.push(this.deviceWizardFormGroup.get('transportType').valueChanges.subscribe((transportType) => {
+
+    this.subscriptions.push(this.transportConfigFormGroup.get('transportType').valueChanges.subscribe((transportType) => {
       this.deviceProfileTransportTypeChanged(transportType);
     }));
 
@@ -250,8 +245,6 @@ export class DeviceWizardDialogComponent extends
     if (index > 0) {
       if (!this.createProfile) {
         index += 3;
-      } else if (!this.createTransportConfiguration) {
-        index += 1;
       }
     }
     switch (index) {
@@ -275,8 +268,6 @@ export class DeviceWizardDialogComponent extends
   private deviceProfileTransportTypeChanged(deviceTransportType: DeviceTransportType): void {
     this.transportConfigFormGroup.patchValue(
       {transportConfiguration: createDeviceProfileTransportConfiguration(deviceTransportType)});
-    this.createTransportConfiguration = this.createProfile && deviceTransportType &&
-      deviceTransportTypeConfigurationInfoMap.get(deviceTransportType).hasProfileConfiguration;
   }
 
   add(): void {
@@ -300,7 +291,7 @@ export class DeviceWizardDialogComponent extends
       const deviceProfile: DeviceProfile = {
         name: this.deviceWizardFormGroup.get('newDeviceProfileTitle').value,
         type: DeviceProfileType.DEFAULT,
-        transportType: this.deviceWizardFormGroup.get('transportType').value,
+        transportType: this.transportConfigFormGroup.get('transportType').value,
         provisionType: deviceProvisionConfiguration.type,
         provisionDeviceKey,
         profileData: {
@@ -331,7 +322,6 @@ export class DeviceWizardDialogComponent extends
     const device = {
       name: this.deviceWizardFormGroup.get('name').value,
       label: this.deviceWizardFormGroup.get('label').value,
-      firmwareId: this.deviceWizardFormGroup.get('firmwareId').value,
       deviceProfileId: profileId,
       additionalInfo: {
         gateway: this.deviceWizardFormGroup.get('gateway').value,

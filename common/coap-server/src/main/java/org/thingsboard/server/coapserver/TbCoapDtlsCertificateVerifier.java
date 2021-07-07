@@ -93,7 +93,6 @@ public class TbCoapDtlsCertificateVerifier implements NewAdvancedCertificateVeri
     @Override
     public CertificateVerificationResult verifyCertificate(ConnectionId cid, ServerNames serverName, Boolean clientUsage, boolean truncateCertificatePath, CertificateMessage message, DTLSSession session) {
         try {
-            String credentialsBody = null;
             CertPath certpath = message.getCertificateChain();
             X509Certificate[] chain = certpath.getCertificates().toArray(new X509Certificate[0]);
             for (X509Certificate cert : chain) {
@@ -101,6 +100,7 @@ public class TbCoapDtlsCertificateVerifier implements NewAdvancedCertificateVeri
                     if (!skipValidityCheckForClientCert) {
                         cert.checkValidity();
                     }
+
                     String strCert = SslUtil.getCertificateString(cert);
                     String sha3Hash = EncryptionUtil.getSha3Hash(strCert);
                     final ValidateDeviceCredentialsResponse[] deviceCredentialsResponse = new ValidateDeviceCredentialsResponse[1];
@@ -124,7 +124,6 @@ public class TbCoapDtlsCertificateVerifier implements NewAdvancedCertificateVeri
                     latch.await(10, TimeUnit.SECONDS);
                     ValidateDeviceCredentialsResponse msg = deviceCredentialsResponse[0];
                     if (msg != null && strCert.equals(msg.getCredentials())) {
-                        credentialsBody = msg.getCredentials();
                         DeviceProfile deviceProfile = msg.getDeviceProfile();
                         if (msg.hasDeviceInfo() && deviceProfile != null) {
                             TransportProtos.SessionInfoProto sessionInfoProto = SessionInfoCreator.create(msg, serviceInfoProvider.getServiceId(), UUID.randomUUID());
@@ -137,15 +136,12 @@ public class TbCoapDtlsCertificateVerifier implements NewAdvancedCertificateVeri
                         CertificateExpiredException |
                         CertificateNotYetValidException e) {
                     log.error(e.getMessage(), e);
+                    AlertMessage alert = new AlertMessage(AlertMessage.AlertLevel.FATAL, AlertMessage.AlertDescription.BAD_CERTIFICATE,
+                            session.getPeer());
+                    throw new HandshakeException("Certificate chain could not be validated", alert);
                 }
             }
-            if (credentialsBody == null) {
-                AlertMessage alert = new AlertMessage(AlertMessage.AlertLevel.FATAL, AlertMessage.AlertDescription.BAD_CERTIFICATE,
-                        session.getPeer());
-                throw new HandshakeException("Certificate chain could not be validated", alert);
-            } else {
-                return new CertificateVerificationResult(cid, certpath, null);
-            }
+            return new CertificateVerificationResult(cid, certpath, null);
         } catch (HandshakeException e) {
             log.trace("Certificate validation failed!", e);
             return new CertificateVerificationResult(cid, e, null);
@@ -159,7 +155,6 @@ public class TbCoapDtlsCertificateVerifier implements NewAdvancedCertificateVeri
 
     @Override
     public void setResultHandler(HandshakeResultHandler resultHandler) {
-        // empty implementation
     }
 
     public ConcurrentMap<String, TbCoapDtlsSessionInfo> getTbCoapDtlsSessionIdsMap() {

@@ -335,9 +335,10 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
         } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "";
             return UplinkResponseMsg.newBuilder()
                     .setSuccess(false)
-                    .setErrorMsg(e.getMessage())
+                    .setErrorMsg(errorMsg) // can't set null value as error msg
                     .build();
         }
         return UplinkResponseMsg.newBuilder()

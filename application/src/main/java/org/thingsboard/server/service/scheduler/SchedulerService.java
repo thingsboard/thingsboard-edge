@@ -30,10 +30,8 @@
  */
 package org.thingsboard.server.service.scheduler;
 
-import org.springframework.context.ApplicationListener;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 
 /**

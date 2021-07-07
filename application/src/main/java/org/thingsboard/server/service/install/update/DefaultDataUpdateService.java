@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -55,6 +56,9 @@ import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -71,8 +75,11 @@ import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.oauth2.OAuth2Info;
+import org.thingsboard.server.common.data.oauth2.deprecated.OAuth2ClientsParams;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -82,24 +89,28 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.dao.alarm.AlarmDao;
+import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.oauth2.OAuth2Utils;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
@@ -184,6 +195,18 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private TimeseriesService tsService;
 
+    @Autowired
+    private AlarmService alarmService;
+
+    @Autowired
+    private EntityService entityService;
+
+    @Autowired
+    private AlarmDao alarmDao;
+
+    @Autowired
+    private OAuth2Service oAuth2Service;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -203,6 +226,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             case "3.2.2":
                 log.info("Updating data from version 3.2.2 to 3.3.0 ...");
                 tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
+                tenantsAlarmsCustomerUpdater.updateEntities(null);
+                updateOAuth2Params();
                 break;
             case "3.3.0":
                 log.info("Updating data from version 3.3.0 to 3.3.0PE ...");
@@ -230,12 +255,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
-            new PaginatedUpdater<String, Tenant>() {
+    private final PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
+            new PaginatedUpdater<>() {
 
                 @Override
                 protected String getName() {
                     return "Tenants default rule chain updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
                 }
 
                 @Override
@@ -256,12 +286,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
-    private PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
-            new PaginatedUpdater<String, Tenant>() {
+    private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
+            new PaginatedUpdater<>() {
 
                 @Override
                 protected String getName() {
                     return "Tenants default edge rule chain updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
                 }
 
                 @Override
@@ -282,12 +317,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
-    private PaginatedUpdater<String, Tenant> tenantsRootRuleChainUpdater =
-            new PaginatedUpdater<String, Tenant>() {
+    private final PaginatedUpdater<String, Tenant> tenantsRootRuleChainUpdater =
+            new PaginatedUpdater<>() {
 
                 @Override
                 protected String getName() {
                     return "Tenants root rule chain updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
                 }
 
                 @Override
@@ -341,12 +381,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
-    private PaginatedUpdater<String, Tenant> tenantsEntityViewsUpdater =
-            new PaginatedUpdater<String, Tenant>() {
+    private final PaginatedUpdater<String, Tenant> tenantsEntityViewsUpdater =
+            new PaginatedUpdater<>() {
 
                 @Override
                 protected String getName() {
                     return "Tenants entity views updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
                 }
 
                 @Override
@@ -875,6 +920,50 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
+    private final PaginatedUpdater<String, Tenant> tenantsAlarmsCustomerUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants alarms customer updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    updateTenantAlarmsCustomer(tenant.getId());
+                }
+            };
+
+    private void updateTenantAlarmsCustomer(TenantId tenantId) {
+        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(100), null, null, false);
+        PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
+        boolean hasNext = true;
+        while (hasNext) {
+            for (Alarm alarm : alarms.getData()) {
+                if (alarm.getCustomerId() == null && alarm.getOriginator() != null) {
+                    alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()));
+                    alarmDao.save(tenantId, alarm);
+                }
+            }
+            if (alarms.hasNext()) {
+                alarmQuery.setPageLink(alarmQuery.getPageLink().nextPageLink());
+                alarms = alarmDao.findAlarms(tenantId, alarmQuery);
+            } else {
+                hasNext = false;
+            }
+        }
+    }
+
     private WhiteLabelingParams createWhiteLabelingParams(JsonNode storedWl, String logoImageUrl, boolean isSystem) {
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setLogoImageUrl(logoImageUrl);
@@ -1045,4 +1134,21 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
 
     }
+
+    private void updateOAuth2Params() {
+        try {
+            OAuth2ClientsParams oauth2ClientsParams = oAuth2Service.findOAuth2Params();
+            if (!oauth2ClientsParams.getDomainsParams().isEmpty()) {
+                log.info("Updating OAuth2 parameters ...");
+                OAuth2Info oAuth2Info = OAuth2Utils.clientParamsToOAuth2Info(oauth2ClientsParams);
+                oAuth2Service.saveOAuth2Info(oAuth2Info);
+                oAuth2Service.saveOAuth2Params(new OAuth2ClientsParams(false, Collections.emptyList()));
+                log.info("Successfully updated OAuth2 parameters!");
+            }
+        }
+        catch (Exception e) {
+           log.error("Failed to update OAuth2 parameters", e);
+        }
+    }
+
 }

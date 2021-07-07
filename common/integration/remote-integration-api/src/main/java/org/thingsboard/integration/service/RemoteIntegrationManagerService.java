@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.protobuf.Descriptors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -77,12 +79,14 @@ import org.thingsboard.server.gen.transport.TransportProtos.KeyValueProto;
 import org.thingsboard.server.gen.transport.TransportProtos.KeyValueType;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TsKvListProto;
+import org.thingsboard.server.queue.util.TbIntegrationComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,6 +98,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service("RemoteIntegrationManagerService")
+@TbIntegrationComponent
 @Slf4j
 @Data
 public class RemoteIntegrationManagerService {
@@ -133,6 +138,9 @@ public class RemoteIntegrationManagerService {
     @Autowired
     private JsInvokeService jsInvokeService;
 
+    @Autowired(required = false)
+    private CoapServerService coapServerService;
+
     private ThingsboardPlatformIntegration integration;
     private ComponentLifecycleEvent integrationEvent;
 
@@ -158,14 +166,14 @@ public class RemoteIntegrationManagerService {
     public void init() {
         serviceId = "[" + clientId + ":" + port + "]";
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
-        executor = Executors.newSingleThreadExecutor();
-        reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
-        schedulerService = Executors.newSingleThreadScheduledExecutor();
+        executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
+        reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-reconnect"));
+        schedulerService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-scheduler"));
         callBackExecutorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("remote-integration-callback"));
         processHandleMessages();
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-stats"));
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
     }
@@ -325,7 +333,8 @@ public class RemoteIntegrationManagerService {
         integration.setConfiguration(mapper.readTree(integrationConfigurationProto.getConfiguration()));
         integration.setAdditionalInfo(mapper.readTree(integrationConfigurationProto.getAdditionalInfo()));
 
-        if (!integrationConfigurationProto.hasField(integrationConfigurationProto.getDescriptorForType().findFieldByName("enabled"))) {
+        Descriptors.FieldDescriptor enabledField = integrationConfigurationProto.getDescriptorForType().findFieldByName("enabled");
+        if (enabledField == null) {
             integration.setEnabled(true);
         } else {
             integration.setEnabled(integrationConfigurationProto.getEnabled());
@@ -399,6 +408,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
+            case COAP:
+                return newInstance("org.thingsboard.integration.coap.CoapIntegration");
             case CUSTOM:
                 return newInstance(configuration.get("clazz").asText());
             default:
@@ -407,6 +418,10 @@ public class RemoteIntegrationManagerService {
     }
 
     private ThingsboardPlatformIntegration newInstance(String clazz) throws Exception {
+        if (clazz.equals("org.thingsboard.integration.coap.CoapIntegration")) {
+            Constructor<?> declaredConstructor = Class.forName(clazz).getDeclaredConstructor(CoapServerService.class);
+            return (ThingsboardPlatformIntegration) declaredConstructor.newInstance(coapServerService);
+        }
         return (ThingsboardPlatformIntegration) Class.forName(clazz).getDeclaredConstructor().newInstance();
     }
 
