@@ -80,7 +80,7 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     private String certFileResource;
     @Value("${integrations.rpc.ssl.privateKey}")
     private String privateKeyResource;
-    @Value("${integrations.rpc.client_max_keep_alive_time_sec}")
+    @Value("${integrations.rpc.client_max_keep_alive_time_sec:300}")
     private int clientMaxKeepAliveTimeSec;
 
     private final TbServiceInfoProvider serviceInfoProvider;
