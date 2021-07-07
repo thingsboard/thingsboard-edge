@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -106,7 +107,7 @@ public class BaseOtaPackageService implements OtaPackageService {
             }
             return otaPackageInfoDao.save(otaPackageInfo.getTenantId(), otaPackageInfo);
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("ota_package_tenant_title_version_unq_key")) {
                 throw new DataValidationException("OtaPackage with such title and version already exists!");
             } else {
@@ -128,7 +129,7 @@ public class BaseOtaPackageService implements OtaPackageService {
             }
             return otaPackageDao.save(otaPackage.getTenantId(), otaPackage);
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("ota_package_tenant_title_version_unq_key")) {
                 throw new DataValidationException("OtaPackage with such title and version already exists!");
             } else {
@@ -215,7 +216,7 @@ public class BaseOtaPackageService implements OtaPackageService {
             otaPackageDataCache.evict(otaPackageId.toString());
             otaPackageDao.removeById(tenantId, otaPackageId.getId());
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_firmware_device")) {
                 throw new DataValidationException("The otaPackage referenced by the devices cannot be deleted!");
             } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_firmware_device_profile")) {
@@ -415,16 +416,6 @@ public class BaseOtaPackageService implements OtaPackageService {
                     deleteOtaPackage(tenantId, entity.getId());
                 }
             };
-
-    protected Optional<ConstraintViolationException> extractConstraintViolationException(Exception t) {
-        if (t instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) t);
-        } else if (t.getCause() instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) (t.getCause()));
-        } else {
-            return Optional.empty();
-        }
-    }
 
     private static List<OtaPackageId> toOtaPackageInfoKey(OtaPackageId otaPackageId) {
         return Collections.singletonList(otaPackageId);

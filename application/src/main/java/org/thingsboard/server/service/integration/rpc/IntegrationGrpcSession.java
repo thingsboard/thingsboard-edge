@@ -40,6 +40,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Customer;
@@ -68,6 +69,8 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.transport.util.JsonUtils;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -358,12 +361,17 @@ public final class IntegrationGrpcSession implements Closeable {
             ctx.getEventService().save(event);
         } catch (IOException e) {
             log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
-        } catch (Exception e) {
-            /* Catch exception to avoid endless loop in case:
-            ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
-            Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
-             */
-            log.error("[{}] Failed to save event!", proto.getData(), e);
+        } catch (Exception t) {
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
+            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("event_unq_key")) {
+                /* Catch exception to avoid endless loop in case:
+                ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
+                Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
+                 */
+                log.error("[{}] Failed to save event!", proto.getData(), e);
+            } else {
+                throw t;
+            }
         }
     }
 
