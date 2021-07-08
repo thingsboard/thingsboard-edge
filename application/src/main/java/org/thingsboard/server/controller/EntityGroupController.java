@@ -906,7 +906,7 @@ public class EntityGroupController extends BaseController {
                         }
                     }
                 } while (pageData.hasNext());
-                return checkNotNull(toEntityGroupsInfo(result));
+                return checkNotNull(toEntityGroupsInfo(filterEntityGroupsByReadPermission(result)));
             } else {
                 throw permissionDenied();
             }
