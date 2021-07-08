@@ -1337,6 +1337,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
           types: widgetTypesList,
           typesUpdated: (newTypes) => {
             this.filterWidgetTypes = newTypes.filter(type => type.display).map(type => type.type);
+            this.cd.markForCheck();
           }
         } as DisplayWidgetTypesPanelData
       },
@@ -1347,7 +1348,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     ];
     const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
     overlayRef.attach(new ComponentPortal(DisplayWidgetTypesPanelComponent, this.viewContainerRef, injector));
-    this.cd.detectChanges();
+    this.cd.markForCheck();
   }
 
   onCloseSearchBundle() {

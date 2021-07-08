@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvCompositeKey;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvEntity;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
@@ -61,6 +62,9 @@ import org.thingsboard.server.dao.util.TimescaleDBTsDao;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.sql.CallableStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -170,6 +174,11 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
             ListenableFuture<List<Optional<TsKvEntry>>> future = findAllAndAggregateAsync(entityId, query.getKey(), startTs, endTs, timeBucket, query.getAggregation());
             return getTskvEntriesFuture(future);
         }
+    }
+
+    @Override
+    public void cleanup(long systemTtl) {
+        super.cleanup(systemTtl);
     }
 
     private ListenableFuture<List<TsKvEntry>> findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {

@@ -73,7 +73,7 @@ public class TbMsgToEmailNode implements TbNode {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final String ATTACHMENTS = "attachments";
+    public static final String ATTACHMENTS = "attachments";
     private static final String EMAIL_TIMEZONE = "emailTimezone";
 
     private static final Pattern dateVarPattern = Pattern.compile("%d\\{([^\\}]*)\\}");

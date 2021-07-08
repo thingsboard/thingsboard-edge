@@ -1147,13 +1147,17 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
                 apiUsageReportClient.report(tenantId, customerId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
                 apiUsageReportClient.report(tenantId, customerId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
             } finally {
-                callback.onSuccess(msg);
+                if (callback != null) {
+                    callback.onSuccess(msg);
+                }
             }
         }
 
         @Override
         public void onError(Throwable e) {
-            callback.onError(e);
+            if (callback != null) {
+                callback.onError(e);
+            }
         }
     }
 

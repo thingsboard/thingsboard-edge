@@ -53,6 +53,10 @@
                 integration.connection-string-required</mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
+          <mat-label translate>integration.consumer-group</mat-label>
+          <input matInput formControlName="consumerGroup">
+        </mat-form-field>
+        <mat-form-field class="mat-block">
             <mat-label translate>integration.iot-hub-name</mat-label>
             <input matInput [required]="iotHubNameRequired" formControlName="iotHubName">
             <mat-error translate *ngIf="form.get('iotHubName').hasError('required')">integration.event-iot-hub-name-required

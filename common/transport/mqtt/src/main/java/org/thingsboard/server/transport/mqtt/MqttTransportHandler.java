@@ -32,6 +32,7 @@ package org.thingsboard.server.transport.mqtt;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonParseException;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
@@ -829,7 +830,8 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void onAttributeUpdate(AttributeUpdateNotificationMsg notification) {
+    public void onAttributeUpdate(UUID sessionId, TransportProtos.AttributeUpdateNotificationMsg notification) {
+        log.trace("[{}] Received attributes update notification to device", sessionId);
         try {
             deviceSessionCtx.getPayloadAdaptor().convertToPublish(deviceSessionCtx, notification).ifPresent(deviceSessionCtx.getChannel()::writeAndFlush);
         } catch (Exception e) {
@@ -844,10 +846,19 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     }
 
     @Override
-    public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg rpcRequest) {
+    public void onToDeviceRpcRequest(UUID sessionId, TransportProtos.ToDeviceRpcRequestMsg rpcRequest) {
         log.trace("[{}] Received RPC command to device", sessionId);
         try {
-            deviceSessionCtx.getPayloadAdaptor().convertToPublish(deviceSessionCtx, rpcRequest).ifPresent(deviceSessionCtx.getChannel()::writeAndFlush);
+            deviceSessionCtx.getPayloadAdaptor().convertToPublish(deviceSessionCtx, rpcRequest)
+                    .ifPresent(payload -> {
+                        ChannelFuture channelFuture = deviceSessionCtx.getChannel().writeAndFlush(payload);
+                        if (rpcRequest.getPersisted()) {
+                            channelFuture.addListener(future ->
+                                    transportService.process(deviceSessionCtx.getSessionInfo(), rpcRequest,
+                                            future.cause() != null, TransportServiceCallback.EMPTY)
+                            );
+                        }
+                    });
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device RPC command to MQTT msg", sessionId, e);
         }

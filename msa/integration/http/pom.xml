@@ -153,7 +153,7 @@
     </build>
     <profiles>
         <profile>
-            <id>push-docker-image</id>
+            <id>push-integration-docker-image</id>
             <activation>
                 <property>
                     <name>push-integration-docker-image</name>

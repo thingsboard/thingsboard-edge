@@ -39,5 +39,4 @@ public class IdOrKeyRequest {
 
     private String key;
     private String id;
-
 }
