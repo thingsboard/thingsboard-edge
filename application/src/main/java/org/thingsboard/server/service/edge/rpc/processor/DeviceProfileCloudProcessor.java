@@ -75,8 +75,8 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
         switch (deviceProfileUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                deviceCreationLock.lock();
                 try {
-                    deviceCreationLock.lock();
                     DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                     boolean created = false;
                     if (deviceProfile == null) {

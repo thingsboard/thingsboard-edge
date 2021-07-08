@@ -82,8 +82,8 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
         switch (entityGroupUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                entityGroupCreationLock.lock();
                 try {
-                    entityGroupCreationLock.lock();
                     EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
                     boolean created = false;
                     if (entityGroup == null) {

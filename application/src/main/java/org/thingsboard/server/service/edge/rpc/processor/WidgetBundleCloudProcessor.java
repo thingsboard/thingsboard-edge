@@ -59,8 +59,8 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
         switch (widgetsBundleUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                widgetCreationLock.lock();
                 try {
-                    widgetCreationLock.lock();
                     WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                     boolean created = false;
                     if (widgetsBundle == null) {

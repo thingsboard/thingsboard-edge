@@ -53,8 +53,8 @@ public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
         switch (widgetTypeUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                widgetCreationLock.lock();
                 try {
-                    widgetCreationLock.lock();
                     WidgetTypeDetails widgetTypeDetails = widgetTypeService.findWidgetTypeDetailsById(tenantId, widgetTypeId);
                     if (widgetTypeDetails == null) {
                         widgetTypeDetails = new WidgetTypeDetails();

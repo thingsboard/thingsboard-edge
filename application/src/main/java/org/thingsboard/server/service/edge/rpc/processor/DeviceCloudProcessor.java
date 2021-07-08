@@ -100,8 +100,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case ENTITY_MERGE_RPC_MESSAGE:
+                deviceCreationLock.lock();
                 try {
-                    deviceCreationLock.lock();
                     String deviceName = deviceUpdateMsg.getName();
                     if (StringUtils.isNoneBlank(deviceUpdateMsg.getConflictName())) {
                         deviceName = deviceUpdateMsg.getConflictName();
@@ -185,8 +185,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
 
     private Device saveOrUpdateDevice(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType) {
         Device device;
+        deviceCreationLock.lock();
         try {
-            deviceCreationLock.lock();
             DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
             device = deviceService.findDeviceById(tenantId, deviceId);
             boolean created = false;

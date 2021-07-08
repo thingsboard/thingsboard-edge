@@ -354,8 +354,8 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
+        uplinkMsgsPackLock.lock();
         try {
-            uplinkMsgsPackLock.lock();
             boolean success;
             pendingMsgsMap.clear();
             uplinkMsgsPack.forEach(msg -> pendingMsgsMap.put(msg.getUplinkMsgId(), msg));

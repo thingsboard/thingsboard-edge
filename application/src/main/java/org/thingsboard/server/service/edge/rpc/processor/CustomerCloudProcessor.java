@@ -65,8 +65,8 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                customerCreationLock.lock();
                 try {
-                    customerCreationLock.lock();
                     Customer customer = customerService.findCustomerById(tenantId, customerId);
                     boolean created = false;
                     if (customer == null) {

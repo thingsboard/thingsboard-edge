@@ -74,8 +74,8 @@ public class UserCloudProcessor extends BaseCloudProcessor {
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                userCreationLock.lock();
                 try {
-                    userCreationLock.lock();
                     boolean created = false;
                     User user = userService.findUserById(tenantId, userId);
                     if (user == null) {

@@ -66,9 +66,8 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                dashboardCreationLock.lock();
                 try {
-                    dashboardCreationLock.lock();
-
                     boolean created = false;
                     Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
                     if (dashboard == null) {

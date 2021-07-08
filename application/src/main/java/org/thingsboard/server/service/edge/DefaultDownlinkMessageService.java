@@ -237,8 +237,8 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
+                    sequenceDependencyLock.lock();
                     try {
-                        sequenceDependencyLock.lock();
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, currentEdgeSettings.getCloudType()));
                         updateCustomerId(customerUpdateMsg);
                     } finally {
@@ -263,8 +263,8 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getUserUpdateMsgCount() > 0) {
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
+                    sequenceDependencyLock.lock();
                     try {
-                        sequenceDependencyLock.lock();
                         result.add(userProcessor.processUserMsgFromCloud(tenantId, userUpdateMsg, currentEdgeSettings.getCloudType()));
                     } finally {
                         sequenceDependencyLock.unlock();

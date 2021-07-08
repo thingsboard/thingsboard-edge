@@ -69,9 +69,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                entityViewCreationLock.lock();
                 try {
-                    entityViewCreationLock.lock();
-
                     EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
                     boolean created = false;
                     if (entityView == null) {

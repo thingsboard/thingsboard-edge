@@ -61,8 +61,8 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+                assetCreationLock.lock();
                 try {
-                    assetCreationLock.lock();
                     Asset asset = assetService.findAssetById(tenantId, assetId);
                     boolean created = false;
                     if (asset == null) {
