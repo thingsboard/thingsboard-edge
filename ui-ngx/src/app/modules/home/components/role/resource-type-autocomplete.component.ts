@@ -32,7 +32,7 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { map, mergeMap, share, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, share, startWith, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -81,7 +81,7 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
       return {
         name: this.translate.instant(resourceTypeTranslationMap.get(resource)),
         value: resource
-      }
+      };
     }).sort(this.sortResource);
 
   searchText = '';
@@ -99,10 +99,10 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
     });
   }
 
-  private sortResource(a: ResourceTypeInfo, b: ResourceTypeInfo): number{
-    if (a.value === 'ALL' || b.value === 'ALL') return a.value === 'ALL' ? -1 : 1;
-    if (a.name > b.name) return 1;
-    if (a.name < b.name) return -1;
+  private sortResource(a: ResourceTypeInfo, b: ResourceTypeInfo): number {
+    if (a.value === 'ALL' || b.value === 'ALL') { return a.value === 'ALL' ? -1 : 1; }
+    if (a.name > b.name) { return 1; }
+    if (a.name < b.name) { return -1; }
     return 0;
   }
 
@@ -116,12 +116,14 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
   ngOnInit() {
     this.filteredResources = this.resourceTypeFormGroup.get('resourceType').valueChanges
       .pipe(
+        debounceTime(150),
         tap(value => {
           this.updateView(value);
         }),
         startWith<string | ResourceTypeInfo>(''),
         map((value) => value ? (typeof value === 'string' ? value : value.name) : ''),
-        mergeMap(resource => this.fetchResources(resource) ),
+        distinctUntilChanged(),
+        switchMap(resource => this.fetchResources(resource) ),
         share()
       );
   }
@@ -164,8 +166,6 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
     let res: Resource = null;
     if (value && typeof value !== 'string') {
       res = value.value;
-    } else {
-      res = null;
     }
     if (this.modelValue !== res) {
       this.modelValue = res;
