@@ -967,10 +967,10 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         ctx.addUuidParameter("permissions_tenant_id", ctx.getTenantId().getId());
         ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
 
-        if (!hasGenericForAllRelationQueryResources(readPermMap) && noGroupPermissionsForAllRelationQueryResources(readPermMap)) {
+        if (hasGenericForAllRelationQueryResources(readPermMap) && noGroupPermissionsForAllRelationQueryResources(readPermMap)) {
             entitiesQuery.append(" e.tenant_id =:permissions_tenant_id ");
             if (!ctx.isTenantUser()) {
-                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id ");
+                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id " + HIERARCHICAL_SUB_CUSTOMERS_QUERY);
             }
             if (!entityWhereClause.isEmpty()) {
                 entitiesQuery.append(" AND ").append(entityWhereClause);
