@@ -2776,6 +2776,7 @@
         "service-bus-namespace-name": "Service Bus Namespace Name",
         "service-bus-namespace-name-required": "Service Bus Namespace Name is required.",
         "connection-string": "Connection string",
+        "consumer-group": "Consumer group",
         "connection-string-required": "Connection string required!",
         "event-hub-name": "Event Hub Name",
         "event-hub-name-required": "Event Hub Name is required.",
@@ -3456,7 +3457,7 @@
                 "API_USAGE_STATE": "API Usage State",
                 "TB_RESOURCE": "Resource",
                 "EDGE_GROUP": "Edge Group",
-                "FIRMWARE": "Firmware"
+                "OTA_PACKAGE": "Ota package"
             }
         },
         "operation": {
