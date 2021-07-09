@@ -1514,7 +1514,12 @@
         "load-entity-error": "Failed to load data. Entity not found or has been deleted.",
         "deployed": "Deployed",
         "pending": "Pending",
-        "widget-datasource-error": "This widget supports only EDGE entity datasource"
+        "widget-datasource-error": "This widget supports only EDGE entity datasource",
+        "unassign-entity-group-from-edge-title": "Are you sure you want to unassign the entity group '{{ entityGroupName }}'?",
+        "unassign-entity-group-from-edge-text": "After the confirmation the entity group will be unassigned and won't be accessible by the edge.",
+        "unassign-entity-group-from-edge": "Unassign entity group from edge",
+        "unassign-from-edge": "Unassign from edge",
+        "no-edges-matching": "No edges matching '{{entity}}' were found."
     },
     "error": {
         "unable-to-connect": "Unable to connect to the server! Please check your internet connection.",
