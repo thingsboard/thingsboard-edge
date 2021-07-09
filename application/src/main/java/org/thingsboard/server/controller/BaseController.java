@@ -1134,7 +1134,7 @@ public abstract class BaseController {
             customerId = user.getCustomerId();
         }
         if (e == null) {
-            ruleEngineEntityActionService.pushEntityActionToRuleEngine(entityId, entity, user, customerId, actionType, user, additionalInfo);
+            ruleEngineEntityActionService.pushEntityActionToRuleEngine(entityId, entity, user, customerId, actionType, additionalInfo);
         }
         auditLogService.logEntityAction(user.getTenantId(), customerId, user.getId(), user.getName(), entityId, entity, actionType, e, additionalInfo);
     }
