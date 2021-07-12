@@ -391,6 +391,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             dashboard.setCreatedTime((Long) row.get("created_time"));
             dashboard.setTenantId(new TenantId((UUID) row.get("tenant_id")));
             dashboard.setTitle(row.get("title").toString());
+            dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
             Object assignedCustomers = row.get("assigned_customers");
             if (assignedCustomers != null) {
                 String assignedCustomersStr = assignedCustomers.toString();

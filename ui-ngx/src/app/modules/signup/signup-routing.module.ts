@@ -36,6 +36,7 @@ import { AuthGuard } from '@core/guards/auth.guard';
 import { SignupComponent } from '@modules/signup/pages/signup/signup.component';
 import { EmailVerificationComponent } from '@modules/signup/pages/signup/email-verification.component';
 import { EmailVerifiedComponent } from '@modules/signup/pages/signup/email-verified.component';
+import { TbRecaptchaComponent } from '@modules/signup/pages/signup/tb-recaptcha.component';
 
 const routes: Routes = [
   {
@@ -61,6 +62,15 @@ const routes: Routes = [
     component: EmailVerifiedComponent,
     data: {
       title: 'signup.account-activation-title',
+      module: 'public'
+    },
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'signup/recaptcha',
+    component: TbRecaptchaComponent,
+    data: {
+      title: 'signup.recaptcha-title',
       module: 'public'
     },
     canActivate: [AuthGuard]

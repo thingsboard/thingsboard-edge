@@ -29,21 +29,57 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export type WindowMessageType = 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected' | 'openDashboardMessage' | 'reloadUserMessage' | 'toggleDashboardLayout' | 'resetRecaptcha';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { PageComponent } from '@shared/components/page.component';
+import { ActivatedRoute } from '@angular/router';
+import { RecaptchaComponent } from 'ng-recaptcha';
+import { MobileService } from '@core/services/mobile.service';
 
-export interface WindowMessage {
-  type: WindowMessageType;
-  data?: any;
-}
+@Component({
+  selector: 'tb-recaptcha',
+  templateUrl: './tb-recaptcha.component.html',
+  styleUrls: ['./tb-recaptcha.component.scss']
+})
+export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDestroy {
 
-export interface OpenDashboardMessage {
-  dashboardId: string;
-  state?: string;
-  hideToolbar?: boolean;
-  embedded?: boolean;
-}
+  @ViewChild('recaptcha') recaptchaComponent: RecaptchaComponent;
 
-export interface ReloadUserMessage {
-  accessToken: string;
-  refreshToken: string;
+  siteKey = this.activatedRoute.snapshot.queryParams.siteKey;
+
+  recaptchaResponse: string;
+
+  isMobileApp = this.mobileService.isMobileApp();
+
+  constructor(protected store: Store<AppState>,
+              private activatedRoute: ActivatedRoute,
+              private mobileService: MobileService) {
+    super(store);
+  }
+
+  ngOnInit() {
+    if (this.isMobileApp) {
+      this.mobileService.registerResetRecaptchaFunction(() => {
+        setTimeout(() => {
+          this.recaptchaComponent.reset();
+        });
+      });
+      setTimeout(() => {
+        this.mobileService.onRecaptchaLoaded();
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.isMobileApp) {
+      this.mobileService.unregisterResetRecaptchaFunction();
+    }
+    super.ngOnDestroy();
+  }
+
+  onRecaptchaResponse() {
+    this.mobileService.handleReCaptchaResponse(this.recaptchaResponse);
+  }
+
 }

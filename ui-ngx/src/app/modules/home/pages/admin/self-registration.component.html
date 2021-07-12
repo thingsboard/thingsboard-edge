@@ -90,6 +90,58 @@
                       [maxLength]="200"></textarea>
             <mat-hint align="end">{{input.value?.length || 0}}/200</mat-hint>
           </mat-form-field>
+          <mat-checkbox formControlName="enableMobileSelfRegistration">
+            {{ 'self-registration.enable-mobile-self-registration' | translate }}
+          </mat-checkbox>
+          <fieldset [fxShow]="selfRegistrationFormGroup.get('enableMobileSelfRegistration').value" class="fields-group">
+            <legend class="group-title" translate>self-registration.mobile-self-registration-title</legend>
+            <div fxLayout="column" style="margin: 8px;">
+              <div fxLayout="row" fxLayoutGap="8px" fxLayout.xs="column" style="padding-bottom: 40px;">
+                <mat-form-field fxFlex class="mat-block" floatLabel="always">
+                  <mat-label translate>self-registration.mobile-package</mat-label>
+                  <input matInput formControlName="pkgName" placeholder="{{ 'self-registration.mobile-package-placeholder' | translate }}" required>
+                  <mat-hint translate>self-registration.mobile-package-hint</mat-hint>
+                  <mat-error *ngIf="selfRegistrationFormGroup.get('pkgName').hasError('required')">
+                    {{'self-registration.mobile-package-required' | translate}}
+                  </mat-error>
+                </mat-form-field>
+                <div fxFlex fxLayout="row">
+                  <mat-form-field fxFlex class="mat-block">
+                    <mat-label translate>self-registration.mobile-app-secret</mat-label>
+                    <textarea matInput formControlName="appSecret" rows="1" required></textarea>
+                    <tb-copy-button
+                      matSuffix
+                      color="primary"
+                      [copyText]="selfRegistrationFormGroup.get('appSecret').value"
+                      tooltipText="{{ 'self-registration.copy-mobile-app-secret' | translate }}"
+                      tooltipPosition="above"
+                      mdiIcon="mdi:clipboard-arrow-left">
+                    </tb-copy-button>
+                    <mat-error *ngIf="selfRegistrationFormGroup.get('appSecret').invalid">
+                      {{ 'self-registration.invalid-mobile-app-secret' | translate }}
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+              <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+                <mat-form-field fxFlex class="mat-block" floatLabel="always">
+                  <mat-label translate>self-registration.mobile-app-scheme</mat-label>
+                  <input matInput formControlName="appScheme" placeholder="{{ 'self-registration.mobile-app-scheme-placeholder' | translate }}" required>
+                  <mat-error *ngIf="selfRegistrationFormGroup.get('appScheme').hasError('required')">
+                    {{'self-registration.mobile-app-scheme-required' | translate}}
+                  </mat-error>
+                </mat-form-field>
+                <span>://</span>
+                <mat-form-field fxFlex class="mat-block" floatLabel="always">
+                  <mat-label translate>self-registration.mobile-app-host</mat-label>
+                  <input matInput formControlName="appHost" placeholder="{{ 'self-registration.mobile-app-host-placeholder' | translate }}" required>
+                  <mat-error *ngIf="selfRegistrationFormGroup.get('appHost').hasError('required')">
+                    {{'self-registration.mobile-app-host-required' | translate}}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+          </fieldset>
           <tb-registration-permissions
             formControlName="permissions">
           </tb-registration-permissions>

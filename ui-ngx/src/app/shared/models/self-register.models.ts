@@ -46,5 +46,8 @@ export interface SelfRegistrationParams extends SignUpSelfRegistrationParams {
   defaultDashboardId?: string;
   defaultDashboardFullscreen?: boolean;
   permissions?: GroupPermission[];
+  pkgName?: string;
+  appSecret?: string;
+  appScheme?: string;
+  appHost?: string;
 }
-
