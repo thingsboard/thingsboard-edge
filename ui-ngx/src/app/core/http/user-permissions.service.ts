@@ -120,6 +120,14 @@ export class UserPermissionsService {
     }
   }
 
+  public hasGenericPermissionByEntityGroupType(operation: Operation, groupType: EntityType): boolean {
+    if (!groupType) {
+      return false;
+    }
+    const resource = resourceByEntityType.get(groupType);
+    return this.hasGenericPermission(resource, operation);
+  }
+
   public hasGenericEntityGroupTypePermission(operation: Operation, groupType: EntityType): boolean {
     if (!groupType) {
       return false;
