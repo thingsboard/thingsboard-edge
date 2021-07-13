@@ -30,22 +30,32 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-
-const routes: Routes = [
-  { path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
-    data: {
-      breadcrumb: {
-        skip: true
-      }
-    }
-  }
-];
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { CopyDeviceCredentialsComponent } from './copy-device-credentials.component';
+import { DeviceCredentialsComponent } from './device-credentials.component';
+import { DeviceCredentialsLwm2mComponent } from './device-credentials-lwm2m.component';
+import { DeviceCredentialsLwm2mServerComponent } from './device-credentials-lwm2m-server.component';
+import { DeviceCredentialsMqttBasicComponent } from './device-credentials-mqtt-basic.component';
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  declarations: [
+    CopyDeviceCredentialsComponent,
+    DeviceCredentialsComponent,
+    DeviceCredentialsLwm2mComponent,
+    DeviceCredentialsLwm2mServerComponent,
+    DeviceCredentialsMqttBasicComponent
+  ],
+  imports: [
+    CommonModule,
+    SharedModule
+  ],
+  exports: [
+    CopyDeviceCredentialsComponent,
+    DeviceCredentialsComponent,
+    DeviceCredentialsLwm2mComponent,
+    DeviceCredentialsLwm2mServerComponent,
+    DeviceCredentialsMqttBasicComponent
+  ]
 })
-export class AppRoutingModule { }
+export class DeviceCredentialsModule { }
