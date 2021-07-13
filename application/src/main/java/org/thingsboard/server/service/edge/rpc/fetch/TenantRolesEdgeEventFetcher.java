@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -43,7 +44,7 @@ public class TenantRolesEdgeEventFetcher extends BaseRolesEdgeEventFetcher {
     }
 
     @Override
-    protected PageData<Role> findRoles(TenantId tenantId, PageLink pageLink) {
+    PageData<Role> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
         return roleService.findRolesByTenantId(tenantId, pageLink);
     }
 }

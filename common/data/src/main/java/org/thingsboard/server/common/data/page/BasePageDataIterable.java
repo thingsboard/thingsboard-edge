@@ -28,34 +28,61 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.common.data.page;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
-@Slf4j
-public class CustomerRolesEdgeEventFetcher extends BaseRolesEdgeEventFetcher {
+public abstract class BasePageDataIterable<T> implements Iterable<T>, Iterator<T> {
 
-    private final CustomerId customerId;
+    private final int fetchSize;
 
-    public CustomerRolesEdgeEventFetcher(RoleService roleService, CustomerId customerId) {
-        super(roleService);
-        this.customerId = customerId;
+    private List<T> currentItems;
+    private int currentIdx;
+    private boolean hasNextPack;
+    private PageLink nextPackLink;
+    private boolean initialized;
+
+    public BasePageDataIterable(int fetchSize) {
+        super();
+        this.fetchSize = fetchSize;
     }
 
     @Override
-    PageData<Role> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
+    public Iterator<T> iterator() {
+        return this;
     }
 
+    @Override
+    public boolean hasNext() {
+        if (!initialized) {
+            fetch(new PageLink(fetchSize));
+            initialized = true;
+        }
+        if (currentIdx == currentItems.size()) {
+            if (hasNextPack) {
+                fetch(nextPackLink);
+            }
+        }
+        return currentIdx < currentItems.size();
+    }
+
+    @Override
+    public T next() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+        return currentItems.get(currentIdx++);
+    }
+
+    private void fetch(PageLink link) {
+        PageData<T> pageData = fetchPageData(link);
+        currentIdx = 0;
+        currentItems = pageData.getData();
+        hasNextPack = pageData.hasNext();
+        nextPackLink = link.nextPageLink();
+    }
+
+    abstract PageData<T> fetchPageData(PageLink link);
 }

@@ -28,34 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.service.executors;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
-@Slf4j
-public class CustomerRolesEdgeEventFetcher extends BaseRolesEdgeEventFetcher {
+@Component
+public class GrpcCallbackExecutorService extends AbstractListeningExecutor {
 
-    private final CustomerId customerId;
-
-    public CustomerRolesEdgeEventFetcher(RoleService roleService, CustomerId customerId) {
-        super(roleService);
-        this.customerId = customerId;
-    }
+    @Value("${edges.grpc_callback_thread_pool_size}")
+    private int grpcCallbackExecutorThreadPoolSize;
 
     @Override
-    PageData<Role> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
+    protected int getThreadPollSize() {
+        return grpcCallbackExecutorThreadPoolSize;
     }
 
 }

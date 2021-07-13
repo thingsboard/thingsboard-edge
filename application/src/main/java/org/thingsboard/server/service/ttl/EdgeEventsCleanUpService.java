@@ -34,12 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.edge.EdgeEventService;
-import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
 @TbCoreComponent
 @Slf4j

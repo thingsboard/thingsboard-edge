@@ -28,34 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.common.data.page;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
-@Slf4j
-public class CustomerRolesEdgeEventFetcher extends BaseRolesEdgeEventFetcher {
+public class PageDataIterableByTenant<T> extends BasePageDataIterable<T> {
 
-    private final CustomerId customerId;
+    private final FetchFunction<T> function;
+    private final TenantId tenantId;
 
-    public CustomerRolesEdgeEventFetcher(RoleService roleService, CustomerId customerId) {
-        super(roleService);
-        this.customerId = customerId;
+    public PageDataIterableByTenant(FetchFunction<T> function, TenantId tenantId, int fetchSize) {
+        super(fetchSize);
+        this.function = function;
+        this.tenantId = tenantId;
     }
 
     @Override
-    PageData<Role> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return roleService.findRolesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
+    PageData<T> fetchPageData(PageLink link) {
+        return function.fetch(tenantId, link);
     }
 
+    public interface FetchFunction<T> {
+        PageData<T> fetch(TenantId tenantId, PageLink link);
+    }
 }
