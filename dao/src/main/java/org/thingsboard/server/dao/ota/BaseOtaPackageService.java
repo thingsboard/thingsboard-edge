@@ -94,8 +94,11 @@ public class BaseOtaPackageService implements OtaPackageService {
     private TbTenantProfileCache tenantProfileCache;
 
     @Override
-    public OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo) {
+    public OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl) {
         log.trace("Executing saveOtaPackageInfo [{}]", otaPackageInfo);
+        if(isUrl && (StringUtils.isEmpty(otaPackageInfo.getUrl()) || otaPackageInfo.getUrl().trim().length() == 0)) {
+            throw new DataValidationException("Ota package URL should be specified!");
+        }
         otaPackageInfoValidator.validate(otaPackageInfo, OtaPackageInfo::getTenantId);
         try {
             OtaPackageId otaPackageId = otaPackageInfo.getId();
@@ -311,7 +314,9 @@ public class BaseOtaPackageService implements OtaPackageService {
                     throw new DataValidationException("Wrong otaPackage file!");
                 }
             } else {
-                //TODO: validate url
+                if(otaPackage.getData() != null) {
+                    throw new DataValidationException("File can't be saved if URL present!");
+                }
             }
         }
 
@@ -370,6 +375,10 @@ public class BaseOtaPackageService implements OtaPackageService {
         if (otaPackageOld.getDataSize() != null && !otaPackageOld.getDataSize().equals(otaPackage.getDataSize())) {
             throw new DataValidationException("Updating otaPackage data size is prohibited!");
         }
+
+        if(otaPackageOld.getUrl() != null && !otaPackageOld.getUrl().equals(otaPackage.getUrl())) {
+            throw new DataValidationException("Updating otaPackage URL is prohibited!");
+        }
     }
 
     private void validateImpl(OtaPackageInfo otaPackageInfo) {
@@ -400,6 +409,15 @@ public class BaseOtaPackageService implements OtaPackageService {
         if (StringUtils.isEmpty(otaPackageInfo.getVersion())) {
             throw new DataValidationException("OtaPackage version should be specified!");
         }
+
+        if(otaPackageInfo.getTitle().length() > 255) {
+            throw new DataValidationException("The length of title should be equal or shorter than 255");
+        }
+
+        if(otaPackageInfo.getVersion().length() > 255) {
+            throw new DataValidationException("The length of version should be equal or shorter than 255");
+        }
+
     }
 
     private PaginatedRemover<TenantId, OtaPackageInfo> tenantOtaPackageRemover =
