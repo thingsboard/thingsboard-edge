@@ -368,7 +368,8 @@ export const widgetActionTypes: WidgetActionType[] = [
   WidgetActionType.updateDashboardState,
   WidgetActionType.openDashboard,
   WidgetActionType.custom,
-  WidgetActionType.customPretty
+  WidgetActionType.customPretty,
+  WidgetActionType.mobileAction
 ];
 
 export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
