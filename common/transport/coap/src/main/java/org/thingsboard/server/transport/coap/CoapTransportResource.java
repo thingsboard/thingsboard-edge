@@ -388,12 +388,8 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         return tokenToCoapSessionInfoMap.remove(token);
     }
 
-<<<<<<< HEAD
-    private void registerAsyncCoapSession(CoapExchange exchange, SessionInfoProto sessionInfo, CoapTransportAdaptor coapTransportAdaptor, DynamicMessage.Builder rpcRequestDynamicMessageBuilder, String token) {
-=======
     private void registerAsyncCoapSession(CoapExchange exchange, CoapTransportAdaptor coapTransportAdaptor,
                                           DynamicMessage.Builder rpcRequestDynamicMessageBuilder, TransportProtos.SessionInfoProto sessionInfo, String token) {
->>>>>>> opensource/master
         tokenToCoapSessionInfoMap.putIfAbsent(token, new CoapObserveSessionInfo(sessionInfo));
         transportService.registerAsyncSession(sessionInfo, getCoapSessionListener(exchange, coapTransportAdaptor, rpcRequestDynamicMessageBuilder, sessionInfo));
         transportService.process(sessionInfo, getSessionEventMsg(SessionEvent.OPEN), null);
