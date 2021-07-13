@@ -52,6 +52,8 @@ import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoMeasure
 import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoChannel;
 
 import org.thingsboard.server.transport.coap.AbstractCoapTransportResource;
+import org.thingsboard.server.transport.coap.callback.CoapDeviceAuthCallback;
+import org.thingsboard.server.transport.coap.callback.CoapOkCallback;
 import org.thingsboard.server.transport.coap.CoapTransportContext;
 import org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils;
 
