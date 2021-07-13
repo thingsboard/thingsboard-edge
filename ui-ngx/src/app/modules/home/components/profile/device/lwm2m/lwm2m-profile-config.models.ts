@@ -184,6 +184,7 @@ export interface ClientLwM2mSettings {
   fwUpdateResource: string;
   swUpdateResource: string;
   powerMode: PowerMode;
+  edrxCycle?: number;
   compositeOperationsSupport: boolean;
 }
 

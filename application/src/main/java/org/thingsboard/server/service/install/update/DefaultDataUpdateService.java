@@ -33,6 +33,7 @@ package org.thingsboard.server.service.install.update;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
@@ -89,6 +91,12 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.query.DynamicValue;
+import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -107,6 +115,11 @@ import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.oauth2.OAuth2Utils;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.oauth2.OAuth2Utils;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
@@ -205,6 +218,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private AlarmDao alarmDao;
 
     @Autowired
+    private DeviceProfileRepository deviceProfileRepository;
+
+    @Autowired
     private OAuth2Service oAuth2Service;
 
     @Override
@@ -227,6 +243,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.2.2 to 3.3.0 ...");
                 tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
                 tenantsAlarmsCustomerUpdater.updateEntities(null);
+                deviceProfileEntityDynamicConditionsUpdater.updateEntities(null);
                 updateOAuth2Params();
                 break;
             case "3.3.0":
@@ -254,6 +271,45 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }
     }
+
+    private final PaginatedUpdater<String, DeviceProfileEntity> deviceProfileEntityDynamicConditionsUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Device Profile Entity Dynamic Conditions Updater";
+                }
+
+                @Override
+                protected PageData<DeviceProfileEntity> findEntities(String id, PageLink pageLink) {
+                    return DaoUtil.pageToPageData(deviceProfileRepository.findAll(DaoUtil.toPageable(pageLink)));
+                }
+
+                @Override
+                protected void updateEntity(DeviceProfileEntity deviceProfile) {
+                    if (deviceProfile.getProfileData().has("alarms") &&
+                            !deviceProfile.getProfileData().get("alarms").isNull()) {
+                        boolean isUpdated = false;
+                        JsonNode array = deviceProfile.getProfileData().get("alarms");
+                        for (JsonNode node : array) {
+                            if (node.has("createRules")) {
+                                JsonNode createRules = node.get("createRules");
+                                for (AlarmSeverity severity : AlarmSeverity.values()) {
+                                    if (createRules.has(severity.name())) {
+                                        isUpdated = isUpdated || convertDeviceProfileAlarmRulesForVersion330(createRules.get(severity.name()).get("condition").get("spec"));
+                                    }
+                                }
+                            }
+                            if (node.has("clearRule") && !node.get("clearRule").isNull()) {
+                                isUpdated = isUpdated || convertDeviceProfileAlarmRulesForVersion330(node.get("clearRule").get("condition").get("spec"));
+                            }
+                        }
+                        if (isUpdated) {
+                            deviceProfileRepository.save(deviceProfile);
+                        }
+                    }
+                }
+            };
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
             new PaginatedUpdater<>() {
@@ -1132,7 +1188,33 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract PageData<D> findEntities(I id, PageLink pageLink);
 
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
+    }
 
+    private boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
+        if (spec != null) {
+            if (spec.has("type") && spec.get("type").asText().equals("DURATION")) {
+                if (spec.has("value")) {
+                    long value = spec.get("value").asLong();
+                    var predicate = new FilterPredicateValue<>(
+                            value, null, new DynamicValue<>(null, null, false)
+                    );
+                    ((ObjectNode) spec).remove("value");
+                    ((ObjectNode) spec).putPOJO("predicate", predicate);
+                    return true;
+                }
+            } else if (spec.has("type") && spec.get("type").asText().equals("REPEATING")) {
+                if (spec.has("count")) {
+                    int count = spec.get("count").asInt();
+                    var predicate = new FilterPredicateValue<>(
+                            count, null, new DynamicValue<>(null, null, false)
+                    );
+                    ((ObjectNode) spec).remove("count");
+                    ((ObjectNode) spec).putPOJO("predicate", predicate);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void updateOAuth2Params() {
@@ -1145,9 +1227,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 oAuth2Service.saveOAuth2Params(new OAuth2ClientsParams(false, Collections.emptyList()));
                 log.info("Successfully updated OAuth2 parameters!");
             }
-        }
-        catch (Exception e) {
-           log.error("Failed to update OAuth2 parameters", e);
+        } catch (Exception e) {
+            log.error("Failed to update OAuth2 parameters", e);
         }
     }
 

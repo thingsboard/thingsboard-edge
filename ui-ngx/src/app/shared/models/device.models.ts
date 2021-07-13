@@ -38,13 +38,14 @@ import { EntitySearchQuery } from '@shared/models/relation.models';
 import { DeviceProfileId } from '@shared/models/id/device-profile-id';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { EntityInfoData } from '@shared/models/entity.models';
-import { KeyFilter } from '@shared/models/query/query.models';
+import { FilterPredicateValue, KeyFilter } from '@shared/models/query/query.models';
 import { TimeUnit } from '@shared/models/time/time.models';
 import * as _moment from 'moment';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { OtaPackageId } from '@shared/models/id/ota-package-id';
 import { DashboardId } from '@shared/models/id/dashboard-id';
 import { DataType } from '@shared/models/constants';
+import { PowerMode } from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
 
 export enum DeviceProfileType {
   DEFAULT = 'DEFAULT',
@@ -439,8 +440,7 @@ export const AlarmConditionTypeTranslationMap = new Map<AlarmConditionType, stri
 export interface AlarmConditionSpec{
   type?: AlarmConditionType;
   unit?: TimeUnit;
-  value?: number;
-  count?: number;
+  predicate: FilterPredicateValue<number>;
 }
 
 export interface AlarmCondition {
@@ -589,6 +589,8 @@ export interface CoapDeviceTransportConfiguration {
 }
 
 export interface Lwm2mDeviceTransportConfiguration {
+  powerMode?: PowerMode | null;
+  edrxCycle?: number;
   [key: string]: any;
 }
 

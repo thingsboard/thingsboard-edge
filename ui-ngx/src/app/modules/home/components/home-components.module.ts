@@ -174,6 +174,7 @@ import { EntityGroupComponent } from '@home/components/group/entity-group.compon
 import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
 import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
+import { AlarmDurationPredicateValueComponent } from '@home/components/profile/alarm/alarm-duration-predicate-value.component';
 import { SecurityConfigLwm2mComponent } from '@home/components/device/security-config-lwm2m.component';
 import { SecurityConfigLwm2mServerComponent } from '@home/components/device/security-config-lwm2m-server.component';
 import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config/ota-update-event-config.component';
@@ -296,6 +297,7 @@ import { SnmpDeviceProfileTransportModule } from '@home/components/profile/devic
       AlarmScheduleInfoComponent,
       DeviceProfileProvisionConfigurationComponent,
       AlarmScheduleComponent,
+      AlarmDurationPredicateValueComponent,
       DeviceWizardDialogComponent,
       DeviceCredentialsComponent,
       CopyDeviceCredentialsComponent,
@@ -433,6 +435,7 @@ import { SnmpDeviceProfileTransportModule } from '@home/components/profile/devic
     AlarmScheduleInfoComponent,
     AlarmScheduleComponent,
     AlarmScheduleDialogComponent,
+    AlarmDurationPredicateValueComponent,
     EditAlarmDetailsDialogComponent,
     DeviceProfileProvisionConfigurationComponent,
     AlarmScheduleComponent,

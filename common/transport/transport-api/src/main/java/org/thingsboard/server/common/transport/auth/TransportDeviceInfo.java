@@ -50,5 +50,5 @@ public class TransportDeviceInfo implements Serializable {
     private String deviceType;
     private PowerMode powerMode;
     private String additionalInfo;
-
+    private Long edrxCycle;
 }
