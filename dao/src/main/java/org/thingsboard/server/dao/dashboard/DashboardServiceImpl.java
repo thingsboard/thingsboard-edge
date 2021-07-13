@@ -264,6 +264,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         return dashboardInfoDao.findDashboardsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
 
+    @Override
+    public DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name) {
+        return dashboardInfoDao.findFirstByTenantIdAndName(tenantId.getId(), name);
+    }
+
     private DataValidator<Dashboard> dashboardValidator =
             new DataValidator<Dashboard>() {
                 @Override

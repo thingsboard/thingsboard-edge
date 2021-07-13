@@ -45,6 +45,8 @@ const dashboardLoadedHandler = 'tbMobileDashboardLoadedHandler';
 const dashboardLayoutHandler = 'tbMobileDashboardLayoutHandler';
 const navigationHandler = 'tbMobileNavigationHandler';
 const mobileHandler = 'tbMobileHandler';
+const recaptchaHandler = 'tbMobileRecaptchaHandler';
+const recaptchaLoadedHandler = 'tbMobileRecaptchaLoadedHandler';
 
 // @dynamic
 @Injectable({
@@ -60,6 +62,7 @@ export class MobileService {
   private reloadUserObservable: Observable<boolean>;
   private lastDashboardId: string;
   private toggleLayoutFunction: () => void;
+  private resetRecaptchaFunction: () => void;
 
   constructor(@Inject(WINDOW) private window: Window,
               private router: Router,
@@ -125,6 +128,26 @@ export class MobileService {
     }
   }
 
+  public onRecaptchaLoaded() {
+    if (this.mobileApp) {
+      this.mobileChannel.callHandler(recaptchaLoadedHandler);
+    }
+  }
+
+  public handleReCaptchaResponse(recaptchaResponse: string) {
+    if (this.mobileApp) {
+      this.mobileChannel.callHandler(recaptchaHandler, recaptchaResponse);
+    }
+  }
+
+  public registerResetRecaptchaFunction(resetRecaptchaFunction: () => void) {
+    this.resetRecaptchaFunction = resetRecaptchaFunction;
+  }
+
+  public unregisterResetRecaptchaFunction() {
+    this.resetRecaptchaFunction = null;
+  }
+
   private onWindowMessage(event: MessageEvent) {
     if (event.data) {
       let message: WindowMessage;
@@ -146,6 +169,10 @@ export class MobileService {
               this.toggleLayoutFunction();
             }
             break;
+          case 'resetRecaptcha':
+            if (this.resetRecaptchaFunction) {
+              this.resetRecaptchaFunction();
+            }
         }
       }
     }

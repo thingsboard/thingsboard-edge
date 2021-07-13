@@ -127,7 +127,7 @@ public abstract class AbstractOAuth2ClientMapper {
     @Value("${edges.enabled}")
     @Getter
     private boolean edgesEnabled;
-    
+
     private final Lock userCreationLock = new ReentrantLock();
 
     protected SecurityUser getOrCreateSecurityUserFromOAuth2User(OAuth2User oauth2User, OAuth2Registration registration) {

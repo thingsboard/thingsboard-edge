@@ -32,7 +32,7 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { map, mergeMap, share, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, share, startWith, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -117,12 +117,14 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
 
     this.filteredSchedulerEventTypes = this.schedulerEventTypeFormGroup.get('schedulerEventType').valueChanges
       .pipe(
+        debounceTime(150),
         tap(value => {
           this.updateView(value);
         }),
         startWith<string | SchedulerEventTypeInfo>(''),
         map((value) => value ? (typeof value === 'string' ? value : value.name) : ''),
-        mergeMap(schedulerEventType => this.fetchSchedulerEventTypes(schedulerEventType) ),
+        distinctUntilChanged(),
+        switchMap(schedulerEventType => this.fetchSchedulerEventTypes(schedulerEventType) ),
         share()
       );
   }

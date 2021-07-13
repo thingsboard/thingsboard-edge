@@ -1340,6 +1340,7 @@
         "condition-type-simple": "Simple",
         "condition-type-duration": "Duration",
         "condition-during": "During {{during}}",
+        "condition-during-dynamic": "During \"{{ attribute }}\" ({{during}})",
         "condition-type-repeating": "Repeating",
         "condition-type-required": "Condition type is required.",
         "condition-repeating-value": "Count of events",
@@ -1347,6 +1348,7 @@
         "condition-repeating-value-pattern": "Count of events should be integers.",
         "condition-repeating-value-required": "Count of events is required.",
         "condition-repeat-times": "Repeats { count, plural, 1 {1 time} other {# times} }",
+        "condition-repeat-times-dynamic": "Repeats \"{ attribute }\" ({ count, plural, 1 {1 time} other {# times} })",
         "schedule-type": "Scheduler type",
         "schedule-type-required": "Scheduler type is required.",
         "schedule": "Schedule",
@@ -1381,6 +1383,9 @@
             "drx": "Discontinuous Reception (DRX)",
             "edrx": "Extended Discontinuous Reception (eDRX)"
         },
+        "edrx-cycle": "eDRX cycle in milliseconds",
+        "edrx-cycle-required": "eDRX cycle is required.",
+        "edrx-cycle-pattern": "eDRX cycle must be a positive integer.",
         "lwm2m": {
             "object-list": "Object list",
             "object-list-empty": "No objects selected.",
@@ -3035,7 +3040,7 @@
         "expired-password-reset-message": "Your credentials has been expired! Please create new password.",
         "new-password": "New password",
         "new-password-again": "New password again",
-        "password-link-sent-message": "Password reset link was successfully sent!",
+        "password-link-sent-message": "Reset link has been sent",
         "email": "Email",
         "no-account": "Do not have an account?",
         "create-account": "Create an account",
@@ -3066,7 +3071,8 @@
         "activating-account-text": "Your account is currently activating. Please wait...",
         "accept-privacy-policy": "Accept Privacy Policy",
         "accept": "Accept",
-        "privacy-policy": "Privacy Policy"
+        "privacy-policy": "Privacy Policy",
+        "recaptcha-title": "reCAPTCHA"
     },
     "ota-update": {
         "add": "Add package",
@@ -4142,8 +4148,22 @@
         "captcha-secret-key": "reCAPTCHA secret key",
         "notification-email": "Notification email",
         "privacy-policy-text": "Privacy policy text",
-        "text-message-page": "Text Message for signup page"
-
+        "text-message-page": "Text Message for signup page",
+        "enable-mobile-self-registration": "Enable self registration from mobile application",
+        "mobile-self-registration-title": "Mobile application self registration settings",
+        "mobile-package": "Application package",
+        "mobile-package-placeholder": "Ex.: my.example.app",
+        "mobile-package-hint": "For Android: your own unique Application ID. For iOS: Product bundle identifier.",
+        "mobile-package-required": "Application package is required",
+        "mobile-app-secret": "Application secret",
+        "invalid-mobile-app-secret": "Application secret must contain only alphanumeric characters and must be between 16 and 2048 characters long.",
+        "copy-mobile-app-secret": "Copy application secret",
+        "mobile-app-scheme": "Application URL scheme",
+        "mobile-app-scheme-placeholder": "Ex.: customscheme",
+        "mobile-app-scheme-required": "Application URL scheme is required",
+        "mobile-app-host": "Application URL hostname",
+        "mobile-app-host-placeholder": "Ex.: my.app.host",
+        "mobile-app-host-required": "Application URL hostname is required"
     },
     "white-labeling": {
         "white-labeling": "White Labeling",

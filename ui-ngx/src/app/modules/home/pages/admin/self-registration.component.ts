@@ -38,7 +38,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { SelfRegistrationParams } from '@shared/models/self-register.models';
-import { deepClone } from '@core/utils';
+import { deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -97,11 +97,22 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       permissions: [null],
       defaultDashboardId: [null],
       defaultDashboardFullscreen: [false],
-      privacyPolicy: [null]
+      privacyPolicy: [null],
+      enableMobileSelfRegistration: [false],
+      pkgName: [null, [Validators.required]],
+      appSecret: [null, [Validators.required, Validators.minLength(16), Validators.maxLength(2048),
+        Validators.pattern(/^[A-Za-z0-9]+$/)]],
+      appScheme: [null, [Validators.required]],
+      appHost: [null, [Validators.required]]
     });
     this.selfRegistrationFormGroup.get('defaultDashboardId').valueChanges.subscribe(
       () => {
         this.updateDisabledState();
+      }
+    );
+    this.selfRegistrationFormGroup.get('enableMobileSelfRegistration').valueChanges.subscribe(
+      () => {
+        this.updateMobileSelfRegistration();
       }
     );
   }
@@ -113,6 +124,26 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     } else {
       this.selfRegistrationFormGroup.get('defaultDashboardFullscreen').disable();
     }
+  }
+
+  private updateMobileSelfRegistration() {
+    const enableMobileSelfRegistration = this.selfRegistrationFormGroup.get('enableMobileSelfRegistration').value;
+    if (enableMobileSelfRegistration) {
+      this.selfRegistrationFormGroup.get('pkgName').enable();
+      this.selfRegistrationFormGroup.get('appSecret').enable();
+      this.selfRegistrationFormGroup.get('appScheme').enable();
+      this.selfRegistrationFormGroup.get('appHost').enable();
+      const appSecret = this.selfRegistrationFormGroup.get('appSecret').value;
+      if (!isNotEmptyStr(appSecret)) {
+        this.selfRegistrationFormGroup.get('appSecret').patchValue(randomAlphanumeric(24), {emitEvent: false});
+      }
+    } else {
+      this.selfRegistrationFormGroup.get('pkgName').disable();
+      this.selfRegistrationFormGroup.get('appSecret').disable();
+      this.selfRegistrationFormGroup.get('appScheme').disable();
+      this.selfRegistrationFormGroup.get('appHost').disable();
+    }
+    this.selfRegistrationFormGroup.updateValueAndValidity({emitEvent: false});
   }
 
   save(): void {
@@ -155,14 +186,23 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     if (!selfRegistrationFormValue.permissions) {
       selfRegistrationFormValue.permissions = [];
     }
+    (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);
     this.updateDisabledState();
+    this.updateMobileSelfRegistration();
   }
 
   private selfRegistrationParamsFromFormValue(selfRegistrationParams: SelfRegistrationParams): SelfRegistrationParams {
     if (selfRegistrationParams.signUpTextMessage && selfRegistrationParams.signUpTextMessage.length) {
       selfRegistrationParams.signUpTextMessage = this.convertTextToHTML(selfRegistrationParams.signUpTextMessage);
     }
+    if (!(selfRegistrationParams as any).enableMobileSelfRegistration) {
+      selfRegistrationParams.pkgName = null;
+      selfRegistrationParams.appSecret = null;
+      selfRegistrationParams.appScheme = null;
+      selfRegistrationParams.appHost = null;
+    }
+    delete (selfRegistrationParams as any).enableMobileSelfRegistration;
     return selfRegistrationParams;
   }
 

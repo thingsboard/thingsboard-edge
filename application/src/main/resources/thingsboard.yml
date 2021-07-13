@@ -281,7 +281,7 @@ sql:
         ts_key_value_ttl: "${SQL_TTL_TS_TS_KEY_VALUE_TTL:0}" # Number of seconds
       events:
         enabled: "${SQL_TTL_EVENTS_ENABLED:true}"
-        execution_interval_ms: "${SQL_TTL_EVENTS_EXECUTION_INTERVAL:86400000}" # Number of milliseconds. The current value corresponds to one day
+        execution_interval_ms: "${SQL_TTL_EVENTS_EXECUTION_INTERVAL:2220000}" # Number of milliseconds (max random initial delay and fixed period). # 37minutes to avoid common interval spikes
         events_ttl: "${SQL_TTL_EVENTS_EVENTS_TTL:0}" # Number of seconds
         debug_events_ttl: "${SQL_TTL_EVENTS_DEBUG_EVENTS_TTL:604800}" # Number of seconds. The current value corresponds to one week
       edge_events:
@@ -933,6 +933,7 @@ queue:
         topic: "${TB_QUEUE_RE_MAIN_TOPIC:tb_rule_engine.main}"
         poll-interval: "${TB_QUEUE_RE_MAIN_POLL_INTERVAL_MS:25}"
         partitions: "${TB_QUEUE_RE_MAIN_PARTITIONS:10}"
+        consumer-per-partition: "${TB_QUEUE_RE_MAIN_CONSUMER_PER_PARTITION:true}"
         pack-processing-timeout: "${TB_QUEUE_RE_MAIN_PACK_PROCESSING_TIMEOUT_MS:2000}"
         submit-strategy:
           type: "${TB_QUEUE_RE_MAIN_SUBMIT_STRATEGY_TYPE:BURST}" # BURST, BATCH, SEQUENTIAL_BY_ORIGINATOR, SEQUENTIAL_BY_TENANT, SEQUENTIAL
@@ -949,6 +950,7 @@ queue:
         topic: "${TB_QUEUE_RE_HP_TOPIC:tb_rule_engine.hp}"
         poll-interval: "${TB_QUEUE_RE_HP_POLL_INTERVAL_MS:25}"
         partitions: "${TB_QUEUE_RE_HP_PARTITIONS:10}"
+        consumer-per-partition: "${TB_QUEUE_RE_HP_CONSUMER_PER_PARTITION:true}"
         pack-processing-timeout: "${TB_QUEUE_RE_HP_PACK_PROCESSING_TIMEOUT_MS:2000}"
         submit-strategy:
           type: "${TB_QUEUE_RE_HP_SUBMIT_STRATEGY_TYPE:BURST}" # BURST, BATCH, SEQUENTIAL_BY_ORIGINATOR, SEQUENTIAL_BY_TENANT, SEQUENTIAL
@@ -965,6 +967,7 @@ queue:
         topic: "${TB_QUEUE_RE_SQ_TOPIC:tb_rule_engine.sq}"
         poll-interval: "${TB_QUEUE_RE_SQ_POLL_INTERVAL_MS:25}"
         partitions: "${TB_QUEUE_RE_SQ_PARTITIONS:10}"
+        consumer-per-partition: "${TB_QUEUE_RE_SQ_CONSUMER_PER_PARTITION:true}"
         pack-processing-timeout: "${TB_QUEUE_RE_SQ_PACK_PROCESSING_TIMEOUT_MS:2000}"
         submit-strategy:
           type: "${TB_QUEUE_RE_SQ_SUBMIT_STRATEGY_TYPE:SEQUENTIAL_BY_ORIGINATOR}" # BURST, BATCH, SEQUENTIAL_BY_ORIGINATOR, SEQUENTIAL_BY_TENANT, SEQUENTIAL

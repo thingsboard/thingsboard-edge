@@ -31,8 +31,8 @@
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map, mergeMap, share, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -126,6 +126,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   ngOnInit() {
     this.filteredEntities = this.selectConverterFormGroup.get('entity').valueChanges
       .pipe(
+        debounceTime(150),
         tap(value => {
           let modelValue;
           if (typeof value === 'string' || !value) {
@@ -140,7 +141,8 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
         }),
         // startWith<string | BaseData<EntityId>>(''),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-        mergeMap(name => this.fetchEntities(name) ),
+        distinctUntilChanged(),
+        switchMap(name => this.fetchEntities(name) ),
         share()
       );
   }
@@ -230,9 +232,10 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
     }
     const pageLink = new PageLink(limit, 0, this.searchText);
     return this.converterService.getConverters(pageLink, {ignoreLoading: true}).pipe(
+      catchError(() => of(null)),
       map((data) => {
           if (data) {
-            let entities: Array<Converter> = [];
+            let entities: Array<Converter>;
             if (this.excludeEntityIds && this.excludeEntityIds.length) {
               entities = data.data.filter((entity) => this.excludeEntityIds.indexOf(entity.id.id) === -1);
             } else {

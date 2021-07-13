@@ -922,7 +922,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             SortOrder sortOrder = pageLink.getSortOrder();
             if (sortOrder != null) {
-                dataQuery = String.format("%s order by %s", dataQuery, sortOrder.getProperty());
+                dataQuery = String.format("%s order by %s", dataQuery, EntityKeyMapping.getEntityFieldColumnName(sortOrder.getProperty()));
                 if (sortOrder.getDirection() == SortOrder.Direction.ASC) {
                     dataQuery += " asc";
                 } else {

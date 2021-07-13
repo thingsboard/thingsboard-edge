@@ -87,11 +87,14 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
     }
 
     @Override
-    public SelfRegistrationParams getSelfRegistrationParams(TenantId sysTenantId, String domainName) {
+    public SelfRegistrationParams getSelfRegistrationParams(TenantId sysTenantId, String domainName, String pkgName) {
         SelfRegistrationParams result = null;
         EntityId entityId = getEntityIdByDomainName(sysTenantId, domainName);
         if (entityId != null) {
             result = getTenantSelfRegistrationParams(sysTenantId, entityId);
+            if (!StringUtils.isEmpty(pkgName) && !pkgName.equals(result.getPkgName())) {
+                result = null;
+            }
         }
         if (result == null) {
             result = new SelfRegistrationParams();

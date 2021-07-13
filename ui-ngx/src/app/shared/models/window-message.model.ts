@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export type WindowMessageType = 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected' | 'openDashboardMessage' | 'reloadUserMessage' | 'toggleDashboardLayout';
+export type WindowMessageType = 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected' | 'openDashboardMessage' | 'reloadUserMessage' | 'toggleDashboardLayout' | 'resetRecaptcha';
 
 export interface WindowMessage {
   type: WindowMessageType;

@@ -38,13 +38,15 @@ import { RecaptchaModule, RecaptchaFormsModule, RECAPTCHA_BASE_URL } from 'ng-re
 import { EmailVerificationComponent } from '@modules/signup/pages/signup/email-verification.component';
 import { EmailVerifiedComponent } from '@modules/signup/pages/signup/email-verified.component';
 import { PrivacyPolicyDialogComponent } from '@modules/signup/pages/signup/privacy-policy-dialog.component';
+import { TbRecaptchaComponent } from '@modules/signup/pages/signup/tb-recaptcha.component';
 
 @NgModule({
   declarations: [
     SignupComponent,
     PrivacyPolicyDialogComponent,
     EmailVerificationComponent,
-    EmailVerifiedComponent
+    EmailVerifiedComponent,
+    TbRecaptchaComponent
   ],
   imports: [
     CommonModule,

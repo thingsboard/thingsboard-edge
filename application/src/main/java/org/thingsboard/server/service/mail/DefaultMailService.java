@@ -36,20 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.NestedRuntimeException;
+import org.springframework.core.io.InputStreamSource;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -57,16 +59,17 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +99,11 @@ public class DefaultMailService implements MailService {
 
     @Value("${actors.rule.allow_system_mail_service}")
     private boolean allowSystemMailService;
+
+    @Autowired
+    private MailExecutorService mailExecutorService;
+
+    private JavaMailSenderImpl mailSender;
 
     public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
         this.adminSettingsService = adminSettingsService;
@@ -171,6 +179,17 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
+    public void sendResetPasswordEmailAsync(TenantId tenantId, String passwordResetLink, String email) {
+        mailExecutorService.execute(() -> {
+            try {
+                this.sendResetPasswordEmail(tenantId, passwordResetLink, email);
+            } catch (ThingsboardException e) {
+                log.error("Error occurred: {} ", e.getMessage());
+            }
+        });
+    }
+
+    @Override
     public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
 
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
@@ -224,27 +243,39 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void send(TenantId tenantId, CustomerId customerId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
+    public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail) throws ThingsboardException {
+        sendMail(tenantId, customerId, tbEmail, this.mailSender);
+    }
+
+    @Override
+    public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender) throws ThingsboardException {
+        sendMail(tenantId, customerId, tbEmail, javaMailSender);
+    }
+
+    private void sendMail(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender) throws ThingsboardException {
         ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
         JsonNode jsonConfig = configEntry.jsonConfig;
         if (!configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
             JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
             String mailFrom = getStringValue(jsonConfig, "mailFrom");
             try {
-                MimeMessage mailMsg = mailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(mailMsg, attachments != null && !attachments.isEmpty(), "UTF-8");
-                helper.setFrom(StringUtils.isBlank(from) ? mailFrom : from);
-                helper.setTo(to.split("\\s*,\\s*"));
-                if (!StringUtils.isBlank(cc)) {
-                    helper.setCc(cc.split("\\s*,\\s*"));
+                MimeMessage mailMsg = javaMailSender.createMimeMessage();
+                boolean multipart = (tbEmail.getImages() != null && !tbEmail.getImages().isEmpty())
+                        || (tbEmail.getAttachments() != null && !tbEmail.getAttachments().isEmpty());
+                MimeMessageHelper helper = new MimeMessageHelper(mailMsg, multipart, "UTF-8");
+                helper.setFrom(StringUtils.isBlank(tbEmail.getFrom()) ? mailFrom : tbEmail.getFrom());
+                helper.setTo(tbEmail.getTo().split("\\s*,\\s*"));
+                if (!StringUtils.isBlank(tbEmail.getCc())) {
+                    helper.setCc(tbEmail.getCc().split("\\s*,\\s*"));
                 }
-                if (!StringUtils.isBlank(bcc)) {
-                    helper.setBcc(bcc.split("\\s*,\\s*"));
+                if (!StringUtils.isBlank(tbEmail.getBcc())) {
+                    helper.setBcc(tbEmail.getBcc().split("\\s*,\\s*"));
                 }
-                helper.setSubject(subject);
-                helper.setText(body);
-                if (attachments != null) {
-                    for (BlobEntityId blobEntityId : attachments) {
+                helper.setSubject(tbEmail.getSubject());
+                helper.setText(tbEmail.getBody(), tbEmail.isHtml());
+
+                if (tbEmail.getAttachments() != null) {
+                    for (BlobEntityId blobEntityId : tbEmail.getAttachments()) {
                         BlobEntity blobEntity = blobEntityService.findBlobEntityById(tenantId, blobEntityId);
                         if (blobEntity != null) {
                             DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
@@ -252,14 +283,25 @@ public class DefaultMailService implements MailService {
                         }
                     }
                 }
-                mailSender.send(helper.getMimeMessage());
+
+                if (tbEmail.getImages() != null) {
+                    for (String imgId : tbEmail.getImages().keySet()) {
+                        String imgValue = tbEmail.getImages().get(imgId);
+                        String value = imgValue.replaceFirst("^data:image/[^;]*;base64,?", "");
+                        byte[] bytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(value);
+                        String contentType = helper.getFileTypeMap().getContentType(imgId);
+                        InputStreamSource iss = () -> new ByteArrayInputStream(bytes);
+                        helper.addInline(imgId, iss, contentType);
+                    }
+                }
+                javaMailSender.send(helper.getMimeMessage());
                 if (configEntry.isSystem) {
                     apiUsageClient.report(tenantId, customerId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
                 }
             } catch (Exception e) {
                 throw handleException(e);
             }
-        } else  {
+        } else {
             throw new RuntimeException("Email sending is disabled due to API limits!");
         }
     }
