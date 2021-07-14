@@ -37,7 +37,6 @@ import org.thingsboard.server.dao.util.HsqlDao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Slf4j
@@ -53,10 +52,6 @@ public class HsqlEventCleanupRepository extends JpaAbstractDaoListeningExecutorS
                      "AND event_type != 'DEBUG_CONVERTER' AND event_type != 'DEBUG_INTEGRATION'")) {
             stmt.setLong(1, otherExpirationTime);
             stmt.execute();
-            try (ResultSet resultSet = stmt.getResultSet()){
-                resultSet.next();
-                log.info("Events removed by ttl: [{}]", resultSet.getLong(1));
-            }
         } catch (SQLException e) {
             log.error("SQLException occurred during events TTL task execution ", e);
         }
@@ -66,10 +61,6 @@ public class HsqlEventCleanupRepository extends JpaAbstractDaoListeningExecutorS
                      "OR event_type = 'DEBUG_CONVERTER' OR event_type = 'DEBUG_INTEGRATION')")) {
             stmt.setLong(1, debugExpirationTime);
             stmt.execute();
-            try (ResultSet resultSet = stmt.getResultSet()){
-                resultSet.next();
-                log.info("Debug Events removed by ttl: [{}]", resultSet.getLong(1));
-            }
         } catch (SQLException e) {
             log.error("SQLException occurred during events TTL task execution ", e);
         }
