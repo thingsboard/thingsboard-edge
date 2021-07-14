@@ -36,7 +36,11 @@ import { AppState } from '@core/core.state';
 import { LoadNodesCallback, NavTreeEditCallbacks, NodeSelectedCallback } from '@shared/components/nav-tree.component';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityGroupInfo, EntityGroupParams, HierarchyCallbacks } from '@shared/models/entity-group.models';
+import {
+  EntityGroupInfo,
+  EntityGroupParams,
+  HierarchyCallbacks
+} from '@shared/models/entity-group.models';
 import {
   CustomerNodeData,
   customerNodeText,
@@ -56,7 +60,7 @@ import {
 import { EntityService } from '@core/http/entity.service';
 import { Customer } from '@shared/models/customer.model';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { groupResourceByGroupType, Operation, resourceByEntityType } from '@shared/models/security.models';
+import { groupResourceByGroupType, Operation, Resource } from '@shared/models/security.models';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
@@ -70,6 +74,7 @@ import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-
 import { Authority } from "@shared/models/authority.enum";
 import { EdgeService } from '@core/http/edge.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { RuleChainParams } from '@shared/models/rule-chain.models';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -284,11 +289,10 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         entityGroupParams.customerId = node.data.customerData.customerId;
         entityGroupParams.nodeId = node.id;
         entityGroupParams.internalId = node.data.internalId;
-        entityGroupParams.childGroupScope = 'edge';
         entityGroupParams.entityGroupId = node.data.parentEntityGroupId;
         entityGroupParams.edgeId = node.data.edge.id.id;
+        entityGroupParams.groupType = EntityType.EDGE;
         if (node.data.type === 'edgeGroups') {
-          entityGroupParams.groupType = EntityType.EDGE;
           entityGroupParams.childGroupType = node.data.groupsType;
           this.updateViewByEntityType(node.data.groupsType, entityGroupParams, node.data.edge);
         } else {
@@ -346,7 +350,9 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         this.updateSchedulerView('scheduler', edge);
         break;
       case EntityType.RULE_CHAIN:
-        this.updateRuleChains(entityGroupParams, edge);
+        const ruleChainParams = entityGroupParams as RuleChainParams;
+        ruleChainParams.ruleChainScope = 'edge';
+        this.updateRuleChains(ruleChainParams);
         break;
     }
   }
@@ -361,17 +367,13 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     this.viewMode = viewMode;
   }
 
-  private updateRuleChains(entityGroupParams: EntityGroupParams, edge: Edge) {
-    this.edgeService.getEdge(edge.id.id).subscribe((edge) => {
-      this.edgeId = edge.id.id;
-      entityGroupParams.edge = edge;
-      const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(entityGroupParams);
-      this.updateView('groups', entityGroupParams, ruleChainsTableConfig, null);
-    });
+  private updateRuleChains(ruleChainParams: RuleChainParams) {
+    const ruleChainsTableConfig = this.resolveRuleChainsTableConfig(ruleChainParams);
+    this.updateView('groups', ruleChainParams, ruleChainsTableConfig, null);
   }
 
-  private resolveRuleChainsTableConfig(ruleChainsParams: EntityGroupParams): EntityTableConfig<BaseData<HasId>> {
-    return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainsParams);
+  private resolveRuleChainsTableConfig(ruleChainParams: RuleChainParams): EntityTableConfig<BaseData<HasId>> {
+    return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainParams);
   }
 
   selectRootNode() {
@@ -572,59 +574,31 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
     this.allowedEdgeGroupTypes.forEach((groupType) => {
-      const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: entityGroupsNodeText(this.translate, groupType),
-        children: true,
-        data: {
-          type: 'edgeGroups',
-          groupsType: groupType,
-          edge,
-          parentEntityGroupId,
-          customerData,
-          internalId: edge.id.id + '_' + groupType
-        } as EdgeEntityGroupsNodeData
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entityGroupsNodeText(this.translate, groupType),
+          children: true
+        }
       };
       nodes.push(node);
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     });
-    if (this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.SCHEDULER_EVENT), Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ)) {
       const groupType = EntityType.SCHEDULER_EVENT;
-      const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: entitiesNodeText(this.translate, groupType, 'scheduler.scheduler'),
-        children: false,
-        data: {
-          type: 'edgeGroups',
-          groupsType: groupType,
-          edge,
-          customerData,
-          parentEntityGroupId,
-          internalId: edge.id.id + '_' + groupType
-        } as EdgeEntityGroupsNodeData
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entitiesNodeText(this.translate, groupType, 'scheduler.scheduler')
+        }
       };
       nodes.push(node);
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     }
-    if (this.hasRuleChainsPermission()) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) &&
+        getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
       const groupType = EntityType.RULE_CHAIN;
-      const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: entitiesNodeText(this.translate, groupType, 'entity.type-rulechains'),
-        children: false,
-        data: {
-          type: 'edgeGroups',
-          groupsType: groupType,
-          edge,
-          customerData,
-          parentEntityGroupId,
-          internalId: edge.id.id + '_' + groupType
-        } as EdgeEntityGroupsNodeData
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entitiesNodeText(this.translate, groupType, 'entity.type-rulechains')
+        }
       };
       nodes.push(node);
       nodesMap[groupType] = node.id;
@@ -633,9 +607,20 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     return nodes;
   }
 
-  private hasRuleChainsPermission() {
-    const isCustomerUser = getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER;
-    return !isCustomerUser && this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.EDGE), Operation.WRITE);
+  private createBaseEdgeNode(parentEntityGroupId: string, edge: Edge, customerData: EdgeNodeCustomerData, groupType: EntityType) {
+    return {
+      id: (++this.nodeIdCounter)+'',
+      icon: false,
+      children: false,
+      data: {
+        type: 'edgeGroups',
+        groupsType: groupType,
+        edge,
+        parentEntityGroupId,
+        customerData,
+        internalId: edge.id.id + '_' + groupType
+      } as EdgeEntityGroupsNodeData
+    };
   }
 
   private registerNode(node: CustomersHierarchyNode, parentNodeId: string) {

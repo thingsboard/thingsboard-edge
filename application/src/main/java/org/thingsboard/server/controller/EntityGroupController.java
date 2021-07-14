@@ -822,10 +822,10 @@ public class EntityGroupController extends BaseController {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            checkEntityGroupId(entityGroupId, Operation.ASSIGN_TO_EDGE);
+            checkEntityGroupId(entityGroupId, Operation.READ);
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
@@ -857,9 +857,9 @@ public class EntityGroupController extends BaseController {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.UNASSIGN_FROM_EDGE);
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));

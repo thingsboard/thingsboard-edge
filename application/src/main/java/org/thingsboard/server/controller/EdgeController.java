@@ -96,7 +96,7 @@ public class EdgeController extends BaseController {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.READ);
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
-                cleanUpSensitiveData(edge);
+                cleanUpLicenseKey(edge);
             }
             return edge;
         } catch (Exception e) {
@@ -258,7 +258,7 @@ public class EdgeController extends BaseController {
         checkParameter("ruleChainId", strRuleChainId);
         try {
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.WRITE);
+            checkRuleChain(ruleChainId, Operation.READ);
 
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
@@ -306,7 +306,7 @@ public class EdgeController extends BaseController {
             }
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : result.getData()) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(result);
@@ -359,7 +359,7 @@ public class EdgeController extends BaseController {
             List<Edge> edges = edgesFuture.get();
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(edges);
@@ -390,7 +390,7 @@ public class EdgeController extends BaseController {
             }).collect(Collectors.toList());
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return edges;
@@ -492,11 +492,7 @@ public class EdgeController extends BaseController {
         }
     }
 
-    private void cleanUpSensitiveData(Edge edge) {
+    private void cleanUpLicenseKey(Edge edge) {
         edge.setEdgeLicenseKey(null);
-        edge.setRoutingKey(null);
-        edge.setSecret(null);
-        edge.setCloudEndpoint(null);
-        edge.setRootRuleChainId(null);
     }
 }

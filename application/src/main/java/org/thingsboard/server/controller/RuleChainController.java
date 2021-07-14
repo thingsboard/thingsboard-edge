@@ -521,10 +521,10 @@ public class RuleChainController extends BaseController {
         checkParameter(RULE_CHAIN_ID, strRuleChainId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.ASSIGN_TO_EDGE);
+            checkRuleChain(ruleChainId, Operation.READ);
 
             RuleChain savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId));
 
@@ -554,9 +554,9 @@ public class RuleChainController extends BaseController {
         checkParameter(RULE_CHAIN_ID, strRuleChainId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.UNASSIGN_FROM_EDGE);
+            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.READ);
 
             RuleChain savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId, false));
 

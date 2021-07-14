@@ -33,7 +33,7 @@ import { Injectable, Injector } from '@angular/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
 import { EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
-import { Observable, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { EntityType } from '@shared/models/entity-type.models';
 import {
@@ -88,58 +88,52 @@ export class EntityGroupConfigResolver {
   private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
     if (params.customerId) {
       const groupType: EntityType = params.childGroupType || params.groupType;
-      if (params.childGroupScope === 'customer' && params.edgeId) {
-        entityGroup = this.resolveEdgeGroupInfo(params, entityGroup);
-      }
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
             entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(groupType));
+            let tasks = [];
             if (params.childEntityGroupId) {
-              return this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
+              tasks.push(this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
                 map(parentEntityGroup => {
                   entityGroup.parentEntityGroup = parentEntityGroup;
                   return entityGroup;
                 })
-              );
+              ));
             } else {
-              return of(entityGroup);
+              tasks.push(of(entityGroup));
             }
+            if (params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER && params.edgeId) {
+              tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
+                map(edge => entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType)))
+              ));
+              tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId).pipe(
+                map(edgeGroup => entityGroup.edgeGroupName = edgeGroup.name)
+              ));
+            }
+            return forkJoin(tasks).pipe(
+              mergeMap(() => of(entityGroup))
+            );
           }
         ));
     } else if (params.edgeId) {
       const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
-      return this.edgeService.getEdge(params.edgeId).pipe(
-        mergeMap((info) => {
-            entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(groupType));
-            if (params.childEntityGroupId) {
-              return this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
-                map(parentEntityGroup => {
-                  entityGroup.parentEntityGroup = parentEntityGroup;
-                  return entityGroup;
-                })
-              );
-            } else {
-              return of(entityGroup);
-            }
-          }
-        ));
+      let tasks = [];
+      tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
+          map(
+          edge => entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(groupType))
+          )
+        )
+      );
+      tasks.push(this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
+          map(parentEntityGroup => entityGroup.parentEntityGroup = parentEntityGroup)
+        )
+      );
+      return forkJoin(tasks).pipe(
+        mergeMap(() => of(entityGroup))
+      );
     } else {
       return of(entityGroup);
     }
-  }
-
-  private resolveEdgeGroupInfo(params, entityGroup) {
-    this.entityGroupService.getEntityGroup(params.childEntityGroupId).subscribe(
-      (parentEntityGroup => {
-        entityGroup.edgeGroupName = parentEntityGroup.name;
-      })
-    );
-    this.edgeService.getEdge(params.edgeId).subscribe(
-      (info) => {
-        entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType));
-      }
-    )
-    return entityGroup;
   }
 
 }

@@ -87,6 +87,14 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
     }
   }
 
+  hideUnassign() {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.isUnassignEnabled;
+    } else {
+      return false;
+    }
+  }
+
   buildForm(entity: EntityGroupInfo): FormGroup {
     const form = this.fb.group(
       {
@@ -151,14 +159,6 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  isEdgeScope() {
-    if (this.entitiesTableConfig) {
-      return this.entitiesTableConfig.componentsData.isEdgeScope;
-    } else {
-      return false;
-    }
   }
 
 }
