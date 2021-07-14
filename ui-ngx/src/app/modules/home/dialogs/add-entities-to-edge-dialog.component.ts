@@ -35,13 +35,17 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { DeviceService } from '@core/http/device.service';
+import { EdgeService } from '@core/http/edge.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { forkJoin, Observable } from 'rxjs';
+import { AssetService } from '@core/http/asset.service';
+import { EntityViewService } from '@core/http/entity-view.service';
+import { DashboardService } from '@core/http/dashboard.service';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import { RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
-import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { RuleChainType } from '@shared/models/rule-chain.models';
 
 export interface AddEntitiesToEdgeDialogData {
   edgeId: string;
@@ -54,7 +58,8 @@ export interface AddEntitiesToEdgeDialogData {
   providers: [{provide: ErrorStateMatcher, useExisting: AddEntitiesToEdgeDialogComponent}],
   styleUrls: []
 })
-export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+export class AddEntitiesToEdgeDialogComponent extends
+  DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
 
   addEntitiesToEdgeFormGroup: FormGroup;
 
@@ -83,6 +88,7 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
     this.addEntitiesToEdgeFormGroup = this.fb.group({
       entityIds: [null, [Validators.required]]
     });
+    this.subType = RuleChainType.EDGE;
     switch (this.entityType) {
       case EntityType.RULE_CHAIN:
         this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
@@ -93,7 +99,6 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
         this.assignToEdgeText = 'edge.assign-scheduler-event-to-edge-text';
         break;
     }
-    this.subType = RuleChainType.EDGE;
   }
 
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
