@@ -131,7 +131,7 @@ public class OtaPackageController extends BaseController {
         try {
             otaPackageInfo.setTenantId(getTenantId());
             checkEntity(otaPackageInfo.getId(), otaPackageInfo, Resource.OTA_PACKAGE, null);
-            OtaPackageInfo savedOtaPackageInfo = otaPackageService.saveOtaPackageInfo(otaPackageInfo, otaPackageInfo.isUsesUrl());
+            OtaPackageInfo savedOtaPackageInfo = otaPackageService.saveOtaPackageInfo(new OtaPackageInfo(otaPackageInfo), otaPackageInfo.isUsesUrl());
             logEntityAction(savedOtaPackageInfo.getId(), savedOtaPackageInfo,
                     null, created ? ActionType.ADDED : ActionType.UPDATED, null);
             return savedOtaPackageInfo;
