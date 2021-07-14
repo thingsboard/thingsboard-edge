@@ -500,7 +500,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('roles') > -1
         }
       );
-    }
+    }*/
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
       sections.push(
         {
@@ -512,7 +512,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('customers_hierarchy') > -1
         }
       );
-    }*/
+    }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.USER) && disabledItems.indexOf('user_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.USER));
     }
