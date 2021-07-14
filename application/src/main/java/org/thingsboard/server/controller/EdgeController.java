@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -42,13 +43,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -61,7 +63,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -69,6 +70,8 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
 @RestController
 @TbCoreComponent
@@ -93,7 +96,7 @@ public class EdgeController extends BaseController {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.READ);
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
-                cleanUpSensitiveData(edge);
+                cleanUpLicenseKey(edge);
             }
             return edge;
         } catch (Exception e) {
@@ -137,7 +140,7 @@ public class EdgeController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
                     edge.getId(), edge, entityGroupId);
 
-            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
+            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge, true));
 
             if (entityGroupId != null && operation == Operation.CREATE) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());
@@ -255,7 +258,7 @@ public class EdgeController extends BaseController {
         checkParameter("ruleChainId", strRuleChainId);
         try {
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.WRITE);
+            checkRuleChain(ruleChainId, Operation.READ);
 
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
@@ -303,7 +306,7 @@ public class EdgeController extends BaseController {
             }
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : result.getData()) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(result);
@@ -356,7 +359,7 @@ public class EdgeController extends BaseController {
             List<Edge> edges = edgesFuture.get();
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(edges);
@@ -387,10 +390,34 @@ public class EdgeController extends BaseController {
             }).collect(Collectors.toList());
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return edges;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<Edge> getEdgesByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(edgeService.findEdgesByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -465,11 +492,7 @@ public class EdgeController extends BaseController {
         }
     }
 
-    private void cleanUpSensitiveData(Edge edge) {
+    private void cleanUpLicenseKey(Edge edge) {
         edge.setEdgeLicenseKey(null);
-        edge.setRoutingKey(null);
-        edge.setSecret(null);
-        edge.setCloudEndpoint(null);
-        edge.setRootRuleChainId(null);
     }
 }

@@ -80,6 +80,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 
+import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -262,6 +263,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         validateIds(groupIds, "Incorrect groupIds " + groupIds);
         validatePageLink(pageLink);
         return dashboardInfoDao.findDashboardsByEntityGroupIds(toUUIDs(groupIds), pageLink);
+    }
+
+    @Override
+    public DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name) {
+        return dashboardInfoDao.findFirstByTenantIdAndName(tenantId.getId(), name);
     }
 
     private DataValidator<Dashboard> dashboardValidator =

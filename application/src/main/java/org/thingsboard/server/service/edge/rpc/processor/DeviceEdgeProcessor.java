@@ -45,7 +45,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -148,7 +148,13 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-                removeDeviceFromDeviceGroup(tenantId, edge, deviceId);
+                if (deviceUpdateMsg.getEntityGroupIdMSB() != 0 && deviceUpdateMsg.getEntityGroupIdLSB() != 0) {
+                    EntityGroupId entityGroupId = new EntityGroupId(
+                            new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                } else {
+                    removeDeviceFromDeviceGroup(tenantId, edge, deviceId);
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type {}", deviceUpdateMsg.getMsgType());
@@ -202,8 +208,8 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
 
     private Device createDevice(TenantId tenantId, Edge edge, DeviceUpdateMsg deviceUpdateMsg, String deviceName) {
         Device device;
+        deviceCreationLock.lock();
         try {
-            deviceCreationLock.lock();
             log.debug("[{}] Creating device entity [{}] from edge [{}]", tenantId, deviceUpdateMsg, edge.getName());
             DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
             device = deviceService.findDeviceById(tenantId, deviceId);
@@ -239,6 +245,11 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             createRelationFromEdge(tenantId, edge.getId(), device.getId());
             pushDeviceCreatedEventToRuleEngine(tenantId, edge, device);
             addDeviceToDeviceGroup(tenantId, edge, device.getId());
+            if (deviceUpdateMsg.getEntityGroupIdMSB() != 0 && deviceUpdateMsg.getEntityGroupIdLSB() != 0) {
+                EntityGroupId entityGroupId = new EntityGroupId(
+                        new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, deviceId);
+            }
         } finally {
             deviceCreationLock.unlock();
         }
@@ -384,8 +395,9 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
+                EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                 DeviceUpdateMsg deviceUpdateMsg =
-                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId);
+                        deviceMsgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg)

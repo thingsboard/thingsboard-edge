@@ -31,7 +31,6 @@
 package org.thingsboard.server.transport.coap.adaptors;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
@@ -137,7 +136,7 @@ public class ProtoCoapAdaptor implements CoapTransportAdaptor {
     @Override
     public Response convertToPublish(boolean isConfirmable, TransportProtos.ToServerRpcResponseMsg msg) throws AdaptorException {
         Response response = new Response(CoAP.ResponseCode.CONTENT);
-        response.setAcknowledged(isConfirmable);
+        response.setConfirmable(isConfirmable);
         response.setPayload(msg.toByteArray());
         return response;
     }

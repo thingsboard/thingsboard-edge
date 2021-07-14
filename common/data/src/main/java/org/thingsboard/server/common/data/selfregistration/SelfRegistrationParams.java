@@ -48,5 +48,9 @@ public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
     private String defaultDashboardId;
     private boolean defaultDashboardFullscreen;
     private List<GroupPermission> permissions;
+    private String pkgName;
+    private String appSecret;
+    private String appScheme;
+    private String appHost;
 
 }

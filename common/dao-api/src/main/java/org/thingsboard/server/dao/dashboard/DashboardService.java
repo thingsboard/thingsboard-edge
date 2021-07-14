@@ -79,4 +79,6 @@ public interface DashboardService {
     List<Dashboard> exportDashboards(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) throws ThingsboardException;
 
     void importDashboards(TenantId tenantId, EntityGroupId entityGroupId, List<Dashboard> dashboards, boolean overwrite) throws ThingsboardException;
+
+    DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name);
 }

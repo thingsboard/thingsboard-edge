@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -163,6 +164,16 @@ public abstract class DaoUtil {
 
         } else {
             return service.submit(() -> convertDataList(daoConsumer.apply(entityIds)));
+        }
+    }
+
+    public static Optional<ConstraintViolationException> extractConstraintViolationException(Exception t) {
+        if (t instanceof ConstraintViolationException) {
+            return Optional.of((ConstraintViolationException) t);
+        } else if (t.getCause() instanceof ConstraintViolationException) {
+            return Optional.of((ConstraintViolationException) (t.getCause()));
+        } else {
+            return Optional.empty();
         }
     }
 }

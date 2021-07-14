@@ -240,7 +240,7 @@ public class EdgeImitator {
             for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                 if (randomFailuresOnTimeseriesDownlink) {
                     if (getRandomBoolean()) {
-                        result.add(Futures.immediateFailedFuture(new RuntimeException("Random failure")));
+                        result.add(Futures.immediateFailedFuture(new RuntimeException("Random failure. This is expected error for edge test")));
                     } else {
                         result.add(saveDownlinkMsg(entityData));
                     }
@@ -340,8 +340,8 @@ public class EdgeImitator {
 
     private ListenableFuture<Void> saveDownlinkMsg(AbstractMessage message) {
         if (!ignoredTypes.contains(message.getClass())) {
+            lock.lock();
             try {
-                lock.lock();
                 downlinkMsgs.add(message);
             } finally {
                 lock.unlock();
@@ -377,8 +377,8 @@ public class EdgeImitator {
     @SuppressWarnings("unchecked")
     public <T extends AbstractMessage> Optional<T> findMessageByType(Class<T> tClass) {
         Optional<T> result;
+        lock.lock();
         try {
-            lock.lock();
             result = (Optional<T>) downlinkMsgs.stream().filter(downlinkMsg -> downlinkMsg.getClass().isAssignableFrom(tClass)).findAny();
         } finally {
             lock.unlock();
@@ -389,8 +389,8 @@ public class EdgeImitator {
     @SuppressWarnings("unchecked")
     public <T extends AbstractMessage> List<T> findAllMessagesByType(Class<T> tClass) {
         List<T> result;
+        lock.lock();
         try {
-            lock.lock();
             result = (List<T>) downlinkMsgs.stream().filter(downlinkMsg -> downlinkMsg.getClass().isAssignableFrom(tClass)).collect(Collectors.toList());
         } finally {
             lock.unlock();

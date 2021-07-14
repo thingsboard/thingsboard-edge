@@ -32,7 +32,7 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -43,27 +43,21 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Slf4j
 @AllArgsConstructor
-public abstract class BaseWidgetsBundlesEdgeEventFetcher extends BasePageableEdgeEventFetcher {
+public abstract class BaseWidgetsBundlesEdgeEventFetcher extends BasePageableEdgeEventFetcher<WidgetsBundle> {
 
     protected final WidgetsBundleService widgetsBundleService;
 
     @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        log.trace("[{}] start fetching edge events [{}]", tenantId, edge.getId());
-        PageData<WidgetsBundle> pageData = findWidgetsBundles(tenantId, pageLink);
-        List<EdgeEvent> result = new ArrayList<>();
-        if (!pageData.getData().isEmpty()) {
-            for (WidgetsBundle widgetsBundle : pageData.getData()) {
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.WIDGETS_BUNDLE,
-                        EdgeEventActionType.ADDED, widgetsBundle.getId(), null));
-            }
-        }
-        return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
+    PageData<WidgetsBundle> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+        return findWidgetsBundles(tenantId, pageLink);
+    }
+
+    @Override
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, WidgetsBundle widgetsBundle) {
+        return EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.WIDGETS_BUNDLE,
+                EdgeEventActionType.ADDED, widgetsBundle.getId(), null);
     }
 
     protected abstract PageData<WidgetsBundle> findWidgetsBundles(TenantId tenantId, PageLink pageLink);

@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.edge;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
@@ -56,7 +56,7 @@ public interface EdgeService {
 
     Optional<Edge> findEdgeByRoutingKey(TenantId tenantId, String routingKey);
 
-    Edge saveEdge(Edge edge);
+    Edge saveEdge(Edge edge, boolean doValidate);
 
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
@@ -90,6 +90,12 @@ public interface EdgeService {
 
     PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType, PageLink pageLink);
 
+    PageData<Edge> findEdgesByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
+
+    PageData<Edge> findEdgesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
+
+    PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
+
     void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
 
     Object checkInstance(Object request);
@@ -97,4 +103,5 @@ public interface EdgeService {
     Object activateInstance(String licenseSecret, String releaseDate);
 
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
+
 }

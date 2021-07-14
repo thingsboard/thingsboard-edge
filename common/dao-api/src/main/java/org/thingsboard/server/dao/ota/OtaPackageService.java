@@ -47,7 +47,7 @@ import java.nio.ByteBuffer;
 
 public interface OtaPackageService {
 
-    OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo);
+    OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl);
 
     OtaPackage saveOtaPackage(OtaPackage otaPackage);
 

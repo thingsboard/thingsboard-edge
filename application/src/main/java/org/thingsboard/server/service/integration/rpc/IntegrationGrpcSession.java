@@ -40,6 +40,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Customer;
@@ -68,6 +69,8 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.transport.util.JsonUtils;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -144,6 +147,8 @@ public final class IntegrationGrpcSession implements Closeable {
                             .build());
                     if (ConnectResponseCode.ACCEPTED != responseMsg.getResponseCode()) {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
+                    } else {
+                        connected = true;
                     }
                 }
                 if (connected) {
@@ -157,13 +162,29 @@ public final class IntegrationGrpcSession implements Closeable {
 
             @Override
             public void onError(Throwable t) {
-                log.error("Failed to deliver message from client!", t);
+                log.error("[{}] Failed to deliver message from client!", configuration.getId(), t);
+                closeSession();
             }
 
             @Override
             public void onCompleted() {
-                sessionCloseListener.accept(configuration.getId());
-                outputStream.onCompleted();
+                closeSession();
+            }
+
+            private void closeSession() {
+                connected = false;
+                if (configuration != null) {
+                    try {
+                        sessionCloseListener.accept(configuration.getId());
+                    } catch (Exception ignored) {
+                        //Do nothing
+                    }
+                }
+                try {
+                    outputStream.onCompleted();
+                } catch (Exception ignored) {
+                    //Do nothing
+                }
             }
         };
     }
@@ -317,9 +338,10 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
         } catch (Exception e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "";
             return UplinkResponseMsg.newBuilder()
                     .setSuccess(false)
-                    .setErrorMsg(e.getMessage())
+                    .setErrorMsg(errorMsg) // can't set null value as error msg
                     .build();
         }
         return UplinkResponseMsg.newBuilder()
@@ -339,6 +361,17 @@ public final class IntegrationGrpcSession implements Closeable {
             ctx.getEventService().save(event);
         } catch (IOException e) {
             log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
+        } catch (Exception t) {
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
+            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("event_unq_key")) {
+                /* Catch exception to avoid endless loop in case:
+                ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
+                Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
+                 */
+                log.error("[{}] Failed to save event!", proto.getData(), e);
+            } else {
+                throw t;
+            }
         }
     }
 
@@ -373,6 +406,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
     @Override
     public void close() {
+        log.debug("[{}][{}] Closing session", sessionId, configuration.getId());
         connected = false;
         try {
             outputStream.onCompleted();
@@ -419,17 +453,27 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     void onDownlink(Device device, IntegrationDownlinkMsg msg) {
-        outputStream.onNext(ResponseMsg.newBuilder()
-                .setDownlinkMsg(DownlinkMsg.newBuilder()
-                        .setDeviceData(
-                                DeviceDownlinkDataProto.newBuilder()
-                                        .setDeviceName(device.getName())
-                                        .setDeviceType(device.getType())
-                                        .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
-                                        .build()
-                        )
-                        .build())
-                .build());
+        log.trace("[{}] Sending downlink msg [{}]", this.sessionId, msg);
+        if (isConnected()) {
+            try {
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setDownlinkMsg(DownlinkMsg.newBuilder()
+                                .setDeviceData(
+                                        DeviceDownlinkDataProto.newBuilder()
+                                                .setDeviceName(device.getName())
+                                                .setDeviceType(device.getType())
+                                                .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
+                                                .build()
+                                )
+                                .build())
+                        .build());
+            } catch (Exception e) {
+                log.error("[{}] Failed to send downlink msg [{}]", this.sessionId, msg, e);
+                connected = false;
+                sessionCloseListener.accept(configuration.getId());
+            }
+            log.trace("[{}] Downlink msg successfully sent [{}]", this.sessionId, msg);
+        }
     }
 
     private void processIntegrationStatistics(IntegrationStatisticsProto data) {

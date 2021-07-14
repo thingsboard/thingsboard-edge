@@ -37,7 +37,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -510,7 +510,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
     @Test
     public void testFindEdgeRuleChainsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
-        Edge savedEdge = edgeService.saveEdge(edge);
+        Edge savedEdge = edgeService.saveEdge(edge, true);
 
         String name1 = "Edge RuleChain name 1";
         List<RuleChain> ruleChainsName1 = new ArrayList<>();

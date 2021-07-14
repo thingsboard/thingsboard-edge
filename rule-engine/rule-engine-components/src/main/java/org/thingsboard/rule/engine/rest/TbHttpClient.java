@@ -62,6 +62,9 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.credentials.BasicCredentials;
 import org.thingsboard.rule.engine.credentials.ClientCredentials;
 import org.thingsboard.rule.engine.credentials.CredentialsType;
+import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -71,7 +74,10 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -189,7 +195,13 @@ public class TbHttpClient {
         String endpointUrl = TbNodeUtils.processPattern(config.getRestEndpointUrlPattern(), msg);
         HttpHeaders headers = prepareHeaders(msg);
         HttpMethod method = HttpMethod.valueOf(config.getRequestMethod());
-        HttpEntity<String> entity = new HttpEntity<>(msg.getData(), headers);
+        HttpEntity<String> entity;
+        if(HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method) ||
+            HttpMethod.OPTIONS.equals(method) || HttpMethod.TRACE.equals(method)) {
+            entity = new HttpEntity<>(headers);
+        } else {
+            entity = new HttpEntity<>(getData(ctx, msg), headers);
+        }
 
         ListenableFuture<ResponseEntity<String>> future = httpClient.exchange(
                 endpointUrl, method, entity, String.class);
@@ -214,6 +226,36 @@ public class TbHttpClient {
         if (pendingFutures != null) {
             processParallelRequests(future);
         }
+    }
+
+    String getData(TbContext ctx, TbMsg msg) {
+        String data = msg.getData();
+
+        List<BlobEntityId> attachments = new ArrayList<>();
+        String attachmentsStr = msg.getMetaData().getValue(TbMsgToEmailNode.ATTACHMENTS);
+        if (!StringUtils.isEmpty(attachmentsStr)) {
+            String[] attachmentsStrArray = attachmentsStr.split(",");
+            for (String attachmentStr : attachmentsStrArray) {
+                attachments.add(new BlobEntityId(UUID.fromString(attachmentStr)));
+            }
+        }
+
+        if (!attachments.isEmpty()){
+            BlobEntity blobEntity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(ctx.getTenantId(), attachments.get(0));
+            if (blobEntity != null) {
+                data = StandardCharsets.UTF_8.decode(blobEntity.getData()).toString();
+            } else {
+                log.warn("[{}] Attachments {} not found", ctx.getTenantId(), attachmentsStr);
+            }
+        }
+
+        if ("true".equals(msg.getMetaData().getValue("trimDoubleQuotes"))) {
+            final String dataBefore = data;
+            data = data.replaceAll("^\"|\"$", "");;
+            log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
+        }
+
+        return data;
     }
 
     private TbMsg processResponse(TbContext ctx, TbMsg origMsg, ResponseEntity<String> response) {

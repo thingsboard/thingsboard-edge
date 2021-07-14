@@ -32,8 +32,8 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -50,10 +50,15 @@ import java.util.List;
 
 @AllArgsConstructor
 @Slf4j
-public class EntityGroupEdgeEventFetcher extends BasePageableEdgeEventFetcher {
+public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
 
     private final EntityGroupService entityGroupService;
     private final EntityType groupType;
+
+    @Override
+    public PageLink getPageLink(int pageSize) {
+        return new PageLink(pageSize);
+    }
 
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {

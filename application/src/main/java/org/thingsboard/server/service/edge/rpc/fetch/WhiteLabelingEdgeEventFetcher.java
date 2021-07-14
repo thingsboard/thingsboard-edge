@@ -30,10 +30,11 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -55,10 +56,17 @@ import java.util.List;
 
 @AllArgsConstructor
 @Slf4j
-public class WhiteLabelingEdgeEventFetcher extends BasePageableEdgeEventFetcher {
+public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final WhiteLabelingService whiteLabelingService;
     private final CustomTranslationService customTranslationService;
+
+    @Override
+    public PageLink getPageLink(int pageSize) {
+        return null;
+    }
 
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {

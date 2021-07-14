@@ -115,6 +115,7 @@ export interface OtaPackageInfo extends BaseData<OtaPackageId> {
   contentType: string;
   dataSize?: number;
   additionalInfo?: any;
+  isURL?: boolean;
 }
 
 export interface OtaPackage extends OtaPackageInfo {

@@ -56,6 +56,10 @@ import org.thingsboard.server.dao.event.EventDao;
 import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -77,6 +81,9 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
 
     @Autowired
     private EventInsertRepository eventInsertRepository;
+
+    @Autowired
+    private EventCleanupRepository eventCleanupRepository;
 
     @Override
     protected Class<EventEntity> getEntityClass() {
@@ -309,6 +316,12 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
                 eventType,
                 PageRequest.of(0, limit));
         return DaoUtil.convertDataList(latest);
+    }
+
+    @Override
+    public void cleanupEvents(long otherEventsTtl, long debugEventsTtl) {
+        log.info("Going to cleanup old events using debug events ttl: {}s and other events ttl: {}s", debugEventsTtl, otherEventsTtl);
+        eventCleanupRepository.cleanupEvents(otherEventsTtl, debugEventsTtl);
     }
 
     public Optional<Event> save(EventEntity entity, boolean ifNotExists) {

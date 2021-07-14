@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.ContactBased;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -82,7 +82,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -823,10 +822,10 @@ public class EntityGroupController extends BaseController {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            checkEntityGroupId(entityGroupId, Operation.ASSIGN_TO_EDGE);
+            checkEntityGroupId(entityGroupId, Operation.READ);
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
@@ -858,9 +857,9 @@ public class EntityGroupController extends BaseController {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.UNASSIGN_FROM_EDGE);
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
@@ -907,7 +906,7 @@ public class EntityGroupController extends BaseController {
                         }
                     }
                 } while (pageData.hasNext());
-                return checkNotNull(toEntityGroupsInfo(result));
+                return checkNotNull(toEntityGroupsInfo(filterEntityGroupsByReadPermission(result)));
             } else {
                 throw permissionDenied();
             }

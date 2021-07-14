@@ -141,7 +141,7 @@ export const timewindowCompletion: TbEditorCompletion = {
       }
     }
   }
-}
+};
 
 export const widgetContextCompletions: TbEditorCompletions = {
   ctx: {
@@ -480,6 +480,12 @@ export const widgetContextCompletions: TbEditorCompletions = {
                   description: 'Maximum delay in milliseconds to wait until response/acknowledgement is received.',
                   type: 'number',
                   optional: true
+                },
+                {
+                  name: 'persistent',
+                  description: 'RPC request persistent',
+                  type: 'boolean',
+                  optional: true
                 }
               ],
               return: {
@@ -506,6 +512,12 @@ export const widgetContextCompletions: TbEditorCompletions = {
                   name: 'timeout',
                   description: 'Maximum delay in milliseconds to wait until response/acknowledgement is received.',
                   type: 'number',
+                  optional: true
+                },
+                {
+                  name: 'persistent',
+                  description: 'RPC request persistent',
+                  type: 'boolean',
                   optional: true
                 }
               ],
@@ -672,4 +684,4 @@ export const widgetContextCompletions: TbEditorCompletions = {
       ...serviceCompletions
     }
   }
-}
+};

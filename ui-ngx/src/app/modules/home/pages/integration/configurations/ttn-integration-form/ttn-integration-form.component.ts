@@ -46,17 +46,33 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
   @Input() downlinkTopicPattern: FormControl;
   @Input() integrationType: IntegrationType;
 
+  private downlinkPattern = '';
+
   hostTypes = ['Region', 'Custom'];
   hostRegion: FormControl;
   hostCustom: FormControl;
+  apiVersion: FormControl;
   currentHostType: FormControl;
   hostRegionSuffix: string;
+
+  V3_DOWNLINK_TOPIC_PATTERN ='v3/${applicationId}/devices/${devId}/down/push';
+  V2_DOWNLINK_TOPIC_PATTERN ='${applicationId}/devices/${devId}/down';
+
+  V3_UPLINK_TOPIC = {
+    filter: 'v3/+/devices/+/up',
+    qos: 0
+  }
+  V2_UPLINK_TOPIC = {
+    filter: '+/devices/+/up',
+    qos: 0
+  }
 
   constructor(private fb: FormBuilder) {
     super();
     this.hostRegion = this.fb.control('');
     this.hostCustom = this.fb.control('');
     this.currentHostType = this.fb.control('');
+    this.apiVersion = this.fb.control(false);
     this.hostRegion.valueChanges.subscribe(() => {
       this.buildHostName();
       this.form.markAsDirty();
@@ -69,10 +85,14 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
       this.updateHostParams(type);
       this.form.markAsDirty();
     });
+    this.apiVersion.valueChanges.subscribe((value: boolean) => {
+      this.form.get('apiVersion').patchValue(value);
+      this.updateTopicsState(value);
+    })
   }
 
   onIntegrationFormSet() {
-    this.hostRegionSuffix = this.integrationType === 'TTN' ? '.thethings.network' : '.cloud.thethings.industries';
+    this.hostRegionSuffix = this.integrationType === 'TTN' ? '.cloud.thethings.network' : '.cloud.thethings.industries';
     const hostType: string = this.form.get('customHost').value ? 'Custom' : 'Region';
     this.currentHostType.patchValue(hostType, {emitEvent: false});
     const host: string = this.form.get('host').value;
@@ -87,23 +107,31 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
       }
       this.hostCustom.patchValue('', {emitEvent: false});
     }
+    this.form.get('credentials.username').valueChanges.subscribe(name => {
+      this.updateDownlinkPattern(name)
+    });
+    const apiVersion = this.form.get('apiVersion').value;
     this.updateHostParams(hostType);
-    if (this.integrationType === 'TTN') {
-      this.downlinkTopicPattern.patchValue(this.form.get('credentials').get('username').value + '/devices/${devId}/down');
-      this.form.get('credentials').get('username').valueChanges.subscribe(name => {
-        this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
-      });
-    } else {
-      this.downlinkTopicPattern.patchValue('v3/' + this.form.get('credentials').get('username').value + '/devices/${devId}/down/push');
-      this.form.get('credentials').get('username').valueChanges.subscribe(name => {
-        this.downlinkTopicPattern.patchValue('v3/' + name + '/devices/${devId}/down/push');
-      });
-    }
+    this.updateTopicsState(apiVersion);
     this.updateControlsState();
   }
 
   updateFormState(disabled: boolean) {
     this.updateControlsState();
+  }
+
+  updateTopicsState(apiVersion: boolean) {
+    this.downlinkPattern = apiVersion ? this.V3_DOWNLINK_TOPIC_PATTERN : this.V2_DOWNLINK_TOPIC_PATTERN;
+    let name = this.form.get('credentials').get('username').value;
+    this.topicFilters.patchValue([apiVersion ? this.V3_UPLINK_TOPIC : this.V2_UPLINK_TOPIC]);
+    this.apiVersion.patchValue(apiVersion, {emitEvent: false});
+    this.updateDownlinkPattern(name)
+  }
+
+  updateDownlinkPattern(name: string) {
+    let finalPattern = this.downlinkPattern.replace("${applicationId}", name);
+    this.downlinkTopicPattern.patchValue(finalPattern);
+    this.form.markAsDirty();
   }
 
   updateControlsState() {

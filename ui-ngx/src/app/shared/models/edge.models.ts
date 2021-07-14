@@ -53,10 +53,10 @@ export interface Edge extends BaseData<EdgeId> {
   rootRuleChainId?: RuleChainId;
 }
 
-/*export interface EdgeInfo extends Edge {
+export interface EdgeInfo extends Edge {
   customerTitle: string;
   customerIsPublic: boolean;
-}*/
+}
 
 export interface EdgeSearchQuery extends EntitySearchQuery {
   edgeTypes: Array<string>;

@@ -38,6 +38,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -111,10 +112,11 @@ public class SelfRegistrationController extends BaseController {
     @RequestMapping(value = "/noauth/selfRegistration/signUpSelfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(
+            @RequestParam(required = false) String pkgName,
             HttpServletRequest request) throws ThingsboardException {
         try {
             SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName());
+                    request.getServerName(), pkgName);
 
             SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
             result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());

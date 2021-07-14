@@ -32,7 +32,7 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -43,26 +43,20 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @AllArgsConstructor
 @Slf4j
-public class SchedulerEventsEdgeEventFetcher extends BasePageableEdgeEventFetcher {
+public class SchedulerEventsEdgeEventFetcher extends BasePageableEdgeEventFetcher<SchedulerEvent> {
 
     private final SchedulerEventService schedulerEventService;
 
     @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        log.trace("[{}] start fetching edge events [{}]", tenantId, edge.getId());
-        PageData<SchedulerEvent> pageData = schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
-        List<EdgeEvent> result = new ArrayList<>();
-        if (!pageData.getData().isEmpty()) {
-            for (SchedulerEvent schedulerEvent : pageData.getData()) {
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.SCHEDULER_EVENT,
-                        EdgeEventActionType.ADDED, schedulerEvent.getId(), null));
-            }
-        }
-        return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
+    PageData<SchedulerEvent> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+        return schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
+    }
+
+    @Override
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, SchedulerEvent schedulerEvent) {
+        return EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.SCHEDULER_EVENT,
+                EdgeEventActionType.ADDED, schedulerEvent.getId(), null);
     }
 }

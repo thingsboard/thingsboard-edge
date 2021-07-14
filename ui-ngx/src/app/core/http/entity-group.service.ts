@@ -273,6 +273,9 @@ export class EntityGroupService {
         case EntityType.DASHBOARD:
           url += 'dashboards';
           break;
+        case EntityType.EDGE:
+          url += 'edges';
+          break;
         default:
           url += 'entities';
       }

@@ -68,7 +68,7 @@ $mat-tb-accent: map_merge($mat-deep-orange, (
 }
 
 @mixin _mat-toolbar-inverse-color($palette) {
-  background: mat-color($palette, default-contrast);
+  background: #fff;
   color: $dark-primary-text;
 }
 
@@ -81,7 +81,7 @@ $mat-tb-accent: map_merge($mat-deep-orange, (
 
   mat-fab-toolbar {
     .mat-fab-toolbar-background {
-      background: mat-color($background, app-bar);
+      background: #fff;
       color: mat-color($foreground, text);
     }
     &.mat-primary {
@@ -101,7 +101,7 @@ $mat-tb-accent: map_merge($mat-deep-orange, (
     }
     .mat-fab {
       &.mat-primary {
-        background: mat-color($primary, default-contrast);
+        background: #fff;
         color: mat-color($primary);
       }
     }

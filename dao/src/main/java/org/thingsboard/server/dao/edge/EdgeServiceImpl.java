@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.edge;
 
-import com.datastax.oss.driver.internal.core.util.CollectionsUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -58,7 +57,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
@@ -106,6 +105,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
+import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -192,9 +192,11 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     @CacheEvict(cacheNames = EDGE_CACHE, key = "{#edge.tenantId, #edge.name}")
     @Override
-    public Edge saveEdge(Edge edge) {
+    public Edge saveEdge(Edge edge, boolean doValidate) {
         log.trace("Executing saveEdge [{}]", edge);
-        edgeValidator.validate(edge, Edge::getTenantId);
+        if (doValidate) {
+            edgeValidator.validate(edge, Edge::getTenantId);
+        }
         Edge savedEdge;
         try {
             savedEdge = edgeDao.save(edge.getTenantId(), edge);
@@ -520,6 +522,31 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     return createEmptyEdgeIdPageData();
             }
         }
+    }
+
+    @Override
+    public PageData<Edge> findEdgesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findEdgesByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByEntityGroupId(groupId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<Edge> findEdgesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
+        log.trace("Executing findEdgesByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByEntityGroupIds(toUUIDs(groupIds), pageLink);
+    }
+
+    @Override
+    public PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
+        log.trace("Executing findEdgesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
     private PageData<EdgeId> createEmptyEdgeIdPageData() {
