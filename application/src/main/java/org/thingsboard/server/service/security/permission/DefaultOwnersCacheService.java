@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -234,7 +234,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeEdgeOwner(TenantId tenantId, EntityId targetOwnerId, Edge edge) throws ThingsboardException {
-        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, edgeService::saveEdge);
+        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, e -> edgeService.saveEdge(e, true));
     }
 
     @Override

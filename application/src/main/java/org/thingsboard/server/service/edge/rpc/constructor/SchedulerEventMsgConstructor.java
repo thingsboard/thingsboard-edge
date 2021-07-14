@@ -35,8 +35,8 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 @Component
 @Slf4j

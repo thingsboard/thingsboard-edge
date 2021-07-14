@@ -587,24 +587,24 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
       // case 'unassignFromCustomer':
       //   this.unassignFromCustomer(action.event, action.entity);
       //   return true;
-      case 'openEdgeAssets':
-        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ASSET);
-        return true;
-      case 'openEdgeDevices':
-        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.DEVICE);
-        return true;
-      case 'openEdgeEntityViews':
-        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ENTITY_VIEW);
-        return true;
-      case 'openEdgeDashboards':
-        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.DASHBOARD);
-        return true;
-      case 'openEdgeRuleChains':
-        this.openEdgeEntitiesByType(action.event, action.entity, EntityType.RULE_CHAIN);
-        return true;
-      case 'syncEdge':
-        this.syncEdge(action.event, action.entity);
-        return true;
+      // case 'openEdgeAssets':
+      //   this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ASSET);
+      //   return true;
+      // case 'openEdgeDevices':
+      //   this.openEdgeEntitiesByType(action.event, action.entity, EntityType.DEVICE);
+      //   return true;
+      // case 'openEdgeEntityViews':
+      //   this.openEdgeEntitiesByType(action.event, action.entity, EntityType.ENTITY_VIEW);
+      //   return true;
+      // case 'openEdgeDashboards':
+      //   this.openEdgeEntitiesByType(action.event, action.entity, EntityType.DASHBOARD);
+      //   return true;
+      // case 'openEdgeRuleChains':
+      //   this.openEdgeEntitiesByType(action.event, action.entity, EntityType.RULE_CHAIN);
+      //   return true;
+      // case 'syncEdge':
+      //   this.syncEdge(action.event, action.entity);
+      //   return true;
     }
     return true;
   }

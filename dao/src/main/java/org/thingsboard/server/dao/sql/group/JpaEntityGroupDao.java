@@ -124,12 +124,12 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    public ListenableFuture<List<EntityGroup>> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType) {
-        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEdgeEntityGroupsByType(
+    public PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink) {
+        return DaoUtil.toPageData(entityGroupRepository.findEdgeEntityGroupsByType(
                 edgeId,
-                relationType)));
+                relationType,
+                DaoUtil.toPageable(pageLink)));
     }
-
 
     @Override
     public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
