@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -84,7 +85,7 @@ public class BaseResourceService implements ResourceService {
         try {
             return resourceDao.save(resource.getTenantId(), resource);
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("resource_unq_key")) {
                 String field = ResourceType.LWM2M_MODEL.equals(resource.getResourceType()) ? "resourceKey" : "fileName";
                 throw new DataValidationException("Resource with such " + field + " already exists!");
@@ -219,14 +220,4 @@ public class BaseResourceService implements ResourceService {
                     deleteResource(tenantId, new TbResourceId(entity.getUuidId()));
                 }
             };
-
-    protected Optional<ConstraintViolationException> extractConstraintViolationException(Exception t) {
-        if (t instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) t);
-        } else if (t.getCause() instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) (t.getCause()));
-        } else {
-            return Optional.empty();
-        }
-    }
 }
