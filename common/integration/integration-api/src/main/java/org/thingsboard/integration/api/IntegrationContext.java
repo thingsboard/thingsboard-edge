@@ -40,6 +40,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
@@ -109,6 +110,14 @@ public interface IntegrationContext {
      * @return scheduled executor
      */
     ScheduledExecutorService getScheduledExecutorService();
+
+    /**
+     * Provides access to ExecutorService to process messages after JS executor responses.
+     * Allows using N threads per M integrations instead of using N threads per integration.
+     *
+     * @return callback executor
+     */
+    ExecutorService getCallBackExecutorService();
 
     DownLinkMsg getDownlinkMsg(String deviceName);
 
