@@ -61,6 +61,8 @@ rpc:
   port: "${RPC_PORT:9090}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
   client_id: "${RPC_CLIENT_ID:remote}"
+  # Time without read activity before sending a keepalive ping
+  keep_alive_time_sec: "${RPC_CLIENT_KEEP_ALIVE_TIME_SEC:300}"
   ssl:
     enabled: "${RPC_SSL_ENABLED:false}"
     cert: "${RPC_SSL_CERT:roots.pem}"

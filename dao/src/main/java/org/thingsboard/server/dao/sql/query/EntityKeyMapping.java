@@ -332,6 +332,10 @@ public class EntityKeyMapping {
         return alias + "_key_id";
     }
 
+    public static String getEntityFieldColumnName(String field) {
+        return entityFieldColumnMap.getOrDefault(field, field);
+    }
+
     public static String buildSelections(List<EntityKeyMapping> mappings, EntityFilterType filterType, EntityType entityType) {
         return mappings.stream().map(mapping -> mapping.toSelection(filterType, entityType)).collect(
                 Collectors.joining(", "));

@@ -132,7 +132,18 @@ public class SignUpController extends BaseController {
                                HttpServletRequest request) throws ThingsboardException {
         try {
             SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName());
+                    request.getServerName(), null);
+            if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
+                if (!signUpRequest.getPkgName().equals(selfRegistrationParams.getPkgName())) {
+                    throw new DataValidationException("Invalid Application Id!");
+                }
+                if (StringUtils.isEmpty(signUpRequest.getAppSecret())) {
+                    throw new DataValidationException("Invalid Application Secret!");
+                }
+                if (!signUpRequest.getAppSecret().equals(selfRegistrationParams.getAppSecret())) {
+                    throw new DataValidationException("Invalid Application Secret!");
+                }
+            }
             TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
             checkNotNull(signUpRequest);
@@ -183,7 +194,7 @@ public class SignUpController extends BaseController {
             user.setCustomerId(savedCustomer.getId());
             ObjectNode objectNode = objectMapper.createObjectNode();
             objectNode.put("lang", "en_US");
-            if (selfRegistrationParams.getDefaultDashboardId() != null || !StringUtils.isEmpty(selfRegistrationParams.getDefaultDashboardId())) {
+            if (!StringUtils.isEmpty(selfRegistrationParams.getDefaultDashboardId())) {
                 objectNode.put("defaultDashboardId", selfRegistrationParams.getDefaultDashboardId());
             }
             objectNode.put("defaultDashboardFullscreen", selfRegistrationParams.isDefaultDashboardFullscreen());
@@ -213,7 +224,7 @@ public class SignUpController extends BaseController {
             userService.saveUserCredentials(tenantId, userCredentials);
 
             try {
-                sendEmailVerification(tenantId, request, userCredentials, signUpRequest.getEmail());
+                sendEmailVerification(tenantId, request, userCredentials, signUpRequest.getEmail(), null, signUpRequest.getPkgName());
             } catch (ThingsboardException e) {
                 customerService.deleteCustomer(tenantId, savedCustomer.getId());
                 throw e;
@@ -226,9 +237,14 @@ public class SignUpController extends BaseController {
         }
     }
 
-    private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail) throws ThingsboardException, IOException {
-        String baseUrl = MiscUtils.constructBaseUrl(request);
+    private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail, String baseUrl, String pkgName) throws ThingsboardException, IOException {
+        if (baseUrl == null) {
+            baseUrl = MiscUtils.constructBaseUrl(request);
+        }
         String activationLink = String.format("%s/api/noauth/activateEmail?emailCode=%s", baseUrl, userCredentials.getActivateToken());
+        if (!StringUtils.isEmpty(pkgName)) {
+            activationLink = String.format("%s&pkgName=%s", activationLink, pkgName);
+        }
         mailService.sendActivationEmail(tenantId, activationLink, targetEmail);
     }
 
@@ -249,10 +265,16 @@ public class SignUpController extends BaseController {
     @RequestMapping(value = "/noauth/resendEmailActivation", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void resendEmailActivation(@RequestParam(value = "email") String email,
+                                      @RequestParam(required = false) String pkgName,
                                       HttpServletRequest request) throws ThingsboardException {
         try {
             SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName());
+                    request.getServerName(), pkgName);
+            if (!StringUtils.isEmpty(pkgName)) {
+                if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
+                    throw new DataValidationException("Invalid Application Id!");
+                }
+            }
             TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
             User existingUser = userService.findUserByEmail(TenantId.SYS_TENANT_ID, email);
@@ -262,7 +284,7 @@ public class SignUpController extends BaseController {
                     throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
                             + " is already active!");
                 } else {
-                    sendEmailVerification(tenantId, request, credentials, email);
+                    sendEmailVerification(tenantId, request, credentials, email, null, pkgName);
                 }
             } else {
                 throw new DataValidationException("User with email '" + email + "' "
@@ -275,13 +297,25 @@ public class SignUpController extends BaseController {
 
     @RequestMapping(value = "/noauth/activateEmail", params = {"emailCode"}, method = RequestMethod.GET)
     public ResponseEntity<String> activateEmail(
-            @RequestParam(value = "emailCode") String emailCode) {
+            @RequestParam(value = "emailCode") String emailCode,
+            @RequestParam(required = false) String pkgName,
+            HttpServletRequest request) {
         HttpHeaders headers = new HttpHeaders();
         HttpStatus responseStatus;
         UserCredentials userCredentials = userService.findUserCredentialsByActivateToken(TenantId.SYS_TENANT_ID, emailCode);
         if (userCredentials != null) {
-            String emailVerifiedURI = "/signup/emailVerified";
+            String emailVerifiedURI = null;
             try {
+                if (!StringUtils.isEmpty(pkgName)) {
+                    SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
+                            request.getServerName(), pkgName);
+                    if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
+                        throw new DataValidationException("Invalid Application Id!");
+                    }
+                    emailVerifiedURI = selfRegistrationParams.getAppScheme() + "://" + selfRegistrationParams.getAppHost() + "/signup/emailVerified";
+                } else {
+                    emailVerifiedURI = "/signup/emailVerified";
+                }
                 URI location = new URI(emailVerifiedURI + "?emailCode=" + emailCode);
                 headers.setLocation(location);
                 responseStatus = HttpStatus.PERMANENT_REDIRECT;
@@ -295,15 +329,44 @@ public class SignUpController extends BaseController {
         return new ResponseEntity<>(headers, responseStatus);
     }
 
+    @RequestMapping(value = "/noauth/login", params = {"pkgName"}, method = RequestMethod.GET)
+    public ResponseEntity<String> mobileLogin(
+            @RequestParam(value = "pkgName") String pkgName,
+            HttpServletRequest request) {
+        HttpHeaders headers = new HttpHeaders();
+        HttpStatus responseStatus;
+        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
+                request.getServerName(), pkgName);
+        if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
+            throw new DataValidationException("Invalid Application Id!");
+        }
+        String redirectURI = selfRegistrationParams.getAppScheme() + "://" + selfRegistrationParams.getAppHost() + "/login";
+        try {
+            URI location = new URI(redirectURI);
+            headers.setLocation(location);
+            responseStatus = HttpStatus.PERMANENT_REDIRECT;
+        } catch (URISyntaxException e) {
+                log.error("Unable to create URI with address [{}]", redirectURI);
+                responseStatus = HttpStatus.BAD_REQUEST;
+        }
+        return new ResponseEntity<>(headers, responseStatus);
+    }
+
     @RequestMapping(value = "/noauth/activateByEmailCode", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
     public JsonNode activateUserByEmailCode(
             @RequestParam(value = "emailCode") String emailCode,
+            @RequestParam(required = false) String pkgName,
             HttpServletRequest request) throws ThingsboardException {
         try {
             SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName());
+                    request.getServerName(), pkgName);
+            if (!StringUtils.isEmpty(pkgName)) {
+                if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
+                    throw new DataValidationException("Invalid Application Id!");
+                }
+            }
             TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
             UserCredentials userCredentials = userService.findUserCredentialsByActivateToken(TenantId.SYS_TENANT_ID, emailCode);
@@ -321,7 +384,12 @@ public class SignUpController extends BaseController {
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
             String baseUrl = MiscUtils.constructBaseUrl(request);
-            String loginUrl = String.format("%s/login", baseUrl);
+            String loginUrl;
+            if (!StringUtils.isEmpty(pkgName)) {
+                loginUrl = String.format("%s/api/noauth/login?pkgName=%s", baseUrl, pkgName);
+            } else {
+                loginUrl = String.format("%s/login", baseUrl);
+            }
             String email = user.getEmail();
 
             try {

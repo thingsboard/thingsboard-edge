@@ -488,6 +488,7 @@ export const templates = {
     clientConfiguration: {
       connectTimeoutSec: 10,
       connectionString: '',
+      consumerGroup: '',
       iotHubName: ''
     },
     fieldValidators: {

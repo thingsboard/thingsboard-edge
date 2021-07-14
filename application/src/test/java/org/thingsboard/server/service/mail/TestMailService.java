@@ -67,7 +67,7 @@ public class TestMailService {
                 currentResetPasswordToken = passwordResetLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendResetPasswordEmail(Mockito.any(TenantId.class), Mockito.anyString(), Mockito.anyString());
+        }).when(mailService).sendResetPasswordEmailAsync(Mockito.any(TenantId.class), Mockito.anyString(), Mockito.anyString());
         return mailService;
     }
 

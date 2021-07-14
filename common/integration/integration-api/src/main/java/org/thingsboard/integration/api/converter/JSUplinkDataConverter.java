@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.api.converter;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -67,7 +68,7 @@ public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
     }
 
     @Override
-    public String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
+    public ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         return evaluator.execute(data, metadata);
     }
 

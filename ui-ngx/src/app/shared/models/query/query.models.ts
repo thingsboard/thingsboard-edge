@@ -217,6 +217,17 @@ export function createDefaultFilterPredicate(valueType: EntityKeyValueType, comp
   return predicate;
 }
 
+export function getDynamicSourcesForAllowUser(allow: boolean): DynamicValueSourceType[] {
+  const dynamicValueSourceTypes = [DynamicValueSourceType.CURRENT_TENANT,
+    DynamicValueSourceType.CURRENT_CUSTOMER];
+  if (allow) {
+    dynamicValueSourceTypes.push(DynamicValueSourceType.CURRENT_USER);
+  } else {
+    dynamicValueSourceTypes.push(DynamicValueSourceType.CURRENT_DEVICE);
+  }
+  return dynamicValueSourceTypes;
+}
+
 export enum FilterPredicateType {
   STRING = 'STRING',
   NUMERIC = 'NUMERIC',
@@ -303,6 +314,10 @@ export const dynamicValueSourceTypeTranslationMap = new Map<DynamicValueSourceTy
     [DynamicValueSourceType.CURRENT_DEVICE, 'filter.current-device']
   ]
 );
+
+export const inheritModeForDynamicValueSourceType = [
+  DynamicValueSourceType.CURRENT_CUSTOMER,
+  DynamicValueSourceType.CURRENT_DEVICE];
 
 export interface DynamicValue<T> {
   sourceType: DynamicValueSourceType;

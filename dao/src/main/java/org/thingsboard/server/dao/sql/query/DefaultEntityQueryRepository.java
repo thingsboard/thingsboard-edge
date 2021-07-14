@@ -922,7 +922,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             SortOrder sortOrder = pageLink.getSortOrder();
             if (sortOrder != null) {
-                dataQuery = String.format("%s order by %s", dataQuery, sortOrder.getProperty());
+                dataQuery = String.format("%s order by %s", dataQuery, EntityKeyMapping.getEntityFieldColumnName(sortOrder.getProperty()));
                 if (sortOrder.getDirection() == SortOrder.Direction.ASC) {
                     dataQuery += " asc";
                 } else {
@@ -970,7 +970,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (hasGenericForAllRelationQueryResources(readPermMap) && noGroupPermissionsForAllRelationQueryResources(readPermMap)) {
             entitiesQuery.append(" e.tenant_id =:permissions_tenant_id ");
             if (!ctx.isTenantUser()) {
-                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id ");
+                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id " + HIERARCHICAL_SUB_CUSTOMERS_QUERY);
             }
             if (!entityWhereClause.isEmpty()) {
                 entitiesQuery.append(" AND ").append(entityWhereClause);

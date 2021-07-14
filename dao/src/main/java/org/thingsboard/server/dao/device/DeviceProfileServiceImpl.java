@@ -78,6 +78,7 @@ import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -179,7 +180,7 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
         try {
             savedDeviceProfile = deviceProfileDao.save(deviceProfile.getTenantId(), deviceProfile);
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_profile_name_unq_key")) {
                 throw new DataValidationException("Device profile with such name already exists!");
             } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_provision_key_unq_key")) {
@@ -227,7 +228,7 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
         try {
             deviceProfileDao.removeById(tenantId, deviceProfileId.getId());
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_device_profile")) {
                 throw new DataValidationException("The device profile referenced by the devices cannot be deleted!");
             } else {
@@ -263,8 +264,8 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
         log.trace("Executing findOrCreateDefaultDeviceProfile");
         DeviceProfile deviceProfile = findDeviceProfileByName(tenantId, name);
         if (deviceProfile == null) {
+            findOrCreateLock.lock();
             try {
-                findOrCreateLock.lock();
                 deviceProfile = findDeviceProfileByName(tenantId, name);
                 if (deviceProfile == null) {
                     deviceProfile = this.doCreateDefaultDeviceProfile(tenantId, name, name.equals("default"));

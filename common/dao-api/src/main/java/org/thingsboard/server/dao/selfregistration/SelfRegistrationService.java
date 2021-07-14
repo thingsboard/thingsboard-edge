@@ -39,7 +39,7 @@ public interface SelfRegistrationService {
 
     SelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId);
 
-    SelfRegistrationParams getSelfRegistrationParams(TenantId sysTenantId, String domainName);
+    SelfRegistrationParams getSelfRegistrationParams(TenantId sysTenantId, String domainName, String pkgName);
 
     String getPrivacyPolicy(TenantId sysTenantId, String domainName);
 

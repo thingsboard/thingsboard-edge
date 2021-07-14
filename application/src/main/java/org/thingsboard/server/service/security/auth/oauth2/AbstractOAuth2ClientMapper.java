@@ -127,7 +127,7 @@ public abstract class AbstractOAuth2ClientMapper {
     @Value("${edges.enabled}")
     @Getter
     private boolean edgesEnabled;
-    
+
     private final Lock userCreationLock = new ReentrantLock();
 
     protected SecurityUser getOrCreateSecurityUserFromOAuth2User(OAuth2User oauth2User, OAuth2Registration registration) {
@@ -297,9 +297,7 @@ public abstract class AbstractOAuth2ClientMapper {
             tenant.setTitle(tenantName);
             tenant = tenantService.saveTenant(tenant);
             installScripts.createDefaultRuleChains(tenant.getId());
-            if (edgesEnabled) {
-                installScripts.createDefaultEdgeRuleChains(tenant.getId());
-            }
+            installScripts.createDefaultEdgeRuleChains(tenant.getId());
             tenantProfileCache.evict(tenant.getId());
             tbClusterService.onTenantChange(tenant, null);
             tbClusterService.onEntityStateChange(tenant.getId(), tenant.getId(),
