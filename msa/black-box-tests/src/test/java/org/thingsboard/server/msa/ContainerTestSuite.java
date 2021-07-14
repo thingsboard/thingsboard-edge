@@ -61,7 +61,8 @@ public class ContainerTestSuite {
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
             try {
-                String logRegexp = ".*Going to recalculate partitions.*";
+                String tbCoreLogRegexp = ".*Starting polling for events.*";
+                String transportsLogRegexp = ".*Going to recalculate partitions.*";
 
                 testContainer = new DockerComposeContainer<>(
                         new File("./../../docker/advanced/docker-compose.yml"),
@@ -74,10 +75,12 @@ public class ContainerTestSuite {
                         .withEnv(installTb.getEnv())
                         .withEnv("LOAD_BALANCER_NAME", "")
                         .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-http-transport1", Wait.forLogMessage(logRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-http-transport2", Wait.forLogMessage(logRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-mqtt-transport1", Wait.forLogMessage(logRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(logRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)));
+                        .waitingFor("tb-core1", Wait.forLogMessage(tbCoreLogRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-core2", Wait.forLogMessage(tbCoreLogRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-http-transport1", Wait.forLogMessage(transportsLogRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-http-transport2", Wait.forLogMessage(transportsLogRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-mqtt-transport1", Wait.forLogMessage(transportsLogRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(transportsLogRegexp, 1).withStartupTimeout(Duration.ofSeconds(400)));
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 throw e;
