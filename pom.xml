@@ -1088,6 +1088,12 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.msa</groupId>
+                <artifactId>web-report</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.msa</groupId>
                 <artifactId>tb-node</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>

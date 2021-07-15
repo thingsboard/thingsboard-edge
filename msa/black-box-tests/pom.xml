@@ -123,6 +123,10 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard.msa</groupId>
+            <artifactId>web-report</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.msa</groupId>
             <artifactId>tb-node</artifactId>
         </dependency>
         <dependency>
