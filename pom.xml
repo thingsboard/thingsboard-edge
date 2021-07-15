@@ -1092,6 +1092,7 @@
                 <groupId>org.thingsboard.msa</groupId>
                 <artifactId>web-report</artifactId>
                 <version>${project.version}</version>
+                <type>docker-info</type>
                 <scope>test</scope>
             </dependency>
             <dependency>

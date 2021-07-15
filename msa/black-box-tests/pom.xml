@@ -126,6 +126,7 @@
         <dependency>
             <groupId>org.thingsboard.msa</groupId>
             <artifactId>web-report</artifactId>
+            <type>docker-info</type>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.msa</groupId>
