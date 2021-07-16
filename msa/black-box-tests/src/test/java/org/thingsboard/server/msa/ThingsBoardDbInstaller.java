@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa;
 
 import io.github.cdimascio.dotenv.DotenvEntry;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -162,13 +163,15 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         File tbLogsDir = new File(targetDir);
         tbLogsDir.mkdirs();
 
-        dockerCompose.withCommand("run -d --rm --name tb-logs-container -v " + volumeName + ":/root alpine tail -f /dev/null");
+        String logsContainerName = "tb-logs-container-" + RandomStringUtils.randomAlphanumeric(10);
+
+        dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
         dockerCompose.invokeDocker();
 
-        dockerCompose.withCommand("cp tb-logs-container:/root/. "+tbLogsDir.getAbsolutePath());
+        dockerCompose.withCommand("cp " + logsContainerName + ":/root/. "+tbLogsDir.getAbsolutePath());
         dockerCompose.invokeDocker();
 
-        dockerCompose.withCommand("rm -f tb-logs-container");
+        dockerCompose.withCommand("rm -f " + logsContainerName);
         dockerCompose.invokeDocker();
     }
 
