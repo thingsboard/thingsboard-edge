@@ -266,34 +266,34 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         },
       );
     }
-    // if (edgeScope === 'customer_user') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('edge.edge-assets'),
-    //       icon: 'domain',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.edge-devices'),
-    //       icon: 'devices_other',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.edge-entity-views'),
-    //       icon: 'view_quilt',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.edge-dashboards'),
-    //       icon: 'dashboard',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
-    //     }
-    //   );
-    // }
+    if (edgeScope === 'customer_user') {
+      actions.push(
+        {
+          name: this.translate.instant('edge.edge-assets'),
+          icon: 'domain',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ASSET)
+        },
+        {
+          name: this.translate.instant('edge.edge-devices'),
+          icon: 'devices_other',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DEVICE)
+        },
+        {
+          name: this.translate.instant('edge.edge-entity-views'),
+          icon: 'view_quilt',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.ENTITY_VIEW)
+        },
+        {
+          name: this.translate.instant('edge.edge-dashboards'),
+          icon: 'dashboard',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntitiesByType($event, entity, EntityType.DASHBOARD)
+        }
+      );
+    }
     return actions;
   }
 
