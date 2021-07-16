@@ -58,6 +58,8 @@
     <logger name="org.thingsboard.server" level="INFO" />
     <logger name="com.google.common.util.concurrent.AggregateFuture" level="OFF" />
 
+    <logger name="org.thingsboard.server.service.edge" level="TRACE" />
+
     <root level="INFO">
         <appender-ref ref="fileLogAppender"/>
         <appender-ref ref="STDOUT"/>

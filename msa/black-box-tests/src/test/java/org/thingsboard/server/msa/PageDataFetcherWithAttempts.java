@@ -28,12 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.rule;
+package org.thingsboard.server.msa;
 
-public enum RuleChainType {
-    CORE,
-    // @voba - merge comment -
-    // on edge EDGE type replaced by CORE to avoid updates in multiple rule chain core classes
-    // EDGE type not removed for test possibility
-    EDGE
+import org.junit.Assert;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+
+public class PageDataFetcherWithAttempts<T> {
+
+    private final FetchFunction<T> function;
+    private final int numberOfAttempts;
+    private final int expectedSize;
+
+    public PageDataFetcherWithAttempts(FetchFunction<T> function, int numberOfAttempts, int expectedSize) {
+        super();
+        this.function = function;
+        this.numberOfAttempts = numberOfAttempts;
+        this.expectedSize = expectedSize;
+    }
+
+    public PageData<T> fetchData() {
+        boolean found = false;
+        int attempt = 0;
+        PageData<T> pageData = null;
+        do {
+            try {
+                pageData = function.fetch(new PageLink(100));
+                if (pageData != null && pageData.getData().size() == expectedSize) {
+                    found = true;
+                }
+            } catch (Exception ignored1) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored2) {}
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored2) {}
+            attempt++;
+            if (attempt > numberOfAttempts) {
+                break;
+            }
+        } while (!found);
+        Assert.assertTrue(found);
+        return pageData;
+    }
+
+    public interface FetchFunction<T> {
+
+        PageData<T> fetch(PageLink link);
+
+    }
 }

@@ -91,7 +91,9 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
                     deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
                     deviceProfile.setTransportType(DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()));
-                    deviceProfile.setProvisionType(DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()));
+                    if (!StringUtils.isBlank(deviceProfileUpdateMsg.getProvisionType())) {
+                        deviceProfile.setProvisionType(DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()));
+                    }
                     String defaultQueueName = StringUtils.isBlank(deviceProfileUpdateMsg.getDefaultQueueName())
                             ? null : deviceProfileUpdateMsg.getDefaultQueueName();
                     deviceProfile.setDefaultQueueName(defaultQueueName);

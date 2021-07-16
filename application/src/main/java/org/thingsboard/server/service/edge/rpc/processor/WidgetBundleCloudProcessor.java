@@ -48,6 +48,7 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Component
@@ -76,7 +77,8 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     }
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
                     widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                    widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toString());
+                    // TODO: voba - verify this
+                    widgetsBundle.setImage(new String(widgetsBundleUpdateMsg.getImage(), StandardCharsets.UTF_8));
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 
                     if (created) {
