@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -91,6 +92,9 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
                     deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
                     deviceProfile.setTransportType(DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()));
+                    if (deviceProfileUpdateMsg.getImage() != null && deviceProfileUpdateMsg.getImage().toByteArray() != null) {
+                        deviceProfile.setImage(new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
+                    }
                     if (!StringUtils.isBlank(deviceProfileUpdateMsg.getProvisionType())) {
                         deviceProfile.setProvisionType(DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()));
                     }
