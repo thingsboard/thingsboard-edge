@@ -77,9 +77,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     }
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
                     widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
-                    // TODO: voba - verify this
-//                    widgetsBundle.setImage(new String(widgetsBundleUpdateMsg.getImage(), StandardCharsets.UTF_8));
-                    widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toString());
+                    widgetsBundle.setImage(new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 
                     if (created) {
