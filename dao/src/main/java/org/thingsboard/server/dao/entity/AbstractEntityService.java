@@ -76,14 +76,4 @@ public abstract class AbstractEntityService {
         log.trace("Executing deleteEntityGroups [{}]", entityId);
         entityGroupService.deleteAllEntityGroups(tenantId, entityId);
     }
-
-    protected Optional<ConstraintViolationException> extractConstraintViolationException(Exception t) {
-        if (t instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) t);
-        } else if (t.getCause() instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) (t.getCause()));
-        } else {
-            return Optional.empty();
-        }
-    }
 }

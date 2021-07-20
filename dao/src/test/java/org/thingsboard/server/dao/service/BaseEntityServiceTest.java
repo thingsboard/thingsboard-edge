@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -343,7 +343,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
             Edge edge = createEdge(i, "default");
-            edges.add(edgeService.saveEdge(edge));
+            edges.add(edgeService.saveEdge(edge, true));
         }
 
         EdgeTypeFilter filter = new EdgeTypeFilter();
@@ -381,7 +381,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     public void testCountHierarchicalEntitiesByEdgeSearchQuery() throws InterruptedException {
         for (int i = 0; i < 5; i++) {
             Edge edge = createEdge(i, "type" + i);
-            edge = edgeService.saveEdge(edge);
+            edge = edgeService.saveEdge(edge, true);
             //TO make sure devices have different created time
             Thread.sleep(1);
 

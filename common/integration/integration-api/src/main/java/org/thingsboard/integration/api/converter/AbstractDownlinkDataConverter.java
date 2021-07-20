@@ -60,10 +60,10 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
         try {
             List<DownlinkData> result = new ArrayList<>();
             List<JsonNode> rawResults = new ArrayList<>();
+            long startTime = System.currentTimeMillis();
             for (TbMsg downLinkMsg : downLinkMsgs) {
                 JsonNode rawResult = doConvertDownlink(downLinkMsg, metadata);
                 rawResults.add(rawResult);
-                List<DownlinkData> downLinkResult = new ArrayList<>();
                 if (rawResult.isArray()) {
                     for (JsonNode downlinkJson : rawResult) {
                         result.add(parseDownlinkData(downlinkJson));
@@ -71,7 +71,9 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
                 } else if (rawResult.isObject()) {
                     result.add(parseDownlinkData(rawResult));
                 }
-                result.addAll(downLinkResult);
+            }
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Downlink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
             }
             if (configuration.isDebugMode()) {
                 persistDownlinkDebug(context, downLinkMsgs, rawResults, metadata);

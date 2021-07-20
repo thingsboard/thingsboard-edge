@@ -33,7 +33,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.gen.edge.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 
 @Component
 @Slf4j

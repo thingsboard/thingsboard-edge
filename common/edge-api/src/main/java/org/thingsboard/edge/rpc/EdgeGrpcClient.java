@@ -40,18 +40,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.exception.EdgeConnectionException;
 import org.thingsboard.server.common.data.ResourceUtils;
-import org.thingsboard.server.gen.edge.ConnectRequestMsg;
-import org.thingsboard.server.gen.edge.ConnectResponseCode;
-import org.thingsboard.server.gen.edge.ConnectResponseMsg;
-import org.thingsboard.server.gen.edge.DownlinkMsg;
-import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
-import org.thingsboard.server.gen.edge.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.EdgeRpcServiceGrpc;
-import org.thingsboard.server.gen.edge.RequestMsg;
-import org.thingsboard.server.gen.edge.RequestMsgType;
-import org.thingsboard.server.gen.edge.ResponseMsg;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.server.gen.edge.UplinkResponseMsg;
+import org.thingsboard.server.gen.edge.v1.ConnectRequestMsg;
+import org.thingsboard.server.gen.edge.v1.ConnectResponseCode;
+import org.thingsboard.server.gen.edge.v1.ConnectResponseMsg;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.v1.EdgeRpcServiceGrpc;
+import org.thingsboard.server.gen.edge.v1.RequestMsg;
+import org.thingsboard.server.gen.edge.v1.RequestMsgType;
+import org.thingsboard.server.gen.edge.v1.ResponseMsg;
+import org.thingsboard.server.gen.edge.v1.SyncRequestMsg;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 
 import javax.net.ssl.SSLException;
 import java.io.File;
@@ -118,7 +119,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                                                          Consumer<EdgeConfiguration> onEdgeUpdate,
                                                          Consumer<DownlinkMsg> onDownlink,
                                                          Consumer<Exception> onError) {
-        return new StreamObserver<ResponseMsg>() {
+        return new StreamObserver<>() {
             @Override
             public void onNext(ResponseMsg responseMsg) {
                 if (responseMsg.hasConnectResponseMsg()) {
@@ -199,8 +200,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     @Override
     public void sendUplinkMsg(UplinkMsg msg) {
+        uplinkMsgLock.lock();
         try {
-            uplinkMsgLock.lock();
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setUplinkMsg(msg)
@@ -211,11 +212,13 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     }
 
     @Override
-    public void sendSyncRequestMsg() {
+    public void sendSyncRequestMsg(boolean syncRequired) {
+        uplinkMsgLock.lock();
         try {
-            uplinkMsgLock.lock();
+            SyncRequestMsg syncRequestMsg = SyncRequestMsg.newBuilder().setSyncRequired(syncRequired).build();
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.SYNC_REQUEST_RPC_MESSAGE)
+                    .setSyncRequestMsg(syncRequestMsg)
                     .build());
         } finally {
             uplinkMsgLock.unlock();
@@ -224,8 +227,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     @Override
     public void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg) {
+        uplinkMsgLock.lock();
         try {
-            uplinkMsgLock.lock();
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setDownlinkResponseMsg(downlinkResponseMsg)

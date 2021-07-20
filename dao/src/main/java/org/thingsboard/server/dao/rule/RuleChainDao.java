@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.rule;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -39,7 +38,6 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -91,5 +89,5 @@ public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao {
      * @param tenantId the tenantId
      * @return the list of rule chain objects
      */
-    ListenableFuture<List<RuleChain>> findAutoAssignToEdgeRuleChainsByTenantId(UUID tenantId);
+    PageData<RuleChain> findAutoAssignToEdgeRuleChainsByTenantId(UUID tenantId, PageLink pageLink);
 }

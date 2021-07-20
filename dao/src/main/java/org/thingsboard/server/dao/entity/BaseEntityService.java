@@ -42,7 +42,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -509,6 +509,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                         return (PageData<T>) entityViewService.findEntityViewsByEntityGroupIdsAndType(groupIds, type, pageLink);
                     } else {
                         return (PageData<T>) entityViewService.findEntityViewsByEntityGroupIds(groupIds, pageLink);
+                    }
+                case EDGE:
+                    if (type != null && type.trim().length() > 0) {
+                        return (PageData<T>) edgeService.findEdgesByEntityGroupIdsAndType(groupIds, type, pageLink);
+                    } else {
+                        return (PageData<T>) edgeService.findEdgesByEntityGroupIds(groupIds, pageLink);
                     }
                 case DASHBOARD:
                     return (PageData<T>) dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink);

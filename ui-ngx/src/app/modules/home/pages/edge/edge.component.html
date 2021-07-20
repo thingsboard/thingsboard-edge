@@ -95,8 +95,8 @@
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'manageRuleChains')"
-            *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.READ"
-            [fxShow]="!hideFromCustomerUsers() && !isEdit">
+            *ngIf="isTenantAdmin() && (resource.RULE_CHAIN | hasGenericPermission: operation.READ)"
+            [fxShow]="!isEdit">
       {{ 'edge.manage-rulechains' | translate }}
     </button>
     <button mat-raised-button color="primary" fxFlex.xs
@@ -120,7 +120,7 @@
             ngxClipboard
             (cbOnSuccess)="onEdgeInfoCopied('key')"
             [cbContent]="entity?.routingKey"
-            [fxShow]="!hideFromCustomerUsers() && !isEdit">
+            [fxShow]="!isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-edge-key</span>
     </button>
@@ -128,7 +128,7 @@
             ngxClipboard
             (cbOnSuccess)="onEdgeInfoCopied('secret')"
             [cbContent]="entity?.secret"
-            [fxShow]="!hideFromCustomerUsers() && !isEdit">
+            [fxShow]="!isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-edge-secret</span>
     </button>
@@ -136,7 +136,7 @@
             ngxClipboard
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'syncEdge')"
-            [fxShow]="!hideFromCustomerUsers() && !isEdit">
+            [fxShow]="!isEdit">
       <mat-icon svgIcon="mdi:sync"></mat-icon>
       <span translate>edge.sync</span>
     </button>
@@ -167,7 +167,7 @@
         [required]="true"
         [entityType]="entityType.EDGE">
       </tb-entity-subtype-autocomplete>
-      <div [fxShow]="!hideFromCustomerUsers()">
+      <div *ngIf="resource.EDGE | hasGenericPermission: operation.WRITE">
         <div class="tb-hint" [innerHTML]="'edge.edge-license-key-hint' | translate"></div>
         <mat-form-field class="mat-block">
           <mat-label translate>edge.edge-license-key</mat-label>
@@ -177,7 +177,7 @@
           </mat-error>
         </mat-form-field>
       </div>
-      <div [fxShow]="!hideFromCustomerUsers()">
+      <div>
         <div translate class="tb-hint">edge.cloud-endpoint-hint</div>
         <mat-form-field class="mat-block">
           <mat-label translate>edge.cloud-endpoint</mat-label>
@@ -188,7 +188,7 @@
         </mat-form-field>
       </div>
     </fieldset>
-    <div [fxShow]="!hideFromCustomerUsers()" fxLayout="row">
+    <div fxLayout="row">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>edge.edge-key</mat-label>
           <input matInput formControlName="routingKey">
@@ -199,7 +199,7 @@
         <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       </button>
     </div>
-    <div [fxShow]="!hideFromCustomerUsers()" fxLayout="row">
+    <div fxLayout="row">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>edge.edge-secret</mat-label>
           <input matInput formControlName="secret">

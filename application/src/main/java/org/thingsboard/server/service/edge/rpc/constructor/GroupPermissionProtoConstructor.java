@@ -34,8 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.gen.edge.GroupPermissionProto;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 @Component
 @Slf4j

@@ -50,7 +50,6 @@ export interface BaseCustomersHierarchyNodeData {
 export interface EntityGroupNodeData extends BaseCustomersHierarchyNodeData {
   type: 'group';
   entity: EntityGroupInfo;
-  ownerId: EntityId;
 }
 
 export interface EntityGroupsNodeData extends BaseCustomersHierarchyNodeData {

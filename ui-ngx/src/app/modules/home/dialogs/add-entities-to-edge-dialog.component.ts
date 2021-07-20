@@ -39,8 +39,8 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { forkJoin, Observable } from 'rxjs';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import { RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
+import { RuleChainType } from '@shared/models/rule-chain.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 
 export interface AddEntitiesToEdgeDialogData {
@@ -54,7 +54,8 @@ export interface AddEntitiesToEdgeDialogData {
   providers: [{provide: ErrorStateMatcher, useExisting: AddEntitiesToEdgeDialogComponent}],
   styleUrls: []
 })
-export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+export class AddEntitiesToEdgeDialogComponent extends
+  DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
 
   addEntitiesToEdgeFormGroup: FormGroup;
 
@@ -77,24 +78,23 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     this.entityType = this.data.entityType;
-    this.edgeId = this.data.edgeId;
   }
 
   ngOnInit(): void {
     this.addEntitiesToEdgeFormGroup = this.fb.group({
       entityIds: [null, [Validators.required]]
     });
+    this.subType = RuleChainType.EDGE;
     switch (this.entityType) {
       case EntityType.RULE_CHAIN:
         this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
         this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
         break;
       case EntityType.SCHEDULER_EVENT:
-        this.assignToEdgeTitle = 'rulechain.assign-scheduler-event-to-edge-title';
-        this.assignToEdgeText = 'rulechain.assign-scheduler-event-to-edge-text';
+        this.assignToEdgeTitle = 'edge.assign-scheduler-event-to-edge-title';
+        this.assignToEdgeText = 'edge.assign-scheduler-event-to-edge-text';
         break;
     }
-    this.subType = RuleChainType.EDGE;
   }
 
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -113,14 +113,7 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
     const tasks: Observable<any>[] = [];
     entityIds.forEach(
       (entityId) => {
-        switch (this.entityType) {
-          case EntityType.RULE_CHAIN:
-            tasks.push(this.ruleChainService.assignRuleChainToEdge(this.edgeId, entityId));
-            break;
-          case EntityType.SCHEDULER_EVENT:
-            tasks.push(this.schedulerEventService.assignSchedulerEventToEdge(this.edgeId, entityId));
-            break;
-        }
+        tasks.push(this.getAssignToEdgeTask(this.data.edgeId, entityId, this.entityType));
       }
     );
     forkJoin(tasks).subscribe(
@@ -128,6 +121,15 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
         this.dialogRef.close(true);
       }
     );
+  }
+
+  private getAssignToEdgeTask(edgeId: string, entityId: string, entityType: EntityType): Observable<any> {
+    switch (entityType) {
+      case EntityType.RULE_CHAIN:
+        return this.ruleChainService.assignRuleChainToEdge(edgeId, entityId);
+      case EntityType.SCHEDULER_EVENT:
+        return this.schedulerEventService.assignSchedulerEventToEdge(edgeId, entityId);
+    }
   }
 
 }

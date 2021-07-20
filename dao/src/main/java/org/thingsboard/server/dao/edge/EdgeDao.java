@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.edge;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -84,6 +84,12 @@ public interface EdgeDao extends Dao<Edge> {
      * @return the list of edge objects
      */
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> edgeIds);
+
+    PageData<Edge> findEdgesByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<Edge> findEdgesByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<Edge> findEdgesByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
 
     /**
      * Find edges by tenantId, customerId and page link.
@@ -141,22 +147,14 @@ public interface EdgeDao extends Dao<Edge> {
     Optional<Edge> findByRoutingKey(UUID tenantId, String routingKey);
 
     /**
-     * Find edges by tenantId and ruleChainId.
+     * Find edges by tenantId and entityId.
      *
      * @param tenantId the tenantId
-     * @param ruleChainId the ruleChainId
-     * @return the list of rule chain objects
+     * @param entityId the entityId
+     * @param entityType the entityType
+     * @return the list of edge objects
      */
-    ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(UUID tenantId, UUID ruleChainId);
-
-    /**
-     * Find edges by tenantId and schedulerEventId.
-     *
-     * @param tenantId the tenantId
-     * @param schedulerEventId the schedulerEventId
-     * @return the list of rule chain objects
-     */
-    ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId);
+    PageData<Edge> findEdgesByTenantIdAndEntityId(UUID tenantId, UUID entityId, EntityType entityType, PageLink pageLink);
 
     /**
      * Find edges by tenantId, entityGroupId and groupType.
@@ -166,20 +164,6 @@ public interface EdgeDao extends Dao<Edge> {
      * @param groupType the groupType
      * @return the list of rule chain objects
      */
-    ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, EntityType groupType);
+    PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupId, EntityType groupType, PageLink pageLink);
 
-    /**
-     * Find edges by tenantId and dashboardId.
-     *
-     * @param tenantId the tenantId
-     * @param dashboardId the dashboardId
-     * @return the list of rule chain objects
-     */
-    ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(UUID tenantId, UUID dashboardId);
-
-    /**
-     * Executes stored procedure to cleanup old edge events.
-     * @param ttl the ttl for edge events in seconds
-     */
-    void cleanupEvents(long ttl);
 }

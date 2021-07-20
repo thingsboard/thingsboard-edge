@@ -39,11 +39,11 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
-import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
-import org.thingsboard.server.gen.edge.RpcRequestMsg;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
@@ -51,6 +51,11 @@ import java.util.UUID;
 @Component
 @TbCoreComponent
 public class DeviceMsgConstructor {
+
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
+                                                     String conflictName) {
+        return constructDeviceUpdatedMsg(msgType, device, customerId, conflictName, null);
+    }
 
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
                                                      String conflictName, EntityGroupId entityGroupId) {
@@ -98,11 +103,16 @@ public class DeviceMsgConstructor {
         return builder.build();
     }
 
-    public DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId) {
-        return DeviceUpdateMsg.newBuilder()
+    public DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId, EntityGroupId entityGroupId) {
+        DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(deviceId.getId().getMostSignificantBits())
-                .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
+                .setIdLSB(deviceId.getId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
     }
 
     public DeviceRpcCallMsg constructDeviceRpcCallMsg(UUID deviceId, JsonNode body) {

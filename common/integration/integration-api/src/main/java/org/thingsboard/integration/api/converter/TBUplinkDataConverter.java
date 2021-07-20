@@ -30,16 +30,19 @@
  */
 package org.thingsboard.integration.api.converter;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
 public interface TBUplinkDataConverter extends TBDataConverter {
 
-    List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception;
+    ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
+                                                     ExecutorService callBackExecutorService) throws Exception;
 
 }

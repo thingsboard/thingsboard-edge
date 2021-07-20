@@ -37,9 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EdgeEventId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -49,6 +47,10 @@ import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.model.sql.EdgeEventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -115,6 +117,24 @@ public class JpaBaseEdgeEventDao extends JpaAbstractSearchTextDao<EdgeEventEntit
                                     pageLink.getEndTime(),
                                     DaoUtil.toPageable(pageLink)));
 
+        }
+    }
+
+    @Override
+    public void cleanupEvents(long ttl) {
+        log.info("Going to cleanup old edge events using ttl: {}s", ttl);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement("call cleanup_edge_events_by_ttl(?,?)")) {
+            stmt.setLong(1, ttl);
+            stmt.setLong(2, 0);
+            stmt.execute();
+            printWarnings(stmt);
+            try (ResultSet resultSet = stmt.getResultSet()) {
+                resultSet.next();
+                log.info("Total edge events removed by TTL: [{}]", resultSet.getLong(1));
+            }
+        } catch (SQLException e) {
+            log.error("SQLException occurred during edge events TTL task execution ", e);
         }
     }
 

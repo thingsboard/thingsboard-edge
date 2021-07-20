@@ -155,6 +155,7 @@ public class RemoteIntegrationManagerService {
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService schedulerService;
     private ScheduledFuture<?> scheduledFuture;
+    private ExecutorService callBackExecutorService;
 
     private volatile boolean initialized;
     private volatile boolean updatingIntegration;
@@ -168,6 +169,8 @@ public class RemoteIntegrationManagerService {
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-reconnect"));
         schedulerService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-scheduler"));
+        callBackExecutorService = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("remote-integration-callback"));
         processHandleMessages();
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-stats"));
@@ -177,6 +180,7 @@ public class RemoteIntegrationManagerService {
 
     @PreDestroy
     public void destroy() throws InterruptedException {
+        log.info("[{}] Starting destroying process", serviceId);
         if (uplinkDataConverter != null) {
             uplinkDataConverter.destroy();
         }
@@ -186,7 +190,11 @@ public class RemoteIntegrationManagerService {
         if (integration != null) {
             integration.destroy();
         }
-        rpcClient.disconnect();
+        try {
+            rpcClient.disconnect();
+        } catch (Exception e) {
+            log.error("Exception during disconnect", e);
+        }
         if (executor != null) {
             executor.shutdownNow();
         }
@@ -199,6 +207,7 @@ public class RemoteIntegrationManagerService {
         if (schedulerService != null) {
             schedulerService.shutdownNow();
         }
+        log.info("[{}] Destroy was successful", serviceId);
     }
 
     private void onConfigurationUpdate(IntegrationConfigurationProto integrationConfigurationProto) {
@@ -225,7 +234,7 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port),
+                    new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port, callBackExecutorService),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);
@@ -340,6 +349,11 @@ public class RemoteIntegrationManagerService {
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
+                try {
+                    rpcClient.disconnect();
+                } catch (Exception ex) {
+                    log.error("Exception during disconnect: {}", ex.getMessage());
+                }
                 rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }

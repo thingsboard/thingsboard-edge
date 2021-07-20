@@ -55,6 +55,10 @@ import { EdgeComponent } from "@home/pages/edge/edge.component";
 import { Router } from "@angular/router";
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { AuthUser } from '@shared/models/user.model';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
@@ -73,8 +77,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
     const config = new GroupEntityTableConfig<Edge>(entityGroup, params);
-    let ownerId = this.userPermissionsService.getUserOwnerId();
-    const manageRuleChainsEnabled = this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && ownerId.entityType !== EntityType.CUSTOMER;
+
+    const authUser: AuthUser = getCurrentAuthUser(this.store);
 
     config.entityComponent = EdgeComponent;
 
@@ -120,38 +124,63 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.USER_GROUP, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-user-groups'),
           icon: 'account_circle',
           isEnabled: config.manageUsersEnabled,
           onAction: ($event, entity) => this.manageUsers($event, entity, config, params)
-        },
+        }
+      );
+    }
+
+    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET_GROUP, Operation.READ)) {
+      config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-asset-groups'),
           icon: 'domain',
           isEnabled: config.manageAssetsEnabled,
           onAction: ($event, entity) => this.manageAssets($event, entity, config, params)
-        },
+        }
+      );
+    }
+
+    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE_GROUP, Operation.READ)) {
+      config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-device-groups'),
           icon: 'devices_other',
           isEnabled: config.manageDevicesEnabled,
           onAction: ($event, entity) => this.manageDevices($event, entity, config, params)
-        },
+        }
+      );
+    }
+
+    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW_GROUP, Operation.READ)) {
+      config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-entity-view-groups'),
           icon: 'view_quilt',
           isEnabled: config.manageEntityViewsEnabled,
           onAction: ($event, entity) => this.manageEntityViews($event, entity, config, params)
-        },
+        }
+      );
+    }
+
+    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.READ)) {
+      config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-dashboard-groups'),
           icon: 'dashboard',
           isEnabled: config.manageDashboardsEnabled,
           onAction: ($event, entity) => this.manageDashboards($event, entity, config, params)
-        },
+        }
+      );
+    }
+
+    if (this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ)) {
+      config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-scheduler-events'),
           icon: 'schedule',
@@ -159,16 +188,17 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
           onAction: ($event, entity) => this.manageSchedulerEvents($event, entity, config, params)
         }
       );
-      if (manageRuleChainsEnabled) {
-        config.cellActionDescriptors.push(
-          {
-            name: this.translate.instant('edge.manage-edge-rule-chains'),
+    }
+
+    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) && authUser.authority === Authority.TENANT_ADMIN) {
+      config.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('edge.manage-edge-rule-chains'),
             icon: 'settings_ethernet',
-            isEnabled: () => true,
-            onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
-          }
-        );
-      }
+          isEnabled: () => true,
+          onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
+        }
+      );
     }
 
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
@@ -211,6 +241,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
         return true;
       case 'manageRuleChains':
         this.manageRuleChains(action.event, action.entity, config, params);
+        return true;
+      case 'syncEdge':
+        this.syncEdge(action.event, action.entity);
         return true;
     }
     return false;
@@ -314,8 +347,26 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
+  syncEdge($event, edge) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.edgeService.syncEdge(edge.id.id).subscribe(
+      () => {
+        this.store.dispatch(new ActionNotificationShow(
+          {
+            message: this.translate.instant('edge.sync-process-started-successfully'),
+            type: 'success',
+            duration: 750,
+            verticalPosition: 'bottom',
+            horizontalPosition: 'right'
+          }));
+      }
+    );
+  }
+
   private isCustomerScope(params: EntityGroupParams): boolean {
-    return params.childGroupScope === 'customer';
+    return params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER;
   }
 
 }

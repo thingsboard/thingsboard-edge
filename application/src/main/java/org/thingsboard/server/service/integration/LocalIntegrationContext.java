@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
@@ -221,5 +222,10 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
         return ctx.getScheduledExecutorService();
+    }
+
+    @Override
+    public ExecutorService getCallBackExecutorService() {
+        return ctx.getCallBackExecutorService();
     }
 }

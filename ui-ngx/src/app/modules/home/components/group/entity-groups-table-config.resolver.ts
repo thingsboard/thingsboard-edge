@@ -86,25 +86,34 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       params
     );
 
-    if (config.customerId && resolveCustomer && !config.edgeId) {
-      return this.customerService.getShortCustomerInfo(config.customerId).pipe(
-        map((info) => {
-          config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
-          return config;
-        })
-      );
-    } else if (config.customerId && customerTitle && !config.edgeId){
+    if (config.customerId && resolveCustomer) {
+      if (config.edgeId) {
+        return this.resolveEdgeInfo(config);
+      } else {
+        return this.customerService.getShortCustomerInfo(config.customerId).pipe(
+          map((info) => {
+            config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
+            return config;
+          })
+        );
+      }
+    } else if (config.customerId && customerTitle){
       config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
       return config;
     } else if (config.edgeId && resolveCustomer) {
-      return this.edgeService.getEdge(config.edgeId).pipe(
-        map((info) => {
-          config.tableTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
-          return config;
-        })
-      );
+      return this.resolveEdgeInfo(config);
     } else {
       return config;
     }
   }
+
+  private resolveEdgeInfo(config: EntityGroupsTableConfig): Observable<EntityGroupsTableConfig> {
+    return this.edgeService.getEdge(config.edgeId).pipe(
+      map((info) => {
+        config.tableTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
+        return config;
+      })
+    );
+  }
+
 }
