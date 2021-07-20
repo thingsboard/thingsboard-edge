@@ -70,7 +70,9 @@ public class PageDataFetcherWithAttempts<T> {
                 break;
             }
         } while (!found);
-        Assert.assertTrue(found);
+        Assert.assertNotNull("PageData can't be null", pageData);
+        Assert.assertNotNull("PageData Data can't be null", pageData.getData());
+        Assert.assertTrue("Number of fetched entities count " + pageData.getData().size() + " doesn't meet expected count " + expectedSize, found);
         return pageData;
     }
 

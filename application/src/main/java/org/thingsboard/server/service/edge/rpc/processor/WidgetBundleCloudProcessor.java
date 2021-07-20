@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -82,7 +83,9 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                             && widgetsBundleUpdateMsg.getImage().toByteArray().length > 0) {
                         widgetsBundle.setImage(new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
                     }
-                    widgetsBundle.setDescription(widgetsBundleUpdateMsg.getDescription());
+                    if (!StringUtils.isEmpty(widgetsBundleUpdateMsg.getDescription())) {
+                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.getDescription());
+                    }
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 
                     if (created) {

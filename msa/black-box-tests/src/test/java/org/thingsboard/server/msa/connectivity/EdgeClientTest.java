@@ -33,17 +33,18 @@ package org.thingsboard.server.msa.connectivity;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.PageDataFetcherWithAttempts;
 
@@ -95,8 +96,8 @@ public class EdgeClientTest extends AbstractContainerTest {
     private void testReceivedInitialData() {
         log.info("Checking received initial data");
 
+        verifyWidgetsBundles();
         verifyDeviceProfiles();
-
         verifyRuleChains();
 
 //
@@ -140,6 +141,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
     }
 
+    private void verifyWidgetsBundles() {
+        PageData<WidgetsBundle> pageData = new PageDataFetcherWithAttempts<>(
+                link -> edgeRestClient.getWidgetsBundles(new PageLink(100)),
+                50,
+                16).fetchData();
+        assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
+    }
+
     private void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
         switch (entityType) {
             case DEVICE_PROFILE:
@@ -147,6 +156,9 @@ public class EdgeClientTest extends AbstractContainerTest {
                 break;
             case RULE_CHAIN:
                 assertRuleChains(entityIds);
+                break;
+            case WIDGETS_BUNDLE:
+                assertWidgetsBundles(entityIds);
                 break;
         }
     }
@@ -175,6 +187,17 @@ public class EdgeClientTest extends AbstractContainerTest {
             expected.setType(null);
             actual.setType(null);
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
+        }
+    }
+
+    private void assertWidgetsBundles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            WidgetsBundleId widgetsBundleId = new WidgetsBundleId(entityId.getId());
+            Optional<WidgetsBundle> edgeWidgetsBundle = edgeRestClient.getWidgetsBundleById(widgetsBundleId);
+            Optional<WidgetsBundle> cloudWidgetsBundle = restClient.getWidgetsBundleById(widgetsBundleId);
+            WidgetsBundle expected = edgeWidgetsBundle.get();
+            WidgetsBundle actual = cloudWidgetsBundle.get();
+            Assert.assertEquals("Widgets bundles on cloud and edge are different", expected, actual);
         }
     }
 
