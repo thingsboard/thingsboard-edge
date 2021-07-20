@@ -77,6 +77,7 @@ public class TbMsgToEmailNode implements TbNode {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String IMAGES = "images";
+    private static final String DYNAMIC = "dynamic";
 
     public static final String ATTACHMENTS = "attachments";
     private static final String EMAIL_TIMEZONE = "emailTimezone";
@@ -89,7 +90,7 @@ public class TbMsgToEmailNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgToEmailNodeConfiguration.class);
-        this.isDynamicHtmlTemplate = this.config.getMailBodyType().equals("dynamic");
+        this.isDynamicHtmlTemplate = DYNAMIC.equals(this.config.getMailBodyType());
      }
 
     @Override
