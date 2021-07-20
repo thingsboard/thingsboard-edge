@@ -179,7 +179,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select customer_id from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select customer_id from entity_view where id = entity_id)" +
+            " THEN (select customer_id from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select customer_id from edge where id = entity_id)" +
             " END as customer_id";
@@ -206,7 +206,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select tenant_id from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select tenant_id from entity_view where id = entity_id)" +
+            " THEN (select tenant_id from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select tenant_id from edge where id = entity_id)" +
             " END as tenant_id";
@@ -234,7 +234,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select created_time from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select created_time from entity_view where id = entity_id)" +
+            " THEN (select created_time from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select created_time from edge where id = entity_id)" +
             " END as created_time";
@@ -262,7 +262,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select name from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select name from entity_view where id = entity_id)" +
+            " THEN (select name from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select name from edge where id = entity_id)" +
             " END as name";
@@ -274,7 +274,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select type from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select type from entity_view where id = entity_id)" +
+            " THEN (select type from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select type from edge where id = entity_id)" +
             " WHEN entity.entity_type = 'SCHEDULER_EVENT'" +
@@ -302,7 +302,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select label from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select name from entity_view where id = entity_id)" +
+            " THEN (select name from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select label from edge where id = entity_id)" +
             " END as label";
@@ -320,7 +320,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select additional_info from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select additional_info from entity_view where id = entity_id)" +
+            " THEN (select additional_info from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select additional_info from edge where id = entity_id)" +
             " END as additional_info";
