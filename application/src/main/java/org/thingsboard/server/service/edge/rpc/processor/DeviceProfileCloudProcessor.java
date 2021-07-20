@@ -92,7 +92,9 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
                     deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
                     deviceProfile.setTransportType(DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()));
-                    if (deviceProfileUpdateMsg.getImage() != null && deviceProfileUpdateMsg.getImage().toByteArray() != null) {
+                    if (deviceProfileUpdateMsg.getImage() != null
+                            && deviceProfileUpdateMsg.getImage().toByteArray() != null
+                            && deviceProfileUpdateMsg.getImage().toByteArray().length > 0) {
                         deviceProfile.setImage(new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
                     }
                     if (!StringUtils.isBlank(deviceProfileUpdateMsg.getProvisionType())) {

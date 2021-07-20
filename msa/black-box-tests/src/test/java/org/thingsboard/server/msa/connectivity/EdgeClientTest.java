@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.PageDataFetcherWithAttempts;
 
@@ -155,8 +156,10 @@ public class EdgeClientTest extends AbstractContainerTest {
             DeviceProfileId deviceProfileId = new DeviceProfileId(entityId.getId());
             Optional<DeviceProfile> edgeDeviceProfile = edgeRestClient.getDeviceProfileById(deviceProfileId);
             Optional<DeviceProfile> cloudDeviceProfile = restClient.getDeviceProfileById(deviceProfileId);
-            // TODO: voba - remove image once image upload will be fixed
-            Assert.assertTrue(new ReflectionEquals(edgeDeviceProfile.get(), "defaultRuleChainId", "image").matches(cloudDeviceProfile.get()));
+            DeviceProfile expected = edgeDeviceProfile.get();
+            DeviceProfile actual = cloudDeviceProfile.get();
+            actual.setDefaultRuleChainId(null);
+            Assert.assertEquals("Device profiles on cloud and edge are different (except defaultRuleChainId)", expected, actual);
         }
     }
 
@@ -165,7 +168,13 @@ public class EdgeClientTest extends AbstractContainerTest {
             RuleChainId ruleChainId = new RuleChainId(entityId.getId());
             Optional<RuleChain> edgeRuleChain = edgeRestClient.getRuleChainById(ruleChainId);
             Optional<RuleChain> cloudRuleChain = restClient.getRuleChainById(ruleChainId);
-            Assert.assertTrue(new ReflectionEquals(edgeRuleChain.get(), "type").matches(cloudRuleChain.get()));
+            RuleChain expected = edgeRuleChain.get();
+            RuleChain actual = cloudRuleChain.get();
+            Assert.assertEquals("Edge rule chain type is incorrect", RuleChainType.CORE, expected.getType());
+            Assert.assertEquals("Cloud rule chain type is incorrect", RuleChainType.EDGE, actual.getType());
+            expected.setType(null);
+            actual.setType(null);
+            Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
         }
     }
 
