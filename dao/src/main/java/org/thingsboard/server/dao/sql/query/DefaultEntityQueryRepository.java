@@ -859,7 +859,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
             TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
-            List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping) {
+            List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile) {
         return transactionTemplate.execute(status -> {
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, null, null));
             StringBuilder fromClause = new StringBuilder();
@@ -911,6 +911,14 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 fromClause.append(" e.type = :type ");
             }
 
+            if (mobile) {
+                if (EntityType.DASHBOARD.equals(entityType)) {
+                    fromClause.append(" AND ");
+                    ctx.addBooleanParameter("mobileHide", false);
+                    fromClause.append(" e.mobile_hide = :mobileHide ");
+                }
+            }
+
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 ctx.addStringParameter("textSearch", pageLink.getTextSearch().toLowerCase() + "%");
                 fromClause.append(" AND LOWER(e.").append(ModelConstants.SEARCH_TEXT_PROPERTY).append(") LIKE :textSearch");
@@ -921,7 +929,20 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             String dataQuery = String.format("select e.* %s ", fromClause);
 
             SortOrder sortOrder = pageLink.getSortOrder();
-            if (sortOrder != null) {
+            if (mobile) {
+                if (EntityType.DASHBOARD.equals(entityType)) {
+                    dataQuery = String.format("%s order by %s asc NULLS LAST", dataQuery, "mobile_order");
+                    if (sortOrder != null) {
+                        String directionStr;
+                        if (sortOrder.getDirection() == SortOrder.Direction.ASC) {
+                            directionStr = "asc";
+                        } else {
+                            directionStr = "desc";
+                        }
+                        dataQuery = String.format("%s, %s %s", dataQuery, EntityKeyMapping.getEntityFieldColumnName(sortOrder.getProperty()), directionStr);
+                    }
+                }
+            } else if (sortOrder != null) {
                 dataQuery = String.format("%s order by %s", dataQuery, EntityKeyMapping.getEntityFieldColumnName(sortOrder.getProperty()));
                 if (sortOrder.getDirection() == SortOrder.Direction.ASC) {
                     dataQuery += " asc";
