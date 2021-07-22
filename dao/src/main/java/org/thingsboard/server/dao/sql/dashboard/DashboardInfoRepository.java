@@ -53,12 +53,29 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
 
+    @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId " +
+            "AND di.mobileHide = false " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<DashboardInfoEntity> findMobileByTenantId(@Param("tenantId") UUID tenantId,
+                                                   @Param("searchText") String searchText,
+                                                   Pageable pageable);
+
     @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId AND di.customerId = :customerId " +
             "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
     Page<DashboardInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                           @Param("customerId") UUID customerId,
                                                           @Param("searchText") String searchText,
                                                           Pageable pageable);
+
+    @Query("SELECT di FROM DashboardInfoEntity di, RelationEntity re WHERE di.tenantId = :tenantId " +
+            "AND di.mobileHide = false " +
+            "AND di.id = re.toId AND re.toType = 'DASHBOARD' AND re.relationTypeGroup = 'DASHBOARD' " +
+            "AND re.relationType = 'Contains' AND re.fromId = :customerId AND re.fromType = 'CUSTOMER' " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<DashboardInfoEntity> findMobileByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                                @Param("customerId") UUID customerId,
+                                                                @Param("searchText") String searchText,
+                                                                Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di, " +
             "RelationEntity re " +
@@ -81,6 +98,17 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
     Page<DashboardInfoEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                                    @Param("textSearch") String textSearch,
                                                    Pageable pageable);
+
+    @Query("SELECT di FROM DashboardInfoEntity di, " +
+            "RelationEntity re " +
+            "WHERE di.id = re.toId AND di.mobileHide = false AND re.toType = 'DASHBOARD' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<DashboardInfoEntity> findMobileByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
+                                                         @Param("textSearch") String textSearch,
+                                                         Pageable pageable);
 
     List<DashboardInfoEntity> findByIdIn(List<UUID> dashboardIds);
 

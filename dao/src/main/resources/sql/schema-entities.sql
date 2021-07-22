@@ -188,6 +188,8 @@ CREATE TABLE IF NOT EXISTS dashboard (
     tenant_id uuid,
     customer_id uuid,
     title varchar(255),
+    mobile_hide boolean DEFAULT false,
+    mobile_order int,
     image varchar(1000000)
 );
 

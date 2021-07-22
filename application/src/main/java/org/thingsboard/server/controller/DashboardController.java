@@ -196,6 +196,7 @@ public class DashboardController extends BaseController {
     public PageData<DashboardInfo> getTenantDashboards(
             @RequestParam int pageSize,
             @RequestParam int page,
+            @RequestParam(required = false) Boolean mobile,
             @RequestParam(required = false) String textSearch,
             @RequestParam(required = false) String sortProperty,
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
@@ -203,7 +204,11 @@ public class DashboardController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
+            if (mobile != null && mobile.booleanValue()) {
+                return checkNotNull(dashboardService.findMobileDashboardsByTenantId(tenantId, pageLink));
+            } else {
+                return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -215,6 +220,7 @@ public class DashboardController extends BaseController {
     public PageData<DashboardInfo> getUserDashboards(
             @RequestParam int pageSize,
             @RequestParam int page,
+            @RequestParam(required = false) Boolean mobile,
             @RequestParam(required = false) String textSearch,
             @RequestParam(required = false) String sortProperty,
             @RequestParam(required = false) String sortOrder,
@@ -241,7 +247,7 @@ public class DashboardController extends BaseController {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             MergedUserPermissions mergedUserPermissions = securityUser.getUserPermissions();
             return entityService.findUserEntities(securityUser.getTenantId(), securityUser.getCustomerId(), mergedUserPermissions, EntityType.DASHBOARD,
-                    operationType, null, pageLink);
+                    operationType, null, pageLink, mobile != null ? mobile : false);
         } catch (Exception e) {
             throw handleException(e);
         }

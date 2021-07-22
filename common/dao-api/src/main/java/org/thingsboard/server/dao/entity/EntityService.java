@@ -59,4 +59,7 @@ public interface EntityService {
     <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions,
                                                                              EntityType entityType, Operation operation, String type, PageLink pageLink);
 
+    <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions,
+                                                                             EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile);
+
 }

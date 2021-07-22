@@ -160,7 +160,9 @@ CREATE TABLE IF NOT EXISTS oauth2_mobile (
 );
 
 ALTER TABLE dashboard
-    ADD COLUMN IF NOT EXISTS image varchar(1000000);
+    ADD COLUMN IF NOT EXISTS image varchar(1000000),
+    ADD COLUMN IF NOT EXISTS mobile_hide boolean DEFAULT false,
+    ADD COLUMN IF NOT EXISTS mobile_order int;
 
 ALTER TABLE device_profile
     ADD COLUMN IF NOT EXISTS image varchar(1000000),
@@ -228,4 +230,3 @@ CREATE TABLE IF NOT EXISTS rpc (
 );
 
 CREATE INDEX IF NOT EXISTS idx_rpc_tenant_id_device_id ON rpc(tenant_id, device_id);
-

@@ -105,6 +105,8 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
       {
         title: [entity ? entity.title : '', [Validators.required]],
         image: [entity ? entity.image : null],
+        mobileHide: [entity ? entity.mobileHide : false],
+        mobileOrder: [entity ? entity.mobileOrder : null, [Validators.pattern(/^-?[0-9]+$/)]],
         configuration: this.fb.group(
           {
             description: [entity && entity.configuration ? entity.configuration.description : ''],
@@ -118,6 +120,8 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     this.updateFields(entity);
     this.entityForm.patchValue({title: entity.title});
     this.entityForm.patchValue({image: entity.image});
+    this.entityForm.patchValue({mobileHide: entity.mobileHide});
+    this.entityForm.patchValue({mobileOrder: entity.mobileOrder});
     this.entityForm.patchValue({configuration: {description: entity.configuration ? entity.configuration.description : ''}});
   }
 
