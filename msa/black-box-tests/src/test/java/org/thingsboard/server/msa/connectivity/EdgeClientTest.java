@@ -39,15 +39,18 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.PageDataFetcherWithAttempts;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -147,6 +150,40 @@ public class EdgeClientTest extends AbstractContainerTest {
                 50,
                 16).fetchData();
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
+
+        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
+            boolean found = false;
+            int attempt = 0;
+            List<WidgetType> edgeBundleWidgetTypes = null;
+            List<WidgetType> cloudBundleWidgetTypes = null;
+            do {
+                try {
+                    edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                    cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                    if (cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
+                            && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size()) {
+                        found = true;
+                    }
+                } catch (Exception ignored1) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ignored2) {}
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored2) {}
+                attempt++;
+                System.out.println("HEEELLOOOO " + new Date());
+                if (attempt > 50) {
+                    break;
+                }
+            } while (!found);
+            Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
+            Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
+            Assert.assertTrue("Number of fetched widget types for cloud and edge is different. " +
+                    "Alias " + widgetsBundlesAlias + ", Cloud " + cloudBundleWidgetTypes.size() + ", Edge " + edgeBundleWidgetTypes.size(), found);
+            assertEntitiesByIdsAndType(edgeBundleWidgetTypes.stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGET_TYPE);
+        }
     }
 
     private void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
@@ -159,6 +196,9 @@ public class EdgeClientTest extends AbstractContainerTest {
                 break;
             case WIDGETS_BUNDLE:
                 assertWidgetsBundles(entityIds);
+                break;
+            case WIDGET_TYPE:
+                assertWidgetTypes(entityIds);
                 break;
         }
     }
@@ -201,6 +241,16 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
     }
 
+    private void assertWidgetTypes(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            WidgetTypeId widgetTypeId = new WidgetTypeId(entityId.getId());
+            Optional<WidgetType> edgeWidgetsBundle = edgeRestClient.getWidgetTypeById(widgetTypeId);
+            Optional<WidgetType> cloudWidgetsBundle = restClient.getWidgetTypeById(widgetTypeId);
+            WidgetType expected = edgeWidgetsBundle.get();
+            WidgetType actual = cloudWidgetsBundle.get();
+            Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
+        }
+    }
 
 //    private void testDevices() throws Exception {
 //        log.info("Testing devices");
