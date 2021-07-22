@@ -28,32 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.callback;
+package org.thingsboard.server.transport.coap.client;
 
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Request;
-import org.eclipse.californium.core.coap.Response;
-import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.thingsboard.server.common.adaptor.AdaptorException;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.transport.coap.client.TbCoapClientState;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 
-@Slf4j
-public class GetAttributesSyncSessionCallback extends AbstractSyncSessionCallback {
+public class TbCoapContentFormatUtil {
 
-    public GetAttributesSyncSessionCallback(TbCoapClientState state, CoapExchange exchange, Request request) {
-        super(state, exchange, request);
-    }
-
-    @Override
-    public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg msg) {
-        try {
-            respond(state.getAdaptor().convertToPublish(request.isConfirmable(), msg));
-        } catch (AdaptorException e) {
-            log.trace("[{}] Failed to reply due to error", state.getDeviceId(), e);
-            exchange.respond(new Response(CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+    public static int getContentFormat(int requestFormat, int adaptorFormat) {
+        if (isStrict(adaptorFormat)) {
+            return adaptorFormat;
+        } else {
+            return requestFormat != MediaTypeRegistry.UNDEFINED ? requestFormat : adaptorFormat;
         }
     }
 
+    public static boolean isStrict(int contentFormat) {
+        return contentFormat == MediaTypeRegistry.APPLICATION_OCTET_STREAM;
+    }
 }
