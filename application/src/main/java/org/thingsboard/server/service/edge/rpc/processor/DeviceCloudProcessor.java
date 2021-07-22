@@ -124,29 +124,13 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Void unused) {
-                FutureCallback<CloudEvent> cloudEventFutureCallback = new FutureCallback<>() {
-                    @Override
-                    public void onSuccess(@Nullable CloudEvent cloudEvent) {
-                        futureToSet.set(null);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        futureToSet.setException(t);
-                    }
-                };
                 if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
                         UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                    Futures.addCallback(saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null),
-                            cloudEventFutureCallback,
-                            dbCallbackExecutor);
+                    saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
                 } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                    Futures.addCallback(saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null),
-                            cloudEventFutureCallback,
-                            dbCallbackExecutor);
-                } else {
-                    futureToSet.set(null);
+                    saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null);
                 }
+                futureToSet.set(null);
             }
 
             @Override

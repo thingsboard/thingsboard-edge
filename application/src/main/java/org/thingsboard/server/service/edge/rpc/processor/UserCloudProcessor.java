@@ -126,12 +126,11 @@ public class UserCloudProcessor extends BaseCloudProcessor {
         ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId), future -> null, dbCallbackExecutor);
 
         ListenableFuture<ListenableFuture<Void>> t = Futures.transform(aDRF, aDR -> {
-            ListenableFuture<CloudEvent> f = Futures.immediateFuture(null);
             if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
                     UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
-                f = saveCloudEvent(tenantId, CloudEventType.USER, ActionType.CREDENTIALS_REQUEST, userId, null);
+                saveCloudEvent(tenantId, CloudEventType.USER, ActionType.CREDENTIALS_REQUEST, userId, null);
             }
-            return Futures.transform(f, tmp -> null, dbCallbackExecutor);
+            return Futures.immediateFuture(null);
         }, dbCallbackExecutor);
 
         return Futures.transform(t, tt -> null, dbCallbackExecutor);

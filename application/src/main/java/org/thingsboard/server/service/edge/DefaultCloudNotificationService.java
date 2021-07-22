@@ -113,7 +113,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             cloudEvent.setEntityGroupId(entityGroupId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        cloudEventService.saveAsync(cloudEvent);
+        cloudEventService.save(cloudEvent);
     }
 
     @Override

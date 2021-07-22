@@ -70,9 +70,9 @@ public class BaseCloudEventService implements CloudEventService {
     public AttributesService attributesService;
 
     @Override
-    public ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent) {
+    public CloudEvent save(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
-        return cloudEventDao.saveAsync(cloudEvent);
+        return cloudEventDao.save(cloudEvent);
     }
 
     @Override

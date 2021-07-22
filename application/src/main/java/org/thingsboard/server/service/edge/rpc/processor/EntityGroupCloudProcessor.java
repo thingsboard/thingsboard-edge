@@ -174,17 +174,14 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + entityGroupUpdateMsg.getMsgType()));
         }
 
-        ListenableFuture<List<CloudEvent>> future = Futures.immediateFuture(null);
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
             ObjectNode body = mapper.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
-            List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
-            futures.add(saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body));
-            futures.add(saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body));
-            future = Futures.allAsList(futures);
+            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
+            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body);
         }
-        return Futures.transform(future, tmp -> null, dbCallbackExecutor);
+        return Futures.immediateFuture(null);
     }
 
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {

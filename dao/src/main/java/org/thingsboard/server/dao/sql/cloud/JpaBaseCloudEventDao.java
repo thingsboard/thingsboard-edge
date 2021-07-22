@@ -47,6 +47,8 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
@@ -55,6 +57,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, CloudEvent> implements CloudEventDao {
 
     private final UUID systemTenantId = NULL_UUID;
+    private final Lock readWriteLock = new ReentrantLock();
 
     @Autowired
     private CloudEventRepository cloudEventRepository;
@@ -70,34 +73,43 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
-    public ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent) {
-        log.debug("Save cloud event [{}] ", cloudEvent);
-        if (cloudEvent.getId() == null) {
-            UUID timeBased = Uuids.timeBased();
-            cloudEvent.setId(new CloudEventId(timeBased));
-            cloudEvent.setCreatedTime(Uuids.unixTimestamp(timeBased));
-        } else if (cloudEvent.getCreatedTime() == 0L) {
-            UUID eventId = cloudEvent.getId().getId();
-            if (eventId.version() == 1) {
-                cloudEvent.setCreatedTime(Uuids.unixTimestamp(eventId));
-            } else {
-                cloudEvent.setCreatedTime(System.currentTimeMillis());
+    public CloudEvent save(CloudEvent cloudEvent) {
+        readWriteLock.lock();
+        try {
+            log.debug("Save cloud event [{}] ", cloudEvent);
+            if (cloudEvent.getId() == null) {
+                UUID timeBased = Uuids.timeBased();
+                cloudEvent.setId(new CloudEventId(timeBased));
+                cloudEvent.setCreatedTime(Uuids.unixTimestamp(timeBased));
+            } else if (cloudEvent.getCreatedTime() == 0L) {
+                UUID eventId = cloudEvent.getId().getId();
+                if (eventId.version() == 1) {
+                    cloudEvent.setCreatedTime(Uuids.unixTimestamp(eventId));
+                } else {
+                    cloudEvent.setCreatedTime(System.currentTimeMillis());
+                }
             }
-        }
 
-        return service.submit(() -> save(new CloudEventEntity(cloudEvent)).orElse(null));
+            return save(new CloudEventEntity(cloudEvent)).orElse(null);
+        } finally {
+            readWriteLock.unlock();
+        }
     }
 
     @Override
     public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
-        return DaoUtil.toPageData(
-                cloudEventRepository
-                        .findEventsByTenantId(
-                                tenantId,
-                                pageLink.getStartTime(),
-                                pageLink.getEndTime(),
-                                DaoUtil.toPageable(pageLink)));
-
+        readWriteLock.lock();
+        try {
+            return DaoUtil.toPageData(
+                    cloudEventRepository
+                            .findEventsByTenantId(
+                                    tenantId,
+                                    pageLink.getStartTime(),
+                                    pageLink.getEndTime(),
+                                    DaoUtil.toPageable(pageLink)));
+        } finally {
+            readWriteLock.unlock();
+        }
     }
 
     public Optional<CloudEvent> save(CloudEventEntity entity) {

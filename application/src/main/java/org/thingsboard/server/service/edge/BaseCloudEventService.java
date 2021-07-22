@@ -47,7 +47,7 @@ public abstract class BaseCloudEventService {
     @Autowired
     protected CloudEventService cloudEventService;
 
-    protected ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,
+    protected CloudEvent saveCloudEvent(TenantId tenantId,
                                                         CloudEventType cloudEventType,
                                                         ActionType cloudEventAction,
                                                         EntityId entityId,
@@ -63,6 +63,6 @@ public abstract class BaseCloudEventService {
             cloudEvent.setEntityId(entityId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.saveAsync(cloudEvent);
+        return cloudEventService.save(cloudEvent);
     }
 }

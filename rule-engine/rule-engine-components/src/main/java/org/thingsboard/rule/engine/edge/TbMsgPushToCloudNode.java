@@ -121,19 +121,8 @@ public class TbMsgPushToCloudNode implements TbNode {
                         log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
                         ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
                     } else {
-                        ListenableFuture<CloudEvent> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
-                        Futures.addCallback(saveFuture, new FutureCallback<CloudEvent>() {
-                            @Override
-                            public void onSuccess(@Nullable CloudEvent event) {
-                                ctx.tellNext(msg, SUCCESS);
-                            }
-
-                            @Override
-                            public void onFailure(Throwable th) {
-                                log.error("Could not save cloud event", th);
-                                ctx.tellFailure(msg, th);
-                            }
-                        }, ctx.getDbCallbackExecutor());
+                        ctx.getCloudEventService().save(cloudEvent);
+                        ctx.tellNext(msg, SUCCESS);
                     }
                 } catch (JsonProcessingException e) {
                     log.error("Failed to build cloud event", e);

@@ -213,33 +213,17 @@ public abstract class BaseCloudProcessor {
     protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
-            SettableFuture<Void> futureToSet = SettableFuture.create();
-            List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
-            futures.add(saveCloudEvent(tenantId, cloudEventType,
-                    ActionType.ATTRIBUTES_REQUEST, entityId, null));
-            futures.add(saveCloudEvent(tenantId, cloudEventType,
-                    ActionType.RELATION_REQUEST, entityId, null));
+            saveCloudEvent(tenantId, cloudEventType,
+                    ActionType.ATTRIBUTES_REQUEST, entityId, null);
+            saveCloudEvent(tenantId, cloudEventType,
+                    ActionType.RELATION_REQUEST, entityId, null);
             if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
-                futures.add(saveCloudEvent(tenantId, cloudEventType,
-                        ActionType.ENTITY_VIEW_REQUEST, entityId, null));
+                saveCloudEvent(tenantId, cloudEventType,
+                        ActionType.ENTITY_VIEW_REQUEST, entityId, null);
             }
-            Futures.addCallback(Futures.allAsList(futures), new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable List<CloudEvent> cloudEvents) {
-                    futureToSet.set(null);
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("Failed to save cloud events", t);
-                    futureToSet.setException(t);
-                }
-            }, dbCallbackExecutor);
-            return futureToSet;
-        } else {
-            return Futures.immediateFuture(null);
         }
+        return Futures.immediateFuture(null);
     }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
@@ -385,7 +369,7 @@ public abstract class BaseCloudProcessor {
         return result;
     }
 
-    protected ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,
+    protected CloudEvent saveCloudEvent(TenantId tenantId,
                                                           CloudEventType cloudEventType,
                                                           ActionType cloudEventAction,
                                                           EntityId entityId,
@@ -401,6 +385,6 @@ public abstract class BaseCloudProcessor {
             cloudEvent.setEntityId(entityId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.saveAsync(cloudEvent);
+        return cloudEventService.save(cloudEvent);
     }
 }

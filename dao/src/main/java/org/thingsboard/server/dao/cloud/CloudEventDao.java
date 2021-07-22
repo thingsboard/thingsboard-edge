@@ -45,12 +45,12 @@ import java.util.UUID;
 public interface CloudEventDao extends Dao<CloudEvent> {
 
     /**
-     * Save or update cloud event object async
+     * Save or update cloud event object
      *
      * @param cloudEvent the event object
      * @return saved cloud event object future
      */
-    ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent);
+    CloudEvent save(CloudEvent cloudEvent);
 
 
     /**
