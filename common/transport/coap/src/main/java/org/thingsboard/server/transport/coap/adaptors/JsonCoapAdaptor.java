@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -122,7 +121,7 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
         Response response = new Response(CoAP.ResponseCode.CONTENT);
         JsonElement result = JsonConverter.toJson(msg);
         response.setPayload(result.toString());
-        response.setAcknowledged(isConfirmable);
+        response.setConfirmable(isConfirmable);
         return response;
     }
 
@@ -140,8 +139,8 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     public Response convertToPublish(boolean isConfirmable, TransportProtos.GetAttributeResponseMsg msg) throws AdaptorException {
         if (msg.getSharedStateMsg()) {
             if (StringUtils.isEmpty(msg.getError())) {
-                Response response = new Response(CoAP.ResponseCode._UNKNOWN_SUCCESS_CODE);
-                response.setAcknowledged(isConfirmable);
+                Response response = new Response(CoAP.ResponseCode.CONTENT);
+                response.setConfirmable(isConfirmable);
                 TransportProtos.AttributeUpdateNotificationMsg notificationMsg = TransportProtos.AttributeUpdateNotificationMsg.newBuilder().addAllSharedUpdated(msg.getSharedAttributeListList()).build();
                 JsonObject result = JsonConverter.toJson(notificationMsg);
                 response.setPayload(result.toString());
@@ -154,7 +153,7 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
                 return new Response(CoAP.ResponseCode.NOT_FOUND);
             } else {
                 Response response = new Response(CoAP.ResponseCode.CONTENT);
-                response.setAcknowledged(isConfirmable);
+                response.setConfirmable(isConfirmable);
                 JsonObject result = JsonConverter.toJson(msg);
                 response.setPayload(result.toString());
                 return response;
@@ -163,7 +162,7 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     private Response getObserveNotification(boolean confirmable, JsonElement json) {
-        Response response = new Response(CoAP.ResponseCode._UNKNOWN_SUCCESS_CODE);
+        Response response = new Response(CoAP.ResponseCode.CONTENT);
         response.setPayload(json.toString());
         response.setConfirmable(confirmable);
         return response;

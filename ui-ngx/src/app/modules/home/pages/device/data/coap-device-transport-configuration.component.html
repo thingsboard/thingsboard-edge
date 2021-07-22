@@ -30,10 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="coapDeviceTransportConfigurationFormGroup" style="padding-bottom: 16px;">
-  <!--tb-json-object-edit
-    [required]="required"
-    label="{{ 'device-profile.transport-type-coap' | translate }}"
-    formControlName="configuration">
-  </tb-json-object-edit-->
+<form [formGroup]="coapDeviceTransportForm" style="padding-bottom: 16px;">
+  <tb-power-mode-settings [parentForm]="coapDeviceTransportForm" [isDeviceSetting]="true">
+  </tb-power-mode-settings>
 </form>

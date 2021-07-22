@@ -42,6 +42,7 @@ public class TbCoapMessageObserver implements MessageObserver {
 
     private final int msgId;
     private final Consumer<Integer> onAcknowledge;
+    private final Consumer<Integer> onTimeout;
 
     @Override
     public void onRetransmission() {
@@ -65,7 +66,9 @@ public class TbCoapMessageObserver implements MessageObserver {
 
     @Override
     public void onTimeout() {
-
+        if (onTimeout != null) {
+            onTimeout.accept(msgId);
+        }
     }
 
     @Override

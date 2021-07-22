@@ -28,34 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.common.data.device.data;
 
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Response;
-import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.leshan.core.californium.LwM2mCoapResource;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
+import lombok.Data;
 
-@Slf4j
-public abstract class AbstractLwM2mTransportResource extends LwM2mCoapResource {
-
-    public AbstractLwM2mTransportResource(String name) {
-        super(name);
-    }
-
-    @Override
-    public void handleGET(CoapExchange exchange) {
-        processHandleGet(exchange);
-    }
-
-    @Override
-    public void handlePOST(CoapExchange exchange) {
-        processHandlePost(exchange);
-    }
-
-    protected abstract void processHandleGet(CoapExchange exchange);
-
-    protected abstract void processHandlePost(CoapExchange exchange);
-
+@Data
+public class PowerSavingConfiguration {
+    private PowerMode powerMode;
+    private Long psmActivityTimer;
+    private Long edrxCycle;
+    private Long pagingTransmissionWindow;
 }

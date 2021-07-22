@@ -43,6 +43,7 @@ import { Lwm2mObjectAddInstancesListComponent } from './lwm2m-object-add-instanc
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
 import { Lwm2mObserveAttrTelemetryInstancesComponent } from './lwm2m-observe-attr-telemetry-instances.component';
+import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
 
 @NgModule({
   declarations:
@@ -61,7 +62,8 @@ import { Lwm2mObserveAttrTelemetryInstancesComponent } from './lwm2m-observe-att
     ],
   imports: [
     CommonModule,
-    SharedModule
+    SharedModule,
+    DeviceProfileCommonModule
    ],
   exports: [
     Lwm2mDeviceProfileTransportConfigurationComponent,

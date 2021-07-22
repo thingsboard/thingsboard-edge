@@ -46,15 +46,16 @@ import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransp
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.EfentoCoapDeviceTypeConfiguration;
 import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.coap.MeasurementTypeProtos.MeasurementType;
 import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoMeasurements;
 import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoChannel;
-
 import org.thingsboard.server.transport.coap.AbstractCoapTransportResource;
+import org.thingsboard.server.transport.coap.CoapTransportContext;
 import org.thingsboard.server.transport.coap.callback.CoapDeviceAuthCallback;
 import org.thingsboard.server.transport.coap.callback.CoapOkCallback;
-import org.thingsboard.server.transport.coap.CoapTransportContext;
 import org.thingsboard.server.transport.coap.efento.utils.CoapEfentoUtils;
 
 import java.util.ArrayList;
@@ -98,7 +99,8 @@ public class CoapEfentoTransportResource extends AbstractCoapTransportResource {
             log.trace("Successfully parsed Efento ProtoMeasurements: [{}]", protoMeasurements.getCloudToken());
             String token = protoMeasurements.getCloudToken();
             transportService.process(DeviceTransportType.COAP, ValidateDeviceTokenRequestMsg.newBuilder().setToken(token).build(),
-                    new CoapDeviceAuthCallback(transportContext, exchange, (sessionInfo, deviceProfile) -> {
+                    new CoapDeviceAuthCallback(exchange, (msg, deviceProfile) -> {
+                        TransportProtos.SessionInfoProto sessionInfo = SessionInfoCreator.create(msg, transportContext, UUID.randomUUID());
                         UUID sessionId = new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
                         try {
                             validateEfentoTransportConfiguration(deviceProfile);

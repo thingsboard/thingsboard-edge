@@ -146,7 +146,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
     if (isDisabled) {
       this.lwm2mListFormGroup.disable({emitEvent: false});
       if (isDefined(this.objectInput)) {
-        this.clear();
+        this.clear('', false);
       }
     } else {
       this.lwm2mListFormGroup.enable({emitEvent: false});
@@ -211,12 +211,14 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
     }
   }
 
-  private clear(value: string = '') {
+  private clear(value = '', emitEvent = true) {
     this.objectInput.nativeElement.value = value;
-    this.lwm2mListFormGroup.get('objectLwm2m').patchValue(value);
-    setTimeout(() => {
-      this.objectInput.nativeElement.blur();
-      this.objectInput.nativeElement.focus();
-    }, 0);
+    this.lwm2mListFormGroup.get('objectLwm2m').patchValue(value, {emitEvent});
+    if (emitEvent) {
+      setTimeout(() => {
+        this.objectInput.nativeElement.blur();
+        this.objectInput.nativeElement.focus();
+      }, 0);
+    }
   }
 }

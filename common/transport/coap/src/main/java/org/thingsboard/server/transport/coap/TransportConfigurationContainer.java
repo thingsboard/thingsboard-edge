@@ -28,34 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.coap;
 
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Response;
-import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.leshan.core.californium.LwM2mCoapResource;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.DynamicMessage;
+import lombok.Data;
 
-@Slf4j
-public abstract class AbstractLwM2mTransportResource extends LwM2mCoapResource {
+@Data
+public class TransportConfigurationContainer {
 
-    public AbstractLwM2mTransportResource(String name) {
-        super(name);
+    private boolean jsonPayload;
+    private Descriptors.Descriptor telemetryMsgDescriptor;
+    private Descriptors.Descriptor attributesMsgDescriptor;
+    private Descriptors.Descriptor rpcResponseMsgDescriptor;
+    private DynamicMessage.Builder rpcRequestDynamicMessageBuilder;
+
+    public TransportConfigurationContainer(boolean jsonPayload, Descriptors.Descriptor telemetryMsgDescriptor, Descriptors.Descriptor attributesMsgDescriptor, Descriptors.Descriptor rpcResponseMsgDescriptor, DynamicMessage.Builder rpcRequestDynamicMessageBuilder) {
+        this.jsonPayload = jsonPayload;
+        this.telemetryMsgDescriptor = telemetryMsgDescriptor;
+        this.attributesMsgDescriptor = attributesMsgDescriptor;
+        this.rpcResponseMsgDescriptor = rpcResponseMsgDescriptor;
+        this.rpcRequestDynamicMessageBuilder = rpcRequestDynamicMessageBuilder;
     }
 
-    @Override
-    public void handleGET(CoapExchange exchange) {
-        processHandleGet(exchange);
+    public TransportConfigurationContainer(boolean jsonPayload) {
+        this.jsonPayload = jsonPayload;
     }
-
-    @Override
-    public void handlePOST(CoapExchange exchange) {
-        processHandlePost(exchange);
-    }
-
-    protected abstract void processHandleGet(CoapExchange exchange);
-
-    protected abstract void processHandlePost(CoapExchange exchange);
-
 }

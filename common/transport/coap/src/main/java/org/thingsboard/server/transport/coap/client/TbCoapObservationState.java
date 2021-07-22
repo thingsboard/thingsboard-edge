@@ -28,34 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.coap.client;
 
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Response;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.californium.core.observe.ObserveRelation;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.leshan.core.californium.LwM2mCoapResource;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
 
-@Slf4j
-public abstract class AbstractLwM2mTransportResource extends LwM2mCoapResource {
+import java.util.concurrent.atomic.AtomicInteger;
 
-    public AbstractLwM2mTransportResource(String name) {
-        super(name);
-    }
+@Data
+@RequiredArgsConstructor
+public class TbCoapObservationState {
 
-    @Override
-    public void handleGET(CoapExchange exchange) {
-        processHandleGet(exchange);
-    }
-
-    @Override
-    public void handlePOST(CoapExchange exchange) {
-        processHandlePost(exchange);
-    }
-
-    protected abstract void processHandleGet(CoapExchange exchange);
-
-    protected abstract void processHandlePost(CoapExchange exchange);
+    private final CoapExchange exchange;
+    private final String token;
+    private final AtomicInteger observeCounter = new AtomicInteger(0);
+    private volatile ObserveRelation observeRelation;
 
 }

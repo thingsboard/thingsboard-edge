@@ -28,34 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.coap.callback;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.leshan.core.californium.LwM2mCoapResource;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.transport.coap.client.TbCoapClientState;
 
 @Slf4j
-public abstract class AbstractLwM2mTransportResource extends LwM2mCoapResource {
+public class GetAttributesSyncSessionCallback extends AbstractSyncSessionCallback {
 
-    public AbstractLwM2mTransportResource(String name) {
-        super(name);
+    public GetAttributesSyncSessionCallback(TbCoapClientState state, CoapExchange exchange, Request request) {
+        super(state, exchange, request);
     }
 
     @Override
-    public void handleGET(CoapExchange exchange) {
-        processHandleGet(exchange);
+    public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg msg) {
+        try {
+            exchange.respond(state.getAdaptor().convertToPublish(AbstractSyncSessionCallback.isConRequest(state.getAttrs()), msg));
+        } catch (AdaptorException e) {
+            log.trace("[{}] Failed to reply due to error", state.getDeviceId(), e);
+            exchange.respond(new Response(CoAP.ResponseCode.INTERNAL_SERVER_ERROR));
+        }
     }
-
-    @Override
-    public void handlePOST(CoapExchange exchange) {
-        processHandlePost(exchange);
-    }
-
-    protected abstract void processHandleGet(CoapExchange exchange);
-
-    protected abstract void processHandlePost(CoapExchange exchange);
 
 }

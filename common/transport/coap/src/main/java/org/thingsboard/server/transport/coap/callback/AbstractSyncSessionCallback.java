@@ -28,47 +28,62 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap;
+package org.thingsboard.server.transport.coap.callback;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.CoapResource;
+import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.thingsboard.server.common.transport.TransportService;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.transport.coap.client.TbCoapClientState;
+import org.thingsboard.server.transport.coap.client.TbCoapObservationState;
 
+import java.util.UUID;
+
+@RequiredArgsConstructor
 @Slf4j
-public abstract class AbstractCoapTransportResource extends CoapResource {
+public abstract class AbstractSyncSessionCallback implements SessionMsgListener {
 
-    protected final CoapTransportContext transportContext;
-    protected final TransportService transportService;
+    protected final TbCoapClientState state;
+    protected final CoapExchange exchange;
+    protected final Request request;
 
-    public AbstractCoapTransportResource(CoapTransportContext context, String name) {
-        super(name);
-        this.transportContext = context;
-        this.transportService = context.getTransportService();
+    @Override
+    public void onGetAttributesResponse(TransportProtos.GetAttributeResponseMsg getAttributesResponse) {
+        logUnsupportedCommandMessage(getAttributesResponse);
     }
 
     @Override
-    public void handleGET(CoapExchange exchange) {
-        processHandleGet(exchange);
+    public void onAttributeUpdate(UUID sessionId, TransportProtos.AttributeUpdateNotificationMsg attributeUpdateNotification) {
+        logUnsupportedCommandMessage(attributeUpdateNotification);
     }
 
     @Override
-    public void handlePOST(CoapExchange exchange) {
-        processHandlePost(exchange);
+    public void onRemoteSessionCloseCommand(UUID sessionId, TransportProtos.SessionCloseNotificationProto sessionCloseNotification) {
+
     }
 
-    protected abstract void processHandleGet(CoapExchange exchange);
+    @Override
+    public void onToDeviceRpcRequest(UUID sessionId, TransportProtos.ToDeviceRpcRequestMsg toDeviceRequest) {
+        logUnsupportedCommandMessage(toDeviceRequest);
+    }
 
-    protected abstract void processHandlePost(CoapExchange exchange);
+    @Override
+    public void onToServerRpcResponse(TransportProtos.ToServerRpcResponseMsg toServerResponse) {
+        logUnsupportedCommandMessage(toServerResponse);
+    }
 
-    protected void reportSubscriptionInfo(TransportProtos.SessionInfoProto sessionInfo, boolean hasAttributeSubscription, boolean hasRpcSubscription) {
-        transportContext.getTransportService().process(sessionInfo, TransportProtos.SubscriptionInfoProto.newBuilder()
-                .setAttributeSubscription(hasAttributeSubscription)
-                .setRpcSubscription(hasRpcSubscription)
-                .setLastActivityTime(System.currentTimeMillis())
-                .build(), TransportServiceCallback.EMPTY);
+    private void logUnsupportedCommandMessage(Object update) {
+        log.trace("[{}] Ignore unsupported update: {}", state.getDeviceId(), update);
+    }
+
+    public static boolean isConRequest(TbCoapObservationState state) {
+        if (state != null) {
+            return state.getExchange().advanced().getRequest().isConfirmable();
+        } else {
+            return false;
+        }
     }
 
 }

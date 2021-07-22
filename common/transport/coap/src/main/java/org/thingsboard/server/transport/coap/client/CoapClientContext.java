@@ -28,34 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.coap.client;
 
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Response;
+import org.eclipse.californium.core.observe.ObserveRelation;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.eclipse.leshan.core.californium.LwM2mCoapResource;
-import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
-@Slf4j
-public abstract class AbstractLwM2mTransportResource extends LwM2mCoapResource {
+import java.util.concurrent.atomic.AtomicInteger;
 
-    public AbstractLwM2mTransportResource(String name) {
-        super(name);
-    }
+public interface CoapClientContext {
 
-    @Override
-    public void handleGET(CoapExchange exchange) {
-        processHandleGet(exchange);
-    }
+    boolean registerAttributeObservation(TbCoapClientState clientState, String token, CoapExchange exchange);
 
-    @Override
-    public void handlePOST(CoapExchange exchange) {
-        processHandlePost(exchange);
-    }
+    boolean registerRpcObservation(TbCoapClientState clientState, String token, CoapExchange exchange);
 
-    protected abstract void processHandleGet(CoapExchange exchange);
+    AtomicInteger getNotificationCounterByToken(String token);
 
-    protected abstract void processHandlePost(CoapExchange exchange);
+    TbCoapClientState getOrCreateClient(SessionMsgType type, ValidateDeviceCredentialsResponse deviceCredentials, DeviceProfile deviceProfile) throws AdaptorException;
 
+    TransportProtos.SessionInfoProto getNewSyncSession(TbCoapClientState clientState);
+
+    void deregisterAttributeObservation(TbCoapClientState clientState, String token, CoapExchange exchange);
+
+    void deregisterRpcObservation(TbCoapClientState clientState, String token, CoapExchange exchange);
+
+    void reportActivity();
+
+    void registerObserveRelation(String token, ObserveRelation relation);
+
+    void deregisterObserveRelation(String token);
+
+    boolean awake(TbCoapClientState client);
 }
