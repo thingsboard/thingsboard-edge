@@ -31,11 +31,7 @@
 package org.thingsboard.server.service.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -158,19 +154,8 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             edgeEvent.setEntityGroupId(entityGroupId.getId());
         }
         edgeEvent.setBody(body);
-        ListenableFuture<EdgeEvent> future = edgeEventService.saveAsync(edgeEvent);
-        Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
-            @Override
-            public void onSuccess(@Nullable EdgeEvent result) {
-                clusterService.onEdgeEventUpdate(tenantId, edgeId);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.warn("[{}] Can't save edge event [{}] for edge [{}]", tenantId.getId(), edgeEvent, edgeId.getId(), t);
-            }
-        }, dbCallbackExecutorService);
-
+        edgeEventService.save(edgeEvent);
+        clusterService.onEdgeEventUpdate(tenantId, edgeId);
     }
 
     @Override

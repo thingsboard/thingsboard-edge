@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.edge;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,9 +49,9 @@ public class BaseEdgeEventService implements EdgeEventService {
     private EdgeEventDao edgeEventDao;
 
     @Override
-    public ListenableFuture<EdgeEvent> saveAsync(EdgeEvent edgeEvent) {
+    public EdgeEvent save(EdgeEvent edgeEvent) {
         edgeEventValidator.validate(edgeEvent, EdgeEvent::getTenantId);
-        return edgeEventDao.saveAsync(edgeEvent);
+        return edgeEventDao.save(edgeEvent);
     }
 
     @Override
