@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2021 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
@@ -19,7 +34,6 @@ import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import QRCode from 'qrcode';
 import {
   fillPattern,
   parseData,
@@ -30,6 +44,7 @@ import {
 import { FormattedData } from '@home/components/widget/lib/maps/map-models';
 import { DatasourceData } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { isNumber, isObject } from '@core/utils';
 
 interface QrCodeWidgetSettings {
   qrCodeTextPattern: string;
@@ -53,6 +68,7 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
   ctx: WidgetContext;
 
   qrCodeText: string;
+  invalidQrCodeText = false;
 
   private viewInited: boolean;
   private scheduleUpdateCanvas: boolean;
@@ -109,8 +125,13 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
   private updateQrCodeText(newQrCodeText: string): void {
     if (this.qrCodeText !== newQrCodeText) {
       this.qrCodeText = newQrCodeText;
-      if (this.qrCodeText) {
-        this.updateCanvas();
+      if (!(isObject(newQrCodeText) || isNumber(newQrCodeText))) {
+        this.invalidQrCodeText = false;
+        if (this.qrCodeText) {
+          this.updateCanvas();
+        }
+      } else {
+        this.invalidQrCodeText = true;
       }
       this.cd.detectChanges();
     }
@@ -118,9 +139,11 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
 
   private updateCanvas() {
     if (this.viewInited) {
-      QRCode.toCanvas(this.canvasRef.nativeElement, this.qrCodeText);
-      this.canvasRef.nativeElement.style.width = 'auto';
-      this.canvasRef.nativeElement.style.height = 'auto';
+      import('qrcode').then((QRCode) => {
+        QRCode.toCanvas(this.canvasRef.nativeElement, this.qrCodeText);
+        this.canvasRef.nativeElement.style.width = 'auto';
+        this.canvasRef.nativeElement.style.height = 'auto';
+      });
     } else {
       this.scheduleUpdateCanvas = true;
     }

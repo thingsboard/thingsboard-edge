@@ -28,12 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.server.service.device;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -54,13 +57,18 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.device.ClaimDataInfo;
+import org.thingsboard.server.dao.device.ClaimDevicesService;
+import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.device.claim.ClaimData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,6 +81,7 @@ import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CA
 
 @Service
 @Slf4j
+@TbCoreComponent
 public class ClaimDevicesServiceImpl implements ClaimDevicesService {
 
     private static final String CLAIM_ATTRIBUTE_NAME = "claimingAllowed";
@@ -83,6 +92,8 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     private DeviceService deviceService;
     @Autowired
     private AttributesService attributesService;
+    @Autowired
+    private RuleEngineTelemetryService telemetryService;
     @Autowired
     private CustomerService customerService;
     @Autowired
@@ -218,10 +229,23 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 if (isAllowedClaimingByDefault) {
                     return Futures.immediateFuture(new ReclaimResult(unassignedCustomer));
                 }
-                return Futures.transform(attributesService.save(
+                SettableFuture<ReclaimResult> result = SettableFuture.create();
+                telemetryService.saveAndNotify(
                         tenantId, device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
                                 new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true), System.currentTimeMillis())
-                        )), result -> new ReclaimResult(unassignedCustomer), MoreExecutors.directExecutor());
+                        ),
+                        new FutureCallback<>() {
+                            @Override
+                            public void onSuccess(@Nullable Void tmp) {
+                                result.set(new ReclaimResult(unassignedCustomer));
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                result.setException(t);
+                            }
+                        });
+                return result;
             }, MoreExecutors.directExecutor());
         }
         cacheEviction(device.getId());
@@ -245,12 +269,24 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
         return systemDurationMs;
     }
 
-    private ListenableFuture<List<Void>> removeClaimingSavedData(Cache cache, ClaimDataInfo data, Device device) {
+    private ListenableFuture<Void> removeClaimingSavedData(Cache cache, ClaimDataInfo data, Device device) {
         if (data.isFromCache()) {
             cache.evict(data.getKey());
         }
-        return attributesService.removeAll(device.getTenantId(),
-                device.getId(), DataConstants.SERVER_SCOPE, Arrays.asList(CLAIM_ATTRIBUTE_NAME, CLAIM_DATA_ATTRIBUTE_NAME));
+        SettableFuture<Void> result = SettableFuture.create();
+        telemetryService.deleteAndNotify(device.getTenantId(),
+                device.getId(), DataConstants.SERVER_SCOPE, Arrays.asList(CLAIM_ATTRIBUTE_NAME, CLAIM_DATA_ATTRIBUTE_NAME), new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable Void tmp) {
+                        result.set(tmp);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        result.setException(t);
+                    }
+        });
+        return result;
     }
 
     private void cacheEviction(DeviceId deviceId) {

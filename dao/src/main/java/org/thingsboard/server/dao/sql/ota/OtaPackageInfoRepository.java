@@ -95,7 +95,7 @@ public interface OtaPackageInfoRepository extends CrudRepository<OtaPackageInfoE
             nativeQuery = true)
     OtaPackageInfoEntity findSoftwareByDeviceId(@Param("deviceId") UUID deviceId);
 
-    @Query("SELECT new OtaPackageInfoEntity(ota.id, ota.createdTime, ota.tenantId, ota.deviceProfileId, ota.type, ota.title, ota.version, ota.url, ota.fileName, ota.contentType, ota.checksumAlgorithm, ota.checksum, ota.dataSize, ota.additionalInfo, true) FROM OtaPackageEntity ota " +
+    @Query("SELECT new OtaPackageInfoEntity(ota.id, ota.createdTime, ota.tenantId, ota.deviceProfileId, ota.type, ota.title, ota.version, ota.tag, ota.url, ota.fileName, ota.contentType, ota.checksumAlgorithm, ota.checksum, ota.dataSize, ota.additionalInfo, true) FROM OtaPackageEntity ota " +
             "WHERE ota.deviceProfileId IN (SELECT d.deviceProfileId FROM DeviceEntity d " +
             "WHERE d.id IN (SELECT r.toId FROM RelationEntity r " +
             "WHERE r.fromId = :groupId AND r.fromType = 'ENTITY_GROUP' AND r.relationTypeGroup = 'FROM_ENTITY_GROUP')) " +
