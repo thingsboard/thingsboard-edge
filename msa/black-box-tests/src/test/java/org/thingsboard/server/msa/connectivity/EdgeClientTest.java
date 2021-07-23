@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa.connectivity;
 
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,15 +39,21 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.PageDataFetcherWithAttempts;
 
@@ -99,9 +106,18 @@ public class EdgeClientTest extends AbstractContainerTest {
     private void testReceivedInitialData() {
         log.info("Checking received initial data");
 
+        verifyRoles();
         verifyWidgetsBundles();
         verifyDeviceProfiles();
+        verifyWhiteLabeling();
+//        verifyAdminSettings();
         verifyRuleChains();
+//        verifyEntityGroups(EntityType.DEVICE);
+//        verifyEntityGroups(EntityType.ASSET);
+//        verifyEntityGroups(EntityType.ENTITY_VIEW);
+//        verifyEntityGroups(EntityType.DASHBOARD);
+//        verifyEntityGroups(EntityType.USER);
+//        verifySchedulerEvents();
 
 //
 //        List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
@@ -144,6 +160,43 @@ public class EdgeClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
     }
 
+    private void verifyWhiteLabeling() {
+        Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
+        Assert.assertTrue("White Labeling is not available on edge", edgeWhiteLabelParams.isPresent());
+        Optional<WhiteLabelingParams> cloudWhiteLabelParams = restClient.getWhiteLabelParams(
+                edgeWhiteLabelParams.get().getLogoImageChecksum(), edgeWhiteLabelParams.get().getFaviconChecksum());
+        Assert.assertTrue("White Labeling is not available on cloud", cloudWhiteLabelParams.isPresent());
+        Assert.assertEquals("White Labeling on cloud and edge are different", edgeWhiteLabelParams.get(), cloudWhiteLabelParams.get());
+
+        Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
+        Assert.assertTrue("Login White Labeling is not available on edge", edgeLoginWhiteLabelParams.isPresent());
+        Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getLoginWhiteLabelParams(
+                edgeLoginWhiteLabelParams.get().getLogoImageChecksum(), edgeLoginWhiteLabelParams.get().getFaviconChecksum());
+        Assert.assertTrue("Login White Labeling is not available on cloud", cloudLoginWhiteLabelParams.isPresent());
+        Assert.assertEquals("Login White Labeling on cloud and edge are different", edgeLoginWhiteLabelParams.get(), cloudLoginWhiteLabelParams.get());
+
+        Optional<CustomTranslation> edgeCustomTranslation = edgeRestClient.getCustomTranslation();
+        Assert.assertTrue("Custom Translation is not available on edge", edgeCustomTranslation.isPresent());
+        Optional<CustomTranslation> cloudCustomTranslation = restClient.getCustomTranslation();
+        Assert.assertTrue("Custom Translation is not available on cloud", cloudCustomTranslation.isPresent());
+        Assert.assertEquals("Custom Translation on cloud and edge are different", edgeCustomTranslation.get(), cloudCustomTranslation.get());
+    }
+
+    private void verifyRoles() {
+        PageData<Role> genericPageData = new PageDataFetcherWithAttempts<>(
+                link -> edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100)),
+                50,
+                2).fetchData();
+        List<EntityId> genericIds = genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+        PageData<Role> groupPageData = new PageDataFetcherWithAttempts<>(
+                link -> edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100)),
+                50,
+                1).fetchData();
+        List<EntityId> groupIds = groupPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+        genericIds.addAll(groupIds);
+        assertEntitiesByIdsAndType(genericIds, EntityType.ROLE);
+    }
+
     private void verifyWidgetsBundles() {
         PageData<WidgetsBundle> pageData = new PageDataFetcherWithAttempts<>(
                 link -> edgeRestClient.getWidgetsBundles(new PageLink(100)),
@@ -173,7 +226,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                     Thread.sleep(500);
                 } catch (InterruptedException ignored2) {}
                 attempt++;
-                System.out.println("HEEELLOOOO " + new Date());
                 if (attempt > 50) {
                     break;
                 }
@@ -199,6 +251,9 @@ public class EdgeClientTest extends AbstractContainerTest {
                 break;
             case WIDGET_TYPE:
                 assertWidgetTypes(entityIds);
+                break;
+            case ROLE:
+                assertRoles(entityIds);
                 break;
         }
     }
@@ -227,6 +282,18 @@ public class EdgeClientTest extends AbstractContainerTest {
             expected.setType(null);
             actual.setType(null);
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
+        }
+    }
+
+    private void assertRoles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            RoleId roleId = new RoleId(entityId.getId());
+            Optional<Role> edgeRole = edgeRestClient.getRoleById(roleId);
+            Optional<Role> cloudRole = restClient.getRoleById(roleId);
+            Role expected = edgeRole.get();
+            Role actual = cloudRole.get();
+            // permissions field is transient and not used in comparison
+            Assert.assertEquals("Roles on cloud and edge are different", expected, actual);
         }
     }
 
