@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.transport.coap.efento.CoapEfentoTransportResource;
@@ -87,6 +88,6 @@ public class CoapTransportService implements TbTransportService {
 
     @Override
     public String getName() {
-        return "COAP";
+        return DataConstants.COAP_TRANSPORT_NAME;
     }
 }
