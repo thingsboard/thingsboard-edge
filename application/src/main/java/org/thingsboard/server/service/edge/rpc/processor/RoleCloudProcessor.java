@@ -79,7 +79,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
 
     private Set<Operation> allowedGenericOperations = new HashSet<>(Arrays.asList(Operation.READ,
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
-            Operation.READ_CREDENTIALS, Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+            Operation.READ_CREDENTIALS));
 
     public ListenableFuture<Void> processRoleMsgFromCloud(TenantId tenantId, RoleProto roleProto) {
         try {
@@ -154,6 +154,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                 }
                 if (Resource.ALL.equals(entry.getKey()) && originOperations.contains(Operation.ALL)) {
                     originPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
+                    originPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
                 }
                 List<Operation> operations;
                 if (originOperations.contains(Operation.ALL)) {
