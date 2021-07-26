@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
+import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
@@ -102,8 +103,6 @@ public class DefaultMailService implements MailService {
 
     @Autowired
     private MailExecutorService mailExecutorService;
-
-    private JavaMailSenderImpl mailSender;
 
     public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
         this.adminSettingsService = adminSettingsService;
@@ -244,7 +243,9 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail) throws ThingsboardException {
-        sendMail(tenantId, customerId, tbEmail, this.mailSender);
+        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        sendMail(tenantId, customerId, tbEmail, mailSender);
     }
 
     @Override
@@ -256,7 +257,6 @@ public class DefaultMailService implements MailService {
         ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
         JsonNode jsonConfig = configEntry.jsonConfig;
         if (!configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
-            JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
             String mailFrom = getStringValue(jsonConfig, "mailFrom");
             try {
                 MimeMessage mailMsg = javaMailSender.createMimeMessage();
