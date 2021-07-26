@@ -37,7 +37,7 @@ import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDevicePersistedRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
@@ -136,7 +136,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
             );
         } catch (Exception e) {
             transportService.process(getSessionInfo(),
-                    TransportProtos.ToDeviceRpcResponseMsg.newBuilder()
+                    ToDeviceRpcResponseMsg.newBuilder()
                             .setRequestId(request.getRequestId()).setError("Failed to convert device RPC command to MQTT msg").build(), TransportServiceCallback.EMPTY);
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
