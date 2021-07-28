@@ -35,7 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 
 import java.util.List;
 
@@ -43,12 +43,12 @@ import java.util.List;
  * Created by ashvayka on 02.12.17.
  */
 @Slf4j
-public class TMobileIotCdpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
+public class TMobileIotCdpIntegration extends AbstractHttpIntegration<JsonHttpIntegrationMsg> {
 
     @Override
-    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(JsonHttpIntegrationMsg msg) throws Exception {
 
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getMsgInBytes(), metadataTemplate);
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);
@@ -59,7 +59,7 @@ public class TMobileIotCdpIntegration extends AbstractHttpIntegration<HttpIntegr
     }
 
     @Override
-    protected String getTypeUplink(HttpIntegrationMsg msg) {
+    protected String getTypeUplink(JsonHttpIntegrationMsg msg) {
         return "Uplink";
     }
 

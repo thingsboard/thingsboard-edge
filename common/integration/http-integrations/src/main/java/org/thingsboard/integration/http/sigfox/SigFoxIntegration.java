@@ -38,11 +38,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 
 import java.nio.charset.StandardCharsets;
@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 @Slf4j
-public class SigFoxIntegration extends BasicHttpIntegration {
+public class SigFoxIntegration extends BasicHttpIntegration<JsonHttpIntegrationMsg> {
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -60,7 +60,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
     }
 
     @Override
-    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(JsonHttpIntegrationMsg msg) throws Exception {
         if (checkSecurity(msg)) {
             Map<String, UplinkData> result = processUplinkData(context, msg);
             if (result.isEmpty()) {
@@ -94,7 +94,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
         }
     }
 
-    private ResponseEntity processDownLinkData(IntegrationContext context, String deviceName, HttpIntegrationMsg msg, String sigFoxDeviceId) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, String deviceName, JsonHttpIntegrationMsg msg, String sigFoxDeviceId) throws Exception {
         if (downlinkConverter != null) {
             DownLinkMsg pending = context.getDownlinkMsg(deviceName);
             if (pending != null && !pending.isEmpty()) {

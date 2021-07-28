@@ -195,7 +195,7 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
     }
 
     private List<UplinkData> convertToUplinkDataList(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
-        byte[] data = mapper.writeValueAsBytes(msg.getMsg());
+        byte[] data = msg.getMsgInBytes();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         ThingParkRequestParameters params = msg.getParams();
         mdMap.put("AS_ID", params.getAsId());

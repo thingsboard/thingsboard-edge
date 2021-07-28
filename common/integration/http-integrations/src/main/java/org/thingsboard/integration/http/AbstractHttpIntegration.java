@@ -40,7 +40,7 @@ import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
  * Created by ashvayka on 04.12.17.
  */
 @Slf4j
-public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> extends AbstractIntegration<T> {
+public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> extends AbstractIntegration<T> {
 
     @Override
     public void process(T msg) {

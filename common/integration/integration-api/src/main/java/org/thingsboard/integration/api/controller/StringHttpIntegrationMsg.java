@@ -30,21 +30,19 @@
  */
 package org.thingsboard.integration.api.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.Map;
 
-@Data
-@AllArgsConstructor
-public abstract class HttpIntegrationMsg<T> {
+public class StringHttpIntegrationMsg extends HttpIntegrationMsg<String> {
 
-    private final Map<String, String> requestHeaders;
-    protected final T msg;
-    private final DeferredResult<ResponseEntity> callback;
+    public StringHttpIntegrationMsg(Map<String, String> requestHeaders, String msg, DeferredResult<ResponseEntity> callback) {
+        super(requestHeaders, msg, callback);
+    }
 
-    public abstract byte[] getMsgInBytes();
-
+    @Override
+    public byte[] getMsgInBytes() {
+        return msg.getBytes();
+    }
 }

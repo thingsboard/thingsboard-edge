@@ -53,9 +53,12 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.StringHttpIntegrationMsg;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.io.IOException;
@@ -63,83 +66,72 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 @RestController
 @RequestMapping("/api/v1/integrations/http")
 @Slf4j
+@SuppressWarnings("rawtypes")
 public class HttpIntegrationController extends BaseIntegrationController {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
 
-    @SuppressWarnings("rawtypes")
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> processRequest(
-            @PathVariable("routingKey") String routingKey,
-            @PathVariable("suffix") Optional<String> suffix,
-            MultipartHttpServletRequest request
-    ) {
+    public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
+                                                         @PathVariable("suffix") Optional<String> suffix,
+                                                         MultipartHttpServletRequest request) {
         log.debug("[{}] Received multipart form request: {}", routingKey, request.getMultiFileMap().keySet());
 
         Map<String, String> requestHeaders = request.getRequestHeaders().toSingleValueMap();
+        ObjectNode msg = mapper.createObjectNode();
+        request.getMultiFileMap().forEach((fieldName, multipartFiles) -> {
+            ArrayNode fileArrayNode = convertFilesToJsonFormat(multipartFiles);
+            if (fileArrayNode.size() == 1) {
+                msg.set(fieldName, fileArrayNode.get(0));
+            } else {
+                msg.set(fieldName, fileArrayNode);
+            }
+        });
 
-        return processRequest(routingKey, suffix, requestHeaders,
-                request,
-                val -> {
-                    ObjectNode msg = mapper.createObjectNode();
-                    request.getMultiFileMap().forEach((fieldName, multipartFiles) -> {
-                        ArrayNode fileArrayNode = convertFilesToJsonFormat(multipartFiles);
-                        if (fileArrayNode.size() == 1){
-                            msg.set(fieldName, fileArrayNode.get(0));
-                        } else {
-                            msg.set(fieldName, fileArrayNode);
-                        }
-                    });
-                    return msg;
-                }
-        );
+        return processRequest(routingKey, suffix, new JsonHttpIntegrationMsg(requestHeaders, msg, new DeferredResult<>()));
     }
 
-    @SuppressWarnings("rawtypes")
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
     @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> processRequest(
-            @PathVariable("routingKey") String routingKey,
-            @PathVariable("suffix") Optional<String> suffix,
-            @RequestBody JsonNode msg,
-            @RequestHeader Map<String, String> requestHeaders
-    ) {
+    public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
+                                                         @PathVariable("suffix") Optional<String> suffix,
+                                                         @RequestBody JsonNode msg,
+                                                         @RequestHeader Map<String, String> requestHeaders) {
         log.debug("[{}] Received request: {}", routingKey, msg);
-        return processRequest(routingKey, suffix, requestHeaders,
-                msg,
-                val -> val
-        );
+        return processRequest(routingKey, suffix, new JsonHttpIntegrationMsg(requestHeaders, msg, new DeferredResult<>()));
     }
 
-    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.TEXT_PLAIN_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
+                                                         @PathVariable("suffix") Optional<String> suffix,
+                                                         @RequestBody String msg,
+                                                         @RequestHeader Map<String, String> requestHeaders) {
+        log.debug("[{}] Received request: {}", routingKey, msg);
+        return processRequest(routingKey, suffix, new StringHttpIntegrationMsg(requestHeaders, msg, new DeferredResult<>()));
+    }
+
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> processRequest(
-            @PathVariable("routingKey") String routingKey,
-            @PathVariable("suffix") Optional<String> suffix,
-            @RequestParam Map<String, String> requestParams,
-            @RequestHeader Map<String, String> requestHeaders
-    ) {
+    public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
+                                                         @PathVariable("suffix") Optional<String> suffix,
+                                                         @RequestParam Map<String, String> requestParams,
+                                                         @RequestHeader Map<String, String> requestHeaders) {
         log.debug("[{}] Received status check request", routingKey);
-        return processRequest(routingKey, suffix, requestHeaders,
-                requestParams,
-                val -> mapper.convertValue(val, JsonNode.class)
-        );
+        return processRequest(routingKey, suffix,
+                new JsonHttpIntegrationMsg(requestHeaders, mapper.convertValue(requestParams, JsonNode.class), new DeferredResult<>()));
     }
 
     @SuppressWarnings("unchecked")
-    private <T> DeferredResult<ResponseEntity> processRequest(String routingKey,
-                                                              Optional<String> suffix,
-                                                              Map<String, String> requestHeaders,
-                                                              T customMessage,
-                                                              Function<T, JsonNode> messageConverter){
-        DeferredResult<ResponseEntity> result = new DeferredResult<>();
+    private DeferredResult<ResponseEntity> processRequest(String routingKey,
+                                                          Optional<String> suffix,
+                                                          HttpIntegrationMsg msg) {
+        DeferredResult<ResponseEntity> result = msg.getCallback();
 
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
 
@@ -147,14 +139,12 @@ public class HttpIntegrationController extends BaseIntegrationController {
             if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
                 return;
             }
-            suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
-            JsonNode msg = messageConverter.apply(customMessage);
-            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+            suffix.ifPresent(suffixStr -> msg.getRequestHeaders().put("suffix", suffixStr));
+            api.process(integration, msg);
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
         }, api.getCallbackExecutor());
-
         return result;
     }
 
@@ -178,7 +168,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return fileArrayNode;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings("unchecked")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey,
@@ -196,7 +186,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
             if (requestParams.size() > 0) {
                 ObjectNode msg = mapper.createObjectNode();
                 requestParams.forEach(msg::put);
-                api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+                api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
             } else {
                 result.setResult(new ResponseEntity<>(HttpStatus.OK));
             }

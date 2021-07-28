@@ -42,7 +42,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -62,7 +62,7 @@ import java.util.Map;
  * Created by zbeacon on 06.09.20.
  */
 @Slf4j
-public class ChirpStackIntegration extends BasicHttpIntegration {
+public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrationMsg> {
 
     private static final String DEVICES_ENDPOINT = "/api/devices";
     private static final String DEV_EUI = "DevEUI";
@@ -104,8 +104,8 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
     }
 
     @Override
-    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.getMsg()), metadataTemplate);
+    protected ResponseEntity doProcess(JsonHttpIntegrationMsg msg) throws Exception {
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getMsgInBytes(), metadataTemplate);
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);
@@ -116,12 +116,12 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
     }
 
     @Override
-    protected String getTypeUplink(HttpIntegrationMsg msg) {
+    protected String getTypeUplink(JsonHttpIntegrationMsg msg) {
         return "Uplink";
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         if (StringUtils.isEmpty(this.applicationServerAPIToken)) {
             Exception e = new RuntimeException("Cannot send downlink because of Application Server API Token was not set.");

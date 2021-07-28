@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -72,7 +72,7 @@ public class OceanConnectIntegrationController extends BaseIntegrationController
             if (checkIntegrationPlatform(result, integration, IntegrationType.OCEANCONNECT)) {
                 return;
             }
-            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+            api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
