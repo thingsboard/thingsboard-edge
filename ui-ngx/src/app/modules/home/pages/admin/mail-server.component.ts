@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -46,14 +46,16 @@ import { AuthUser } from '@shared/models/user.model';
 import { Authority } from '@shared/models/authority.enum';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { isDefined, isString } from '@core/utils';
+import { deepClone, isDefined, isString } from '@core/utils';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-mail-server',
   templateUrl: './mail-server.component.html',
   styleUrls: ['./mail-server.component.scss', './settings-card.scss']
 })
-export class MailServerComponent extends PageComponent implements OnInit, HasConfirmForm {
+export class MailServerComponent extends PageComponent implements OnInit, OnDestroy, HasConfirmForm {
 
   authState: AuthState = getCurrentAuthState(this.store);
 
@@ -62,10 +64,13 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
   mailSettings: FormGroup;
   adminSettings: AdminSettings<MailServerSettings>;
   smtpProtocols = ['smtp', 'smtps'];
+  isDemo = true;
 
   tlsVersions = ['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
 
   readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
+
+  private destroy$ = new Subject();
 
   constructor(protected store: Store<AppState>,
               private router: Router,
@@ -84,6 +89,8 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
         if (this.adminSettings.jsonValue && isString(this.adminSettings.jsonValue.enableTls)) {
           this.adminSettings.jsonValue.enableTls = (this.adminSettings.jsonValue.enableTls as any) === 'true';
         }
+        this.isDemo = this.adminSettings.jsonValue.isDemo;
+        delete this.adminSettings.jsonValue.isDemo;
         this.mailSettings.reset(this.adminSettings.jsonValue);
         if (this.isTenantAdmin()) {
           this.mailSettings.get('useSystemMailSettings').setValue(
@@ -92,8 +99,15 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
           );
         }
         this.updateValidators();
+        this.enableMailPassword(this.isDemo);
       }
     );
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   public isTenantAdmin(): boolean {
@@ -120,12 +134,14 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
       proxyUser: [''],
       proxyPassword: [''],
       username: [''],
+      changePassword: [false],
       password: ['']
     });
     if (this.readonly) {
       this.mailSettings.get('smtpProtocol').disable({emitEvent: false});
       this.mailSettings.get('enableTls').disable({emitEvent: false});
       this.mailSettings.get('enableProxy').disable({emitEvent: false});
+      this.mailSettings.get('changePassword').disable({emitEvent: false});
       if (this.isTenantAdmin()) {
         this.mailSettings.get('useSystemMailSettings').disable({emitEvent: false});
       }
@@ -133,22 +149,32 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
       this.registerDisableOnLoadFormControl(this.mailSettings.get('smtpProtocol'));
       this.registerDisableOnLoadFormControl(this.mailSettings.get('enableTls'));
       this.registerDisableOnLoadFormControl(this.mailSettings.get('enableProxy'));
+      this.registerDisableOnLoadFormControl(this.mailSettings.get('changePassword'));
       if (this.isTenantAdmin()) {
         this.registerDisableOnLoadFormControl(this.mailSettings.get('useSystemMailSettings'));
       }
     }
     if (this.isTenantAdmin()) {
-      this.mailSettings.get('useSystemMailSettings').valueChanges.subscribe(
+      this.mailSettings.get('useSystemMailSettings').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(
         () => {
           this.updateValidators();
         }
       );
     }
-    this.mailSettings.get('enableProxy').valueChanges.subscribe(
+    this.mailSettings.get('enableProxy').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
       () => {
         this.updateValidators();
       }
     );
+    this.mailSettings.get('changePassword').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((value) => {
+      this.enableMailPassword(value);
+    });
   }
 
   private updateValidators() {
@@ -181,8 +207,16 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
     this.mailSettings.get('proxyPort').updateValueAndValidity({emitEvent: false});
   }
 
+  enableMailPassword(enable: boolean) {
+    if (enable) {
+      this.mailSettings.get('password').enable({emitEvent: false});
+    } else {
+      this.mailSettings.get('password').disable({emitEvent: false});
+    }
+  }
+
   sendTestMail(): void {
-    this.adminSettings.jsonValue = {...this.adminSettings.jsonValue, ...this.mailSettings.value};
+    this.adminSettings.jsonValue = {...this.adminSettings.jsonValue, ...this.mailSettingsFormValue};
     this.adminService.sendTestMail(this.adminSettings).subscribe(
       () => {
         this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('admin.test-mail-sent'),
@@ -192,14 +226,14 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
   }
 
   save(): void {
-    this.adminSettings.jsonValue = {...this.adminSettings.jsonValue, ...this.mailSettings.value};
+    this.adminSettings.jsonValue = {...this.adminSettings.jsonValue, ...this.mailSettingsFormValue};
     this.adminService.saveAdminSettings(this.adminSettings).subscribe(
       (adminSettings) => {
-        if (!adminSettings.jsonValue.password) {
-          adminSettings.jsonValue.password = this.mailSettings.value.password;
-        }
+        adminSettings.jsonValue.password = this.mailSettings.value.password;
         this.adminSettings = adminSettings;
-        this.mailSettings.reset(this.adminSettings.jsonValue);
+        const formSettings = deepClone(this.adminSettings.jsonValue);
+        formSettings.changePassword = this.mailSettings.get('changePassword').value || this.isDemo;
+        this.mailSettings.reset(formSettings, {emitEvent: false});
       }
     );
   }
@@ -208,4 +242,9 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
     return this.mailSettings;
   }
 
+  private get mailSettingsFormValue(): MailServerSettings {
+    const formValue = this.mailSettings.value;
+    delete formValue.changePassword;
+    return formValue;
+  }
 }

@@ -107,6 +107,7 @@
         "proxy-port-range": "Proxy port should be in a range from 1 to 65535.",
         "proxy-user": "Proxy user",
         "proxy-password": "Proxy password",
+        "change-password": "Change password",
         "send-test-mail": "Send test mail",
         "use-system-mail-settings": "Use System Mail Server Settings",
         "mail-templates": "Mail Templates",

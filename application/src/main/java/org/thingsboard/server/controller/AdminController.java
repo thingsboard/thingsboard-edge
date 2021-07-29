@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
-import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.UpdateMessage;
@@ -60,6 +59,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
@@ -116,7 +116,7 @@ public class AdminController extends BaseController {
                 }
             }
             if (adminSettings.getKey().equals("mail")) {
-                ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
+                ((ObjectNode) adminSettings.getJsonValue()).remove("password");
             }
             return adminSettings;
         } catch (Exception e) {
@@ -137,7 +137,7 @@ public class AdminController extends BaseController {
                 adminSettings = saveTenantAdminSettings(adminSettings);
             }
             if (adminSettings.getKey().equals("mail")) {
-                ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
+                ((ObjectNode) adminSettings.getJsonValue()).remove("password");
             }
             return adminSettings;
         } catch (Exception e) {

@@ -43,6 +43,7 @@ export declare type SmtpProtocol = 'smtp' | 'smtps';
 
 export interface MailServerSettings {
   useSystemMailSettings: boolean;
+  isDemo: boolean;
   mailFrom: string;
   smtpProtocol: SmtpProtocol;
   smtpHost: string;
@@ -50,7 +51,8 @@ export interface MailServerSettings {
   timeout: number;
   enableTls: boolean;
   username: string;
-  password: string;
+  changePassword?: boolean;
+  password?: string;
   enableProxy: boolean;
   proxyHost: string;
   proxyPort: number;
