@@ -74,7 +74,7 @@
     "admin": {
         "general": "Obecné",
         "general-settings": "Obecná nastavení",
-        "home-settings": "Domácí nastavení",
+        "home-settings": "Nastavení",
         "outgoing-mail": "Odchozí email",
         "outgoing-mail-settings": "Nastavení odchozího emailu",
         "system-settings": "Systémová nastavení",
@@ -953,7 +953,7 @@
         "credentials-type": "Typ přístupových údajů",
         "access-token": "Přístupový token",
         "access-token-required": "Přístupový token je povinný.",
-        "access-token-invalid": "Délka přístupového tokenu musí být od 1 do 20 znaků.",
+        "access-token-invalid": "Délka přístupového tokenu musí být od 1 do 32 znaků.",
         "rsa-key": "RSA veřejný klíč",
         "rsa-key-required": "RSA veřejný klíč je povinný.",
         "lwm2m-security-config": {
