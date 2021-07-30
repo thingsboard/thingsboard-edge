@@ -32,8 +32,8 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,8 +58,8 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
@@ -244,6 +244,14 @@ public class AdminController extends BaseController {
     private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
+        if(adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
+            JsonNode oldMailSettings = objectMapper.readTree(getEntityAttributeValue(getTenantId(), "mail"));
+            if (oldMailSettings != null) {
+                if(oldMailSettings.has("password")) {
+                    ((ObjectNode) jsonValue).put("password", oldMailSettings.get("password").asText());
+                }
+            }
+        }
         String jsonString = null;
         if (jsonValue != null) {
             try {
