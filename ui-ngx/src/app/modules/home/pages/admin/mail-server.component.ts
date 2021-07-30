@@ -46,7 +46,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { Authority } from '@shared/models/authority.enum';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { deepClone, isDefined, isString } from '@core/utils';
+import { isDefined, isDefinedAndNotNull, isString } from '@core/utils';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -64,7 +64,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
   mailSettings: FormGroup;
   adminSettings: AdminSettings<MailServerSettings>;
   smtpProtocols = ['smtp', 'smtps'];
-  isDemo = true;
+  showChangePassword = false;
 
   tlsVersions = ['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
 
@@ -89,17 +89,19 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
         if (this.adminSettings.jsonValue && isString(this.adminSettings.jsonValue.enableTls)) {
           this.adminSettings.jsonValue.enableTls = (this.adminSettings.jsonValue.enableTls as any) === 'true';
         }
-        this.isDemo = this.adminSettings.jsonValue.isDemo;
-        delete this.adminSettings.jsonValue.isDemo;
+        this.showChangePassword =
+          isDefinedAndNotNull(this.adminSettings.jsonValue.showChangePassword) ? this.adminSettings.jsonValue.showChangePassword : true ;
+        delete this.adminSettings.jsonValue.showChangePassword;
         this.mailSettings.reset(this.adminSettings.jsonValue);
         if (this.isTenantAdmin()) {
           this.mailSettings.get('useSystemMailSettings').setValue(
             isDefined(this.adminSettings.jsonValue.useSystemMailSettings) ?
               this.adminSettings.jsonValue.useSystemMailSettings : true, {emitEvent: false}
           );
+          this.showChangePassword = this.showChangePassword && isDefined(this.adminSettings.jsonValue.useSystemMailSettings);
         }
         this.updateValidators();
-        this.enableMailPassword(this.isDemo);
+        this.enableMailPassword(!this.showChangePassword);
       }
     );
   }
@@ -229,11 +231,9 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
     this.adminSettings.jsonValue = {...this.adminSettings.jsonValue, ...this.mailSettingsFormValue};
     this.adminService.saveAdminSettings(this.adminSettings).subscribe(
       (adminSettings) => {
-        adminSettings.jsonValue.password = this.mailSettings.value.password;
         this.adminSettings = adminSettings;
-        const formSettings = deepClone(this.adminSettings.jsonValue);
-        formSettings.changePassword = this.mailSettings.get('changePassword').value || this.isDemo;
-        this.mailSettings.reset(formSettings, {emitEvent: false});
+        this.showChangePassword = true;
+        this.mailSettings.reset(this.adminSettings.jsonValue);
       }
     );
   }
