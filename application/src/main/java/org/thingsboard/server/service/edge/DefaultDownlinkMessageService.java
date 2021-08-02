@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
@@ -282,28 +283,28 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                 }
             }
             if (downlinkMsg.hasSystemCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getSystemCustomTranslationMsg(), customerId));
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getSystemCustomTranslationMsg(), new TenantId(EntityId.NULL_UUID)));
             }
             if (downlinkMsg.hasTenantCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getTenantCustomTranslationMsg(), customerId));
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getTenantCustomTranslationMsg(), tenantId));
             }
             if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
                 result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg(), customerId));
             }
             if (downlinkMsg.hasSystemWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemWhiteLabelingParams(), new TenantId(EntityId.NULL_UUID)));
             }
             if (downlinkMsg.hasTenantWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantWhiteLabelingParams(), tenantId));
             }
             if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerWhiteLabelingParams(), customerId));
             }
             if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams(), new TenantId(EntityId.NULL_UUID)));
             }
             if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams(), tenantId));
             }
             if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
                 result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams(), customerId));
