@@ -469,43 +469,32 @@ enum EdgeEntityType {
 }
 
 message LoginWhiteLabelingParamsProto {
-  string logoImageUrl = 1;
-  string logoImageChecksum = 2;
-  int64 logoImageHeight = 3;
-  string appTitle = 4;
-  FaviconProto favicon = 5;
-  string faviconChecksum = 6;
-  PaletteSettingsProto paletteSettings = 7;
-  string helpLinkBaseUrl = 8;
-  bool enableHelpLinks = 9;
-  bool showNameVersion = 10;
-  string platformName = 11;
-  string platformVersion = 12;
-  string pageBackgroundColor = 13;
-  bool darkForeground = 14;
-  string domainName = 15;
-  string adminSettingsId = 16;
-  bool showNameBottom = 17;
+  WhiteLabelingParamsProto whiteLabelingParams = 1;
+  google.protobuf.StringValue pageBackgroundColor = 2;
+  bool darkForeground = 3;
+  google.protobuf.StringValue domainName = 4;
+  google.protobuf.StringValue adminSettingsId = 5;
+  google.protobuf.BoolValue showNameBottom = 6;
 }
 
 message WhiteLabelingParamsProto {
-  string logoImageUrl = 1;
-  string logoImageChecksum = 2;
-  int64 logoImageHeight = 3;
-  string appTitle = 4;
+  google.protobuf.StringValue logoImageUrl = 1;
+  google.protobuf.StringValue logoImageChecksum = 2;
+  google.protobuf.Int64Value logoImageHeight = 3;
+  google.protobuf.StringValue appTitle = 4;
   FaviconProto favicon = 5;
-  string faviconChecksum = 6;
+  google.protobuf.StringValue faviconChecksum = 6;
   PaletteSettingsProto paletteSettings = 7;
-  string helpLinkBaseUrl = 8;
-  bool enableHelpLinks = 9;
-  bool showNameVersion = 10;
-  string platformName = 11;
-  string platformVersion = 12;
+  google.protobuf.StringValue helpLinkBaseUrl = 8;
+  google.protobuf.BoolValue enableHelpLinks = 9;
+  google.protobuf.BoolValue showNameVersion = 10;
+  google.protobuf.StringValue platformName = 11;
+  google.protobuf.StringValue platformVersion = 12;
 }
 
 message FaviconProto {
-  string url = 1;
-  string type = 2;
+  google.protobuf.StringValue url = 1;
+  google.protobuf.StringValue type = 2;
 }
 
 message PaletteSettingsProto {
@@ -514,8 +503,8 @@ message PaletteSettingsProto {
 }
 
 message PaletteProto {
-  string type = 1;
-  string extendsPalette = 2;
+  google.protobuf.StringValue type = 1;
+  google.protobuf.StringValue extendsPalette = 2;
   map<string, string> colors = 3;
 }
 
