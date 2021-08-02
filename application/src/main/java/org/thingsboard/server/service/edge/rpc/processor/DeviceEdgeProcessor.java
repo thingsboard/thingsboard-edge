@@ -137,9 +137,9 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-                if (deviceUpdateMsg.getEntityGroupIdMSB() != 0 && deviceUpdateMsg.getEntityGroupIdLSB() != 0) {
+                if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
                     EntityGroupId entityGroupId = new EntityGroupId(
-                            new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                            new UUID(deviceUpdateMsg.getEntityGroupIdMSB().getValue(), deviceUpdateMsg.getEntityGroupIdLSB().getValue()));
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
                 } else {
                     removeDeviceFromDeviceGroup(tenantId, edge, deviceId);
@@ -181,11 +181,16 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
         if (device != null) {
             device.setName(deviceUpdateMsg.getName());
             device.setType(deviceUpdateMsg.getType());
-            device.setLabel(deviceUpdateMsg.getLabel());
-            device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
-            if (deviceUpdateMsg.getDeviceProfileIdMSB() != 0 && deviceUpdateMsg.getDeviceProfileIdLSB() != 0) {
+            if (deviceUpdateMsg.hasLabel()) {
+                device.setLabel(deviceUpdateMsg.getLabel().getValue());
+            }
+            if (deviceUpdateMsg.hasAdditionalInfo()) {
+                device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo().getValue()));
+            }
+            if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
                 DeviceProfileId deviceProfileId = new DeviceProfileId(
-                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB()));
+                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB().getValue(),
+                                deviceUpdateMsg.getDeviceProfileIdLSB().getValue()));
                 device.setDeviceProfileId(deviceProfileId);
             }
             deviceService.saveDevice(device);
@@ -213,11 +218,16 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             device.setCustomerId(edge.getCustomerId());
             device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
-            device.setLabel(deviceUpdateMsg.getLabel());
-            device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
-            if (deviceUpdateMsg.getDeviceProfileIdMSB() != 0 && deviceUpdateMsg.getDeviceProfileIdLSB() != 0) {
+            if (deviceUpdateMsg.hasLabel()) {
+                device.setLabel(deviceUpdateMsg.getLabel().getValue());
+            }
+            if (deviceUpdateMsg.hasAdditionalInfo()) {
+                device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo().getValue()));
+            }
+            if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
                 DeviceProfileId deviceProfileId = new DeviceProfileId(
-                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB()));
+                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB().getValue(),
+                                deviceUpdateMsg.getDeviceProfileIdLSB().getValue()));
                 device.setDeviceProfileId(deviceProfileId);
             }
             Device savedDevice = deviceService.saveDevice(device, false);
@@ -234,9 +244,9 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
             createRelationFromEdge(tenantId, edge.getId(), device.getId());
             pushDeviceCreatedEventToRuleEngine(tenantId, edge, device);
             addDeviceToDeviceGroup(tenantId, edge, device.getId());
-            if (deviceUpdateMsg.getEntityGroupIdMSB() != 0 && deviceUpdateMsg.getEntityGroupIdLSB() != 0) {
+            if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
                 EntityGroupId entityGroupId = new EntityGroupId(
-                        new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                        new UUID(deviceUpdateMsg.getEntityGroupIdMSB().getValue(), deviceUpdateMsg.getEntityGroupIdLSB().getValue()));
                 entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, deviceId);
             }
         } finally {

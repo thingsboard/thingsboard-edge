@@ -31,15 +31,18 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
 
 @Component
 @TbCoreComponent
@@ -53,28 +56,19 @@ public class UserMsgConstructor {
                 .setEmail(user.getEmail())
                 .setAuthority(user.getAuthority().name());
         if (user.getCustomerId() != null) {
-            builder.setCustomerIdMSB(user.getCustomerId().getId().getMostSignificantBits());
-            builder.setCustomerIdLSB(user.getCustomerId().getId().getLeastSignificantBits());
+            builder.setCustomerIdMSB(getInt64Value(user.getCustomerId().getId().getMostSignificantBits()));
+            builder.setCustomerIdLSB(getInt64Value(user.getCustomerId().getId().getLeastSignificantBits()));
         }
-        if (user.getFirstName() != null) {
-            builder.setFirstName(user.getFirstName());
-        }
-        if (user.getLastName() != null) {
-            builder.setLastName(user.getLastName());
-        }
-        if (user.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
-        }
-        if (user.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
-        }
+        builder.setFirstName(getStringValue(user.getFirstName()));
+        builder.setLastName(getStringValue(user.getLastName()));
+        builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(user.getAdditionalInfo())));
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
+                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
         if (user.getCustomerId() != null && !user.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(user.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(user.getCustomerId().getId().getLeastSignificantBits());
+            builder.setCustomerIdMSB(getInt64Value(user.getCustomerId().getId().getMostSignificantBits()))
+                    .setCustomerIdLSB(getInt64Value(user.getCustomerId().getId().getLeastSignificantBits()));
         }
         return builder.build();
     }
