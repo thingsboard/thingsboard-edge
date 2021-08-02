@@ -200,7 +200,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(13);
+        edgeImitator.expectMessageAmount(16);
         edgeImitator.connect();
 
         testReceivedInitialData();
@@ -329,13 +329,13 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(2, entityGroupUpdateMsgList.size());
 
         List<LoginWhiteLabelingParamsProto> loginWlpUpdateMsgList = edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class);
-        Assert.assertEquals(1, loginWlpUpdateMsgList.size());
+        Assert.assertEquals(2, loginWlpUpdateMsgList.size());
 
         List<WhiteLabelingParamsProto> wlpUpdateMsgList = edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class);
-        Assert.assertEquals(1, wlpUpdateMsgList.size());
+        Assert.assertEquals(2, wlpUpdateMsgList.size());
 
         List<CustomTranslationProto> customTranslationProtoList = edgeImitator.findAllMessagesByType(CustomTranslationProto.class);
-        Assert.assertEquals(1, customTranslationProtoList.size());
+        Assert.assertEquals(2, customTranslationProtoList.size());
 
         List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgList = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
         Assert.assertEquals(1, adminSettingsUpdateMsgList.size());

@@ -598,12 +598,18 @@ message DownlinkMsg {
   repeated WidgetTypeUpdateMsg widgetTypeUpdateMsg = 19;
   repeated AdminSettingsUpdateMsg adminSettingsUpdateMsg = 20;
   repeated DeviceRpcCallMsg deviceRpcCallMsg = 21;
-  repeated WhiteLabelingParamsProto whiteLabelingParams = 22;
-  repeated LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 23;
-  repeated CustomTranslationProto customTranslationMsg = 24;
-  repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 25;
-  repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 26;
-  repeated RoleProto roleMsg = 27;
-  repeated GroupPermissionProto groupPermissionMsg = 28;
+  WhiteLabelingParamsProto systemWhiteLabelingParams = 22;
+  WhiteLabelingParamsProto tenantWhiteLabelingParams = 23;
+  WhiteLabelingParamsProto customerWhiteLabelingParams = 24;
+  LoginWhiteLabelingParamsProto systemLoginWhiteLabelingParams = 25;
+  LoginWhiteLabelingParamsProto tenantLoginWhiteLabelingParams = 26;
+  LoginWhiteLabelingParamsProto customerLoginWhiteLabelingParams = 27;
+  CustomTranslationProto systemCustomTranslationMsg = 28;
+  CustomTranslationProto tenantCustomTranslationMsg = 29;
+  CustomTranslationProto customerCustomTranslationMsg = 30;
+  repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 31;
+  repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 32;
+  repeated RoleProto roleMsg = 33;
+  repeated GroupPermissionProto groupPermissionMsg = 34;
 
 }

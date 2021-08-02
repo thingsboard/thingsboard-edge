@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -49,32 +51,131 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
     public DownlinkMsg processWhiteLabelingToEdge(EdgeEvent edgeEvent) {
-        WhiteLabelingParams whiteLabelingParams = mapper.convertValue(edgeEvent.getBody(), WhiteLabelingParams.class);
-        WhiteLabelingParamsProto whiteLabelingParamsProto =
-                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addWhiteLabelingParams(whiteLabelingParamsProto)
-                .build();
+        DownlinkMsg result = null;
+        try {
+            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                        WhiteLabelingParams systemWhiteLabelingParams =
+                                whiteLabelingService.getSystemWhiteLabelingParams(edgeEvent.getTenantId());
+                        WhiteLabelingParamsProto whiteLabelingParamsProto =
+                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(systemWhiteLabelingParams);
+                        result = DownlinkMsg.newBuilder()
+                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                                .setSystemWhiteLabelingParams(whiteLabelingParamsProto)
+                                .build();
+                    } else {
+                        WhiteLabelingParams tenantWhiteLabelingParams =
+                                whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId()).get();
+                        WhiteLabelingParamsProto whiteLabelingParamsProto =
+                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(tenantWhiteLabelingParams);
+                        result = DownlinkMsg.newBuilder()
+                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                                .setTenantWhiteLabelingParams(whiteLabelingParamsProto)
+                                .build();
+                    }
+                    break;
+                case CUSTOMER:
+                    CustomerId customerId = new CustomerId(entityId.getId());
+                    WhiteLabelingParams customerWhiteLabelingParams =
+                            whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId).get();
+                    WhiteLabelingParamsProto whiteLabelingParamsProto =
+                            whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(customerWhiteLabelingParams);
+                    result = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setCustomerWhiteLabelingParams(whiteLabelingParamsProto)
+                            .build();
+            }
+        } catch (Exception e) {
+            log.error("Can't process white labeling msg [{}]", edgeEvent, e);
+        }
+        return result;
     }
 
     public DownlinkMsg processLoginWhiteLabelingToEdge(EdgeEvent edgeEvent) {
-        LoginWhiteLabelingParams loginWhiteLabelingParams = mapper.convertValue(edgeEvent.getBody(), LoginWhiteLabelingParams.class);
-        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
-                .build();
+        DownlinkMsg result = null;
+        try {
+            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                        LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
+                                whiteLabelingService.getSystemLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(systemLoginWhiteLabelingParams);
+                        result = DownlinkMsg.newBuilder()
+                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                                .setSystemLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                                .build();
+                    } else {
+                        LoginWhiteLabelingParams tenantLoginWhiteLabelingParams =
+                                whiteLabelingService.getTenantLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                        LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(tenantLoginWhiteLabelingParams);
+                        result = DownlinkMsg.newBuilder()
+                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                                .setTenantLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                                .build();
+                    }
+                    break;
+                case CUSTOMER:
+                    CustomerId customerId = new CustomerId(entityId.getId());
+                    LoginWhiteLabelingParams customerLoginWhiteLabelingParams =
+                            whiteLabelingService.getCustomerLoginWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
+                    LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                            whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(customerLoginWhiteLabelingParams);
+                    result = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setCustomerLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                            .build();
+            }
+        } catch (Exception e) {
+            log.error("Can't process login white labeling msg [{}]", edgeEvent, e);
+        }
+        return result;
     }
 
     public DownlinkMsg processCustomTranslationToEdge(EdgeEvent edgeEvent) {
-        CustomTranslation customTranslation = mapper.convertValue(edgeEvent.getBody(), CustomTranslation.class);
-        CustomTranslationProto customTranslationProto =
-                customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
-        return DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addCustomTranslationMsg(customTranslationProto)
-                .build();
+        DownlinkMsg result = null;
+        try {
+            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                        CustomTranslation systemCustomTranslation =
+                                customTranslationService.getSystemCustomTranslation(edgeEvent.getTenantId());
+                        CustomTranslationProto customTranslationProto =
+                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation);
+                        result = DownlinkMsg.newBuilder()
+                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                                .setSystemCustomTranslationMsg(customTranslationProto)
+                                .build();
+                    } else {
+                        CustomTranslation tenantCustomTranslation =
+                                customTranslationService.getTenantCustomTranslation(edgeEvent.getTenantId());
+                        CustomTranslationProto customTranslationProto =
+                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation);
+                        result = DownlinkMsg.newBuilder()
+                                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                                .setTenantCustomTranslationMsg(customTranslationProto)
+                                .build();
+                    }
+                    break;
+                case CUSTOMER:
+                    CustomerId customerId = new CustomerId(entityId.getId());
+                    CustomTranslation customerCustomTranslation =
+                            customTranslationService.getCustomerCustomTranslation(edgeEvent.getTenantId(), customerId);
+                    CustomTranslationProto customTranslationProto =
+                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation);
+                    result = DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .setCustomerCustomTranslationMsg(customTranslationProto)
+                            .build();
+            }
+        } catch (Exception e) {
+            log.error("Can't process custom translation msg [{}]", edgeEvent, e);
+        }
+        return result;
     }
 }

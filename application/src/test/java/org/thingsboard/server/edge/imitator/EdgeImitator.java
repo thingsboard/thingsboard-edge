@@ -41,11 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.edge.rpc.EdgeGrpcClient;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -60,7 +58,6 @@ import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -70,7 +67,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 
@@ -294,20 +290,32 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(entityGroupUpdateMsg));
             }
         }
-        if (downlinkMsg.getCustomTranslationMsgCount() > 0) {
-            for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
-                result.add(saveDownlinkMsg(customTranslationProto));
-            }
+        if (downlinkMsg.hasSystemCustomTranslationMsg()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getSystemCustomTranslationMsg()));
         }
-        if (downlinkMsg.getWhiteLabelingParamsCount() > 0) {
-            for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
-                result.add(saveDownlinkMsg(whiteLabelingParamsProto));
-            }
+        if (downlinkMsg.hasTenantCustomTranslationMsg()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getTenantCustomTranslationMsg()));
         }
-        if (downlinkMsg.getLoginWhiteLabelingParamsCount() > 0) {
-            for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
-                result.add(saveDownlinkMsg(loginWhiteLabelingParamsProto));
-            }
+        if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getCustomerCustomTranslationMsg()));
+        }
+        if (downlinkMsg.hasSystemWhiteLabelingParams()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getSystemWhiteLabelingParams()));
+        }
+        if (downlinkMsg.hasTenantWhiteLabelingParams()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getTenantWhiteLabelingParams()));
+        }
+        if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getCustomerWhiteLabelingParams()));
+        }
+        if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getSystemLoginWhiteLabelingParams()));
+        }
+        if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getTenantLoginWhiteLabelingParams()));
+        }
+        if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getCustomerLoginWhiteLabelingParams()));
         }
         if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
             for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
