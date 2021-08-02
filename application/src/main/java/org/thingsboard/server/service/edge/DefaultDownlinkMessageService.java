@@ -281,20 +281,32 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                     result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg));
                 }
             }
-            if (downlinkMsg.getCustomTranslationMsgCount() > 0) {
-                for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
-                    result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, customTranslationProto));
-                }
+            if (downlinkMsg.hasSystemCustomTranslationMsg()) {
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getSystemCustomTranslationMsg(), customerId));
             }
-            if (downlinkMsg.getWhiteLabelingParamsCount() > 0) {
-                for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, whiteLabelingParamsProto));
-                }
+            if (downlinkMsg.hasTenantCustomTranslationMsg()) {
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getTenantCustomTranslationMsg(), customerId));
             }
-            if (downlinkMsg.getLoginWhiteLabelingParamsCount() > 0) {
-                for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, loginWhiteLabelingParamsProto));
-                }
+            if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg(), customerId));
+            }
+            if (downlinkMsg.hasSystemWhiteLabelingParams()) {
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemWhiteLabelingParams(), customerId));
+            }
+            if (downlinkMsg.hasTenantWhiteLabelingParams()) {
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantWhiteLabelingParams(), customerId));
+            }
+            if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerWhiteLabelingParams(), customerId));
+            }
+            if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams(), customerId));
+            }
+            if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams(), customerId));
+            }
+            if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams(), customerId));
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {

@@ -163,15 +163,13 @@ public class EdgeClientTest extends AbstractContainerTest {
     private void verifyWhiteLabeling() {
         Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
         Assert.assertTrue("White Labeling is not available on edge", edgeWhiteLabelParams.isPresent());
-        Optional<WhiteLabelingParams> cloudWhiteLabelParams = restClient.getWhiteLabelParams(
-                edgeWhiteLabelParams.get().getLogoImageChecksum(), edgeWhiteLabelParams.get().getFaviconChecksum());
+        Optional<WhiteLabelingParams> cloudWhiteLabelParams = restClient.getCurrentWhiteLabelParams();
         Assert.assertTrue("White Labeling is not available on cloud", cloudWhiteLabelParams.isPresent());
         Assert.assertEquals("White Labeling on cloud and edge are different", edgeWhiteLabelParams.get(), cloudWhiteLabelParams.get());
 
         Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
         Assert.assertTrue("Login White Labeling is not available on edge", edgeLoginWhiteLabelParams.isPresent());
-        Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getLoginWhiteLabelParams(
-                edgeLoginWhiteLabelParams.get().getLogoImageChecksum(), edgeLoginWhiteLabelParams.get().getFaviconChecksum());
+        Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
         Assert.assertTrue("Login White Labeling is not available on cloud", cloudLoginWhiteLabelParams.isPresent());
         Assert.assertEquals("Login White Labeling on cloud and edge are different", edgeLoginWhiteLabelParams.get(), cloudLoginWhiteLabelParams.get());
 

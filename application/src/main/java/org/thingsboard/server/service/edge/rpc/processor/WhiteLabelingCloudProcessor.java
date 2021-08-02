@@ -35,6 +35,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.Favicon;
@@ -45,6 +48,7 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.FaviconProto;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.PaletteProto;
@@ -61,11 +65,23 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto) {
+    public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto, EntityId entityId) {
         try {
             CustomTranslation customTranslation = new CustomTranslation();
-            customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
-            customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
+            if (!customTranslationProto.getTranslationMapMap().isEmpty()) {
+                customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
+            }
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                        customTranslationService.saveSystemCustomTranslation(customTranslation);
+                    } else {
+                        customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
+                    }
+                    break;
+                case CUSTOMER:
+                    customTranslationService.saveCustomerCustomTranslation(tenantId, new CustomerId(entityId.getId()), customTranslation);
+            }
         } catch (Exception e) {
             log.error("Exception during updating custom translation", e);
             return Futures.immediateFailedFuture(new RuntimeException("Exception during updating custom translation", e));
@@ -73,10 +89,20 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    public ListenableFuture<Void> processLoginWhiteLabelingParamsMsgFromCloud(TenantId tenantId, LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
+    public ListenableFuture<Void> processLoginWhiteLabelingParamsMsgFromCloud(TenantId tenantId, LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto, EntityId entityId) {
         try {
             LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
-            whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                        whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
+                    } else {
+                        whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
+                    }
+                    break;
+                case CUSTOMER:
+                    whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(entityId.getId()), loginWhiteLabelingParams);
+            }
         } catch (Exception e) {
             log.error("Exception during updating login white labeling params", e);
             return Futures.immediateFailedFuture(new RuntimeException("Exception during updating login white labeling params", e));
@@ -105,10 +131,22 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         return loginWLP;
     }
 
-    public ListenableFuture<Void> processWhiteLabelingParamsMsgFromCloud(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
+    public ListenableFuture<Void> processWhiteLabelingParamsMsgFromCloud(TenantId tenantId, WhiteLabelingParamsProto wLPProto, EntityId entityId) {
         try {
             WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
-            whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);
+            switch (entityId.getEntityType()) {
+                case TENANT:
+                    if (EntityId.NULL_UUID.equals(entityId.getId())) {
+                        whiteLabelingService.saveSystemWhiteLabelingParams(wLP);
+                    } else {
+                        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);
+                    }
+                    break;
+                case CUSTOMER:
+                    whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(entityId.getId()), wLP);
+            }
+
+
         } catch (Exception e) {
             log.error("Exception during updating white labeling params", e);
             return Futures.immediateFailedFuture(new RuntimeException("Exception during updating white labeling params", e));
@@ -168,9 +206,14 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
     }
 
     private PaletteSettings constructPaletteSettings(PaletteSettingsProto paletteSettingsProto) {
+        Palette primaryPalette = constructPalette(paletteSettingsProto.getPrimaryPalette());
+        Palette accentPalette = constructPalette(paletteSettingsProto.getAccentPalette());
+        if (primaryPalette == null && accentPalette == null) {
+            return null;
+        }
         PaletteSettings paletteSettings = new PaletteSettings();
-        paletteSettings.setPrimaryPalette(constructPalette(paletteSettingsProto.getPrimaryPalette()));
-        paletteSettings.setAccentPalette(constructPalette(paletteSettingsProto.getAccentPalette()));
+        paletteSettings.setPrimaryPalette(primaryPalette);
+        paletteSettings.setAccentPalette(accentPalette);
         return paletteSettings;
     }
 
