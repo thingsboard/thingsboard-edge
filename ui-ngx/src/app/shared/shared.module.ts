@@ -176,6 +176,7 @@ import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-enti
 import { OtaPackageAutocompleteComponent } from '@shared/components/ota-package/ota-package-autocomplete.component';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CopyButtonComponent } from '@shared/components/button/copy-button.component';
+import { TogglePasswordComponent } from '@shared/components/button/toggle-password.component';
 
 @NgModule({
   providers: [
@@ -295,7 +296,8 @@ import { CopyButtonComponent } from '@shared/components/button/copy-button.compo
     ShareEntityGroupComponent,
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
-    CopyButtonComponent
+    CopyButtonComponent,
+    TogglePasswordComponent
   ],
   imports: [
     CommonModule,
@@ -485,7 +487,8 @@ import { CopyButtonComponent } from '@shared/components/button/copy-button.compo
     ShareEntityGroupComponent,
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
-    CopyButtonComponent
+    CopyButtonComponent,
+    TogglePasswordComponent
   ]
 })
 export class SharedModule { }

@@ -69,8 +69,6 @@ export class DeviceCredentialsMqttBasicComponent implements ControlValueAccessor
 
   deviceCredentialsMqttFormGroup: FormGroup;
 
-  hidePassword = true;
-
   private destroy$ = new Subject();
   private propagateChange = (v: any) => {};
 

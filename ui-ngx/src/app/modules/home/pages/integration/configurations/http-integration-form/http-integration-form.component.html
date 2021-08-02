@@ -185,6 +185,7 @@
                   <mat-form-field class="mat-block">
                     <mat-label translate>integration.password</mat-label>
                     <input matInput type="password" required formControlName="password" autocomplete="new-password">
+                    <tb-toggle-password matSuffix></tb-toggle-password>
                     <mat-error translate *ngIf="form.get('credentials.password').hasError('required')">
                       integration.password-required
                     </mat-error>
@@ -196,6 +197,7 @@
                   <mat-form-field class="mat-block">
                     <mat-label translate>integration.token</mat-label>
                     <input required matInput type="password" formControlName="token" autocomplete="new-password">
+                    <tb-toggle-password matSuffix></tb-toggle-password>
                     <mat-error translate *ngIf="form.get('credentials.token').hasError('required')">
                       integration.token-required
                     </mat-error>
@@ -216,6 +218,7 @@
           <mat-form-field class="mat-block">
             <mat-label translate>integration.app-token</mat-label>
             <input required matInput formControlName="token" type="password" autocomplete="new-password" >
+            <tb-toggle-password matSuffix></tb-toggle-password>
             <mat-error translate *ngIf="form.get('token').hasError('required')">
               integration.token-required
             </mat-error>

@@ -59,6 +59,7 @@
                 <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
                     type="password"
                     autocomplete="new-password" formControlName="secretAccessKey">
+                <tb-toggle-password matSuffix></tb-toggle-password>
                 <mat-error translate *ngIf="form.get('secretAccessKey').hasError('required')">
                     integration.kinesis-secret-access-key-required</mat-error>
             </mat-form-field>
