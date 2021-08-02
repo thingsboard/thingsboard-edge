@@ -96,7 +96,9 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                     entityGroup.setName(entityGroupUpdateMsg.getName());
                     entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
                     entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
-                    entityGroup.setAdditionalInfo(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()));
+                    if (entityGroupUpdateMsg.hasAdditionalInfo()) {
+                        entityGroup.setAdditionalInfo(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo().getValue()));
+                    }
 
                     EntityType ownerEntityType = EntityType.valueOf(entityGroupUpdateMsg.getOwnerEntityType());
                     EntityId ownerId = tenantId;

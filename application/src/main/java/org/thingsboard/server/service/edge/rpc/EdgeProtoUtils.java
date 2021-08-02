@@ -28,36 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor;
+package org.thingsboard.server.service.edge.rpc;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.Int64Value;
+import com.google.protobuf.StringValue;
 
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
+public class EdgeProtoUtils {
 
-@Component
-@TbCoreComponent
-public class RelationMsgConstructor {
+    private EdgeProtoUtils() {
+    }
 
-    public RelationUpdateMsg constructRelationUpdatedMsg(UpdateMsgType msgType, EntityRelation entityRelation) {
-        RelationUpdateMsg.Builder builder = RelationUpdateMsg.newBuilder()
-                .setMsgType(msgType)
-                .setFromIdMSB(entityRelation.getFrom().getId().getMostSignificantBits())
-                .setFromIdLSB(entityRelation.getFrom().getId().getLeastSignificantBits())
-                .setFromEntityType(entityRelation.getFrom().getEntityType().name())
-                .setToIdMSB(entityRelation.getTo().getId().getMostSignificantBits())
-                .setToIdLSB(entityRelation.getTo().getId().getLeastSignificantBits())
-                .setToEntityType(entityRelation.getTo().getEntityType().name())
-                .setType(entityRelation.getType());
-        if (entityRelation.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(JacksonUtil.toString(entityRelation.getAdditionalInfo()));
+    public static BoolValue getBoolValue(Boolean value) {
+        BoolValue.Builder builder = BoolValue.newBuilder();
+        if (value != null) {
+            builder.setValue(value);
         }
-        if (entityRelation.getTypeGroup() != null) {
-            builder.setTypeGroup(getStringValue(entityRelation.getTypeGroup().name()));
+        return builder.build();
+    }
+
+    public static StringValue getStringValue(String value) {
+        StringValue.Builder builder = StringValue.newBuilder();
+        if (value != null) {
+            builder.setValue(value);
+        }
+        return builder.build();
+    }
+
+    public static Int64Value getInt64Value(Long value) {
+        Int64Value.Builder builder = Int64Value.newBuilder();
+        if (value != null) {
+            builder.setValue(value);
+        }
+        return builder.build();
+    }
+
+    public static BytesValue getBytesValue(ByteString value) {
+        BytesValue.Builder builder = BytesValue.newBuilder();
+        if (value != null) {
+            builder.setValue(value);
         }
         return builder.build();
     }

@@ -77,7 +77,9 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
             entityRelation.setTo(toId);
 
             entityRelation.setType(relationUpdateMsg.getType());
-            entityRelation.setTypeGroup(RelationTypeGroup.valueOf(relationUpdateMsg.getTypeGroup()));
+            if (relationUpdateMsg.hasTypeGroup()) {
+                entityRelation.setTypeGroup(RelationTypeGroup.valueOf(relationUpdateMsg.getTypeGroup().getValue()));
+            }
             entityRelation.setAdditionalInfo(mapper.readTree(relationUpdateMsg.getAdditionalInfo()));
 
             switch (relationUpdateMsg.getMsgType()) {

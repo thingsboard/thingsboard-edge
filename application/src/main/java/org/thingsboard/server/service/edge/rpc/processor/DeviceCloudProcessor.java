@@ -88,8 +88,9 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 saveOrUpdateDevice(tenantId, customerId, deviceUpdateMsg, cloudType);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB());
-                if (entityGroupUUID != null) {
+                if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
+                    UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB().getValue(),
+                            deviceUpdateMsg.getEntityGroupIdLSB().getValue());
                     EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
                 } else {
@@ -103,8 +104,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 deviceCreationLock.lock();
                 try {
                     String deviceName = deviceUpdateMsg.getName();
-                    if (StringUtils.isNoneBlank(deviceUpdateMsg.getConflictName())) {
-                        deviceName = deviceUpdateMsg.getConflictName();
+                    if (deviceUpdateMsg.hasConflictName()) {
+                        deviceName = deviceUpdateMsg.getConflictName().getValue();
                     }
                     Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
                     if (deviceByName != null) {
@@ -183,13 +184,18 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             }
             device.setName(deviceUpdateMsg.getName());
             device.setType(deviceUpdateMsg.getType());
-            device.setLabel(deviceUpdateMsg.getLabel());
-            if (deviceUpdateMsg.getDeviceProfileIdMSB() != 0 && deviceUpdateMsg.getDeviceProfileIdLSB() != 0) {
+            if (deviceUpdateMsg.hasLabel()) {
+                device.setLabel(deviceUpdateMsg.getLabel().getValue());
+            }
+            if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
                 DeviceProfileId deviceProfileId = new DeviceProfileId(
-                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB()));
+                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB().getValue(),
+                                deviceUpdateMsg.getDeviceProfileIdLSB().getValue()));
                 device.setDeviceProfileId(deviceProfileId);
             }
-            device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
+            if (deviceUpdateMsg.hasAdditionalInfo()) {
+                device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo().getValue()));
+            }
             CustomerId deviceCustomerId = safeSetCustomerId(deviceUpdateMsg, cloudType, device);
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
@@ -210,7 +216,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
     }
 
     private CustomerId safeSetCustomerId(DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType, Device device) {
-        CustomerId deviceCustomerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
+        CustomerId deviceCustomerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB().getValue(),
+                deviceUpdateMsg.getCustomerIdLSB().getValue());
         if (CloudType.PE.equals(cloudType)) {
             device.setCustomerId(deviceCustomerId);
         }
@@ -231,8 +238,9 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 entityGroupService.removeEntityFromEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
             }
         } else {
-            UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB());
-            if (entityGroupUUID != null) {
+            if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
+                UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB().getValue(),
+                        deviceUpdateMsg.getEntityGroupIdLSB().getValue());
                 EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                 addEntityToGroup(tenantId, entityGroupId, deviceId);
             }

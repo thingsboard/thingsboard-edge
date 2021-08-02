@@ -88,11 +88,12 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                     RoleId roleId = new RoleId(new UUID(groupPermissionProto.getRoleIdMSB(), groupPermissionProto.getRoleIdLSB()));
                     groupPermission.setRoleId(roleId);
 
-                    if (!StringUtils.isEmpty(groupPermissionProto.getEntityGroupType())) {
+                    if (groupPermissionProto.hasEntityGroupType()) {
                         EntityGroupId entityGroupId =
-                                new EntityGroupId(new UUID(groupPermissionProto.getEntityGroupIdMSB(), groupPermissionProto.getEntityGroupIdLSB()));
+                                new EntityGroupId(new UUID(groupPermissionProto.getEntityGroupIdMSB().getValue(),
+                                        groupPermissionProto.getEntityGroupIdLSB().getValue()));
                         groupPermission.setEntityGroupId(entityGroupId);
-                        groupPermission.setEntityGroupType(EntityType.valueOf(groupPermissionProto.getEntityGroupType()));
+                        groupPermission.setEntityGroupType(EntityType.valueOf(groupPermissionProto.getEntityGroupType().getValue()));
                     }
                     groupPermission.setPublic(groupPermissionProto.getIsPublic());
                     GroupPermission saveGroupPermission = groupPermissionService.saveGroupPermission(tenantId, groupPermission);

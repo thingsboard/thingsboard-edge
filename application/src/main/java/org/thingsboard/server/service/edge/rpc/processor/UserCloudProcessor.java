@@ -87,9 +87,15 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                     }
                     user.setEmail(userUpdateMsg.getEmail());
                     user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
-                    user.setFirstName(userUpdateMsg.getFirstName());
-                    user.setLastName(userUpdateMsg.getLastName());
-                    user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
+                    if (userUpdateMsg.hasFirstName()) {
+                        user.setFirstName(userUpdateMsg.getFirstName().getValue());
+                    }
+                    if (userUpdateMsg.hasLastName()) {
+                        user.setLastName(userUpdateMsg.getLastName().getValue());
+                    }
+                    if (userUpdateMsg.hasAdditionalInfo()) {
+                        user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo().getValue()));
+                    }
                     safeSetCustomerId(userUpdateMsg, user);
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
@@ -108,8 +114,9 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB());
-                if (entityGroupUUID != null) {
+                if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
+                    UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB().getValue(),
+                            userUpdateMsg.getEntityGroupIdLSB().getValue());
                     EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
                 } else {
@@ -148,8 +155,9 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCECustomerUsers.getId(), savedUser.getId());
             }
         } else {
-            UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB());
-            if (entityGroupUUID != null) {
+            if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
+                UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB().getValue(),
+                        userUpdateMsg.getEntityGroupIdLSB().getValue());
                 EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                 addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
             }
@@ -157,7 +165,8 @@ public class UserCloudProcessor extends BaseCloudProcessor {
     }
 
     private void safeSetCustomerId(UserUpdateMsg userUpdateMsg, User user) {
-        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB());
+        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB().getValue(),
+                userUpdateMsg.getCustomerIdLSB().getValue());
         user.setCustomerId(customerId);
     }
 

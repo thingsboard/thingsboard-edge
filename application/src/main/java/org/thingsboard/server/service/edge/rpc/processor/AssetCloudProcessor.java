@@ -74,8 +74,12 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                     }
                     asset.setName(assetUpdateMsg.getName());
                     asset.setType(assetUpdateMsg.getType());
-                    asset.setLabel(assetUpdateMsg.getLabel());
-                    asset.setAdditionalInfo(JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()));
+                    if (assetUpdateMsg.hasLabel()) {
+                        asset.setLabel(assetUpdateMsg.getLabel().getValue());
+                    }
+                    if (assetUpdateMsg.hasAdditionalInfo()) {
+                        asset.setAdditionalInfo(JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo().getValue()));
+                    }
                     CustomerId assetCustomerId = safeSetCustomerId(assetUpdateMsg, cloudType, asset);
                     Asset savedAsset = assetService.saveAsset(asset, false);
                     if (created) {
@@ -87,8 +91,9 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB());
-                if (entityGroupUUID != null) {
+                if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+                    UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB().getValue(),
+                            assetUpdateMsg.getEntityGroupIdLSB().getValue());
                     EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
                 } else {
@@ -120,8 +125,9 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                 entityGroupService.removeEntityFromEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
             }
         } else {
-            UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB());
-            if (entityGroupUUID != null) {
+            if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+                UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB().getValue(),
+                        assetUpdateMsg.getEntityGroupIdLSB().getValue());
                 EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                 addEntityToGroup(tenantId, entityGroupId, assetId);
             }
@@ -129,7 +135,8 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
     }
 
     private CustomerId safeSetCustomerId(AssetUpdateMsg assetUpdateMsg, CloudType cloudType, Asset asset) {
-        CustomerId assetCustomerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
+        CustomerId assetCustomerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB().getValue(),
+                assetUpdateMsg.getCustomerIdLSB().getValue());
         if (CloudType.PE.equals(cloudType)) {
             asset.setCustomerId(assetCustomerId);
         }
