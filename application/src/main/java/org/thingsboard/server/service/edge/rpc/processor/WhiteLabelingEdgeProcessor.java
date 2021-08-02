@@ -59,6 +59,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
                         WhiteLabelingParams systemWhiteLabelingParams =
                                 whiteLabelingService.getSystemWhiteLabelingParams(edgeEvent.getTenantId());
+                        if (isDefaultWhiteLabeling(systemWhiteLabelingParams)) {
+                            return null;
+                        }
                         WhiteLabelingParamsProto whiteLabelingParamsProto =
                                 whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(systemWhiteLabelingParams);
                         result = DownlinkMsg.newBuilder()
@@ -68,6 +71,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     } else {
                         WhiteLabelingParams tenantWhiteLabelingParams =
                                 whiteLabelingService.getTenantWhiteLabelingParams(edgeEvent.getTenantId()).get();
+                        if (isDefaultWhiteLabeling(tenantWhiteLabelingParams)) {
+                            return null;
+                        }
                         WhiteLabelingParamsProto whiteLabelingParamsProto =
                                 whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(tenantWhiteLabelingParams);
                         result = DownlinkMsg.newBuilder()
@@ -80,6 +86,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     CustomerId customerId = new CustomerId(entityId.getId());
                     WhiteLabelingParams customerWhiteLabelingParams =
                             whiteLabelingService.getCustomerWhiteLabelingParams(edgeEvent.getTenantId(), customerId).get();
+                    if (isDefaultWhiteLabeling(customerWhiteLabelingParams)) {
+                        return null;
+                    }
                     WhiteLabelingParamsProto whiteLabelingParamsProto =
                             whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(customerWhiteLabelingParams);
                     result = DownlinkMsg.newBuilder()
@@ -93,6 +102,10 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
+    private boolean isDefaultWhiteLabeling(WhiteLabelingParams whiteLabelingParams) {
+        return new WhiteLabelingParams().equals(whiteLabelingParams);
+    }
+
     public DownlinkMsg processLoginWhiteLabelingToEdge(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
@@ -102,6 +115,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
                         LoginWhiteLabelingParams systemLoginWhiteLabelingParams =
                                 whiteLabelingService.getSystemLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                        if (isDefaultLoginWhiteLabeling(systemLoginWhiteLabelingParams)) {
+                            return null;
+                        }
                         LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
                                 whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(systemLoginWhiteLabelingParams);
                         result = DownlinkMsg.newBuilder()
@@ -111,6 +127,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     } else {
                         LoginWhiteLabelingParams tenantLoginWhiteLabelingParams =
                                 whiteLabelingService.getTenantLoginWhiteLabelingParams(edgeEvent.getTenantId());
+                        if (isDefaultLoginWhiteLabeling(tenantLoginWhiteLabelingParams)) {
+                            return null;
+                        }
                         LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
                                 whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(tenantLoginWhiteLabelingParams);
                         result = DownlinkMsg.newBuilder()
@@ -123,6 +142,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     CustomerId customerId = new CustomerId(entityId.getId());
                     LoginWhiteLabelingParams customerLoginWhiteLabelingParams =
                             whiteLabelingService.getCustomerLoginWhiteLabelingParams(edgeEvent.getTenantId(), customerId);
+                    if (isDefaultLoginWhiteLabeling(customerLoginWhiteLabelingParams)) {
+                        return null;
+                    }
                     LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
                             whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(customerLoginWhiteLabelingParams);
                     result = DownlinkMsg.newBuilder()
@@ -136,6 +158,10 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
+    private boolean isDefaultLoginWhiteLabeling(LoginWhiteLabelingParams loginWhiteLabelingParams) {
+        return new LoginWhiteLabelingParams().equals(loginWhiteLabelingParams);
+    }
+
     public DownlinkMsg processCustomTranslationToEdge(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
@@ -145,6 +171,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
                         CustomTranslation systemCustomTranslation =
                                 customTranslationService.getSystemCustomTranslation(edgeEvent.getTenantId());
+                        if (isDefaultCustomTranslation(systemCustomTranslation)) {
+                            return null;
+                        }
                         CustomTranslationProto customTranslationProto =
                                 customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation);
                         result = DownlinkMsg.newBuilder()
@@ -154,6 +183,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     } else {
                         CustomTranslation tenantCustomTranslation =
                                 customTranslationService.getTenantCustomTranslation(edgeEvent.getTenantId());
+                        if (isDefaultCustomTranslation(tenantCustomTranslation)) {
+                            return null;
+                        }
                         CustomTranslationProto customTranslationProto =
                                 customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation);
                         result = DownlinkMsg.newBuilder()
@@ -166,6 +198,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     CustomerId customerId = new CustomerId(entityId.getId());
                     CustomTranslation customerCustomTranslation =
                             customTranslationService.getCustomerCustomTranslation(edgeEvent.getTenantId(), customerId);
+                    if (isDefaultCustomTranslation(customerCustomTranslation)) {
+                        return null;
+                    }
                     CustomTranslationProto customTranslationProto =
                             customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation);
                     result = DownlinkMsg.newBuilder()
@@ -177,5 +212,9 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             log.error("Can't process custom translation msg [{}]", edgeEvent, e);
         }
         return result;
+    }
+
+    private boolean isDefaultCustomTranslation(CustomTranslation customTranslation) {
+        return new CustomTranslation().equals(customTranslation);
     }
 }
