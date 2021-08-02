@@ -34,6 +34,7 @@ import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -110,7 +111,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         verifyWidgetsBundles();
         verifyDeviceProfiles();
         verifyWhiteLabeling();
-//        verifyAdminSettings();
+        verifyAdminSettings();
         verifyRuleChains();
 //        verifyEntityGroups(EntityType.DEVICE);
 //        verifyEntityGroups(EntityType.ASSET);
@@ -178,6 +179,20 @@ public class EdgeClientTest extends AbstractContainerTest {
         Optional<CustomTranslation> cloudCustomTranslation = restClient.getCustomTranslation();
         Assert.assertTrue("Custom Translation is not available on cloud", cloudCustomTranslation.isPresent());
         Assert.assertEquals("Custom Translation on cloud and edge are different", edgeCustomTranslation.get(), cloudCustomTranslation.get());
+    }
+
+    private void verifyAdminSettings() {
+        verifyAdminSettingsByKey("general");
+        verifyAdminSettingsByKey("mail");
+        verifyAdminSettingsByKey("mailTemplates");
+    }
+
+    private void verifyAdminSettingsByKey(String key) {
+        Optional<AdminSettings> edgeAdminSettings = edgeRestClient.getAdminSettings(key);
+        Assert.assertTrue("Admin settings is not available on edge, key = " + key, edgeAdminSettings.isPresent());
+        Optional<AdminSettings> cloudAdminSettings = restClient.getAdminSettings(key);
+        Assert.assertTrue("Admin settings is not available on cloud, key = " + key, cloudAdminSettings.isPresent());
+        Assert.assertEquals("Admin settings on cloud and edge are different", edgeAdminSettings.get(), cloudAdminSettings.get());
     }
 
     private void verifyRoles() {
