@@ -81,6 +81,7 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
                     break;
                 case CUSTOMER:
                     customTranslationService.saveCustomerCustomTranslation(tenantId, new CustomerId(entityId.getId()), customTranslation);
+                    break;
             }
         } catch (Exception e) {
             log.error("Exception during updating custom translation", e);
@@ -102,6 +103,7 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
                     break;
                 case CUSTOMER:
                     whiteLabelingService.saveCustomerLoginWhiteLabelingParams(tenantId, new CustomerId(entityId.getId()), loginWhiteLabelingParams);
+                    break;
             }
         } catch (Exception e) {
             log.error("Exception during updating login white labeling params", e);
@@ -144,9 +146,8 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
                     break;
                 case CUSTOMER:
                     whiteLabelingService.saveCustomerWhiteLabelingParams(tenantId, new CustomerId(entityId.getId()), wLP);
+                    break;
             }
-
-
         } catch (Exception e) {
             log.error("Exception during updating white labeling params", e);
             return Futures.immediateFailedFuture(new RuntimeException("Exception during updating white labeling params", e));
