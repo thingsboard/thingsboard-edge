@@ -76,7 +76,9 @@ public class DeviceProfileMsgConstructor {
         if (deviceProfile.getProvisionType() != null) {
             builder.setProvisionType(getStringValue(deviceProfile.getProvisionType().name()));
         }
-        builder.setProvisionDeviceKey(getStringValue(deviceProfile.getProvisionDeviceKey()));
+        if (deviceProfile.getProvisionDeviceKey() != null) {
+            builder.setProvisionDeviceKey(getStringValue(deviceProfile.getProvisionDeviceKey()));
+        }
         if (deviceProfile.getImage() != null) {
             builder.setImage(getBytesValue(ByteString.copyFrom(deviceProfile.getImage().getBytes(StandardCharsets.UTF_8))));
         }
