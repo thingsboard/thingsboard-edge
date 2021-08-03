@@ -180,7 +180,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
                 userCredentials.setActivateToken(null);
                 userCredentials.setResetToken(null);
-                userService.saveUserCredentials(tenantId, userCredentials);
+                userService.saveUserCredentials(tenantId, userCredentials, false);
             }
             return null;
         }, dbCallbackExecutor);

@@ -204,9 +204,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     @Override
     public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
+        return saveUserCredentials(tenantId, userCredentials, true);
+    }
+
+    @Override
+    public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory) {
         log.trace("Executing saveUserCredentials [{}]", userCredentials);
         userCredentialsValidator.validate(userCredentials, data -> tenantId);
-        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials);
+        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials, updatePasswordHistory);
     }
 
     @Override
@@ -414,10 +419,17 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     @Override
     public UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials) {
+        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials, true);
+    }
+
+    @Override
+    public UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory) {
         UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
-        User user = findUserById(tenantId, userCredentials.getUserId());
-        if (userCredentials.getPassword() != null) {
-            updatePasswordHistory(user, userCredentials);
+        if (updatePasswordHistory) {
+            User user = findUserById(tenantId, userCredentials.getUserId());
+            if (userCredentials.getPassword() != null) {
+                updatePasswordHistory(user, userCredentials);
+            }
         }
         return result;
     }

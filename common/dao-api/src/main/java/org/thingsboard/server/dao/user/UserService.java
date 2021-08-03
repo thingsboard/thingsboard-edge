@@ -67,6 +67,8 @@ public interface UserService {
 	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
 	
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
@@ -101,4 +103,6 @@ public interface UserService {
 	int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId);
 
 	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials);
+
+	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
 }

@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
@@ -76,7 +77,6 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
@@ -85,7 +85,6 @@ import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
-
 
 import javax.net.ssl.SSLContext;
 import java.net.URI;
@@ -106,6 +105,7 @@ public abstract class AbstractContainerTest {
 
     protected static RestClient edgeRestClient;
 
+    protected static Edge edge;
 
     @BeforeClass
     public static void before() throws Exception {
@@ -117,7 +117,10 @@ public abstract class AbstractContainerTest {
         edgeRestClient = new RestClient("http://" + edgeHost + ":" + edgePort);
 
         setWhiteLabelingAndCustomTranslation();
-        Edge edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
+        // wait while white labeling and login wl fully stored to db
+        Thread.sleep(1000);
+
+        edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
         boolean loginSuccessful = false;
         int attempt = 0;
@@ -222,7 +225,7 @@ public abstract class AbstractContainerTest {
         deviceProfile.setType(DeviceProfileType.DEFAULT);
         deviceProfile.setImage("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEABA");
         deviceProfile.setTransportType(DeviceTransportType.DEFAULT);
-        deviceProfile.setDescription(name + " Test");
+        deviceProfile.setDescription(null);
         deviceProfile.setProvisionType(DeviceProfileProvisionType.DISABLED);
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
@@ -239,7 +242,7 @@ public abstract class AbstractContainerTest {
         return restClient.saveDeviceProfile(deviceProfile);
     }
 
-    private void extendDeviceProfileData(DeviceProfile deviceProfile) {
+    protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
         DeviceProfileData profileData = deviceProfile.getProfileData();
         List<DeviceProfileAlarm> alarms = new ArrayList<>();
         DeviceProfileAlarm deviceProfileAlarm = new DeviceProfileAlarm();
