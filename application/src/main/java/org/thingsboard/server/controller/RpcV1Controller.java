@@ -28,56 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.http.controller.sigfox;
+package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
-import org.thingsboard.integration.api.controller.BaseIntegrationController;
-import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Map;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/integrations/sigfox")
+@TbCoreComponent
+@RequestMapping(TbUrlConstants.RPC_V1_URL_PREFIX)
 @Slf4j
-public class SigFoxIntegrationController extends BaseIntegrationController {
+public class RpcV1Controller extends AbstractRpcController {
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @RequestMapping(value = "/{routingKey}")
-    @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> processRequest(
-            @PathVariable("routingKey") String routingKey,
-            @RequestBody JsonNode msg,
-            @RequestHeader Map<String, String> requestHeaders
-    ) {
-        log.debug("[{}] Received request: {}", routingKey, msg);
-        DeferredResult<ResponseEntity> result = new DeferredResult<>();
-
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
-
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.SIGFOX)) {
-                return;
-            }
-            api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
-
-        return result;
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/oneway/{deviceId}", method = RequestMethod.POST)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> handleOneWayDeviceRPCRequest(@PathVariable("deviceId") String deviceIdStr, @RequestBody String requestBody) throws ThingsboardException {
+        return handleDeviceRPCRequest(true, new DeviceId(UUID.fromString(deviceIdStr)), requestBody, HttpStatus.REQUEST_TIMEOUT, HttpStatus.CONFLICT);
     }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/twoway/{deviceId}", method = RequestMethod.POST)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> handleTwoWayDeviceRPCRequest(@PathVariable("deviceId") String deviceIdStr, @RequestBody String requestBody) throws ThingsboardException {
+        return handleDeviceRPCRequest(false, new DeviceId(UUID.fromString(deviceIdStr)), requestBody, HttpStatus.REQUEST_TIMEOUT, HttpStatus.CONFLICT);
+    }
+
 }

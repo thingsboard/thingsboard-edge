@@ -30,21 +30,21 @@
  */
 package org.thingsboard.integration.api.controller;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 
 import java.util.Map;
 
-@Data
-@AllArgsConstructor
-public abstract class HttpIntegrationMsg<T> {
+public class JsonHttpIntegrationMsg extends HttpIntegrationMsg<JsonNode> {
 
-    private final Map<String, String> requestHeaders;
-    protected final T msg;
-    private final DeferredResult<ResponseEntity> callback;
+    public JsonHttpIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, DeferredResult<ResponseEntity> callback) {
+        super(requestHeaders, msg, callback);
+    }
 
-    public abstract byte[] getMsgInBytes();
-
+    @Override
+    public byte[] getMsgInBytes() {
+        return JacksonUtil.writeValueAsBytes(msg);
+    }
 }

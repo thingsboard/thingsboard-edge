@@ -37,7 +37,7 @@ import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDevicePersistedRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
@@ -126,13 +126,18 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
                     payload -> {
                         ChannelFuture channelFuture = parent.writeAndFlush(payload);
                         if (request.getPersisted()) {
-                            channelFuture.addListener(future ->
-                                    transportService.process(getSessionInfo(), request, future.cause() != null, TransportServiceCallback.EMPTY)
-                            );
+                            channelFuture.addListener(future -> {
+                                if (future.cause() == null) {
+                                    transportService.process(getSessionInfo(), request, TransportServiceCallback.EMPTY);
+                                }
+                            });
                         }
                     }
             );
         } catch (Exception e) {
+            transportService.process(getSessionInfo(),
+                    ToDeviceRpcResponseMsg.newBuilder()
+                            .setRequestId(request.getRequestId()).setError("Failed to convert device RPC command to MQTT msg").build(), TransportServiceCallback.EMPTY);
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
     }

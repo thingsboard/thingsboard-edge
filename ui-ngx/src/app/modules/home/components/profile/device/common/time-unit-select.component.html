@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -31,35 +30,26 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<!DOCTYPE configuration>
-<configuration scan="true" scanPeriod="10 seconds">
-
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <logger name="org.thingsboard.server" level="INFO" />
-
-<!--    <logger name="org.thingsboard.server.service.queue" level="TRACE" />-->
-<!--    <logger name="org.thingsboard.server.service.transport" level="TRACE" />-->
-<!--    <logger name="org.thingsboard.server.queue.memory.InMemoryStorage" level="DEBUG" />-->
-<!--    <logger name="org.thingsboard.server.service.ttl.AbstractCleanUpService" level="DEBUG" />-->
-
-<!--    <logger name="org.thingsboard.server.service.subscription" level="TRACE"/>-->
-<!--    <logger name="org.thingsboard.server.service.telemetry" level="TRACE"/>-->
-<!--    <logger name="org.eclipse.californium.scandium.DTLSConnector" level="TRACE" />-->
-<!--    <logger name="org.eclipse.californium.scandium.dtls.Handshaker" level="DEBUG" />-->
-
-    <!-- Top Rule Nodes by max execution time -->
-<!--    <logger name="org.thingsboard.server.service.queue.TbMsgPackProcessingContext" level="DEBUG" /> -->
-
-    <logger name="com.microsoft.azure.servicebus.primitives.CoreMessageReceiver" level="OFF" />
-
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
-
-
-</configuration>
+<section [formGroup]="timeUnitSelectFormGroup" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+  <mat-form-field class="mat-block" fxFlex>
+    <mat-label>{{ labelText | translate }}</mat-label>
+    <input matInput type="number" min="0" formControlName="time" required>
+    <mat-error *ngIf="timeUnitSelectFormGroup.get('time').hasError('required')">
+      {{ requiredText | translate }}
+    </mat-error>
+    <mat-error *ngIf="timeUnitSelectFormGroup.get('time').hasError('pattern')">
+      {{ patternText | translate }}
+    </mat-error>
+    <mat-error *ngIf="timeUnitSelectFormGroup.get('time').hasError('min')">
+      {{ (minText || patternText) | translate : {min: minTime/1000} }}
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field class="mat-block" fxFlex>
+    <mat-label translate>device-profile.condition-duration-time-unit</mat-label>
+    <mat-select formControlName="unit">
+      <mat-option *ngFor="let timeUnit of timeUnits" [value]="timeUnit">
+        {{ timeUnitTranslations.get(timeUnit) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</section>

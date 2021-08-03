@@ -62,7 +62,7 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
 
   private internalUrlPrefixes = [
     '/api/auth/token',
-    '/api/plugins/rpc'
+    '/api/rpc'
   ];
 
   private activeRequests = 0;
@@ -157,7 +157,7 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
       }
     } else if (errorResponse.status === 0 || errorResponse.status === -1) {
         this.showError('Unable to connect');
-    } else if (!req.url.startsWith('/api/plugins/rpc')) {
+    } else if (!(req.url.startsWith('/api/rpc') || req.url.startsWith('/api/plugins/rpc'))) {
       if (errorResponse.status === 404) {
         if (!ignoreErrors) {
           this.showError(req.method + ': ' + req.url + '<br/>' +
