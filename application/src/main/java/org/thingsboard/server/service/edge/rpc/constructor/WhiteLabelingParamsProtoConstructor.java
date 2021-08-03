@@ -60,7 +60,9 @@ public class WhiteLabelingParamsProtoConstructor {
         if (loginWhiteLabelingParams.getDomainName() != null) {
             builder.setDomainName(getStringValue(loginWhiteLabelingParams.getDomainName()));
         }
-        builder.setShowNameBottom(getBoolValue(loginWhiteLabelingParams.getShowNameBottom()));
+        if (loginWhiteLabelingParams.getShowNameBottom() != null) {
+            builder.setShowNameBottom(getBoolValue(loginWhiteLabelingParams.getShowNameBottom()));
+        }
         if (loginWhiteLabelingParams.getAdminSettingsId() != null) {
             builder.setAdminSettingsId(getStringValue(loginWhiteLabelingParams.getAdminSettingsId()));
         }
