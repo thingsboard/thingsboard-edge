@@ -396,11 +396,11 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
     }
 
     private void reportSessionOpen() {
-        systemContext.getDeviceStateService().onDeviceConnect(deviceId);
+        systemContext.getDeviceStateService().onDeviceConnect(tenantId, deviceId);
     }
 
     private void reportSessionClose() {
-        systemContext.getDeviceStateService().onDeviceDisconnect(deviceId);
+        systemContext.getDeviceStateService().onDeviceDisconnect(tenantId, deviceId);
     }
 
     private void handleGetAttributesRequest(TbActorCtx context, SessionInfoProto sessionInfo, GetAttributeRequestMsg request) {
@@ -605,7 +605,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
             if (sessions.size() == 1) {
                 reportSessionOpen();
             }
-            systemContext.getDeviceStateService().onDeviceActivity(deviceId, System.currentTimeMillis());
+            systemContext.getDeviceStateService().onDeviceActivity(tenantId, deviceId, System.currentTimeMillis());
             dumpSessions();
         } else if (msg.getEvent() == SessionEvent.CLOSED) {
             log.debug("[{}] Canceling subscriptions for closed session [{}]", deviceId, sessionId);
@@ -635,7 +635,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         if (subscriptionInfo.getRpcSubscription()) {
             rpcSubscriptions.putIfAbsent(sessionId, sessionMD.getSessionInfo());
         }
-        systemContext.getDeviceStateService().onDeviceActivity(deviceId, subscriptionInfo.getLastActivityTime());
+        systemContext.getDeviceStateService().onDeviceActivity(tenantId, deviceId, subscriptionInfo.getLastActivityTime());
         dumpSessions();
     }
 

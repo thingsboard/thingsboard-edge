@@ -76,7 +76,9 @@ public class EntityViewMsgConstructor {
             builder.setCustomerIdMSB(getInt64Value(entityView.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(entityView.getCustomerId().getId().getLeastSignificantBits()));
         }
-        builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(entityView.getAdditionalInfo())));
+        if (entityView.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(entityView.getAdditionalInfo())));
+        }
         return builder.build();
     }
 

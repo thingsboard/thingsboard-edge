@@ -59,9 +59,15 @@ public class UserMsgConstructor {
             builder.setCustomerIdMSB(getInt64Value(user.getCustomerId().getId().getMostSignificantBits()));
             builder.setCustomerIdLSB(getInt64Value(user.getCustomerId().getId().getLeastSignificantBits()));
         }
-        builder.setFirstName(getStringValue(user.getFirstName()));
-        builder.setLastName(getStringValue(user.getLastName()));
-        builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(user.getAdditionalInfo())));
+        if (user.getFirstName() != null) {
+            builder.setFirstName(getStringValue(user.getFirstName()));
+        }
+        if (user.getLastName() != null) {
+            builder.setLastName(getStringValue(user.getLastName()));
+        }
+        if (user.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(user.getAdditionalInfo())));
+        }
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));

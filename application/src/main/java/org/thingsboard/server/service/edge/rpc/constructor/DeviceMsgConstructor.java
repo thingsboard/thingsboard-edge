@@ -68,7 +68,9 @@ public class DeviceMsgConstructor {
                 .setIdLSB(device.getId().getId().getLeastSignificantBits())
                 .setName(device.getName())
                 .setType(device.getType());
-        builder.setLabel(getStringValue(device.getLabel()));
+        if (device.getLabel() != null) {
+            builder.setLabel(getStringValue(device.getLabel()));
+        }
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
@@ -81,8 +83,12 @@ public class DeviceMsgConstructor {
             builder.setDeviceProfileIdMSB(getInt64Value(device.getDeviceProfileId().getId().getMostSignificantBits()));
             builder.setDeviceProfileIdLSB(getInt64Value(device.getDeviceProfileId().getId().getLeastSignificantBits()));
         }
-        builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(device.getAdditionalInfo())));
-        builder.setConflictName(getStringValue(conflictName));
+        if (device.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(device.getAdditionalInfo())));
+        }
+        if (conflictName != null) {
+            builder.setConflictName(getStringValue(conflictName));
+        }
         return builder.build();
     }
 

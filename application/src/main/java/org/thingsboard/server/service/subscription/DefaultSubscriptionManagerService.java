@@ -239,7 +239,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                     return subscriptionUpdate;
                 });
         if (entityId.getEntityType() == EntityType.DEVICE) {
-            updateDeviceInactivityTimeout(entityId, ts);
+            updateDeviceInactivityTimeout(tenantId, entityId, ts);
         }
         callback.onSuccess();
     }
@@ -274,7 +274,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 });
         if (entityId.getEntityType() == EntityType.DEVICE) {
             if (TbAttributeSubscriptionScope.SERVER_SCOPE.name().equalsIgnoreCase(scope)) {
-                updateDeviceInactivityTimeout(entityId, attributes);
+                updateDeviceInactivityTimeout(tenantId, entityId, attributes);
             } else if (TbAttributeSubscriptionScope.SHARED_SCOPE.name().equalsIgnoreCase(scope) && notifyDevice) {
                 clusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onUpdate(tenantId,
                         new DeviceId(entityId.getId()), DataConstants.SHARED_SCOPE, new ArrayList<>(attributes))
@@ -284,10 +284,10 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
         callback.onSuccess();
     }
 
-    private void updateDeviceInactivityTimeout(EntityId entityId, List<? extends KvEntry> kvEntries) {
+    private void updateDeviceInactivityTimeout(TenantId tenantId, EntityId entityId, List<? extends KvEntry> kvEntries) {
         for (KvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals(DefaultDeviceStateService.INACTIVITY_TIMEOUT)) {
-                deviceStateService.onDeviceInactivityTimeoutUpdate(new DeviceId(entityId.getId()), kvEntry.getLongValue().orElse(0L));
+                deviceStateService.onDeviceInactivityTimeoutUpdate(tenantId, new DeviceId(entityId.getId()), kvEntry.getLongValue().orElse(0L));
             }
         }
     }

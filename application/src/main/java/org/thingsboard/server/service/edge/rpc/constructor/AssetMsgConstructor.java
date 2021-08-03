@@ -53,7 +53,9 @@ public class AssetMsgConstructor {
                 .setIdLSB(asset.getId().getId().getLeastSignificantBits())
                 .setName(asset.getName())
                 .setType(asset.getType());
-        builder.setLabel(getStringValue(asset.getLabel()));
+        if (asset.getLabel() != null) {
+            builder.setLabel(getStringValue(asset.getLabel()));
+        }
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
@@ -62,7 +64,9 @@ public class AssetMsgConstructor {
             builder.setCustomerIdMSB(getInt64Value(asset.getCustomerId().getId().getMostSignificantBits()));
             builder.setCustomerIdLSB(getInt64Value(asset.getCustomerId().getId().getLeastSignificantBits()));
         }
-        builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(asset.getAdditionalInfo())));
+        if (asset.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(asset.getAdditionalInfo())));
+        }
         return builder.build();
     }
 
