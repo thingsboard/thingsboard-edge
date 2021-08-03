@@ -55,7 +55,7 @@ public class RoleProtoConstructor {
                 .setType(role.getType().name())
                 .setAdditionalInfo(JacksonUtil.toString(role.getAdditionalInfo()))
                 .setPermissions(JacksonUtil.toString(role.getPermissions()));
-        if (role.getCustomerId() != null && !role.getCustomerId().isNullUid()) {
+        if (role.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(role.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(role.getCustomerId().getId().getLeastSignificantBits()));
         }

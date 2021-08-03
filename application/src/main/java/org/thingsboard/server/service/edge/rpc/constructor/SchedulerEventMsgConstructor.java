@@ -53,7 +53,7 @@ public class SchedulerEventMsgConstructor {
         builder.setType(schedulerEvent.getType());
         builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
         builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
-        if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().isNullUid()) {
+        if (schedulerEvent.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(schedulerEvent.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(schedulerEvent.getCustomerId().getId().getLeastSignificantBits()));
         }

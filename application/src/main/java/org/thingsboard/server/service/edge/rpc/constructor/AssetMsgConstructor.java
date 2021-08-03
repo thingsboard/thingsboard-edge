@@ -60,7 +60,7 @@ public class AssetMsgConstructor {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
+        if (asset.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(asset.getCustomerId().getId().getMostSignificantBits()));
             builder.setCustomerIdLSB(getInt64Value(asset.getCustomerId().getId().getLeastSignificantBits()));
         }

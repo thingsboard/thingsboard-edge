@@ -431,20 +431,25 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             // TODO: voba - refactor this to pagination
             ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
             return Futures.transformAsync(entityIdsFuture, entityIds -> {
-                EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
-                switch (groupType) {
-                    case DEVICE:
-                        return syncDevices(edge, entityIds, entityGroupId);
-                    case ASSET:
-                        return syncAssets(edge, entityIds, entityGroupId);
-                    case ENTITY_VIEW:
-                        return syncEntityViews(edge, entityIds, entityGroupId);
-                    case DASHBOARD:
-                        return syncDashboards(edge, entityIds, entityGroupId);
-                    case USER:
-                        return syncUsers(edge, entityIds, entityGroupId);
-                    default:
-                        return Futures.immediateFuture(null);
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
+                    switch (groupType) {
+                        case DEVICE:
+                            return syncDevices(edge, entityIds, entityGroupId);
+                        case ASSET:
+                            return syncAssets(edge, entityIds, entityGroupId);
+                        case ENTITY_VIEW:
+                            return syncEntityViews(edge, entityIds, entityGroupId);
+                        case DASHBOARD:
+                            return syncDashboards(edge, entityIds, entityGroupId);
+                        case USER:
+                            return syncUsers(edge, entityIds, entityGroupId);
+                        default:
+                            return Futures.immediateFuture(null);
+                    }
+                } else {
+                    log.trace("No entities found for the requested entity group {} [{}]", entityGroupId.getId(), entityGroupEntitiesRequestMsg.getType());
+                    return Futures.immediateFuture(null);
                 }
             }, dbCallbackExecutorService);
         }

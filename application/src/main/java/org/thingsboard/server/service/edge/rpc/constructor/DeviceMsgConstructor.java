@@ -75,7 +75,7 @@ public class DeviceMsgConstructor {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+        if (device.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(device.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(device.getCustomerId().getId().getLeastSignificantBits()));
         }

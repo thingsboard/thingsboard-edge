@@ -72,7 +72,7 @@ public class EntityViewMsgConstructor {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (entityView.getCustomerId() != null && !entityView.getCustomerId().isNullUid()) {
+        if (entityView.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(entityView.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(entityView.getCustomerId().getId().getLeastSignificantBits()));
         }

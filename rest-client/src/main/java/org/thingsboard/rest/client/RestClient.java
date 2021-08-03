@@ -66,15 +66,14 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
@@ -94,6 +93,7 @@ import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
@@ -114,11 +114,11 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OAuth2ClientRegistrationTemplateId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
@@ -163,9 +163,9 @@ import org.thingsboard.server.common.data.rule.DefaultRuleChainCreateRequest;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainData;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
@@ -174,8 +174,8 @@ import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParam
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -2234,6 +2234,34 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
+    public Optional<EntityGroup> assignEntityGroupToEdge(EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
+        try {
+            ResponseEntity<EntityGroup> entityGroup = restTemplate.postForEntity(baseURL + "/api/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}",
+                    null, EntityGroup.class, edgeId.getId(), entityGroupId.getId(), groupType.name());
+            return Optional.ofNullable(entityGroup.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<EntityGroup> unassignEntityGroupFromEdge(EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
+        try {
+            ResponseEntity<EntityGroup> entityGroup = restTemplate.exchange(baseURL + "/api/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}",
+                    HttpMethod.DELETE, HttpEntity.EMPTY, EntityGroup.class, edgeId.getId(), entityGroupId.getId(), groupType.name());
+            return Optional.ofNullable(entityGroup.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public PageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("edgeId", edgeId.getId().toString());
@@ -3153,6 +3181,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
         return restTemplate.exchange(
                 baseURL + "/api/user/entityViews?type={type}&" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<EntityView>>() {
+                },
+                params).getBody();
+    }
+
+    public PageData<EntityView> getEntityViewsByEntityGroupId(EntityGroupId entityGroupId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId.toString());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/entityViews?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<EntityView>>() {

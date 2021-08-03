@@ -56,7 +56,7 @@ public class DashboardMsgConstructor {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (dashboard.getCustomerId() != null && !dashboard.getCustomerId().isNullUid()) {
+        if (dashboard.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(dashboard.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(dashboard.getCustomerId().getId().getLeastSignificantBits()));
         }

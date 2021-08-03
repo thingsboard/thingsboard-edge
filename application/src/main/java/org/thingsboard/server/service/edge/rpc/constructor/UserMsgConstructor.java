@@ -72,7 +72,7 @@ public class UserMsgConstructor {
             builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
                     .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (user.getCustomerId() != null && !user.getCustomerId().isNullUid()) {
+        if (user.getCustomerId() != null) {
             builder.setCustomerIdMSB(getInt64Value(user.getCustomerId().getId().getMostSignificantBits()))
                     .setCustomerIdLSB(getInt64Value(user.getCustomerId().getId().getLeastSignificantBits()));
         }
