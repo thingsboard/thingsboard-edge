@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.security.auth.oauth2;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -58,6 +59,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+@Slf4j
 @Component(value = "oauth2AuthenticationSuccessHandler")
 public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
@@ -115,6 +117,8 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             clearAuthenticationAttributes(request, response);
             getRedirectStrategy().sendRedirect(request, response, baseUrl + "/?accessToken=" + accessToken.getToken() + "&refreshToken=" + refreshToken.getToken());
         } catch (Exception e) {
+            log.debug("Error occurred during processing authentication success result. " +
+                    "request [{}], response [{}], authentication [{}]", request, response, authentication, e);
             clearAuthenticationAttributes(request, response);
             String errorPrefix;
             if (!StringUtils.isEmpty(callbackUrlScheme)) {
