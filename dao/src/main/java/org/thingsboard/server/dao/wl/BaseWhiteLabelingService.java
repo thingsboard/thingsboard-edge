@@ -283,12 +283,14 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
                     tenantId,
                     new AdminSettingsId(UUID.fromString(loginWhiteLabelParams.getAdminSettingsId())));
 
-            if (existentLoginWhiteLabelSettingsById == null) {
-                log.error("Admin setting ID is already set in login white labeling object, but doesn't exist in the database");
-                throw new IllegalStateException("Admin setting ID is already set in login white labeling object, but doesn't exist in the database");
-            }
+            // TODO: @voba - admin settings id is set on the cloud
+//            if (existentLoginWhiteLabelSettingsById == null) {
+//                log.error("Admin setting ID is already set in login white labeling object, but doesn't exist in the database");
+//                throw new IllegalStateException("Admin setting ID is already set in login white labeling object, but doesn't exist in the database");
+//            }
 
-            if (!existentLoginWhiteLabelSettingsById.getKey().equals(loginWhiteLabelKey)) {
+            if (existentLoginWhiteLabelSettingsById != null &&
+                    !existentLoginWhiteLabelSettingsById.getKey().equals(loginWhiteLabelKey)) {
                 if (existentAdminSettingsByKey == null) {
                     adminSettingsService.deleteAdminSettingsByKey(tenantId, existentLoginWhiteLabelSettingsById.getKey());
                     existentLoginWhiteLabelSettingsById = saveLoginWhiteLabelSettings(tenantId, entityId, loginWhiteLabelKey);

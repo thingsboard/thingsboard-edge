@@ -81,6 +81,9 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 
@@ -113,7 +116,7 @@ public abstract class AbstractContainerTest {
         Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8080);
         edgeRestClient = new RestClient("http://" + edgeHost + ":" + edgePort);
 
-        restClient.login("tenant@thingsboard.org", "tenant");
+        setWhiteLabelingAndCustomTranslation();
         Edge edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
         boolean loginSuccessful = false;
@@ -136,6 +139,36 @@ public abstract class AbstractContainerTest {
         Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
         Assert.assertTrue(tenant.isPresent());
         Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+    }
+
+    private static void setWhiteLabelingAndCustomTranslation() {
+        restClient.login("sysadmin@thingsboard.org", "sysadmin");
+
+        CustomTranslation content = new CustomTranslation();
+        content.getTranslationMap().put("key", "sys_admin_value");
+        restClient.saveCustomTranslation(content);
+
+        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setAppTitle("Sys Admin TB");
+        restClient.saveWhiteLabelParams(whiteLabelingParams);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        loginWhiteLabelingParams.setDomainName("sysadmin.org");
+        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
+
+        restClient.login("tenant@thingsboard.org", "tenant");
+
+        content = new CustomTranslation();
+        content.getTranslationMap().put("key", "tenant_value");
+        restClient.saveCustomTranslation(content);
+
+        whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setAppTitle("Tenant TB");
+        restClient.saveWhiteLabelParams(whiteLabelingParams);
+
+        loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        loginWhiteLabelingParams.setDomainName("tenant.org");
+        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
     }
 
     @Rule
