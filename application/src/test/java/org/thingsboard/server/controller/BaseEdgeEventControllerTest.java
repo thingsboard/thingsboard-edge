@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,12 +47,14 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -96,11 +99,12 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
+        final EdgeId edgeId = edge.getId();
 
         EntityGroup deviceEntityGroup = constructEntityGroup("TestDevice", EntityType.DEVICE);
         EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
         Device device = constructDevice("TestDevice", "default");
-        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
 
         Device savedDevice =
                 doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
@@ -112,7 +116,7 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         EntityGroup assetEntityGroup = constructEntityGroup("TestAsset", EntityType.ASSET);
         EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         Asset asset = constructAsset("TestAsset", "default");
-        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
+        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
 
         Asset savedAsset =
                 doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
@@ -123,17 +127,13 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
         doPost("/api/relation", relation);
 
-        // wait while edge event for the relation entity persisted to DB
-        Thread.sleep(100);
-        List<EdgeEvent> edgeEvents;
-        int attempt = 1;
-        do {
-            edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
-                    new TypeReference<PageData<EdgeEvent>>() {}, new TimePageLink(10)).getData();
-            attempt++;
-            Thread.sleep(100);
-        } while (edgeEvents.size() != 8 && attempt < 5);
-        Assert.assertEquals(8, edgeEvents.size());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
+                    return edgeEvents.size() == 8;
+                });
+        List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
 
         Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())
                 && EdgeEventActionType.UPDATED.equals(ee.getAction())));
@@ -151,6 +151,12 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
 
         Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RELATION.equals(ee.getType())
                 && EdgeEventActionType.RELATION_ADD_OR_UPDATE.equals(ee.getAction())));
+    }
+
+    private List<EdgeEvent> findEdgeEvents(EdgeId edgeId) throws Exception {
+        return doGetTypedWithTimePageLink("/api/edge/" + edgeId.toString() + "/events?",
+                new TypeReference<PageData<EdgeEvent>>() {
+                }, new TimePageLink(10)).getData();
     }
 
     private EntityGroup constructEntityGroup(String name, EntityType type) {
