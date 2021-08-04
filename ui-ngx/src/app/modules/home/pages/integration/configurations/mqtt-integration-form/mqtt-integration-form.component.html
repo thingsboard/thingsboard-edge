@@ -111,6 +111,7 @@
                             <mat-label translate>integration.password</mat-label>
                             <input matInput type="password" required formControlName="password"
                                 autocomplete="new-password">
+                            <tb-toggle-password matSuffix></tb-toggle-password>
                             <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
                                 integration.password-required</mat-error>
                         </mat-form-field>
@@ -122,6 +123,7 @@
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.private-key-password</mat-label>
                             <input matInput type="password" formControlName="privateKeyPassword">
+                            <tb-toggle-password matSuffix></tb-toggle-password>
                         </mat-form-field>
                     </section>
                 </div>
