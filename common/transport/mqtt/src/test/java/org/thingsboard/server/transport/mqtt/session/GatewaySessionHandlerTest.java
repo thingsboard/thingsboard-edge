@@ -28,33 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.server.transport.mqtt.session;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
-import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.junit.Test;
 
-import java.util.List;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * @author Andrew Shvayka
- */
-public interface TimeseriesDao {
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.willCallRealMethod;
+import static org.mockito.Mockito.mock;
 
-    ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries);
+public class GatewaySessionHandlerTest {
 
-    ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl);
+    @Test
+    public void givenWeakHashMap_WhenGC_thenMapIsEmpty() {
+        WeakHashMap<String, Lock> map = new WeakHashMap<>();
 
-    ListenableFuture<Integer> savePartition(TenantId tenantId, EntityId entityId, long tsKvEntryTs, String key);
+        String deviceName = new String("device"); //constants are static and doesn't affected by GC, so use new instead
+        map.put(deviceName, new ReentrantLock());
+        assertTrue(map.containsKey(deviceName));
 
-    ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key);
+        deviceName = null;
+        System.gc();
 
-    ListenableFuture<Void> remove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query);
+        await().atMost(10, TimeUnit.SECONDS).until(() -> !map.containsKey("device"));
+    }
 
-    ListenableFuture<Void> removePartition(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query);
+    @Test
+    public void givenConcurrentReferenceHashMap_WhenGC_thenMapIsEmpty() {
+        GatewaySessionHandler gsh = mock(GatewaySessionHandler.class);
+        willCallRealMethod().given(gsh).createWeakMap();
 
-    void cleanup(long systemTtl);
+        ConcurrentMap<String, Lock> map = gsh.createWeakMap();
+        map.put("device", new ReentrantLock());
+        assertTrue(map.containsKey("device"));
+
+        System.gc();
+
+        await().atMost(10, TimeUnit.SECONDS).until(() -> !map.containsKey("device"));
+    }
+
 }

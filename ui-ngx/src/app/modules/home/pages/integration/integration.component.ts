@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
@@ -83,8 +83,9 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
               @Inject('entity') protected entityValue: Integration,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Integration>,
               protected fb: FormBuilder,
-              protected integrationService: IntegrationService) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              protected integrationService: IntegrationService,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   ngOnInit() {

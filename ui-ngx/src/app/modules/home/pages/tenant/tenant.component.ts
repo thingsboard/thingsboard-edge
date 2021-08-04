@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -52,8 +52,9 @@ export class TenantComponent extends ContactBasedComponent<TenantInfo> {
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: TenantInfo,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<TenantInfo>,
-              protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              protected fb: FormBuilder,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   hideDelete() {

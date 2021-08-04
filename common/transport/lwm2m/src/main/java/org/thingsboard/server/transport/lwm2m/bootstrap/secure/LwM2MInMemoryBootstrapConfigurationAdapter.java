@@ -28,33 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.server.transport.lwm2m.bootstrap.secure;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
-import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.eclipse.leshan.server.bootstrap.BootstrapConfigStore;
+import org.eclipse.leshan.server.bootstrap.BootstrapConfigurationStoreAdapter;
 
-import java.util.List;
+public class LwM2MInMemoryBootstrapConfigurationAdapter extends BootstrapConfigurationStoreAdapter {
 
-/**
- * @author Andrew Shvayka
- */
-public interface TimeseriesDao {
+    public LwM2MInMemoryBootstrapConfigurationAdapter(BootstrapConfigStore store) {
+        super(store);
+    }
 
-    ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries);
-
-    ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl);
-
-    ListenableFuture<Integer> savePartition(TenantId tenantId, EntityId entityId, long tsKvEntryTs, String key);
-
-    ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key);
-
-    ListenableFuture<Void> remove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query);
-
-    ListenableFuture<Void> removePartition(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query);
-
-    void cleanup(long systemTtl);
 }

@@ -32,8 +32,8 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
-import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.UpdateMessage;
@@ -59,6 +58,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -116,7 +116,7 @@ public class AdminController extends BaseController {
                 }
             }
             if (adminSettings.getKey().equals("mail")) {
-                ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
+                ((ObjectNode) adminSettings.getJsonValue()).remove("password");
             }
             return adminSettings;
         } catch (Exception e) {
@@ -137,7 +137,7 @@ public class AdminController extends BaseController {
                 adminSettings = saveTenantAdminSettings(adminSettings);
             }
             if (adminSettings.getKey().equals("mail")) {
-                ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
+                ((ObjectNode) adminSettings.getJsonValue()).remove("password");
             }
             return adminSettings;
         } catch (Exception e) {
@@ -182,6 +182,15 @@ public class AdminController extends BaseController {
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
+                if(!adminSettings.getJsonValue().has("password")) {
+                    AdminSettings mailSettings;
+                    if (Authority.SYS_ADMIN.equals(authority)) {
+                        mailSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail"));
+                    } else {
+                        mailSettings = getTenantAdminSettings("mail", false);
+                    }
+                    ((ObjectNode) adminSettings.getJsonValue()).put("password", mailSettings.getJsonValue().get("password").asText());
+                }
                 String email = getCurrentUser().getEmail();
                 mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
@@ -244,6 +253,14 @@ public class AdminController extends BaseController {
     private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
+        if(adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
+            JsonNode oldMailSettings = objectMapper.readTree(getEntityAttributeValue(getTenantId(), "mail"));
+            if (oldMailSettings != null) {
+                if(oldMailSettings.has("password")) {
+                    ((ObjectNode) jsonValue).put("password", oldMailSettings.get("password").asText());
+                }
+            }
+        }
         String jsonString = null;
         if (jsonValue != null) {
             try {
