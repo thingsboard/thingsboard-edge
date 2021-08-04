@@ -157,9 +157,9 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     private final SslHandler sslHandler;
     private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
 
-    private final DeviceSessionCtx deviceSessionCtx;
-    private volatile InetSocketAddress address;
-    private volatile GatewaySessionHandler gatewaySessionHandler;
+    final DeviceSessionCtx deviceSessionCtx;
+    volatile InetSocketAddress address;
+    volatile GatewaySessionHandler gatewaySessionHandler;
 
     private final ConcurrentHashMap<String, String> otaPackSessions;
     private final ConcurrentHashMap<String, Integer> chunkSizes;
@@ -198,8 +198,8 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         }
     }
 
-    private void processMqttMsg(ChannelHandlerContext ctx, MqttMessage msg) {
-        address = (InetSocketAddress) ctx.channel().remoteAddress();
+    void processMqttMsg(ChannelHandlerContext ctx, MqttMessage msg) {
+        address = getAddress(ctx);
         if (msg.fixedHeader() == null) {
             log.info("[{}:{}] Invalid message received", address.getHostName(), address.getPort());
             processDisconnect(ctx);
@@ -211,8 +211,12 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         } else if (deviceSessionCtx.isProvisionOnly()) {
             processProvisionSessionMsg(ctx, msg);
         } else {
-            processRegularSessionMsg(ctx, msg);
+            enqueueRegularSessionMsg(ctx, msg);
         }
+    }
+
+    InetSocketAddress getAddress(ChannelHandlerContext ctx) {
+        return (InetSocketAddress) ctx.channel().remoteAddress();
     }
 
     private void processProvisionSessionMsg(ChannelHandlerContext ctx, MqttMessage msg) {
@@ -257,7 +261,42 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         }
     }
 
-    private void processRegularSessionMsg(ChannelHandlerContext ctx, MqttMessage msg) {
+    void enqueueRegularSessionMsg(ChannelHandlerContext ctx, MqttMessage msg) {
+        final int queueSize = deviceSessionCtx.getMsgQueueSize().incrementAndGet();
+        if (queueSize > context.getMessageQueueSizePerDeviceLimit()) {
+            log.warn("Closing current session because msq queue size for device {} exceed limit {} with msgQueueSize counter {} and actual queue size {}",
+                    deviceSessionCtx.getDeviceId(), context.getMessageQueueSizePerDeviceLimit(), queueSize, deviceSessionCtx.getMsgQueue().size());
+            ctx.close();
+            return;
+        }
+
+        deviceSessionCtx.getMsgQueue().add(msg);
+        processMsgQueue(ctx); //Under the normal conditions the msg queue will contain 0 messages. Many messages will be processed on device connect event in separate thread pool
+    }
+
+    void processMsgQueue(ChannelHandlerContext ctx) {
+        if (!deviceSessionCtx.isConnected()) {
+            log.trace("[{}][{}] Postpone processing msg due to device is not connected. Msg queue size is {}", sessionId, deviceSessionCtx.getDeviceId(), deviceSessionCtx.getMsgQueue().size());
+            return;
+        }
+        while (!deviceSessionCtx.getMsgQueue().isEmpty()) {
+            if (deviceSessionCtx.getMsgQueueProcessorLock().tryLock()) {
+                try {
+                    MqttMessage msg;
+                    while ((msg = deviceSessionCtx.getMsgQueue().poll()) != null) {
+                        deviceSessionCtx.getMsgQueueSize().decrementAndGet();
+                        processRegularSessionMsg(ctx, msg);
+                    }
+                } finally {
+                    deviceSessionCtx.getMsgQueueProcessorLock().unlock();
+                }
+            } else {
+                return;
+            }
+        }
+    }
+
+    void processRegularSessionMsg(ChannelHandlerContext ctx, MqttMessage msg) {
         switch (msg.fixedHeader().messageType()) {
             case PUBLISH:
                 processPublish(ctx, (MqttPublishMessage) msg);
@@ -623,7 +662,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         return new MqttMessage(mqttFixedHeader, mqttMessageIdVariableHeader);
     }
 
-    private void processConnect(ChannelHandlerContext ctx, MqttConnectMessage msg) {
+    void processConnect(ChannelHandlerContext ctx, MqttConnectMessage msg) {
         log.info("[{}] Processing connect msg for client: {}!", sessionId, msg.payload().clientIdentifier());
         String userName = msg.payload().userName();
         String clientId = msg.payload().clientIdentifier();
@@ -709,7 +748,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         return null;
     }
 
-    private void processDisconnect(ChannelHandlerContext ctx) {
+    void processDisconnect(ChannelHandlerContext ctx) {
         ctx.close();
         log.info("[{}] Client disconnected!", sessionId);
         doDisconnect();
@@ -796,6 +835,11 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
             }
             deviceSessionCtx.setDisconnected();
         }
+
+        if (!deviceSessionCtx.getMsgQueue().isEmpty()) {
+            log.warn("doDisconnect for device {} but unprocessed messages {} left in the msg queue", deviceSessionCtx.getDeviceId(), deviceSessionCtx.getMsgQueue().size());
+            deviceSessionCtx.getMsgQueue().clear();
+        }
     }
 
 
@@ -813,7 +857,9 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     SessionMetaData sessionMetaData = transportService.registerAsyncSession(deviceSessionCtx.getSessionInfo(), MqttTransportHandler.this);
                     checkGatewaySession(sessionMetaData);
                     ctx.writeAndFlush(createMqttConnAckMsg(CONNECTION_ACCEPTED, connectMessage));
+                    deviceSessionCtx.setConnected(true);
                     log.info("[{}] Client connected!", sessionId);
+                    transportService.getCallbackExecutor().execute(() -> processMsgQueue(ctx)); //this callback will execute in Producer worker thread and hard or blocking work have to be submitted to the separate thread.
                 }
 
                 @Override

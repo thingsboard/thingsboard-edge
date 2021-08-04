@@ -1162,4 +1162,9 @@ public class DefaultTransportService implements TransportService {
             callback.onError(e);
         }
     }
+
+    @Override
+    public ExecutorService getCallbackExecutor() {
+        return transportCallbackExecutor;
+    }
 }

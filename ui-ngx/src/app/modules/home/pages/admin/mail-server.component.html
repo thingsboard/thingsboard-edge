@@ -152,7 +152,7 @@
           <mat-form-field floatLabel='always' class="mat-block" *ngIf="mailSettings.get('changePassword').value || !showChangePassword">
             <mat-label translate>common.password</mat-label>
             <input matInput formControlName="password" type="password"
-                   placeholder="{{ 'common.enter-password' | translate }}" autocomplete="new-password">
+                   placeholder="{{ 'common.enter-password' | translate }}" autocomplete="new-password"/>
             <tb-toggle-password matSuffix></tb-toggle-password>
           </mat-form-field>
         </fieldset>
