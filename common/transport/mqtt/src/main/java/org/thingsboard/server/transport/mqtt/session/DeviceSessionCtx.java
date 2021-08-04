@@ -33,6 +33,7 @@ package org.thingsboard.server.transport.mqtt.session;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +51,11 @@ import org.thingsboard.server.transport.mqtt.util.MqttTopicFilter;
 import org.thingsboard.server.transport.mqtt.util.MqttTopicFilterFactory;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Andrew Shvayka
@@ -60,12 +64,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
 
     @Getter
+    @Setter
     private ChannelHandlerContext channel;
 
     @Getter
-    private MqttTransportContext context;
+    private final MqttTransportContext context;
 
     private final AtomicInteger msgIdSeq = new AtomicInteger(0);
+
+    @Getter
+    private final ConcurrentLinkedQueue<MqttMessage> msgQueue = new ConcurrentLinkedQueue<>();
+
+    @Getter
+    private final Lock msgQueueProcessorLock = new ReentrantLock();
+
+    @Getter
+    private final AtomicInteger msgQueueSize = new AtomicInteger(0);
 
     @Getter
     @Setter
@@ -86,10 +100,6 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     public DeviceSessionCtx(UUID sessionId, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap, MqttTransportContext context) {
         super(sessionId, mqttQoSMap);
         this.context = context;
-    }
-
-    public void setChannel(ChannelHandlerContext channel) {
-        this.channel = channel;
     }
 
     public int nextMsgId() {
