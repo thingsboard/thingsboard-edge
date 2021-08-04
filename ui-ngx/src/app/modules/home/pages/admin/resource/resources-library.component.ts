@@ -45,7 +45,7 @@ import {
   ResourceTypeTranslationMap
 } from '@shared/models/resource.models';
 import { pairwise, startWith, takeUntil } from 'rxjs/operators';
-import { ActionNotificationShow } from "@core/notification/notification.actions";
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Component({
   selector: 'tb-resources-library',
@@ -118,7 +118,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     if (this.isAdd) {
       form.addControl('data', this.fb.control(null, Validators.required));
     }
-    return form
+    return form;
   }
 
   updateForm(entity: Resource) {
