@@ -40,7 +40,9 @@ import { DeviceCredentials, DeviceProfileInfo, DeviceTransportType } from '@shar
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { DeviceProfileService } from '@core/http/device-profile.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
+import { isDefinedAndNotNull } from '@core/utils';
+import { mergeMap } from 'rxjs/operators';
 
 export interface DeviceCredentialsDialogData {
   isReadOnly: boolean;
@@ -97,7 +99,7 @@ export class DeviceCredentialsDialogComponent extends
   loadDeviceCredentials() {
     const task = [];
     task.push(this.deviceService.getDeviceCredentials(this.data.deviceId));
-    task.push(this.deviceProfileService.getDeviceProfileInfo(this.data.deviceProfileId));
+    task.push(this.deviceProfileInfo(this.data.deviceProfileId, this.data.deviceId));
     forkJoin(task).subscribe(([deviceCredentials, deviceProfile]: [DeviceCredentials, DeviceProfileInfo]) => {
       this.deviceTransportType = deviceProfile.transportType;
       this.deviceCredentials = deviceCredentials;
@@ -106,6 +108,16 @@ export class DeviceCredentialsDialogComponent extends
       }, {emitEvent: false});
       this.loadingCredentials = false;
     });
+  }
+
+  private deviceProfileInfo(deviceProfileId, deviceId): Observable<DeviceProfileInfo> {
+    if (isDefinedAndNotNull(deviceProfileId)) {
+      return this.deviceProfileService.getDeviceProfileInfo(deviceProfileId);
+    } else {
+      return this.deviceService.getDevice(deviceId).pipe(
+        mergeMap(device => this.deviceProfileService.getDeviceProfileInfo(device.deviceProfileId.id))
+      );
+    }
   }
 
   cancel(): void {

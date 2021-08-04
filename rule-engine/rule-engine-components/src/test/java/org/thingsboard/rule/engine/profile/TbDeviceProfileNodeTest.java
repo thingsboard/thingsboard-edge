@@ -211,7 +211,7 @@ public class TbDeviceProfileNodeTest {
                 TbMsgDataType.JSON, mapper.writeValueAsString(data), null, null);
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
 
         TbMsg theMsg2 = TbMsg.newMsg("ALARM", deviceId, new TbMsgMetaData(), "2");
@@ -222,7 +222,7 @@ public class TbDeviceProfileNodeTest {
                 TbMsgDataType.JSON, mapper.writeValueAsString(data), null, null);
         node.onMsg(ctx, msg2);
         verify(ctx).tellSuccess(msg2);
-        verify(ctx).tellNext(theMsg2, "Alarm Updated");
+        verify(ctx).enqueueForTellNext(theMsg2, "Alarm Updated");
 
     }
 
@@ -304,7 +304,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -391,7 +391,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -460,7 +460,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -569,7 +569,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg2);
         verify(ctx).tellSuccess(msg2);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -693,7 +693,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg2);
         verify(ctx).tellSuccess(msg2);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -796,7 +796,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg2);
         verify(ctx).tellSuccess(msg2);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -912,7 +912,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg2);
         verify(ctx).tellSuccess(msg2);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -1014,7 +1014,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg2);
         verify(ctx).tellSuccess(msg2);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -1097,7 +1097,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -1178,7 +1178,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -1252,7 +1252,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
@@ -1336,7 +1336,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
 
     }
@@ -1422,7 +1422,7 @@ public class TbDeviceProfileNodeTest {
 
         node.onMsg(ctx, msg);
         verify(ctx).tellSuccess(msg);
-        verify(ctx).tellNext(theMsg, "Alarm Created");
+        verify(ctx).enqueueForTellNext(theMsg, "Alarm Created");
         verify(ctx, Mockito.never()).tellFailure(Mockito.any(), Mockito.any());
     }
 
