@@ -2012,7 +2012,6 @@
         "enable-entity-views-management": "Enable entity views management",
         "enable-edges-management": "Enable edges management",
         "enable-dashboards-management": "Enable dashboards management",
-        "enable-rulechains-management": "Enable rule chains management",
         "enable-scheduler-events-management": "Enable scheduler events management",
         "open-details-on": "Open entity details on",
         "select-existing": "Select existing entity group",
