@@ -45,6 +45,11 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
@@ -63,6 +68,7 @@ import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
@@ -110,22 +116,22 @@ public class EdgeClientTest extends AbstractContainerTest {
         testDashboards();
 
         testRelations();
-//
-//        testAlarms();
-//
-//        testEntityView();
+
+        testAlarms();
+
+        testEntityViews();
 
         // TODO
 //        changeOwnerToCustomer();
 
-//        testWidgetsBundleAndWidgetType();
-//
+        testWidgetsBundleAndWidgetType();
+
 //        testTimeseries();
 //
 //        testAttributes();
-//
+
 //        testRpcCall();
-//
+
 //        testTimeseriesWithFailures();
 //
 //        testSendMessagesToCloud();
@@ -727,216 +733,135 @@ public class EdgeClientTest extends AbstractContainerTest {
         log.info("Relations tested successfully");
     }
 
-//    private void testAlarms() throws Exception {
-//        log.info("Testing Alarms");
-//
-//        // 1
-//        edgeImitator.expectMessageAmount(1);
-//        Alarm alarm = new Alarm();
-//        alarm.setOriginator(globalTestDevice.getId());
-//        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
-//        alarm.setType("alarm");
-//        alarm.setSeverity(AlarmSeverity.CRITICAL);
-//        Alarm savedAlarm = doPost("/api/alarm", alarm, Alarm.class);
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
-//        AlarmUpdateMsg alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
-//        Assert.assertEquals(alarmUpdateMsg.getType(), savedAlarm.getType());
-//        Assert.assertEquals(alarmUpdateMsg.getName(), savedAlarm.getName());
-//        Assert.assertEquals(alarmUpdateMsg.getOriginatorName(), globalTestDevice.getName());
-//        Assert.assertEquals(alarmUpdateMsg.getStatus(), savedAlarm.getStatus().name());
-//        Assert.assertEquals(alarmUpdateMsg.getSeverity(), savedAlarm.getSeverity().name());
-//
-//        // 2
-//        edgeImitator.expectMessageAmount(1);
-//        doPost("/api/alarm/" + savedAlarm.getId().getId().toString() + "/ack");
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
-//        alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ALARM_ACK_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
-//        Assert.assertEquals(alarmUpdateMsg.getType(), savedAlarm.getType());
-//        Assert.assertEquals(alarmUpdateMsg.getName(), savedAlarm.getName());
-//        Assert.assertEquals(alarmUpdateMsg.getOriginatorName(), globalTestDevice.getName());
-//        Assert.assertEquals(alarmUpdateMsg.getStatus(), AlarmStatus.ACTIVE_ACK.name());
-//
-//        // 3
-//        edgeImitator.expectMessageAmount(1);
-//        doPost("/api/alarm/" + savedAlarm.getId().getId().toString() + "/clear");
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
-//        alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
-//        Assert.assertEquals(alarmUpdateMsg.getType(), savedAlarm.getType());
-//        Assert.assertEquals(alarmUpdateMsg.getName(), savedAlarm.getName());
-//        Assert.assertEquals(alarmUpdateMsg.getOriginatorName(), globalTestDevice.getName());
-//        Assert.assertEquals(alarmUpdateMsg.getStatus(), AlarmStatus.CLEARED_ACK.name());
-//
-//        // 4
-//        edgeImitator.expectMessageAmount(1);
-//        doDelete("/api/alarm/" + savedAlarm.getId().getId().toString())
-//                .andExpect(status().isOk());
-//        Assert.assertFalse(edgeImitator.waitForMessages(1));
-//
-//        log.info("Alarms tested successfully");
-//    }
-//
-//    private void testEntityView() throws Exception {
-//        log.info("Testing EntityView");
-//
-//        // 1
-//        edgeImitator.expectMessageAmount(1);
-//        EntityGroup entityViewEntityGroup = new EntityGroup();
-//        entityViewEntityGroup.setType(EntityType.ENTITY_VIEW);
-//        entityViewEntityGroup.setName("EntityViewGroup");
-//        entityViewEntityGroup = doPost("/api/entityGroup", entityViewEntityGroup, EntityGroup.class);
-//        doPost("/api/edge/" + edge.getId().getId().toString()
-//                + "/entityGroup/" + entityViewEntityGroup.getId().toString() + "/" + EntityType.ENTITY_VIEW.name(), EntityGroup.class);
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
-//        EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
-//        Assert.assertEquals(entityGroupUpdateMsg.getIdMSB(), entityViewEntityGroup.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(entityGroupUpdateMsg.getIdLSB(), entityViewEntityGroup.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(entityGroupUpdateMsg.getName(), entityViewEntityGroup.getName());
-//        Assert.assertEquals(entityGroupUpdateMsg.getType(), entityViewEntityGroup.getType().name());
-//
-//        // 2
-//        edgeImitator.expectMessageAmount(1);
-//        EntityView savedEntityView = saveEntityView("Edge Entity View 1", "Default", globalTestDevice.getId(), entityViewEntityGroup.getId());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        verifyEntityViewUpdateMsg(savedEntityView, globalTestDevice);
-//
-//        // 3
-//        testEntityViewEntityGroupRequestMsg(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB(), savedEntityView.getId());
-//
-//        // 4
-//        edgeImitator.expectMessageAmount(1);
-//        doDelete("/api/entityView/" + savedEntityView.getId().getId().toString())
-//                .andExpect(status().isOk());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
-//        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
-//        Assert.assertEquals(entityViewUpdateMsg.getIdMSB(), savedEntityView.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(entityViewUpdateMsg.getIdLSB(), savedEntityView.getUuidId().getLeastSignificantBits());
-//        log.info("EntityView tested successfully");
-//    }
-//
-//    private void testEntityViewEntityGroupRequestMsg(long msbId, long lsbId, EntityViewId expectedEntityViewId) throws Exception {
-//        EntityGroupRequestMsg.Builder entitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
-//                .setEntityGroupIdMSB(msbId)
-//                .setEntityGroupIdLSB(lsbId)
-//                .setType(EntityType.ENTITY_VIEW.name());
-//
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder()
-//                .addEntityGroupEntitiesRequestMsg(entitiesGroupRequestMsgBuilder.build());
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
-//        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-//        EntityViewId receivedEntityViewId =
-//                new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
-//        Assert.assertEquals(expectedEntityViewId, receivedEntityViewId);
-//    }
-//
-//    private void verifyEntityViewUpdateMsg(EntityView entityView, Device device) {
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityViewUpdateMsg);
-//        EntityViewUpdateMsg entityViewUpdateMsg = (EntityViewUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, entityViewUpdateMsg.getMsgType());
-//        Assert.assertEquals(entityViewUpdateMsg.getType(), entityView.getType());
-//        Assert.assertEquals(entityViewUpdateMsg.getName(), entityView.getName());
-//        Assert.assertEquals(entityViewUpdateMsg.getIdMSB(), entityView.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(entityViewUpdateMsg.getIdLSB(), entityView.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(entityViewUpdateMsg.getEntityIdMSB(), device.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(entityViewUpdateMsg.getEntityIdLSB(), device.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(entityViewUpdateMsg.getEntityType().name(), device.getId().getEntityType().name());
-//    }
-//
-//    private void testWidgetsBundleAndWidgetType() throws Exception {
-//        log.info("Testing WidgetsBundle and WidgetType");
-//
-//        // 1
-//        edgeImitator.expectMessageAmount(1);
-//        WidgetsBundle widgetsBundle = new WidgetsBundle();
-//        widgetsBundle.setTitle("Test Widget Bundle");
-//        WidgetsBundle savedWidgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof WidgetsBundleUpdateMsg);
-//        WidgetsBundleUpdateMsg widgetsBundleUpdateMsg = (WidgetsBundleUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, widgetsBundleUpdateMsg.getMsgType());
-//        Assert.assertEquals(widgetsBundleUpdateMsg.getIdMSB(), savedWidgetsBundle.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(widgetsBundleUpdateMsg.getIdLSB(), savedWidgetsBundle.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(widgetsBundleUpdateMsg.getAlias(), savedWidgetsBundle.getAlias());
-//        Assert.assertEquals(widgetsBundleUpdateMsg.getTitle(), savedWidgetsBundle.getTitle());
-//
-//        // 2
-//        edgeImitator.expectMessageAmount(1);
-//        WidgetType widgetType = new WidgetType();
-//        widgetType.setName("Test Widget Type");
-//        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-//        ObjectNode descriptor = mapper.createObjectNode();
-//        descriptor.put("key", "value");
-//        widgetType.setDescriptor(descriptor);
-//        WidgetType savedWidgetType = doPost("/api/widgetType", widgetType, WidgetType.class);
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof WidgetTypeUpdateMsg);
-//        WidgetTypeUpdateMsg widgetTypeUpdateMsg = (WidgetTypeUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, widgetTypeUpdateMsg.getMsgType());
-//        Assert.assertEquals(widgetTypeUpdateMsg.getIdMSB(), savedWidgetType.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(widgetTypeUpdateMsg.getIdLSB(), savedWidgetType.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(widgetTypeUpdateMsg.getAlias(), savedWidgetType.getAlias());
-//        Assert.assertEquals(widgetTypeUpdateMsg.getName(), savedWidgetType.getName());
-//        Assert.assertEquals(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()), savedWidgetType.getDescriptor());
-//
-//        // 3
-//        edgeImitator.expectMessageAmount(1);
-//        doDelete("/api/widgetType/" + savedWidgetType.getId().getId().toString())
-//                .andExpect(status().isOk());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof WidgetTypeUpdateMsg);
-//        widgetTypeUpdateMsg = (WidgetTypeUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, widgetTypeUpdateMsg.getMsgType());
-//        Assert.assertEquals(widgetTypeUpdateMsg.getIdMSB(), savedWidgetType.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(widgetTypeUpdateMsg.getIdLSB(), savedWidgetType.getUuidId().getLeastSignificantBits());
-//
-//        // 4
-//        edgeImitator.expectMessageAmount(1);
-//        doDelete("/api/widgetsBundle/" + savedWidgetsBundle.getId().getId().toString())
-//                .andExpect(status().isOk());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof WidgetsBundleUpdateMsg);
-//        widgetsBundleUpdateMsg = (WidgetsBundleUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, widgetsBundleUpdateMsg.getMsgType());
-//        Assert.assertEquals(widgetsBundleUpdateMsg.getIdMSB(), savedWidgetsBundle.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(widgetsBundleUpdateMsg.getIdLSB(), savedWidgetsBundle.getUuidId().getLeastSignificantBits());
-//
-//        log.info("WidgetsBundle and WidgetType tested successfully");
-//    }
-//
+    private void testAlarms() throws Exception {
+        log.info("Testing Alarms");
+
+        Alarm alarm = new Alarm();
+        alarm.setOriginator(globalTestDevice.getId());
+        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+        alarm.setType("alarm");
+        alarm.setSeverity(AlarmSeverity.CRITICAL);
+        Alarm savedAlarm = restClient.saveAlarm(alarm);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> getAlarmForEntity(globalTestDevice.getId()).isPresent());
+
+        restClient.ackAlarm(savedAlarm.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    AlarmInfo alarmData = getAlarmForEntity(globalTestDevice.getId()).get();
+                    return alarmData.getAckTs() > 0;
+                });
+
+        restClient.clearAlarm(savedAlarm.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    AlarmInfo alarmData = getAlarmForEntity(globalTestDevice.getId()).get();
+                    return alarmData.getClearTs() > 0;
+                });
+
+        restClient.deleteAlarm(savedAlarm.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> getAlarmForEntity(globalTestDevice.getId()).isEmpty());
+
+        log.info("Alarms tested successfully");
+    }
+
+    private Optional<AlarmInfo> getAlarmForEntity(EntityId entityId) {
+        PageData<AlarmInfo> alarmDataByQuery =
+                edgeRestClient.getAlarms(entityId, AlarmSearchStatus.ANY, null, new TimePageLink(1), false);
+        if (alarmDataByQuery.getData().isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(alarmDataByQuery.getData().get(0));
+        }
+    }
+
+    private void testEntityViews() throws Exception {
+        log.info("Testing EntityView");
+
+        EntityGroup entityViewEntityGroup = new EntityGroup();
+        entityViewEntityGroup.setType(EntityType.ENTITY_VIEW);
+        entityViewEntityGroup.setName("EntityViewGroup");
+        EntityGroupInfo savedEntityViewEntityGroup = restClient.saveEntityGroup(entityViewEntityGroup);
+        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View 1", "Default", globalTestDevice.getId(), savedEntityViewEntityGroup.getId());
+
+        restClient.assignEntityGroupToEdge(edge.getId(), savedEntityViewEntityGroup.getId(), EntityType.ENTITY_VIEW);
+
+        verifyEntityGroups(EntityType.ENTITY_VIEW, 2);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isPresent());
+
+        // wait to fully process all edge entities for group requests
+        Thread.sleep(1000);
+
+        restClient.unassignEntityGroupFromEdge(edge.getId(), savedEntityViewEntityGroup.getId(), EntityType.ENTITY_VIEW);
+
+        verifyEntityGroups(EntityType.ENTITY_VIEW, 1);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
+
+        restClient.deleteEntityView(savedEntityViewOnCloud.getId());
+
+        log.info("EntityView tested successfully");
+    }
+
+    private void testWidgetsBundleAndWidgetType() throws Exception {
+        log.info("Testing WidgetsBundle and WidgetType");
+
+        WidgetsBundle widgetsBundle = new WidgetsBundle();
+        widgetsBundle.setTitle("Test Widget Bundle");
+        WidgetsBundle savedWidgetsBundle = restClient.saveWidgetsBundle(widgetsBundle);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isPresent());
+
+        WidgetType widgetType = new WidgetType();
+        widgetType.setName("Test Widget Type");
+        widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
+        ObjectNode descriptor = mapper.createObjectNode();
+        descriptor.put("key", "value");
+        widgetType.setDescriptor(descriptor);
+        WidgetType savedWidgetType = restClient.saveWidgetType(widgetType);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isPresent());
+
+        restClient.deleteWidgetType(savedWidgetType.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isEmpty());
+
+        restClient.deleteWidgetsBundle(savedWidgetsBundle.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
+
+        log.info("WidgetsBundle and WidgetType tested successfully");
+    }
+
 //    private void testTimeseries() throws Exception {
 //        log.info("Testing timeseries");
 //
-//        edgeImitator.expectMessageAmount(1);
 //        String timeseriesData = "{\"data\":{\"temperature\":25},\"ts\":" + System.currentTimeMillis() + "}";
 //        JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
+//
+//
 //        EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED, globalTestDevice.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
 //        edgeEventService.saveAsync(edgeEvent);
 //        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
@@ -1581,17 +1506,17 @@ public class EdgeClientTest extends AbstractContainerTest {
         return savedDashboard;
     }
 
-//    private EntityView saveEntityView(String entityViewName, String type, DeviceId deviceId, EntityGroupId entityGroupId) throws Exception {
-//        EntityView entityView = new EntityView();
-//        entityView.setName("Edge EntityView 1");
-//        entityView.setType("test");
-//        entityView.setEntityId(deviceId);
-//        if (entityGroupId != null) {
-//            return doPost("/api/entityView?entityGroupId={entityGroupId}", entityView, EntityView.class, entityGroupId.getId().toString());
-//        } else {
-//            return doPost("/api/entityView", entityView, EntityView.class);
-//        }
-//    }
+    private EntityView saveEntityViewOnCloud(String entityViewName, String type, DeviceId deviceId, EntityGroupId entityGroupId) throws Exception {
+        EntityView entityView = new EntityView();
+        entityView.setName("Edge EntityView 1");
+        entityView.setType("test");
+        entityView.setEntityId(deviceId);
+        EntityView savedEntityView = restClient.saveEntityView(entityView);
+        if (entityGroupId != null) {
+            restClient.addEntitiesToEntityGroup(entityGroupId, Arrays.asList(savedEntityView.getId()));
+        }
+        return savedEntityView;
+    }
 //
 //    private EdgeEvent constructEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventActionType edgeEventAction, UUID entityId, EdgeEventType edgeEventType, JsonNode entityBody) {
 //        EdgeEvent edgeEvent = new EdgeEvent();

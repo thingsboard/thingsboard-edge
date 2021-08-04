@@ -54,53 +54,55 @@ import java.util.concurrent.ExecutionException;
 public class AlarmCloudProcessor extends BaseCloudProcessor {
 
     public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
-        EntityId originatorId = getAlarmOriginator(tenantId,
-                alarmUpdateMsg.getOriginatorName(),
+        log.trace("[{}] onAlarmUpdate [{}]", tenantId, alarmUpdateMsg);
+        EntityId originatorId = getAlarmOriginator(tenantId, alarmUpdateMsg.getOriginatorName(),
                 EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
-        if (originatorId != null) {
-            try {
-                Alarm existingAlarm = alarmService.findLatestByOriginatorAndType(tenantId, originatorId, alarmUpdateMsg.getType()).get();
-                switch (alarmUpdateMsg.getMsgType()) {
-                    case ENTITY_CREATED_RPC_MESSAGE:
-                    case ENTITY_UPDATED_RPC_MESSAGE:
-                        if (existingAlarm == null || existingAlarm.getStatus().isCleared()) {
-                            existingAlarm = new Alarm();
-                            existingAlarm.setTenantId(tenantId);
-                            existingAlarm.setType(alarmUpdateMsg.getName());
-                            existingAlarm.setOriginator(originatorId);
-                            existingAlarm.setSeverity(AlarmSeverity.valueOf(alarmUpdateMsg.getSeverity()));
-                            existingAlarm.setStartTs(alarmUpdateMsg.getStartTs());
-                            existingAlarm.setClearTs(alarmUpdateMsg.getClearTs());
-                            existingAlarm.setPropagate(alarmUpdateMsg.getPropagate());
-                        }
-                        existingAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
-                        existingAlarm.setAckTs(alarmUpdateMsg.getAckTs());
-                        existingAlarm.setEndTs(alarmUpdateMsg.getEndTs());
-                        existingAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
-                        alarmService.createOrUpdateAlarm(existingAlarm);
-                        break;
-                    case ALARM_ACK_RPC_MESSAGE:
-                        if (existingAlarm != null) {
-                            alarmService.ackAlarm(tenantId, existingAlarm.getId(), alarmUpdateMsg.getAckTs());
-                        }
-                        break;
-                    case ALARM_CLEAR_RPC_MESSAGE:
-                        if (existingAlarm != null) {
-                            alarmService.clearAlarm(tenantId, existingAlarm.getId(), mapper.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
-                        }
-                        break;
-                    case ENTITY_DELETED_RPC_MESSAGE:
-                        if (existingAlarm != null) {
-                            alarmService.deleteAlarm(tenantId, existingAlarm.getId());
-                        }
-                        break;
-                }
-            } catch (Exception e) {
-                log.error("Error during on alarm update msg", e);
-                return Futures.immediateFailedFuture(new RuntimeException("Error during on alarm update msg", e));
-            }
+        if (originatorId == null) {
+            log.warn("Originator not found for the alarm msg {}", alarmUpdateMsg);
+            return Futures.immediateFuture(null);
         }
-        return Futures.immediateFuture(null);
+        try {
+            Alarm existentAlarm = alarmService.findLatestByOriginatorAndType(tenantId, originatorId, alarmUpdateMsg.getType()).get();
+            switch (alarmUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    if (existentAlarm == null || existentAlarm.getStatus().isCleared()) {
+                        existentAlarm = new Alarm();
+                        existentAlarm.setTenantId(tenantId);
+                        existentAlarm.setType(alarmUpdateMsg.getName());
+                        existentAlarm.setOriginator(originatorId);
+                        existentAlarm.setSeverity(AlarmSeverity.valueOf(alarmUpdateMsg.getSeverity()));
+                        existentAlarm.setStartTs(alarmUpdateMsg.getStartTs());
+                        existentAlarm.setClearTs(alarmUpdateMsg.getClearTs());
+                        existentAlarm.setPropagate(alarmUpdateMsg.getPropagate());
+                    }
+                    existentAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
+                    existentAlarm.setAckTs(alarmUpdateMsg.getAckTs());
+                    existentAlarm.setEndTs(alarmUpdateMsg.getEndTs());
+                    existentAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
+                    alarmService.createOrUpdateAlarm(existentAlarm);
+                    break;
+                case ALARM_ACK_RPC_MESSAGE:
+                    if (existentAlarm != null) {
+                        alarmService.ackAlarm(tenantId, existentAlarm.getId(), alarmUpdateMsg.getAckTs());
+                    }
+                    break;
+                case ALARM_CLEAR_RPC_MESSAGE:
+                    if (existentAlarm != null) {
+                        alarmService.clearAlarm(tenantId, existentAlarm.getId(), mapper.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
+                    }
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    if (existentAlarm != null) {
+                        alarmService.deleteAlarm(tenantId, existentAlarm.getId());
+                    }
+                    break;
+            }
+            return Futures.immediateFuture(null);
+        } catch (Exception e) {
+            log.error("Failed to process alarm update msg [{}]", alarmUpdateMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Failed to process alarm update msg", e));
+        }
     }
 
     private EntityId getAlarmOriginator(TenantId tenantId, String entityName, EntityType entityType) {
