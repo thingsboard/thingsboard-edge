@@ -840,7 +840,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, alarmUpdateMsg.getMsgType());
         Assert.assertEquals(alarmUpdateMsg.getType(), savedAlarm.getType());
         Assert.assertEquals(alarmUpdateMsg.getName(), savedAlarm.getName());
-        Assert.assertEquals(alarmUpdateMsg.getOriginatorName(), device.getName());
+        Assert.assertEquals(alarmUpdateMsg.getOriginatorName(), globalTestDevice.getName());
         Assert.assertEquals(alarmUpdateMsg.getStatus(), AlarmStatus.CLEARED_ACK.name());
 
         log.info("Alarms tested successfully");
