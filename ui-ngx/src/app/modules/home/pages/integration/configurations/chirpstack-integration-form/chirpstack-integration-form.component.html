@@ -57,9 +57,12 @@
     <section>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.application-server-url</mat-label>
-        <input matInput formControlName="applicationServerUrl">
+        <input matInput formControlName="applicationServerUrl" required>
+        <mat-error translate *ngIf="form.get('applicationServerUrl').hasError('required')">
+          integration.application-server-url-required
+        </mat-error>
       </mat-form-field>
-      <mat-form-field class="mat-block" *ngIf="form.get('applicationServerUrl').value">
+      <mat-form-field class="mat-block">
         <mat-label translate>integration.application-server-api-token</mat-label>
         <input matInput formControlName="applicationServerAPIToken" required>
         <mat-error translate *ngIf="form.get('applicationServerAPIToken').hasError('required')">

@@ -66,18 +66,6 @@ export class ChirpstackIntegrationFormComponent extends IntegrationFormComponent
     this.form.get('baseUrl').valueChanges.subscribe(() => {
       this.integrationBaseUrlChanged();
     });
-    this.form.get('applicationServerUrl').valueChanges.subscribe((serverURL: string) => {
-      this.applicationServerUrlChange(serverURL);
-    });
-    this.applicationServerUrlChange(this.form.get('applicationServerUrl').value);
-  }
-
-  private applicationServerUrlChange(serverURL: string): void {
-    if (serverURL.length) {
-      enableFields(this.form, ['applicationServerAPIToken']);
-    } else {
-      disableFields(this.form, ['applicationServerAPIToken'], true);
-    }
   }
 
   onHttpEndpointCopied() {

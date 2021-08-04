@@ -2722,6 +2722,7 @@
         "rabbit-mq-poll-interval": "Poll interval, ms",
         "rabbit-mq-poll-interval-min": "Invalid poll interval value.",
         "application-server-url": "Application server URL",
+        "application-server-url-required": "Application server URL is required.",
         "application-server-api-token": "Application server API Token",
         "application-server-api-token-required": "Application server API Token is required.",
         "bootstrap-servers": "Bootstrap servers",
