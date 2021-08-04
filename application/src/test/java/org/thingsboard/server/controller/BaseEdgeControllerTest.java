@@ -423,7 +423,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(15);
+        edgeImitator.expectMessageAmount(13);
         edgeImitator.connect();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -431,22 +431,18 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size()); // one msg during sync process for 'default' device profile
         Assert.assertEquals(6, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size()); // two msgs during sync process, four msgs from assign to edge
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size()); // two msgs during sync process
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size()); // one msg during sync process
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size()); // one msg during sync process
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size()); // one msg during sync process
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
-        Assert.assertEquals(15, edgeImitator.getDownlinkMsgs().size());
+        Assert.assertEquals(13, edgeImitator.getDownlinkMsgs().size());
 
         edgeImitator.expectMessageAmount(10);
         doPost("/api/edge/sync/" + edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
+        Assert.assertEquals(4, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(CustomTranslationProto.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
         Assert.assertEquals(10, edgeImitator.getDownlinkMsgs().size());
