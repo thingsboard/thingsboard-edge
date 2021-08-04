@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -65,8 +65,9 @@ export class OtaUpdateComponent extends EntityComponent<OtaPackage> implements O
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: OtaPackage,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<OtaPackage>,
-              public fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              public fb: FormBuilder,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   ngOnInit() {
