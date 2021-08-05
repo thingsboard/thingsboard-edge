@@ -121,8 +121,14 @@ public abstract class AbstractContainerTest {
         edgeRestClient = new RestClient(edgeUrl);
 
         setWhiteLabelingAndCustomTranslation();
-        // wait while white labeling and login wl fully stored to db
-        Thread.sleep(3000);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                            Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
+                            return cloudLoginWhiteLabelParams.isPresent() &&
+                                    cloudLoginWhiteLabelParams.get().getDomainName().equals("tenant.org");
+                        });
 
         edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 

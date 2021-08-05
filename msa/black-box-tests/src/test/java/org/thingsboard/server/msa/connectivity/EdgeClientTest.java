@@ -1121,6 +1121,11 @@ public class EdgeClientTest extends AbstractContainerTest {
                             edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
                     DeviceCredentials deviceCredentialsOnCloud =
                             restClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
+                    // TODO: @voba - potential fix for future releases
+                    deviceCredentialsOnCloud.setId(null);
+                    deviceCredentialsOnEdge.setId(null);
+                    deviceCredentialsOnCloud.setCreatedTime(0);
+                    deviceCredentialsOnEdge.setCreatedTime(0);
                     return deviceCredentialsOnCloud.equals(deviceCredentialsOnEdge);
                 });
     }
