@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -118,17 +119,34 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
         }
     }
 
-    public UplinkMsg processAlarmMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType) throws ExecutionException, InterruptedException {
+    public UplinkMsg processAlarmMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, ActionType edgeEventAction)
+            throws ExecutionException, InterruptedException {
         AlarmId alarmId = new AlarmId(cloudEvent.getEntityId());
-        Alarm alarm = alarmService.findAlarmByIdAsync(cloudEvent.getTenantId(), alarmId).get();
         UplinkMsg msg = null;
-        if (alarm != null) {
-            AlarmUpdateMsg alarmUpdateMsg = alarmMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
-            msg = UplinkMsg.newBuilder()
-                    .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addAlarmUpdateMsg(alarmUpdateMsg).build();
-        } else {
-            log.info("Skipping event as alarm was not found [{}]", cloudEvent);
+        switch (edgeEventAction) {
+            case ADDED:
+            case UPDATED:
+            case ALARM_ACK:
+            case ALARM_CLEAR:
+                Alarm alarm = alarmService.findAlarmByIdAsync(cloudEvent.getTenantId(), alarmId).get();
+                if (alarm != null) {
+                    AlarmUpdateMsg alarmUpdateMsg = alarmMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
+                    msg = UplinkMsg.newBuilder()
+                            .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addAlarmUpdateMsg(alarmUpdateMsg).build();
+                } else {
+                    log.info("Skipping event as alarm was not found [{}]", cloudEvent);
+                }
+                break;
+            case DELETED:
+                Alarm deletedAlarm = mapper.convertValue(cloudEvent.getEntityBody(), Alarm.class);
+                AlarmUpdateMsg alarmUpdateMsg =
+                        alarmMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, deletedAlarm);
+                msg = UplinkMsg.newBuilder()
+                        .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addAlarmUpdateMsg(alarmUpdateMsg)
+                        .build();
+                break;
         }
         return msg;
     }

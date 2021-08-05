@@ -130,7 +130,8 @@ public class AlarmController extends BaseController {
             logEntityAction(alarm.getOriginator(), alarm,
                     getCurrentUser().getCustomerId(),
                     ActionType.ALARM_DELETE, null);
-            sendNotificationMsgToCloudService(getTenantId(), alarmId, ActionType.DELETED);
+
+            sendAlarmDeleteNotificationMsg(getTenantId(), alarmId, alarm);
 
             return alarmService.deleteAlarm(getTenantId(), alarmId);
          } catch (Exception e) {

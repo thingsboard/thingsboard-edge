@@ -150,10 +150,11 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
             Map<Resource, List<Operation>> originPermissions = mapper.readValue(role.getPermissions().toString(), mapType);
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();
-                if (Resource.DEVICE.equals(entry.getKey())) {
+                if (Resource.DEVICE.equals(entry.getKey()) || Resource.ALARM.equals(entry.getKey())) {
                     continue;
                 }
                 if (Resource.ALL.equals(entry.getKey()) && originOperations.contains(Operation.ALL)) {
+                    originPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
                     originPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
                     originPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
                 }

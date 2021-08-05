@@ -48,6 +48,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -94,6 +95,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -106,6 +108,7 @@ public abstract class AbstractContainerTest {
     protected static RestClient edgeRestClient;
 
     protected static Edge edge;
+    protected static String edgeUrl;
 
     @BeforeClass
     public static void before() throws Exception {
@@ -114,31 +117,30 @@ public abstract class AbstractContainerTest {
 
         String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8080);
         Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8080);
-        edgeRestClient = new RestClient("http://" + edgeHost + ":" + edgePort);
+        edgeUrl = "http://" + edgeHost + ":" + edgePort;
+        edgeRestClient = new RestClient(edgeUrl);
 
         setWhiteLabelingAndCustomTranslation();
         // wait while white labeling and login wl fully stored to db
-        Thread.sleep(1000);
+        Thread.sleep(3000);
 
         edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
-        boolean loginSuccessful = false;
-        int attempt = 0;
-        do {
-            try {
-                edgeRestClient.login("tenant@thingsboard.org", "tenant");
-                loginSuccessful = true;
-            } catch (Exception ignored1) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored2) {}
-            }
-            attempt++;
-            if (attempt > 50) {
-                break;
-            }
-        } while (!loginSuccessful);
-        Assert.assertTrue(loginSuccessful);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    boolean loginSuccessful = false;
+                    try {
+                        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+                        loginSuccessful = true;
+                    } catch (Exception ignored1) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ignored2) {}
+                    }
+                    return loginSuccessful;
+                });
+
         Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
         Assert.assertTrue(tenant.isPresent());
         Assert.assertEquals(edge.getTenantId(), tenant.get().getId());

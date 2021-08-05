@@ -181,23 +181,36 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         }
     }
 
-    private void processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
+    private void processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws JsonProcessingException {
+        ActionType actionType = ActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
-        ListenableFuture<Alarm> alarmFuture = alarmService.findAlarmByIdAsync(tenantId, alarmId);
-        Futures.transform(alarmFuture, alarm -> {
-            if (alarm != null) {
-                CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
-                if (cloudEventType != null) {
-                    saveCloudEvent(tenantId,
-                            CloudEventType.ALARM,
-                            ActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
-                            alarmId,
-                            null,
-                            null);
-                }
-            }
-            return null;
-        }, dbCallbackExecutorService);
+        switch (actionType) {
+            case DELETED:
+                Alarm deletedAlarm = mapper.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
+                saveCloudEvent(tenantId,
+                        CloudEventType.ALARM,
+                        actionType,
+                        alarmId,
+                        mapper.valueToTree(deletedAlarm),
+                        null);
+                break;
+            default:
+                ListenableFuture<Alarm> alarmFuture = alarmService.findAlarmByIdAsync(tenantId, alarmId);
+                Futures.transform(alarmFuture, alarm -> {
+                    if (alarm != null) {
+                        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
+                        if (cloudEventType != null) {
+                            saveCloudEvent(tenantId,
+                                    CloudEventType.ALARM,
+                                    ActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
+                                    alarmId,
+                                    null,
+                                    null);
+                        }
+                    }
+                    return null;
+                }, dbCallbackExecutorService);
+        }
     }
 
     private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws JsonProcessingException {

@@ -72,6 +72,7 @@ import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -1366,6 +1367,14 @@ public abstract class BaseController {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
             sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+        }
+    }
+
+    protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, Alarm alarm) {
+        try {
+            sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, ActionType.DELETED, null);
+        } catch (Exception e) {
+            log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
     }
 

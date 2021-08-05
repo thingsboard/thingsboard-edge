@@ -458,7 +458,7 @@ public class CloudManagerService extends BaseCloudEventService {
             case DEVICE:
                 return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
             case ALARM:
-                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent, msgType);
+                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
             case RELATION:
                 return relationProcessor.processRelationMsgToCloud(cloudEvent, msgType);
             default:
