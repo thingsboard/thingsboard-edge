@@ -39,6 +39,9 @@ import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
+
 @Component
 @TbCoreComponent
 public class AssetMsgConstructor {
@@ -51,18 +54,18 @@ public class AssetMsgConstructor {
                 .setName(asset.getName())
                 .setType(asset.getType());
         if (asset.getLabel() != null) {
-            builder.setLabel(asset.getLabel());
+            builder.setLabel(getStringValue(asset.getLabel()));
         }
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
+                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(asset.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(asset.getCustomerId().getId().getLeastSignificantBits());
+        if (asset.getCustomerId() != null) {
+            builder.setCustomerIdMSB(getInt64Value(asset.getCustomerId().getId().getMostSignificantBits()));
+            builder.setCustomerIdLSB(getInt64Value(asset.getCustomerId().getId().getLeastSignificantBits()));
         }
         if (asset.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(JacksonUtil.toString(asset.getAdditionalInfo()));
+            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(asset.getAdditionalInfo())));
         }
         return builder.build();
     }

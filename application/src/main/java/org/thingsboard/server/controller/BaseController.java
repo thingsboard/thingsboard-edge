@@ -1240,10 +1240,22 @@ public abstract class BaseController {
     }
 
     protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
+        sendDeleteNotificationMsg(tenantId, entityId, edgeIds, null);
+    }
+
+    protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, String body) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
             }
+        }
+    }
+
+    protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, Alarm alarm) {
+        try {
+            sendDeleteNotificationMsg(tenantId, entityId, edgeIds, json.writeValueAsString(alarm));
+        } catch (Exception e) {
+            log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
     }
 

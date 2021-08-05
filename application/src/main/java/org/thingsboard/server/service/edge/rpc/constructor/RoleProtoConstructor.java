@@ -38,6 +38,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
+
 @Component
 @Slf4j
 public class RoleProtoConstructor {
@@ -53,9 +55,9 @@ public class RoleProtoConstructor {
                 .setType(role.getType().name())
                 .setAdditionalInfo(JacksonUtil.toString(role.getAdditionalInfo()))
                 .setPermissions(JacksonUtil.toString(role.getPermissions()));
-        if (role.getCustomerId() != null && !role.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(role.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(role.getCustomerId().getId().getLeastSignificantBits());
+        if (role.getCustomerId() != null) {
+            builder.setCustomerIdMSB(getInt64Value(role.getCustomerId().getId().getMostSignificantBits()))
+                    .setCustomerIdLSB(getInt64Value(role.getCustomerId().getId().getLeastSignificantBits()));
         }
 
         return builder.build();

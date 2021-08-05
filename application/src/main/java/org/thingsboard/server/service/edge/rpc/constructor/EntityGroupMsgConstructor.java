@@ -38,6 +38,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
+
 @Component
 @Slf4j
 public class EntityGroupMsgConstructor {
@@ -54,7 +56,7 @@ public class EntityGroupMsgConstructor {
                 .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
                 .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
         if (entityGroup.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()));
+            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(entityGroup.getAdditionalInfo())));
         }
         return builder.build();
     }

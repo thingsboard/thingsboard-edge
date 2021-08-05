@@ -39,6 +39,8 @@ import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
+
 @Component
 @TbCoreComponent
 public class DashboardMsgConstructor {
@@ -51,12 +53,12 @@ public class DashboardMsgConstructor {
                 .setTitle(dashboard.getTitle())
                 .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()));
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
+                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
         }
-        if (dashboard.getCustomerId() != null && !dashboard.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(dashboard.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(dashboard.getCustomerId().getId().getLeastSignificantBits());
+        if (dashboard.getCustomerId() != null) {
+            builder.setCustomerIdMSB(getInt64Value(dashboard.getCustomerId().getId().getMostSignificantBits()))
+                    .setCustomerIdLSB(getInt64Value(dashboard.getCustomerId().getId().getLeastSignificantBits()));
         }
         return builder.build();
     }

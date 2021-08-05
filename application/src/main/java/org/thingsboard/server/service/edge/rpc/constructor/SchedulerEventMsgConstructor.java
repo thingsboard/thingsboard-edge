@@ -38,6 +38,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
+import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
+
 @Component
 @Slf4j
 public class SchedulerEventMsgConstructor {
@@ -51,9 +53,9 @@ public class SchedulerEventMsgConstructor {
         builder.setType(schedulerEvent.getType());
         builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
         builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
-        if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(schedulerEvent.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(schedulerEvent.getCustomerId().getId().getLeastSignificantBits());
+        if (schedulerEvent.getCustomerId() != null) {
+            builder.setCustomerIdMSB(getInt64Value(schedulerEvent.getCustomerId().getId().getMostSignificantBits()))
+                    .setCustomerIdLSB(getInt64Value(schedulerEvent.getCustomerId().getId().getLeastSignificantBits()));
         }
         return builder.build();
     }
