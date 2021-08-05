@@ -43,6 +43,7 @@ import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -489,6 +490,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         EntityGroupInfo savedDeviceEntityGroup = restClient.saveEntityGroup(deviceEntityGroup);
         globalTestDevice = saveDeviceOnCloud("Edge Device 1", "default", savedDeviceEntityGroup.getId());
 
+        restClient.saveDeviceAttributes(globalTestDevice.getId(), DataConstants.SERVER_SCOPE, mapper.readTree("{\"key1\":\"value1\"}"));
+        restClient.saveDeviceAttributes(globalTestDevice.getId(), DataConstants.SHARED_SCOPE, mapper.readTree("{\"key2\":\"value2\"}"));
+
         restClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
 
         verifyEntityGroups(EntityType.DEVICE, 2);
@@ -496,6 +500,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDeviceById(globalTestDevice.getId()).isPresent());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> verifyAttributeOnEdge(globalTestDevice.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> verifyAttributeOnEdge(globalTestDevice.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
         // wait to fully process all edge entities for group requests
         Thread.sleep(1000);
@@ -513,7 +525,16 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         log.info("Devices tested successfully");
     }
-//
+
+    private boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
+        List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
+        if (attributesByScope.isEmpty()) {
+            return false;
+        }
+        AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
+        return attributeKvEntry.getValueAsString().equals(expectedValue);
+    }
+
 //    private void testDeviceEntityGroupRequestMsg(long msbId, long lsbId, DeviceId expectedDeviceId) throws Exception {
 //        EntityGroupRequestMsg.Builder deviceEntitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
 //                .setEntityGroupIdMSB(msbId)
@@ -1063,13 +1084,8 @@ public class EdgeClientTest extends AbstractContainerTest {
         sendRelationToCloud();
         sendAlarmToCloud();
         sendTelemetryToCloud();
-//        sendRuleChainMetadataRequest();
-//        // TODO: implement
-//        // sendUserCredentialsRequest();
 //        sendDeviceRpcResponse();
-//        sendDeviceCredentialsUpdate();
-//        sendAttributesRequest();
-//        log.info("Messages were sent successfully");
+        log.info("Messages were sent successfully");
     }
 
     private void sendDeviceToCloud() throws Exception {
@@ -1262,77 +1278,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 });
     }
 
-//    private void sendRuleChainMetadataRequest() throws Exception {
-//        RuleChainId edgeRootRuleChainId = edge.getRootRuleChainId();
-//
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
-//        RuleChainMetadataRequestMsg.Builder ruleChainMetadataRequestMsgBuilder = RuleChainMetadataRequestMsg.newBuilder();
-//        ruleChainMetadataRequestMsgBuilder.setRuleChainIdMSB(edgeRootRuleChainId.getId().getMostSignificantBits());
-//        ruleChainMetadataRequestMsgBuilder.setRuleChainIdLSB(edgeRootRuleChainId.getId().getLeastSignificantBits());
-//        uplinkMsgBuilder.addRuleChainMetadataRequestMsg(ruleChainMetadataRequestMsgBuilder.build());
-//
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());;
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof RuleChainMetadataUpdateMsg);
-//        RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = (RuleChainMetadataUpdateMsg) latestMessage;
-//        Assert.assertEquals(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), edgeRootRuleChainId.getId().getMostSignificantBits());
-//        Assert.assertEquals(ruleChainMetadataUpdateMsg.getRuleChainIdLSB(), edgeRootRuleChainId.getId().getLeastSignificantBits());
-//
-//    }
-//
-//    private void sendUserCredentialsRequest() throws Exception {
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
-//        UserCredentialsRequestMsg.Builder userCredentialsRequestMsgBuilder = UserCredentialsRequestMsg.newBuilder();
-//        userCredentialsRequestMsgBuilder.setUserIdMSB(tenantAdmin.getId().getId().getMostSignificantBits());
-//        userCredentialsRequestMsgBuilder.setUserIdLSB(tenantAdmin.getId().getId().getLeastSignificantBits());
-//        uplinkMsgBuilder.addUserCredentialsRequestMsg(userCredentialsRequestMsgBuilder.build());
-//
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
-//        UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
-//        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdMSB(), tenantAdmin.getId().getId().getMostSignificantBits());
-//        Assert.assertEquals(userCredentialsUpdateMsg.getUserIdLSB(), tenantAdmin.getId().getId().getLeastSignificantBits());
-//
-//    }
-//
-//    private void sendDeviceCredentialsRequest() throws Exception {
-//        DeviceCredentials deviceCredentials = doGet("/api/device/" + globalTestDevice.getId().getId().toString() + "/credentials", DeviceCredentials.class);
-//
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
-//        DeviceCredentialsRequestMsg.Builder deviceCredentialsRequestMsgBuilder = DeviceCredentialsRequestMsg.newBuilder();
-//        deviceCredentialsRequestMsgBuilder.setDeviceIdMSB(globalTestDevice.getUuidId().getMostSignificantBits());
-//        deviceCredentialsRequestMsgBuilder.setDeviceIdLSB(globalTestDevice.getUuidId().getLeastSignificantBits());
-//        uplinkMsgBuilder.addDeviceCredentialsRequestMsg(deviceCredentialsRequestMsgBuilder.build());
-//
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof DeviceCredentialsUpdateMsg);
-//        DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = (DeviceCredentialsUpdateMsg) latestMessage;
-//        Assert.assertEquals(deviceCredentialsUpdateMsg.getDeviceIdMSB(), globalTestDevice.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(deviceCredentialsUpdateMsg.getDeviceIdLSB(), globalTestDevice.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(deviceCredentialsUpdateMsg.getCredentialsType(), deviceCredentials.getCredentialsType().name());
-//        Assert.assertEquals(deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentials.getCredentialsId());
-//    }
-//
+
 //    private void sendDeviceRpcResponse() throws Exception {
 //        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
 //        DeviceRpcCallMsg.Builder deviceRpcCallResponseBuilder = DeviceRpcCallMsg.newBuilder();
@@ -1352,22 +1298,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 //        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
 //        Assert.assertTrue(edgeImitator.waitForResponses());
 //    }
-//
-//    private void sendDeviceCredentialsUpdate() throws Exception {
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
-//        DeviceCredentialsUpdateMsg.Builder deviceCredentialsUpdateMsgBuilder = DeviceCredentialsUpdateMsg.newBuilder();
-//        deviceCredentialsUpdateMsgBuilder.setDeviceIdMSB(globalTestDevice.getUuidId().getMostSignificantBits());
-//        deviceCredentialsUpdateMsgBuilder.setDeviceIdLSB(globalTestDevice.getUuidId().getLeastSignificantBits());
-//        deviceCredentialsUpdateMsgBuilder.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN.name());
-//        deviceCredentialsUpdateMsgBuilder.setCredentialsId("NEW_TOKEN");
-//        uplinkMsgBuilder.addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsgBuilder.build());
-//
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//    }
-//
+
 //    private void sendAttributesRequest() throws Exception {
 //        sendAttributesRequest(globalTestDevice, DataConstants.SERVER_SCOPE, "{\"key1\":\"value1\"}", "key1", "value1");
 //        sendAttributesRequest(globalTestDevice, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}", "key2", "value2");
