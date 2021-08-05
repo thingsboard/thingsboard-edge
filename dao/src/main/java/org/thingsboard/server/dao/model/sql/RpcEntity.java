@@ -51,6 +51,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.RPC_ADDITIONAL_INFO;
 import static org.thingsboard.server.dao.model.ModelConstants.RPC_DEVICE_ID;
 import static org.thingsboard.server.dao.model.ModelConstants.RPC_EXPIRATION_TIME;
 import static org.thingsboard.server.dao.model.ModelConstants.RPC_REQUEST;
@@ -87,6 +88,10 @@ public class RpcEntity extends BaseSqlEntity<Rpc> implements BaseEntity<Rpc> {
     @Column(name = RPC_STATUS)
     private RpcStatus status;
 
+    @Type(type = "json")
+    @Column(name = RPC_ADDITIONAL_INFO)
+    private JsonNode additionalInfo;
+
     public RpcEntity() {
         super();
     }
@@ -100,6 +105,7 @@ public class RpcEntity extends BaseSqlEntity<Rpc> implements BaseEntity<Rpc> {
         this.request = rpc.getRequest();
         this.response = rpc.getResponse();
         this.status = rpc.getStatus();
+        this.additionalInfo = rpc.getAdditionalInfo();
     }
 
     @Override
@@ -112,6 +118,7 @@ public class RpcEntity extends BaseSqlEntity<Rpc> implements BaseEntity<Rpc> {
         rpc.setRequest(request);
         rpc.setResponse(response);
         rpc.setStatus(status);
+        rpc.setAdditionalInfo(additionalInfo);
         return rpc;
     }
 }

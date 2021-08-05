@@ -271,6 +271,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         }
 
         deviceSessionCtx.getMsgQueue().add(msg);
+        ReferenceCountUtil.retain(msg);
         processMsgQueue(ctx); //Under the normal conditions the msg queue will contain 0 messages. Many messages will be processed on device connect event in separate thread pool
     }
 
@@ -286,6 +287,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     while ((msg = deviceSessionCtx.getMsgQueue().poll()) != null) {
                         deviceSessionCtx.getMsgQueueSize().decrementAndGet();
                         processRegularSessionMsg(ctx, msg);
+                        ReferenceCountUtil.safeRelease(msg);
                     }
                 } finally {
                     deviceSessionCtx.getMsgQueueProcessorLock().unlock();
