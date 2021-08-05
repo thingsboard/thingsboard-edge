@@ -101,7 +101,7 @@ public class DeviceMsgConstructor {
                     .setCredentialsId(deviceCredentials.getCredentialsId());
         }
         if (deviceCredentials.getCredentialsValue() != null) {
-            builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
+            builder.setCredentialsValue(getStringValue(deviceCredentials.getCredentialsValue()));
         }
         return builder.build();
     }
