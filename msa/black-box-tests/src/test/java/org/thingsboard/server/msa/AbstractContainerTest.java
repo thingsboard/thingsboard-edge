@@ -79,17 +79,26 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportC
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLContext;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,11 +108,11 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractContainerTest {
-    protected static final String HTTPS_URL = "https://localhost";
+    protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
     protected static String TB_TOKEN;
     protected static RestClient restClient;
-    protected ObjectMapper mapper = new ObjectMapper();
+    protected static ObjectMapper mapper = new ObjectMapper();
 
     protected static RestClient edgeRestClient;
 
@@ -112,11 +121,11 @@ public abstract class AbstractContainerTest {
 
     @BeforeClass
     public static void before() throws Exception {
-        restClient = new RestClient(HTTPS_URL);
+        restClient = new RestClient(CLOUD_HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
 
-        String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8080);
-        Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8080);
+        String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
+        Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
         edgeUrl = "http://" + edgeHost + ":" + edgePort;
         edgeRestClient = new RestClient(edgeUrl);
 
@@ -150,6 +159,25 @@ public abstract class AbstractContainerTest {
         Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
         Assert.assertTrue(tenant.isPresent());
         Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+    }
+
+    protected void updateRootRuleChain() throws IOException {
+        PageData<RuleChain> ruleChains = restClient.getRuleChains(new PageLink(100));
+        RuleChainId rootRuleChainId = null;
+        for (RuleChain datum : ruleChains.getData()) {
+            if (datum.isRoot()) {
+                rootRuleChainId = datum.getId();
+                break;
+            }
+        }
+        Assert.assertNotNull(rootRuleChainId);
+        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("PushToEdgeRootRuleChainMetadata.json"));
+        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
+        ruleChainMetaData.setRuleChainId(rootRuleChainId);
+        ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
+        ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+        restClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
     private static void setWhiteLabelingAndCustomTranslation() {

@@ -199,7 +199,8 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     private ActionType getActionTypeByMsgType(String msgType) {
         ActionType actionType;
-        if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)) {
+        if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)
+                || DataConstants.TIMESERIES_UPDATED.equals(msgType)) {
             actionType = ActionType.TIMESERIES_UPDATED;
         } else if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)
                 || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)) {
@@ -215,6 +216,7 @@ public class TbMsgPushToCloudNode implements TbNode {
                 || SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)
                 || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)
                 || DataConstants.ATTRIBUTES_DELETED.equals(msgType)
+                || DataConstants.TIMESERIES_UPDATED.equals(msgType)
                 || DataConstants.ALARM.equals(msgType);
     }
 

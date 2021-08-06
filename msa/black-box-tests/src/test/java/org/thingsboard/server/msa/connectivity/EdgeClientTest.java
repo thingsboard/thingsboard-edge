@@ -33,6 +33,7 @@ package org.thingsboard.server.msa.connectivity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
@@ -110,6 +111,8 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void test() throws Exception {
+        updateRootRuleChain();
+
         createCustomDeviceProfile();
 
         testReceivedInitialData();
@@ -133,9 +136,11 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         testWidgetsBundleAndWidgetType();
 
-//        testTimeseries();
-//
-//        testAttributes();
+        testSendPostTelemetryRequestToEdge();
+
+        testSendPostAttributesRequestToEdge();
+
+        testSendAttributesUpdatedToEdge();
 
 //        testRpcCall();
 
@@ -156,13 +161,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         verifyRoles();
         verifyWidgetsBundles();
         verifyDeviceProfiles();
-        verifyAdminSettings();
         verifyRuleChains();
         verifyEntityGroups(EntityType.DEVICE, 1);
         verifyEntityGroups(EntityType.ASSET, 1);
         verifyEntityGroups(EntityType.ENTITY_VIEW, 1);
         verifyEntityGroups(EntityType.DASHBOARD, 1);
         verifyEntityGroups(EntityType.USER, 3);
+
+        verifyAdminSettings();
         verifyWhiteLabeling();
 
         log.info("Received initial data checked");
@@ -215,29 +221,49 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     private void verifyWhiteLabeling() {
-        Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
-        Assert.assertTrue("White Labeling is not available on edge", edgeWhiteLabelParams.isPresent());
-        Optional<WhiteLabelingParams> cloudWhiteLabelParams = restClient.getCurrentWhiteLabelParams();
-        Assert.assertTrue("White Labeling is not available on cloud", cloudWhiteLabelParams.isPresent());
-        Assert.assertEquals("White Labeling on cloud and edge are different", edgeWhiteLabelParams.get(), cloudWhiteLabelParams.get());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
+                    Optional<WhiteLabelingParams> cloudWhiteLabelParams = restClient.getCurrentWhiteLabelParams();
+                    return edgeWhiteLabelParams.isPresent() &&
+                            cloudWhiteLabelParams.isPresent() &&
+                            edgeWhiteLabelParams.get().equals(cloudWhiteLabelParams.get());
+                });
 
-        Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
-        Assert.assertTrue("Login White Labeling is not available on edge", edgeLoginWhiteLabelParams.isPresent());
-        Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
-        Assert.assertTrue("Login White Labeling is not available on cloud", cloudLoginWhiteLabelParams.isPresent());
-        Assert.assertEquals("Login White Labeling on cloud and edge are different", edgeLoginWhiteLabelParams.get(), cloudLoginWhiteLabelParams.get());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
+                    Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
+                    return edgeLoginWhiteLabelParams.isPresent() &&
+                            cloudLoginWhiteLabelParams.isPresent() &&
+                            edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
+                });
 
-        Optional<CustomTranslation> edgeCustomTranslation = edgeRestClient.getCustomTranslation();
-        Assert.assertTrue("Custom Translation is not available on edge", edgeCustomTranslation.isPresent());
-        Optional<CustomTranslation> cloudCustomTranslation = restClient.getCustomTranslation();
-        Assert.assertTrue("Custom Translation is not available on cloud", cloudCustomTranslation.isPresent());
-        Assert.assertEquals("Custom Translation on cloud and edge are different", edgeCustomTranslation.get(), cloudCustomTranslation.get());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<CustomTranslation> edgeCustomTranslation = edgeRestClient.getCustomTranslation();
+                    Optional<CustomTranslation> cloudCustomTranslation = restClient.getCustomTranslation();
+                    return edgeCustomTranslation.isPresent() &&
+                            cloudCustomTranslation.isPresent() &&
+                            edgeCustomTranslation.get().equals(cloudCustomTranslation.get());
+                });
     }
 
     private void verifyAdminSettings() {
         verifyAdminSettingsByKey("general");
-        verifyAdminSettingsByKey("mail");
         verifyAdminSettingsByKey("mailTemplates");
+        // TODO: @voba - uncomment this after latest merge with 3.3.0
+        // verifyAdminSettingsByKey("mail");
+
+        // TODO: @voba - verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
+        // login as sysadmin on edge
+        // login as sysadmin on cloud
+        // verifyAdminSettingsByKey("general");
+        // verifyAdminSettingsByKey("mailTemplates");
+        // verifyAdminSettingsByKey("mail");
     }
 
     private void verifyAdminSettingsByKey(String key) {
@@ -372,15 +398,46 @@ public class EdgeClientTest extends AbstractContainerTest {
             actual.setType(null);
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
 
-            Optional<RuleChainMetaData> edgeRuleChainMetaData = edgeRestClient.getRuleChainMetaData(ruleChainId);
-            Optional<RuleChainMetaData> cloudRuleChainMetaData = restClient.getRuleChainMetaData(ruleChainId);
-            Assert.assertTrue(edgeRuleChainMetaData.isPresent());
-            Assert.assertTrue(cloudRuleChainMetaData.isPresent());
-            RuleChainMetaData expectedMetadata = edgeRuleChainMetaData.get();
-            RuleChainMetaData actualMetadata = cloudRuleChainMetaData.get();
-            // TODO: voba - add check
-            // Assert.assertEquals("Rule chains metadata on cloud and edge are different (except type)", expectedMetadata, actualMetadata);
+            Awaitility.await()
+                    .atMost(30, TimeUnit.SECONDS).
+                    until(() -> {
+                        Optional<RuleChainMetaData> edgeRuleChainMetaData = edgeRestClient.getRuleChainMetaData(ruleChainId);
+                        Optional<RuleChainMetaData> cloudRuleChainMetaData = restClient.getRuleChainMetaData(ruleChainId);
+                        if (edgeRuleChainMetaData.isEmpty()) {
+                            return false;
+                        }
+                        if (cloudRuleChainMetaData.isEmpty()) {
+                            return false;
+                        }
+                        return validateRuleChainMetadata(edgeRuleChainMetaData.get(), cloudRuleChainMetaData.get());
+                    });
         }
+    }
+
+    private boolean validateRuleChainMetadata(RuleChainMetaData expectedMetadata, RuleChainMetaData actualMetadata) {
+        if (!expectedMetadata.getRuleChainId().equals(actualMetadata.getRuleChainId())) {
+            return false;
+        }
+        if (expectedMetadata.getNodes().size() != actualMetadata.getNodes().size()) {
+            return false;
+        }
+        if (expectedMetadata.getConnections().size() != actualMetadata.getConnections().size()) {
+            return false;
+        }
+        for (RuleNode expectedNode : expectedMetadata.getNodes()) {
+            Optional<RuleNode> actualNodeOpt =
+                    actualMetadata.getNodes().stream().filter(n -> n.getId().equals(expectedNode.getId())).findFirst();
+            if (actualNodeOpt.isEmpty()) {
+                return false;
+            }
+            RuleNode actualNode = actualNodeOpt.get();
+            // TODO: @voba - fix send of created time from cloud to edge
+            actualNode.setCreatedTime(0);
+            if (!expectedNode.equals(actualNode)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void assertRoles(List<EntityId> entityIds) {
@@ -535,28 +592,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         return attributeKvEntry.getValueAsString().equals(expectedValue);
     }
 
-//    private void testDeviceEntityGroupRequestMsg(long msbId, long lsbId, DeviceId expectedDeviceId) throws Exception {
-//        EntityGroupRequestMsg.Builder deviceEntitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
-//                .setEntityGroupIdMSB(msbId)
-//                .setEntityGroupIdLSB(lsbId)
-//                .setType(EntityType.DEVICE.name());
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder()
-//                .addEntityGroupEntitiesRequestMsg(deviceEntitiesGroupRequestMsgBuilder.build());
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
-//        DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
-//        DeviceId receivedDeviceId =
-//                new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-//        Assert.assertEquals(expectedDeviceId, receivedDeviceId);
-//
-//
     private void testAssets() throws Exception {
         log.info("Testing assets");
 
@@ -591,31 +626,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         log.info("Assets tested successfully");
     }
-//
-//    private void testAssetEntityGroupRequestMsg(long msbId, long lsbId, AssetId expectedAssetId) throws Exception {
-//        EntityGroupRequestMsg.Builder entitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
-//                .setEntityGroupIdMSB(msbId)
-//                .setEntityGroupIdLSB(lsbId)
-//                .setType(EntityType.ASSET.name());
-//
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder()
-//                .addEntityGroupEntitiesRequestMsg(entitiesGroupRequestMsgBuilder.build());
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof AssetUpdateMsg);
-//        AssetUpdateMsg assetUpdateMsg = (AssetUpdateMsg) latestMessage;
-//        AssetId receivedAssetId =
-//                new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
-//        Assert.assertEquals(expectedAssetId, receivedAssetId);
-//
-//    }
-//
+
     private void testRuleChains() throws Exception {
         log.info("Testing RuleChains");
 
@@ -712,30 +723,6 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         log.info("Dashboards tested successfully");
     }
-//
-//    private void testDashboardEntityGroupRequestMsg(long msbId, long lsbId, DashboardId expectedDashboardId) throws Exception {
-//        EntityGroupRequestMsg.Builder entitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
-//                .setEntityGroupIdMSB(msbId)
-//                .setEntityGroupIdLSB(lsbId)
-//                .setType(EntityType.DASHBOARD.name());
-//
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder()
-//                .addEntityGroupEntitiesRequestMsg(entitiesGroupRequestMsgBuilder.build());
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof DashboardUpdateMsg);
-//        DashboardUpdateMsg dashboardUpdateMsg = (DashboardUpdateMsg) latestMessage;
-//        DashboardId receivedDashboardId =
-//                new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
-//        Assert.assertEquals(expectedDashboardId, receivedDashboardId);
-//
-//    }
 
     private void testRelations() throws Exception {
         log.info("Testing Relations");
@@ -891,123 +878,249 @@ public class EdgeClientTest extends AbstractContainerTest {
         log.info("WidgetsBundle and WidgetType tested successfully");
     }
 
-//    private void testTimeseries() throws Exception {
-//        log.info("Testing timeseries");
-//
-//        String timeseriesData = "{\"data\":{\"temperature\":25},\"ts\":" + System.currentTimeMillis() + "}";
-//        JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
-//
-//
-//        EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED, globalTestDevice.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
-//        edgeEventService.saveAsync(edgeEvent);
-//        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityDataProto);
-//        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
-//        Assert.assertEquals(latestEntityDataMsg.getEntityIdMSB(), globalTestDevice.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(latestEntityDataMsg.getEntityIdLSB(), globalTestDevice.getUuidId().getLeastSignificantBits());
-//        Assert.assertEquals(latestEntityDataMsg.getEntityType(), globalTestDevice.getId().getEntityType().name());
-//        Assert.assertTrue(latestEntityDataMsg.hasPostTelemetryMsg());
-//
-//        TransportProtos.PostTelemetryMsg postTelemetryMsg = latestEntityDataMsg.getPostTelemetryMsg();
-//        Assert.assertEquals(1, postTelemetryMsg.getTsKvListCount());
-//        TransportProtos.TsKvListProto tsKvListProto = postTelemetryMsg.getTsKvList(0);
-//        Assert.assertEquals(timeseriesEntityData.get("ts").asLong(), tsKvListProto.getTs());
-//        Assert.assertEquals(1, tsKvListProto.getKvCount());
-//        TransportProtos.KeyValueProto keyValueProto = tsKvListProto.getKv(0);
-//        Assert.assertEquals("temperature", keyValueProto.getKey());
-//        Assert.assertEquals(25, keyValueProto.getLongV());
-//        log.info("Timeseries tested successfully");
-//    }
-//
-//    private void testAttributes() throws Exception {
-//        log.info("Testing attributes");
-//
-//        testAttributesUpdatedMsg(globalTestDevice);
-//        testPostAttributesMsg(globalTestDevice);
-//        testAttributesDeleteMsg(globalTestDevice);
-//
-//        log.info("Attributes tested successfully");
-//    }
-//
-//    private void testAttributesUpdatedMsg(Device device) throws JsonProcessingException, InterruptedException {
-//        String attributesData = "{\"scope\":\"SERVER_SCOPE\",\"kv\":{\"key1\":\"value1\"}}";
-//        JsonNode attributesEntityData = mapper.readTree(attributesData);
-//        EdgeEvent edgeEvent1 = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, device.getId().getId(), EdgeEventType.DEVICE, attributesEntityData);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeEventService.saveAsync(edgeEvent1);
-//        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityDataProto);
-//        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
-//        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
-//        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
-//        Assert.assertEquals(device.getId().getEntityType().name(), latestEntityDataMsg.getEntityType());
-//        Assert.assertEquals("SERVER_SCOPE", latestEntityDataMsg.getPostAttributeScope());
-//        Assert.assertTrue(latestEntityDataMsg.hasAttributesUpdatedMsg());
-//
-//        TransportProtos.PostAttributeMsg attributesUpdatedMsg = latestEntityDataMsg.getAttributesUpdatedMsg();
-//        Assert.assertEquals(1, attributesUpdatedMsg.getKvCount());
-//        TransportProtos.KeyValueProto keyValueProto = attributesUpdatedMsg.getKv(0);
-//        Assert.assertEquals("key1", keyValueProto.getKey());
-//        Assert.assertEquals("value1", keyValueProto.getStringV());
-//    }
-//
-//    private void testPostAttributesMsg(Device device) throws JsonProcessingException, InterruptedException {
-//        String postAttributesData = "{\"scope\":\"SERVER_SCOPE\",\"kv\":{\"key2\":\"value2\"}}";
-//        JsonNode postAttributesEntityData = mapper.readTree(postAttributesData);
-//        EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.POST_ATTRIBUTES, device.getId().getId(), EdgeEventType.DEVICE, postAttributesEntityData);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeEventService.saveAsync(edgeEvent);
-//        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityDataProto);
-//        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
-//        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
-//        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
-//        Assert.assertEquals(device.getId().getEntityType().name(), latestEntityDataMsg.getEntityType());
-//        Assert.assertEquals("SERVER_SCOPE", latestEntityDataMsg.getPostAttributeScope());
-//        Assert.assertTrue(latestEntityDataMsg.hasPostAttributesMsg());
-//
-//        TransportProtos.PostAttributeMsg postAttributesMsg = latestEntityDataMsg.getPostAttributesMsg();
-//        Assert.assertEquals(1, postAttributesMsg.getKvCount());
-//        TransportProtos.KeyValueProto keyValueProto = postAttributesMsg.getKv(0);
-//        Assert.assertEquals("key2", keyValueProto.getKey());
-//        Assert.assertEquals("value2", keyValueProto.getStringV());
-//    }
-//
-//    private void testAttributesDeleteMsg(Device device) throws JsonProcessingException, InterruptedException {
-//        String deleteAttributesData = "{\"scope\":\"SERVER_SCOPE\",\"keys\":[\"key1\",\"key2\"]}";
-//        JsonNode deleteAttributesEntityData = mapper.readTree(deleteAttributesData);
-//        EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_DELETED, device.getId().getId(), EdgeEventType.DEVICE, deleteAttributesEntityData);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeEventService.saveAsync(edgeEvent);
-//        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityDataProto);
-//        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
-//        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
-//        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
-//        Assert.assertEquals(device.getId().getEntityType().name(), latestEntityDataMsg.getEntityType());
-//
-//        Assert.assertTrue(latestEntityDataMsg.hasAttributeDeleteMsg());
-//
-//        AttributeDeleteMsg attributeDeleteMsg = latestEntityDataMsg.getAttributeDeleteMsg();
-//        Assert.assertEquals(attributeDeleteMsg.getScope(), deleteAttributesEntityData.get("scope").asText());
-//
-//        Assert.assertEquals(2, attributeDeleteMsg.getAttributeNamesCount());
-//        Assert.assertEquals("key1", attributeDeleteMsg.getAttributeNames(0));
-//        Assert.assertEquals("key2", attributeDeleteMsg.getAttributeNames(1));
-//    }
-//
+    private void testSendPostTelemetryRequestToCloud() throws Exception {
+        List<String> keys = Arrays.asList("strTelemetryToCloud", "boolTelemetryToCloud", "doubleTelemetryToCloud", "longTelemetryToCloud");
+
+        JsonObject timeseriesPayload = new JsonObject();
+        timeseriesPayload.addProperty("strTelemetryToCloud", "value1");
+        timeseriesPayload.addProperty("boolTelemetryToCloud", true);
+        timeseriesPayload.addProperty("doubleTelemetryToCloud", 42.0);
+        timeseriesPayload.addProperty("longTelemetryToCloud", 72L);
+
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(edgeRestClient, edgeUrl, restClient, timeseriesPayload, keys);
+
+        for (TsKvEntry kvEntry : kvEntries) {
+            if (kvEntry.getKey().equals("strTelemetryToCloud")) {
+                Assert.assertEquals("value1", kvEntry.getStrValue().get());
+            }
+            if (kvEntry.getKey().equals("boolTelemetryToCloud")) {
+                Assert.assertEquals(true, kvEntry.getBooleanValue().get());
+            }
+            if (kvEntry.getKey().equals("doubleTelemetryToCloud")) {
+                Assert.assertEquals(42.0, (double) kvEntry.getDoubleValue().get(), 0.0);
+            }
+            if (kvEntry.getKey().equals("longTelemetryToCloud")) {
+                Assert.assertEquals(72L, kvEntry.getLongValue().get().longValue());
+            }
+        }
+    }
+
+    private void testSendPostTelemetryRequestToEdge() throws Exception {
+        List<String> keys = Arrays.asList("strTelemetryToEdge", "boolTelemetryToEdge", "doubleTelemetryToEdge", "longTelemetryToEdge");
+
+        JsonObject timeseriesPayload = new JsonObject();
+        timeseriesPayload.addProperty("strTelemetryToEdge", "value1");
+        timeseriesPayload.addProperty("boolTelemetryToEdge", true);
+        timeseriesPayload.addProperty("doubleTelemetryToEdge", 42.0);
+        timeseriesPayload.addProperty("longTelemetryToEdge", 72L);
+
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(restClient, CLOUD_HTTPS_URL, edgeRestClient, timeseriesPayload, keys);
+
+        for (TsKvEntry kvEntry : kvEntries) {
+            if (kvEntry.getKey().equals("strTelemetryToEdge")) {
+                Assert.assertEquals("value1", kvEntry.getStrValue().get());
+            }
+            if (kvEntry.getKey().equals("boolTelemetryToEdge")) {
+                Assert.assertEquals(true, kvEntry.getBooleanValue().get());
+            }
+            if (kvEntry.getKey().equals("doubleTelemetryToEdge")) {
+                Assert.assertEquals(42.0, (double) kvEntry.getDoubleValue().get(), 0.0);
+            }
+            if (kvEntry.getKey().equals("longTelemetryToEdge")) {
+                Assert.assertEquals(72L, kvEntry.getLongValue().get().longValue());
+            }
+        }
+    }
+
+    private List<TsKvEntry> sendPostTelemetryRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
+                                          JsonObject timeseriesPayload, List<String> keys) throws Exception {
+        DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(globalTestDevice.getId()).get();
+        String accessToken = deviceCredentials.getCredentialsId();
+
+        ResponseEntity deviceTelemetryResponse = sourceRestClient.getRestTemplate()
+                .postForEntity(sourceUrl + "/api/v1/{credentialsId}/telemetry",
+                        mapper.readTree(timeseriesPayload.toString()),
+                        ResponseEntity.class,
+                        accessToken);
+        Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> targetRestClient.getLatestTimeseries(globalTestDevice.getId(), keys).size() == keys.size());
+
+        return targetRestClient.getLatestTimeseries(globalTestDevice.getId(), keys);
+    }
+
+
+    private void testSendPostAttributesRequestToCloud() throws Exception {
+        List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
+
+        JsonObject attrPayload = new JsonObject();
+        attrPayload.addProperty("strAttrToCloud", "value1");
+        attrPayload.addProperty("boolAttrToCloud", true);
+        attrPayload.addProperty("doubleAttrToCloud", 42.0);
+        attrPayload.addProperty("longAttrToCloud", 72L);
+
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(edgeRestClient, edgeUrl, restClient, attrPayload, keys);
+
+        for (AttributeKvEntry attributeKvEntry : kvEntries) {
+            if (attributeKvEntry.getKey().equals("strAttrToCloud")) {
+                Assert.assertEquals("value1", attributeKvEntry.getStrValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("boolAttrToCloud")) {
+                Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("doubleAttrToCloud")) {
+                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+            }
+            if (attributeKvEntry.getKey().equals("longAttrToCloud")) {
+                Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
+            }
+        }
+
+    }
+
+    private void testSendPostAttributesRequestToEdge() throws Exception {
+        List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
+
+        JsonObject attrPayload = new JsonObject();
+        attrPayload.addProperty("strAttrToEdge", "value1");
+        attrPayload.addProperty("boolAttrToEdge", true);
+        attrPayload.addProperty("doubleAttrToEdge", 42.0);
+        attrPayload.addProperty("longAttrToEdge", 72L);
+
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(restClient, CLOUD_HTTPS_URL, edgeRestClient, attrPayload, keys);
+
+        for (AttributeKvEntry attributeKvEntry : kvEntries) {
+            if (attributeKvEntry.getKey().equals("strAttrToEdge")) {
+                Assert.assertEquals("value1", attributeKvEntry.getStrValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("boolAttrToEdge")) {
+                Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("doubleAttrToEdge")) {
+                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+            }
+            if (attributeKvEntry.getKey().equals("longAttrToEdge")) {
+                Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
+            }
+        }
+    }
+
+    private List<AttributeKvEntry> testSendPostAttributesRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
+                                               JsonObject attributesPayload, List<String> keys) throws Exception {
+        DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(globalTestDevice.getId()).get();
+        String accessToken = deviceCredentials.getCredentialsId();
+
+        ResponseEntity deviceClientsAttributes = sourceRestClient.getRestTemplate()
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(attributesPayload.toString()),
+                        ResponseEntity.class,
+                        accessToken);
+        Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).size() == keys.size());
+
+        List<AttributeKvEntry> attributeKvEntries = targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys);
+
+        sourceRestClient.deleteEntityAttributes(globalTestDevice.getId(), DataConstants.CLIENT_SCOPE, keys);
+
+        // TODO: @voba - verify remove of attributes from cloud
+//        Awaitility.await()
+//                .atMost(30, TimeUnit.SECONDS)
+//                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).isEmpty());
+
+        return attributeKvEntries;
+    }
+
+    private void testSendAttributesUpdatedToEdge() throws Exception {
+        List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
+
+        JsonObject attrPayload = new JsonObject();
+        attrPayload.addProperty("strAttrToEdge", "value1");
+        attrPayload.addProperty("boolAttrToEdge", true);
+        attrPayload.addProperty("doubleAttrToEdge", 42.0);
+        attrPayload.addProperty("longAttrToEdge", 72L);
+
+        List<AttributeKvEntry> kvEntries = sendAttributesUpdated(restClient, edgeRestClient, attrPayload, keys, DataConstants.SERVER_SCOPE);
+        verifyAttributesUpdatedToEdge(kvEntries);
+
+        kvEntries = sendAttributesUpdated(restClient, edgeRestClient, attrPayload, keys, DataConstants.SHARED_SCOPE);
+        verifyAttributesUpdatedToEdge(kvEntries);
+    }
+
+    private void verifyAttributesUpdatedToEdge(List<AttributeKvEntry> kvEntries) {
+        for (AttributeKvEntry attributeKvEntry : kvEntries) {
+            if (attributeKvEntry.getKey().equals("strAttrToEdge")) {
+                Assert.assertEquals("value1", attributeKvEntry.getStrValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("boolAttrToEdge")) {
+                Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("doubleAttrToEdge")) {
+                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+            }
+            if (attributeKvEntry.getKey().equals("longAttrToEdge")) {
+                Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
+            }
+        }
+    }
+
+    private void testSendAttributesUpdatedToCloud() throws Exception {
+        List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
+
+        JsonObject attrPayload = new JsonObject();
+        attrPayload.addProperty("strAttrToCloud", "value1");
+        attrPayload.addProperty("boolAttrToCloud", true);
+        attrPayload.addProperty("doubleAttrToCloud", 42.0);
+        attrPayload.addProperty("longAttrToCloud", 72L);
+
+        List<AttributeKvEntry> kvEntries = sendAttributesUpdated(edgeRestClient, restClient, attrPayload, keys, DataConstants.SERVER_SCOPE);
+        verifyAttributesUpdatedToCloud(kvEntries);
+
+        kvEntries = sendAttributesUpdated(edgeRestClient, restClient, attrPayload, keys, DataConstants.SHARED_SCOPE);
+        verifyAttributesUpdatedToCloud(kvEntries);
+    }
+
+    private void verifyAttributesUpdatedToCloud(List<AttributeKvEntry> kvEntries) {
+        for (AttributeKvEntry attributeKvEntry : kvEntries) {
+            if (attributeKvEntry.getKey().equals("strAttrToCloud")) {
+                Assert.assertEquals("value1", attributeKvEntry.getStrValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("boolAttrToCloud")) {
+                Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
+            }
+            if (attributeKvEntry.getKey().equals("doubleAttrToCloud")) {
+                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
+            }
+            if (attributeKvEntry.getKey().equals("longAttrToCloud")) {
+                Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
+            }
+        }
+    }
+
+    private List<AttributeKvEntry> sendAttributesUpdated(RestClient sourceRestClient, RestClient targetRestClient,
+                                                         JsonObject attributesPayload, List<String> keys, String scope) throws Exception {
+        sourceRestClient.saveDeviceAttributes(globalTestDevice.getId(), scope, mapper.readTree(attributesPayload.toString()));
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).size() == keys.size());
+
+        List<AttributeKvEntry> attributeKvEntries =
+                targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys);
+
+        sourceRestClient.deleteEntityAttributes(globalTestDevice.getId(), scope, keys);
+
+        // TODO: @voba - verify remove of attributes from edge
+//        Awaitility.await()
+//                .atMost(30, TimeUnit.SECONDS)
+//                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).isEmpty());
+
+        return attributeKvEntries;
+    }
+
 //    private void testRpcCall() throws Exception {
 //        ObjectNode body = mapper.createObjectNode();
 //        body.put("requestId", new Random().nextInt());
@@ -1083,7 +1196,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         sendDeviceWithNameThatAlreadyExistsOnCloud();
         sendRelationToCloud();
         sendAlarmToCloud();
-        sendTelemetryToCloud();
+        testSendPostTelemetryRequestToCloud();
+        testSendPostAttributesRequestToCloud();
+        testSendAttributesUpdatedToCloud();
 //        sendDeviceRpcResponse();
         log.info("Messages were sent successfully");
     }
@@ -1244,40 +1359,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         log.info("Alarms from edge tested successfully");
     }
 
-    private void sendTelemetryToCloud() throws Exception {
-        DeviceCredentials deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(globalTestDevice.getId()).get();
-        String accessToken = deviceCredentials.getCredentialsId();
-
-        ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
-                .postForEntity(edgeUrl + "/api/v1/{credentialsId}/telemetry",
-                        mapper.readTree(createPayload().toString()),
-                        ResponseEntity.class,
-                        accessToken);
-        Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
-
-        ResponseEntity deviceClientsAttributes = edgeRestClient.getRestTemplate()
-                .postForEntity(edgeUrl + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(createPayload().toString()),
-                        ResponseEntity.class,
-                        accessToken);
-        Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<TsKvEntry> attributeKvEntries =
-                            restClient.getLatestTimeseries(globalTestDevice.getId(), Arrays.asList("stringKey", "booleanKey", "doubleKey", "longKey"));
-                    return attributeKvEntries.size() == 4;
-                });
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<AttributeKvEntry> attributeKvEntries =
-                            restClient.getAttributeKvEntries(globalTestDevice.getId(), Arrays.asList("stringKey", "booleanKey", "doubleKey", "longKey"));
-                    return attributeKvEntries.size() == 4;
-                });
-    }
-
 
 //    private void sendDeviceRpcResponse() throws Exception {
 //        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
@@ -1299,53 +1380,9 @@ public class EdgeClientTest extends AbstractContainerTest {
 //        Assert.assertTrue(edgeImitator.waitForResponses());
 //    }
 
-//    private void sendAttributesRequest() throws Exception {
-//        sendAttributesRequest(globalTestDevice, DataConstants.SERVER_SCOPE, "{\"key1\":\"value1\"}", "key1", "value1");
-//        sendAttributesRequest(globalTestDevice, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}", "key2", "value2");
-//    }
-//
-//    private void sendAttributesRequest(Device device, String scope, String attributesDataStr, String expectedKey, String expectedValue) throws Exception {
-//        JsonNode attributesData = mapper.readTree(attributesDataStr);
-//
-//        doPost("/api/plugins/telemetry/DEVICE/" + device.getId().getId().toString() + "/attributes/" + scope,
-//                attributesData);
-//
-//        // Wait before device attributes saved to database before requesting them from edge
-//        // queue used to save attributes to database
-//        Thread.sleep(500);
-//
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
-//        AttributesRequestMsg.Builder attributesRequestMsgBuilder = AttributesRequestMsg.newBuilder();
-//        attributesRequestMsgBuilder.setEntityIdMSB(device.getUuidId().getMostSignificantBits());
-//        attributesRequestMsgBuilder.setEntityIdLSB(device.getUuidId().getLeastSignificantBits());
-//        attributesRequestMsgBuilder.setEntityType(EntityType.DEVICE.name());
-//        attributesRequestMsgBuilder.setScope(scope);
-//        uplinkMsgBuilder.addAttributesRequestMsg(attributesRequestMsgBuilder.build());
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof EntityDataProto);
-//        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
-//        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
-//        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
-//        Assert.assertEquals(device.getId().getEntityType().name(), latestEntityDataMsg.getEntityType());
-//        Assert.assertEquals(scope, latestEntityDataMsg.getPostAttributeScope());
-//        Assert.assertTrue(latestEntityDataMsg.hasAttributesUpdatedMsg());
-//
-//        TransportProtos.PostAttributeMsg attributesUpdatedMsg = latestEntityDataMsg.getAttributesUpdatedMsg();
-//        Assert.assertEquals(1, attributesUpdatedMsg.getKvCount());
-//        TransportProtos.KeyValueProto keyValueProto = attributesUpdatedMsg.getKv(0);
-//        Assert.assertEquals(expectedKey, keyValueProto.getKey());
-//        Assert.assertEquals(expectedValue, keyValueProto.getStringV());
-//    }
-//
-//    // Utility methods
-//
+
+    // Utility methods
+
     private Device saveDeviceOnEdge(String deviceName, String type) throws Exception {
         return saveDevice(deviceName, type, null, edgeRestClient);
     }
@@ -1401,17 +1438,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
         return savedEntityView;
     }
-//
-//    private EdgeEvent constructEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventActionType edgeEventAction, UUID entityId, EdgeEventType edgeEventType, JsonNode entityBody) {
-//        EdgeEvent edgeEvent = new EdgeEvent();
-//        edgeEvent.setEdgeId(edgeId);
-//        edgeEvent.setTenantId(tenantId);
-//        edgeEvent.setAction(edgeEventAction);
-//        edgeEvent.setEntityId(entityId);
-//        edgeEvent.setType(edgeEventType);
-//        edgeEvent.setBody(entityBody);
-//        return edgeEvent;
-//    }
 
 }
 

@@ -63,7 +63,7 @@ public class HttpClientTest extends AbstractContainerTest {
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity deviceTelemetryResponse = restClient.getRestTemplate()
-                .postForEntity(HTTPS_URL + "/api/v1/{credentialsId}/telemetry",
+                .postForEntity(CLOUD_HTTPS_URL + "/api/v1/{credentialsId}/telemetry",
                         mapper.readTree(createPayload().toString()),
                         ResponseEntity.class,
                         deviceCredentials.getCredentialsId());
@@ -92,14 +92,14 @@ public class HttpClientTest extends AbstractContainerTest {
         assertNotNull(accessToken);
 
         ResponseEntity deviceSharedAttributes = restClient.getRestTemplate()
-                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/" + DEVICE + "/" + device.getId().toString() + "/attributes/" + SHARED_SCOPE, mapper.readTree(createPayload().toString()),
+                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/" + DEVICE + "/" + device.getId().toString() + "/attributes/" + SHARED_SCOPE, mapper.readTree(createPayload().toString()),
                         ResponseEntity.class,
                         accessToken);
 
         Assert.assertTrue(deviceSharedAttributes.getStatusCode().is2xxSuccessful());
 
         ResponseEntity deviceClientsAttributes = restClient.getRestTemplate()
-                .postForEntity(HTTPS_URL + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(createPayload().toString()),
+                .postForEntity(CLOUD_HTTPS_URL + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(createPayload().toString()),
                         ResponseEntity.class,
                         accessToken);
 

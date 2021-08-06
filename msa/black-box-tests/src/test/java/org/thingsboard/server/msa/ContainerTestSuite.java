@@ -74,7 +74,7 @@ public class ContainerTestSuite {
                     .withEnv(installTb.getEnv())
                     .withEnv(env)
                     .withEnv("LOAD_BALANCER_NAME", "")
-                    .withExposedService("tb-edge", 8080)
+                    .withExposedService("tb-edge", 8082)
                     .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
         }
         return testContainer;

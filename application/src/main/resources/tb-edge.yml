@@ -307,7 +307,7 @@ cache:
   maximumPoolSize: "${CACHE_MAXIMUM_POOL_SIZE:16}" # max pool size to process futures that calls the external cache
   attributes:
     # make sure that if cache.type is 'redis' and cache.attributes.enabled is 'true' that you change 'maxmemory-policy' Redis config property to 'allkeys-lru', 'allkeys-lfu' or 'allkeys-random'
-    enabled: "${CACHE_ATTRIBUTES_ENABLED:true}"
+    enabled: "${CACHE_ATTRIBUTES_ENABLED:false}"
 
 caffeine:
   specs:
