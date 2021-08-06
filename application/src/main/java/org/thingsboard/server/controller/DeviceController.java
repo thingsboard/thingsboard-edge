@@ -123,11 +123,9 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         boolean created = device.getId() == null;
         try {
-            Device oldDevice;
+            Device oldDevice = null;
             if (!created) {
                 oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
-            } else {
-                oldDevice = null;
             }
 
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,

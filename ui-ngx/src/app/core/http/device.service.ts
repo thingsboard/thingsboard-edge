@@ -46,6 +46,7 @@ import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { AuthService } from '@core/auth/auth.service';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { PersistentRpc } from '@shared/models/rpc.models';
 
 @Injectable({
   providedIn: 'root'
@@ -177,6 +178,10 @@ export class DeviceService {
     return this.http.post<Device>(`/api/rpc/twoway/${deviceId}`, requestBody, defaultHttpOptionsFromConfig(config));
   }
 
+  public getPersistedRpc(rpcId: string, fullResponse = false, config?: RequestConfig): Observable<PersistentRpc> {
+    return this.http.get<PersistentRpc>(`/api/rpc/persistent/${rpcId}`, defaultHttpOptionsFromConfig(config));
+  }
+
   public findByQuery(query: DeviceSearchQuery,
                      config?: RequestConfig): Observable<Array<Device>> {
     return this.http.post<Array<Device>>('/api/devices', query, defaultHttpOptionsFromConfig(config));
@@ -194,5 +199,5 @@ export class DeviceService {
   public unclaimDevice(deviceName: string, config?: RequestConfig) {
     return this.http.delete(`/api/customer/device/${deviceName}/claim`, defaultHttpOptionsFromConfig(config));
   }
-
+  
 }

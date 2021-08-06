@@ -486,6 +486,12 @@ export const widgetContextCompletions: TbEditorCompletions = {
                   description: 'RPC request persistent',
                   type: 'boolean',
                   optional: true
+                },
+                {
+                  name: 'persistentPollingInterval',
+                  description: 'Polling interval in milliseconds to get persistent RPC command response',
+                  type: 'number',
+                  optional: true
                 }
               ],
               return: {
@@ -518,6 +524,12 @@ export const widgetContextCompletions: TbEditorCompletions = {
                   name: 'persistent',
                   description: 'RPC request persistent',
                   type: 'boolean',
+                  optional: true
+                },
+                {
+                  name: 'persistentPollingInterval',
+                  description: 'Polling interval in milliseconds to get persistent RPC command response',
+                  type: 'number',
                   optional: true
                 }
               ],

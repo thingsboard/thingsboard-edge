@@ -57,7 +57,8 @@ export enum EntityType {
   API_USAGE_STATE = 'API_USAGE_STATE',
   TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
-  OTA_PACKAGE = 'OTA_PACKAGE'
+  OTA_PACKAGE = 'OTA_PACKAGE',
+  RPC = 'RPC'
 }
 
 export enum AliasEntityType {

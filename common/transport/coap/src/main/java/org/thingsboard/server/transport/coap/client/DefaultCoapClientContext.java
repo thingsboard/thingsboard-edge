@@ -37,6 +37,7 @@ import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.observe.ObserveRelation;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.coapserver.CoapServerContext;
 import org.thingsboard.server.common.adaptor.AdaptorException;
@@ -89,7 +90,6 @@ import static org.eclipse.californium.core.coap.Message.NONE;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true' && '${transport.coap.enabled}'=='true')")
 public class DefaultCoapClientContext implements CoapClientContext {
 
@@ -100,6 +100,16 @@ public class DefaultCoapClientContext implements CoapClientContext {
     private final PartitionService partitionService;
     private final ConcurrentMap<DeviceId, TbCoapClientState> clients = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TbCoapClientState> clientsByToken = new ConcurrentHashMap<>();
+
+    public DefaultCoapClientContext(CoapServerContext config, @Lazy CoapTransportContext transportContext,
+                                    TransportService transportService, TransportDeviceProfileCache profileCache,
+                                    PartitionService partitionService) {
+        this.config = config;
+        this.transportContext = transportContext;
+        this.transportService = transportService;
+        this.profileCache = profileCache;
+        this.partitionService = partitionService;
+    }
 
     @Override
     public boolean registerAttributeObservation(TbCoapClientState clientState, String token, CoapExchange exchange) {
