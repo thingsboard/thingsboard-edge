@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackageInfo;
@@ -78,8 +79,6 @@ import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
-import org.thingsboard.server.service.queue.TbClusterService;
-import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -355,7 +354,9 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                                 } else {
                                     device.setSoftwareId(firmwareId);
                                 }
-                                firmwareStateService.update(deviceService.saveDevice(device));
+                                Device savedDevice = deviceService.saveDevice(device);
+                                clusterService.onDeviceUpdated(savedDevice, device);
+                                firmwareStateService.update(savedDevice);
                                 break;
                             case ENTITY_GROUP:
                                 EntityGroup deviceGroup = entityGroupService.findEntityGroupById(tenantId, (EntityGroupId) originatorId);

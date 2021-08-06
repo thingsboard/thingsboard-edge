@@ -85,6 +85,7 @@ import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
@@ -189,6 +190,9 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Autowired
+    private TbClusterService clusterService;
 
     @Autowired
     private TbServiceInfoProvider serviceInfoProvider;
@@ -679,12 +683,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             }
 
             device = deviceService.saveDevice(device);
+
             if (!StringUtils.isEmpty(groupName)) {
                 addEntityToEntityGroup(groupName, integration, device.getId(), device.getOwnerId(), device.getEntityType());
             }
 
             createRelationFromIntegration(integration, device.getId());
-            deviceStateService.onDeviceAdded(device);
+            clusterService.onDeviceUpdated(device, null);
             pushDeviceCreatedEventToRuleEngine(integration, device);
         } else {
             throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);

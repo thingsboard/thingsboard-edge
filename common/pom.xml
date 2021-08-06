@@ -59,6 +59,7 @@
         <module>transport</module>
         <module>integration</module>
         <module>dao-api</module>
+        <module>cluster-api</module>
         <module>stats</module>
         <module>cache</module>
         <module>coap-server</module>

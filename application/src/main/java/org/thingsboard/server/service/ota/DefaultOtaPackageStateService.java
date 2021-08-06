@@ -33,6 +33,7 @@ package org.thingsboard.server.service.ota;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -68,7 +69,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.cluster.TbClusterService;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -110,10 +111,10 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     private final DbCallbackExecutorService dbExecutor;
     private final TbQueueProducer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> otaPackageStateMsgProducer;
 
-    public DefaultOtaPackageStateService(TbClusterService tbClusterService,
+    public DefaultOtaPackageStateService(@Lazy TbClusterService tbClusterService,
                                          OtaPackageService otaPackageService,
                                          DeviceService deviceService,
-                                         RuleEngineTelemetryService telemetryService,
+                                         @Lazy RuleEngineTelemetryService telemetryService,
                                          AttributesService attributesService,
                                          DbCallbackExecutorService dbExecutor,
                                          TbCoreQueueFactory coreQueueFactory) {

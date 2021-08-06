@@ -51,7 +51,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @RestController
@@ -114,7 +113,7 @@ public class TenantProfileController extends BaseController {
             tenantProfile = checkNotNull(tenantProfileService.saveTenantProfile(getTenantId(), tenantProfile));
             tenantProfileCache.put(tenantProfile);
             tbClusterService.onTenantProfileChange(tenantProfile, null);
-            tbClusterService.onEntityStateChange(TenantId.SYS_TENANT_ID, tenantProfile.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(TenantId.SYS_TENANT_ID, tenantProfile.getId(),
                     newTenantProfile ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return tenantProfile;
         } catch (Exception e) {

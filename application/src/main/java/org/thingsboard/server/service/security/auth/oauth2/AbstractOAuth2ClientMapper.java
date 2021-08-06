@@ -72,7 +72,7 @@ import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.install.InstallScripts;
-import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
@@ -300,7 +300,7 @@ public abstract class AbstractOAuth2ClientMapper {
             installScripts.createDefaultEdgeRuleChains(tenant.getId());
             tenantProfileCache.evict(tenant.getId());
             tbClusterService.onTenantChange(tenant, null);
-            tbClusterService.onEntityStateChange(tenant.getId(), tenant.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(tenant.getId(), tenant.getId(),
                     ComponentLifecycleEvent.CREATED);
         } else {
             tenant = tenants.get(0);

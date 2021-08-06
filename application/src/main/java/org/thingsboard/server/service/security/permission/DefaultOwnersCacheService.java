@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
@@ -100,6 +101,9 @@ import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CA
 @Slf4j
 @Service
 public class DefaultOwnersCacheService implements OwnersCacheService {
+
+    @Autowired
+    private TbClusterService clusterService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -195,7 +199,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
-    public void changeDashboardOwner(TenantId tenantId, EntityId targetOwnerId,Dashboard dashboard) throws ThingsboardException {
+    public void changeDashboardOwner(TenantId tenantId, EntityId targetOwnerId, Dashboard dashboard) throws ThingsboardException {
         changeEntityOwner(tenantId, targetOwnerId, dashboard.getId(),
                 dashboard,
                 dashboardService::saveDashboard);
@@ -244,7 +248,10 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeDeviceOwner(TenantId tenantId, EntityId targetOwnerId, Device device) throws ThingsboardException {
-        changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, deviceService::saveDevice);
+        changeEntityOwner(tenantId, targetOwnerId, device.getId(), device, d -> {
+            Device savedDevice = deviceService.saveDevice(d);
+            clusterService.onDeviceUpdated(savedDevice, device);
+        });
     }
 
     @Override
@@ -287,7 +294,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
         Resource resource = Resource.resourceFromEntityType(entityType);
-        if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())  &&
+        if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority()) &&
                 securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
             switch (entityType) {
                 case DEVICE:

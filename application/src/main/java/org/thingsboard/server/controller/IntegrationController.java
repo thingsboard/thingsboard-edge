@@ -112,7 +112,7 @@ public class IntegrationController extends BaseController {
             platformIntegrationService.validateIntegrationConfiguration(integration);
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            tbClusterService.onEntityStateChange(result.getTenantId(), result.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
             return result;
@@ -166,7 +166,7 @@ public class IntegrationController extends BaseController {
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
-            tbClusterService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(integrationId, integration,
                     null,

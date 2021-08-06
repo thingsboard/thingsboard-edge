@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.RpcId;
@@ -52,11 +53,16 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
+import org.thingsboard.server.service.rpc.RemoveRpcActorMsg;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
+
+import static org.thingsboard.server.common.data.DataConstants.RPC_DELETED;
 
 @RestController
 @TbCoreComponent
@@ -138,8 +144,20 @@ public class RpcV2Controller extends AbstractRpcController {
         checkParameter("RpcId", strRpc);
         try {
             RpcId rpcId = new RpcId(UUID.fromString(strRpc));
-            checkRpcId(rpcId);
-            rpcService.deleteRpc(getTenantId(), rpcId);
+            Rpc rpc = checkRpcId(rpcId);
+
+            if (rpc != null) {
+                if (rpc.getStatus().equals(RpcStatus.QUEUED)) {
+                    RemoveRpcActorMsg removeMsg = new RemoveRpcActorMsg(getTenantId(), rpc.getDeviceId(), rpc.getUuidId());
+                    log.trace("[{}] Forwarding msg {} to queue actor!", rpc.getDeviceId(), rpc);
+                    tbClusterService.pushMsgToCore(removeMsg, null);
+                }
+
+                rpcService.deleteRpc(getTenantId(), rpcId);
+
+                TbMsg msg = TbMsg.newMsg(RPC_DELETED, rpc.getDeviceId(), TbMsgMetaData.EMPTY, JacksonUtil.toString(rpc));
+                tbClusterService.pushMsgToRuleEngine(getTenantId(), rpc.getDeviceId(), msg, null);
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

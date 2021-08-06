@@ -44,6 +44,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -88,6 +89,8 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     private static final String CLAIM_DATA_ATTRIBUTE_NAME = "claimingData";
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    @Autowired
+    private TbClusterService clusterService;
     @Autowired
     private DeviceService deviceService;
     @Autowired
@@ -182,7 +185,8 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
 
                         device.setCustomerId(customerId);
                         device.setOwnerId(customerId);
-                        deviceService.saveDevice(device);
+                        Device savedDevice = deviceService.saveDevice(device);
+                        clusterService.onDeviceUpdated(savedDevice, device);
 
                         ownersCacheEviction(device.getId());
                         return null;
@@ -222,7 +226,8 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 Customer unassignedCustomer = customerService.findCustomerById(tenantId, device.getCustomerId());
                 device.setCustomerId(null);
                 device.setOwnerId(tenantId);
-                deviceService.saveDevice(device);
+                Device savedDevice = deviceService.saveDevice(device);
+                clusterService.onDeviceUpdated(savedDevice, device);
 
                 ownersCacheEviction(device.getId());
 
@@ -285,7 +290,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                     public void onFailure(Throwable t) {
                         result.setException(t);
                     }
-        });
+                });
         return result;
     }
 

@@ -48,7 +48,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
         type = ComponentType.FILTER,
         name = "message type switch",
         configClazz = EmptyNodeConfiguration.class,
-        relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "RPC Queued", "RPC Delivered", "RPC Successful", "RPC Timeout", "RPC Failed",
+        relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "RPC Queued", "RPC Delivered", "RPC Successful", "RPC Timeout", "RPC Failed", "RPC Deleted",
                 "Activity Event", "Inactivity Event", "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
                 "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Added to Group",
                 "Removed from Group", "REST API request", "Generate Report", "Other", "Entity Assigned From Tenant", "Entity Assigned To Tenant",
@@ -131,6 +131,8 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "RPC Timeout";
         } else if (msg.getType().equals(DataConstants.RPC_FAILED)) {
             relationType = "RPC Failed";
+        } else if (msg.getType().equals(DataConstants.RPC_DELETED)) {
+            relationType = "RPC Deleted";
         } else {
             relationType = "Other";
         }

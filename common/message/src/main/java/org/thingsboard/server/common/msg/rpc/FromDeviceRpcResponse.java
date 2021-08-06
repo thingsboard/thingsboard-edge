@@ -28,12 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.rpc;
+package org.thingsboard.server.common.msg.rpc;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.thingsboard.rule.engine.api.RpcError;
+import org.thingsboard.server.common.data.rpc.RpcError;
 
 import java.io.Serializable;
 import java.util.Optional;

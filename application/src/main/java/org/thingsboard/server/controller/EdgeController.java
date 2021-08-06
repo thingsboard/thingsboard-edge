@@ -157,7 +157,7 @@ public class EdgeController extends BaseController {
                 edgeService.renameDeviceEdgeAllGroup(tenantId, savedEdge, oldEdgeName);
             }
 
-            tbClusterService.onEntityStateChange(savedEdge.getTenantId(), savedEdge.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(savedEdge.getTenantId(), savedEdge.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(savedEdge.getId(), savedEdge, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
@@ -179,7 +179,7 @@ public class EdgeController extends BaseController {
             Edge edge = checkEdgeId(edgeId, Operation.DELETE);
             edgeService.deleteEdge(getTenantId(), edgeId);
 
-            tbClusterService.onEntityStateChange(getTenantId(), edgeId,
+            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), edgeId,
                     ComponentLifecycleEvent.DELETED);
 
             logEntityAction(edgeId, edge,
@@ -265,7 +265,7 @@ public class EdgeController extends BaseController {
 
             Edge updatedEdge = edgeNotificationService.setEdgeRootRuleChain(getTenantId(), edge, ruleChainId);
 
-            tbClusterService.onEntityStateChange(updatedEdge.getTenantId(), updatedEdge.getId(), ComponentLifecycleEvent.UPDATED);
+            tbClusterService.broadcastEntityStateChangeEvent(updatedEdge.getTenantId(), updatedEdge.getId(), ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(updatedEdge.getId(), updatedEdge, null, ActionType.UPDATED, null);
 

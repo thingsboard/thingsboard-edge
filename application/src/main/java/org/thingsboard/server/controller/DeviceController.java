@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.rule.engine.api.msg.DeviceCredentialsUpdateNotificationMsg;
-import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -76,7 +75,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -125,21 +123,22 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         boolean created = device.getId() == null;
         try {
+            Device oldDevice;
+            if (!created) {
+                oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
+            } else {
+                oldDevice = null;
+            }
+
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
-            tbClusterService.onDeviceChange(savedDevice, null);
-            tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
-                    savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
-            tbClusterService.onEntityStateChange(savedDevice.getTenantId(), savedDevice.getId(), created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
 
-            if (device.getId() == null) {
-                deviceStateService.onDeviceAdded(savedDevice);
-            } else {
-                deviceStateService.onDeviceUpdated(savedDevice);
-            }
+            logEntityAction(savedDevice.getId(), savedDevice,
+                    savedDevice.getCustomerId(),
+                    created ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            otaPackageStateService.update(savedDevice);
             return savedDevice;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), device,
@@ -163,15 +162,12 @@ public class DeviceController extends BaseController {
             deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
 
             tbClusterService.onDeviceDeleted(device, null);
-            tbClusterService.onEntityStateChange(device.getTenantId(), deviceId, ComponentLifecycleEvent.DELETED);
 
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
 
             sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
-
-            deviceStateService.onDeviceDeleted(device);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE),
                     null,
