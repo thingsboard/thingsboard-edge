@@ -73,7 +73,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
         List<EdgeEvent> result = new ArrayList<>();
-        List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
+        List<String> adminSettingsKeys = Arrays.asList("general", "mail", "mailTemplates");
         for (String key : adminSettingsKeys) {
             AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (sysAdminMainSettings != null) {
