@@ -62,7 +62,7 @@ import { DeviceProfileDialogComponent, DeviceProfileDialogData } from './device-
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { Operation, Resource } from '@shared/models/security.models';
 import { AddDeviceProfileDialogComponent, AddDeviceProfileDialogData } from './add-device-profile-dialog.component';
-import { emptyPageData } from "@shared/models/page/page-data";
+import { emptyPageData } from '@shared/models/page/page-data';
 
 @Component({
   selector: 'tb-device-profile-autocomplete',
@@ -166,7 +166,6 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   ngOnInit() {
     this.filteredDeviceProfiles = this.selectDeviceProfileFormGroup.get('deviceProfile').valueChanges
       .pipe(
-        debounceTime(150),
         tap((value: DeviceProfileInfo | string) => {
           let modelValue: DeviceProfileInfo | null;
           if (typeof value === 'string' || !value) {
@@ -193,6 +192,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
             return '';
           }
         }),
+        debounceTime(150),
         distinctUntilChanged(),
         switchMap(name => this.fetchDeviceProfiles(name)),
         share()
