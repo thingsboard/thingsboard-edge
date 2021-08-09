@@ -117,17 +117,17 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         WhiteLabelingParams whiteLabelingParams = constructWhiteLabelingParams(loginWLPProto.getWhiteLabelingParams());
         loginWLP.merge(whiteLabelingParams);
         if (loginWLPProto.hasPageBackgroundColor()) {
-            loginWLP.setPageBackgroundColor(loginWLPProto.getPageBackgroundColor().getValue());
+            loginWLP.setPageBackgroundColor(loginWLPProto.getPageBackgroundColor());
         }
         loginWLP.setDarkForeground(loginWLPProto.getDarkForeground());
         if (loginWLPProto.hasDomainName()) {
-            loginWLP.setDomainName(loginWLPProto.getDomainName().getValue());
+            loginWLP.setDomainName(loginWLPProto.getDomainName());
         }
         if (loginWLPProto.hasAdminSettingsId()) {
-            loginWLP.setAdminSettingsId(loginWLPProto.getAdminSettingsId().getValue());
+            loginWLP.setAdminSettingsId(loginWLPProto.getAdminSettingsId());
         }
         if (loginWLPProto.hasShowNameBottom()) {
-            loginWLP.setShowNameBottom(loginWLPProto.getShowNameBottom().getValue());
+            loginWLP.setShowNameBottom(loginWLPProto.getShowNameBottom());
         }
 
         return loginWLP;
@@ -158,36 +158,36 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
     private WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
         if (whiteLabelingParamsProto.hasLogoImageUrl()) {
-            whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.getLogoImageUrl().getValue());
+            whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.getLogoImageUrl());
         }
         if (whiteLabelingParamsProto.hasLogoImageChecksum()) {
-            whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.getLogoImageChecksum().getValue());
+            whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.getLogoImageChecksum());
         }
         if (whiteLabelingParamsProto.hasLogoImageHeight()) {
-            whiteLabelingParams.setLogoImageHeight((int) whiteLabelingParamsProto.getLogoImageHeight().getValue());
+            whiteLabelingParams.setLogoImageHeight((int) whiteLabelingParamsProto.getLogoImageHeight());
         }
         if (whiteLabelingParamsProto.hasAppTitle()) {
-            whiteLabelingParams.setAppTitle(whiteLabelingParamsProto.getAppTitle().getValue());
+            whiteLabelingParams.setAppTitle(whiteLabelingParamsProto.getAppTitle());
         }
         whiteLabelingParams.setFavicon(constructFavicon(whiteLabelingParamsProto.getFavicon()));
         if (whiteLabelingParamsProto.hasFaviconChecksum()) {
-            whiteLabelingParams.setFaviconChecksum(whiteLabelingParamsProto.getFaviconChecksum().getValue());
+            whiteLabelingParams.setFaviconChecksum(whiteLabelingParamsProto.getFaviconChecksum());
         }
         whiteLabelingParams.setPaletteSettings(constructPaletteSettings(whiteLabelingParamsProto.getPaletteSettings()));
         if (whiteLabelingParamsProto.hasHelpLinkBaseUrl()) {
-            whiteLabelingParams.setHelpLinkBaseUrl(whiteLabelingParamsProto.getHelpLinkBaseUrl().getValue());
+            whiteLabelingParams.setHelpLinkBaseUrl(whiteLabelingParamsProto.getHelpLinkBaseUrl());
         }
         if (whiteLabelingParamsProto.hasEnableHelpLinks()) {
-            whiteLabelingParams.setEnableHelpLinks(whiteLabelingParamsProto.getEnableHelpLinks().getValue());
+            whiteLabelingParams.setEnableHelpLinks(whiteLabelingParamsProto.getEnableHelpLinks());
         }
         if (whiteLabelingParamsProto.hasShowNameVersion()) {
-            whiteLabelingParams.setShowNameVersion(whiteLabelingParamsProto.getShowNameVersion().getValue());
+            whiteLabelingParams.setShowNameVersion(whiteLabelingParamsProto.getShowNameVersion());
         }
         if (whiteLabelingParamsProto.hasPlatformName()) {
-            whiteLabelingParams.setPlatformName(whiteLabelingParamsProto.getPlatformName().getValue());
+            whiteLabelingParams.setPlatformName(whiteLabelingParamsProto.getPlatformName());
         }
         if (whiteLabelingParamsProto.hasPlatformVersion()) {
-            whiteLabelingParams.setPlatformVersion(whiteLabelingParamsProto.getPlatformVersion().getValue());
+            whiteLabelingParams.setPlatformVersion(whiteLabelingParamsProto.getPlatformVersion());
         }
         return whiteLabelingParams;
     }
@@ -198,10 +198,10 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         }
         Favicon favicon = new Favicon();
         if (faviconProto.hasUrl()) {
-            favicon.setUrl(faviconProto.getUrl().getValue());
+            favicon.setUrl(faviconProto.getUrl());
         }
         if (faviconProto.hasType()) {
-            favicon.setType(faviconProto.getType().getValue());
+            favicon.setType(faviconProto.getType());
         }
         return favicon;
     }
@@ -226,10 +226,10 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         }
         Palette palette = new Palette();
         if (paletteProto.hasType()) {
-            palette.setType(paletteProto.getType().getValue());
+            palette.setType(paletteProto.getType());
         }
         if (paletteProto.hasExtendsPalette()) {
-            palette.setExtendsPalette(paletteProto.getExtendsPalette().getValue());
+            palette.setExtendsPalette(paletteProto.getExtendsPalette());
         }
         if (!paletteProto.getColorsMap().isEmpty()) {
             palette.setColors(paletteProto.getColorsMap());

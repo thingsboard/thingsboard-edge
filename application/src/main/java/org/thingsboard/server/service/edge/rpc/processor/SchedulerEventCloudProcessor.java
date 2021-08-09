@@ -107,8 +107,8 @@ public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
     }
 
     private void safeSetCustomerId(SchedulerEventUpdateMsg schedulerEventUpdateMsg, SchedulerEvent schedulerEvent) {
-        CustomerId customerId = safeGetCustomerId(schedulerEventUpdateMsg.getCustomerIdMSB().getValue(),
-                schedulerEventUpdateMsg.getCustomerIdLSB().getValue());
+        CustomerId customerId = safeGetCustomerId(schedulerEventUpdateMsg.getCustomerIdMSB(),
+                schedulerEventUpdateMsg.getCustomerIdLSB());
         schedulerEvent.setCustomerId(customerId);
     }
 

@@ -67,16 +67,16 @@ public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
                         widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
                     }
                     if (widgetTypeUpdateMsg.hasBundleAlias()) {
-                        widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias().getValue());
+                        widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
                     }
                     if (widgetTypeUpdateMsg.hasAlias()) {
-                        widgetTypeDetails.setAlias(widgetTypeUpdateMsg.getAlias().getValue());
+                        widgetTypeDetails.setAlias(widgetTypeUpdateMsg.getAlias());
                     }
                     if (widgetTypeUpdateMsg.hasName()) {
-                        widgetTypeDetails.setName(widgetTypeUpdateMsg.getName().getValue());
+                        widgetTypeDetails.setName(widgetTypeUpdateMsg.getName());
                     }
                     if (widgetTypeUpdateMsg.hasDescriptorJson()) {
-                        widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson().getValue()));
+                        widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
                     }
                     widgetTypeService.saveWidgetType(widgetTypeDetails);
                 } finally {

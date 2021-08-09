@@ -93,7 +93,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
                     if (entityViewUpdateMsg.hasAdditionalInfo()) {
-                        entityView.setAdditionalInfo(JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo().getValue()));
+                        entityView.setAdditionalInfo(JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()));
                     }
                     CustomerId entityViewCustomerId = safeSetCustomerId(entityViewUpdateMsg, cloudType, entityView);
                     EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
@@ -109,8 +109,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (entityViewUpdateMsg.hasEntityGroupIdMSB() && entityViewUpdateMsg.hasEntityGroupIdLSB()) {
-                    UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB().getValue(),
-                            entityViewUpdateMsg.getEntityGroupIdLSB().getValue());
+                    UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(),
+                            entityViewUpdateMsg.getEntityGroupIdLSB());
                     EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, entityViewId);
                 } else {
@@ -128,8 +128,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
     }
 
     private CustomerId safeSetCustomerId(EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, EntityView entityView) {
-        CustomerId entityViewCustomerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB().getValue(),
-                entityViewUpdateMsg.getCustomerIdLSB().getValue());
+        CustomerId entityViewCustomerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(),
+                entityViewUpdateMsg.getCustomerIdLSB());
         if (CloudType.PE.equals(cloudType)) {
             entityView.setCustomerId(entityViewCustomerId);
         }
@@ -151,8 +151,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
             }
         } else {
             if (entityViewUpdateMsg.hasEntityGroupIdMSB() && entityViewUpdateMsg.hasEntityGroupIdLSB()) {
-                UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB().getValue(),
-                        entityViewUpdateMsg.getEntityGroupIdLSB().getValue());
+                UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(),
+                        entityViewUpdateMsg.getEntityGroupIdLSB());
                 EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                 addEntityToGroup(tenantId, entityGroupId, entityViewId);
             }

@@ -89,24 +89,24 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     }
                     deviceProfile.setName(deviceProfileUpdateMsg.getName());
                     if (deviceProfileUpdateMsg.hasDescription()) {
-                        deviceProfile.setDescription(deviceProfileUpdateMsg.getDescription().getValue());
+                        deviceProfile.setDescription(deviceProfileUpdateMsg.getDescription());
                     }
                     deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
                     deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
                     if (deviceProfileUpdateMsg.hasTransportType()) {
-                        deviceProfile.setTransportType(DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType().getValue()));
+                        deviceProfile.setTransportType(DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()));
                     }
                     if (deviceProfileUpdateMsg.hasImage()) {
-                        deviceProfile.setImage(new String(deviceProfileUpdateMsg.getImage().getValue().toByteArray(), StandardCharsets.UTF_8));
+                        deviceProfile.setImage(new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
                     }
                     if (deviceProfileUpdateMsg.hasProvisionType()) {
-                        deviceProfile.setProvisionType(DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType().getValue()));
+                        deviceProfile.setProvisionType(DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()));
                     }
                     String defaultQueueName = StringUtils.isBlank(deviceProfileUpdateMsg.getDefaultQueueName())
                             ? null : deviceProfileUpdateMsg.getDefaultQueueName();
                     deviceProfile.setDefaultQueueName(defaultQueueName);
                     if (deviceProfileUpdateMsg.hasProvisionDeviceKey()) {
-                        deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.getProvisionDeviceKey().getValue());
+                        deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.getProvisionDeviceKey());
                     }
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());

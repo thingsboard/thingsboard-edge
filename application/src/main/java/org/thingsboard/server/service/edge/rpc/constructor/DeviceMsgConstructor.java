@@ -48,9 +48,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
-
 @Component
 @TbCoreComponent
 public class DeviceMsgConstructor {
@@ -73,25 +70,25 @@ public class DeviceMsgConstructor {
                 .setName(device.getName())
                 .setType(device.getType());
         if (device.getLabel() != null) {
-            builder.setLabel(getStringValue(device.getLabel()));
+            builder.setLabel(device.getLabel());
         }
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
-                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(getInt64Value(device.getCustomerId().getId().getMostSignificantBits()))
-                    .setCustomerIdLSB(getInt64Value(device.getCustomerId().getId().getLeastSignificantBits()));
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
         }
         if (device.getDeviceProfileId() != null) {
-            builder.setDeviceProfileIdMSB(getInt64Value(device.getDeviceProfileId().getId().getMostSignificantBits()));
-            builder.setDeviceProfileIdLSB(getInt64Value(device.getDeviceProfileId().getId().getLeastSignificantBits()));
+            builder.setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits());
+            builder.setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
         }
         if (device.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(device.getAdditionalInfo())));
+            builder.setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
         }
         if (conflictName != null) {
-            builder.setConflictName(getStringValue(conflictName));
+            builder.setConflictName(conflictName);
         }
         return builder.build();
     }
@@ -105,7 +102,7 @@ public class DeviceMsgConstructor {
                     .setCredentialsId(deviceCredentials.getCredentialsId());
         }
         if (deviceCredentials.getCredentialsValue() != null) {
-            builder.setCredentialsValue(getStringValue(deviceCredentials.getCredentialsValue()));
+            builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
         }
         return builder.build();
     }
@@ -116,8 +113,8 @@ public class DeviceMsgConstructor {
                 .setIdMSB(deviceId.getId().getMostSignificantBits())
                 .setIdLSB(deviceId.getId().getLeastSignificantBits());
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
-                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         return builder.build();
     }

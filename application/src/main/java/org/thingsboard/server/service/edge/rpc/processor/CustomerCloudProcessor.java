@@ -78,31 +78,31 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                     }
                     customer.setTitle(customerUpdateMsg.getTitle());
                     if (customerUpdateMsg.hasCountry()) {
-                        customer.setCountry(customerUpdateMsg.getCountry().getValue());
+                        customer.setCountry(customerUpdateMsg.getCountry());
                     }
                     if (customerUpdateMsg.hasState()) {
-                        customer.setState(customerUpdateMsg.getState().getValue());
+                        customer.setState(customerUpdateMsg.getState());
                     }
                     if (customerUpdateMsg.hasCity()) {
-                        customer.setCity(customerUpdateMsg.getCity().getValue());
+                        customer.setCity(customerUpdateMsg.getCity());
                     }
                     if (customerUpdateMsg.hasAddress()) {
-                        customer.setAddress(customerUpdateMsg.getAddress().getValue());
+                        customer.setAddress(customerUpdateMsg.getAddress());
                     }
                     if (customerUpdateMsg.hasAddress2()) {
-                        customer.setAddress2(customerUpdateMsg.getAddress2().getValue());
+                        customer.setAddress2(customerUpdateMsg.getAddress2());
                     }
                     if (customerUpdateMsg.hasZip()) {
-                        customer.setZip(customerUpdateMsg.getZip().getValue());
+                        customer.setZip(customerUpdateMsg.getZip());
                     }
                     if (customerUpdateMsg.hasPhone()) {
-                        customer.setPhone(customerUpdateMsg.getPhone().getValue());
+                        customer.setPhone(customerUpdateMsg.getPhone());
                     }
                     if (customerUpdateMsg.hasEmail()) {
-                        customer.setEmail(customerUpdateMsg.getEmail().getValue());
+                        customer.setEmail(customerUpdateMsg.getEmail());
                     }
                     if (customerUpdateMsg.hasAdditionalInfo()) {
-                        customer.setAdditionalInfo(JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo().getValue()));
+                        customer.setAdditionalInfo(JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()));
                     }
                     Customer savedCustomer = customerService.saveCustomer(customer, false);
 

@@ -103,8 +103,8 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     replaceWriteOperationsToReadIfRequired(role);
 
                     if (roleProto.hasCustomerIdMSB() && roleProto.hasCustomerIdLSB()) {
-                        UUID customerUUID = safeGetUUID(roleProto.getCustomerIdMSB().getValue(),
-                                roleProto.getCustomerIdLSB().getValue());
+                        UUID customerUUID = safeGetUUID(roleProto.getCustomerIdMSB(),
+                                roleProto.getCustomerIdLSB());
                         role.setCustomerId(new CustomerId(customerUUID));
                     }
 

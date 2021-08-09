@@ -79,10 +79,10 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
                     widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
                     if (widgetsBundleUpdateMsg.hasImage()) {
-                        widgetsBundle.setImage(new String(widgetsBundleUpdateMsg.getImage().getValue().toByteArray(), StandardCharsets.UTF_8));
+                        widgetsBundle.setImage(new String(widgetsBundleUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
                     }
                     if (widgetsBundleUpdateMsg.hasDescription()) {
-                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.getDescription().getValue());
+                        widgetsBundle.setDescription(widgetsBundleUpdateMsg.getDescription());
                     }
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 

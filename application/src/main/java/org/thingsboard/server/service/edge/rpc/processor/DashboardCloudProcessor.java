@@ -92,8 +92,8 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
-                    UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB().getValue(),
-                            dashboardUpdateMsg.getEntityGroupIdLSB().getValue());
+                    UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
+                            dashboardUpdateMsg.getEntityGroupIdLSB());
                     EntityGroupId entityGroupId =
                             new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
@@ -127,8 +127,8 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
             }
         } else {
             if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
-                UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB().getValue(),
-                        dashboardUpdateMsg.getEntityGroupIdLSB().getValue());
+                UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
+                        dashboardUpdateMsg.getEntityGroupIdLSB());
                 EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                 addEntityToGroup(tenantId, entityGroupId, dashboardId);
             }
@@ -136,8 +136,8 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
     }
 
     private CustomerId safeSetCustomerId(DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType, Dashboard dashboard) {
-        CustomerId dashboardCustomerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB().getValue(),
-                dashboardUpdateMsg.getCustomerIdLSB().getValue());
+        CustomerId dashboardCustomerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(),
+                dashboardUpdateMsg.getCustomerIdLSB());
         if (CloudType.PE.equals(cloudType)) {
             dashboard.setCustomerId(dashboardCustomerId);
         }

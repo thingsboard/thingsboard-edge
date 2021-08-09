@@ -91,8 +91,8 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     ruleChain.setName(ruleChainUpdateMsg.getName());
                     if (ruleChainUpdateMsg.hasFirstRuleNodeIdMSB() && ruleChainUpdateMsg.hasFirstRuleNodeIdLSB()) {
                         RuleNodeId firstRuleNodeId =
-                                new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB().getValue(),
-                                        ruleChainUpdateMsg.getFirstRuleNodeIdLSB().getValue()));
+                                new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(),
+                                        ruleChainUpdateMsg.getFirstRuleNodeIdLSB()));
                         ruleChain.setFirstRuleNodeId(firstRuleNodeId);
                     }
                     ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
