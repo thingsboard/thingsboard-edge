@@ -67,7 +67,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateSer
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.queue.provider.TbRuleEngineQueueFactory;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.cluster.TbClusterService;
 
@@ -100,7 +100,6 @@ import static org.thingsboard.server.common.data.ota.OtaPackageUtil.getTelemetry
 
 @Slf4j
 @Service
-@TbCoreComponent
 public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
     private final TbClusterService tbClusterService;
@@ -117,14 +116,19 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                                          @Lazy RuleEngineTelemetryService telemetryService,
                                          AttributesService attributesService,
                                          DbCallbackExecutorService dbExecutor,
-                                         TbCoreQueueFactory coreQueueFactory) {
+                                         Optional<TbCoreQueueFactory> coreQueueFactory,
+                                         Optional<TbRuleEngineQueueFactory> reQueueFactory) {
         this.tbClusterService = tbClusterService;
         this.otaPackageService = otaPackageService;
         this.deviceService = deviceService;
         this.telemetryService = telemetryService;
         this.attributesService = attributesService;
         this.dbExecutor = dbExecutor;
-        this.otaPackageStateMsgProducer = coreQueueFactory.createToOtaPackageStateServiceMsgProducer();
+        if (coreQueueFactory.isPresent()) {
+            this.otaPackageStateMsgProducer = coreQueueFactory.get().createToOtaPackageStateServiceMsgProducer();
+        } else {
+            this.otaPackageStateMsgProducer = reQueueFactory.get().createToOtaPackageStateServiceMsgProducer();
+        }
     }
 
     @Override

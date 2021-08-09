@@ -133,10 +133,6 @@ public class DeviceController extends BaseController {
 
             tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
 
-            logEntityAction(savedDevice.getId(), savedDevice,
-                    savedDevice.getCustomerId(),
-                    created ? ActionType.ADDED : ActionType.UPDATED, null);
-
             return savedDevice;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), device,

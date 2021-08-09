@@ -423,7 +423,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(13);
+        edgeImitator.expectMessageAmount(14);
         edgeImitator.connect();
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -432,10 +432,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(6, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size()); // two msgs during sync process, four msgs from assign to edge
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size()); // two msgs during sync process
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size()); // one msg during sync process
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
-        Assert.assertEquals(13, edgeImitator.getDownlinkMsgs().size());
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
 
-        edgeImitator.expectMessageAmount(10);
+        edgeImitator.expectMessageAmount(11);
         doPost("/api/edge/sync/" + edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -444,8 +443,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
         Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
-        Assert.assertEquals(10, edgeImitator.getDownlinkMsgs().size());
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
 
         edgeImitator.allowIgnoredTypes();
         try {
