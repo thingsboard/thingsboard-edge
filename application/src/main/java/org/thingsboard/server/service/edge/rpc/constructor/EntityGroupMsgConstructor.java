@@ -32,13 +32,12 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
 
 @Component
 @Slf4j
@@ -56,7 +55,7 @@ public class EntityGroupMsgConstructor {
                 .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
                 .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
         if (entityGroup.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(entityGroup.getAdditionalInfo())));
+            builder.setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()));
         }
         return builder.build();
     }

@@ -32,13 +32,11 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
 
 @Component
 @Slf4j
@@ -54,8 +52,8 @@ public class SchedulerEventMsgConstructor {
         builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
         builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
         if (schedulerEvent.getCustomerId() != null) {
-            builder.setCustomerIdMSB(getInt64Value(schedulerEvent.getCustomerId().getId().getMostSignificantBits()))
-                    .setCustomerIdLSB(getInt64Value(schedulerEvent.getCustomerId().getId().getLeastSignificantBits()));
+            builder.setCustomerIdMSB(schedulerEvent.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(schedulerEvent.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }

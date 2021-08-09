@@ -31,17 +31,14 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.EdgeEntityType;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
 
 @Component
 @TbCoreComponent
@@ -69,15 +66,15 @@ public class EntityViewMsgConstructor {
                 .setEntityIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
                 .setEntityType(entityType);
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
-                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         if (entityView.getCustomerId() != null) {
-            builder.setCustomerIdMSB(getInt64Value(entityView.getCustomerId().getId().getMostSignificantBits()))
-                    .setCustomerIdLSB(getInt64Value(entityView.getCustomerId().getId().getLeastSignificantBits()));
+            builder.setCustomerIdMSB(entityView.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(entityView.getCustomerId().getId().getLeastSignificantBits());
         }
         if (entityView.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(entityView.getAdditionalInfo())));
+            builder.setAdditionalInfo(JacksonUtil.toString(entityView.getAdditionalInfo()));
         }
         return builder.build();
     }
