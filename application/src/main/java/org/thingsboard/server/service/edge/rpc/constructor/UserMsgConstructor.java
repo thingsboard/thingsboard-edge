@@ -41,9 +41,6 @@ import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
-
 @Component
 @TbCoreComponent
 public class UserMsgConstructor {
@@ -56,25 +53,25 @@ public class UserMsgConstructor {
                 .setEmail(user.getEmail())
                 .setAuthority(user.getAuthority().name());
         if (user.getCustomerId() != null) {
-            builder.setCustomerIdMSB(getInt64Value(user.getCustomerId().getId().getMostSignificantBits()));
-            builder.setCustomerIdLSB(getInt64Value(user.getCustomerId().getId().getLeastSignificantBits()));
+            builder.setCustomerIdMSB(user.getCustomerId().getId().getMostSignificantBits());
+            builder.setCustomerIdLSB(user.getCustomerId().getId().getLeastSignificantBits());
         }
         if (user.getFirstName() != null) {
-            builder.setFirstName(getStringValue(user.getFirstName()));
+            builder.setFirstName(user.getFirstName());
         }
         if (user.getLastName() != null) {
-            builder.setLastName(getStringValue(user.getLastName()));
+            builder.setLastName(user.getLastName());
         }
         if (user.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(getStringValue(JacksonUtil.toString(user.getAdditionalInfo())));
+            builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
         }
         if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(getInt64Value(entityGroupId.getId().getMostSignificantBits()))
-                    .setEntityGroupIdLSB(getInt64Value(entityGroupId.getId().getLeastSignificantBits()));
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         if (user.getCustomerId() != null) {
-            builder.setCustomerIdMSB(getInt64Value(user.getCustomerId().getId().getMostSignificantBits()))
-                    .setCustomerIdLSB(getInt64Value(user.getCustomerId().getId().getLeastSignificantBits()));
+            builder.setCustomerIdMSB(user.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(user.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }

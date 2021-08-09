@@ -43,10 +43,6 @@ import org.thingsboard.server.gen.edge.v1.PaletteProto;
 import org.thingsboard.server.gen.edge.v1.PaletteSettingsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getBoolValue;
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
-
 @Component
 @Slf4j
 public class WhiteLabelingParamsProtoConstructor {
@@ -54,17 +50,17 @@ public class WhiteLabelingParamsProtoConstructor {
     public LoginWhiteLabelingParamsProto constructLoginWhiteLabelingParamsProto(LoginWhiteLabelingParams loginWhiteLabelingParams) {
         LoginWhiteLabelingParamsProto.Builder builder = LoginWhiteLabelingParamsProto.newBuilder();
         if (loginWhiteLabelingParams.getPageBackgroundColor() != null) {
-            builder.setPageBackgroundColor(getStringValue(loginWhiteLabelingParams.getPageBackgroundColor()));
+            builder.setPageBackgroundColor(loginWhiteLabelingParams.getPageBackgroundColor());
         }
         builder.setDarkForeground(loginWhiteLabelingParams.isDarkForeground());
         if (loginWhiteLabelingParams.getDomainName() != null) {
-            builder.setDomainName(getStringValue(loginWhiteLabelingParams.getDomainName()));
+            builder.setDomainName(loginWhiteLabelingParams.getDomainName());
         }
         if (loginWhiteLabelingParams.getShowNameBottom() != null) {
-            builder.setShowNameBottom(getBoolValue(loginWhiteLabelingParams.getShowNameBottom()));
+            builder.setShowNameBottom(loginWhiteLabelingParams.getShowNameBottom());
         }
         if (loginWhiteLabelingParams.getAdminSettingsId() != null) {
-            builder.setAdminSettingsId(getStringValue(loginWhiteLabelingParams.getAdminSettingsId()));
+            builder.setAdminSettingsId(loginWhiteLabelingParams.getAdminSettingsId());
         }
         builder.setWhiteLabelingParams(constructWhiteLabelingParamsProto(loginWhiteLabelingParams));
         return builder.build();
@@ -73,40 +69,40 @@ public class WhiteLabelingParamsProtoConstructor {
     public WhiteLabelingParamsProto constructWhiteLabelingParamsProto(WhiteLabelingParams whiteLabelingParams) {
         WhiteLabelingParamsProto.Builder builder = WhiteLabelingParamsProto.newBuilder();
         if (whiteLabelingParams.getLogoImageUrl() != null) {
-            builder.setLogoImageUrl(getStringValue(whiteLabelingParams.getLogoImageUrl()));
+            builder.setLogoImageUrl(whiteLabelingParams.getLogoImageUrl());
         }
         if (whiteLabelingParams.getLogoImageChecksum() != null) {
-            builder.setLogoImageChecksum(getStringValue(whiteLabelingParams.getLogoImageChecksum()));
+            builder.setLogoImageChecksum(whiteLabelingParams.getLogoImageChecksum());
         }
         if (whiteLabelingParams.getLogoImageHeight() != null) {
-            builder.setLogoImageHeight(getInt64Value(whiteLabelingParams.getLogoImageHeight().longValue()));
+            builder.setLogoImageHeight(whiteLabelingParams.getLogoImageHeight().longValue());
         }
         if (whiteLabelingParams.getAppTitle() != null) {
-            builder.setAppTitle(getStringValue(whiteLabelingParams.getAppTitle()));
+            builder.setAppTitle(whiteLabelingParams.getAppTitle());
         }
         if (whiteLabelingParams.getFavicon() != null) {
             builder.setFavicon(constructFaviconProto(whiteLabelingParams.getFavicon()));
         }
         if (whiteLabelingParams.getFaviconChecksum() != null) {
-            builder.setFaviconChecksum(getStringValue(whiteLabelingParams.getFaviconChecksum()));
+            builder.setFaviconChecksum(whiteLabelingParams.getFaviconChecksum());
         }
         if (whiteLabelingParams.getPaletteSettings() != null) {
             builder.setPaletteSettings(constructPaletteSettingsProto(whiteLabelingParams.getPaletteSettings()));
         }
         if (whiteLabelingParams.getHelpLinkBaseUrl() != null) {
-            builder.setHelpLinkBaseUrl(getStringValue(whiteLabelingParams.getHelpLinkBaseUrl()));
+            builder.setHelpLinkBaseUrl(whiteLabelingParams.getHelpLinkBaseUrl());
         }
         if (whiteLabelingParams.getEnableHelpLinks() != null) {
-            builder.setEnableHelpLinks(getBoolValue(whiteLabelingParams.getEnableHelpLinks()));
+            builder.setEnableHelpLinks(whiteLabelingParams.getEnableHelpLinks());
         }
         if (whiteLabelingParams.getShowNameVersion() != null) {
-            builder.setShowNameVersion(getBoolValue(whiteLabelingParams.getShowNameVersion()));
+            builder.setShowNameVersion(whiteLabelingParams.getShowNameVersion());
         }
         if (whiteLabelingParams.getPlatformName() != null) {
-            builder.setPlatformName(getStringValue(whiteLabelingParams.getPlatformName()));
+            builder.setPlatformName(whiteLabelingParams.getPlatformName());
         }
         if (whiteLabelingParams.getPlatformVersion() != null) {
-            builder.setPlatformVersion(getStringValue(whiteLabelingParams.getPlatformVersion()));
+            builder.setPlatformVersion(whiteLabelingParams.getPlatformVersion());
         }
         return builder.build();
     }
@@ -114,10 +110,10 @@ public class WhiteLabelingParamsProtoConstructor {
     private FaviconProto constructFaviconProto(Favicon favicon) {
         FaviconProto.Builder builder = FaviconProto.newBuilder();
         if (favicon.getUrl() != null) {
-            builder.setUrl(getStringValue(favicon.getUrl()));
+            builder.setUrl(favicon.getUrl());
         }
         if (favicon.getType() != null) {
-            builder.setType(getStringValue(favicon.getType()));
+            builder.setType(favicon.getType());
         }
         return builder.build();
     }
@@ -136,10 +132,10 @@ public class WhiteLabelingParamsProtoConstructor {
     private PaletteProto constructPaletteProto(Palette palette) {
         PaletteProto.Builder builder = PaletteProto.newBuilder();
         if (palette.getType() != null) {
-            builder.setType(getStringValue(palette.getType()));
+            builder.setType(palette.getType());
         }
         if (palette.getExtendsPalette() != null) {
-            builder.setExtendsPalette(getStringValue(palette.getExtendsPalette()));
+            builder.setExtendsPalette(palette.getExtendsPalette());
         }
         if (palette.getColors() != null && !palette.getColors().isEmpty()) {
             builder.putAllColors(palette.getColors());

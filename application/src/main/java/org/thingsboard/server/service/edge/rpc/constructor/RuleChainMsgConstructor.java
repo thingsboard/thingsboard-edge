@@ -34,13 +34,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.NodeConnectionInfoProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainConnectionInfoProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -51,8 +51,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
 
 @Component
 @Slf4j
@@ -71,8 +69,8 @@ public class RuleChainMsgConstructor {
                 .setDebugMode(ruleChain.isDebugMode())
                 .setConfiguration(JacksonUtil.toString(ruleChain.getConfiguration()));
         if (ruleChain.getFirstRuleNodeId() != null) {
-            builder.setFirstRuleNodeIdMSB(getInt64Value(ruleChain.getFirstRuleNodeId().getId().getMostSignificantBits()))
-                    .setFirstRuleNodeIdLSB(getInt64Value(ruleChain.getFirstRuleNodeId().getId().getLeastSignificantBits()));
+            builder.setFirstRuleNodeIdMSB(ruleChain.getFirstRuleNodeId().getId().getMostSignificantBits())
+                    .setFirstRuleNodeIdLSB(ruleChain.getFirstRuleNodeId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }

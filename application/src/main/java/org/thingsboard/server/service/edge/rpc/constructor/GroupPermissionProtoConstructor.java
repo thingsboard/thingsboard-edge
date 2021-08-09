@@ -37,9 +37,6 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getInt64Value;
-import static org.thingsboard.server.service.edge.rpc.EdgeProtoUtils.getStringValue;
-
 @Component
 @Slf4j
 public class GroupPermissionProtoConstructor {
@@ -55,9 +52,9 @@ public class GroupPermissionProtoConstructor {
                 .setRoleIdLSB(groupPermission.getRoleId().getId().getLeastSignificantBits())
                 .setIsPublic(groupPermission.isPublic());
         if (groupPermission.getEntityGroupId() != null) {
-            builder.setEntityGroupIdMSB(getInt64Value(groupPermission.getEntityGroupId().getId().getMostSignificantBits()))
-                    .setEntityGroupIdLSB(getInt64Value(groupPermission.getEntityGroupId().getId().getLeastSignificantBits()))
-                    .setEntityGroupType(getStringValue(groupPermission.getEntityGroupType().name()));
+            builder.setEntityGroupIdMSB(groupPermission.getEntityGroupId().getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(groupPermission.getEntityGroupId().getId().getLeastSignificantBits())
+                    .setEntityGroupType(groupPermission.getEntityGroupType().name());
         }
         return builder.build();
     }
