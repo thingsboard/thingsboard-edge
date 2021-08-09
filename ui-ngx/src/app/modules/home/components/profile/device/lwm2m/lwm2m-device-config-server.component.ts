@@ -44,8 +44,6 @@ import {
   DEFAULT_PORT_BOOTSTRAP_NO_SEC,
   DEFAULT_PORT_SERVER_NO_SEC,
   KEY_REGEXP_HEX_DEC,
-  LEN_MAX_PUBLIC_KEY_RPK,
-  LEN_MAX_PUBLIC_KEY_X509,
   securityConfigMode,
   securityConfigModeNames,
   ServerSecurityConfig
@@ -83,7 +81,6 @@ export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAcc
   securityConfigLwM2MType = securityConfigMode;
   securityConfigLwM2MTypes = Object.keys(securityConfigMode);
   credentialTypeLwM2MNamesMap = securityConfigModeNames;
-  maxLengthPublicKey = LEN_MAX_PUBLIC_KEY_RPK;
   currentSecurityMode = null;
 
   @Input()
@@ -162,12 +159,10 @@ export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAcc
         this.clearValidators();
         break;
       case securityConfigMode.RPK:
-        this.maxLengthPublicKey = LEN_MAX_PUBLIC_KEY_RPK;
-        this.setValidators(LEN_MAX_PUBLIC_KEY_RPK);
+        this.setValidators();
         break;
       case securityConfigMode.X509:
-        this.maxLengthPublicKey = LEN_MAX_PUBLIC_KEY_X509;
-        this.setValidators(0);
+        this.setValidators();
         break;
     }
     this.serverFormGroup.get('serverPublicKey').updateValueAndValidity({emitEvent: false});
@@ -177,12 +172,10 @@ export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAcc
     this.serverFormGroup.get('serverPublicKey').clearValidators();
   }
 
-  private setValidators(minLengthKey: number): void {
+  private setValidators(): void {
     this.serverFormGroup.get('serverPublicKey').setValidators([
       Validators.required,
-      Validators.pattern(KEY_REGEXP_HEX_DEC),
-      Validators.minLength(minLengthKey),
-      Validators.maxLength(this.maxLengthPublicKey)
+      Validators.pattern(KEY_REGEXP_HEX_DEC)
     ]);
   }
 
