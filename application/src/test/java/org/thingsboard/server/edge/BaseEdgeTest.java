@@ -223,7 +223,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(16);
+        edgeImitator.expectMessageAmount(17);
         edgeImitator.connect();
 
         testReceivedInitialData();
@@ -361,7 +361,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(2, customTranslationProtoList.size());
 
         List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgList = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
-        Assert.assertEquals(1, adminSettingsUpdateMsgList.size());
+        Assert.assertEquals(2, adminSettingsUpdateMsgList.size());
 
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtoList.size());
