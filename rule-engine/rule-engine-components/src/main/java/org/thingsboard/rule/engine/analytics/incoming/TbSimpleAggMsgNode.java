@@ -200,8 +200,12 @@ public class TbSimpleAggMsgNode implements TbNode {
         log.trace("Reporting interval: [{}][{}]", ts, interval);
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
+        ctx.enqueueForTellNext(TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
                 interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
+    }
+
+    private String getQueueName() {
+        return StringUtils.isEmpty(config.getQueueName()) ? ServiceQueue.MAIN : config.getQueueName();
     }
 
     private void onPersistTickMsg(TbContext ctx, TbMsg msg) {
