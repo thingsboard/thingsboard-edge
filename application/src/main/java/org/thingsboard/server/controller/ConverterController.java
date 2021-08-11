@@ -119,7 +119,7 @@ public class ConverterController extends BaseController {
             checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
 
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            tbClusterService.onEntityStateChange(result.getTenantId(), result.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(result.getId(), result,
@@ -162,7 +162,7 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId, Operation.DELETE);
             converterService.deleteConverter(getTenantId(), converterId);
-            tbClusterService.onEntityStateChange(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
 
             logEntityAction(converterId, converter,
                     null,
@@ -255,7 +255,7 @@ public class ConverterController extends BaseController {
             JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
                 jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
-                output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
+                output = jsUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
                 errorText = e.getMessage();

@@ -35,16 +35,19 @@ import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.network.Exchange;
-import org.eclipse.californium.core.observe.ObserveRelation;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
-import org.eclipse.californium.core.server.resources.ResourceObserver;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.security.DeviceTokenCredentials;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
+import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.transport.coap.callback.CoapDeviceAuthCallback;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,9 +61,9 @@ public class OtaPackageTransportResource extends AbstractCoapTransportResource {
 
     public OtaPackageTransportResource(CoapTransportContext ctx, OtaPackageType otaPackageType) {
         super(ctx, otaPackageType.getKeyPrefix());
-        this.setObservable(true);
-        this.addObserver(new OtaPackageTransportResource.CoapResourceObserver());
         this.otaPackageType = otaPackageType;
+
+        this.setObservable(true);
     }
 
     @Override
@@ -84,19 +87,21 @@ public class OtaPackageTransportResource extends AbstractCoapTransportResource {
             return;
         }
         transportService.process(DeviceTransportType.COAP, TransportProtos.ValidateDeviceTokenRequestMsg.newBuilder().setToken(credentials.get().getCredentialsId()).build(),
-                new CoapDeviceAuthCallback(transportContext, exchange, (sessionInfo, deviceProfile) -> {
-                    getOtaPackageCallback(sessionInfo, exchange, otaPackageType);
+                new CoapDeviceAuthCallback(exchange, (msg, deviceProfile) -> {
+                    getOtaPackageCallback(msg, exchange, otaPackageType);
                 }));
     }
 
-    private void getOtaPackageCallback(TransportProtos.SessionInfoProto sessionInfo, CoapExchange exchange, OtaPackageType firmwareType) {
+    private void getOtaPackageCallback(ValidateDeviceCredentialsResponse msg, CoapExchange exchange, OtaPackageType firmwareType) {
+        TenantId tenantId = msg.getDeviceInfo().getTenantId();
+        DeviceId deviceId = msg.getDeviceInfo().getDeviceId();
         TransportProtos.GetOtaPackageRequestMsg requestMsg = TransportProtos.GetOtaPackageRequestMsg.newBuilder()
-                .setTenantIdMSB(sessionInfo.getTenantIdMSB())
-                .setTenantIdLSB(sessionInfo.getTenantIdLSB())
-                .setDeviceIdMSB(sessionInfo.getDeviceIdMSB())
-                .setDeviceIdLSB(sessionInfo.getDeviceIdLSB())
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
                 .setType(firmwareType.name()).build();
-        transportContext.getTransportService().process(sessionInfo, requestMsg, new OtaPackageCallback(exchange));
+        transportContext.getTransportService().process(SessionInfoCreator.create(msg, transportContext, UUID.randomUUID()), requestMsg, new OtaPackageCallback(exchange));
     }
 
     private Optional<DeviceTokenCredentials> decodeCredentials(Request request) {
@@ -153,43 +158,10 @@ public class OtaPackageTransportResource extends AbstractCoapTransportResource {
             response.setPayload(data);
             if (exchange.getRequestOptions().getBlock2() != null) {
                 int chunkSize = exchange.getRequestOptions().getBlock2().getSzx();
-                boolean lastFlag = data.length > chunkSize;
-                response.getOptions().setUriPath(exchange.getRequestOptions().getUriPathString());
+                boolean lastFlag = data.length <= chunkSize;
                 response.getOptions().setBlock2(chunkSize, lastFlag, 0);
             }
-            exchange.respond(response);
-        }
-    }
-
-    public class CoapResourceObserver implements ResourceObserver {
-        @Override
-        public void changedName(String old) {
-
-        }
-
-        @Override
-        public void changedPath(String old) {
-
-        }
-
-        @Override
-        public void addedChild(Resource child) {
-
-        }
-
-        @Override
-        public void removedChild(Resource child) {
-
-        }
-
-        @Override
-        public void addedObserveRelation(ObserveRelation relation) {
-
-        }
-
-        @Override
-        public void removedObserveRelation(ObserveRelation relation) {
-
+            transportContext.getExecutor().submit(() -> exchange.respond(response));
         }
     }
 

@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -56,6 +57,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -136,11 +138,14 @@ public class IntegrationContextComponent {
 
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService callBackExecutorService;
 
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
         scheduledExecutorService = Executors.newScheduledThreadPool(3);
+        callBackExecutorService = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("integration-callback"));
     }
 
     @PreDestroy
@@ -149,9 +154,16 @@ public class IntegrationContextComponent {
         if (scheduledExecutorService != null) {
             scheduledExecutorService.shutdownNow();
         }
+        if (callBackExecutorService != null) {
+            callBackExecutorService.shutdownNow();
+        }
     }
 
     ScheduledExecutorService getScheduledExecutorService() {
         return scheduledExecutorService;
+    }
+
+    ExecutorService getCallBackExecutorService() {
+        return callBackExecutorService;
     }
 }

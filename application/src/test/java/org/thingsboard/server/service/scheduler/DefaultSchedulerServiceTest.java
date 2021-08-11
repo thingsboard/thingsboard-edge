@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -50,7 +51,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
-import org.thingsboard.server.service.queue.TbClusterService;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.api.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
@@ -38,15 +37,14 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.Map;
 
-/**
- * Created by ashvayka on 04.12.17.
- */
 @Data
 @AllArgsConstructor
-public class HttpIntegrationMsg {
+public abstract class HttpIntegrationMsg<T> {
 
     private final Map<String, String> requestHeaders;
-    private final JsonNode msg;
+    protected final T msg;
     private final DeferredResult<ResponseEntity> callback;
+
+    public abstract byte[] getMsgInBytes();
 
 }

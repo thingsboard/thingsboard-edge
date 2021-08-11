@@ -55,6 +55,12 @@ public class SignUpRequest {
     @Getter
     @Setter
     private String recaptchaResponse;
+    @Getter
+    @Setter
+    private String pkgName;
+    @Getter
+    @Setter
+    private String appSecret;
 
     public SignUpRequest() {
         super();

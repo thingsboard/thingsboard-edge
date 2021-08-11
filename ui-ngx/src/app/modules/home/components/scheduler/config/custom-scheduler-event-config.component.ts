@@ -32,10 +32,11 @@
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AfterViewInit, Directive, DoCheck, Inject, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Directive, DoCheck, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isEqual } from '@core/utils';
 import { ControlValueAccessor, NgForm } from '@angular/forms';
+import { TbInject } from '@shared/decorators/tb-inject';
 
 @Directive()
 export class CustomSchedulerEventConfigComponent extends PageComponent implements OnInit, AfterViewInit, DoCheck, ControlValueAccessor {
@@ -51,7 +52,7 @@ export class CustomSchedulerEventConfigComponent extends PageComponent implement
 
   private propagateChange = (v: any) => { };
 
-  constructor(@Inject(Store) protected store: Store<AppState>) {
+  constructor(@TbInject(Store) protected store: Store<AppState>) {
     super(store);
   }
 

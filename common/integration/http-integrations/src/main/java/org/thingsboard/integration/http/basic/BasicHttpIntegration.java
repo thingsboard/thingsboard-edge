@@ -37,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -44,7 +45,6 @@ import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.nio.charset.StandardCharsets;
@@ -57,7 +57,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 @Slf4j
-public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegrationMsg> {
+public class BasicHttpIntegration<T extends HttpIntegrationMsg<?>> extends AbstractHttpIntegration<T> {
 
     public static final String HEADER = "Header:";
     private boolean securityEnabled = false;
@@ -82,7 +82,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     }
 
     @Override
-    protected ResponseEntity doProcess(HttpIntegrationMsg msg) throws Exception {
+    protected ResponseEntity doProcess(T msg) throws Exception {
         if (checkSecurity(msg)) {
             Map<String, UplinkData> result = processUplinkData(context, msg);
             if (result.isEmpty()) {
@@ -96,7 +96,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     }
 
     @Override
-    protected String getTypeUplink(HttpIntegrationMsg msg) {
+    protected String getTypeUplink(T msg) {
         return "Uplink";
     }
 
@@ -108,7 +108,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         }
     }
 
-    private ResponseEntity processDownLinkData(IntegrationContext context, Map<String, UplinkData> uplinkData, HttpIntegrationMsg msg) throws Exception {
+    private ResponseEntity processDownLinkData(IntegrationContext context, Map<String, UplinkData> uplinkData, T msg) throws Exception {
         if (downlinkConverter != null) {
             List<TbMsg> tbMsgs = new ArrayList<>();
             for (String deviceName : uplinkData.keySet()) {
@@ -188,8 +188,8 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         return responseHeaders;
     }
 
-    protected Map<String, UplinkData> processUplinkData(IntegrationContext context, HttpIntegrationMsg msg) throws Exception {
-        byte[] data = mapper.writeValueAsBytes(msg.getMsg());
+    protected Map<String, UplinkData> processUplinkData(IntegrationContext context, T msg) throws Exception {
+        byte[] data = msg.getMsgInBytes();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         msg.getRequestHeaders().forEach(
                 (header, value) -> {
@@ -211,7 +211,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         }
     }
 
-    protected boolean checkSecurity(HttpIntegrationMsg msg) throws Exception {
+    protected boolean checkSecurity(T msg) throws Exception {
         if (securityEnabled) {
             Map<String, String> requestHeaders = msg.getRequestHeaders();
             log.trace("Validating request using the following request headers: {}", requestHeaders);

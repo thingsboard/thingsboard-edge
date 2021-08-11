@@ -47,6 +47,8 @@ import { MqttDeviceTransportConfigurationComponent } from './data/mqtt-device-tr
 import { CoapDeviceTransportConfigurationComponent } from './data/coap-device-transport-configuration.component';
 import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-transport-configuration.component';
 import { SnmpDeviceTransportConfigurationComponent } from './data/snmp-device-transport-configuration.component';
+import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
+import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
 
 @NgModule({
   declarations: [
@@ -67,7 +69,9 @@ import { SnmpDeviceTransportConfigurationComponent } from './data/snmp-device-tr
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule
+    HomeDialogsModule,
+    DeviceCredentialsModule,
+    DeviceProfileCommonModule,
   ],
   providers: [
     {

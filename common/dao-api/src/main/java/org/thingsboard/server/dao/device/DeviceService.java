@@ -67,6 +67,8 @@ public interface DeviceService {
 
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials);
 
+    Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
+
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
     PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink);
@@ -98,8 +100,6 @@ public interface DeviceService {
     PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
 
     Device assignDeviceToTenant(TenantId tenantId, Device device);
-
-    Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
 
     long countByTenantId(TenantId tenantId);
 

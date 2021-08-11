@@ -95,7 +95,7 @@ class AlarmState {
 
     public boolean process(TbContext ctx, long ts) throws ExecutionException, InterruptedException {
         initCurrentAlarm(ctx);
-        return createOrClearAlarms(ctx, null, ts, null, AlarmRuleState::eval);
+        return createOrClearAlarms(ctx, null, ts, null, (alarmState, tsParam) -> alarmState.eval(tsParam, dataSnapshot));
     }
 
     public <T> boolean createOrClearAlarms(TbContext ctx, TbMsg msg, T data, SnapshotUpdate update, BiFunction<AlarmRuleState, T, AlarmEvalResult> evalFunction) {
@@ -203,7 +203,7 @@ class AlarmState {
         setAlarmConditionMetadata(ruleState, metaData);
         TbMsg newMsg = ctx.newMsg(lastMsgQueueName != null ? lastMsgQueueName : ServiceQueue.MAIN, "ALARM",
                 originator, msg != null ? msg.getCustomerId() : null, metaData, data);
-        ctx.tellNext(newMsg, relationType);
+        ctx.enqueueForTellNext(newMsg, relationType);
     }
 
     protected void setAlarmConditionMetadata(AlarmRuleState ruleState, TbMsgMetaData metaData) {

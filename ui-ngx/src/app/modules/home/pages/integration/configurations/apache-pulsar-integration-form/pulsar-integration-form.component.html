@@ -95,6 +95,7 @@
               <mat-label translate>integration.token</mat-label>
               <input matInput type="password" required formControlName="token"
                      autocomplete="new-password">
+              <tb-toggle-password matSuffix></tb-toggle-password>
               <mat-error translate *ngIf="form.get('credentials.token')?.hasError('required')">
                 integration.token-required
               </mat-error>

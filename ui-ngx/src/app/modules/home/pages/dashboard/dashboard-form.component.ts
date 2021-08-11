@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -60,8 +60,9 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
               private dashboardService: DashboardService,
               @Inject('entity') protected entityValue: Dashboard,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Dashboard>,
-              protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              protected fb: FormBuilder,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
     if (this.entityGroup && this.entityGroup.additionalInfo && this.entityGroup.additionalInfo.isPublic) {
       this.isPublic = true;
     } else {
@@ -105,6 +106,8 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
       {
         title: [entity ? entity.title : '', [Validators.required]],
         image: [entity ? entity.image : null],
+        mobileHide: [entity ? entity.mobileHide : false],
+        mobileOrder: [entity ? entity.mobileOrder : null, [Validators.pattern(/^-?[0-9]+$/)]],
         configuration: this.fb.group(
           {
             description: [entity && entity.configuration ? entity.configuration.description : ''],
@@ -118,6 +121,8 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     this.updateFields(entity);
     this.entityForm.patchValue({title: entity.title});
     this.entityForm.patchValue({image: entity.image});
+    this.entityForm.patchValue({mobileHide: entity.mobileHide});
+    this.entityForm.patchValue({mobileOrder: entity.mobileOrder});
     this.entityForm.patchValue({configuration: {description: entity.configuration ? entity.configuration.description : ''}});
   }
 

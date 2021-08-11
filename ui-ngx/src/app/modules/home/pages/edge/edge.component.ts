@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -41,7 +41,9 @@ import { GroupEntityComponent } from '@home/components/group/group-entity.compon
 import { Edge } from '@shared/models/edge.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation, Resource } from '@shared/models/security.models';
+import { Authority } from '@shared/models/authority.enum';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { AuthUser } from '@shared/models/user.model';
 
 @Component({
   selector: 'tb-edge',
@@ -59,8 +61,9 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
               private userPermissionsService: UserPermissionsService,
               @Inject('entity') protected entityValue: Edge,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
-              public fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              public fb: FormBuilder,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   ngOnInit() {
@@ -122,15 +125,6 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   hideManageSchedulerEvents() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageSchedulerEventsEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
-  hideFromCustomerUsers() {
-    if (this.entitiesTableConfig) {
-      let ownerId = this.userPermissionsService.getUserOwnerId();
-      return !this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && ownerId.entityType === EntityType.CUSTOMER;
     } else {
       return false;
     }
@@ -207,10 +201,9 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
       }));
   }
 
-  private checkIsNewEdge() {
-    if (this.entity) {
-      return isDefinedAndNotNull(this.entity.id.id);
-    }
+  isTenantAdmin(): boolean {
+    const authUser: AuthUser = getCurrentAuthUser(this.store);
+    return authUser.authority === Authority.TENANT_ADMIN;
   }
 
   private generateRoutingKeyAndSecret(entity: Edge, form: FormGroup) {

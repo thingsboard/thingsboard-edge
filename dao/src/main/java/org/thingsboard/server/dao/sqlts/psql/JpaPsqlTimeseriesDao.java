@@ -49,6 +49,10 @@ import org.thingsboard.server.dao.timeseries.PsqlPartition;
 import org.thingsboard.server.dao.timeseries.SqlTsPartitionDate;
 import org.thingsboard.server.dao.util.PsqlDao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -74,6 +78,7 @@ public class JpaPsqlTimeseriesDao extends AbstractChunkedAggregationTimeseriesDa
 
     @Value("${sql.postgres.ts_key_value_partitioning:MONTHS}")
     private String partitioning;
+
 
     @Override
     protected void init() {
@@ -104,6 +109,30 @@ public class JpaPsqlTimeseriesDao extends AbstractChunkedAggregationTimeseriesDa
         entity.setJsonValue(tsKvEntry.getJsonValue().orElse(null));
         log.trace("Saving entity: {}", entity);
         return Futures.transform(tsQueue.add(entity), v -> dataPointDays, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public void cleanup(long systemTtl) {
+        cleanupPartitions(systemTtl);
+        super.cleanup(systemTtl);
+    }
+
+    private void cleanupPartitions(long systemTtl) {
+        log.info("Going to cleanup old timeseries data partitions using partition type: {} and ttl: {}s", partitioning, systemTtl);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement("call drop_partitions_by_max_ttl(?,?,?)")) {
+            stmt.setString(1, partitioning);
+            stmt.setLong(2, systemTtl);
+            stmt.setLong(3, 0);
+            stmt.execute();
+            printWarnings(stmt);
+            try (ResultSet resultSet = stmt.getResultSet()) {
+                resultSet.next();
+                log.info("Total partitions removed by TTL: [{}]", resultSet.getLong(1));
+            }
+        } catch (SQLException e) {
+            log.error("SQLException occurred during TTL task execution ", e);
+        }
     }
 
     private void savePartitionIfNotExist(long ts) {

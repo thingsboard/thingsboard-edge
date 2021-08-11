@@ -31,11 +31,13 @@
 package org.thingsboard.rule.engine.mail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
@@ -53,6 +55,8 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.rule.engine.mail.TbSendEmailNode.SEND_EMAIL_TYPE;
@@ -72,23 +76,27 @@ import static org.thingsboard.rule.engine.mail.TbSendEmailNode.SEND_EMAIL_TYPE;
 public class TbMsgToEmailNode implements TbNode {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String IMAGES = "images";
+    private static final String DYNAMIC = "dynamic";
 
-    private static final String ATTACHMENTS = "attachments";
+    public static final String ATTACHMENTS = "attachments";
     private static final String EMAIL_TIMEZONE = "emailTimezone";
 
     private static final Pattern dateVarPattern = Pattern.compile("%d\\{([^\\}]*)\\}");
 
     private TbMsgToEmailNodeConfiguration config;
+    private boolean isDynamicHtmlTemplate;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgToEmailNodeConfiguration.class);
-    }
+        this.isDynamicHtmlTemplate = DYNAMIC.equals(this.config.getMailBodyType());
+     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         try {
-            EmailPojo email = convert(msg);
+            TbEmail email = convert(msg);
             TbMsg emailMsg = buildEmailMsg(ctx, msg, email);
             ctx.tellNext(emailMsg, SUCCESS);
         } catch (Exception ex) {
@@ -97,23 +105,30 @@ public class TbMsgToEmailNode implements TbNode {
         }
     }
 
-    private TbMsg buildEmailMsg(TbContext ctx, TbMsg msg, EmailPojo email) throws JsonProcessingException {
+    private TbMsg buildEmailMsg(TbContext ctx, TbMsg msg, TbEmail email) throws JsonProcessingException {
         String emailJson = MAPPER.writeValueAsString(email);
         return ctx.transformMsg(msg, SEND_EMAIL_TYPE, msg.getOriginator(), msg.getMetaData().copy(), emailJson);
     }
 
-    private EmailPojo convert(TbMsg msg) throws IOException {
+
+    private TbEmail convert(TbMsg msg) throws IOException {
         TimeZone tz = null;
         String emailTimezone = msg.getMetaData().getValue(EMAIL_TIMEZONE);
         if (!StringUtils.isEmpty(emailTimezone)) {
             tz = TimeZone.getTimeZone(emailTimezone);
         }
         Date currentDate = new Date();
-        EmailPojo.EmailPojoBuilder builder = EmailPojo.builder();
+
+        TbEmail.TbEmailBuilder builder = TbEmail.builder();
         builder.from(fromTemplate(this.config.getFromTemplate(), msg));
         builder.to(fromTemplate(this.config.getToTemplate(), msg));
         builder.cc(fromTemplate(this.config.getCcTemplate(), msg));
         builder.bcc(fromTemplate(this.config.getBccTemplate(), msg));
+        if(isDynamicHtmlTemplate) {
+            builder.html(Boolean.parseBoolean(fromTemplate(this.config.getIsHtmlTemplate(), msg)));
+        } else {
+            builder.html(Boolean.parseBoolean(this.config.getMailBodyType()));
+        }
         builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg, currentDate, tz));
         builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg, currentDate, tz));
         List<BlobEntityId> attachments = new ArrayList<>();
@@ -123,6 +138,11 @@ public class TbMsgToEmailNode implements TbNode {
             for (String attachmentStr : attachmentsStrArray) {
                 attachments.add(new BlobEntityId(UUID.fromString(attachmentStr)));
             }
+        }
+        String imagesStr = msg.getMetaData().getValue(IMAGES);
+        if (!StringUtils.isEmpty(imagesStr)) {
+            Map<String, String> imgMap = MAPPER.readValue(imagesStr, new TypeReference<HashMap<String, String>>() {});
+            builder.images(imgMap);
         }
         builder.attachments(attachments);
         return builder.build();

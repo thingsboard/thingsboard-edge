@@ -31,21 +31,21 @@
 package org.thingsboard.integration.http.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 
 import java.util.Map;
 
 /**
  * Created by ashvayka on 18.12.17.
  */
-@Data
 @EqualsAndHashCode(callSuper = true)
-public class ThingParkIntegrationMsg extends HttpIntegrationMsg {
+public class ThingParkIntegrationMsg extends JsonHttpIntegrationMsg {
 
+    @Getter
     private final ThingParkRequestParameters params;
 
     public ThingParkIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, ThingParkRequestParameters params,

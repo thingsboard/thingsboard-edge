@@ -37,7 +37,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.0-EDGE-SNAPSHOT</version>
+        <version>3.3.0EDGE-SNAPSHOT</version>
         <artifactId>rule-engine</artifactId>
     </parent>
     <groupId>org.thingsboard.rule-engine</groupId>
@@ -65,6 +65,11 @@
         <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>edge-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>cluster-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

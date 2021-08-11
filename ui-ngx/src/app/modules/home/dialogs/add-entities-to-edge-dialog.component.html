@@ -31,7 +31,7 @@
 
 -->
 <form [formGroup]="addEntitiesToEdgeFormGroup" (ngSubmit)="assign()">
-  <mat-toolbar color="primary">
+  <mat-toolbar fxLayout="row" color="primary">
     <h2>{{ assignToEdgeTitle | translate }}</h2>
     <span fxFlex></span>
     <button mat-button mat-icon-button
@@ -56,9 +56,10 @@
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary"
+            style="margin-right: 20px;"
             type="button"
             [disabled]="(isLoading$ | async)"
-            (click)="cancel()" cdkFocusInitial>
+            (click)="cancel()">
       {{ 'action.cancel' | translate }}
     </button>
     <button mat-raised-button color="primary"

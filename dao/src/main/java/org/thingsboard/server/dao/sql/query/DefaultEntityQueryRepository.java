@@ -179,7 +179,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select customer_id from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select customer_id from entity_view where id = entity_id)" +
+            " THEN (select customer_id from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select customer_id from edge where id = entity_id)" +
             " END as customer_id";
@@ -206,7 +206,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select tenant_id from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select tenant_id from entity_view where id = entity_id)" +
+            " THEN (select tenant_id from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select tenant_id from edge where id = entity_id)" +
             " END as tenant_id";
@@ -234,7 +234,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select created_time from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select created_time from entity_view where id = entity_id)" +
+            " THEN (select created_time from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select created_time from edge where id = entity_id)" +
             " END as created_time";
@@ -262,7 +262,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select name from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select name from entity_view where id = entity_id)" +
+            " THEN (select name from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select name from edge where id = entity_id)" +
             " END as name";
@@ -274,7 +274,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select type from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select type from entity_view where id = entity_id)" +
+            " THEN (select type from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select type from edge where id = entity_id)" +
             " WHEN entity.entity_type = 'SCHEDULER_EVENT'" +
@@ -302,7 +302,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select label from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select name from entity_view where id = entity_id)" +
+            " THEN (select name from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select label from edge where id = entity_id)" +
             " END as label";
@@ -320,7 +320,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'DEVICE'" +
             " THEN (select additional_info from device where id = entity_id)" +
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
-            " THEN (select additional_info from entity_view where id = entity_id)" +
+            " THEN (select additional_info from entity_view where id = entity.entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
             " THEN (select additional_info from edge where id = entity_id)" +
             " END as additional_info";
@@ -859,7 +859,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
             TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
-            List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping) {
+            List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile) {
         return transactionTemplate.execute(status -> {
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, null, null));
             StringBuilder fromClause = new StringBuilder();
@@ -911,6 +911,14 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 fromClause.append(" e.type = :type ");
             }
 
+            if (mobile) {
+                if (EntityType.DASHBOARD.equals(entityType)) {
+                    fromClause.append(" AND ");
+                    ctx.addBooleanParameter("mobileHide", false);
+                    fromClause.append(" e.mobile_hide = :mobileHide ");
+                }
+            }
+
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 ctx.addStringParameter("textSearch", pageLink.getTextSearch().toLowerCase() + "%");
                 fromClause.append(" AND LOWER(e.").append(ModelConstants.SEARCH_TEXT_PROPERTY).append(") LIKE :textSearch");
@@ -921,8 +929,21 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             String dataQuery = String.format("select e.* %s ", fromClause);
 
             SortOrder sortOrder = pageLink.getSortOrder();
-            if (sortOrder != null) {
-                dataQuery = String.format("%s order by %s", dataQuery, sortOrder.getProperty());
+            if (mobile) {
+                if (EntityType.DASHBOARD.equals(entityType)) {
+                    dataQuery = String.format("%s order by %s asc NULLS LAST", dataQuery, "mobile_order");
+                    if (sortOrder != null) {
+                        String directionStr;
+                        if (sortOrder.getDirection() == SortOrder.Direction.ASC) {
+                            directionStr = "asc";
+                        } else {
+                            directionStr = "desc";
+                        }
+                        dataQuery = String.format("%s, %s %s", dataQuery, EntityKeyMapping.getEntityFieldColumnName(sortOrder.getProperty()), directionStr);
+                    }
+                }
+            } else if (sortOrder != null) {
+                dataQuery = String.format("%s order by %s", dataQuery, EntityKeyMapping.getEntityFieldColumnName(sortOrder.getProperty()));
                 if (sortOrder.getDirection() == SortOrder.Direction.ASC) {
                     dataQuery += " asc";
                 } else {
@@ -970,7 +991,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (hasGenericForAllRelationQueryResources(readPermMap) && noGroupPermissionsForAllRelationQueryResources(readPermMap)) {
             entitiesQuery.append(" e.tenant_id =:permissions_tenant_id ");
             if (!ctx.isTenantUser()) {
-                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id ");
+                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id " + HIERARCHICAL_SUB_CUSTOMERS_QUERY);
             }
             if (!entityWhereClause.isEmpty()) {
                 entitiesQuery.append(" AND ").append(entityWhereClause);

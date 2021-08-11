@@ -176,6 +176,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         deviceId: device.id.id,
+        deviceProfileId: device.deviceProfileId?.id,
         isReadOnly
       }
     }).afterClosed().subscribe(deviceCredentials => {

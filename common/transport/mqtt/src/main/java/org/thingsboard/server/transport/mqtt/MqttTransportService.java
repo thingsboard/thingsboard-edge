@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.TbTransportService;
 
 import javax.annotation.PostConstruct;
@@ -60,6 +61,14 @@ public class MqttTransportService implements TbTransportService {
     @Value("${transport.mqtt.bind_port}")
     private Integer port;
 
+    @Value("${transport.mqtt.ssl.enabled}")
+    private boolean sslEnabled;
+
+    @Value("${transport.mqtt.ssl.bind_address}")
+    private String sslHost;
+    @Value("${transport.mqtt.ssl.bind_port}")
+    private Integer sslPort;
+
     @Value("${transport.mqtt.netty.leak_detector_level}")
     private String leakDetectorLevel;
     @Value("${transport.mqtt.netty.boss_group_thread_count}")
@@ -73,6 +82,7 @@ public class MqttTransportService implements TbTransportService {
     private MqttTransportContext context;
 
     private Channel serverChannel;
+    private Channel sslServerChannel;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
@@ -87,10 +97,18 @@ public class MqttTransportService implements TbTransportService {
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new MqttTransportServerInitializer(context))
+                .childHandler(new MqttTransportServerInitializer(context, false))
                 .childOption(ChannelOption.SO_KEEPALIVE, keepAlive);
 
         serverChannel = b.bind(host, port).sync().channel();
+        if (sslEnabled) {
+            b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new MqttTransportServerInitializer(context, true))
+                    .childOption(ChannelOption.SO_KEEPALIVE, keepAlive);
+            sslServerChannel = b.bind(sslHost, sslPort).sync().channel();
+        }
         log.info("Mqtt transport started!");
     }
 
@@ -99,6 +117,9 @@ public class MqttTransportService implements TbTransportService {
         log.info("Stopping MQTT transport!");
         try {
             serverChannel.close().sync();
+            if (sslEnabled) {
+                sslServerChannel.close().sync();
+            }
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
@@ -108,6 +129,6 @@ public class MqttTransportService implements TbTransportService {
 
     @Override
     public String getName() {
-        return "MQTT";
+        return DataConstants.MQTT_TRANSPORT_NAME;
     }
 }

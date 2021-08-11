@@ -136,7 +136,7 @@ public abstract class BaseAuditLogControllerTest extends AbstractControllerTest 
         PageData<AuditLog> pageData;
         do {
             pageData = doGetTypedWithTimePageLink("/api/audit/logs/entity/DEVICE/" + savedDevice.getId().getId() + "?",
-                    new TypeReference<PageData<AuditLog>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedAuditLogs.addAll(pageData.getData());
             if (pageData.hasNext()) {

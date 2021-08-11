@@ -66,12 +66,14 @@
               <mat-form-field class="mat-block">
                 <mat-label translate>signup.create-password</mat-label>
                 <input matInput type="password" formControlName="password" required/>
+                <tb-toggle-password matSuffix></tb-toggle-password>
                 <mat-icon matPrefix>lock</mat-icon>
               </mat-form-field>
               <mat-form-field class="mat-block">
                 <mat-label translate>signup.repeat-password</mat-label>
                 <input matInput type="password" [(ngModel)]="passwordCheck"
                        [ngModelOptions]="{standalone: true}" required/>
+                <tb-toggle-password matSuffix></tb-toggle-password>
                 <mat-icon matPrefix>lock</mat-icon>
               </mat-form-field>
               <div class="tb-recaptcha" fxLayout="column">

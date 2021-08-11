@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.0-EDGE-SNAPSHOT</version>
+        <version>3.3.0EDGE-SNAPSHOT</version>
         <artifactId>transport</artifactId>
     </parent>
     <groupId>org.thingsboard.transport</groupId>
@@ -60,10 +60,10 @@
     </properties>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.thingsboard.common.transport</groupId>-->
-<!--            <artifactId>transport-api</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.thingsboard.common.transport</groupId>
             <artifactId>lwm2m</artifactId>

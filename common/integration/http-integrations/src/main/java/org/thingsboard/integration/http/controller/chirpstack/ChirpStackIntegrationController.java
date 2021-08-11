@@ -46,7 +46,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;
@@ -73,7 +73,7 @@ public class ChirpStackIntegrationController extends BaseIntegrationController {
             if (checkIntegrationPlatform(result, integration, IntegrationType.CHIRPSTACK)) {
                 return;
             }
-            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+            api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
             result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));

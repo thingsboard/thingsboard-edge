@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.0-EDGE-SNAPSHOT</version>
+        <version>3.3.0EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>common</artifactId>
@@ -59,6 +59,7 @@
         <module>transport</module>
         <module>integration</module>
         <module>dao-api</module>
+        <module>cluster-api</module>
         <module>stats</module>
         <module>cache</module>
         <module>coap-server</module>

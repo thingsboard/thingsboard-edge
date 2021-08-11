@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.0-EDGE-SNAPSHOT</version>
+        <version>3.3.0EDGE-SNAPSHOT</version>
         <artifactId>common</artifactId>
     </parent>
     <groupId>org.thingsboard.common</groupId>
@@ -70,6 +70,10 @@
         <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>stats</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>cluster-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>

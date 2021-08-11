@@ -62,4 +62,10 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      */
     PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink);
 
+    /**
+     * Executes stored procedure to cleanup old cloud events.
+     * @param eventsTtl the ttl for cloud events in seconds
+     */
+    void cleanupEvents(long eventsTtl);
+
 }

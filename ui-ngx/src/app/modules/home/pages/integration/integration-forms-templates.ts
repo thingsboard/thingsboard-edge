@@ -440,6 +440,7 @@ export const templates = {
         username: '',
         password: ''
       },
+      apiVersion: false,
     },
     topicFilters: [{
       filter: '+/devices/+/up',
@@ -487,6 +488,7 @@ export const templates = {
     clientConfiguration: {
       connectTimeoutSec: 10,
       connectionString: '',
+      consumerGroup: '',
       iotHubName: ''
     },
     fieldValidators: {

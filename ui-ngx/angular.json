@@ -136,7 +136,8 @@
               "jquery",
               "jquery.terminal",
               "tooltipster",
-              "jstree"
+              "jstree",
+              "qrcode"
             ]
           },
           "configurations": {

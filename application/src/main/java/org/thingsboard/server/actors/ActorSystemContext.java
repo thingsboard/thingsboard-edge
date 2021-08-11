@@ -106,8 +106,9 @@ import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+import org.thingsboard.server.service.rpc.TbRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.script.JsExecutorService;
@@ -323,7 +324,8 @@ public class ActorSystemContext {
     @Getter
     private SmsSenderFactory smsSenderFactory;
 
-    @Autowired
+    @Lazy
+    @Autowired(required = false)
     @Getter
     private ClaimDevicesService claimDevicesService;
 
@@ -376,19 +378,28 @@ public class ActorSystemContext {
 
     @Lazy
     @Autowired(required = false)
-    @Getter private EdgeService edgeService;
+    @Getter
+    private EdgeService edgeService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private EdgeEventService edgeEventService;
+    @Getter
+    private EdgeEventService edgeEventService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private ResourceService resourceService;
+    @Getter
+    private ResourceService resourceService;
 
     @Lazy
     @Autowired(required = false)
-    @Getter private OtaPackageService otaPackageService;
+    @Getter
+    private OtaPackageService otaPackageService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private TbRpcService tbRpcService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter

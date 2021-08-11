@@ -90,7 +90,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
                 "Message will be routed via <b>Failure</b> route if node was not able to save cloud event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage cloud event to database message will be routed via <b>Success</b> route.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbNodeEmptyConfig",
+        configDirective = "tbActionNodePushToCloudConfig",
         icon = "cloud_upload"
 )
 public class TbMsgPushToCloudNode implements TbNode {

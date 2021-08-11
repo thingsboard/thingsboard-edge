@@ -19,7 +19,7 @@ version: '2.2'
 services:
   mytbedge:
     restart: always
-    image: "volodymyrbabak/tb-edge:3.3.0-EDGE-SNAPSHOT"
+    image: "volodymyrbabak/tb-edge:3.3.0EDGE-SNAPSHOT"
     ports:
       - "18080:8080"
       - "11883:1883"

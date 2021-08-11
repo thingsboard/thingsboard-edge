@@ -70,6 +70,11 @@ public class BaseCloudEventService implements CloudEventService {
     public AttributesService attributesService;
 
     @Override
+    public void cleanupEvents(long ttl) {
+        cloudEventDao.cleanupEvents(ttl);
+    }
+
+    @Override
     public CloudEvent save(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
         return cloudEventDao.save(cloudEvent);

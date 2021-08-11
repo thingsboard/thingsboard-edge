@@ -352,6 +352,8 @@ public class ModelConstants {
     public static final String DASHBOARD_IMAGE_PROPERTY = "image";
     public static final String DASHBOARD_CONFIGURATION_PROPERTY = "configuration";
     public static final String DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY = "assigned_customers";
+    public static final String DASHBOARD_MOBILE_HIDE_PROPERTY = "mobile_hide";
+    public static final String DASHBOARD_MOBILE_ORDER_PROPERTY = "mobile_order";
 
     /**
      * plugin component metadata constants.
@@ -553,6 +555,7 @@ public class ModelConstants {
     public static final String OTA_PACKAGE_TYPE_COLUMN = "type";
     public static final String OTA_PACKAGE_TILE_COLUMN = TITLE_PROPERTY;
     public static final String OTA_PACKAGE_VERSION_COLUMN = "version";
+    public static final String OTA_PACKAGE_TAG_COLUMN = "tag";
     public static final String OTA_PACKAGE_URL_COLUMN = "url";
     public static final String OTA_PACKAGE_FILE_NAME_COLUMN = "file_name";
     public static final String OTA_PACKAGE_CONTENT_TYPE_COLUMN = "content_type";
@@ -572,6 +575,17 @@ public class ModelConstants {
     public static final String DEVICE_GROUP_OTA_PACKAGE_FIRMWARE_ID = "ota_package_id";
     public static final String DEVICE_GROUP_OTA_PACKAGE_FIRMWARE_UPDATE_TIME = "ota_package_update_time";
 
+    /**
+     * Persisted RPC constants.
+     */
+    public static final String RPC_TABLE_NAME = "rpc";
+    public static final String RPC_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
+    public static final String RPC_DEVICE_ID = "device_id";
+    public static final String RPC_EXPIRATION_TIME = "expiration_time";
+    public static final String RPC_REQUEST = "request";
+    public static final String RPC_RESPONSE = "response";
+    public static final String RPC_STATUS = "status";
+    public static final String RPC_ADDITIONAL_INFO = ADDITIONAL_INFO_PROPERTY;
 
     /**
      * Edge queue constants.

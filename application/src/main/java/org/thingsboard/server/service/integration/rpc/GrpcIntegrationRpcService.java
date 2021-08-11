@@ -32,16 +32,14 @@ package org.thingsboard.server.service.integration.rpc;
 
 import com.google.common.io.Resources;
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -51,10 +49,8 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.RequestMsg;
 import org.thingsboard.server.gen.integration.ResponseMsg;
-import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
-import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -62,6 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -78,6 +75,8 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     private String certFileResource;
     @Value("${integrations.rpc.ssl.privateKey}")
     private String privateKeyResource;
+    @Value("${integrations.rpc.client_max_keep_alive_time_sec:300}")
+    private int clientMaxKeepAliveTimeSec;
 
     private final TbServiceInfoProvider serviceInfoProvider;
     private final IntegrationContextComponent ctx;
@@ -98,7 +97,9 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     @PostConstruct
     public void init() {
         log.info("Initializing RPC service!");
-        ServerBuilder builder = ServerBuilder.forPort(rpcPort).addService(this);
+        NettyServerBuilder builder = NettyServerBuilder.forPort(rpcPort)
+                .permitKeepAliveTime(clientMaxKeepAliveTimeSec, TimeUnit.SECONDS)
+                .addService(this);
         if (sslEnabled) {
             try {
                 File certFile = new File(Resources.getResource(certFileResource).toURI());

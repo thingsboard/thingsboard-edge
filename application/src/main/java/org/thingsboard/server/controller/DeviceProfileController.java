@@ -176,7 +176,7 @@ public class DeviceProfileController extends BaseController {
             DeviceProfile savedDeviceProfile = checkNotNull(deviceProfileService.saveDeviceProfile(deviceProfile));
 
             tbClusterService.onDeviceProfileChange(savedDeviceProfile, null);
-            tbClusterService.onEntityStateChange(deviceProfile.getTenantId(), savedDeviceProfile.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(deviceProfile.getTenantId(), savedDeviceProfile.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(savedDeviceProfile.getId(), savedDeviceProfile,
@@ -208,7 +208,7 @@ public class DeviceProfileController extends BaseController {
             deviceProfileService.deleteDeviceProfile(getTenantId(), deviceProfileId);
 
             tbClusterService.onDeviceProfileDelete(deviceProfile, null);
-            tbClusterService.onEntityStateChange(deviceProfile.getTenantId(), deviceProfile.getId(), ComponentLifecycleEvent.DELETED);
+            tbClusterService.broadcastEntityStateChangeEvent(deviceProfile.getTenantId(), deviceProfile.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(deviceProfileId, deviceProfile,
                     null,

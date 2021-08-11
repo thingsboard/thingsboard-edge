@@ -106,7 +106,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
 
                     saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, ActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
 
-                    tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(),
+                    tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
@@ -121,9 +121,9 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                         referencingRuleChainIds.remove(ruleChainId);
 
                         referencingRuleChainIds.forEach(referencingRuleChainId ->
-                                tbClusterService.onEntityStateChange(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
+                                tbClusterService.broadcastEntityStateChangeEvent(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
 
-                        tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -153,7 +153,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     }
                     if (ruleChainMetadata.getNodes().size() > 0) {
                         ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
-                        tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                     }
                     break;
                 case UNRECOGNIZED:

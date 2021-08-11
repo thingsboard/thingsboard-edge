@@ -129,7 +129,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -260,7 +260,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     private List<UplinkData> convertToUplinkDataList(IntegrationContext context, ThingParkIntegrationMsg msg) throws Exception {
-        byte[] data = mapper.writeValueAsBytes(msg.getMsg());
+        byte[] data = msg.getMsgInBytes();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         ThingParkRequestParameters params = msg.getParams();
         mdMap.put("AS_ID", params.getAsId());

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '@home/components/entity/entity.component';
@@ -63,8 +63,9 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
               protected userPermissionsService: UserPermissionsService,
               @Inject('entity') protected entityValue: EntityGroupInfo,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<EntityGroupInfo>,
-              protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              protected fb: FormBuilder,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   ngOnInit() {
@@ -82,6 +83,14 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
   hideOpen() {
     if (this.entitiesTableConfig) {
       return this.entitiesTableConfig.componentsData.isGroupEntitiesView;
+    } else {
+      return false;
+    }
+  }
+
+  hideUnassign() {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.isUnassignEnabled;
     } else {
       return false;
     }
@@ -151,14 +160,6 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  isEdgeScope() {
-    if (this.entitiesTableConfig) {
-      return this.entitiesTableConfig.componentsData.isEdgeScope;
-    } else {
-      return false;
-    }
   }
 
 }

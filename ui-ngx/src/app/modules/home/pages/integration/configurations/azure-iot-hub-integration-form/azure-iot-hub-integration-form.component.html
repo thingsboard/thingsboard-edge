@@ -84,6 +84,7 @@
               <mat-label translate>integration.sas-key</mat-label>
               <input matInput type="password" required formControlName="sasKey"
                      autocomplete="new-password">
+              <tb-toggle-password matSuffix></tb-toggle-password>
               <mat-error translate *ngIf="form.get('credentials.sasKey')?.hasError('required')">
                 integration.sas-key-required
               </mat-error>
@@ -102,6 +103,7 @@
             <mat-form-field class="mat-block">
               <mat-label translate>integration.private-key-password</mat-label>
               <input matInput type="password" formControlName="privateKeyPassword">
+              <tb-toggle-password matSuffix></tb-toggle-password>
             </mat-form-field>
           </section>
         </div>

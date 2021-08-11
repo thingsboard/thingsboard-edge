@@ -31,6 +31,8 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -47,6 +49,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by ashvayka on 18.12.17.
@@ -62,22 +65,30 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     }
 
     @Override
-    public List<UplinkData> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata) throws Exception {
+    public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
+                                                            ExecutorService callBackExecutorService) throws Exception {
         try {
-            String rawResult = doConvertUplink(data, metadata);
-            JsonElement element = new JsonParser().parse(rawResult);
-            List<UplinkData> result = new ArrayList<>();
-            if (element.isJsonArray()) {
-                for (JsonElement uplinkJson : element.getAsJsonArray()) {
-                    result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
+            long startTime = System.currentTimeMillis();
+            ListenableFuture<Object> convertFuture = doConvertUplink(data, metadata);
+            return Futures.transform(convertFuture, convertResult -> {
+                String rawResult = (String) convertResult;
+                if (log.isTraceEnabled()) {
+                    log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
                 }
-            } else if (element.isJsonObject()) {
-                result.add(parseUplinkData(element.getAsJsonObject()));
-            }
-            if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
-            }
-            return result;
+                JsonElement element = new JsonParser().parse(rawResult);
+                List<UplinkData> result = new ArrayList<>();
+                if (element.isJsonArray()) {
+                    for (JsonElement uplinkJson : element.getAsJsonArray()) {
+                        result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
+                    }
+                } else if (element.isJsonObject()) {
+                    result.add(parseUplinkData(element.getAsJsonObject()));
+                }
+                if (configuration.isDebugMode()) {
+                    persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+                }
+                return result;
+            }, callBackExecutorService);
         } catch (Exception e) {
             if (configuration.isDebugMode()) {
                 persistUplinkDebug(context, metadata.getContentType(), data, metadata, e);
@@ -86,7 +97,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         }
     }
 
-    protected abstract String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
+    protected abstract ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
     protected UplinkData parseUplinkData(JsonObject src) {
         boolean isAsset = getIsAssetAndVerify(src);

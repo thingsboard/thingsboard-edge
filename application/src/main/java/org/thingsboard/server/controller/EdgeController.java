@@ -90,7 +90,7 @@ public class EdgeController extends BaseController {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.READ);
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
-                cleanUpSensitiveData(edge);
+                cleanUpLicenseKey(edge);
             }
             return edge;
         } catch (Exception e) {
@@ -152,7 +152,7 @@ public class EdgeController extends BaseController {
                 edgeService.renameDeviceEdgeAllGroup(tenantId, savedEdge, oldEdgeName);
             }
 
-            tbClusterService.onEntityStateChange(savedEdge.getTenantId(), savedEdge.getId(),
+            tbClusterService.broadcastEntityStateChangeEvent(savedEdge.getTenantId(), savedEdge.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(savedEdge.getId(), savedEdge, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
@@ -174,7 +174,7 @@ public class EdgeController extends BaseController {
             Edge edge = checkEdgeId(edgeId, Operation.DELETE);
             edgeService.deleteEdge(getTenantId(), edgeId);
 
-            tbClusterService.onEntityStateChange(getTenantId(), edgeId,
+            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), edgeId,
                     ComponentLifecycleEvent.DELETED);
 
             logEntityAction(edgeId, edge,
@@ -255,14 +255,14 @@ public class EdgeController extends BaseController {
         checkParameter("ruleChainId", strRuleChainId);
         try {
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.WRITE);
+            checkRuleChain(ruleChainId, Operation.READ);
 
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
             Edge updatedEdge = edgeNotificationService.setEdgeRootRuleChain(getTenantId(), edge, ruleChainId);
 
-            tbClusterService.onEntityStateChange(updatedEdge.getTenantId(), updatedEdge.getId(), ComponentLifecycleEvent.UPDATED);
+            tbClusterService.broadcastEntityStateChangeEvent(updatedEdge.getTenantId(), updatedEdge.getId(), ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(updatedEdge.getId(), updatedEdge, null, ActionType.UPDATED, null);
 
@@ -304,7 +304,7 @@ public class EdgeController extends BaseController {
             }
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : result.getData()) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(result);
@@ -357,7 +357,7 @@ public class EdgeController extends BaseController {
             List<Edge> edges = edgesFuture.get();
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return checkNotNull(edges);
@@ -388,7 +388,7 @@ public class EdgeController extends BaseController {
             }).collect(Collectors.toList());
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
-                    cleanUpSensitiveData(edge);
+                    cleanUpLicenseKey(edge);
                 }
             }
             return edges;
@@ -492,12 +492,8 @@ public class EdgeController extends BaseController {
     }
      */
 
-    private void cleanUpSensitiveData(Edge edge) {
+    private void cleanUpLicenseKey(Edge edge) {
         edge.setEdgeLicenseKey(null);
-        edge.setRoutingKey(null);
-        edge.setSecret(null);
-        edge.setCloudEndpoint(null);
-        edge.setRootRuleChainId(null);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

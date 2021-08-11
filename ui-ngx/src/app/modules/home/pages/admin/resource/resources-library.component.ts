@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -45,7 +45,7 @@ import {
   ResourceTypeTranslationMap
 } from '@shared/models/resource.models';
 import { pairwise, startWith, takeUntil } from 'rxjs/operators';
-import { ActionNotificationShow } from "@core/notification/notification.actions";
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Component({
   selector: 'tb-resources-library',
@@ -63,8 +63,9 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Resource,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Resource>,
-              public fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              public fb: FormBuilder,
+              protected cd: ChangeDetectorRef) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   ngOnInit() {
@@ -117,7 +118,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     if (this.isAdd) {
       form.addControl('data', this.fb.control(null, Validators.required));
     }
-    return form
+    return form;
   }
 
   updateForm(entity: Resource) {

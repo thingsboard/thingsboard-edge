@@ -34,17 +34,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.ttl.AbstractCleanUpService;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 @PsqlDao
 @Slf4j
 @Service
 public class CloudEventsCleanUpService extends AbstractCleanUpService {
+
+    public static final String RANDOM_DELAY_INTERVAL_MS_EXPRESSION =
+            "#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${sql.ttl.events.execution_interval_ms})}";
 
     @Value("${sql.ttl.cloud_events.cloud_events_ttl}")
     private long ttl;
@@ -52,20 +53,17 @@ public class CloudEventsCleanUpService extends AbstractCleanUpService {
     @Value("${sql.ttl.cloud_events.enabled}")
     private boolean ttlTaskExecutionEnabled;
 
-    @Scheduled(initialDelayString = "${sql.ttl.cloud_events.execution_interval_ms}", fixedDelayString = "${sql.ttl.cloud_events.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = getConnection()) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
-        }
+    private final CloudEventService cloudEventService;
+
+    public CloudEventsCleanUpService(PartitionService partitionService, CloudEventService cloudEventService) {
+        super(partitionService);
+        this.cloudEventService = cloudEventService;
     }
 
-    @Override
-    protected void doCleanUp(Connection connection) throws SQLException {
-        long totalCloudEventsRemoved = executeQuery(connection, "call cleanup_cloud_events_by_ttl(" + ttl + ", 0);");
-        log.info("Total cloud events removed by TTL: [{}]", totalCloudEventsRemoved);
+    @Scheduled(initialDelayString = RANDOM_DELAY_INTERVAL_MS_EXPRESSION, fixedDelayString = "${sql.ttl.cloud_events.execution_interval_ms}")
+    public void cleanUp() {
+        if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
+            cloudEventService.cleanupEvents(ttl);
+        }
     }
 }

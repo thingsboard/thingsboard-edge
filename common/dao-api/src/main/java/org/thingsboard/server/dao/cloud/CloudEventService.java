@@ -50,4 +50,6 @@ public interface CloudEventService {
     ListenableFuture<List<Void>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
 
     void deleteCloudEventsByTenantId(TenantId tenantId);
+
+    void cleanupEvents(long ttl);
 }

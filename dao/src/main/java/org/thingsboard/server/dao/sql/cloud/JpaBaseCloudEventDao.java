@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
+import org.thingsboard.server.dao.sql.event.EventCleanupRepository;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -61,6 +62,9 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     @Autowired
     private CloudEventRepository cloudEventRepository;
+
+    @Autowired
+    private CloudEventCleanupRepository cloudEventCleanupRepository;
 
     @Override
     protected Class<CloudEventEntity> getEntityClass() {
@@ -110,6 +114,12 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
         } finally {
             readWriteLock.unlock();
         }
+    }
+
+    @Override
+    public void cleanupEvents(long eventsTtl) {
+        log.info("Going to cleanup old cloud events using debug events ttl: {}s", eventsTtl);
+        cloudEventCleanupRepository.cleanupEvents(eventsTtl);
     }
 
     public Optional<CloudEvent> save(CloudEventEntity entity) {

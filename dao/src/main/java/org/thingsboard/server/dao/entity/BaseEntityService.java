@@ -183,28 +183,35 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
                                                                                     EntityType entityType, Operation operation, String type, PageLink pageLink) {
+        return findUserEntities(tenantId, customerId, userPermissions, entityType, operation, type, pageLink, false);
+    }
+
+        @Override
+    public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
+                                                                                    MergedUserPermissions userPermissions,
+                                                                                    EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile) {
         MergedGroupTypePermissionInfo groupPermissions = userPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, operation);
         if (customerId == null || customerId.isNullUid()) {
             if (groupPermissions.isHasGenericRead()) {
-                return getEntityPageDataByTenantId(entityType, type, tenantId, pageLink);
+                return getEntityPageDataByTenantId(entityType, type, tenantId, pageLink, mobile);
             } else {
-                return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink);
+                return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink, mobile);
             }
         } else {
             if (groupPermissions.isHasGenericRead()) {
                 if (groupPermissions.getEntityGroupIds().isEmpty()) {
-                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink);
+                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink, mobile);
                 } else {
-                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink);
+                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink, mobile);
                 }
             } else {
-                return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink);
+                return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink, mobile);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByTenantId(EntityType entityType, String type, TenantId tenantId, PageLink pageLink) {
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByTenantId(EntityType entityType, String type, TenantId tenantId, PageLink pageLink, boolean mobile) {
         switch (entityType) {
             case DEVICE:
                 if (type != null && type.trim().length() > 0) {
@@ -231,7 +238,11 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                     return (PageData<T>) edgeService.findEdgesByTenantId(tenantId, pageLink);
                 }
             case DASHBOARD:
-                return (PageData<T>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
+                if (mobile) {
+                    return (PageData<T>) dashboardService.findMobileDashboardsByTenantId(tenantId, pageLink);
+                } else {
+                    return (PageData<T>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
+                }
             case CUSTOMER:
                 return (PageData<T>) customerService.findCustomersByTenantId(tenantId, pageLink);
             case USER:
@@ -241,13 +252,13 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
     }
 
-    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink);
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink, boolean mobile) {
+        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink, mobile);
     }
 
     @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
-            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink) {
+            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink, boolean mobile) {
         if (type != null && type.trim().length() == 0) {
             type = null;
         }
@@ -278,7 +289,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 mappingFunction = null;
         }
         return (PageData<T>) entityQueryDao.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
-                tenantId, customerId, entityType, type, groupIds, pageLink, mappingFunction);
+                tenantId, customerId, entityType, type, groupIds, pageLink, mappingFunction, mobile);
     }
 
     private Function<Map<String, Object>, Device> getDeviceMapping() {
@@ -394,6 +405,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             dashboard.setCreatedTime((Long) row.get("created_time"));
             dashboard.setTenantId(new TenantId((UUID) row.get("tenant_id")));
             dashboard.setTitle(row.get("title").toString());
+            dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
+            dashboard.setMobileHide(row.get("mobile_hide") != null ? (Boolean) row.get("mobile_hide") : false);
+            dashboard.setMobileOrder(row.get("mobile_order") != null ? (Integer) row.get("mobile_order") : null);
             Object assignedCustomers = row.get("assigned_customers");
             if (assignedCustomers != null) {
                 String assignedCustomersStr = assignedCustomers.toString();
@@ -491,7 +505,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByGroupIds(EntityType entityType, String type,
-                                                                                                List<EntityGroupId> groupIds, PageLink pageLink) {
+                                                                                                List<EntityGroupId> groupIds, PageLink pageLink, boolean mobile) {
         if (!groupIds.isEmpty()) {
             switch (entityType) {
                 case DEVICE:
@@ -519,7 +533,11 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                         return (PageData<T>) edgeService.findEdgesByEntityGroupIds(groupIds, pageLink);
                     }
                 case DASHBOARD:
-                    return (PageData<T>) dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink);
+                    if (mobile) {
+                        return (PageData<T>) dashboardService.findMobileDashboardsByEntityGroupIds(groupIds, pageLink);
+                    } else {
+                        return (PageData<T>) dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink);
+                    }
                 case CUSTOMER:
                     return (PageData<T>) customerService.findCustomersByEntityGroupIds(groupIds, Collections.emptyList(), pageLink);
                 case USER:

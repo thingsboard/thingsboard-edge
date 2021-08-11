@@ -210,16 +210,23 @@ export class WidgetContext {
   };
 
   controlApi: RpcApi = {
-    sendOneWayCommand: (method, params, timeout, requestUUID) => {
+    sendOneWayCommand: (method, params, timeout, persistent, requestUUID) => {
       if (this.defaultSubscription) {
-        return this.defaultSubscription.sendOneWayCommand(method, params, timeout, requestUUID);
+        return this.defaultSubscription.sendOneWayCommand(method, params, timeout, persistent, requestUUID);
       } else {
         return of(null);
       }
     },
-    sendTwoWayCommand: (method, params, timeout, requestUUID) => {
+    sendTwoWayCommand: (method, params, timeout, persistent, requestUUID) => {
       if (this.defaultSubscription) {
-        return this.defaultSubscription.sendTwoWayCommand(method, params, timeout, requestUUID);
+        return this.defaultSubscription.sendTwoWayCommand(method, params, timeout, persistent, requestUUID);
+      } else {
+        return of(null);
+      }
+    },
+    completedCommand: () => {
+      if (this.defaultSubscription) {
+        return this.defaultSubscription.completedCommand();
       } else {
         return of(null);
       }

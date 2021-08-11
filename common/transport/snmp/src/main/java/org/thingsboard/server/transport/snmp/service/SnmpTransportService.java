@@ -50,6 +50,7 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.transport.snmp.SnmpCommunicationSpec;
@@ -315,7 +316,7 @@ public class SnmpTransportService implements TbTransportService {
 
     @Override
     public String getName() {
-        return "SNMP";
+        return DataConstants.SNMP_TRANSPORT_NAME;
     }
 
     @PreDestroy

@@ -36,9 +36,9 @@
     <parent>
         <groupId>org.thingsboard</groupId>
 <<<<<<< HEAD
-        <version>3.3.0-EDGE-SNAPSHOT</version>
+        <version>3.3.0EDGE-SNAPSHOT</version>
 =======
-        <version>3.3.0-EDGE-SNAPSHOT</version>
+        <version>3.3.0EDGE-SNAPSHOT</version>
 >>>>>>> upstream/master
         <artifactId>integration</artifactId>
     </parent>

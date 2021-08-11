@@ -31,8 +31,8 @@
 package org.thingsboard.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,7 +63,7 @@ public class JacksonUtil {
             throw new IllegalArgumentException("The given object value: "
                     + fromValue + " cannot be converted to " + toValueTypeRef, e);
         }
-   }
+    }
 
     public static <T> T fromString(String string, Class<T> clazz) {
         try {
@@ -89,6 +89,15 @@ public class JacksonUtil {
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value: "
                     + string + " cannot be transformed to Json object", e);
+        }
+    }
+
+    public static <T> T fromBytes(byte[] bytes, Class<T> clazz) {
+        try {
+            return bytes != null ? OBJECT_MAPPER.readValue(bytes, clazz) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value: "
+                    + Arrays.toString(bytes) + " cannot be transformed to Json object", e);
         }
     }
 
@@ -121,7 +130,7 @@ public class JacksonUtil {
         }
     }
 
-    public static ObjectNode newObjectNode(){
+    public static ObjectNode newObjectNode() {
         return OBJECT_MAPPER.createObjectNode();
     }
 
@@ -133,5 +142,14 @@ public class JacksonUtil {
 
     public static <T> JsonNode valueToTree(T value) {
         return OBJECT_MAPPER.valueToTree(value);
+    }
+
+    public static <T> byte[] writeValueAsBytes(T value) {
+        try {
+            return OBJECT_MAPPER.writeValueAsBytes(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("The given Json object value: "
+                    + value + " cannot be transformed to a String", e);
+        }
     }
 }

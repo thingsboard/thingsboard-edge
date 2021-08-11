@@ -38,7 +38,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
-import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbAvgIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountUniqueIntervalState;
@@ -46,6 +45,7 @@ import org.thingsboard.rule.engine.analytics.incoming.state.TbIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbMaxIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbMinIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbSumIntervalState;
+import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -58,7 +58,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -90,12 +96,13 @@ class TbIntervalTable {
         if (this.aggIntervalType == AggIntervalType.CUSTOM) {
             this.tz = ZoneId.systemDefault();
             tmpIntervalDuration = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue());
+            this.intervalTtl = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue() * 2);
         } else {
             this.tz = ZoneId.of(config.getTimeZoneId());
             tmpIntervalDuration = getDefaultIntervalDurationByAggType();
+            this.intervalTtl = config.getAggIntervalType().getInterval() * 2;
         }
         this.intervalDuration = Math.max(tmpIntervalDuration, TimeUnit.MINUTES.toMillis(1));
-        this.intervalTtl = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue() * 2);
         this.function = MathFunction.valueOf(config.getMathFunction());
         this.autoCreateIntervals = config.isAutoCreateIntervals();
     }

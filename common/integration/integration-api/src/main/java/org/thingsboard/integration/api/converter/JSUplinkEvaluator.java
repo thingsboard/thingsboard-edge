@@ -31,6 +31,7 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -48,10 +49,10 @@ public class JSUplinkEvaluator extends AbstractJSEvaluator {
         super(tenantId, jsInvokeService, entityId, JsScriptType.UPLINK_CONVERTER_SCRIPT, script);
     }
 
-    public String execute(byte[] data, UplinkMetaData metadata) throws Exception {
+    public ListenableFuture<Object> execute(byte[] data, UplinkMetaData metadata) throws Exception {
         validateSuccessfulScriptLazyInit();
         String[] inArgs = prepareArgs(data, metadata);
-        return jsInvokeService.invokeFunction(tenantId, null, this.scriptId, inArgs[0], inArgs[1]).get().toString();
+        return jsInvokeService.invokeFunction(tenantId, null, this.scriptId, inArgs[0], inArgs[1]);
     }
 
     private static String[] prepareArgs(byte[] data, UplinkMetaData metadata) {
