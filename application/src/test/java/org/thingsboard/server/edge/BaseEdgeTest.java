@@ -360,8 +360,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         List<CustomTranslationProto> customTranslationProtoList = edgeImitator.findAllMessagesByType(CustomTranslationProto.class);
         Assert.assertEquals(2, customTranslationProtoList.size());
 
-        List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgList = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
-        Assert.assertEquals(2, adminSettingsUpdateMsgList.size());
+        validateAdminSettings();
 
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtoList.size());
@@ -370,6 +369,47 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(2, ruleChainUpdateMsgList.size());
 
         log.info("Received data checked");
+    }
+
+    private void validateAdminSettings() throws JsonProcessingException {
+        List<AdminSettingsUpdateMsg> adminSettingsUpdateMsgs = edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class);
+        Assert.assertEquals(2, adminSettingsUpdateMsgs.size());
+
+        for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : adminSettingsUpdateMsgs) {
+            if (adminSettingsUpdateMsg.getKey().equals("mail")) {
+                validateMailAdminSettings(adminSettingsUpdateMsg);
+            }
+            if (adminSettingsUpdateMsg.getKey().equals("mailTemplates")) {
+                validateMailTemplatesAdminSettings(adminSettingsUpdateMsg);
+            }
+            if (adminSettingsUpdateMsg.getKey().equals("general")) {
+                validateGeneralAdminSettings(adminSettingsUpdateMsg);
+            }
+        }
+    }
+
+    private void validateMailAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) throws JsonProcessingException {
+        JsonNode jsonNode = mapper.readTree(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("mailFrom"));
+        Assert.assertNotNull(jsonNode.get("smtpProtocol"));
+        Assert.assertNotNull(jsonNode.get("smtpHost"));
+        Assert.assertNotNull(jsonNode.get("smtpPort"));
+        Assert.assertNotNull(jsonNode.get("timeout"));
+    }
+
+    private void validateMailTemplatesAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) throws JsonProcessingException {
+        JsonNode jsonNode = mapper.readTree(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("accountActivated"));
+        Assert.assertNotNull(jsonNode.get("accountLockout"));
+        Assert.assertNotNull(jsonNode.get("activation"));
+        Assert.assertNotNull(jsonNode.get("passwordWasReset"));
+        Assert.assertNotNull(jsonNode.get("resetPassword"));
+        Assert.assertNotNull(jsonNode.get("test"));
+    }
+
+    private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) throws JsonProcessingException {
+        JsonNode jsonNode = mapper.readTree(adminSettingsUpdateMsg.getJsonValue());
+        Assert.assertNotNull(jsonNode.get("baseUrl"));
     }
 
     private void testDevices() throws Exception {
