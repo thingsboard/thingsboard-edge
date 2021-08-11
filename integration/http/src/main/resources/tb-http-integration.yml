@@ -49,6 +49,9 @@ integration:
     # Send statistics interval. Dfault value is once per hour
     persist_frequency: "${INTEGRATION_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
+# The default timeout for asynchronous requests in milliseconds
+spring.mvc.async.request-timeout: "${SPRING_MVC_ASYNC_REQUEST_TIMEOUT:30000}"
+
 storage:
   # Location of the folder to store data files
   data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
