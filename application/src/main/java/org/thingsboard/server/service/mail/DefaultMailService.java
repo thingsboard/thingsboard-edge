@@ -243,7 +243,8 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail) throws ThingsboardException {
-        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+        JsonNode jsonConfig = configEntry.jsonConfig;
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
         sendMail(tenantId, customerId, tbEmail, mailSender);
     }
@@ -254,7 +255,7 @@ public class DefaultMailService implements MailService {
     }
 
     private void sendMail(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender) throws ThingsboardException {
-        ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+        ConfigEntry configEntry = getConfig(tenantId, "mail", true);
         JsonNode jsonConfig = configEntry.jsonConfig;
         if (!configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
             String mailFrom = getStringValue(jsonConfig, "mailFrom");
