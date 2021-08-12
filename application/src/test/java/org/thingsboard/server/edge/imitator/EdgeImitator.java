@@ -187,6 +187,11 @@ public class EdgeImitator {
 
     private ListenableFuture<List<Void>> processDownlinkMsg(DownlinkMsg downlinkMsg) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
+        if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
+            for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
+                result.add(saveDownlinkMsg(adminSettingsUpdateMsg));
+            }
+        }
         if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
             for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
                 result.add(saveDownlinkMsg(deviceUpdateMsg));
@@ -320,11 +325,6 @@ public class EdgeImitator {
         if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
             for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
                 result.add(saveDownlinkMsg(schedulerEventUpdateMsg));
-            }
-        }
-        if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
-            for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
-                result.add(saveDownlinkMsg(adminSettingsUpdateMsg));
             }
         }
         if (downlinkMsg.getRoleMsgCount() > 0) {

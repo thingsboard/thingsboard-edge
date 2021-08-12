@@ -30,10 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.AdminSettings;
