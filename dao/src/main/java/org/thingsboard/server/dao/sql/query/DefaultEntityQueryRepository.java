@@ -991,7 +991,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (hasGenericForAllRelationQueryResources(readPermMap) && noGroupPermissionsForAllRelationQueryResources(readPermMap)) {
             entitiesQuery.append(" e.tenant_id =:permissions_tenant_id ");
             if (!ctx.isTenantUser()) {
-                entitiesQuery.append(" AND e.customer_id =:permissions_customer_id " + HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+                entitiesQuery.append(" AND (e.customer_id =:permissions_customer_id OR e.customer_id IN " + HIERARCHICAL_SUB_CUSTOMERS_QUERY + ") ");
             }
             if (!entityWhereClause.isEmpty()) {
                 entitiesQuery.append(" AND ").append(entityWhereClause);
