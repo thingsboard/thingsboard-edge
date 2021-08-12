@@ -91,8 +91,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
             , Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<DeviceDownlinkDataProto> onDownlink, Consumer<Exception> onError) {
         NettyChannelBuilder builder = NettyChannelBuilder
                 .forAddress(rpcHost, rpcPort)
-                .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS)
-                .usePlaintext();
+                .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS);
         if (sslEnabled) {
             try {
                 builder.sslContext(GrpcSslContexts.forClient().trustManager(new File(Resources.getResource(certResource).toURI())).build());
@@ -100,6 +99,8 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                 log.error("Failed to initialize channel!", e);
                 throw new RuntimeException(e);
             }
+        } else {
+            builder.usePlaintext();
         }
         channel = builder.build();
         IntegrationTransportGrpc.IntegrationTransportStub stub = IntegrationTransportGrpc.newStub(channel);
