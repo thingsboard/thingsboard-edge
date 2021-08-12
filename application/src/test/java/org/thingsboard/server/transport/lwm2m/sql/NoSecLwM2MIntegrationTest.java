@@ -28,18 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m;
+package org.thingsboard.server.transport.lwm2m.sql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.device.credentials.lwm2m.NoSecClientCredentials;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.ota.OtaPackageUpdateStatus;
+import org.thingsboard.server.transport.lwm2m.AbstractLwM2MIntegrationTest;
 import org.thingsboard.server.transport.lwm2m.client.LwM2MTestClient;
 
 import java.util.Arrays;
@@ -232,6 +234,7 @@ public class NoSecLwM2MIntegrationTest extends AbstractLwM2MIntegrationTest {
      * Check the detailed log output to learn how Awaitility polling the API and when exactly expected result appears
      * */
     @Test
+    @Ignore
     public void testSoftwareUpdateByObject9() throws Exception {
         //given
         final List<OtaPackageUpdateStatus> expectedStatuses = Collections.unmodifiableList(Arrays.asList(

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.resource;
+package org.thingsboard.server.service.resource.sql;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.After;
@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.service.resource.TbResourceService;
 
 import java.util.ArrayList;
 import java.util.Base64;

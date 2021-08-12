@@ -203,7 +203,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return doSaveDevice(device, accessToken, true);
     }
 
-    @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
+    @Caching(evict= {
+            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}"),
+            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.id}")
+    })
     @Override
     public Device saveDevice(Device device, boolean doValidate) {
         return doSaveDevice(device, null, doValidate);
@@ -500,10 +503,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Transactional
-    @Caching(evict= {
-            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}"),
-            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.id}")
-    })
     @Override
     public Device assignDeviceToTenant(TenantId tenantId, Device device) {
         log.trace("Executing assignDeviceToTenant [{}][{}]", tenantId, device);
@@ -522,11 +521,20 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
         relationService.removeRelations(device.getTenantId(), device.getId());
 
+        TenantId oldTenantId = device.getTenantId();
+
         device.setTenantId(tenantId);
         device.setCustomerId(null);
-        Device assignedDevice = doSaveDevice(device, null, true);
-        entityGroupService.addEntityToEntityGroupAll(assignedDevice.getTenantId(), assignedDevice.getOwnerId(), assignedDevice.getId());
-        return assignedDevice;
+
+        Device savedDevice = doSaveDevice(device, null, true);
+        entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+
+        // explicitly remove device with previous tenant id from cache
+        // result device object will have different tenant id and will not remove entity from cache
+        removeDeviceFromCacheByName(oldTenantId, device.getName());
+        removeDeviceFromCacheById(oldTenantId, device.getId());
+
+        return savedDevice;
     }
 
     @Override
