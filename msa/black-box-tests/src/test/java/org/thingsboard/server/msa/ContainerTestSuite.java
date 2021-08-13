@@ -60,7 +60,7 @@ public class ContainerTestSuite {
         env.put("TB_EDGE_VERSION", "3.3.0EDGE-SNAPSHOT");
         env.put("CLOUD_ROUTING_KEY", "280629c7-f853-ee3d-01c0-fffbb6f2ef38");
         env.put("CLOUD_ROUTING_SECRET", "g9ta4soeylw6smqkky8g");
-        env.put("CLOUD_PRC_HOST", "tb-monolith");
+        env.put("CLOUD_RPC_HOST", "tb-monolith");
 
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));

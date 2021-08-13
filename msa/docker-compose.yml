@@ -40,7 +40,7 @@ services:
     environment:
       CLOUD_ROUTING_KEY: 6a1565030465563f58a3770f7ae939e8
       CLOUD_ROUTING_SECRET: ef05o7vsepi4jn7w3epj
-      CLOUD_PRC_HOST: mytbpe
+      CLOUD_RPC_HOST: mytbpe
       CLOUD_RPC_PORT: 60100
     volumes:
       - ~/.mytbedge-data:/data

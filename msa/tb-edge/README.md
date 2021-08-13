@@ -27,7 +27,7 @@ services:
     environment:
       CLOUD_ROUTING_KEY: PUT_YOUR_EDGE_KEY_HERE # e.g. 19ea7ee8-5e6d-e642-4f32-05440a529015
       CLOUD_ROUTING_SECRET: PUT_YOUR_EDGE_SECRET_HERE # e.g. bztvkvfqsye7omv9uxlp
-      CLOUD_PRC_HOST: PUT_YOUR_CLOUD_IP # e.g. 192.168.1.250
+      CLOUD_RPC_HOST: PUT_YOUR_CLOUD_IP # e.g. 192.168.1.250
     volumes:
       - ~/.mytb-edge-data:/data
       - ~/.mytb-edge-logs:/var/log/tb-edge
@@ -42,7 +42,7 @@ Where:
 - `thingsboard/tb-edge` - docker image
 - `CLOUD_ROUTING_KEY` - your edge key
 - `CLOUD_ROUTING_SECRET` - your edge secret
-- `CLOUD_PRC_HOST` - ip address of the machine with the ThingsBoard platform. 
+- `CLOUD_RPC_HOST` - ip address of the machine with the ThingsBoard platform. 
 
 **NOTE**: do not use *'localhost'* - *'localhost'* is the ip address of the edge service in the docker container 
 
