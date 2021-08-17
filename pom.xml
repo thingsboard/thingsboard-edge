@@ -1911,6 +1911,10 @@
 
     <repositories>
         <repository>
+            <id>thingsboard-repo</id>
+            <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
+        </repository>
+        <repository>
             <id>snapshots</id>
             <url>https://edge.jfrog.io/artifactory/edge-libs-snapshot-local/</url>
         </repository>
