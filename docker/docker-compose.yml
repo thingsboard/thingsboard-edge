@@ -36,7 +36,7 @@ services:
   tb-edge:
     restart: always
     image: "${EDGE_DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
-    #    image: "volodymyrbabak/tb-edge:3.3.0-EDGE-SNAPSHOT"
+    #    image: "thingsboard/tb-edge:3.3.0-EDGE-SNAPSHOT"
     ports:
       - "8082"
       - "1883"
