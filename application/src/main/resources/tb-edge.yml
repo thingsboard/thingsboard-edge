@@ -84,6 +84,7 @@ server:
       # Default value of the server side RPC timeout.
       default_timeout: "${DEFAULT_SERVER_SIDE_RPC_TIMEOUT:10000}"
 
+# Cloud configuration
 cloud:
   routingKey: "${CLOUD_ROUTING_KEY:}"
   secret: "${CLOUD_ROUTING_SECRET:}"
