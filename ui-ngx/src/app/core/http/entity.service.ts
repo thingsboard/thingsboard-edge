@@ -1755,6 +1755,15 @@ export class EntityService {
       case CloudEventType.RULE_CHAIN_METADATA:
         entityObservable = this.ruleChainService.getRuleChainMetadata(entityId);
         break;
+      case EdgeEventType.WIDGET_TYPE:
+        entityObservable = this.widgetService.getWidgetTypeById(entityId);
+        break;
+      case EdgeEventType.WIDGETS_BUNDLE:
+        entityObservable = this.widgetService.getWidgetsBundle(entityId);
+        break;
+      case EdgeEventType.DEVICE_PROFILE:
+        entityObservable = this.deviceProfileService.getDeviceProfile(entityId);
+        break;
       case CloudEventType.RELATION:
         entityObservable = of(entity.entityBody);
         break;
