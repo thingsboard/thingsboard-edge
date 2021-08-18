@@ -91,7 +91,8 @@ export enum CloudEventType {
   RELATION = "RELATION",
   ENTITY_GROUP = "ENTITY_GROUP",
   EDGE = "EDGE",
-  WIDGETS_BUNDLE = "WIDGETS_BUNDLE"
+  WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
+  WIDGET_TYPE = "WIDGET_TYPE"
 }
 
 export interface Edge extends BaseData<EdgeId> {
