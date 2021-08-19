@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -28,46 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.service;
+import * as React from 'react';
+import ThingsboardAceEditor from './json-form-ace-editor';
+import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-form/react/json-form.models';
 
-import lombok.Data;
-import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
+class ThingsboardMarkdown extends React.Component<JsonFormFieldProps, JsonFormFieldState> {
 
-import java.util.concurrent.ScheduledFuture;
+  constructor(props) {
+    super(props);
+  }
 
-/**
- * Created by ashvayka on 15.10.18.
- */
-@Data
-public class SessionMetaData {
-
-    private volatile SessionInfoProto sessionInfo;
-    private final SessionType sessionType;
-    private final SessionMsgListener listener;
-
-    private volatile ScheduledFuture scheduledFuture;
-    private volatile boolean subscribedToAttributes;
-    private volatile boolean subscribedToRPC;
-    private volatile boolean overwriteActivityTime;
-
-    SessionMetaData(SessionInfoProto sessionInfo, SessionType sessionType, SessionMsgListener listener) {
-        this.sessionInfo = sessionInfo;
-        this.sessionType = sessionType;
-        this.listener = listener;
-        this.scheduledFuture = null;
-    }
-
-    void setScheduledFuture(ScheduledFuture scheduledFuture) {
-        this.scheduledFuture = scheduledFuture;
-    }
-
-    public ScheduledFuture getScheduledFuture() {
-        return scheduledFuture;
-    }
-
-    public boolean hasScheduledFuture() {
-        return null != this.scheduledFuture;
-    }
+  render() {
+    return (
+      <ThingsboardAceEditor {...this.props} mode='markdown' {...this.state}></ThingsboardAceEditor>
+    );
+  }
 }
+
+export default ThingsboardMarkdown;

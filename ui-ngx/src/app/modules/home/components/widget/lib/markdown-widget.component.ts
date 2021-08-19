@@ -29,74 +29,72 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { DatasourceData } from '@shared/models/widget.models';
+import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import {
-  fillPattern,
+  fillPattern, flatData,
   parseData,
   parseFunction,
   processPattern,
   safeExecute
 } from '@home/components/widget/lib/maps/common-maps-utils';
 import { FormattedData } from '@home/components/widget/lib/maps/map-models';
-import { DatasourceData } from '@shared/models/widget.models';
-import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { isNumber, isObject } from '@core/utils';
+import { hashCode, isNotEmptyStr } from '@core/utils';
+import cssjs from '@core/css/css';
 
-interface QrCodeWidgetSettings {
-  qrCodeTextPattern: string;
-  useQrCodeTextFunction: boolean;
-  qrCodeTextFunction: string;
+interface MarkdownWidgetSettings {
+  markdownTextPattern: string;
+  useMarkdownTextFunction: boolean;
+  markdownTextFunction: string;
+  markdownCss: string;
 }
 
-type QrCodeTextFunction = (data: FormattedData) => string;
+type MarkdownTextFunction = (data: FormattedData[]) => string;
 
 @Component({
-  selector: 'tb-qrcode-widget',
-  templateUrl: './qrcode-widget.component.html',
-  styleUrls: []
+  selector: 'tb-markdown-widget ',
+  templateUrl: './markdown-widget.component.html',
+  styleUrls: ['./markdown-widget.component.scss']
 })
-export class QrCodeWidgetComponent extends PageComponent implements OnInit, AfterViewInit {
+export class MarkdownWidgetComponent extends PageComponent implements OnInit {
 
-  settings: QrCodeWidgetSettings;
-  qrCodeTextFunction: QrCodeTextFunction;
+  settings: MarkdownWidgetSettings;
+  markdownTextFunction: MarkdownTextFunction;
 
   @Input()
   ctx: WidgetContext;
 
-  qrCodeText: string;
-  invalidQrCodeText = false;
+  markdownText: string;
 
-  private viewInited: boolean;
-  private scheduleUpdateCanvas: boolean;
-
-  @ViewChild('canvas', {static: false}) canvasRef: ElementRef<HTMLCanvasElement>;
+  markdownClass: string;
 
   constructor(protected store: Store<AppState>,
-              protected cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
   ngOnInit(): void {
-    this.ctx.$scope.qrCodeWidget = this;
+    this.ctx.$scope.markdownWidget = this;
     this.settings = this.ctx.settings;
-    this.qrCodeTextFunction = this.settings.useQrCodeTextFunction ? parseFunction(this.settings.qrCodeTextFunction, ['data']) : null;
-  }
-
-  ngAfterViewInit(): void {
-    this.viewInited = true;
-    if (this.scheduleUpdateCanvas) {
-      this.scheduleUpdateCanvas = false;
-      this.updateCanvas();
+    this.markdownTextFunction = this.settings.useMarkdownTextFunction ? parseFunction(this.settings.markdownTextFunction, ['data']) : null;
+    this.markdownClass = 'markdown-widget';
+    const cssString = this.settings.markdownCss;
+    if (isNotEmptyStr(cssString)) {
+      const cssParser = new cssjs();
+      cssParser.testMode = false;
+      this.markdownClass += '-' + hashCode(cssString);
+      cssParser.cssPreviewNamespace = 'tb-markdown-view.' + this.markdownClass;
+      cssParser.createStyleElement(this.markdownClass, cssString);
     }
   }
 
   public onDataUpdated() {
     let initialData: DatasourceData[];
-    let qrCodeText: string;
     if (this.ctx.data?.length) {
       initialData = this.ctx.data;
     } else if (this.ctx.datasources?.length) {
@@ -111,42 +109,23 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
         }
       ];
     }
+    let markdownText: string;
     if (initialData) {
       const data = parseData(initialData);
-      const dataSourceData = data[0];
-      const pattern = this.settings.useQrCodeTextFunction ?
-        safeExecute(this.qrCodeTextFunction, [dataSourceData]) : this.settings.qrCodeTextPattern;
-      const replaceInfo = processPattern(pattern, dataSourceData);
-      qrCodeText = fillPattern(pattern, replaceInfo, dataSourceData);
+      markdownText = this.settings.useMarkdownTextFunction ?
+        safeExecute(this.markdownTextFunction, [data]) : this.settings.markdownTextPattern;
+      const allData = flatData(data);
+      const replaceInfo = processPattern(markdownText, allData);
+      markdownText = fillPattern(markdownText, replaceInfo, allData);
     }
-    this.updateQrCodeText(qrCodeText);
-  }
-
-  private updateQrCodeText(newQrCodeText: string): void {
-    if (this.qrCodeText !== newQrCodeText) {
-      this.qrCodeText = newQrCodeText;
-      if (!(isObject(newQrCodeText) || isNumber(newQrCodeText))) {
-        this.invalidQrCodeText = false;
-        if (this.qrCodeText) {
-          this.updateCanvas();
-        }
-      } else {
-        this.invalidQrCodeText = true;
-      }
+    if (this.markdownText !== markdownText) {
+      this.markdownText = markdownText;
       this.cd.detectChanges();
     }
   }
 
-  private updateCanvas() {
-    if (this.viewInited) {
-      import('qrcode').then((QRCode) => {
-        QRCode.toCanvas(this.canvasRef.nativeElement, this.qrCodeText);
-        this.canvasRef.nativeElement.style.width = 'auto';
-        this.canvasRef.nativeElement.style.height = 'auto';
-      });
-    } else {
-      this.scheduleUpdateCanvas = true;
-    }
+  markdownClick($event: MouseEvent) {
+    this.ctx.actionsApi.elementClick($event);
   }
 
 }

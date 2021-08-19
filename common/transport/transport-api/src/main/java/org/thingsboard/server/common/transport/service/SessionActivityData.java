@@ -32,8 +32,7 @@ package org.thingsboard.server.common.transport.service;
 
 import lombok.Data;
 import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.concurrent.ScheduledFuture;
 
@@ -41,33 +40,18 @@ import java.util.concurrent.ScheduledFuture;
  * Created by ashvayka on 15.10.18.
  */
 @Data
-public class SessionMetaData {
+public class SessionActivityData {
 
-    private volatile SessionInfoProto sessionInfo;
-    private final SessionType sessionType;
-    private final SessionMsgListener listener;
+    private volatile TransportProtos.SessionInfoProto sessionInfo;
+    private volatile long lastActivityTime;
+    private volatile long lastReportedActivityTime;
 
-    private volatile ScheduledFuture scheduledFuture;
-    private volatile boolean subscribedToAttributes;
-    private volatile boolean subscribedToRPC;
-    private volatile boolean overwriteActivityTime;
-
-    SessionMetaData(SessionInfoProto sessionInfo, SessionType sessionType, SessionMsgListener listener) {
+    SessionActivityData(TransportProtos.SessionInfoProto sessionInfo) {
         this.sessionInfo = sessionInfo;
-        this.sessionType = sessionType;
-        this.listener = listener;
-        this.scheduledFuture = null;
     }
 
-    void setScheduledFuture(ScheduledFuture scheduledFuture) {
-        this.scheduledFuture = scheduledFuture;
+    void updateLastActivityTime() {
+        this.lastActivityTime = System.currentTimeMillis();
     }
 
-    public ScheduledFuture getScheduledFuture() {
-        return scheduledFuture;
-    }
-
-    public boolean hasScheduledFuture() {
-        return null != this.scheduledFuture;
-    }
 }
