@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.dao.edge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -98,9 +100,9 @@ public interface EdgeService {
 
     void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
 
-    Object checkInstance(Object request);
+    ResponseEntity<JsonNode> checkInstance(JsonNode request);
 
-    Object activateInstance(String licenseSecret, String releaseDate);
+    ResponseEntity<JsonNode> activateInstance(String licenseSecret, String releaseDate);
 
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
 
