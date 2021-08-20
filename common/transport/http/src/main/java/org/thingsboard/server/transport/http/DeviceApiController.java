@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportContext;
 import org.thingsboard.server.common.transport.TransportService;
