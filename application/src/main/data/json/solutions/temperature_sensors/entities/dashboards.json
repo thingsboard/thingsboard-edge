@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Temperature & Humidity",
+    "file": "temperature_sensors.json",
+    "group": "Customer dashboards",
+    "main": true
+  }
+]

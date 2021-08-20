@@ -1,0 +1,161 @@
+[
+  {
+    "name": "smart-sensor",
+    "description": "Default device profile",
+    "type": "DEFAULT",
+    "transportType": "DEFAULT",
+    "provisionType": "DISABLED",
+    "defaultRuleChainId": null,
+    "defaultQueueName": null,
+    "profileData": {
+      "configuration": {
+        "type": "DEFAULT"
+      },
+      "transportConfiguration": {
+        "type": "DEFAULT"
+      },
+      "provisionConfiguration": {
+        "type": "DISABLED",
+        "provisionDeviceSecret": null
+      },
+      "alarms": [
+        {
+          "id":"62e96619-b5c1-2855-76e9-2135a9f89129",
+          "alarmType":"High Temperature",
+          "createRules":{
+            "CRITICAL":{
+              "condition":{
+                "condition":[
+                  {
+                    "key":{
+                      "type":"TIME_SERIES",
+                      "key":"temperature"
+                    },
+                    "valueType":"NUMERIC",
+                    "predicate":{
+                      "type":"NUMERIC",
+                      "operation":"GREATER",
+                      "value":{
+                        "defaultValue":25.5,
+                        "userValue":null,
+                        "dynamicValue":null
+                      }
+                    }
+                  }
+                ],
+                "spec":{
+                  "type":"SIMPLE"
+                }
+              },
+              "schedule":null,
+              "alarmDetails":"${temperature} °C"
+            }
+          },
+          "clearRule":{
+            "condition":{
+              "condition":[
+                {
+                  "key":{
+                    "type":"TIME_SERIES",
+                    "key":"temperature"
+                  },
+                  "valueType":"NUMERIC",
+                  "predicate":{
+                    "type":"NUMERIC",
+                    "operation":"LESS_OR_EQUAL",
+                    "value":{
+                      "defaultValue":23.5,
+                      "userValue":null,
+                      "dynamicValue":null
+                    }
+                  }
+                }
+              ],
+              "spec":{
+                "type":"SIMPLE"
+              }
+            },
+            "schedule":null,
+            "alarmDetails":"${temperature} °C"
+          },
+          "propagate":false,
+          "propagateRelationTypes":null
+        }
+      ]
+    },
+    "provisionDeviceKey": null,
+    "default": false
+  },
+  {
+    "name": "hvac",
+    "description": "Default device profile",
+    "type": "DEFAULT",
+    "transportType": "DEFAULT",
+    "provisionType": "DISABLED",
+    "defaultRuleChainId": null,
+    "defaultQueueName": null,
+    "profileData": {
+      "configuration": {
+        "type": "DEFAULT"
+      },
+      "transportConfiguration": {
+        "type": "DEFAULT"
+      },
+      "provisionConfiguration": {
+        "type": "DISABLED",
+        "provisionDeviceSecret": null
+      },
+      "alarms": null
+    },
+    "provisionDeviceKey": null,
+    "default": false
+  },
+  {
+    "name": "energy-meter",
+    "description": "Default device profile",
+    "type": "DEFAULT",
+    "transportType": "DEFAULT",
+    "provisionType": "DISABLED",
+    "defaultRuleChainId": null,
+    "defaultQueueName": null,
+    "profileData": {
+      "configuration": {
+        "type": "DEFAULT"
+      },
+      "transportConfiguration": {
+        "type": "DEFAULT"
+      },
+      "provisionConfiguration": {
+        "type": "DISABLED",
+        "provisionDeviceSecret": null
+      },
+      "alarms": null
+    },
+    "provisionDeviceKey": null,
+    "default": false
+  },
+  {
+    "name": "water-meter",
+    "description": "Default device profile",
+    "type": "DEFAULT",
+    "transportType": "DEFAULT",
+    "provisionType": "DISABLED",
+    "defaultRuleChainId": null,
+    "defaultQueueName": null,
+    "profileData": {
+      "configuration": {
+        "type": "DEFAULT"
+      },
+      "transportConfiguration": {
+        "type": "DEFAULT"
+      },
+      "provisionConfiguration": {
+        "type": "DISABLED",
+        "provisionDeviceSecret": null
+      },
+      "alarms": null
+    },
+    "provisionDeviceKey": null,
+    "default": false
+  }
+]

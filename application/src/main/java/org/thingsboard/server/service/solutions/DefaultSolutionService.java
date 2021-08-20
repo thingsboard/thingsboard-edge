@@ -1,0 +1,1004 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.service.solutions;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonParser;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseDeleteTsKvQuery;
+import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.security.system.SystemSecurityService;
+import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
+import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
+import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
+import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
+import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
+import org.thingsboard.server.service.solutions.data.definition.CustomerDefinition;
+import org.thingsboard.server.service.solutions.data.definition.CustomerEntityDefinition;
+import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
+import org.thingsboard.server.service.solutions.data.definition.DashboardUserDetailsDefinition;
+import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
+import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
+import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
+import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
+import org.thingsboard.server.service.solutions.data.definition.RoleDefinition;
+import org.thingsboard.server.service.solutions.data.definition.TenantDefinition;
+import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
+import org.thingsboard.server.service.solutions.data.definition.UserGroupDefinition;
+import org.thingsboard.server.service.solutions.data.emulator.DeviceEmulatorLauncher;
+import org.thingsboard.server.service.solutions.data.solution.SolutionDescriptor;
+import org.thingsboard.server.service.solutions.data.solution.SolutionInstallResponse;
+import org.thingsboard.server.service.solutions.data.solution.SolutionTemplate;
+import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateDetails;
+import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateInfo;
+import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateLevel;
+import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateDetails;
+import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInfo;
+import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@RequiredArgsConstructor
+@Service
+@Slf4j
+public class DefaultSolutionService implements SolutionService {
+
+    public static final String SOLUTIONS_DIR = "solutions";
+
+    private static final Map<SolutionTemplateLevel, Set<String>> allowedSolutionTemplateLevelsMap = new HashMap<>();
+
+    static {
+        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.MAKER, Set.of("Maker", "Prototype", "Startup"));
+        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.PROTOTYPE, Set.of("Prototype", "Startup"));
+        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.STARTUP, Set.of("Startup"));
+    }
+
+    private List<SolutionTemplateInfo> solutions = new ArrayList<>();
+    private Map<String, SolutionTemplateDetails> solutionsMap = new HashMap<>();
+
+    private final InstallScripts installScripts;
+    private final DeviceProfileService deviceProfileService;
+    private final RuleChainService ruleChainService;
+    private final AttributesService attributesService;
+    private final TimeseriesService tsService;
+    private final DashboardService dashboardService;
+    private final RelationService relationService;
+    private final TenantService tenantService;
+    private final DeviceService deviceService;
+    private final DeviceCredentialsService deviceCredentialsService;
+    private final AssetService assetService;
+    private final CustomerService customerService;
+    private final UserService userService;
+    private final EntityGroupService entityGroupService;
+    private final GroupPermissionService groupPermissionService;
+    private final RoleService roleService;
+    private final SystemSecurityService systemSecurityService;
+    private final TbClusterService tbClusterService;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final TbTenantProfileCache tenantProfileCache;
+
+    @PostConstruct
+    public void init() {
+        Path solutionsDescriptorsFile = resolve("solutions.json");
+        List<SolutionDescriptor> descriptors = JacksonUtil.readValue(solutionsDescriptorsFile.toFile(), new TypeReference<List<SolutionDescriptor>>() {
+        });
+        for (SolutionDescriptor descriptor : descriptors) {
+            SolutionTemplateInfo templateInfo = new SolutionTemplateInfo();
+            templateInfo.setId(descriptor.getId());
+            templateInfo.setTitle(descriptor.getTitle());
+            templateInfo.setLevel(descriptor.getLevel());
+            templateInfo.setInstallTimeoutMs(descriptor.getInstallTimeoutMs());
+            templateInfo.setShortDescription(readFile(resolve(descriptor.getId(), "short.md")));
+            templateInfo.setPreviewImageUrl(descriptor.getPreviewImageUrl());
+            templateInfo.setTenantTelemetryKeys(descriptor.getTenantTelemetryKeys());
+            templateInfo.setTenantAttributeKeys(descriptor.getTenantAttributeKeys());
+            solutions.add(templateInfo);
+
+            SolutionTemplateDetails templateDetails = new SolutionTemplateDetails();
+            templateDetails.setId(descriptor.getId());
+            templateDetails.setTitle(descriptor.getTitle());
+            templateDetails.setLevel(descriptor.getLevel());
+            templateDetails.setInstallTimeoutMs(descriptor.getInstallTimeoutMs());
+            templateDetails.setHighlights(readFile(resolve(descriptor.getId(), "highlights.md")));
+            templateDetails.setDescription(readFile(resolve(descriptor.getId(), "description.md")));
+            templateDetails.setImageUrls(descriptor.getImageUrls());
+            templateDetails.setTenantTelemetryKeys(descriptor.getTenantTelemetryKeys());
+            templateDetails.setTenantAttributeKeys(descriptor.getTenantAttributeKeys());
+            solutionsMap.put(descriptor.getId(), templateDetails);
+        }
+    }
+
+    private Path resolve(String subdir, String... subdirs) {
+        return getSolutionsDir().resolve(Paths.get(subdir, subdirs));
+    }
+
+    private Path getSolutionsDir() {
+        return Paths.get(installScripts.getDataDir(), InstallScripts.JSON_DIR, SOLUTIONS_DIR);
+    }
+
+    private String readFile(Path file) {
+        try {
+            return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.warn("Failed to read file: {}", file, e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<TenantSolutionTemplateInfo> getSolutionInfos(TenantId tenantId) throws ThingsboardException {
+        try {
+            List<String> solutionIds = solutions.stream().map(SolutionTemplate::getId).collect(Collectors.toList());
+            List<AttributeKvEntry> stateList = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, solutionIds.stream().map(this::toStatusKey).collect(Collectors.toList())).get();
+
+            List<TenantSolutionTemplateInfo> result = new ArrayList<>();
+
+            solutions.forEach(solution -> {
+                boolean installed = stateList.stream()
+                        .filter(attr -> attr.getKey().equals(toStatusKey(solution.getId())) && attr.getBooleanValue().isPresent())
+                        .map(attr -> attr.getBooleanValue().get()).findFirst().orElse(Boolean.FALSE);
+                result.add(new TenantSolutionTemplateInfo(solution, installed));
+            });
+            return result;
+        } catch (Exception e) {
+            log.error("[{}] Failed to fetch solution list", tenantId, e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    @Override
+    public TenantSolutionTemplateDetails getSolutionDetails(TenantId tenantId, String id) throws ThingsboardException {
+        try {
+            SolutionTemplateDetails details = solutionsMap.get(id);
+            Optional<AttributeKvEntry> state = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toStatusKey(id)).get();
+            return new TenantSolutionTemplateDetails(details, state.isPresent() && state.get().getBooleanValue().orElse(Boolean.FALSE));
+        } catch (Exception e) {
+            log.error("[{}] Failed to fetch solution list", tenantId, e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    @Override
+    public TenantSolutionTemplateInstructions getSolutionInstructions(TenantId tenantId, String id) throws ThingsboardException {
+        try {
+            Optional<AttributeKvEntry> state = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toInstructionsKey(id)).get();
+            String body = state.orElseThrow(() -> new ThingsboardRuntimeException(ThingsboardErrorCode.ITEM_NOT_FOUND))
+                    .getStrValue().orElseThrow(() -> new ThingsboardRuntimeException(ThingsboardErrorCode.ITEM_NOT_FOUND));
+            return JacksonUtil.fromString(body, TenantSolutionTemplateInstructions.class);
+        } catch (ThingsboardRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[{}] Failed to fetch solution list", tenantId, e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    @Override
+    public SolutionInstallResponse installSolution(TenantId tenantId, String solutionId, HttpServletRequest request) throws ThingsboardException {
+        if (!solutionsMap.containsKey(solutionId)) {
+            throw new ThingsboardException("Solution does not exist", ThingsboardErrorCode.ITEM_NOT_FOUND);
+        }
+
+        SolutionInstallResponse validateResult = validateSolution(tenantId, solutionId);
+        if (validateResult != null && !validateResult.isSuccess()) {
+            return validateResult;
+        } else {
+            return doInstallSolution(tenantId, solutionId, request);
+        }
+    }
+
+    @Override
+    public void deleteSolution(TenantId tenantId, String solutionId) throws ThingsboardException {
+        try {
+            Optional<AttributeKvEntry> entitiesOpt = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toCreatedEntitiesKey(solutionId)).get();
+            if (entitiesOpt.isPresent()) {
+                String entitiesListSrc = entitiesOpt.get().getValueAsString();
+                List<EntityId> entityIds = new ArrayList<>(Objects.requireNonNull(JacksonUtil.fromString(entitiesListSrc, new TypeReference<List<EntityId>>() {
+                })));
+                // Delete elements in the descending order of their creation to make sure we don't have dependencies.
+                Collections.reverse(entityIds);
+                for (EntityId entityId : entityIds) {
+                    try {
+                        deleteEntity(tenantId, entityId);
+                    } catch (RuntimeException e) {
+                        log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, e);
+                    }
+                }
+
+                attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(toCreatedEntitiesKey(solutionId), toStatusKey(solutionId), toInstructionsKey(solutionId))).get();
+
+                SolutionTemplateDetails solutionTemplate = solutionsMap.get(solutionId);
+                List<String> tsKeys = solutionTemplate.getTenantTelemetryKeys();
+                if (tsKeys != null && !tsKeys.isEmpty()) {
+                    List<DeleteTsKvQuery> queries = new ArrayList<>(tsKeys.size());
+                    for (String tsKey : tsKeys) {
+                        queries.add(new BaseDeleteTsKvQuery(tsKey, 0, System.currentTimeMillis(), false));
+                    }
+                    tsService.remove(tenantId, tenantId, queries).get();
+                }
+                List<String> attrKeys = solutionTemplate.getTenantAttributeKeys();
+                if (tsKeys != null && !tsKeys.isEmpty()) {
+                    attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys).get();
+                }
+            }
+        } catch (Exception e) {
+            log.error("[{}][{}] Failed to delete the solution", tenantId, solutionId, e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    private SolutionInstallResponse validateSolution(TenantId tenantId, String solutionId) {
+        Map<EntityType, List<HasName>> alreadyExistingEntities = new HashMap<>();
+
+        //TODO: check that enough entities in subscription plan.
+        //TODO: check other entities.
+
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(solutionId, "rule_chains.json", new TypeReference<List<ReferenceableEntityDefinition>>() {
+        });
+        if (!ruleChains.isEmpty()) {
+            for (ReferenceableEntityDefinition ruleChain : ruleChains) {
+                List<RuleChain> savedRuleChains = ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.CORE, new PageLink(1, 0, ruleChain.getName())).getData();
+                if (savedRuleChains != null && !savedRuleChains.isEmpty()) {
+                    alreadyExistingEntities.computeIfAbsent(EntityType.RULE_CHAIN, key -> new ArrayList<>()).add(savedRuleChains.get(0));
+                }
+            }
+        }
+
+        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(solutionId, "device_profiles.json", new TypeReference<List<DeviceProfile>>() {
+        });
+        // Validate that entities with such name does not exist entities
+        if (!deviceProfiles.isEmpty()) {
+            for (DeviceProfile deviceProfile : deviceProfiles) {
+                DeviceProfile savedProfile = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfile.getName());
+                if (savedProfile != null) {
+                    alreadyExistingEntities.computeIfAbsent(EntityType.DEVICE_PROFILE, key -> new ArrayList<>()).add(savedProfile);
+                }
+            }
+        }
+
+        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<List<DashboardDefinition>>() {
+        });
+        if (!dashboards.isEmpty()) {
+            for (DashboardDefinition dashboard : dashboards) {
+                List<DashboardInfo> savedDashboards = dashboardService.findDashboardsByTenantId(tenantId, new PageLink(1, 0, dashboard.getName())).getData();
+                if (savedDashboards != null && !savedDashboards.isEmpty()) {
+                    alreadyExistingEntities.computeIfAbsent(EntityType.DASHBOARD, key -> new ArrayList<>()).add(savedDashboards.get(0));
+                }
+            }
+        }
+        if (!alreadyExistingEntities.isEmpty()) {
+            SolutionInstallResponse solutionInstallResponse = new SolutionInstallResponse();
+            StringBuilder detailsBuilder = new StringBuilder();
+            detailsBuilder.append("## Validation failed").append(System.lineSeparator()).append(System.lineSeparator());
+            alreadyExistingEntities.forEach((type, list) -> {
+                detailsBuilder.append("The following **").append(getTypeLabel(type)).append("** entities already exist: ")
+                        .append(list.stream().map(HasName::getName).map(name -> "'" + name + "'").collect(Collectors.joining(","))).append(";")
+                        .append(System.lineSeparator()).append(System.lineSeparator());
+            });
+            solutionInstallResponse.setSuccess(false);
+            solutionInstallResponse.setDetails(detailsBuilder.toString());
+            return solutionInstallResponse;
+        } else {
+            return null;
+        }
+    }
+
+    private SolutionInstallResponse doInstallSolution(TenantId tenantId, String solutionId, HttpServletRequest request) {
+        SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, new TenantSolutionTemplateInstructions());
+        try {
+            provisionRoles(ctx);
+
+            provisionTenantDetails(ctx);
+
+            provisionRuleChains(ctx);
+
+            provisionDeviceProfiles(ctx);
+
+            provisionCustomers(ctx);
+
+            provisionAssets(ctx);
+
+            provisionDevices(ctx);
+
+            provisionRelations(ctx);
+
+            provisionDashboards(ctx);
+
+            provisionCustomerUsers(ctx);
+
+            ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
+
+            long ts = System.currentTimeMillis();
+            AttributeKvEntry createdEntitiesAttribute = new BaseAttributeKvEntry(new StringDataEntry(toCreatedEntitiesKey(solutionId), JacksonUtil.toString(ctx.getCreatedEntitiesList())), ts);
+            AttributeKvEntry statusAttribute = new BaseAttributeKvEntry(new BooleanDataEntry(toStatusKey(solutionId), true), ts);
+
+            TenantSolutionTemplateInstructions instructions = new TenantSolutionTemplateInstructions(ctx.getSolutionInstructions());
+            AttributeKvEntry instructionAttribute = new BaseAttributeKvEntry(new StringDataEntry(toInstructionsKey(solutionId), JacksonUtil.toString(instructions)), ts);
+            attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(createdEntitiesAttribute, statusAttribute, instructionAttribute));
+
+            return new SolutionInstallResponse(ctx.getSolutionInstructions(), true);
+        } catch (Throwable e) {
+            log.error("[{}][{}] Failed to provision", tenantId, solutionId, e);
+            rollback(tenantId, solutionId, ctx, e);
+            return new SolutionInstallResponse(ctx.getSolutionInstructions(), false);
+        }
+    }
+
+    private void rollback(TenantId tenantId, String solutionId, SolutionInstallContext ctx, Throwable e) {
+        List<EntityId> createdEntities = ctx.getCreatedEntitiesList();
+        Collections.reverse(createdEntities);
+        for (EntityId entityId : createdEntities) {
+            try {
+                deleteEntity(tenantId, entityId);
+            } catch (RuntimeException re) {
+                log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, re);
+            }
+        }
+        attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(toCreatedEntitiesKey(solutionId), toStatusKey(solutionId), toInstructionsKey(solutionId)));
+        ctx.getSolutionInstructions().setDetails(e.getMessage());
+    }
+
+    private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
+        String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
+        template = template.replace("${BASE_URL}", systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+        template = template.replace("${MAIN_DASHBOARD_URL}",
+                "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
+                        "/" + ctx.getSolutionInstructions().getDashboardId().getId());
+
+        StringBuilder devList = new StringBuilder();
+
+        devList.append("| Device name | Access token | Customer name |");
+        devList.append(System.lineSeparator());
+        devList.append("| :---   | :---  | :---  |");
+        devList.append(System.lineSeparator());
+
+        for (DeviceCredentialsInfo credentialsInfo : ctx.getCreatedDevices().values()) {
+            devList.append("|").append(credentialsInfo.getName())
+                    .append("|").append(credentialsInfo.getCredentials().getCredentialsId()).append("{:copy-code}")
+                    .append("|").append(credentialsInfo.getCustomerName() != null ? credentialsInfo.getCustomerName() : "");
+            devList.append(System.lineSeparator());
+
+            template = template.replace("${" + credentialsInfo.getName() + "ACCESS_TOKEN}", credentialsInfo.getCredentials().getCredentialsId());
+        }
+
+        template = template.replace("${device_list_and_credentials}", devList.toString());
+
+        StringBuilder userList = new StringBuilder();
+
+        userList.append("| Name | Login | Password | Customer name |");
+        userList.append(System.lineSeparator());
+        userList.append("| :---  | :---  | :---  | :---  |");
+        userList.append(System.lineSeparator());
+
+        for (UserCredentialsInfo credentialsInfo : ctx.getCreatedUsers().values()) {
+            userList.append("|").append(credentialsInfo.getName())
+                    .append("|").append(credentialsInfo.getLogin()).append("{:copy-code}")
+                    .append("|").append(credentialsInfo.getPassword()).append("{:copy-code}")
+                    .append("|").append(credentialsInfo.getCustomerName() != null ? credentialsInfo.getCustomerName() : "");
+            userList.append(System.lineSeparator());
+        }
+
+        template = template.replace("${user_list}", userList.toString());
+
+        StringBuilder entityList = new StringBuilder();
+
+        entityList.append("| Name | Type | Owner |");
+        entityList.append(System.lineSeparator());
+        entityList.append("| :---  | :---  | :---  |");
+        entityList.append(System.lineSeparator());
+
+        for (CreatedEntityInfo entityInfo : ctx.getCreatedEntities().values()) {
+            entityList.append("|").append(entityInfo.getName())
+                    .append("|").append(entityInfo.getType()).append("|")
+                    .append(entityInfo.getOwner());
+            entityList.append(System.lineSeparator());
+        }
+
+        template = template.replace("${all_entities}", entityList.toString());
+
+        return template;
+    }
+
+    private void provisionRoles(SolutionInstallContext ctx) {
+        List<RoleDefinition> roleDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "roles.json", new TypeReference<List<RoleDefinition>>() {
+        });
+        for (RoleDefinition roleDef : roleDefinitions) {
+            Role role = new Role();
+            role.setTenantId(ctx.getTenantId());
+            role.setName(roleDef.getName());
+            role.setType(roleDef.getType());
+            role.setPermissions(roleDef.getOperations());
+            role = roleService.saveRole(ctx.getTenantId(), role);
+            ctx.register(role);
+            ctx.putIdToMap(roleDef, role.getId());
+        }
+    }
+
+    private void provisionRuleChains(SolutionInstallContext ctx) {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<List<ReferenceableEntityDefinition>>() {
+        });
+        for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
+            // Rule chains should be ordered correctly to exclude dependencies.
+            Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getFile());
+            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
+            replaceIdsRecursively(ctx, ruleChainJson);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            ruleChain.setTenantId(ctx.getTenantId());
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+            RuleChain savedRuleChain = ruleChainService.saveRuleChain(ruleChain);
+            ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            if (ruleChain.isRoot()) {
+                ruleChainService.setRootRuleChain(ctx.getTenantId(), savedRuleChain.getId());
+            }
+            ctx.register(entityDefinition.getJsonId(), savedRuleChain);
+            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
+        }
+    }
+
+    private void provisionDeviceProfiles(SolutionInstallContext ctx) {
+        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_profiles.json", new TypeReference<List<DeviceProfile>>() {
+        });
+        deviceProfiles.forEach(deviceProfile -> {
+            deviceProfile.setId(null);
+            deviceProfile.setCreatedTime(0L);
+            deviceProfile.setTenantId(ctx.getTenantId());
+            if (deviceProfile.getDefaultRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(deviceProfile.getDefaultRuleChainId().getId().toString());
+                if (newId != null) {
+                    deviceProfile.setDefaultRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Device profile: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), deviceProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+        });
+
+        deviceProfiles = deviceProfiles.stream().map(deviceProfileService::saveDeviceProfile).collect(Collectors.toList());
+        deviceProfiles.forEach(ctx::register);
+    }
+
+    private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
+        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<List<DashboardDefinition>>() {
+        });
+        for (DashboardDefinition entityDef : dashboards) {
+            CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
+            Path dashboardsPath = resolve(ctx.getSolutionId(), "dashboards", entityDef.getFile());
+            JsonNode dashboardJson = JacksonUtil.toJsonNode(dashboardsPath);
+            replaceIdsRecursively(ctx, dashboardJson);
+            Dashboard dashboard = new Dashboard();
+            dashboard.setTenantId(ctx.getTenantId());
+            dashboard.setTitle(entityDef.getName());
+            dashboard.setConfiguration(dashboardJson.get("configuration"));
+            dashboard.setCustomerId(customerId);
+            dashboard = dashboardService.saveDashboard(dashboard);
+            ctx.register(entityDef, dashboard);
+            ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
+            EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());
+            if (entityDef.isMain()) {
+                if (entityGroupId == null) {
+                    entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
+                }
+                ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
+                ctx.getSolutionInstructions().setDashboardId(dashboard.getId());
+            }
+        }
+    }
+
+    protected void provisionRelations(SolutionInstallContext ctx) {
+        ctx.getRelationDefinitions().forEach((id, relations) -> {
+            for (RelationDefinition relationDef : relations) {
+                log.info("[{}] Saving relation: {}", id, relationDef);
+                EntityRelation entityRelation = new EntityRelation();
+                EntityId otherId = ctx.getIdFromMap(relationDef.getEntityType(), relationDef.getEntityName());
+                if (EntitySearchDirection.FROM.equals(relationDef.getDirection())) {
+                    entityRelation.setFrom(otherId);
+                    entityRelation.setTo(id);
+                } else {
+                    entityRelation.setFrom(id);
+                    entityRelation.setTo(otherId);
+                }
+                entityRelation.setTypeGroup(RelationTypeGroup.COMMON);
+                entityRelation.setType(relationDef.getType());
+                try {
+                    relationService.saveRelation(ctx.getTenantId(), entityRelation);
+                } catch (Exception e) {
+                    log.info("[{}] Failed to save relation: {}, cause: {}", id, relationDef, e.getMessage());
+                }
+            }
+        });
+    }
+
+    private final ExecutorService emulatorExecutor = Executors.newWorkStealingPool(10);
+
+    protected void provisionDevices(SolutionInstallContext ctx) throws Exception {
+        List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<List<DeviceDefinition>>() {
+        });
+        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
+        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+        for (DeviceDefinition entityDef : devices) {
+            CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
+            Device entity = new Device();
+            entity.setTenantId(ctx.getTenantId());
+            entity.setName(entityDef.getName());
+            entity.setLabel(entityDef.getLabel());
+            entity.setType(entityDef.getType());
+            entity.setCustomerId(customerId);
+            entity = deviceService.saveDevice(entity);
+            ctx.register(entityDef, entity);
+            log.info("[{}] Saved device: {}", entity.getId(), entity);
+            DeviceId entityId = entity.getId();
+            ctx.putIdToMap(entityDef, entityId);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            ctx.put(entityId, entityDef.getRelations());
+            addEntityToGroup(ctx, entityDef, entityId);
+
+            DeviceCredentialsInfo deviceCredentialsInfo = new DeviceCredentialsInfo();
+            deviceCredentialsInfo.setName(entity.getName());
+            deviceCredentialsInfo.setType(entity.getType());
+            deviceCredentialsInfo.setCustomerName(entityDef.getCustomer());
+            deviceCredentialsInfo.setCredentials(deviceCredentialsService.findDeviceCredentialsByDeviceId(ctx.getTenantId(), entityId));
+
+            ctx.addDeviceCredentials(deviceCredentialsInfo);
+
+            DeviceEmulatorLauncher.builder()
+                    .device(entity)
+                    .deviceProfile(deviceEmulators.get(entityDef.getProfile()))
+                    .oldTelemetryExecutor(emulatorExecutor)
+                    .tbClusterService(tbClusterService)
+                    .build().launch();
+
+            tbClusterService.onDeviceUpdated(entity, null);
+        }
+    }
+
+    protected void provisionTenantDetails(SolutionInstallContext ctx) throws Exception {
+        TenantDefinition tenant = loadEntityIfFileExists(ctx.getSolutionId(), "tenant.json", TenantDefinition.class);
+        if (tenant != null) {
+            saveServerSideAttributes(ctx.getTenantId(), ctx.getTenantId(), tenant.getAttributes());
+            ctx.put(ctx.getTenantId(), tenant.getRelations());
+
+            for (UserGroupDefinition ugDef : tenant.getUserGroups()) {
+                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), ctx.getTenantId(), ugDef.getName());
+                ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
+
+                for (String genericRoleName : ugDef.getGenericRoles()) {
+                    RoleId roleId = ctx.getIdFromMap(EntityType.ROLE, genericRoleName);
+                    GroupPermission gp = new GroupPermission();
+                    gp.setRoleId(roleId);
+                    gp.setTenantId(ctx.getTenantId());
+                    gp.setUserGroupId(ugEntity.getId());
+                    log.info("[{}] Saving group permission: {}", ctx.getTenantId(), gp);
+                    groupPermissionService.saveGroupPermission(ctx.getTenantId(), gp);
+
+                }
+                for (GroupRoleDefinition grDef : ugDef.getGroupRoles()) {
+                    RoleId roleId = ctx.getIdFromMap(EntityType.ROLE, grDef.getRoleName());
+                    EntityGroupId entityGroupId = ctx.getGroupIdFromMap(grDef.getGroupType(), grDef.getGroupName());
+                    if (entityGroupId == null) {
+                        throw new RuntimeException("Invalid solution configuration. EntityGroup does not exist:" + grDef.getGroupType() + grDef.getGroupName());
+                    }
+                    GroupPermission gp = new GroupPermission();
+                    gp.setRoleId(roleId);
+                    gp.setTenantId(ctx.getTenantId());
+                    gp.setUserGroupId(ugEntity.getId());
+                    gp.setEntityGroupId(entityGroupId);
+                    gp.setEntityGroupType(grDef.getGroupType());
+                    log.info("[{}] Saving group permission: {}", ctx.getTenantId(), gp);
+                    groupPermissionService.saveGroupPermission(ctx.getTenantId(), gp);
+                }
+            }
+        }
+    }
+
+    protected void provisionAssets(SolutionInstallContext ctx) {
+        List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<List<AssetDefinition>>() {
+        });
+        for (AssetDefinition entityDef : assets) {
+            Asset entity = new Asset();
+            entity.setTenantId(ctx.getTenantId());
+            entity.setName(entityDef.getName());
+            entity.setLabel(entityDef.getLabel());
+            entity.setType(entityDef.getType());
+            entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            entity = assetService.saveAsset(entity);
+            ctx.register(entityDef, entity);
+            log.info("[{}] Saved asset: {}", entity.getId(), entity);
+            AssetId entityId = entity.getId();
+            ctx.putIdToMap(entityDef, entityId);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            ctx.put(entityId, entityDef.getRelations());
+            addEntityToGroup(ctx, entityDef, entityId);
+        }
+    }
+
+    private void provisionCustomers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
+        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<List<CustomerDefinition>>() {
+        });
+        for (CustomerDefinition entityDef : customers) {
+            Customer entity = new Customer();
+            entity.setTenantId(ctx.getTenantId());
+            entity.setTitle(entityDef.getName());
+            entity.setEmail(randomize(entityDef.getEmail()));
+            entity.setCountry(entityDef.getCountry());
+            entity.setCity(entityDef.getCity());
+            entity.setState(entityDef.getState());
+            entity.setZip(entityDef.getZip());
+            entity.setAddress(entityDef.getAddress());
+            entity = customerService.saveCustomer(entity);
+            log.info("[{}] Saved customer: {}", entity.getId(), entity);
+            ctx.register(entityDef, entity);
+            CustomerId entityId = entity.getId();
+            ctx.putIdToMap(entityDef, entityId);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            ctx.put(entityId, entityDef.getRelations());
+
+            entityDef.getAssetGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.ASSET));
+            entityDef.getDeviceGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.DEVICE));
+        }
+    }
+
+    private void provisionCustomerUsers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
+        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<List<CustomerDefinition>>() {
+        });
+        for (CustomerDefinition entityDef : customers) {
+            Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
+
+            for (UserGroupDefinition ugDef : entityDef.getUserGroups()) {
+                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), ugDef.getName());
+                ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
+                for (String genericRoleName : ugDef.getGenericRoles()) {
+                    RoleId roleId = ctx.getIdFromMap(EntityType.ROLE, genericRoleName);
+                    GroupPermission gp = new GroupPermission();
+                    gp.setRoleId(roleId);
+                    gp.setTenantId(ctx.getTenantId());
+                    gp.setUserGroupId(ugEntity.getId());
+                    log.info("[{}] Saving group permission: {}", entity.getId(), gp);
+                    groupPermissionService.saveGroupPermission(ctx.getTenantId(), gp);
+
+                }
+                for (GroupRoleDefinition grDef : ugDef.getGroupRoles()) {
+                    RoleId roleId = ctx.getIdFromMap(EntityType.ROLE, grDef.getRoleName());
+                    EntityGroupId entityGroupId = ctx.getGroupIdFromMap(grDef.getGroupType(), grDef.getGroupName());
+                    if (entityGroupId == null) {
+                        throw new RuntimeException("Invalid solution configuration. EntityGroup does not exist:" + grDef.getGroupType() + grDef.getGroupName());
+                    }
+                    GroupPermission gp = new GroupPermission();
+                    gp.setRoleId(roleId);
+                    gp.setTenantId(ctx.getTenantId());
+                    gp.setUserGroupId(ugEntity.getId());
+                    gp.setEntityGroupId(entityGroupId);
+                    gp.setEntityGroupType(grDef.getGroupType());
+                    log.info("[{}] Saving group permission: {}", entity.getId(), gp);
+                    groupPermissionService.saveGroupPermission(ctx.getTenantId(), gp);
+                }
+            }
+
+            for (UserDefinition uDef : entityDef.getUsers()) {
+                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), uDef.getGroup());
+                User user = new User();
+                if (!StringUtils.isEmpty(uDef.getFirstname())) {
+                    user.setFirstName(uDef.getFirstname());
+                }
+                if (!StringUtils.isEmpty(uDef.getLastname())) {
+                    user.setLastName(uDef.getLastname());
+                }
+                user.setAuthority(Authority.CUSTOMER_USER);
+                if (uDef.getName().equals("$customerEmail")) {
+                    uDef.setName(entity.getEmail());
+                } else {
+                    uDef.setName(randomize(uDef.getName()));
+                }
+                user.setEmail(uDef.getName());
+                user.setCustomerId(entity.getId());
+                user.setTenantId(ctx.getTenantId());
+                log.info("[{}] Saving user: {}", entity.getId(), user);
+                user = userService.saveUser(user);
+                // TODO: get activation token, etc..
+                UserCredentials credentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+                credentials.setEnabled(true);
+                credentials.setActivateToken(null);
+                credentials.setPassword(passwordEncoder.encode(uDef.getPassword()));
+                userService.saveUserCredentials(ctx.getTenantId(), credentials);
+                entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), ugEntity.getId(), Collections.singletonList(user.getId()));
+                DashboardUserDetailsDefinition dd = uDef.getDashboard();
+                if (dd != null) {
+                    DashboardId dashboardId = ctx.getIdFromMap(EntityType.DASHBOARD, dd.getName());
+                    ObjectNode additionalInfo = JacksonUtil.newObjectNode();
+                    additionalInfo.put("defaultDashboardId", dashboardId.getId().toString());
+                    additionalInfo.put("defaultDashboardFullscreen", dd.isFullScreen());
+                    user.setAdditionalInfo(additionalInfo);
+                    userService.saveUser(user);
+                    log.info("[{}] Added default dashboard for user {}", entity.getId(), user.getEmail());
+                }
+                UserCredentialsInfo credentialsInfo = new UserCredentialsInfo();
+                credentialsInfo.setName(user.getFirstName() + " " + user.getLastName());
+                credentialsInfo.setLogin(uDef.getName());
+                credentialsInfo.setPassword(uDef.getPassword());
+                credentialsInfo.setCustomerName(entityDef.getName());
+                ctx.addUserCredentials(credentialsInfo);
+                ctx.register(entityDef, uDef, user);
+            }
+        }
+    }
+
+    private String randomize(String src) {
+        return src != null ?
+                src.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase()) : null;
+    }
+
+    private EntityGroup getUserGroupInfo(TenantId tenantId, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
+        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.USER, ugName).get();
+        EntityGroup ugEntity;
+        if (ugEntityOpt.isPresent()) {
+            ugEntity = ugEntityOpt.get();
+        } else {
+            throw new RuntimeException("Creation of user groups from JSON is not supported yet!");
+        }
+        return ugEntity;
+    }
+
+    private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes) {
+        if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
+            log.info("[{}] Saving attributes: {}", entityId, attributes);
+            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE,
+                    new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(JacksonUtil.toString(attributes)))));
+        }
+    }
+
+    protected EntityGroup createEntityGroup(SolutionInstallContext ctx, EntityId ownerId, String name, EntityType type) {
+        EntityGroup eg = new EntityGroup();
+        eg.setName(name);
+        eg.setType(type);
+        eg.setOwnerId(ownerId);
+        eg = entityGroupService.saveEntityGroup(ctx.getTenantId(), ownerId, eg);
+        ctx.register(eg.getId());
+        ctx.putIdToMap(eg.getOwnerId(), type, name, eg.getId());
+        log.info("[{}] Created entityGroup {}", ownerId, eg);
+        return eg;
+    }
+
+    private EntityGroupId addEntityToGroup(SolutionInstallContext ctx, CustomerEntityDefinition entityDef, EntityId entityId) {
+        CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
+        if (!StringUtils.isEmpty(entityDef.getGroup())) {
+            EntityId ownerId = customerId == null ? ctx.getTenantId() : customerId;
+            EntityGroupId egId = ctx.getGroupIdFromMap(ownerId, entityId.getEntityType(), entityDef.getGroup());
+            if (egId == null) {
+                if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                    log.info("Creating tenant {} group: {}", entityId.getEntityType(), entityDef.getGroup());
+                    egId = createEntityGroup(ctx, ctx.getTenantId(), entityDef.getGroup(), entityId.getEntityType()).getId();
+                } else {
+                    log.info("[{}] Creating customer {} group: {}", entityDef.getCustomer(), entityId.getEntityType(), entityDef.getGroup());
+                    egId = createEntityGroup(ctx, customerId, entityDef.getGroup(), entityId.getEntityType()).getId();
+                }
+            }
+            entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), egId, Collections.singletonList(entityId));
+            return egId;
+        } else {
+            return null;
+        }
+    }
+
+    private String getTypeLabel(EntityType type) {
+        return type.name().toLowerCase().replace('_', ' ');
+    }
+
+    private <T> T loadEntityIfFileExists(String solutionId, String fileName, Class<T> clazz) {
+        Path filePath = resolve(solutionId, "entities", fileName);
+        if (Files.exists(filePath)) {
+            return JacksonUtil.readValue(filePath.toFile(), clazz);
+        } else {
+            return null;
+        }
+    }
+
+    private <T> List<T> loadListOfEntitiesIfFileExists(String solutionId, String fileName, TypeReference<List<T>> typeReference) {
+        Path filePath = resolve(solutionId, "entities", fileName);
+        if (Files.exists(filePath)) {
+            return JacksonUtil.readValue(filePath.toFile(), typeReference);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    private void deleteEntity(TenantId tenantId, EntityId entityId) {
+        switch (entityId.getEntityType()) {
+            case RULE_CHAIN:
+                ruleChainService.deleteRuleChainById(tenantId, new RuleChainId(entityId.getId()));
+                break;
+            case DEVICE_PROFILE:
+                deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));
+                break;
+            case DASHBOARD:
+                dashboardService.deleteDashboard(tenantId, new DashboardId(entityId.getId()));
+                break;
+            case ROLE:
+                roleService.deleteRole(tenantId, new RoleId(entityId.getId()));
+                break;
+            case USER:
+                userService.deleteUser(tenantId, new UserId(entityId.getId()));
+                break;
+            case ASSET:
+                assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
+                break;
+            case DEVICE:
+                deviceService.deleteDevice(tenantId, new DeviceId(entityId.getId()));
+                break;
+            case CUSTOMER:
+                customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));
+                break;
+            case ENTITY_GROUP:
+                entityGroupService.deleteEntityGroup(tenantId, new EntityGroupId(entityId.getId()));
+                break;
+        }
+    }
+
+    private void replaceIdsRecursively(SolutionInstallContext ctx, JsonNode root) {
+        if (root.isArray()) {
+            ArrayNode array = (ArrayNode) root;
+            array.forEach(root1 -> replaceIdsRecursively(ctx, root1));
+        } else if (root.isObject()) {
+            if (!findAndReplaceEntityId(ctx, root)) {
+                root.fields().forEachRemaining(e -> {
+                    if (!findAndReplaceEntityId(ctx, e.getValue())) {
+                        replaceIdsRecursively(ctx, e.getValue());
+                    }
+                });
+            }
+        }
+    }
+
+    private boolean findAndReplaceEntityId(SolutionInstallContext ctx, JsonNode node) {
+        if (node.isObject() && node.size() == 2) {
+            ObjectNode value = (ObjectNode) node;
+            if (value.has("id") && value.has("entityType")) {
+                if (EntityType.TENANT.name().equalsIgnoreCase(value.get("entityType").asText())) {
+                    value.put("id", ctx.getTenantId().getId().toString());
+                    return true;
+                } else {
+                    String oldId = value.get("id").asText();
+                    if (ctx.getRealIds().containsKey(oldId)) {
+                        value.put("id", ctx.getRealIds().get(oldId));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private String toCreatedEntitiesKey(String solutionId) {
+        return solutionId + "_" + "entities";
+    }
+
+    private String toStatusKey(String solutionId) {
+        return solutionId + "_" + "status";
+    }
+
+    private String toInstructionsKey(String solutionId) {
+        return solutionId + "_" + "instructions";
+    }
+
+}

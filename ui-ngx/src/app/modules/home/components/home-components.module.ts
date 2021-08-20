@@ -180,6 +180,7 @@ import { WidgetContainerComponent } from '@home/components/widget/widget-contain
 import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snpm/snmp-device-profile-transport.module';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
+import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';
 
 @NgModule({
   declarations:
@@ -317,7 +318,8 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
       EmbedDashboardDialogComponent,
       OtaUpdateEventConfigComponent,
       TargetSelectComponent,
-      DisplayWidgetTypesPanelComponent
+      DisplayWidgetTypesPanelComponent,
+      SolutionInstallDialogComponent
     ],
   imports: [
     CommonModule,
@@ -449,7 +451,8 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     EmbedDashboardDialogComponent,
     OtaUpdateEventConfigComponent,
     TargetSelectComponent,
-    DisplayWidgetTypesPanelComponent
+    DisplayWidgetTypesPanelComponent,
+    SolutionInstallDialogComponent
   ],
   providers: [
     WidgetComponentService,

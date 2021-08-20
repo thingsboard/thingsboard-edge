@@ -1,0 +1,36 @@
+[
+  {
+    "id": "temperature_sensors",
+    "title": "Temperature & Humidity Sensors",
+    "level": "MAKER",
+    "installTimeoutMs": 2000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-1.png", "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-2.png", "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-3.png", "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-4.png"]
+  },
+  {
+    "id": "smart_office",
+    "title": "Smart office",
+    "level": "MAKER",
+    "installTimeoutMs": 2000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/smart_office/smart-office-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/smart_office/smart-office-1.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-2.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-3.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-4.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-5.png"]
+  },
+  {
+    "id": "fleet_tracking",
+    "title": "Fleet tracking",
+    "level": "MAKER",
+    "installTimeoutMs": 2000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-1.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-2.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-3.png"]
+  },
+  {
+    "id": "water_metering",
+    "title": "Water metering",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 10000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/water_metering/water-metering-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/water_metering/water-metering-1.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-3.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-2.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-4.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-5.png"],
+    "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
+    "tenantAttributeKeys": []
+  }
+]

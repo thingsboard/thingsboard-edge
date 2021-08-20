@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Water Metering Read Only",
+    "type": "GROUP",
+    "operations": [
+      "READ",
+      "READ_ATTRIBUTES",
+      "READ_CREDENTIALS",
+      "READ_TELEMETRY"
+    ]
+  },
+  {
+    "name": "Water Metering User",
+    "type": "GENERIC",
+    "operations": {
+      "ALARM": [
+        "READ",
+        "WRITE"
+      ],
+      "CUSTOMER": [
+        "WRITE_ATTRIBUTES"
+      ],
+      "DEVICE": [
+        "WRITE",
+        "WRITE_ATTRIBUTES"
+      ]
+    }
+  }
+]

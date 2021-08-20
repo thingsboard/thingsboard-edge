@@ -1,0 +1,174 @@
+[
+  {
+    "name": "Temperature Sensor",
+    "description": "",
+    "type": "DEFAULT",
+    "transportType": "MQTT",
+    "provisionType": "DISABLED",
+    "defaultRuleChainId": {
+      "entityType": "RULE_CHAIN",
+      "id": "95c148c0-599a-11eb-940c-293b71ac913b"
+    },
+    "defaultQueueName": null,
+    "profileData": {
+      "configuration": {
+        "type": "DEFAULT"
+      },
+      "transportConfiguration": {
+        "type": "MQTT",
+        "deviceTelemetryTopic": "esp/telemetry",
+        "deviceAttributesTopic": "esp/attributes",
+        "transportPayloadTypeConfiguration": {
+          "transportPayloadType": "JSON"
+        }
+      },
+      "provisionConfiguration": {
+        "type": "DISABLED",
+        "provisionDeviceSecret": null
+      },
+      "alarms": [
+        {
+          "id": "d52ebcb7-198e-932f-6e0e-a735f3898c94",
+          "alarmType": "High Temperature",
+          "createRules": {
+            "CRITICAL": {
+              "condition": {
+                "condition": [
+                  {
+                    "key": {
+                      "type": "ATTRIBUTE",
+                      "key": "temperatureAlarmFlag"
+                    },
+                    "valueType": "BOOLEAN",
+                    "predicate": {
+                      "type": "BOOLEAN",
+                      "operation": "EQUAL",
+                      "value": {
+                        "defaultValue": true,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  },
+                  {
+                    "key": {
+                      "type": "TIME_SERIES",
+                      "key": "temperature"
+                    },
+                    "valueType": "NUMERIC",
+                    "predicate": {
+                      "type": "NUMERIC",
+                      "operation": "GREATER",
+                      "value": {
+                        "defaultValue": 30.0,
+                        "userValue": null,
+                        "dynamicValue": {
+                          "sourceType": "CURRENT_DEVICE",
+                          "sourceAttribute": "temperatureAlarmThreshold"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "spec": {
+                  "type": "SIMPLE"
+                }
+              },
+              "schedule": null,
+              "alarmDetails": "Current temperature = ${temperature}"
+            }
+          },
+          "clearRule": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 0.0,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_DEVICE",
+                        "sourceAttribute": "temperatureAlarmThreshold"
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null
+          },
+          "propagate": false,
+          "propagateRelationTypes": null
+        },
+        {
+          "id": "dc6ef091-8cf7-86b0-4760-e42b963db9cf",
+          "alarmType": "Low Humidity",
+          "createRules": {
+            "MAJOR": {
+              "condition": {
+                "condition": [
+                  {
+                    "key": {
+                      "type": "ATTRIBUTE",
+                      "key": "humidityAlarmFlag"
+                    },
+                    "valueType": "BOOLEAN",
+                    "predicate": {
+                      "type": "BOOLEAN",
+                      "operation": "EQUAL",
+                      "value": {
+                        "defaultValue": true,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  },
+                  {
+                    "key": {
+                      "type": "TIME_SERIES",
+                      "key": "humidity"
+                    },
+                    "valueType": "NUMERIC",
+                    "predicate": {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 45.0,
+                        "userValue": null,
+                        "dynamicValue": {
+                          "sourceType": "CURRENT_DEVICE",
+                          "sourceAttribute": "humidityAlarmThreshold"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "spec": {
+                  "type": "SIMPLE"
+                }
+              },
+              "schedule": null,
+              "alarmDetails": "Current humidity = ${humidity}"
+            }
+          },
+          "clearRule": null,
+          "propagate": false,
+          "propagateRelationTypes": null
+        }
+      ]
+    },
+    "provisionDeviceKey": null,
+    "default": false
+  }
+]

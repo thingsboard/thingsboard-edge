@@ -426,6 +426,19 @@ export class MenuService {
         disabled: disabledItems.indexOf('home') > -1
       }
     );
+    if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'solution-template.solution-templates',
+          type: 'link',
+          path: '/solutionTemplates',
+          icon: 'apps',
+          disabled: disabledItems.indexOf('solution_templates') > -1,
+          isNew: true
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       sections.push(
         {
@@ -725,6 +738,21 @@ export class MenuService {
 
   private buildTenantAdminHome(authState: AuthState, disabledItems: string[]): Array<HomeSection> {
     const homeSections: Array<HomeSection> = [];
+    if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
+      homeSections.push(
+        {
+          name: 'solution-template.management',
+          places: [
+            {
+              name: 'solution-template.solution-templates',
+              icon: 'apps',
+              path: '/solutionTemplates',
+              disabled: disabledItems.indexOf('solution_templates') > -1
+            }
+          ]
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       homeSections.push(
         {

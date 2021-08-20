@@ -50,6 +50,7 @@ export interface MenuSection extends HasUUID{
   ignoreTranslate?: boolean;
   groupType?: EntityType;
   isCustom?: boolean;
+  isNew?: boolean;
   stateId?: string;
   childStateIds?: {[stateId: string]: boolean};
 }

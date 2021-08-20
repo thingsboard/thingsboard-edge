@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Water Metering Tenant Dashboard",
+    "file": "water_metering.json",
+    "group": "Water Metering",
+    "main": true
+  },
+  {
+    "name": "Water Metering User Dashboard",
+    "file": "water_metering_user.json",
+    "group": "Water Metering Shared"
+  }
+]

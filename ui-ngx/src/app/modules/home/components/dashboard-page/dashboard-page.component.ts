@@ -142,6 +142,12 @@ import {
 } from '@home/components/dashboard-page/widget-types-panel.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import {
+  SolutionInstallDialogComponent,
+  SolutionInstallDialogData
+} from '@home/components/solution/solution-install-dialog.component';
+import { SolutionsService } from '@core/http/solutions.service';
+import { SolutionInstallResponse } from '@shared/models/solution-template.models';
 import { MobileService } from '@core/services/mobile.service';
 
 import {
@@ -334,6 +340,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private wl: WhiteLabelingService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
+              private solutionsService: SolutionsService,
               private mobileService: MobileService,
               private fb: FormBuilder,
               private dialog: MatDialog,
@@ -444,6 +451,31 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }
 
     this.allowedEntityTypes = this.entityService.prepareAllowedEntityTypesList(null, true);
+
+    const solutionTemplateId = this.route.snapshot.queryParamMap.get('solutionTemplateId');
+    if (solutionTemplateId) {
+      this.utils.updateQueryParam('solutionTemplateId', null);
+      this.router.navigate([], {
+        queryParams: {
+          solutionTemplateId: null
+        },
+        queryParamsHandling: 'merge'
+      });
+      this.solutionsService.getSolutionTemplateInstructions(solutionTemplateId).subscribe(
+        (solutionTemplateInstructions) => {
+          const solutionInstallResponse: SolutionInstallResponse = {...solutionTemplateInstructions, success: true};
+          this.dialog.open<SolutionInstallDialogComponent, SolutionInstallDialogData>(SolutionInstallDialogComponent, {
+            disableClose: true,
+            panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+            data: {
+              solutionInstallResponse,
+              instructions: false,
+              showMainDashboardButton: false
+            }
+          });
+        }
+      );
+    }
   }
 
   private reset() {
