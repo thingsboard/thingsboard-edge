@@ -56,5 +56,5 @@ public final class RuleEngineDeviceRpcRequest {
     private final long expirationTime;
     private final boolean restApiCall;
     private final String additionalInfo;
-
+    private final Integer retries;
 }
