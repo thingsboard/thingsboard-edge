@@ -267,7 +267,7 @@ public abstract class BaseCloudProcessor {
     }
 
     protected CustomerId safeGetCustomerId(long mSB, long lSB) {
-        CustomerId customerId = new CustomerId(ModelConstants.NULL_UUID);
+        CustomerId customerId = null;
         UUID customerUUID = safeGetUUID(mSB, lSB);
         if (customerUUID != null) {
             customerId = new CustomerId(customerUUID);

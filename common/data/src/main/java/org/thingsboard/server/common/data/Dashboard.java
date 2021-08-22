@@ -96,6 +96,8 @@ public class Dashboard extends DashboardInfo {
         builder.append(getTenantId());
         builder.append(", title=");
         builder.append(getTitle());
+        builder.append(", customerId=");
+        builder.append(getCustomerId());
         builder.append(", configuration=");
         builder.append(configuration);
         builder.append("]");

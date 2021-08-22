@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -49,6 +50,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.user.UserServiceImpl;
@@ -167,6 +169,9 @@ public class UserCloudProcessor extends BaseCloudProcessor {
     private void safeSetCustomerId(UserUpdateMsg userUpdateMsg, User user) {
         CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(),
                 userUpdateMsg.getCustomerIdLSB());
+        if (customerId == null) {
+            customerId = new CustomerId(ModelConstants.NULL_UUID);
+        }
         user.setCustomerId(customerId);
     }
 
