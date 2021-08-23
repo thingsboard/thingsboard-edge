@@ -142,8 +142,6 @@
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <jsass.version>5.10.3</jsass.version>
-        <amazon-kinesis-producer>0.13.1</amazon-kinesis-producer>
-        <amazon-kinesis-client>2.2.4-TB</amazon-kinesis-client>
         <java-websocket.version>1.5.0</java-websocket.version>
         <micrometer.version>1.5.2</micrometer.version>
         <protobuf-dynamic.version>1.0.3TB</protobuf-dynamic.version>
