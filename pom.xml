@@ -44,7 +44,7 @@
 
     <properties>
         <main.dir>${basedir}</main.dir>
-        <thingsboard-cloud.version>3.3.0PE</thingsboard-cloud.version>
+        <thingsboard-cloud.version>3.3.1PE-SNAPSHOT</thingsboard-cloud.version>
         <pkg.disabled>true</pkg.disabled>
         <pkg.process-resources.phase>none</pkg.process-resources.phase>
         <pkg.package.phase>none</pkg.package.phase>
@@ -1915,7 +1915,7 @@
             <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
         </repository>
         <repository>
-            <id>snapshots</id>
+            <id>tb-edge-develop-repo</id>
             <url>https://edge.jfrog.io/artifactory/edge-libs-snapshot-local/</url>
         </repository>
         <repository>
