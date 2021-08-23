@@ -531,40 +531,46 @@ public class CloudManagerService extends BaseCloudEventService {
                 scheduledFuture = null;
             }
 
-            UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-            this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
+            initAndUpdateEdgeSettings(edgeConfiguration);
 
-            this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
-            EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
-            if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
-                cleanUp();
-                this.currentEdgeSettings = newEdgeSetting;
-            } else {
-                log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
-            }
-
-            // TODO: voba - should sync be executed in some other cases ???
-            log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
-            edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
-
-            cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
-
-            // TODO: voba - verify storage of edge entity
-            saveEdge(edgeConfiguration);
-
-            save(DefaultDeviceStateService.ACTIVITY_STATE, true);
-            save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
-
-            AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
-            if (newEdgeSetting.getCloudType().equals(CloudType.CE) && existingMailTemplates == null) {
-                installScripts.loadMailTemplates();
-            }
-
-            initialized = true;
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
     }
+
+    private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
+        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
+        this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
+
+        this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
+        EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
+        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
+            cleanUp();
+            this.currentEdgeSettings = newEdgeSetting;
+        } else {
+            log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
+        }
+
+        // TODO: voba - should sync be executed in some other cases ???
+        log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
+        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
+
+        cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
+
+        // TODO: voba - verify storage of edge entity
+        saveEdge(edgeConfiguration);
+
+        save(DefaultDeviceStateService.ACTIVITY_STATE, true);
+        save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
+
+        AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
+        if (newEdgeSetting.getCloudType().equals(CloudType.CE) && existingMailTemplates == null) {
+            installScripts.loadMailTemplates();
+        }
+
+        initialized = true;
+    }
+
     private void saveEdge(EdgeConfiguration edgeConfiguration) {
         Edge edge = new Edge();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
