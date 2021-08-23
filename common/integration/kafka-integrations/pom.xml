@@ -73,11 +73,9 @@
             <groupId>org.thingsboard.common</groupId>
             <artifactId>proto</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>2.3.0</version>
         </dependency>
     </dependencies>
 
