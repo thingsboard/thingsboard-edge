@@ -91,8 +91,10 @@ public class BaseCloudEventService implements CloudEventService {
             Optional<AttributeKvEntry> attr =
                     attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
             if (attr.isPresent()) {
+                log.trace("Found current edge settings {}", attr.get().getValueAsString());
                 return mapper.readValue(attr.get().getValueAsString(), EdgeSettings.class);
             } else {
+                log.trace("Edge settings not found");
                 return null;
             }
         } catch (Exception e) {
@@ -100,7 +102,6 @@ public class BaseCloudEventService implements CloudEventService {
             throw new RuntimeException("Exception while fetching edge settings", e);
         }
     }
-
     @Override
     public void deleteCloudEventsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteCloudEventsByTenantId, tenantId [{}]", tenantId);

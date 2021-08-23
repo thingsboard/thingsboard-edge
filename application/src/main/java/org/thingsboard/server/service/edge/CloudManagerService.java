@@ -539,12 +539,15 @@ public class CloudManagerService extends BaseCloudEventService {
             if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
                 cleanUp();
                 this.currentEdgeSettings = newEdgeSetting;
+            } else {
+                log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
             }
 
             // TODO: voba - should sync be executed in some other cases ???
+            log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
             edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
 
-            cloudEventService.saveEdgeSettings(tenantId, newEdgeSetting);
+            cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
             // TODO: voba - verify storage of edge entity
             saveEdge(edgeConfiguration);
