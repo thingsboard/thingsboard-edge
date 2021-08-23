@@ -682,7 +682,7 @@
                     <version>3.0.0-M1</version>
                     <configuration>
                         <argLine>
-                            --illegal-access=permit
+                            -Xmx1024M --illegal-access=permit
                         </argLine>
                     </configuration>
                 </plugin>
