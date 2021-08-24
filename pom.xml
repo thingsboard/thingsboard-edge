@@ -680,7 +680,7 @@
                     <version>3.0.0-M5</version>
                     <configuration>
                         <argLine>
-                            -Xmx1024M --illegal-access=permit
+                            --illegal-access=permit
                         </argLine>
                     </configuration>
                 </plugin>
