@@ -462,7 +462,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             };
 
     private PaginatedUpdater<String, Tenant> tenantsCustomersGroupAllUpdater =
-            new PaginatedUpdater<String, Tenant>() {
+            new PaginatedUpdater<>() {
 
                 @Override
                 protected String getName() {
@@ -498,7 +498,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             };
 
     private PaginatedUpdater<String, Tenant> tenantEntitiesGroupAllUpdater =
-            new PaginatedUpdater<String, Tenant>() {
+            new PaginatedUpdater<>() {
 
                 @Override
                 protected String getName() {
@@ -1001,7 +1001,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             };
 
     private void updateTenantAlarmsCustomer(TenantId tenantId) {
-        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(100), null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024*4), null, null, false);
         PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
         boolean hasNext = true;
         while (hasNext) {
