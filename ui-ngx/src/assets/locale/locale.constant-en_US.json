@@ -4155,6 +4155,7 @@
         "captcha-secret-key": "reCAPTCHA secret key",
         "notification-email": "Notification email",
         "privacy-policy-text": "Privacy policy text",
+        "terms-of-use-text": "Terms of use text",
         "text-message-page": "Text Message for signup page",
         "enable-mobile-self-registration": "Enable self registration from mobile application",
         "mobile-self-registration-title": "Mobile application self registration settings",
