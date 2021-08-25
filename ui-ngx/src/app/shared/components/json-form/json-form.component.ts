@@ -30,6 +30,7 @@
 ///
 
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   forwardRef,
@@ -132,7 +133,8 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
               private translate: TranslateService,
               private dialogs: DialogService,
               private whiteLabelingService: WhiteLabelingService,
-              protected store: Store<AppState>) {
+              protected store: Store<AppState>,
+              private cd: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -235,8 +237,8 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
   }
 
   private onIconClick(key: (string | number)[],
-                       val: string,
-                       iconSelectedFn: (icon: string) => void) {
+                      val: string,
+                      iconSelectedFn: (icon: string) => void) {
     this.dialogs.materialIconPicker(val).subscribe((icon) => {
       if (icon && iconSelectedFn) {
         iconSelectedFn(icon);
@@ -248,6 +250,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     this.targetFullscreenElement = element;
     this.isFullscreen = !this.isFullscreen;
     this.fullscreenFinishFn = fullscreenFinishFn;
+    this.cd.markForCheck();
   }
 
   onFullscreenChanged(fullscreen: boolean) {
