@@ -44,6 +44,7 @@ public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
     private String domainName;
     private String captchaSecretKey;
     private String privacyPolicy;
+    private String termsOfUse;
     private String notificationEmail;
     private String defaultDashboardId;
     private boolean defaultDashboardFullscreen;

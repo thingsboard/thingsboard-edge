@@ -95,6 +95,8 @@ public class SignUpController extends BaseController {
 
     private static final String PRIVACY_POLICY_ACCEPTED = "privacyPolicyAccepted";
 
+    private static final String TERMS_OF_USE_ACCEPTED = "termsOfUseAccepted";
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private RestTemplate restTemplate;
@@ -380,6 +382,7 @@ public class SignUpController extends BaseController {
             UserCredentials credentials = userService.activateUserCredentials(TenantId.SYS_TENANT_ID, emailCode, encodedPassword);
             User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
             setPrivacyPolicyAccepted(user);
+            setTermsOfUseAccepted(user);
             user = userService.saveUser(user);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
@@ -452,6 +455,61 @@ public class SignUpController extends BaseController {
             SecurityUser securityUser = getCurrentUser();
             User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
             setPrivacyPolicyAccepted(user);
+            user = userService.saveUser(user);
+            UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+            securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
+            JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
+            JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode tokenObject = objectMapper.createObjectNode();
+            tokenObject.put("token", accessToken.getToken());
+            tokenObject.put("refreshToken", refreshToken.getToken());
+            return tokenObject;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    private void setTermsOfUseAccepted(User user) {
+        JsonNode additionalInfo = user.getAdditionalInfo();
+        if (additionalInfo == null || !(additionalInfo instanceof ObjectNode)) {
+            additionalInfo = objectMapper.createObjectNode();
+        }
+        ((ObjectNode) additionalInfo).put(TERMS_OF_USE_ACCEPTED, true);
+        user.setAdditionalInfo(additionalInfo);
+    }
+
+    private boolean isTermsOfUseAccepted(User user) {
+        JsonNode additionalInfo = user.getAdditionalInfo();
+        if (additionalInfo != null && additionalInfo.has(TERMS_OF_USE_ACCEPTED)) {
+            return additionalInfo.get(TERMS_OF_USE_ACCEPTED).asBoolean();
+        }
+        return false;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/signup/termsOfUseAccepted", method = RequestMethod.GET)
+    public @ResponseBody
+    Boolean termsOfUseAccepted() throws ThingsboardException {
+        try {
+            SecurityUser securityUser = getCurrentUser();
+            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+            return isTermsOfUseAccepted(user);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @RequestMapping(value = "/signup/acceptTermsOfUse", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    @ResponseBody
+    public JsonNode acceptTermsOfUse() throws ThingsboardException {
+        try {
+            SecurityUser securityUser = getCurrentUser();
+            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+            setTermsOfUseAccepted(user);
             user = userService.saveUser(user);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));

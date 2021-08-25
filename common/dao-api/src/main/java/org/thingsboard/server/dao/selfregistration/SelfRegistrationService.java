@@ -45,6 +45,10 @@ public interface SelfRegistrationService {
 
     String getTenantPrivacyPolicy(TenantId tenantId);
 
+    String getTermsOfUse(TenantId sysTenantId, String domainName);
+
+    String getTenantTermsOfUse(TenantId tenantId);
+
     TenantId getTenantIdByDomainName(TenantId sysTenantId, String domainName);
 
 }

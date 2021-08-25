@@ -42,6 +42,7 @@ export interface SelfRegistrationParams extends SignUpSelfRegistrationParams {
   domainName?: string;
   captchaSecretKey?: string;
   privacyPolicy?: string;
+  termsOfUse?: string;
   notificationEmail?: string;
   defaultDashboardId?: string;
   defaultDashboardFullscreen?: boolean;
