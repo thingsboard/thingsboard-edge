@@ -127,6 +127,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   units: string;
   comparisonEnabled: boolean;
   timeForComparison: ComparisonDuration;
+  comparisonCustomIntervalValue: number;
   comparisonTimeWindow: WidgetTimewindow;
   timewindowForComparison: SubscriptionTimewindow;
 
@@ -251,6 +252,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.comparisonEnabled = options.comparisonEnabled && isHistoryTypeTimewindow(this.timeWindowConfig);
       if (this.comparisonEnabled) {
         this.timeForComparison = options.timeForComparison;
+        this.comparisonCustomIntervalValue = options.comparisonCustomIntervalValue;
 
         this.comparisonTimeWindow = {};
         this.timewindowForComparison = null;
@@ -1306,7 +1308,8 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   private updateSubscriptionForComparison(): SubscriptionTimewindow {
-    this.timewindowForComparison = createTimewindowForComparison(this.subscriptionTimewindow, this.timeForComparison);
+    this.timewindowForComparison = createTimewindowForComparison(this.subscriptionTimewindow, this.timeForComparison,
+      this.comparisonCustomIntervalValue);
     this.updateComparisonTimewindow();
     return this.timewindowForComparison;
   }

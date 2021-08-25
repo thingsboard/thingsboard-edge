@@ -506,6 +506,7 @@ export interface WidgetActionDescriptor extends CustomActionDescriptor {
 export interface WidgetComparisonSettings {
   comparisonEnabled?: boolean;
   timeForComparison?: moment_.unitOfTime.DurationConstructor;
+  comparisonCustomIntervalValue?: number;
 }
 
 export interface WidgetConfig {
