@@ -32,7 +32,7 @@
 -->
 <div class="tb-dark">
   <mat-toolbar fxLayout="row" color="primary">
-    <h2>{{ 'signup.terms-of-use' | translate }}</h2>
+    <h2>{{ title | translate }}</h2>
     <span fxFlex></span>
     <button mat-button mat-icon-button
             (click)="cancel()"
@@ -45,7 +45,7 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
     <div
-      [innerHTML]="termsOfUseText">
+      [innerHTML]="dialogText">
     </div>
   </div>
   <div mat-dialog-actions fxLayout="row">

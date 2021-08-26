@@ -45,8 +45,10 @@ import { RecaptchaComponent } from 'ng-recaptcha';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { MatDialog } from '@angular/material/dialog';
-import { PrivacyPolicyDialogComponent } from '@modules/signup/pages/signup/privacy-policy-dialog.component';
-import { TermsOfUseDialogComponent } from '@modules/signup/pages/signup/terms-of-use-dialog.component';
+import {
+  SignupDialogData,
+  SignupDialogComponent
+} from '@modules/signup/pages/signup/signup-dialog.component';
 
 @Component({
   selector: 'tb-signup',
@@ -155,10 +157,14 @@ export class SignupComponent extends PageComponent implements OnInit {
       $event.stopPropagation();
       $event.preventDefault();
     }
-    this.dialog.open<PrivacyPolicyDialogComponent, any, boolean>
-    (PrivacyPolicyDialogComponent, {
+    this.dialog.open<SignupDialogComponent, SignupDialogData, boolean>
+    (SignupDialogComponent, {
       disableClose: false,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        title: 'signup.privacy-policy',
+        content: this.selfRegistrationService.loadPrivacyPolicy()
+      }
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
@@ -172,10 +178,14 @@ export class SignupComponent extends PageComponent implements OnInit {
       $event.stopPropagation();
       $event.preventDefault();
     }
-    this.dialog.open<TermsOfUseDialogComponent, any, boolean>
-    (TermsOfUseDialogComponent, {
+    this.dialog.open<SignupDialogComponent, SignupDialogData, boolean>
+    (SignupDialogComponent, {
       disableClose: false,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        title: 'signup.terms-of-use',
+        content: this.selfRegistrationService.loadTermsOfUse()
+      }
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
