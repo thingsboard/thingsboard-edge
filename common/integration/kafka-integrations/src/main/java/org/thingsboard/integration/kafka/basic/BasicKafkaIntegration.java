@@ -50,9 +50,6 @@ public class BasicKafkaIntegration extends AbstractKafkaIntegration<BasicKafkaIn
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
 
         initConsumer(kafkaConsumerConfiguration);
 

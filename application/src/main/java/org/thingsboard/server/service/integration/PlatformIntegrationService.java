@@ -57,7 +57,7 @@ public interface PlatformIntegrationService {
 
     ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
 
-    ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration integration);
+    void updateIntegration(Integration integration);
 
     ListenableFuture<Void> deleteIntegration(IntegrationId integration);
 

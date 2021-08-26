@@ -113,10 +113,6 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
 
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
-
         this.ctx = params.getContext();
 
         kinesisClientConfiguration = getClientConfiguration(configuration, KinesisClientConfiguration.class);

@@ -44,10 +44,6 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
 
     @Override
     public void process(T msg) {
-        if (!this.configuration.isEnabled()) {
-            msg.getCallback().setResult(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("Integration is disabled"));
-            return;
-        }
         String status = "OK";
         Exception exception = null;
         try {

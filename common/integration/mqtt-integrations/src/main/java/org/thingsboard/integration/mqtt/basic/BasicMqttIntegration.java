@@ -72,9 +72,6 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
         subscribeToTopics();
         this.downlinkTopicPattern = getDownlinkTopicPattern();

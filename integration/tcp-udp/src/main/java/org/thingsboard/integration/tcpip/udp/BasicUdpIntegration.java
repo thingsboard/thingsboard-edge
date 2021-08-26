@@ -66,9 +66,6 @@ public class BasicUdpIntegration extends AbstractIpIntegration {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         try {
             udpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")), UdpConfigurationParameters.class);
             workerGroup = new NioEventLoopGroup();

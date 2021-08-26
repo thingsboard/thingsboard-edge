@@ -81,9 +81,6 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         JsonNode json = configuration.getConfiguration();
         if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
             applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();

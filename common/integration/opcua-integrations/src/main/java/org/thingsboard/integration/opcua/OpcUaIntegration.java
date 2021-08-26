@@ -125,10 +125,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            stopped = true;
-            return;
-        }
         stopped = false;
         opcUaServerConfiguration = getClientConfiguration(configuration, OpcUaServerConfiguration.class);
         if (opcUaServerConfiguration.getMapping().isEmpty()) {

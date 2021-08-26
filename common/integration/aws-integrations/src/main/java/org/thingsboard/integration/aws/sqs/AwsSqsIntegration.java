@@ -69,10 +69,6 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            stopped = true;
-            return;
-        }
         stopped = false;
         this.context = params.getContext();
         this.sqsConfiguration = mapper.readValue(

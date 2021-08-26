@@ -110,9 +110,6 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         JsonNode json = configuration.getConfiguration();
         if (downlinkConverter != null) {
             this.securityAsId = json.get(AS_ID + "New").asText();

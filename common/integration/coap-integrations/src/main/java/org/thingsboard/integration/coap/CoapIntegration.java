@@ -74,9 +74,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
             CoapClientConfiguration coapClientConfiguration = getClientConfiguration(configuration, CoapClientConfiguration.class);
             setupConfiguration(coapClientConfiguration);
         } catch (Exception e) {
-            if (isIntegrationEnabled()) {
-                throw new RuntimeException("Failed to initialize CoAP integration due to: ", e);
-            }
+            throw new RuntimeException("Failed to initialize CoAP integration due to: ", e);
         }
     }
 
@@ -94,10 +92,6 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
     @Override
     public void process(CoapIntegrationMsg msg) {
         CoapExchange exchange = msg.getExchange();
-        if (!isIntegrationEnabled()) {
-            exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Integration is disabled");
-            return;
-        }
         exchange.accept();
         Request request = exchange.advanced().getRequest();
         String dtlsSessionIdStr = request.getSourceContext().get(DTLS_SESSION_ID_KEY);
@@ -200,10 +194,6 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         if (!coapServerService.isDtlsEnabled()) {
             throw new RuntimeException("CoAP server doesn't have DTLS Endpoint enabled!");
         }
-    }
-
-    private Boolean isIntegrationEnabled() {
-        return this.configuration.isEnabled();
     }
 
     private CoapResource addIntegrationResource(String uriPath) throws UnknownHostException {

@@ -60,10 +60,6 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
     @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            stopped = true;
-            return;
-        }
         stopped = false;
         this.context = params.getContext();
         this.pubSubConfiguration = getClientConfiguration(configuration, PubSubIntegrationConfiguration.class);
