@@ -3076,7 +3076,8 @@
         "accept-privacy-policy": "Accept Privacy Policy",
         "accept": "Accept",
         "privacy-policy": "Privacy Policy",
-        "recaptcha-title": "reCAPTCHA"
+        "recaptcha-title": "reCAPTCHA",
+        "terms-of-use": "Terms Of Use"
     },
     "ota-update": {
         "add": "Add package",
@@ -4155,6 +4156,7 @@
         "captcha-secret-key": "reCAPTCHA secret key",
         "notification-email": "Notification email",
         "privacy-policy-text": "Privacy policy text",
+        "terms-of-use-text": "Terms Of Use text",
         "text-message-page": "Text Message for signup page",
         "enable-mobile-self-registration": "Enable self registration from mobile application",
         "mobile-self-registration-title": "Mobile application self registration settings",

@@ -29,39 +29,43 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { SignupRoutingModule } from '@modules/signup/signup-routing.module';
-import { SignupComponent } from '@modules/signup/pages/signup/signup.component';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { RecaptchaModule, RecaptchaFormsModule, RECAPTCHA_BASE_URL } from 'ng-recaptcha';
-import { EmailVerificationComponent } from '@modules/signup/pages/signup/email-verification.component';
-import { EmailVerifiedComponent } from '@modules/signup/pages/signup/email-verified.component';
-import { PrivacyPolicyDialogComponent } from '@modules/signup/pages/signup/privacy-policy-dialog.component';
-import { TbRecaptchaComponent } from '@modules/signup/pages/signup/tb-recaptcha.component';
-import { TermsOfUseDialogComponent } from '@modules/signup/pages/signup/terms-of-use-dialog.component';
+import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { DialogComponent } from '@shared/components/dialog.component';
+import { Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SelfRegistrationService } from '@core/http/self-register.service';
 
-@NgModule({
-  declarations: [
-    SignupComponent,
-    PrivacyPolicyDialogComponent,
-    TermsOfUseDialogComponent,
-    EmailVerificationComponent,
-    EmailVerifiedComponent,
-    TbRecaptchaComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    RecaptchaModule,
-    RecaptchaFormsModule,
-    SignupRoutingModule
-  ],
-  providers: [
-    {
-      provide: RECAPTCHA_BASE_URL,
-      useValue: 'https://recaptcha.net/recaptcha/api.js',
-    }
-  ]
+@Component({
+  selector: 'tb-terms-of-use-dialog',
+  templateUrl: './terms-of-use-dialog.component.html',
+  styleUrls: []
 })
-export class SignupModule { }
+export class TermsOfUseDialogComponent extends DialogComponent<TermsOfUseDialogComponent, boolean> implements OnInit {
+
+  termsOfUseText: SafeHtml;
+
+  constructor(protected store: Store<AppState>,
+              protected router: Router,
+              private selfRegistrationService: SelfRegistrationService,
+              private domSanitizer: DomSanitizer,
+              public dialogRef: MatDialogRef<TermsOfUseDialogComponent, boolean>) {
+    super(store, router, dialogRef);
+  }
+
+  ngOnInit(): void {
+    this.selfRegistrationService.loadTermsOfUse().subscribe((termsOfUse) => {
+      this.termsOfUseText = this.domSanitizer.bypassSecurityTrustHtml(termsOfUse);
+    });
+  }
+
+  cancel(): void {
+    this.dialogRef.close(false);
+  }
+
+  accept(): void {
+    this.dialogRef.close(true);
+  }
+}

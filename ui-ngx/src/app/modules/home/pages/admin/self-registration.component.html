@@ -167,6 +167,15 @@
               </editor>
             </div>
           </div>
+          <div class="mat-content" style="padding-top: 10px;" fxLayout="column">
+            <label class="self-registration-label" for="terms-of-use"
+                   [ngClass]="{'tb-disabled-label': (isLoading$ | async)}">{{'self-registration.terms-of-use-text' | translate}}</label>
+            <div class="tb-terms-of-use mat-elevation-z1">
+              <editor [init]="tinyMceOptions" id="terms-of-use"
+                      formControlName="termsOfUse" name="termsOfUse">
+              </editor>
+            </div>
+          </div>
           <div fxLayout="row" fxLayoutAlign="end center">
             <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
                     type="submit">{{'action.save' | translate}}

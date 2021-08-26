@@ -67,6 +67,10 @@ export class SelfRegistrationService {
     return this.http.get<string>('/api/noauth/selfRegistration/privacyPolicy')
   }
 
+  public loadTermsOfUse(): Observable<string> {
+    return this.http.get<string>('/api/noauth/selfRegistration/termsOfUse')
+  }
+
   public isAvailablePage(): Observable<any> {
     if (this.signUpParams) {
       if (!this.signUpParams.activate) {
