@@ -509,7 +509,9 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     private void onMsg(ThingsboardPlatformIntegration<?> integration, IntegrationDownlinkMsg msg) {
-        integration.onDownlinkMsg(msg);
+        if (!integrationEvents.getOrDefault(msg.getIntegrationId(), ComponentLifecycleEvent.FAILED).equals(ComponentLifecycleEvent.FAILED)) {
+            integration.onDownlinkMsg(msg);
+        }
     }
 
     private void persistStatistics() {
