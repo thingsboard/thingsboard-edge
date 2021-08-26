@@ -394,7 +394,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                     log.debug("pushing message to the rule engine tenant {}, originator {}, msg {}", tenantId, originatorId, tbMsg);
                     clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
                 } catch (Exception e) {
-                    log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
+                    log.error(String.format("[%s][%s] Failed to trigger event", event.getTenantId(), eventId), e);
                 }
                 scheduleNextEvent(System.currentTimeMillis(), event, md);
             } else {

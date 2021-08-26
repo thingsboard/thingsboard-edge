@@ -391,7 +391,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             if (configuration.getType().isSingleton()) {
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, configuration.getTenantId(), configuration.getId());
                 if (!myPartitions.contains(tpi)) {
-                    Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+                    return;
                 }
             }
             if (configuration.isEnabled()) {
@@ -1015,7 +1015,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         if (newIntegration || forceReinit) {
             synchronized (integrationPair) {
                 try {
-
                     integrationPair.getFirst().init(new TbIntegrationInitParams(integrationPair.getSecond(), configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
                     actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                     integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.STARTED);
