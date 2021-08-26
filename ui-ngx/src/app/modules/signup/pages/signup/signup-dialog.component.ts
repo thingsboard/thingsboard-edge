@@ -61,7 +61,7 @@ export class SignupDialogComponent extends DialogComponent<SignupDialogComponent
               private domSanitizer: DomSanitizer,
               public dialogRef: MatDialogRef<SignupDialogComponent, boolean>) {
     super(store, router, dialogRef);
-    this.title = this.data?.title;
+    this.title = this.data.title;
   }
 
   ngOnInit(): void {
