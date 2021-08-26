@@ -547,7 +547,6 @@ public class ActorSystemContext {
         return partitionService.resolve(serviceType, queueName, tenantId, entityId);
     }
 
-
     public String getServiceId() {
         return serviceInfoProvider.getServiceId();
     }

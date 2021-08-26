@@ -28,35 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.queue;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
+import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Slf4j
-@Data
-@EnableAutoConfiguration
-@Configuration
-@ConfigurationProperties(prefix = "queue.rule-engine")
-public class TbQueueRuleEngineSettings {
+@Service
+@RequiredArgsConstructor
+public class DefaultQueueService implements QueueService {
 
-    private String topic;
-    private List<TbRuleEngineQueueConfiguration> queues;
+    private final TbQueueRuleEngineSettings ruleEngineSettings;
+    private Set<String> ruleEngineQueues;
 
     @PostConstruct
-    public void validate() {
-        queues.stream().filter(queue -> queue.getName().equals("Main")).findFirst().orElseThrow(() -> {
-            log.error("Main queue is not configured in thingsboard.yml");
-            return new RuntimeException("No \"Main\" queue configured!");
-        });
+    public void init() {
+        ruleEngineQueues = ruleEngineSettings.getQueues().stream()
+                .map(TbRuleEngineQueueConfiguration::getName).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    @Override
+    public Set<String> getQueuesByServiceType(ServiceType type) {
+        if (type == ServiceType.TB_RULE_ENGINE) {
+            return ruleEngineQueues;
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    @Override
+    public String resolve(ServiceType serviceType, String queueName) {
+        if (StringUtils.isEmpty(queueName) || !getQueuesByServiceType(serviceType).contains(queueName)) {
+            return ServiceQueue.MAIN;
+        } else {
+            return queueName;
+        }
+    }
 }

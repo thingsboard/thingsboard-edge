@@ -28,35 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.queue;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.thingsboard.server.common.msg.queue.ServiceType;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Set;
 
-@Slf4j
-@Data
-@EnableAutoConfiguration
-@Configuration
-@ConfigurationProperties(prefix = "queue.rule-engine")
-public class TbQueueRuleEngineSettings {
+public interface QueueService {
 
-    private String topic;
-    private List<TbRuleEngineQueueConfiguration> queues;
+    Set<String> getQueuesByServiceType(ServiceType serviceType);
 
-    @PostConstruct
-    public void validate() {
-        queues.stream().filter(queue -> queue.getName().equals("Main")).findFirst().orElseThrow(() -> {
-            log.error("Main queue is not configured in thingsboard.yml");
-            return new RuntimeException("No \"Main\" queue configured!");
-        });
-    }
+    String resolve(ServiceType serviceType, String queueName);
 
 }
