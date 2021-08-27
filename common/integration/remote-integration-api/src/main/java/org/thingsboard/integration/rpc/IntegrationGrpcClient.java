@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.rpc;
 
-import com.google.common.io.Resources;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
@@ -58,8 +57,6 @@ import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
 import javax.net.ssl.SSLException;
-import java.io.File;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
