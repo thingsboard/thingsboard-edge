@@ -30,17 +30,19 @@
  */
 package org.thingsboard.integration.rpc;
 
-import com.google.common.io.Resources;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.exception.IntegrationConnectionException;
 import org.thingsboard.integration.storage.EventStorage;
+import org.thingsboard.server.common.data.ResourceUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -55,8 +57,6 @@ import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 
 import javax.net.ssl.SSLException;
-import java.io.File;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +76,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private int keepAliveTimeSec;
     @Value("${rpc.ssl.enabled}")
     private boolean sslEnabled;
-    @Value("${rpc.ssl.cert}")
+    @Value("${rpc.ssl.cert:}")
     private String certResource;
 
     @Autowired
@@ -94,8 +94,12 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                 .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS);
         if (sslEnabled) {
             try {
-                builder.sslContext(GrpcSslContexts.forClient().trustManager(new File(Resources.getResource(certResource).toURI())).build());
-            } catch (URISyntaxException | SSLException e) {
+                SslContextBuilder sslContextBuilder = GrpcSslContexts.forClient();
+                if (StringUtils.isNotEmpty(certResource)) {
+                    sslContextBuilder.trustManager(ResourceUtils.getInputStream(this, certResource));
+                }
+                builder.sslContext(sslContextBuilder.build());
+            } catch (SSLException e) {
                 log.error("Failed to initialize channel!", e);
                 throw new RuntimeException(e);
             }

@@ -65,7 +65,7 @@ rpc:
   keep_alive_time_sec: "${RPC_CLIENT_KEEP_ALIVE_TIME_SEC:300}"
   ssl:
     enabled: "${RPC_SSL_ENABLED:false}"
-    cert: "${RPC_SSL_CERT:roots.pem}"
+    cert: "${RPC_SSL_CERT:}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}"

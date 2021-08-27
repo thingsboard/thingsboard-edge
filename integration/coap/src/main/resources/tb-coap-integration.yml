@@ -79,7 +79,7 @@ rpc:
     # SSL enabled/disabled
     enabled: "${RPC_SSL_ENABLED:false}"
     # SSL certificate
-    cert: "${RPC_SSL_CERT:roots.pem}"
+    cert: "${RPC_SSL_CERT:}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}"
