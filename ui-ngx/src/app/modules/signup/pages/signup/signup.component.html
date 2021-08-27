@@ -80,6 +80,7 @@
                 <re-captcha #recaptcha formControlName="recaptchaResponse" [siteKey]="signupParams.captchaSiteKey"></re-captcha>
               </div>
               <mat-checkbox class="tb-accept-privacy-policy"
+                            *ngIf="signupParams.showPrivacyPolicy"
                             [(ngModel)]="acceptPrivacyPolicy"
                             [ngModelOptions]="{standalone: true}">
                 <div>
@@ -87,6 +88,7 @@
                 </div>
               </mat-checkbox>
               <mat-checkbox class="tb-accept-terms-of-use"
+                            *ngIf="signupParams.showTermsOfUse"
                             [(ngModel)]="acceptTermsOfUse"
                             [ngModelOptions]="{standalone: true}">
                 <div>

@@ -130,6 +130,8 @@ public class SelfRegistrationController extends BaseController {
             SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
             result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
             result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
+            result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
+            result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
 
             return result;
         } catch (Exception e) {

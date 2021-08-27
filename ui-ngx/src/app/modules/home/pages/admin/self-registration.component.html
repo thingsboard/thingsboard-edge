@@ -165,15 +165,25 @@
               <editor [init]="tinyMceOptions" id="privacy-police"
                       formControlName="privacyPolicy" name="privacyPolice">
               </editor>
+              <mat-checkbox formControlName="showPrivacyPolicy"
+                            [checked]="selfRegistrationFormGroup.get('privacyPolicy').value"
+                            [disabled]="!selfRegistrationFormGroup.get('privacyPolicy').value">
+                {{ 'self-registration.show-privacy-policy' | translate }}
+              </mat-checkbox>
             </div>
           </div>
-          <div class="mat-content" style="padding-top: 10px;" fxLayout="column">
+          <div class="mat-content" style="padding-top: 20px;" fxLayout="column">
             <label class="self-registration-label" for="terms-of-use"
                    [ngClass]="{'tb-disabled-label': (isLoading$ | async)}">{{'self-registration.terms-of-use-text' | translate}}</label>
             <div class="tb-terms-of-use mat-elevation-z1">
               <editor [init]="tinyMceOptions" id="terms-of-use"
                       formControlName="termsOfUse" name="termsOfUse">
               </editor>
+              <mat-checkbox formControlName="showTermsOfUse"
+                            [checked]="selfRegistrationFormGroup.get('termsOfUse').value"
+                            [disabled]="!selfRegistrationFormGroup.get('termsOfUse').value">
+                {{ 'self-registration.show-terms-of-use' | translate }}
+              </mat-checkbox>
             </div>
           </div>
           <div fxLayout="row" fxLayoutAlign="end center">
