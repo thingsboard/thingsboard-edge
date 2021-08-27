@@ -163,7 +163,7 @@ export class SignupComponent extends PageComponent implements OnInit {
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         title: 'signup.privacy-policy',
-        content: this.selfRegistrationService.loadPrivacyPolicy()
+        content$: this.selfRegistrationService.loadPrivacyPolicy()
       }
     }).afterClosed()
       .subscribe((res) => {
@@ -184,7 +184,7 @@ export class SignupComponent extends PageComponent implements OnInit {
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         title: 'signup.terms-of-use',
-        content: this.selfRegistrationService.loadTermsOfUse()
+        content$: this.selfRegistrationService.loadTermsOfUse()
       }
     }).afterClosed()
       .subscribe((res) => {

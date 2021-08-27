@@ -41,7 +41,7 @@ import { Observable } from 'rxjs/internal/Observable';
 
 export interface SignupDialogData {
   title: string;
-  content: Observable<string>;
+  content$: Observable<string>;
 }
 
 @Component({
@@ -65,7 +65,7 @@ export class SignupDialogComponent extends DialogComponent<SignupDialogComponent
   }
 
   ngOnInit(): void {
-    this.data.content.subscribe((content) => {
+    this.data.content$.subscribe((content) => {
       this.dialogText = this.domSanitizer.bypassSecurityTrustHtml(content);
     });
   }
