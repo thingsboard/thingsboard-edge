@@ -35,6 +35,8 @@ export interface SignUpSelfRegistrationParams {
   signUpTextMessage?: string;
   captchaSiteKey?: string;
   activate?: boolean;
+  showPrivacyPolicy?: boolean;
+  showTermsOfUse?: boolean;
 }
 
 export interface SelfRegistrationParams extends SignUpSelfRegistrationParams {

@@ -45,7 +45,10 @@ import { RecaptchaComponent } from 'ng-recaptcha';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { MatDialog } from '@angular/material/dialog';
-import { PrivacyPolicyDialogComponent } from '@modules/signup/pages/signup/privacy-policy-dialog.component';
+import {
+  SignupDialogData,
+  SignupDialogComponent
+} from '@modules/signup/pages/signup/signup-dialog.component';
 
 @Component({
   selector: 'tb-signup',
@@ -59,6 +62,7 @@ export class SignupComponent extends PageComponent implements OnInit {
   signup = this.fb.group(SignupRequest.create());
   passwordCheck: string;
   acceptPrivacyPolicy: boolean;
+  acceptTermsOfUse: boolean;
   signupParams = this.selfRegistrationService.signUpParams;
 
   constructor(protected store: Store<AppState>,
@@ -140,6 +144,11 @@ export class SignupComponent extends PageComponent implements OnInit {
         type: 'error' }));
       return false;
     }
+    if (!this.acceptTermsOfUse) {
+      this.store.dispatch(new ActionNotificationShow({ message: 'You must accept our Terms Of Use',
+        type: 'error' }));
+      return false;
+    }
     return true;
   }
 
@@ -148,14 +157,39 @@ export class SignupComponent extends PageComponent implements OnInit {
       $event.stopPropagation();
       $event.preventDefault();
     }
-    this.dialog.open<PrivacyPolicyDialogComponent, any, boolean>
-    (PrivacyPolicyDialogComponent, {
+    this.dialog.open<SignupDialogComponent, SignupDialogData, boolean>
+    (SignupDialogComponent, {
       disableClose: false,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        title: 'signup.privacy-policy',
+        content$: this.selfRegistrationService.loadPrivacyPolicy()
+      }
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
           this.acceptPrivacyPolicy = true;
+        }
+      });
+  }
+
+  openTermsOfUse($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+    }
+    this.dialog.open<SignupDialogComponent, SignupDialogData, boolean>
+    (SignupDialogComponent, {
+      disableClose: false,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        title: 'signup.terms-of-use',
+        content$: this.selfRegistrationService.loadTermsOfUse()
+      }
+    }).afterClosed()
+      .subscribe((res) => {
+        if (res) {
+          this.acceptTermsOfUse = true;
         }
       });
   }

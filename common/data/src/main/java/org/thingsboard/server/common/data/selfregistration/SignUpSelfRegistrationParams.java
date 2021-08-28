@@ -39,5 +39,7 @@ public class SignUpSelfRegistrationParams {
 
     protected String signUpTextMessage;
     protected String captchaSiteKey;
+    protected Boolean showPrivacyPolicy;
+    protected Boolean showTermsOfUse;
 
 }
