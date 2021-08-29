@@ -4174,7 +4174,8 @@
         "mobile-app-host-placeholder": "Ex.: my.app.host",
         "mobile-app-host-required": "Application URL hostname is required",
         "show-privacy-policy": "Show Privacy Policy",
-        "show-terms-of-use": "Show Terms of Use"
+        "show-terms-of-use": "Show Terms of Use",
+        "config": "Self registration config"
     },
     "solution-template": {
       "solution-template": "Solution template",

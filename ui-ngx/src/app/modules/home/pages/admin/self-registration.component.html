@@ -45,54 +45,72 @@
     <mat-card-content style="padding-top: 16px;">
       <form [formGroup]="selfRegistrationFormGroup" (ngSubmit)="save()">
         <fieldset [disabled]="isLoading$ | async">
-          <mat-form-field class="mat-block">
-            <mat-label translate>white-labeling.domain-name</mat-label>
-            <input matInput required formControlName="domainName"/>
-            <mat-error *ngIf="selfRegistrationFormGroup.get('domainName').hasError('pattern')">
-              {{'white-labeling.error-verification-url' | translate}}
-            </mat-error>
-          </mat-form-field>
-          <div class="mat-content" fxLayout="column" id="registration-link-content"
-               tb-toast toastTarget="registrationLinkContent">
-            <span translate>self-registration.self-registration-url</span>
-            <div fxLayout="row" fxLayoutAlign="start center">
-              <pre class="tb-highlight" fxFlex><code>{{ registerLink }}</code></pre>
-              <button mat-icon-button
-                      type="button"
-                      ngxClipboard
-                      (cbOnSuccess)="onActivationLinkCopied()"
-                      cbContent="{{registerLink}}"
-                      matTooltipPosition="above"
-                      matTooltip="{{ 'user.copy-activation-link' | translate }}">
-                <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
-              </button>
+          <fieldset class="fields-group">
+            <legend class="group-title" translate>
+              self-registration.config
+            </legend>
+            <mat-form-field class="mat-block">
+              <mat-label translate>white-labeling.domain-name</mat-label>
+              <input matInput required formControlName="domainName"/>
+              <mat-error *ngIf="selfRegistrationFormGroup.get('domainName').hasError('pattern')">
+                {{'white-labeling.error-verification-url' | translate}}
+              </mat-error>
+            </mat-form-field>
+            <div class="mat-content" fxLayout="column" id="registration-link-content"
+                 tb-toast toastTarget="registrationLinkContent">
+              <span translate>self-registration.self-registration-url</span>
+              <div fxLayout="row" fxLayoutAlign="start center">
+                <pre class="tb-highlight" fxFlex><code>{{ registerLink }}</code></pre>
+                <button mat-icon-button
+                        type="button"
+                        ngxClipboard
+                        (cbOnSuccess)="onActivationLinkCopied()"
+                        cbContent="{{registerLink}}"
+                        matTooltipPosition="above"
+                        matTooltip="{{ 'user.copy-activation-link' | translate }}">
+                  <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+                </button>
+              </div>
             </div>
-          </div>
-          <div fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
-            <mat-form-field fxFlex class="mat-block">
-              <mat-label translate>self-registration.captcha-site-key</mat-label>
-              <input matInput required formControlName="captchaSiteKey"/>
+            <mat-form-field class="mat-block">
+              <mat-label translate>self-registration.notification-email</mat-label>
+              <input matInput required type="email" formControlName="notificationEmail"/>
             </mat-form-field>
-            <mat-form-field fxFlex class="mat-block">
-              <mat-label translate>self-registration.captcha-secret-key</mat-label>
-              <input matInput required formControlName="captchaSecretKey"/>
+            <div fxLFayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
+              <mat-form-field fxFlex class="mat-block">
+                <mat-label translate>self-registration.captcha-site-key</mat-label>
+                <input matInput required formControlName="captchaSiteKey"/>
+              </mat-form-field>
+              <mat-form-field fxFlex class="mat-block">
+                <mat-label translate>self-registration.captcha-secret-key</mat-label>
+                <input matInput required formControlName="captchaSecretKey"/>
+              </mat-form-field>
+            </div>
+            <mat-form-field fxFlex class="mat-block" floatLabel="always">
+              <mat-label translate>self-registration.text-message-page</mat-label>
+              <textarea matInput #input formControlName="signUpTextMessage"
+                        rows="1"
+                        placeholder="Text message for signup page"
+                        [maxLength]="200"></textarea>
+              <mat-hint align="end">{{input.value?.length || 0}}/200</mat-hint>
             </mat-form-field>
-          </div>
-          <mat-form-field class="mat-block">
-            <mat-label translate>self-registration.notification-email</mat-label>
-            <input matInput required type="email" formControlName="notificationEmail"/>
-          </mat-form-field>
-          <mat-form-field fxFlex class="mat-block" floatLabel="always">
-            <mat-label translate>self-registration.text-message-page</mat-label>
-            <textarea matInput #input formControlName="signUpTextMessage"
-                      rows="1"
-                      placeholder="Text message for signup page"
-                      [maxLength]="200"></textarea>
-            <mat-hint align="end">{{input.value?.length || 0}}/200</mat-hint>
-          </mat-form-field>
-          <mat-checkbox formControlName="enableMobileSelfRegistration">
-            {{ 'self-registration.enable-mobile-self-registration' | translate }}
-          </mat-checkbox>
+            <mat-checkbox formControlName="enableMobileSelfRegistration">
+              {{ 'self-registration.enable-mobile-self-registration' | translate }}
+            </mat-checkbox>
+            <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
+              <tb-entity-autocomplete
+                fxFlex fxFlex.gt-sm="30"
+                [entityType]="entityTypes.DASHBOARD"
+                labelText="user.default-dashboard"
+                formControlName="defaultDashboardId">
+              </tb-entity-autocomplete>
+              <div fxFlex fxLayout="column" fxLayoutAlign="center start">
+                <mat-checkbox formControlName="defaultDashboardFullscreen">
+                  {{ 'user.always-fullscreen' | translate }}
+                </mat-checkbox>
+              </div>
+            </section>
+          </fieldset>
           <fieldset [fxShow]="selfRegistrationFormGroup.get('enableMobileSelfRegistration').value" class="fields-group">
             <legend class="group-title" translate>self-registration.mobile-self-registration-title</legend>
             <div fxLayout="column" style="margin: 8px;">
@@ -142,59 +160,39 @@
               </div>
             </div>
           </fieldset>
+          <fieldset class="fields-group">
+            <legend class="group-title" translate>self-registration.privacy-policy-text</legend>
+            <div class="mat-content" fxLayout="column">
+              <mat-slide-toggle
+                formControlName="showPrivacyPolicy"
+                class="example-margin">
+                {{ 'self-registration.show-privacy-policy' | translate }}
+              </mat-slide-toggle>
+              <div class="tb-privacy-policy mat-elevation-z1">
+                <editor [init]="tinyMceOptions" id="privacy-police"
+                        formControlName="privacyPolicy" name="privacyPolice">
+                </editor>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="fields-group" style="margin-top: 20px">
+            <legend class="group-title" translate>self-registration.terms-of-use-text</legend>
+            <div class="mat-content" fxLayout="column">
+              <mat-slide-toggle
+                formControlName="showTermsOfUse"
+                class="example-margin">
+                {{ 'self-registration.show-terms-of-use' | translate }}
+              </mat-slide-toggle>
+              <div class="tb-terms-of-use mat-elevation-z1">
+                <editor [init]="tinyMceOptions" id="terms-of-use"
+                        formControlName="termsOfUse" name="termsOfUse">
+                </editor>
+              </div>
+            </div>
+          </fieldset>
           <tb-registration-permissions
             formControlName="permissions">
           </tb-registration-permissions>
-          <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
-            <tb-entity-autocomplete
-              fxFlex fxFlex.gt-sm="30"
-              [entityType]="entityTypes.DASHBOARD"
-              labelText="user.default-dashboard"
-              formControlName="defaultDashboardId">
-            </tb-entity-autocomplete>
-            <div fxFlex fxLayout="column" fxLayoutAlign="center start">
-              <mat-checkbox formControlName="defaultDashboardFullscreen">
-                {{ 'user.always-fullscreen' | translate }}
-              </mat-checkbox>
-            </div>
-          </section>
-          <div class="mat-content" fxLayout="column">
-            <label class="self-registration-label" for="privacy-police"
-                   [ngClass]="{'tb-disabled-label': (isLoading$ | async)}">{{'self-registration.privacy-policy-text' | translate}}</label>
-            <div class="tb-privacy-policy mat-elevation-z1">
-              <editor [init]="tinyMceOptions" id="privacy-police"
-                      formControlName="privacyPolicy" name="privacyPolice">
-              </editor>
-              <mat-checkbox formControlName="showPrivacyPolicy"
-                            [checked]="selfRegistrationFormGroup.get('privacyPolicy').value"
-                            [disabled]="!selfRegistrationFormGroup.get('privacyPolicy').value">
-                {{ 'self-registration.show-privacy-policy' | translate }}
-              </mat-checkbox>
-            </div>
-          </div>
-          <div class="mat-content" style="padding-top: 20px;" fxLayout="column">
-            <label class="self-registration-label" for="terms-of-use"
-                   [ngClass]="{'tb-disabled-label': (isLoading$ | async)}">{{'self-registration.terms-of-use-text' | translate}}</label>
-            <div class="tb-terms-of-use mat-elevation-z1">
-              <editor [init]="tinyMceOptions" id="terms-of-use"
-                      formControlName="termsOfUse" name="termsOfUse">
-              </editor>
-              <mat-checkbox formControlName="showTermsOfUse"
-                            [checked]="selfRegistrationFormGroup.get('termsOfUse').value"
-                            [disabled]="!selfRegistrationFormGroup.get('termsOfUse').value">
-                {{ 'self-registration.show-terms-of-use' | translate }}
-              </mat-checkbox>
-            </div>
-          </div>
-          <div class="mat-content" fxLayout="column">
-            <label class="self-registration-label" for="terms-of-use"
-                   [ngClass]="{'tb-disabled-label': (isLoading$ | async)}">{{'self-registration.terms-of-use-text' | translate}}</label>
-            <div class="tb-privacy-policy mat-elevation-z1">
-              <editor [init]="tinyMceOptions" id="terms-of-use"
-                      formControlName="termsOfUse" name="termsOfUse">
-              </editor>
-            </div>
-          </div>
           <div fxLayout="row" fxLayoutAlign="end center">
             <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
                     type="submit">{{'action.save' | translate}}
