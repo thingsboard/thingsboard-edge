@@ -47,7 +47,7 @@
         <fieldset [disabled]="isLoading$ | async">
           <fieldset class="fields-group">
             <legend class="group-title" translate>
-              self-registration.config
+              self-registration.domain-settings
             </legend>
             <mat-form-field class="mat-block">
               <mat-label translate>white-labeling.domain-name</mat-label>
@@ -72,10 +72,6 @@
                 </button>
               </div>
             </div>
-            <mat-form-field class="mat-block">
-              <mat-label translate>self-registration.notification-email</mat-label>
-              <input matInput required type="email" formControlName="notificationEmail"/>
-            </mat-form-field>
             <div fxLFayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
               <mat-form-field fxFlex class="mat-block">
                 <mat-label translate>self-registration.captcha-site-key</mat-label>
@@ -86,10 +82,19 @@
                 <input matInput required formControlName="captchaSecretKey"/>
               </mat-form-field>
             </div>
+          </fieldset>
+          <fieldset class="fields-group">
+            <legend class="group-title" translate>
+              self-registration.general-settings
+            </legend>
+            <mat-form-field class="mat-block">
+              <mat-label translate>self-registration.notification-email</mat-label>
+              <input matInput required type="email" formControlName="notificationEmail"/>
+            </mat-form-field>
             <mat-form-field fxFlex class="mat-block" floatLabel="always">
               <mat-label translate>self-registration.text-message-page</mat-label>
               <textarea matInput #input formControlName="signUpTextMessage"
-                        rows="1"
+                        mat-autosize
                         placeholder="Text message for signup page"
                         [maxLength]="200"></textarea>
               <mat-hint align="end">{{input.value?.length || 0}}/200</mat-hint>
@@ -107,10 +112,10 @@
                 </mat-checkbox>
               </div>
             </section>
-            <mat-checkbox formControlName="enableMobileSelfRegistration">
-              {{ 'self-registration.enable-mobile-self-registration' | translate }}
-            </mat-checkbox>
           </fieldset>
+          <mat-checkbox class="checkbox-mobile-settings" formControlName="enableMobileSelfRegistration">
+            {{ 'self-registration.enable-mobile-self-registration' | translate }}
+          </mat-checkbox>
           <fieldset [fxShow]="selfRegistrationFormGroup.get('enableMobileSelfRegistration').value" class="fields-group">
             <legend class="group-title" translate>self-registration.mobile-self-registration-title</legend>
             <div fxLayout="column" style="margin: 8px;">
@@ -126,7 +131,8 @@
                 <div fxFlex fxLayout="row">
                   <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>self-registration.mobile-app-secret</mat-label>
-                    <textarea matInput formControlName="appSecret" rows="1" required></textarea>
+                    <textarea matInput #inputAppSecret mat-autosize formControlName="appSecret" [maxLength]="2048" required></textarea>
+                    <mat-hint align="end">{{ inputAppSecret.value?.length || 0 }}/2048</mat-hint>
                     <tb-copy-button
                       matSuffix
                       color="primary"

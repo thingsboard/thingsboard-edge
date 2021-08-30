@@ -4175,7 +4175,8 @@
         "mobile-app-host-required": "Application URL hostname is required",
         "show-privacy-policy": "Show Privacy Policy",
         "show-terms-of-use": "Show Terms of Use",
-        "config": "Self registration config"
+        "domain-settings": "Domain settings",
+        "general-settings": "General settings"
     },
     "solution-template": {
       "solution-template": "Solution template",

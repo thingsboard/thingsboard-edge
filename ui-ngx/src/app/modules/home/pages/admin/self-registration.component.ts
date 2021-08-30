@@ -193,7 +193,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       selfRegistrationFormValue.showPrivacyPolicy = true;
     }
     if (selfRegistrationFormValue.showTermsOfUse == null) {
-      selfRegistrationFormValue.showTermsOfUse = true;
+      selfRegistrationFormValue.showTermsOfUse = false;
     }
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);
