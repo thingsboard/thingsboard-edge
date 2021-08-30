@@ -94,9 +94,6 @@
                         [maxLength]="200"></textarea>
               <mat-hint align="end">{{input.value?.length || 0}}/200</mat-hint>
             </mat-form-field>
-            <mat-checkbox formControlName="enableMobileSelfRegistration">
-              {{ 'self-registration.enable-mobile-self-registration' | translate }}
-            </mat-checkbox>
             <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
               <tb-entity-autocomplete
                 fxFlex fxFlex.gt-sm="30"
@@ -110,6 +107,9 @@
                 </mat-checkbox>
               </div>
             </section>
+            <mat-checkbox formControlName="enableMobileSelfRegistration">
+              {{ 'self-registration.enable-mobile-self-registration' | translate }}
+            </mat-checkbox>
           </fieldset>
           <fieldset [fxShow]="selfRegistrationFormGroup.get('enableMobileSelfRegistration').value" class="fields-group">
             <legend class="group-title" translate>self-registration.mobile-self-registration-title</legend>
@@ -163,9 +163,7 @@
           <fieldset class="fields-group">
             <legend class="group-title" translate>self-registration.privacy-policy-text</legend>
             <div class="mat-content" fxLayout="column">
-              <mat-slide-toggle
-                formControlName="showPrivacyPolicy"
-                class="example-margin">
+              <mat-slide-toggle formControlName="showPrivacyPolicy">
                 {{ 'self-registration.show-privacy-policy' | translate }}
               </mat-slide-toggle>
               <div class="tb-privacy-policy mat-elevation-z1">
@@ -178,9 +176,7 @@
           <fieldset class="fields-group" style="margin-top: 20px">
             <legend class="group-title" translate>self-registration.terms-of-use-text</legend>
             <div class="mat-content" fxLayout="column">
-              <mat-slide-toggle
-                formControlName="showTermsOfUse"
-                class="example-margin">
+              <mat-slide-toggle formControlName="showTermsOfUse">
                 {{ 'self-registration.show-terms-of-use' | translate }}
               </mat-slide-toggle>
               <div class="tb-terms-of-use mat-elevation-z1">
