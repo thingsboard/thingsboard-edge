@@ -191,12 +191,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     }
     if (selfRegistrationFormValue.showPrivacyPolicy == null) {
       selfRegistrationFormValue.showPrivacyPolicy = true;
-    } else if (selfRegistrationFormValue.privacyPolicy.length == 0) {
-      selfRegistrationFormValue.showPrivacyPolicy = false;
     }
     if (selfRegistrationFormValue.showTermsOfUse == null) {
-      selfRegistrationFormValue.showTermsOfUse = false;
-    } else if (selfRegistrationFormValue.termsOfUse.length == 0) {
       selfRegistrationFormValue.showTermsOfUse = false;
     }
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
