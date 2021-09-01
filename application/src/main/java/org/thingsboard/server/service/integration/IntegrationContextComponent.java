@@ -143,7 +143,7 @@ public class IntegrationContextComponent {
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
-        scheduledExecutorService = Executors.newScheduledThreadPool(3);
+        scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
         callBackExecutorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("integration-callback"));
     }
