@@ -50,7 +50,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <twilio.version>7.54.2</twilio.version>
     </properties>
 
     <dependencies>
@@ -77,21 +76,6 @@
         <dependency>
             <groupId>com.twilio.sdk</groupId>
             <artifactId>twilio</artifactId>
-            <version>${twilio.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-jackson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.jsonwebtoken</groupId>
-                    <artifactId>jjwt-impl</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
