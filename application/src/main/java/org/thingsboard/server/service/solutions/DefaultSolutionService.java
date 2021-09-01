@@ -42,6 +42,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.Customer;
@@ -52,7 +53,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -136,6 +136,7 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -154,7 +155,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -196,6 +196,7 @@ public class DefaultSolutionService implements SolutionService {
     private final TbClusterService tbClusterService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final TbTenantProfileCache tenantProfileCache;
+    private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
     public void init() {
@@ -226,6 +227,11 @@ public class DefaultSolutionService implements SolutionService {
             templateDetails.setTenantAttributeKeys(descriptor.getTenantAttributeKeys());
             solutionsMap.put(descriptor.getId(), templateDetails);
         }
+    }
+
+    @PreDestroy
+    private void destroy() {
+        emulatorExecutor.shutdownNow();
     }
 
     private Path resolve(String subdir, String... subdirs) {
@@ -628,8 +634,6 @@ public class DefaultSolutionService implements SolutionService {
             }
         });
     }
-
-    private final ExecutorService emulatorExecutor = Executors.newWorkStealingPool(10);
 
     protected void provisionDevices(SolutionInstallContext ctx) throws Exception {
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<List<DeviceDefinition>>() {
