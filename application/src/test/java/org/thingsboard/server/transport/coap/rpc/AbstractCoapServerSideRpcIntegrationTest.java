@@ -69,7 +69,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
     }
 
     protected void processOneWayRpcTest() throws Exception {
-        CoapClient client = getCoapClient(FeatureType.RPC);
+        client = getCoapClient(FeatureType.RPC);
         client.useCONs();
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -97,7 +97,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
     }
 
     protected void processTwoWayRpcTest(String expectedResponseResult) throws Exception {
-        CoapClient client = getCoapClient(FeatureType.RPC);
+        client = getCoapClient(FeatureType.RPC);
         client.useCONs();
 
         CountDownLatch latch = new CountDownLatch(1);
