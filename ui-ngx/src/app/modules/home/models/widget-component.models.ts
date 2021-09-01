@@ -95,9 +95,8 @@ import { PageLink } from '@shared/models/page/page-link';
 import { SortOrder } from '@shared/models/page/sort-order';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { map, mergeMap } from 'rxjs/operators';
+import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
 import { EdgeService } from '@core/http/edge.service';
-
 
 export interface IWidgetAction {
   name: string;
@@ -278,7 +277,9 @@ export class WidgetContext {
     forkJoin,
     of,
     map,
-    mergeMap
+    mergeMap,
+    switchMap,
+    catchError
   };
 
   showSuccessToast(message: string, duration: number = 1000,
