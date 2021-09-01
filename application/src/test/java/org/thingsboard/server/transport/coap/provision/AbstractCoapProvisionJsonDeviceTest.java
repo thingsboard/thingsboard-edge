@@ -195,7 +195,7 @@ public abstract class AbstractCoapProvisionJsonDeviceTest extends AbstractCoapIn
 
     private CoapResponse createCoapClientAndPublish(String deviceCredentials) throws Exception {
         String provisionRequestMsg = createTestProvisionMessage(deviceCredentials);
-        client = getCoapClient(FeatureType.PROVISION);
+        CoapClient client = getCoapClient(FeatureType.PROVISION);
         return postProvision(client, provisionRequestMsg.getBytes());
     }
 

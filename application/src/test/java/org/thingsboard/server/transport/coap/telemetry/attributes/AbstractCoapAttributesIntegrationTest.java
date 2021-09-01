@@ -84,7 +84,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
     }
 
     protected void processAttributesTest(List<String> expectedKeys, byte[] payload, boolean presenceFieldsTest) throws Exception {
-        client = getCoapClient(FeatureType.ATTRIBUTES);
+        CoapClient client = getCoapClient(FeatureType.ATTRIBUTES);
 
         postAttributes(client, payload);
 

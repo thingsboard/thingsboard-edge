@@ -112,7 +112,7 @@ public abstract class AbstractCoapClaimDeviceTest extends AbstractCoapIntegratio
 
     protected void processTestClaimingDevice(boolean emptyPayload) throws Exception {
         log.warn("[testClaimingDevice] Device: {}, Transport type: {}", savedDevice.getName(), savedDevice.getType());
-        client = getCoapClient(FeatureType.CLAIM);
+        CoapClient client = getCoapClient(FeatureType.CLAIM);
         byte[] payloadBytes;
         byte[] failurePayloadBytes;
         if (emptyPayload) {

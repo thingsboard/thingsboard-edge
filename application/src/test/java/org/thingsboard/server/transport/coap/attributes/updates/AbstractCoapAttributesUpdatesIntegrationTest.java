@@ -86,7 +86,7 @@ public abstract class AbstractCoapAttributesUpdatesIntegrationTest extends Abstr
         if (!emptyCurrentStateNotification) {
             doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", POST_ATTRIBUTES_PAYLOAD_ON_CURRENT_STATE_NOTIFICATION, String.class, status().isOk());
         }
-        client = getCoapClient(FeatureType.ATTRIBUTES);
+        CoapClient client = getCoapClient(FeatureType.ATTRIBUTES);
 
         CountDownLatch latch = new CountDownLatch(1);
         TestCoapCallback callback = new TestCoapCallback(latch);

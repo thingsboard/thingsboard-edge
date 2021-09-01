@@ -64,7 +64,7 @@ public abstract class AbstractCoapClaimProtoDeviceTest extends AbstractCoapClaim
 
     @Override
     protected void processTestClaimingDevice(boolean emptyPayload) throws Exception {
-        client = getCoapClient(FeatureType.CLAIM);
+        CoapClient client = getCoapClient(FeatureType.CLAIM);
         byte[] payloadBytes;
         if (emptyPayload) {
             TransportApiProtos.ClaimDevice claimDevice = getClaimDevice(0, emptyPayload);

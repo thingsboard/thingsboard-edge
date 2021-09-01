@@ -86,8 +86,8 @@ public abstract class AbstractCoapTimeseriesIntegrationTest extends AbstractCoap
     }
 
     protected void processTestPostTelemetry(byte[] payloadBytes, List<String> expectedKeys, boolean withTs, boolean presenceFieldsTest) throws Exception {
-        client = getCoapClient(FeatureType.TELEMETRY);
-        postTelemetry(client, payloadBytes);
+        CoapClient coapClient = getCoapClient(FeatureType.TELEMETRY);
+        postTelemetry(coapClient, payloadBytes);
 
         String deviceId = savedDevice.getId().getId().toString();
 
