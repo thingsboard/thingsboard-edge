@@ -33,7 +33,6 @@ package org.thingsboard.server.queue.common;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.queue.TbQueueMsg;
 
 import java.util.concurrent.Executors;
@@ -57,7 +56,7 @@ public abstract class AbstractParallelTbQueueConsumerTemplate<R, T extends TbQue
                 log.trace("Interrupted while waiting for consumer executor to stop");
             }
         }
-        consumerExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadPoolSize, ThingsBoardThreadFactory.forName(getClass().getSimpleName())));
+        consumerExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadPoolSize));
     }
 
     protected void shutdownExecutor() {
