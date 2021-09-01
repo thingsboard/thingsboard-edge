@@ -46,7 +46,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -88,7 +87,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     protected EventLoopGroup bossGroup;
     protected EventLoopGroup workerGroup;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("ip-integration-scheduled"));
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     protected ScheduledFuture bindFuture = null;
 
     @Override
@@ -256,7 +255,6 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                 workerGroup.shutdownGracefully();
             }
         }
-        scheduler.shutdownNow();
     }
 
     public byte[] writeValueAsBytes(String msg) {

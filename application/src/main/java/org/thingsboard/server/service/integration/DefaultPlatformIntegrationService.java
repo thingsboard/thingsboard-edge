@@ -332,9 +332,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         if (statisticsEnabled) {
             statisticsExecutorService.shutdown();
         }
-        if (reinitEnabled) {
-            reinitExecutorService.shutdownNow();
-        }
         integrationsByIdMap.values().forEach(v -> v.getFirst().destroy());
         integrationsByIdMap.clear();
         integrationsByRoutingKeyMap.clear();

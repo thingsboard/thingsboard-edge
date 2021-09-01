@@ -108,7 +108,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     @PostConstruct
     public void init() {
         super.init(maxRequestsTimeout);
-        jsExecutor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(jsExecutorThreadPoolSize, "nashhorn-js-executor"));
+        jsExecutor = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(jsExecutorThreadPoolSize));
         if (useJsSandbox()) {
             sandbox = NashornSandboxes.create();
             monitorExecutorService = ThingsBoardExecutors.newWorkStealingPool(getMonitorThreadPoolSize(), "nashorn-js-monitor");
@@ -124,14 +124,10 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     }
 
     @PreDestroy
-    @Override
     public void stop() {
         super.stop();
         if (monitorExecutorService != null) {
             monitorExecutorService.shutdownNow();
-        }
-        if (jsExecutor != null) {
-            jsExecutor.shutdownNow();
         }
     }
 
