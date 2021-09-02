@@ -181,6 +181,7 @@ public class RemoteIntegrationManagerService {
     @PreDestroy
     public void destroy() throws InterruptedException {
         log.info("[{}] Starting destroying process", serviceId);
+        initialized = false;
         if (uplinkDataConverter != null) {
             uplinkDataConverter.destroy();
         }
@@ -427,15 +428,21 @@ public class RemoteIntegrationManagerService {
 
     private void processHandleMessages() {
         executor.submit(() -> {
-            while (!Thread.interrupted()) {
+            boolean interrupted = false;
+            while (!interrupted) {
                 try {
                     if (initialized) {
                         rpcClient.handleMsgs();
                     } else {
                         Thread.sleep(TimeUnit.SECONDS.toMillis(1));
                     }
+                } catch (InterruptedException e) {
+                    interrupted = true;
                 } catch (Exception e) {
                     log.warn("Failed to process messages handling!", e);
+                }
+                if (!interrupted) {
+                    interrupted = Thread.interrupted();
                 }
             }
         });
