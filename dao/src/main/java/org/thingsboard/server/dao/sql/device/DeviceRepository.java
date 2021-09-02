@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.device;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
@@ -44,7 +45,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntity, UUID> {
+public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
 
     String COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
             "WHERE d.device_profile_id = :deviceProfileId " +
