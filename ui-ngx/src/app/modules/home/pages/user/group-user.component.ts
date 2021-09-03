@@ -40,6 +40,8 @@ import { Authority } from '@shared/models/authority.enum';
 import { isDefinedAndNotNull, isUndefined } from '@core/utils';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'tb-group-user',
@@ -64,7 +66,8 @@ export class GroupUserComponent extends GroupEntityComponent<User> {
               @Optional() @Inject('entity') protected entityValue: User,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<User>,
               protected fb: FormBuilder,
-              protected cd: ChangeDetectorRef) {
+              protected cd: ChangeDetectorRef,
+              private translate: TranslateService) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
@@ -120,4 +123,15 @@ export class GroupUserComponent extends GroupEntityComponent<User> {
           isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true}});
   }
 
+  onUserIdCopied($event) {
+    this.store.dispatch(new ActionNotificationShow(
+      {
+        message: this.translate.instant('user.idCopiedMessage'),
+        type: 'success',
+        duration: 750,
+        verticalPosition: 'bottom',
+        horizontalPosition: 'right'
+      }
+    ));
+  }
 }
