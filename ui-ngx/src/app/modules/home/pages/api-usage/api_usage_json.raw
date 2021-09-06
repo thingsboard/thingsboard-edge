@@ -4117,7 +4117,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -4252,7 +4253,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -4387,7 +4389,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
