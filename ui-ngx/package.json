@@ -1,6 +1,6 @@
 {
   "name": "thingsboard",
-  "version": "3.3.1PE",
+  "version": "3.3.2PE",
   "scripts": {
     "ng": "ng",
     "prestart": "node prepare-theme.js",
