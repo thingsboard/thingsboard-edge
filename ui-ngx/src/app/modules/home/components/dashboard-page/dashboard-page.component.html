@@ -110,7 +110,7 @@
           </button>
           <mat-menu #exportMenu="matMenu" xPosition="before">
             <button mat-menu-item (click)="generateDashboardReport($event, 'pdf')">
-              <mat-icon svgIcon="mdi:file-pdf"></mat-icon>
+              <mat-icon svgIcon="file-pdf"></mat-icon>
               <span translate>dashboard.export-pdf</span>
             </button>
             <button mat-menu-item (click)="generateDashboardReport($event, 'png')">
@@ -122,7 +122,7 @@
               <span translate>dashboard.export-jpg</span>
             </button>
             <button mat-menu-item (click)="exportDashboard($event)">
-              <mat-icon svgIcon="mdi:file-xml"></mat-icon>
+              <mat-icon svgIcon="mdi:file-code"></mat-icon>
               <span translate>dashboard.export-json-config</span>
             </button>
           </mat-menu>
