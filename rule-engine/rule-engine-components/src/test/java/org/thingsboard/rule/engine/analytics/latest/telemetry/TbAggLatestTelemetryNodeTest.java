@@ -166,7 +166,6 @@ public class TbAggLatestTelemetryNodeTest {
 
         when(peCtx.isLocalEntity(ArgumentMatchers.any(EntityId.class))).thenReturn(true);
 
-        when(ctx.getJsExecutor()).thenReturn(executor);
         when(ctx.getDbCallbackExecutor()).thenReturn(executor);
 
         Stubber executorAnswer = doAnswer(invocationOnMock -> {
