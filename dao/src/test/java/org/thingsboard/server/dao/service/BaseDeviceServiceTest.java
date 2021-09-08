@@ -83,6 +83,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         tenantProfileService.deleteTenantProfiles(anotherTenantId);
     }
 
+    @SuppressWarnings("deprecation")
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 

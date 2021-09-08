@@ -132,6 +132,7 @@ public class BaseTbResourceServiceTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @SuppressWarnings("deprecation")
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
