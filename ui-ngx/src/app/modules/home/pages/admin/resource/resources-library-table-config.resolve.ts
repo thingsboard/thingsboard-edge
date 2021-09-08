@@ -133,9 +133,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     this.config.deleteEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.detailsReadonly = (resource) => !this.isResourceEditable(resource, authUser.authority);
-    if (authUser.authority !== Authority.SYS_ADMIN) {
-      defaultEntityTablePermissions(this.userPermissionsService, this.config);
-    }
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 
