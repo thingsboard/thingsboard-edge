@@ -42,7 +42,7 @@ import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.sdk.client.api.nodes.VariableNode;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
+import org.eclipse.milo.opcua.stack.client.DiscoveryClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
@@ -80,9 +80,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -249,17 +247,17 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             SecurityPolicy securityPolicy = SecurityPolicy.valueOf(configuration.getSecurity());
             IdentityProvider identityProvider = configuration.getIdentity().toProvider();
 
-            EndpointDescription[] endpoints;
+            List<EndpointDescription> endpoints;
             String endpointUrl = "opc.tcp://" + configuration.getHost() + ":" + configuration.getPort();
             try {
-                endpoints = UaTcpStackClient.getEndpoints(endpointUrl).get();
+                endpoints = DiscoveryClient.getEndpoints(endpointUrl).get();
             } catch (ExecutionException e) {
                 log.error("[{}] Failed to connect to provided endpoint!", this.configuration.getName(), e);
                 throw new OpcUaIntegrationException("Failed to connect to provided endpoint: " + endpointUrl, e);
             }
 
-            EndpointDescription endpoint = Arrays.stream(endpoints)
-                    .filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getSecurityPolicyUri()))
+            EndpointDescription endpoint = endpoints.stream()
+                    .filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getUri()))
                     .findFirst().orElseThrow(() -> new Exception("no desired endpoints returned"));
 
             if (!endpoint.getEndpointUrl().equals(endpointUrl)) {
@@ -289,7 +287,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             OpcUaClientConfig config = configBuilder.build();
 
-            client = new OpcUaClient(config);
+            client = OpcUaClient.create(config);
             client.connect().get();
             connected = true;
             log.info("[{}] OPC-UA Client connected successfully!", this.configuration.getName());
