@@ -225,8 +225,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   isToolbarOpenedAnimate = false;
   isRightLayoutOpened = false;
 
-  allowedEntityTypes: Array<EntityType | AliasEntityType> = null;
-
   editingWidget: Widget = null;
   editingWidgetLayout: WidgetLayout = null;
   editingWidgetOriginal: Widget = null;
@@ -449,8 +447,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       };
       this.window.parent.postMessage(JSON.stringify(message), '*');
     }
-
-    this.allowedEntityTypes = this.entityService.prepareAllowedEntityTypesList(null, true);
 
     const solutionTemplateId = this.route.snapshot.queryParamMap.get('solutionTemplateId');
     if (solutionTemplateId) {
@@ -736,8 +732,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       data: {
         entityAliases: deepClone(this.dashboard.configuration.entityAliases),
         widgets: this.dashboardUtils.getWidgetsArray(this.dashboard),
-        isSingleEntityAlias: false,
-        allowedEntityTypes: this.allowedEntityTypes
+        isSingleEntityAlias: false
       }
     }).afterClosed().subscribe((entityAliases) => {
       if (entityAliases) {
