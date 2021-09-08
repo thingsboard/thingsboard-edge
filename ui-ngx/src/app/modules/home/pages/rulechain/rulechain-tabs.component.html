@@ -36,7 +36,7 @@
                       [active]="attributesTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name"
-                      [readonly]="!(resource.ROLE | hasGenericPermission: operation.WRITE)">
+                      [readonly]="!(resource.RULE_CHAIN | hasGenericPermission: operation.WRITE)">
   </tb-attribute-table>
 </mat-tab>
 <mat-tab *ngIf="entity"
@@ -46,7 +46,7 @@
                       [active]="telemetryTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name"
-                      [readonly]="!(resource.ROLE | hasGenericPermission: operation.WRITE)">
+                      [readonly]="!(resource.RULE_CHAIN | hasGenericPermission: operation.WRITE)">
   </tb-attribute-table>
 </mat-tab>
 <mat-tab *ngIf="entity"
@@ -65,7 +65,7 @@
          label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
   <tb-relation-table [active]="relationsTab.isActive"
                      [entityId]="entity.id"
-                     [readonly]="!(resource.ROLE | hasGenericPermission: operation.WRITE)">
+                     [readonly]="!(resource.RULE_CHAIN | hasGenericPermission: operation.WRITE)">
   </tb-relation-table>
 </mat-tab>
 <mat-tab *ngIf="entity && authUser.authority === authorities.TENANT_ADMIN"
