@@ -52,14 +52,11 @@ import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.unmodifiableSet;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -114,6 +111,7 @@ public class DefaultSchedulerServiceTest {
         schedulerService.init();
     }
 
+    @SuppressWarnings({"unchecked"})
     @Test
     public void givenRepartitionEvents_whenManyOnTbApplicationEvent_thenProcessLatestEventOnly() throws InterruptedException {
         final int eventsCount = 6 * 20;
@@ -170,11 +168,8 @@ public class DefaultSchedulerServiceTest {
         //given
         willReturn(singletonList(sysTenant)).given(schedulerService).getAllTenants();
 
-        final Set<TopicPartitionInfo> partitions = unmodifiableSet(new HashSet(asList(
-                new TopicPartitionInfo("tb_core", null, 0, true),
-                new TopicPartitionInfo("tb_core", null, 1, true),
-                new TopicPartitionInfo("tb_core", null, 2, true)
-        )));
+        final Set<TopicPartitionInfo> partitions = Set.of(new TopicPartitionInfo("tb_core", null, 0, true),
+                new TopicPartitionInfo("tb_core", null, 1, true), new TopicPartitionInfo("tb_core", null, 2, true));
 
         willReturn(tpiForSysTenant).given(partitionService).resolve(ServiceType.TB_CORE, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
 
@@ -205,14 +200,12 @@ public class DefaultSchedulerServiceTest {
         verify(schedulerService, never()).removeEvents(any(), any());
 
         //given
-        final Set<TopicPartitionInfo> secondEventPartitions = unmodifiableSet(new HashSet(asList(
-                new TopicPartitionInfo("tb_core", null, 0, true),
+        final Set<TopicPartitionInfo> secondEventPartitions = Set.of(new TopicPartitionInfo("tb_core", null, 0, true),
                 //new TopicPartitionInfo("tb_core", null, 1, true), //have to remove tenant
                 new TopicPartitionInfo("tb_core", null, 2, true),
                 new TopicPartitionInfo("tb_core", null, 4, true),
                 new TopicPartitionInfo("tb_core", null, 6, true),
-                new TopicPartitionInfo("tb_core", null, 8, true)
-        )));
+                new TopicPartitionInfo("tb_core", null, 8, true));
 
         //when
         schedulerService.initStateFromDB(secondEventPartitions);
@@ -226,7 +219,7 @@ public class DefaultSchedulerServiceTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         schedulerService.stop();
         assertThat(schedulerService.queueExecutor.isShutdown(), is(true));
     }
