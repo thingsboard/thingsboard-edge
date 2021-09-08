@@ -58,7 +58,13 @@ import { RuleChainService } from '@core/http/rule-chain.service';
 import { AliasInfo, StateParams, SubscriptionInfo } from '@core/api/widget-api.models';
 import { DataKey, Datasource, DatasourceType, KeyInfo } from '@app/shared/models/widget.models';
 import { UtilsService } from '@core/services/utils.service';
-import { AliasFilterType, EntityAlias, EntityAliasFilter, EntityAliasFilterResult } from '@shared/models/alias.models';
+import {
+  AliasFilterType,
+  edgeAliasFilterTypes,
+  EntityAlias,
+  EntityAliasFilter,
+  EntityAliasFilterResult
+} from '@shared/models/alias.models';
 import {
   EdgeImportEntityData,
   EntitiesKeysByQuery,
@@ -778,7 +784,16 @@ export class EntityService {
   }
 
   public getAliasFilterTypesByEntityTypes(entityTypes: Array<EntityType | AliasEntityType>): Array<AliasFilterType> {
-    const allAliasFilterTypes: Array<AliasFilterType> = Object.keys(AliasFilterType).map((key) => AliasFilterType[key]);
+    const authState = getCurrentAuthState(this.store);
+    const allAliasFilterTypes: Array<AliasFilterType> = Object.keys(AliasFilterType)
+      .map((key) => AliasFilterType[key])
+      .filter(aft => {
+        if (authState.edgesSupportEnabled) {
+          return true;
+        } else {
+          return edgeAliasFilterTypes.indexOf(aft) === -1;
+        }
+      });
     if (!entityTypes || !entityTypes.length) {
       return allAliasFilterTypes;
     }
@@ -923,9 +938,6 @@ export class EntityService {
       case Authority.TENANT_ADMIN:
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
-        if (authState.edgesSupportEnabled) {
-          entityTypes.push(EntityType.EDGE);
-        }
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
@@ -936,6 +948,9 @@ export class EntityService {
         entityTypes.push(EntityType.SCHEDULER_EVENT);
         entityTypes.push(EntityType.BLOB_ENTITY);
         entityTypes.push(EntityType.ROLE);
+        if (authState.edgesSupportEnabled) {
+          entityTypes.push(EntityType.EDGE);
+        }
         if (useAliasEntityTypes) {
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
           entityTypes.push(AliasEntityType.CURRENT_TENANT);
@@ -944,15 +959,15 @@ export class EntityService {
       case Authority.CUSTOMER_USER:
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
-        if (authState.edgesSupportEnabled) {
-          entityTypes.push(EntityType.EDGE);
-        }
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
         entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.SCHEDULER_EVENT);
         entityTypes.push(EntityType.BLOB_ENTITY);
+        if (authState.edgesSupportEnabled) {
+          entityTypes.push(EntityType.EDGE);
+        }
         if (useAliasEntityTypes) {
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
         }
