@@ -105,6 +105,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         sysAdminGenericPermissions.put(Resource.WIDGETS_BUNDLE, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.WIDGET_TYPE, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.TB_RESOURCE, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminPermissions = new MergedUserPermissions(sysAdminGenericPermissions, new HashMap<>());
     }
 
