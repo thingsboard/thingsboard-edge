@@ -28,23 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  overflow-x: auto;
+package org.thingsboard.server.common.data.device.credentials.lwm2m;
 
-  .mat-column-order {
-    flex: 0 0 40px;
-  }
-  .mat-column-sampleData {
-    flex: 0 0 120px;
-    min-width: 120px;
-    max-width: 230px;
-  }
-  .mat-column-type {
-    flex: 0 0 180px;
-    min-width: 180px;
-  }
-  .mat-column-key {
-    flex: 0 0 120px;
-    min-width: 120px;
-  }
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import org.apache.commons.codec.binary.Hex;
+
+@Getter
+@Setter
+public abstract class AbstractLwM2MServerCredentialsWithKeys implements LwM2MServerCredentials {
+
+    private String clientPublicKeyOrId;
+    private String clientSecretKey;
+
+    @JsonIgnore
+    public byte[] getDecodedClientPublicKeyOrId() {
+        return getDecoded(clientPublicKeyOrId);
+    }
+
+    @JsonIgnore
+    public byte[] getDecodedClientSecretKey() {
+        return getDecoded(clientSecretKey);
+    }
+
+    @SneakyThrows
+    private static byte[] getDecoded(String key) {
+        return Hex.decodeHex(key.toLowerCase().toCharArray());
+    }
 }

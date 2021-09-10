@@ -28,23 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  overflow-x: auto;
+package org.thingsboard.server.common.data.device.credentials.lwm2m;
 
-  .mat-column-order {
-    flex: 0 0 40px;
-  }
-  .mat-column-sampleData {
-    flex: 0 0 120px;
-    min-width: 120px;
-    max-width: 230px;
-  }
-  .mat-column-type {
-    flex: 0 0 180px;
-    min-width: 180px;
-  }
-  .mat-column-key {
-    flex: 0 0 120px;
-    min-width: 120px;
-  }
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "securityMode")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = NoSecServerCredentials.class, name = "NO_SEC"),
+        @JsonSubTypes.Type(value = PSKServerCredentials.class, name = "PSK"),
+        @JsonSubTypes.Type(value = RPKServerCredentials.class, name = "RPK"),
+        @JsonSubTypes.Type(value = X509ServerCredentials.class, name = "X509")
+})
+@JsonIgnoreProperties(ignoreUnknown = true)
+public interface LwM2MServerCredentials {
+
+    @JsonIgnore
+    LwM2MSecurityMode getSecurityMode();
 }
