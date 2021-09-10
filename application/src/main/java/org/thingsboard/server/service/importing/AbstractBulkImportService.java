@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.importing;
 
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lombok.Data;
@@ -70,7 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -85,7 +84,7 @@ public abstract class AbstractBulkImportService<E extends BaseData<? extends Ent
     protected final EntityActionService entityActionService;
     protected final TbClusterService clusterService;
 
-    public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, Consumer<ImportedEntityInfo<E>> onEntityImported, BiFunction<E, UnaryOperator<E>, E> entityGroupAssigner) throws Exception {
+    public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, Consumer<ImportedEntityInfo<E>> onEntityImported, BiConsumer<E, UnaryOperator<E>> entityGroupAssigner) throws Exception {
         BulkImportResult<E> result = new BulkImportResult<>();
 
         AtomicInteger i = new AtomicInteger(0);
@@ -96,19 +95,19 @@ public abstract class AbstractBulkImportService<E extends BaseData<? extends Ent
         parseData(request).forEach(entityData -> {
             i.incrementAndGet();
             try {
-                E entity = getEntityClass().getConstructor().newInstance();
+                ImportedEntityInfo<E> importedEntityInfo = new ImportedEntityInfo<>();
+                E entity = findOrCreateAndSetFields(request, entityData.getFields(), importedEntityInfo, user);
 
-                ImportedEntityInfo<E> importedEntityInfo;
+                UnaryOperator<E> savingFunction = e -> {
+                    E savedEntity = saveEntity(request, entityData.getFields(), e, user);
+                    importedEntityInfo.setEntity(savedEntity);
+                    return savedEntity;
+                };
+
                 if (entityGroupAssigner != null) {
-                    SettableFuture<ImportedEntityInfo<E>> importedEntityInfoFuture = SettableFuture.create();
-                    entityGroupAssigner.apply(entity, e -> {
-                        ImportedEntityInfo<E> info = saveEntity(request, entityData.getFields(), entity, user);
-                        importedEntityInfoFuture.set(info);
-                        return info.getEntity();
-                    });
-                    importedEntityInfo = importedEntityInfoFuture.get();
+                    entityGroupAssigner.accept(entity, savingFunction);
                 } else {
-                    importedEntityInfo = saveEntity(request, entityData.getFields(), entity, user);
+                    savingFunction.apply(entity);
                 }
 
                 onEntityImported.accept(importedEntityInfo);
@@ -135,7 +134,9 @@ public abstract class AbstractBulkImportService<E extends BaseData<? extends Ent
         return result;
     }
 
-    protected abstract ImportedEntityInfo<E> saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, E entity, SecurityUser user);
+    protected abstract E saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, E entity, SecurityUser user);
+
+    protected abstract E findOrCreateAndSetFields(BulkImportRequest request, Map<BulkImportColumnType, String> fields, ImportedEntityInfo<E> importedEntityInfo, SecurityUser user);
 
     /*
      * Attributes' values are firstly added to JsonObject in order to then make some type cast,
@@ -241,8 +242,6 @@ public abstract class AbstractBulkImportService<E extends BaseData<? extends Ent
                 })
                 .collect(Collectors.toList());
     }
-
-    protected abstract Class<E> getEntityClass();
 
     @Data
     protected static class EntityData {

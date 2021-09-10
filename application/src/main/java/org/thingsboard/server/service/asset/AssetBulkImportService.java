@@ -32,7 +32,6 @@ package org.thingsboard.server.service.asset;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -66,24 +65,27 @@ public class AssetBulkImportService extends AbstractBulkImportService<Asset> {
     }
 
     @Override
-    protected ImportedEntityInfo<Asset> saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, Asset asset, SecurityUser user) {
-        ImportedEntityInfo<Asset> importedEntityInfo = new ImportedEntityInfo<>();
+    protected Asset saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, Asset asset, SecurityUser user) {
+        return assetService.saveAsset(asset);
+    }
 
+    @Override
+    protected Asset findOrCreateAndSetFields(BulkImportRequest request, Map<BulkImportColumnType, String> fields, ImportedEntityInfo<Asset> importedEntityInfo, SecurityUser user) {
+        Asset asset = new Asset();
         asset.setTenantId(user.getTenantId());
-        asset.setCustomerId(importRequest.getCustomerId());
+        asset.setCustomerId(request.getCustomerId());
+
         setAssetFields(asset, fields);
 
         Asset existingAsset = assetService.findAssetByTenantIdAndName(user.getTenantId(), asset.getName());
-        if (existingAsset != null && importRequest.getMapping().getUpdate()) {
+        if (existingAsset != null && request.getMapping().getUpdate()) {
             importedEntityInfo.setOldEntity(new Asset(existingAsset));
             importedEntityInfo.setUpdated(true);
             existingAsset.update(asset);
             asset = existingAsset;
         }
-        asset = assetService.saveAsset(asset);
 
-        importedEntityInfo.setEntity(asset);
-        return importedEntityInfo;
+        return asset;
     }
 
     private void setAssetFields(Asset asset, Map<BulkImportColumnType, String> fields) {
@@ -105,11 +107,6 @@ public class AssetBulkImportService extends AbstractBulkImportService<Asset> {
             }
         });
         asset.setAdditionalInfo(additionalInfo);
-    }
-
-    @Override
-    protected Class<Asset> getEntityClass() {
-        return Asset.class;
     }
 
 }

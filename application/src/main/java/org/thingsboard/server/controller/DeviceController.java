@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiParam;
-import org.apache.commons.lang3.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -58,6 +57,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
@@ -605,7 +605,7 @@ public class DeviceController extends BaseController {
             tbClusterService.onDeviceUpdated(importedDeviceInfo.getEntity(), importedDeviceInfo.getOldEntity());
         }, (device, savingFunction) -> {
             try {
-               return saveGroupEntity(device, request.getGroupId(), savingFunction);
+                saveGroupEntity(device, request.getEntityGroupId(), savingFunction);
             } catch (ThingsboardException e) {
                 throw new RuntimeException(e);
             }

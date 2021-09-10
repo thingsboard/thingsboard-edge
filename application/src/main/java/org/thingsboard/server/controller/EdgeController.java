@@ -501,8 +501,8 @@ public class EdgeController extends BaseController {
         return edgeBulkImportService.processBulkImport(request, user, importedAssetInfo -> {
             try {
                 EntityGroupId entityGroupId = null;
-                if (!StringUtils.isEmpty(request.getGroupId())) {
-                    entityGroupId = new EntityGroupId(toUUID(request.getGroupId()));
+                if (!StringUtils.isEmpty(request.getEntityGroupId())) {
+                    entityGroupId = new EntityGroupId(toUUID(request.getEntityGroupId()));
                 }
 
                 onEdgeCreatedOrUpdated(user.getTenantId(),

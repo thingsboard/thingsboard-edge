@@ -40,7 +40,7 @@ public class BulkImportRequest {
     private String file;
     private Mapping mapping;
     private CustomerId customerId;
-    private String groupId;
+    private String entityGroupId;
 
     @Data
     public static class Mapping {

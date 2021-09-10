@@ -314,7 +314,7 @@ public class AssetController extends BaseController {
         return assetBulkImportService.processBulkImport(request, getCurrentUser(), importedAssetInfo -> {
         }, (asset, savingFunction) -> {
             try {
-                return saveGroupEntity(asset, request.getGroupId(), savingFunction);
+                saveGroupEntity(asset, request.getEntityGroupId(), savingFunction);
             } catch (ThingsboardException e) {
                 throw new RuntimeException(e);
             }

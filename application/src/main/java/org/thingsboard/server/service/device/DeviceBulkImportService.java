@@ -98,21 +98,7 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
     }
 
     @Override
-    protected ImportedEntityInfo<Device> saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, Device device, SecurityUser user) {
-        ImportedEntityInfo<Device> importedEntityInfo = new ImportedEntityInfo<>();
-
-        device.setTenantId(user.getTenantId());
-        device.setCustomerId(importRequest.getCustomerId());
-        setDeviceFields(device, fields);
-
-        Device existingDevice = deviceService.findDeviceByTenantIdAndName(user.getTenantId(), device.getName());
-        if (existingDevice != null && importRequest.getMapping().getUpdate()) {
-            importedEntityInfo.setOldEntity(new Device(existingDevice));
-            importedEntityInfo.setUpdated(true);
-            existingDevice.updateDevice(device);
-            device = existingDevice;
-        }
-
+    protected Device saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, Device device, SecurityUser user) {
         DeviceCredentials deviceCredentials;
         try {
             deviceCredentials = createDeviceCredentials(fields);
@@ -125,13 +111,24 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
             setUpLwM2mDeviceProfile(user.getTenantId(), device);
         }
 
-        device = deviceService.saveDeviceWithCredentials(device, deviceCredentials);
-
-        importedEntityInfo.setEntity(device);
-        return importedEntityInfo;
+        return deviceService.saveDeviceWithCredentials(device, deviceCredentials);
     }
 
-    private void setDeviceFields(Device device, Map<BulkImportColumnType, String> fields) {
+    @Override
+    protected Device findOrCreateAndSetFields(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, ImportedEntityInfo<Device> importedEntityInfo, SecurityUser user) {
+        Device device = new Device();
+        setEntityFields(device, fields);
+        Device existingDevice = deviceService.findDeviceByTenantIdAndName(user.getTenantId(), device.getName());
+        if (existingDevice != null && importRequest.getMapping().getUpdate()) {
+            importedEntityInfo.setOldEntity(new Device(existingDevice));
+            importedEntityInfo.setUpdated(true);
+            existingDevice.updateDevice(device);
+            device = existingDevice;
+        }
+        return device;
+    }
+
+    private void setEntityFields(Device device, Map<BulkImportColumnType, String> fields) {
         ObjectNode additionalInfo = (ObjectNode) Optional.ofNullable(device.getAdditionalInfo()).orElseGet(JacksonUtil::newObjectNode);
         fields.forEach((columnType, value) -> {
             switch (columnType) {
@@ -269,11 +266,6 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
                 objectNode.set(column.getKey(), new TextNode(value));
             }
         }
-    }
-
-    @Override
-    protected Class<Device> getEntityClass() {
-        return Device.class;
     }
 
 }

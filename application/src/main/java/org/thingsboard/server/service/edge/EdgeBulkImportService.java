@@ -65,24 +65,27 @@ public class EdgeBulkImportService extends AbstractBulkImportService<Edge> {
     }
 
     @Override
-    protected ImportedEntityInfo<Edge> saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, Edge edge, SecurityUser user) {
-        ImportedEntityInfo<Edge> importedEntityInfo = new ImportedEntityInfo<>();
+    protected Edge saveEntity(BulkImportRequest importRequest, Map<BulkImportColumnType, String> fields, Edge edge, SecurityUser user) {
+        return edgeService.saveEdge(edge, true);
+    }
 
+    @Override
+    protected Edge findOrCreateAndSetFields(BulkImportRequest request, Map<BulkImportColumnType, String> fields, ImportedEntityInfo<Edge> importedEntityInfo, SecurityUser user) {
+        Edge edge = new Edge();
         edge.setTenantId(user.getTenantId());
-        edge.setCustomerId(importRequest.getCustomerId());
+        edge.setCustomerId(request.getCustomerId());
+
         setEdgeFields(edge, fields);
 
         Edge existingEdge = edgeService.findEdgeByTenantIdAndName(user.getTenantId(), edge.getName());
-        if (existingEdge != null && importRequest.getMapping().getUpdate()) {
+        if (existingEdge != null && request.getMapping().getUpdate()) {
             importedEntityInfo.setOldEntity(new Edge(existingEdge));
             importedEntityInfo.setUpdated(true);
             existingEdge.update(edge);
             edge = existingEdge;
         }
-        edge = edgeService.saveEdge(edge, true);
 
-        importedEntityInfo.setEntity(edge);
-        return importedEntityInfo;
+        return edge;
     }
 
     private void setEdgeFields(Edge edge, Map<BulkImportColumnType, String> fields) {
@@ -116,11 +119,6 @@ public class EdgeBulkImportService extends AbstractBulkImportService<Edge> {
             }
         });
         edge.setAdditionalInfo(additionalInfo);
-    }
-
-    @Override
-    protected Class<Edge> getEntityClass() {
-        return Edge.class;
     }
 
 }
