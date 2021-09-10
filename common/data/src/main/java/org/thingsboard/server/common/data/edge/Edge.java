@@ -85,6 +85,19 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         this.rootRuleChainId = edge.getRootRuleChainId();
     }
 
+    public void update(Edge edge) {
+        this.tenantId = edge.getTenantId();
+        this.customerId = edge.getCustomerId();
+        this.rootRuleChainId = edge.getRootRuleChainId();
+        this.type = edge.getType();
+        this.label = edge.getLabel();
+        this.name = edge.getName();
+        this.routingKey = edge.getRoutingKey();
+        this.secret = edge.getSecret();
+        this.edgeLicenseKey = edge.getEdgeLicenseKey();
+        this.cloudEndpoint = edge.getCloudEndpoint();
+    }
+
     @Override
     public String getSearchText() {
         return getName();
