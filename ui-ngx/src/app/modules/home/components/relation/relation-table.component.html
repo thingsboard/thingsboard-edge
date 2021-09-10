@@ -171,7 +171,7 @@
         <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
         <mat-row [ngClass]="{'mat-row-select': true,
                              'mat-selected': dataSource.selection.isSelected(relation)}"
-                 *matRowDef="let relation; columns: displayedColumns;" (click)="dataSource.selection.toggle(relation)"></mat-row>
+                 *matRowDef="let relation; columns: displayedColumns;" (click)="onRowClick($event, relation)"></mat-row>
       </table>
       <span [fxShow]="dataSource.isEmpty() | async"
             fxLayoutAlign="center center"

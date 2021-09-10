@@ -68,6 +68,7 @@
          label="{{ 'entity-group.permissions' | translate }}" #entityGroupPermissionsTab="matTab">
   <tb-group-permissions
     (permissionsChanged)="onPermissionsChanged()"
+    [readonly]="!(entity | hasEntityGroupPermission: operation.WRITE)"
     [entityGroup]="entity"
     [active]="entityGroupPermissionsTab.isActive"></tb-group-permissions>
 </mat-tab>

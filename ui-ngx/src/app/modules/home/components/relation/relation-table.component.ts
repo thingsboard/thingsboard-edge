@@ -245,6 +245,16 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     return this.userPermissionsService.hasGenericPermission(resource, Operation.WRITE);
   }
 
+  onRowClick($event: Event, groupPermission) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (!this.readonly) {
+      this.dataSource.selection.toggle(groupPermission);
+    }
+  }
+
+
   deleteRelation($event: Event, relation: EntityRelationInfo) {
     if ($event) {
       $event.stopPropagation();
