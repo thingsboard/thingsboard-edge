@@ -235,6 +235,9 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
   editRelation($event: Event, relation: EntityRelationInfo) {
     this.openRelationDialog($event, relation);
   }
+  showRelation($event: Event, relation: EntityRelationInfo) {
+    this.openRelationDialog($event, relation, this.readonly);
+  }
 
   isRelationEditable(relation: EntityRelationInfo): boolean {
     if (this.readonly) {
@@ -253,7 +256,6 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
       this.dataSource.selection.toggle(groupPermission);
     }
   }
-
 
   deleteRelation($event: Event, relation: EntityRelationInfo) {
     if ($event) {
@@ -332,7 +334,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     }
   }
 
-  openRelationDialog($event: Event, relation: EntityRelation = null) {
+  openRelationDialog($event: Event, relation: EntityRelation = null, readonly: boolean = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -359,7 +361,8 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
       data: {
         isAdd,
         direction: this.direction,
-        relation: {...relation}
+        relation: {...relation},
+        readonly
       }
     }).afterClosed().subscribe(
       (res) => {
