@@ -69,6 +69,7 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
 
   qrCodeText: string;
   invalidQrCodeText = false;
+  datasourceDetected = false;
 
   private viewInited: boolean;
   private scheduleUpdateCanvas: boolean;
@@ -110,6 +111,8 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
           data: []
         }
       ];
+    } else {
+      this.datasourceDetected = false;
     }
     if (initialData) {
       const data = parseData(initialData);
@@ -118,6 +121,7 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
         safeExecute(this.qrCodeTextFunction, [dataSourceData]) : this.settings.qrCodeTextPattern;
       const replaceInfo = processPattern(pattern, dataSourceData);
       qrCodeText = fillPattern(pattern, replaceInfo, dataSourceData);
+      this.datasourceDetected = true;
     }
     this.updateQrCodeText(qrCodeText);
   }

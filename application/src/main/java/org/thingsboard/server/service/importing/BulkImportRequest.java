@@ -28,23 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  overflow-x: auto;
+package org.thingsboard.server.service.importing;
 
-  .mat-column-order {
-    flex: 0 0 40px;
-  }
-  .mat-column-sampleData {
-    flex: 0 0 120px;
-    min-width: 120px;
-    max-width: 230px;
-  }
-  .mat-column-type {
-    flex: 0 0 180px;
-    min-width: 180px;
-  }
-  .mat-column-key {
-    flex: 0 0 120px;
-    min-width: 120px;
-  }
+import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
+
+import java.util.List;
+
+@Data
+public class BulkImportRequest {
+    private String file;
+    private Mapping mapping;
+    private CustomerId customerId;
+    private String entityGroupId;
+
+    @Data
+    public static class Mapping {
+        private List<ColumnMapping> columns;
+        private Character delimiter;
+        private Boolean update;
+        private Boolean header;
+    }
+
+    @Data
+    public static class ColumnMapping {
+        private BulkImportColumnType type;
+        private String key;
+    }
+
 }

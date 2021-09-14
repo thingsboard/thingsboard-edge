@@ -28,23 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  overflow-x: auto;
+package org.thingsboard.server.utils;
 
-  .mat-column-order {
-    flex: 0 0 40px;
-  }
-  .mat-column-sampleData {
-    flex: 0 0 120px;
-    min-width: 120px;
-    max-width: 230px;
-  }
-  .mat-column-type {
-    flex: 0 0 180px;
-    min-width: 180px;
-  }
-  .mat-column-key {
-    flex: 0 0 120px;
-    min-width: 120px;
-  }
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.CharSequenceReader;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class CsvUtils {
+
+    public static List<List<String>> parseCsv(String content, Character delimiter) throws Exception {
+        CSVFormat csvFormat = delimiter.equals(',') ? CSVFormat.DEFAULT : CSVFormat.DEFAULT.withDelimiter(delimiter);
+
+        List<CSVRecord> records;
+        try (CharSequenceReader reader = new CharSequenceReader(content)) {
+            records = csvFormat.parse(reader).getRecords();
+        }
+
+        return records.stream()
+                .map(record -> Stream.iterate(0, i -> i < record.size(), i -> i + 1)
+                        .map(record::get)
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
+    }
+
 }

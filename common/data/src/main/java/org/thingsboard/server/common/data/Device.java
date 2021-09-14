@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
@@ -99,6 +100,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.setDeviceData(device.getDeviceData());
         this.setFirmwareId(device.getFirmwareId());
         this.setSoftwareId(device.getSoftwareId());
+        Optional.ofNullable(device.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
         return this;
     }
 

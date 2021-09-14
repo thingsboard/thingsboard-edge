@@ -39,6 +39,7 @@ import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { Asset, AssetSearchQuery } from '@app/shared/models/asset.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 
 @Injectable({
   providedIn: 'root'
@@ -128,4 +129,7 @@ export class AssetService {
     return this.http.get<Asset>(`/api/tenant/assets?assetName=${assetName}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public bulkImportAssets(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
+    return this.http.post<BulkImportResult>('/api/asset/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
+  }
 }
