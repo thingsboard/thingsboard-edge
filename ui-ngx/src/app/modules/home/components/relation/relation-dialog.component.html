@@ -34,7 +34,7 @@
   <mat-toolbar fxLayout="row" color="primary">
     <h2 *ngIf="!readonly; else viewTitle">{{ (isAdd ? 'relation.add' : 'relation.edit' ) | translate }}</h2>
     <ng-template #viewTitle>
-      <h2>{{ 'relation.relations' | translate }}</h2>
+      <h2>{{ 'relation.view' | translate }}</h2>
     </ng-template>
     <span fxFlex></span>
     <button mat-button mat-icon-button
