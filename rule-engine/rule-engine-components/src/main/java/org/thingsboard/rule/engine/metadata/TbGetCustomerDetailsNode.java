@@ -42,6 +42,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -141,6 +142,18 @@ public class TbGetCustomerDetailsNode extends TbAbstractGetEntityDetailsNode<TbG
                             return ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), edge.getCustomerId());
                         } else {
                             throw new RuntimeException("Edge with name '" + edge.getName() + "' is not assigned to Customer.");
+                        }
+                    } else {
+                        return Futures.immediateFuture(null);
+                    }
+                }, MoreExecutors.directExecutor());
+            case CUSTOMER:
+                return Futures.transformAsync(ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), new CustomerId(msg.getOriginator().getId())), customer -> {
+                    if (customer != null) {
+                        if (customer.isSubCustomer()) {
+                            return ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), customer.getParentCustomerId());
+                        } else {
+                            throw new RuntimeException("Customer with title '" + customer.getTitle() + "' doesn't have parent customer.");
                         }
                     } else {
                         return Futures.immediateFuture(null);
