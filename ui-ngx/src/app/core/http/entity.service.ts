@@ -115,7 +115,12 @@ import {
 import { alarmFields } from '@shared/models/alarm.models';
 import { EdgeService } from '@core/http/edge.service';
 import { RuleChainMetaData, RuleChainType, RuleChain } from '@shared/models/rule-chain.models';
-import { Edge, EdgeEventType, EdgeEventActionType, EdgeEvent } from '@shared/models/edge.models';
+import {
+  Edge,
+  EdgeEvent,
+  EdgeEventType,
+  bodyContentEdgeEventActionTypes
+} from '@shared/models/edge.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
@@ -1807,7 +1812,6 @@ export class EntityService {
     let entityObservable: Observable<BaseData<HasId> | RuleChainMetaData | string>;
     const entityId: string = entity.entityId;
     const entityType: any = entity.type;
-    const entityAction: EdgeEventActionType = entity.action;
     switch (entityType) {
       case EdgeEventType.DASHBOARD:
       case EdgeEventType.ALARM:
@@ -1821,13 +1825,10 @@ export class EntityService {
       case EdgeEventType.ASSET:
       case EdgeEventType.DEVICE:
       case EdgeEventType.ENTITY_VIEW:
-        if (entityAction === EdgeEventActionType.POST_ATTRIBUTES ||
-            entityAction === EdgeEventActionType.ATTRIBUTES_UPDATED ||
-            entityAction === EdgeEventActionType.ATTRIBUTES_DELETED ||
-            entityAction === EdgeEventActionType.TIMESERIES_UPDATED ||
-            entityAction === EdgeEventActionType.RPC_CALL) {
-          return of(entity.body);
-        } else {entityObservable = this.getEntity(entityType, entityId, { ignoreLoading: true, ignoreErrors: true });
+        if (bodyContentEdgeEventActionTypes.includes(entity.action)) {
+          entityObservable = of(entity.body);
+        } else {
+          entityObservable = this.getEntity(entityType, entityId, { ignoreLoading: true, ignoreErrors: true });
         }
         break;
       case EdgeEventType.RULE_CHAIN_METADATA:
