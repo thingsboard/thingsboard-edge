@@ -152,7 +152,7 @@
           <mat-header-cell *matHeaderCellDef style="min-width: 80px; max-width: 80px; width: 80px">
           </mat-header-cell>
           <mat-cell *matCellDef="let relation">
-            <div fxFlex fxLayout="row" fxLayoutAlign="end" *ngIf="isRelationEditable(relation)">
+            <div fxFlex fxLayout="row" fxLayoutAlign="end" *ngIf="isRelationEditable(relation); else buttonView">
               <button mat-icon-button [disabled]="isLoading$ | async"
                       matTooltip="{{ 'relation.edit' | translate }}"
                       matTooltipPosition="above"
@@ -166,12 +166,22 @@
                 <mat-icon>delete</mat-icon>
               </button>
             </div>
+            <ng-template #buttonView>
+              <div fxFlex fxLayout="row" fxLayoutAlign="end">
+                <button mat-icon-button [disabled]="isLoading$ | async"
+                        matTooltip="{{ 'action.view' | translate }}"
+                        matTooltipPosition="above"
+                        (click)="showRelation($event, relation)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+            </ng-template>
           </mat-cell>
         </ng-container>
         <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
         <mat-row [ngClass]="{'mat-row-select': true,
                              'mat-selected': dataSource.selection.isSelected(relation)}"
-                 *matRowDef="let relation; columns: displayedColumns;" (click)="dataSource.selection.toggle(relation)"></mat-row>
+                 *matRowDef="let relation; columns: displayedColumns;" (click)="onRowClick($event, relation)"></mat-row>
       </table>
       <span [fxShow]="dataSource.isEmpty() | async"
             fxLayoutAlign="center center"

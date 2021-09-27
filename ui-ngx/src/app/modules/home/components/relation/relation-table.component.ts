@@ -235,6 +235,9 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
   editRelation($event: Event, relation: EntityRelationInfo) {
     this.openRelationDialog($event, relation);
   }
+  showRelation($event: Event, relation: EntityRelationInfo) {
+    this.openRelationDialog($event, relation, this.readonly);
+  }
 
   isRelationEditable(relation: EntityRelationInfo): boolean {
     if (this.readonly) {
@@ -243,6 +246,15 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     const entityType = this.direction === EntitySearchDirection.FROM ? relation.to.entityType : relation.from.entityType;
     const resource = resourceByEntityType.get(entityType as EntityType);
     return this.userPermissionsService.hasGenericPermission(resource, Operation.WRITE);
+  }
+
+  onRowClick($event: Event, groupPermission) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (!this.readonly) {
+      this.dataSource.selection.toggle(groupPermission);
+    }
   }
 
   deleteRelation($event: Event, relation: EntityRelationInfo) {
@@ -322,7 +334,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     }
   }
 
-  openRelationDialog($event: Event, relation: EntityRelation = null) {
+  openRelationDialog($event: Event, relation: EntityRelation = null, readonly: boolean = false) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -349,7 +361,8 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
       data: {
         isAdd,
         direction: this.direction,
-        relation: {...relation}
+        relation: {...relation},
+        readonly
       }
     }).afterClosed().subscribe(
       (res) => {

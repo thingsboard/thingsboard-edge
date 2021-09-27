@@ -32,7 +32,10 @@
 -->
 <form [formGroup]="relationFormGroup" (ngSubmit)="save()" style="min-width: 600px;">
   <mat-toolbar fxLayout="row" color="primary">
-    <h2>{{ (isAdd ? 'relation.add' : 'relation.edit' ) | translate }}</h2>
+    <h2 *ngIf="!readonly; else viewTitle">{{ (isAdd ? 'relation.add' : 'relation.edit' ) | translate }}</h2>
+    <ng-template #viewTitle>
+      <h2>{{ 'relation.view' | translate }}</h2>
+    </ng-template>
     <span fxFlex></span>
     <button mat-button mat-icon-button
             (click)="cancel()"
@@ -53,7 +56,7 @@
           'relation.to-entity' : 'relation.from-entity') | translate}}</small>
       <tb-entity-list-select
         formControlName="targetEntityIds"
-        [operation]="operation.WRITE"
+        [operation]="!readonly ? operation.WRITE : operation.READ"
         required="true">
       </tb-entity-list-select>
       <tb-json-object-edit
@@ -76,6 +79,7 @@
       {{ 'action.cancel' | translate }}
     </button>
     <button mat-button mat-raised-button color="primary"
+            *ngIf="!readonly"
             type="submit"
             [disabled]="(isLoading$ | async) || relationFormGroup.invalid || !(relationFormGroup.dirty || additionalInfo.dirty)">
       {{ (isAdd  ? 'action.add' : 'action.save') | translate }}
