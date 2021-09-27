@@ -114,7 +114,7 @@
     </div>
     <fieldset [disabled]="(isLoading$ | async) || !isEdit" *ngIf="integrationForm">
       <section *ngIf="integrationInfo?.http">
-        <tb-http-integration-form #integrationFormComponent [form]="integrationForm" [integrationType]="integrationType"
+        <tb-http-integration-form #integrationFormComponent [form]="integrationForm" [integrationType]="integrationType" [isAdd]="isAdd"
           [routingKey]="entityForm.get('routingKey').value">
         </tb-http-integration-form>
       </section>
