@@ -2159,7 +2159,15 @@
         "remove-entity-views-from-group": "Are you sure you want to remove { count, plural, 1 {1 entity view} other {# entity views} } from group '{{entityGroup}}'?",
         "group": "Group of entity views",
         "list-of-groups": "{ count, plural, 1 {One entity view group} other {List of # entity view groups} }",
-        "group-name-starts-with": "Entity view groups whose names start with '{{prefix}}'"
+        "group-name-starts-with": "Entity view groups whose names start with '{{prefix}}'",
+        "assign-entity-view-to-edge": "Assign Entity View(s) To Edge",
+        "assign-entity-view-to-edge-text":"Please select the entity views to assign to the edge",
+        "unassign-entity-view-from-edge-title": "Are you sure you want to unassign the entity view '{{entityViewName}}'?",
+        "unassign-entity-view-from-edge-text": "After the confirmation the entity view will be unassigned and won't be accessible by the edge.",
+        "unassign-entity-views-from-edge-action-title": "Unassign { count, plural, 1 {1 entity view} other {# entity views} } from edge",
+        "unassign-entity-view-from-edge": "Unassign entity view",
+        "unassign-entity-views-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 entity view} other {# entity views} }?",
+        "unassign-entity-views-from-edge-text": "After the confirmation all selected entity views will be unassigned and won't be accessible by the edge."
     },
     "event": {
         "events": "Events",
@@ -3173,7 +3181,11 @@
         "profile": "Profile",
         "last-login-time": "Last Login",
         "change-password": "Change Password",
-        "current-password": "Current password"
+        "current-password": "Current password",
+        "copy-jwt-token": "Copy JWT token",
+        "valid-till": "Valid till {{expirationData}}",
+        "tokenCopiedSuccessMessage": "JWT token has been copied to clipboard",
+        "tokenCopiedWarnMessage": "JWT token is expired! Please, refresh the page."
     },
     "relation": {
         "relations": "Relations",

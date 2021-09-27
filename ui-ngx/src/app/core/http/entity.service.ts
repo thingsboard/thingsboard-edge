@@ -114,7 +114,6 @@ import {
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
 import { EdgeService } from '@core/http/edge.service';
-import { RuleChainMetaData, RuleChainType, RuleChain } from '@shared/models/rule-chain.models';
 import {
   Edge,
   EdgeEvent,
@@ -122,6 +121,7 @@ import {
   bodyContentEdgeEventActionTypes
 } from '@shared/models/edge.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
+import { RuleChainMetaData, RuleChainType, RuleChain } from '@shared/models/rule-chain.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 
