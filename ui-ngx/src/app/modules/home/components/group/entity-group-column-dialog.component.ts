@@ -46,6 +46,7 @@ import {
   entityGroupSortOrderTranslationMap
 } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { WidgetService } from '@core/http/widget.service';
 
 export interface EntityGroupColumnDialogData {
   isReadOnly: boolean;
@@ -81,13 +82,17 @@ export class EntityGroupColumnDialogComponent extends
 
   submitted = false;
 
+  functionScopeVariables: string[];
+
   constructor(protected store: Store<AppState>,
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: EntityGroupColumnDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<EntityGroupColumnDialogComponent, EntityGroupColumn>,
+              private widgetService: WidgetService,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
+    this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
 
   ngOnInit(): void {
