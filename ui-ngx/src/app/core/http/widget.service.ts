@@ -86,6 +86,10 @@ export class WidgetService {
     );
   }
 
+  public getWidgetScopeVariables(): string[] {
+    return ['tinycolor', 'cssjs', 'moment', '$', 'jQuery'];
+  }
+
   public getAllWidgetsBundles(config?: RequestConfig): Observable<Array<WidgetsBundle>> {
     return this.loadWidgetsBundleCache(config).pipe(
       map(() => this.allWidgetsBundles)
@@ -343,5 +347,4 @@ export class WidgetService {
     this.widgetsBundleCacheSubject = undefined;
     this.widgetTypeInfosCache.clear();
   }
-
 }

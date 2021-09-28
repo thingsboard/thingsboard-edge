@@ -50,6 +50,7 @@
         formControlName="getLocationFunction"
         functionName="getLocation"
         [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+        [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
       ></tb-js-func>
     </ng-template>
@@ -58,6 +59,7 @@
         formControlName="getPhoneNumberFunction"
         functionName="getPhoneNumber"
         [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+        [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
       ></tb-js-func>
     </ng-template>
@@ -69,6 +71,7 @@
         formControlName="processImageFunction"
         functionName="processImage"
         [functionArgs]="['imageUrl', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+        [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
       ></tb-js-func>
     </ng-template>
@@ -77,6 +80,7 @@
         formControlName="processQrCodeFunction"
         functionName="processQrCode"
         [functionArgs]="['code', 'format', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+        [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
       ></tb-js-func>
     </ng-template>
@@ -85,6 +89,7 @@
         formControlName="processLocationFunction"
         functionName="processLocation"
         [functionArgs]="['latitude', 'longitude', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+        [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
       ></tb-js-func>
     </ng-template>
@@ -96,6 +101,7 @@
         formControlName="processLaunchResultFunction"
         functionName="processLaunchResult"
         [functionArgs]="['launched', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+        [globalVariables]="functionScopeVariables"
         [editorCompleter]="customActionEditorCompleter"
       ></tb-js-func>
     </ng-template>
@@ -104,12 +110,14 @@
               formControlName="handleEmptyResultFunction"
               functionName="handleEmptyResult"
               [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+              [globalVariables]="functionScopeVariables"
               [editorCompleter]="customActionEditorCompleter"
   ></tb-js-func>
   <tb-js-func *ngIf="mobileActionFormGroup.get('type').value"
     formControlName="handleErrorFunction"
     functionName="handleError"
     [functionArgs]="['error', '$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+    [globalVariables]="functionScopeVariables"
     [editorCompleter]="customActionEditorCompleter"
   ></tb-js-func>
 </div>

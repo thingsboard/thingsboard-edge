@@ -29,26 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { deepClone } from '@core/utils';
 import {
   WidgetMobileActionDescriptor,
-  WidgetMobileActionType, widgetMobileActionTypeTranslationMap
+  WidgetMobileActionType,
+  widgetMobileActionTypeTranslationMap
 } from '@shared/models/widget.models';
 import { CustomActionEditorCompleter } from '@home/components/widget/action/custom-action.models';
 import { JsFuncComponent } from '@shared/components/js-func.component';
 import {
-  getDefaultGetLocationFunction, getDefaultGetPhoneNumberFunction,
+  getDefaultGetLocationFunction,
+  getDefaultGetPhoneNumberFunction,
   getDefaultHandleEmptyResultFunction,
   getDefaultHandleErrorFunction,
   getDefaultProcessImageFunction,
-  getDefaultProcessLaunchResultFunction, getDefaultProcessLocationFunction,
+  getDefaultProcessLaunchResultFunction,
+  getDefaultProcessLocationFunction,
   getDefaultProcessQrCodeFunction
 } from '@home/components/widget/action/mobile-action-editor.models';
+import { WidgetService } from '@core/http/widget.service';
 
 @Component({
   selector: 'tb-mobile-action-editor',
@@ -73,6 +76,8 @@ export class MobileActionEditorComponent implements ControlValueAccessor, OnInit
   mobileActionFormGroup: FormGroup;
   mobileActionTypeFormGroup: FormGroup;
 
+  functionScopeVariables: string[];
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;
@@ -88,7 +93,9 @@ export class MobileActionEditorComponent implements ControlValueAccessor, OnInit
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private widgetService: WidgetService) {
+    this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
 
   registerOnChange(fn: any): void {
