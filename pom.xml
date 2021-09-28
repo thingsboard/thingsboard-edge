@@ -110,6 +110,7 @@
         <postgresql.driver.version>42.2.20</postgresql.driver.version>
         <azure-messaging-eventhubs.version>5.5.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
+        <proton-j.version>0.33.2</proton-j.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
             org/thingsboard/server/extensions/core/plugin/telemetry/gen/**/*
         </sonar.exclusions>
@@ -986,6 +987,11 @@
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>azure-integrations</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.qpid</groupId>
+                <artifactId>proton-j</artifactId>
+                <version>${proton-j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>

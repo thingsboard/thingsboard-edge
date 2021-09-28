@@ -72,6 +72,10 @@
             <groupId>com.microsoft.azure.sdk.iot</groupId>
             <artifactId>iot-service-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.qpid</groupId>
+            <artifactId>proton-j</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
