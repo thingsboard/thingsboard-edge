@@ -571,7 +571,7 @@ function applyCustomCss(customCss: string, isLoginTheme: boolean) {
   }
   let css;
   if (customCss && customCss.length) {
-    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-dark' : 'tb-default';
+    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-custom-css' : 'tb-default';
     css = cssParser.applyNamespacing(customCss);
     if (typeof css !== 'string') {
       css = cssParser.getCSSForEditor(css);

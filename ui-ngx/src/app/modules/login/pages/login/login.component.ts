@@ -58,7 +58,7 @@ export class LoginComponent extends PageComponent implements OnInit {
   });
   oauth2Clients: Array<OAuth2ClientInfo> = null;
 
-  @HostBinding('class') class = 'tb-dark';
+  @HostBinding('class') class = 'tb-custom-css';
 
   constructor(protected store: Store<AppState>,
               private authService: AuthService,
