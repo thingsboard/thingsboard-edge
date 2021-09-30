@@ -46,6 +46,7 @@ import org.thingsboard.server.transport.mqtt.adaptors.ProtoMqttAdaptor;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ashvayka on 04.10.18.
@@ -86,4 +87,19 @@ public class MqttTransportContext extends TransportContext {
     @Getter
     @Value("${transport.mqtt.timeout:10000}")
     private long timeout;
+
+    private final AtomicInteger connectionsCounter = new AtomicInteger();
+
+    @PostConstruct
+    public void init() {
+        transportService.createGaugeStats("openConnections", connectionsCounter);
+    }
+
+    public void channelRegistered() {
+        connectionsCounter.incrementAndGet();
+    }
+
+    public void channelUnregistered() {
+        connectionsCounter.decrementAndGet();
+    }
 }
