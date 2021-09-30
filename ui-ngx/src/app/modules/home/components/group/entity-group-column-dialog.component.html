@@ -102,6 +102,7 @@
       <tb-js-func
         formControlName="cellStyleFunction"
         [functionArgs]="['value', 'entity']"
+        [globalVariables]="functionScopeVariables"
         [validationArgs]="[]">
       </tb-js-func>
       <mat-checkbox formControlName="useCellContentFunction" style="padding-bottom: 16px;">
@@ -110,6 +111,7 @@
       <tb-js-func
         formControlName="cellContentFunction"
         [functionArgs]="['value', 'entity', 'datePipe']"
+        [globalVariables]="functionScopeVariables"
         [validationArgs]="[]">
       </tb-js-func>
     </fieldset>
