@@ -186,6 +186,10 @@ import { TbComponentOutletDirective} from '@shared/components/directives/compone
 import { HelpMarkdownComponent } from '@shared/components/help-markdown.component';
 import { MarkedOptionsService } from '@shared/components/marked-options.service';
 
+export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
+  return markedOptionsService;
+}
+
 @NgModule({
   providers: [
     DatePipe,
@@ -370,7 +374,7 @@ import { MarkedOptionsService } from '@shared/components/marked-options.service'
       sanitize: SecurityContext.NONE,
       markedOptions: {
         provide: MarkedOptions,
-        useFactory: (markedOptionsService: MarkedOptionsService) => markedOptionsService,
+        useFactory: MarkedOptionsFactory,
         deps: [MarkedOptionsService]
       }
     })
