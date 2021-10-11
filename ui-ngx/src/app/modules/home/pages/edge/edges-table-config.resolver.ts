@@ -70,6 +70,8 @@ import { Edge, EdgeInfo } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { EdgeId } from '@shared/models/id/edge-id';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
@@ -82,6 +84,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
               private edgeService: EdgeService,
               private customerService: CustomerService,
               private dialogService: DialogService,
+              private userPermissionsService: UserPermissionsService,
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
@@ -324,7 +327,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
 
   configureAddActions(edgeScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    if (edgeScope === 'tenant') {
+    if (edgeScope === 'tenant' && this.userPermissionsService.hasResourcesGenericPermission(Resource.EDGE, [Operation.CREATE, Operation.WRITE])) {
       actions.push(
         {
           name: this.translate.instant('edge.add-edge-text'),
