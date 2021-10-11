@@ -33,13 +33,13 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  forwardRef,
+  forwardRef, Injector,
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
+  OnInit, Renderer2,
   SimpleChanges,
-  ViewChild,
+  ViewChild, ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
@@ -61,6 +61,9 @@ import { GroupInfo } from '@shared/models/widget.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { Observable } from 'rxjs/internal/Observable';
 import { forkJoin, from } from 'rxjs';
+import { MouseEvent } from 'react';
+import { TbPopoverService } from '@shared/components/popover.component';
+import { HelpMarkdownComponent } from '@shared/components/help-markdown.component';
 
 const tinycolor = tinycolor_;
 
@@ -107,6 +110,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     onColorClick: this.onColorClick.bind(this),
     onIconClick: this.onIconClick.bind(this),
     onToggleFullscreen: this.onToggleFullscreen.bind(this),
+    onHelpClick: this.onHelpClick.bind(this),
     primaryPalette: this.whiteLabelingService.getPrimaryPalette(),
     accentPalette: this.whiteLabelingService.getAccentPalette()
   };
@@ -132,6 +136,9 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
   constructor(public elementRef: ElementRef,
               private translate: TranslateService,
               private dialogs: DialogService,
+              private popoverService: TbPopoverService,
+              private renderer: Renderer2,
+              private viewContainerRef: ViewContainerRef,
               private whiteLabelingService: WhiteLabelingService,
               protected store: Store<AppState>,
               private cd: ChangeDetectorRef) {
@@ -260,6 +267,11 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
       this.fullscreenFinishFn();
       this.fullscreenFinishFn = null;
     }
+  }
+
+  private onHelpClick(event: MouseEvent, helpId: string, helpVisibleFn: (visible: boolean) => void, helpReadyFn: (ready: boolean) => void) {
+    const trigger = event.currentTarget as Element;
+    this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef, helpId, helpVisibleFn, helpReadyFn);
   }
 
   private updateAndRender() {

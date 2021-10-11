@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.sql.relation;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -174,11 +176,16 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
 
     @Override
     public boolean deleteOutboundRelations(TenantId tenantId, EntityId entity) {
-        boolean relationExistsBeforeDelete = relationRepository
-                .findAllByFromIdAndFromType(entity.getId(), entity.getEntityType().name())
-                .size() > 0;
-        if (relationExistsBeforeDelete) {
-            relationRepository.deleteByFromIdAndFromType(entity.getId(), entity.getEntityType().name());
+        boolean relationExistsBeforeDelete = false;
+        try {
+            relationExistsBeforeDelete = relationRepository
+                    .findAllByFromIdAndFromType(entity.getId(), entity.getEntityType().name())
+                    .size() > 0;
+            if (relationExistsBeforeDelete) {
+                relationRepository.deleteByFromIdAndFromType(entity.getId(), entity.getEntityType().name());
+            }
+        } catch (ConcurrencyFailureException e) {
+            log.debug("Concurrency exception while deleting relations [{}]", entity, e);
         }
         return relationExistsBeforeDelete;
     }

@@ -179,7 +179,12 @@ import { OtaPackageAutocompleteComponent } from '@shared/components/ota-package/
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CopyButtonComponent } from '@shared/components/button/copy-button.component';
 import { TogglePasswordComponent } from '@shared/components/button/toggle-password.component';
-import { markedOptionsFactory } from '@shared/components/markdown.factory';
+import { HelpPopupComponent } from '@shared/components/help-popup.component';
+import { TbPopoverComponent, TbPopoverDirective, TbPopoverService } from '@shared/components/popover.component';
+import { TbStringTemplateOutletDirective } from '@shared/components/directives/sring-template-outlet.directive';
+import { TbComponentOutletDirective} from '@shared/components/directives/component-outlet.directive';
+import { HelpMarkdownComponent } from '@shared/components/help-markdown.component';
+import { MarkedOptionsService } from '@shared/components/marked-options.service';
 
 @NgModule({
   providers: [
@@ -204,7 +209,8 @@ import { markedOptionsFactory } from '@shared/components/markdown.factory';
     {
       provide: MAT_DATE_LOCALE,
       useValue: 'en-GB'
-    }
+    },
+    TbPopoverService
   ],
   declarations: [
     FooterComponent,
@@ -216,7 +222,13 @@ import { markedOptionsFactory } from '@shared/components/markdown.factory';
     MatChipDraggableDirective,
     TbHotkeysDirective,
     TbAnchorComponent,
+    TbPopoverComponent,
+    TbStringTemplateOutletDirective,
+    TbComponentOutletDirective,
+    TbPopoverDirective,
     HelpComponent,
+    HelpMarkdownComponent,
+    HelpPopupComponent,
     TbCheckboxComponent,
     TbSnackBarComponent,
     TbErrorComponent,
@@ -358,7 +370,8 @@ import { markedOptionsFactory } from '@shared/components/markdown.factory';
       sanitize: SecurityContext.NONE,
       markedOptions: {
         provide: MarkedOptions,
-        useFactory: markedOptionsFactory
+        useFactory: (markedOptionsService: MarkedOptionsService) => markedOptionsService,
+        deps: [MarkedOptionsService]
       }
     })
   ],
@@ -372,7 +385,12 @@ import { markedOptionsFactory } from '@shared/components/markdown.factory';
     MatChipDraggableDirective,
     TbHotkeysDirective,
     TbAnchorComponent,
+    TbStringTemplateOutletDirective,
+    TbComponentOutletDirective,
+    TbPopoverDirective,
     HelpComponent,
+    HelpMarkdownComponent,
+    HelpPopupComponent,
     TbCheckboxComponent,
     TbErrorComponent,
     TbCheatSheetComponent,

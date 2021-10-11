@@ -32,6 +32,7 @@
 import * as tinycolor_ from 'tinycolor2';
 import { GroupInfo } from '@shared/models/widget.models';
 import { ColorPalette } from '@shared/models/material.models';
+import { MouseEvent } from 'react';
 
 const tinycolor = tinycolor_;
 
@@ -62,8 +63,10 @@ export type onChangeFn = (key: (string | number)[], val: any, forceUpdate?: bool
 export type OnColorClickFn = (key: (string | number)[], val: tinycolor.ColorFormats.RGBA,
                               colorSelectedFn: (color: tinycolor.ColorFormats.RGBA) => void) => void;
 export type OnIconClickFn = (key: (string | number)[], val: string,
-                              iconSelectedFn: (icon: string) => void) => void;
+                             iconSelectedFn: (icon: string) => void) => void;
 export type onToggleFullscreenFn = (element: HTMLElement, fullscreenFinishFn?: () => void) => void;
+export type onHelpClickFn = (event: MouseEvent, helpId: string, helpVisibleFn: (visible: boolean) => void,
+                             helpReadyFn: (ready: boolean) => void) => void;
 
 export interface JsonFormProps {
   model?: any;
@@ -77,6 +80,7 @@ export interface JsonFormProps {
   onColorClick?: OnColorClickFn;
   onIconClick?: OnIconClickFn;
   onToggleFullscreen?: onToggleFullscreenFn;
+  onHelpClick?: onHelpClickFn;
   mapper?: {[type: string]: any};
   primaryPalette?: ColorPalette;
   accentPalette?: ColorPalette;
@@ -115,6 +119,7 @@ export interface JsonFormData {
   items?: Array<KeyLabelItem> | Array<JsonFormData>;
   tabs?: Array<JsonFormData>;
   tags?: any;
+  helpId?: string;
   startEmpty?: boolean;
   [key: string]: any;
 }
@@ -126,6 +131,7 @@ export type ComponentBuilderFn = (form: JsonFormData,
                                   onColorClick: OnColorClickFn,
                                   onIconClick: OnIconClickFn,
                                   onToggleFullscreen: onToggleFullscreenFn,
+                                  onHelpClick: onHelpClickFn,
                                   mapper: {[type: string]: any}) => JSX.Element;
 
 export interface JsonFormFieldProps {
@@ -139,6 +145,7 @@ export interface JsonFormFieldProps {
   onIconClick?: OnIconClickFn;
   onChangeValidate?: (e: any, forceUpdate?: boolean) => void;
   onToggleFullscreen?: onToggleFullscreenFn;
+  onHelpClick?: onHelpClickFn;
   valid?: boolean;
   error?: string;
   options?: {

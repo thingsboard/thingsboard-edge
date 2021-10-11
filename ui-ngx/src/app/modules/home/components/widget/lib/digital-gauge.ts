@@ -443,4 +443,8 @@ export class TbCanvasDigitalGauge {
     this.gauge.update({width: this.ctx.width, height: this.ctx.height} as GenericOptions);
   }
 
+  destroy() {
+    this.gauge.destroy();
+    this.gauge = null;
+  }
 }

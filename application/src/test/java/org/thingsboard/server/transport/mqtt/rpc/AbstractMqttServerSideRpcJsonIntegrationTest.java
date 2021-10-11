@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.TransportPayloadType;
+import org.thingsboard.server.common.data.device.profile.MqttTopics;
 
 @Slf4j
 public abstract class AbstractMqttServerSideRpcJsonIntegrationTest extends AbstractMqttServerSideRpcIntegrationTest {
@@ -52,12 +53,32 @@ public abstract class AbstractMqttServerSideRpcJsonIntegrationTest extends Abstr
 
     @Test
     public void testServerMqttOneWayRpc() throws Exception {
-        processOneWayRpcTest();
+        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttOneWayRpcOnShortTopic() throws Exception {
+        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttOneWayRpcOnShortJsonTopic() throws Exception {
+        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_JSON_TOPIC);
     }
 
     @Test
     public void testServerMqttTwoWayRpc() throws Exception {
-        processTwoWayRpcTest();
+        processTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttTwoWayRpcOnShortTopic() throws Exception {
+        processTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttTwoWayRpcOnShortJsonTopic() throws Exception {
+        processTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_JSON_TOPIC);
     }
 
     @Test

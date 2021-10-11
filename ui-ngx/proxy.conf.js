@@ -41,6 +41,10 @@ const PROXY_CONFIG = {
     "target": ruleNodeUiforwardUrl,
     "secure": false,
   },
+  "/assets/help/*/rulenode/**": {
+    "target": ruleNodeUiforwardUrl,
+    "secure": false,
+  },
   "/static/widgets": {
     "target": forwardUrl,
     "secure": false,

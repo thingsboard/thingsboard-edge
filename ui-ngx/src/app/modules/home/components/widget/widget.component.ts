@@ -43,7 +43,7 @@ import {
   NgZone,
   OnChanges,
   OnDestroy,
-  OnInit,
+  OnInit, Renderer2,
   SimpleChanges,
   ViewChild,
   ViewContainerRef,
@@ -126,6 +126,9 @@ import { ComponentType } from '@angular/cdk/portal';
 import { EMBED_DASHBOARD_DIALOG_TOKEN } from '@home/components/widget/dialog/embed-dashboard-dialog-token';
 import { MobileService } from '@core/services/mobile.service';
 import { DialogService } from '@core/services/dialog.service';
+import { TbPopoverService } from '@shared/components/popover.component';
+import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
+import { PopoverPlacement } from '@shared/components/popover.models';
 
 @Component({
   selector: 'tb-widget',
@@ -195,6 +198,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
               private elementRef: ElementRef,
               private injector: Injector,
               private dialog: MatDialog,
+              private renderer: Renderer2,
+              private popoverService: TbPopoverService,
               @Inject(EMBED_DASHBOARD_DIALOG_TOKEN) private embedDashboardDialogComponent: ComponentType<any>,
               private widgetService: WidgetService,
               private resources: ResourcesService,
@@ -314,7 +319,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       handleWidgetAction: this.handleWidgetAction.bind(this),
       elementClick: this.elementClick.bind(this),
       getActiveEntityInfo: this.getActiveEntityInfo.bind(this),
-      openDashboardStateInSeparateDialog: this.openDashboardStateInSeparateDialog.bind(this)
+      openDashboardStateInSeparateDialog: this.openDashboardStateInSeparateDialog.bind(this),
+      openDashboardStateInPopover: this.openDashboardStateInPopover.bind(this)
     };
 
     this.widgetContext.exportWidgetData = this.exportWidgetData.bind(this);
@@ -1077,7 +1083,11 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         const params = deepClone(this.widgetContext.stateController.getStateParams());
         this.updateEntityParams(params, targetEntityParamName, targetEntityId, entityName, entityLabel);
         if (type === WidgetActionType.openDashboardState) {
-          if (descriptor.openInSeparateDialog) {
+          if (descriptor.openInPopover) {
+            this.openDashboardStateInPopover($event, descriptor.targetDashboardStateId, params,
+              descriptor.popoverHideDashboardToolbar, descriptor.popoverPreferredPlacement,
+              descriptor.popoverHideOnClickOutside, descriptor.popoverWidth, descriptor.popoverHeight, descriptor.popoverStyle);
+          } else if (descriptor.openInSeparateDialog && !this.mobileService.isMobileApp()) {
             this.openDashboardStateInSeparateDialog(descriptor.targetDashboardStateId, params, descriptor.dialogTitle,
               descriptor.dialogHideDashboardToolbar, descriptor.dialogWidth, descriptor.dialogHeight);
           } else {
@@ -1330,6 +1340,53 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     }
   }
 
+  private openDashboardStateInPopover($event: Event,
+                                      targetDashboardStateId: string,
+                                      params?: StateParams,
+                                      hideDashboardToolbar = true,
+                                      preferredPlacement: PopoverPlacement = 'top',
+                                      hideOnClickOutside = true,
+                                      popoverWidth = '25vw',
+                                      popoverHeight = '25vh',
+                                      popoverStyle: { [klass: string]: any } = {}) {
+    const trigger = ($event.target || $event.srcElement || $event.currentTarget) as Element;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const dashboard = deepClone(this.widgetContext.stateController.dashboardCtrl.dashboardCtx.getDashboard());
+      const stateObject: StateObject = {};
+      stateObject.params = params;
+      if (targetDashboardStateId) {
+        stateObject.id = targetDashboardStateId;
+      }
+      const injector = Injector.create({
+        parent: this.widgetContentContainer.injector, providers: [
+          {
+            provide: 'embeddedValue',
+            useValue: true
+          }
+        ]
+      });
+      const component = this.popoverService.displayPopover(trigger, this.renderer,
+        this.widgetContentContainer, DashboardPageComponent, preferredPlacement, hideOnClickOutside,
+        injector,
+        {
+          embed: true,
+          syncStateWithQueryParam: false,
+          hideToolbar: hideDashboardToolbar,
+          currentState: objToBase64([stateObject]),
+          dashboard,
+          parentDashboard: this.widgetContext.parentDashboard ?
+            this.widgetContext.parentDashboard : this.widgetContext.dashboard
+        },
+        {width: popoverWidth, height: popoverHeight},
+        popoverStyle,
+        {}
+      );
+      this.widgetContext.registerPopoverComponent(component);
+    }
+  }
+
   private openDashboardStateInSeparateDialog(targetDashboardStateId: string, params?: StateParams, dialogTitle?: string,
                                              hideDashboardToolbar = true, dialogWidth?: number, dialogHeight?: number) {
     const dashboard = deepClone(this.widgetContext.stateController.dashboardCtrl.dashboardCtx.getDashboard());
@@ -1366,6 +1423,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     this.dialog.open(this.embedDashboardDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      viewContainerRef: this.widgetContentContainer,
       data: {
         dashboard,
         state: objToBase64([ stateObject ]),

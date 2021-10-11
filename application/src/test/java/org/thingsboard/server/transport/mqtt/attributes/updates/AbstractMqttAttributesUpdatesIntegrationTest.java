@@ -76,7 +76,17 @@ public abstract class AbstractMqttAttributesUpdatesIntegrationTest extends Abstr
 
     @Test
     public void testSubscribeToAttributesUpdatesFromTheServer() throws Exception {
-        processTestSubscribeToAttributesUpdates();
+        processTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
+    }
+
+    @Test
+    public void testSubscribeToAttributesUpdatesFromTheServerOnShortTopic() throws Exception {
+        processTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_TOPIC);
+    }
+
+    @Test
+    public void testSubscribeToAttributesUpdatesFromTheServerOnShortJsonTopic() throws Exception {
+        processTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC);
     }
 
     @Test
@@ -84,14 +94,14 @@ public abstract class AbstractMqttAttributesUpdatesIntegrationTest extends Abstr
         processGatewayTestSubscribeToAttributesUpdates();
     }
 
-    protected void processTestSubscribeToAttributesUpdates() throws Exception {
+    protected void processTestSubscribeToAttributesUpdates(String attrSubTopic) throws Exception {
 
         MqttAsyncClient client = getMqttAsyncClient(accessToken);
 
         TestMqttCallback onUpdateCallback = getTestMqttCallback();
         client.setCallback(onUpdateCallback);
 
-        client.subscribe(MqttTopics.DEVICE_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE.value());
+        client.subscribe(attrSubTopic, MqttQoS.AT_MOST_ONCE.value());
 
         Thread.sleep(1000);
 

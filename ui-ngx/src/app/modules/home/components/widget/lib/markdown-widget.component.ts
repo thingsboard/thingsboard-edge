@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostBinding, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
@@ -59,20 +59,21 @@ type MarkdownTextFunction = (data: FormattedData[]) => string;
 
 @Component({
   selector: 'tb-markdown-widget ',
-  templateUrl: './markdown-widget.component.html',
-  styleUrls: ['./markdown-widget.component.scss']
+  templateUrl: './markdown-widget.component.html'
 })
 export class MarkdownWidgetComponent extends PageComponent implements OnInit {
 
   settings: MarkdownWidgetSettings;
   markdownTextFunction: MarkdownTextFunction;
 
+  @HostBinding('class')
+  markdownClass: string;
+
   @Input()
   ctx: WidgetContext;
 
   markdownText: string;
 
-  markdownClass: string;
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
@@ -90,7 +91,7 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
       const cssParser = new cssjs();
       cssParser.testMode = false;
       this.markdownClass += '-' + hashCode(cssString);
-      cssParser.cssPreviewNamespace = 'tb-markdown-view.' + this.markdownClass;
+      cssParser.cssPreviewNamespace = this.markdownClass;
       cssParser.createStyleElement(this.markdownClass, cssString);
     }
   }

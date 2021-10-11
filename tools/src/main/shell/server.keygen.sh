@@ -120,7 +120,7 @@ keytool -genkeypair -v \
   -keypass $SERVER_KEY_PASSWORD \
   -storepass $SERVER_KEYSTORE_PASSWORD \
   -keyalg $SERVER_KEY_ALG \
-  -keysize $SERVER_KEY_SIZE \
+  -groupname $SERVER_KEY_GROUP_NAME \
   -validity 9999 \
   $EXT
 

@@ -98,6 +98,7 @@ import { Router } from '@angular/router';
 import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
 import { EdgeService } from '@core/http/edge.service';
 import { FormattedData } from '@home/components/widget/lib/maps/map-models';
+import { TbPopoverComponent } from '@shared/components/popover.component';
 
 export interface IWidgetAction {
   name: string;
@@ -126,10 +127,11 @@ export class WidgetContext {
 
   constructor(public dashboard: IDashboardComponent,
               private dashboardWidget: IDashboardWidget,
-              private widget: Widget) {}
+              private widget: Widget,
+              public parentDashboard?: IDashboardComponent) {}
 
   get stateController(): IStateController {
-    return this.dashboard.stateController;
+    return this.parentDashboard ? this.parentDashboard.stateController : this.dashboard.stateController;
   }
 
   get aliasController(): IAliasController {
@@ -278,6 +280,8 @@ export class WidgetContext {
 
   store?: Store<AppState>;
 
+  private popoverComponents: TbPopoverComponent[] = [];
+
   rxjs = {
     forkJoin,
     of,
@@ -286,6 +290,28 @@ export class WidgetContext {
     switchMap,
     catchError
   };
+
+  registerPopoverComponent(popoverComponent: TbPopoverComponent) {
+    this.popoverComponents.push(popoverComponent);
+    popoverComponent.tbDestroy.subscribe(() => {
+      const index = this.popoverComponents.indexOf(popoverComponent, 0);
+      if (index > -1) {
+        this.popoverComponents.splice(index, 1);
+      }
+    });
+  }
+
+  updatePopoverPositions() {
+    this.popoverComponents.forEach(comp => {
+      comp.updatePosition();
+    });
+  }
+
+  setPopoversHidden(hidden: boolean) {
+    this.popoverComponents.forEach(comp => {
+      comp.tbHidden = hidden;
+    });
+  }
 
   showSuccessToast(message: string, duration: number = 1000,
                    verticalPosition: NotificationVerticalPosition = 'bottom',
