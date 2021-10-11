@@ -108,7 +108,7 @@ public class EdgeController extends BaseController {
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.READ);
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.CREATE)) {
                 cleanUpLicenseKey(edge);
             }
             return edge;
@@ -322,7 +322,7 @@ public class EdgeController extends BaseController {
             } else {
                 result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
             }
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.CREATE)) {
                 for (Edge edge : result.getData()) {
                     cleanUpLicenseKey(edge);
                 }
@@ -375,7 +375,7 @@ public class EdgeController extends BaseController {
                 edgesFuture = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
             }
             List<Edge> edges = edgesFuture.get();
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.CREATE)) {
                 for (Edge edge : edges) {
                     cleanUpLicenseKey(edge);
                 }
@@ -406,7 +406,7 @@ public class EdgeController extends BaseController {
                     return false;
                 }
             }).collect(Collectors.toList());
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.CREATE)) {
                 for (Edge edge : edges) {
                     cleanUpLicenseKey(edge);
                 }
