@@ -327,7 +327,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
 
   configureAddActions(edgeScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    if (edgeScope === 'tenant' && this.userPermissionsService.hasResourcesGenericPermission(Resource.EDGE, [Operation.CREATE, Operation.WRITE])) {
+    if (edgeScope === 'tenant' && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.CREATE)) {
       actions.push(
         {
           name: this.translate.instant('edge.add-edge-text'),
