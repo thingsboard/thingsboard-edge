@@ -236,7 +236,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
                     Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
-                    UUID sessionId = UUID.randomUUID();
+                    UUID sessionId = this.sessionId;
                     TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                             .setSessionIdMSB(sessionId.getMostSignificantBits())
                             .setSessionIdLSB(sessionId.getLeastSignificantBits())

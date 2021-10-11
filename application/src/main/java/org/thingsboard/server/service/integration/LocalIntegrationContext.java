@@ -87,7 +87,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
         Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
-        UUID sessionId = UUID.randomUUID();
+        UUID sessionId = configuration.getUuidId(); //for local integration context sessionId is exact integrationId
         TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
