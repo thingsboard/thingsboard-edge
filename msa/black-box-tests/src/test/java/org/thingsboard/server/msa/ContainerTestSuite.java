@@ -58,6 +58,7 @@ public class ContainerTestSuite {
     private static final String SOURCE_DIR = "./../../docker/";
     private static final String TB_CORE_LOG_REGEXP = ".*Starting polling for events.*";
     private static final String TRANSPORTS_LOG_REGEXP = ".*Going to recalculate partitions.*";
+    private static final String INTEGRATION_LOG_REGEXP = ".*Sending a connect request to the TB!.*";
 
     private static DockerComposeContainer<?> testContainer;
 
@@ -73,6 +74,9 @@ public class ContainerTestSuite {
                 log.info("targetDir {}", targetDir);
                 FileUtils.copyDirectory(new File(SOURCE_DIR), new File(targetDir));
                 replaceInFile(targetDir + "advanced/docker-compose.yml", "    container_name: \"${LOAD_BALANCER_NAME}\"", "", "container_name");
+
+                final String httpIntegrationDir = "src/test/resources";
+                FileUtils.copyDirectory(new File(httpIntegrationDir), new File(targetDir));
 
                 class DockerComposeContainerImpl<SELF extends DockerComposeContainer<SELF>> extends DockerComposeContainer<SELF> {
                     public DockerComposeContainerImpl(File... composeFiles) {
@@ -90,6 +94,7 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
+                        new File(targetDir + "docker-compose.http.integration.yml"),
                         new File(targetDir + "advanced/docker-compose.kafka.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
@@ -97,12 +102,14 @@ public class ContainerTestSuite {
                         .withEnv(installTb.getEnv())
                         .withEnv("LOAD_BALANCER_NAME", "")
                         .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(400)))
+                        .withExposedService("tb-pe-http-integration", 8082)
                         .waitingFor("tb-core1", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-core2", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-http-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-http-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-mqtt-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)));
+                        .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-pe-http-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)));
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 fail("Failed to create test container");
