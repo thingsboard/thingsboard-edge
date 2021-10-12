@@ -80,7 +80,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
+public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
 
     private IdComparator<EntityGroup> idComparator = new IdComparator<>();
 

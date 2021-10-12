@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import java.io.IOException;
 
-public class BaseWhiteLabelingServiceTest extends AbstractBeforeTest {
+public abstract class BaseWhiteLabelingServiceTest extends AbstractBeforeTest {
 
     private TenantId tenantId;
     private CustomerId customerId;
