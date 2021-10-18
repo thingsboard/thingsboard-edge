@@ -38,5 +38,6 @@ export interface BlobEntitiesWidgetSettings {
   displayPagination: boolean;
   defaultPageSize: number;
   defaultSortOrder: string;
+  noDataDisplayMessage: string;
   forceDefaultType: string;
 }

@@ -64,8 +64,9 @@ import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
+import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isNumber } from '@core/utils';
+import { deepClone, isDefined, isNotEmptyStr, isNumber } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -95,7 +96,7 @@ import * as _moment from 'moment';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
 import { getUserZone } from '@shared/models/time/time.models';
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute } from '@angular/router';
 import {
   AddEntitiesToEdgeDialogComponent,
   AddEntitiesToEdgeDialogData
@@ -152,6 +153,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
+  noDataDisplayMessage: string;
 
   displayedColumns: string[];
   pageLink: PageLink;
@@ -184,6 +186,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   schedulerContextMenuEvent: MouseEvent;
 
   constructor(protected store: Store<AppState>,
+              private utils: UtilsService,
               public translate: TranslateService,
               private schedulerEventService: SchedulerEventService,
               private userPermissionsService: UserPermissionsService,
@@ -279,6 +282,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (sortOrder.property === 'customer') {
       sortOrder.property = 'customerTitle';
     }
+    this.noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '';
     this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
     if (this.settings.forceDefaultEventType && this.settings.forceDefaultEventType.length) {
       this.defaultEventType = this.settings.forceDefaultEventType;
@@ -328,6 +332,11 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.ctx.detectChanges();
       }
     });
+  }
+
+  get noDataDisplayMessageText() {
+    const noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '{i18n:scheduler.no-scheduler-events}';
+    return this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
   }
 
   ngAfterViewInit() {
