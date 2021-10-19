@@ -43,11 +43,10 @@ import {
   ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import { merge, Observable, of, Subject } from 'rxjs';
 import {
   catchError,
   debounceTime,
-  distinctUntilChanged,
   map,
   publishReplay,
   refCount,
@@ -63,7 +62,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { isEqual } from '@core/utils';
+import { isEqual, isObject } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -121,6 +120,8 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   filteredEntityGroups: Observable<Array<EntityGroupInfo>>;
 
+  cleanFilteredEntityGroups: Subject<Array<EntityGroupInfo>>;
+
   allEntityGroups: Observable<Array<EntityGroupInfo>>;
 
   searchText = '';
@@ -146,7 +147,8 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   ngOnInit() {
-    this.filteredEntityGroups = this.selectEntityGroupFormGroup.get('entityGroup').valueChanges
+    this.cleanFilteredEntityGroups = new Subject();
+    const getEntityGroup: Observable<Array<EntityGroupInfo>> =  this.selectEntityGroupFormGroup.get('entityGroup').valueChanges
       .pipe(
         debounceTime(150),
         tap(value => {
@@ -162,10 +164,14 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           }
         }),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-        distinctUntilChanged(),
-        switchMap(name => this.fetchEntityGroups(name) ),
+        switchMap(name => this.fetchEntityGroups(name)),
         share()
       );
+
+    this.filteredEntityGroups = merge(
+      this.cleanFilteredEntityGroups,
+      getEntityGroup
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -238,14 +244,17 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   reset() {
+    this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
     this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
   }
 
-  updateView(value: string | null, entityGroup: EntityGroupInfo) {
-    if (this.modelValue !== value) {
-      this.modelValue = value;
+  updateView(newModelValue: string | null, entityGroup: EntityGroupInfo) {
+    if (this.modelValue !== newModelValue) {
+      this.modelValue = newModelValue;
       this.propagateChange(this.modelValue);
+    }
+    if (isObject(entityGroup)) {
       this.entityGroupLoaded.next(entityGroup);
     }
   }
