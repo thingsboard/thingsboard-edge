@@ -210,8 +210,10 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
   }
 
   get noDataDisplayMessageText() {
-    const noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '{i18n:blob-entity.no-blob-entities-prompt}';
-    return this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
+    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
+    return isNotEmptyStr(noDataDisplayMessage)
+      ? this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage)
+      : this.translate.instant('blob-entity.no-blob-entities-prompt');
   }
 
   ngAfterViewInit(): void {

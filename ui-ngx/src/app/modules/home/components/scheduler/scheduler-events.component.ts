@@ -335,8 +335,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   get noDataDisplayMessageText() {
-    const noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '{i18n:scheduler.no-scheduler-events}';
-    return this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
+    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
+    return isNotEmptyStr(noDataDisplayMessage)
+      ? this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage)
+      : this.translate.instant('scheduler.no-scheduler-events');
   }
 
   ngAfterViewInit() {
