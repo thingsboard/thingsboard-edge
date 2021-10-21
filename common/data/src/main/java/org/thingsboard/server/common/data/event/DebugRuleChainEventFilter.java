@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.common.data.event;
 
+import io.swagger.annotations.ApiModel;
+
+@ApiModel
 public class DebugRuleChainEventFilter extends DebugRuleEngineEventFilter {
     @Override
     public EventType getEventType() {

@@ -32,6 +32,8 @@ package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -42,6 +44,7 @@ import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.Set;
 
+@ApiModel
 public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
 
     private TenantId tenantId;
@@ -75,6 +78,22 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.mobileOrder = dashboardInfo.getMobileOrder();
     }
 
+    @ApiModelProperty(position = 1, value = "JSON object with the dashboard Id. " +
+            "Specify existing dashboard Id to update the dashboard. " +
+            "Referencing non-existing dashboard id will cause error. " +
+            "Omit this field to create new dashboard." )
+    @Override
+    public DashboardId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
+    }
+
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", readOnly = true)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -83,6 +102,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.tenantId = tenantId;
     }
 
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ")
     public CustomerId getCustomerId() {
         return customerId;
     }
@@ -91,6 +111,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.customerId = customerId;
     }
 
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id. ")
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -105,6 +126,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         }
     }
 
+    @ApiModelProperty(position = 6, value = "Title of the dashboard.")
     public String getTitle() {
         return title;
     }
@@ -113,6 +135,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.title = title;
     }
 
+    @ApiModelProperty(position = 7, value = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", readOnly = true)
     public String getImage() {
         return image;
     }
@@ -121,6 +144,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.image = image;
     }
 
+    @ApiModelProperty(position = 8, value = "List of assigned customers with their info.", readOnly = true)
     public Set<ShortCustomerInfo> getAssignedCustomers() {
         return assignedCustomers;
     }
@@ -129,6 +153,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.assignedCustomers = assignedCustomers;
     }
 
+    @ApiModelProperty(position = 9, value = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", readOnly = true)
     public boolean isMobileHide() {
         return mobileHide;
     }
@@ -137,6 +162,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.mobileHide = mobileHide;
     }
 
+    @ApiModelProperty(position = 10, value = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", readOnly = true)
     public Integer getMobileOrder() {
         return mobileOrder;
     }
@@ -148,7 +174,6 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     public boolean isAssignedToCustomer(CustomerId customerId) {
         return this.assignedCustomers != null && this.assignedCustomers.contains(new ShortCustomerInfo(customerId, null, false));
     }
-
 
     public ShortCustomerInfo getAssignedCustomerInfo(CustomerId customerId) {
         if (this.assignedCustomers != null) {
@@ -204,6 +229,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         }
     }
 
+    @ApiModelProperty(position = 11, value = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", readOnly = true)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

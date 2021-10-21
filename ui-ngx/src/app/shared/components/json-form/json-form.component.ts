@@ -62,8 +62,7 @@ import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { Observable } from 'rxjs/internal/Observable';
 import { forkJoin, from } from 'rxjs';
 import { MouseEvent } from 'react';
-import { TbPopoverService } from '@shared/components/popover.component';
-import { HelpMarkdownComponent } from '@shared/components/help-markdown.component';
+import { TbPopoverService } from '@shared/components/popover.service';
 
 const tinycolor = tinycolor_;
 
@@ -271,7 +270,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
 
   private onHelpClick(event: MouseEvent, helpId: string, helpVisibleFn: (visible: boolean) => void, helpReadyFn: (ready: boolean) => void) {
     const trigger = event.currentTarget as Element;
-    this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef, helpId, helpVisibleFn, helpReadyFn);
+    this.popoverService.toggleHelpPopover(trigger, this.renderer, this.viewContainerRef, helpId, '', helpVisibleFn, helpReadyFn);
   }
 
   private updateAndRender() {

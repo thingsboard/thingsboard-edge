@@ -300,6 +300,7 @@ export interface IWidgetSubscription {
   hiddenData?: Array<{data: DataSet}>;
   timeWindowConfig?: Timewindow;
   timeWindow?: WidgetTimewindow;
+  widgetTimewindowChanged$: Observable<WidgetTimewindow>;
   comparisonEnabled?: boolean;
   comparisonTimeWindow?: WidgetTimewindow;
 

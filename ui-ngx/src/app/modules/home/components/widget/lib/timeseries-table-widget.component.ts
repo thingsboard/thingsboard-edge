@@ -162,6 +162,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   private rowStylesInfo: RowStyleInfo;
 
   private subscriptions: Subscription[] = [];
+  private widgetTimewindowChanged$: Subscription;
 
   private searchAction: WidgetAction = {
     name: 'action.search',
@@ -191,6 +192,25 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     this.datasources = this.ctx.datasources;
     this.initialize();
     this.ctx.updateWidgetParams();
+
+    if (this.displayPagination) {
+      this.widgetTimewindowChanged$ = this.ctx.defaultSubscription.widgetTimewindowChanged$.subscribe(
+        () => {
+          this.sources.forEach((source) => {
+            if (this.displayPagination) {
+              source.pageLink.page = 0;
+            }
+          });
+        }
+      );
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.widgetTimewindowChanged$) {
+      this.widgetTimewindowChanged$.unsubscribe();
+      this.widgetTimewindowChanged$ = null;
+    }
   }
 
   ngAfterViewInit(): void {

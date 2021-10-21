@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service.sql;
+package org.thingsboard.server.dao.service.psql;
 
 import org.thingsboard.server.dao.service.BaseEntityServiceTest;
-import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.service.DaoPostgreSqlTest;
 
-@DaoSqlTest
-public class EntityServiceSqlTest extends BaseEntityServiceTest {
+@DaoPostgreSqlTest
+public class EntityServicePostgreSqlTest extends BaseEntityServiceTest {
 }

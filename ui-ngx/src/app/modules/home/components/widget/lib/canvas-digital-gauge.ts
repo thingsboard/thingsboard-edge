@@ -291,7 +291,6 @@ export class CanvasDigitalGauge extends BaseGauge {
         }
       }
     }
-
     options.ticksValue = [];
     for (const tick of options.ticks) {
       if (tick !== null) {
@@ -835,7 +834,7 @@ function getProgressColor(progress: number, colorsRange: DigitalGaugeColorRange[
     return colorsRange[0].rgbString;
   }
 
-  for (let j = 0; j < colorsRange.length; j++) {
+  for (let j = 1; j < colorsRange.length; j++) {
     if (progress <= colorsRange[j].pct) {
       const lower = colorsRange[j - 1];
       const upper = colorsRange[j];
@@ -851,6 +850,7 @@ function getProgressColor(progress: number, colorsRange: DigitalGaugeColorRange[
       return color.toRgbString();
     }
   }
+  return colorsRange[colorsRange.length - 1].rgbString;
 }
 
 function drawArcGlow(context: DigitalGaugeCanvasRenderingContext2D,

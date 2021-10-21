@@ -31,10 +31,12 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +52,8 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -74,6 +78,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 @RestController
@@ -86,10 +91,15 @@ public class AssetController extends BaseController {
 
     public static final String ASSET_ID = "assetId";
 
+    @ApiOperation(value = "Get Asset (getAssetById)",
+            notes = "Fetch the Asset object based on the provided Asset Id. " +
+                    "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
+                    "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.GET)
     @ResponseBody
-    public Asset getAssetById(@PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+    public Asset getAssetById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION)
+                              @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
         checkParameter(ASSET_ID, strAssetId);
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
@@ -99,6 +109,11 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Asset (saveAsset)",
+            notes = "Creates or Updates the Asset. When creating asset, platform generates Asset Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+                    "The newly created Asset id will be present in the response. " +
+                    "Specify existing Asset id to update the asset. " +
+                    "Referencing non-existing Asset Id will cause 'Not Found' error.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
@@ -110,10 +125,12 @@ public class AssetController extends BaseController {
         return saveGroupEntity(asset, strEntityGroupId, assetService::saveAsset);
     }
 
+    @ApiOperation(value = "Delete asset (deleteAsset)",
+            notes = "Deletes the asset and all the relations (from and to the asset). Referencing non-existing asset Id will cause an error.")
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteAsset(@PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+    public void deleteAsset(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
         checkParameter(ASSET_ID, strAssetId);
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
@@ -137,15 +154,25 @@ public class AssetController extends BaseController {
         }
     }
 
+
+    @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",
+            notes = "Returns a page of assets owned by tenant. " +
+                    PAGE_DATA_PARAMETERS, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Asset> getTenantAssets(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION)
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION)
             @RequestParam int page,
+            @ApiParam(value = ASSET_TYPE_DESCRIPTION)
             @RequestParam(required = false) String type,
+            @ApiParam(value = ASSET_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ASSET_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
@@ -161,10 +188,14 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Tenant Asset (getTenantAsset)",
+            notes = "Requested asset must be owned by tenant that the user belongs to. " +
+                    "Asset name is an unique property of asset. So it can be used to identify the asset.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/assets", params = {"assetName"}, method = RequestMethod.GET)
     @ResponseBody
     public Asset getTenantAsset(
+            @ApiParam(value = ASSET_NAME_DESCRIPTION)
             @RequestParam String assetName) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
@@ -175,16 +206,26 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Customer Assets (getCustomerAssets)",
+            notes = "Returns a page of assets objects assigned to customer. " +
+                    PAGE_DATA_PARAMETERS, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Asset> getCustomerAssets(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
             @PathVariable("customerId") String strCustomerId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION)
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION)
             @RequestParam int page,
+            @ApiParam(value = ASSET_TYPE_DESCRIPTION)
             @RequestParam(required = false) String type,
+            @ApiParam(value = ASSET_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ASSET_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
@@ -207,11 +248,17 @@ public class AssetController extends BaseController {
     @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Asset> getUserAssets(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION)
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION)
             @RequestParam int page,
+            @ApiParam(value = ASSET_TYPE_DESCRIPTION)
             @RequestParam(required = false) String type,
+            @ApiParam(value = ASSET_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ASSET_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -224,10 +271,13 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Assets By Ids (getAssetsByIds)",
+            notes = "Requested assets must be owned by tenant or assigned to customer which user is performing the request. ", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assets", params = {"assetIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Asset> getAssetsByIds(
+            @ApiParam(value = "A list of assets ids, separated by comma ','")
             @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException {
         checkArrayParameter("assetIds", strAssetIds);
         try {
@@ -244,6 +294,10 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Find related assets (findByQuery)",
+            notes = "Returns all assets that are related to the specific entity. " +
+                    "The entity id, relation type, asset types, depth of the search, and other query parameters defined using complex 'AssetSearchQuery' object. " +
+                    "See 'Model' tab of the Parameters for more info.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assets", method = RequestMethod.POST)
     @ResponseBody
@@ -260,7 +314,6 @@ public class AssetController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Asset> getAssetsByEntityGroupId(
@@ -294,6 +347,8 @@ public class AssetController extends BaseController {
         }).collect(Collectors.toList());
     }
 
+    @ApiOperation(value = "Get Asset Types (getAssetTypes)",
+            notes = "Returns a set of unique asset types based on assets that are either owned by the tenant or assigned to the customer which user is performing the request.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/types", method = RequestMethod.GET)
     @ResponseBody
@@ -308,6 +363,8 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Import the bulk of assets (processAssetsBulkImport)",
+            notes = "There's an ability to import the bulk of assets using the only .csv file.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @PostMapping("/asset/bulk_import")
     public BulkImportResult<Asset> processAssetBulkImport(@RequestBody BulkImportRequest request) throws Exception {

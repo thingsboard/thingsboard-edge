@@ -32,7 +32,7 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -41,6 +41,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityInfo } from '@shared/models/entity.models';
 import { EntityFilter } from '@shared/models/query/query.models';
 import { EntityService } from '@core/http/entity.service';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-aliases-entity-autocomplete',
@@ -113,10 +114,10 @@ export class AliasesEntityAutocompleteComponent implements ControlValueAccessor,
           }
           this.updateView(modelValue);
         }),
-        startWith<string | EntityInfo>(''),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
         distinctUntilChanged(),
-        switchMap(name => this.fetchEntityInfos(name))
+        switchMap(name => this.fetchEntityInfos(name)),
+        share()
       );
   }
 
@@ -129,12 +130,12 @@ export class AliasesEntityAutocompleteComponent implements ControlValueAccessor,
 
   writeValue(value: EntityInfo | null): void {
     this.searchText = '';
-    if (value != null) {
+    if (isDefinedAndNotNull(value)) {
       this.modelValue = value;
       this.selectEntityInfoFormGroup.get('entityInfo').patchValue(value, {emitEvent: true});
     } else {
       this.modelValue = null;
-      this.selectEntityInfoFormGroup.get('entityInfo').patchValue(null, {emitEvent: true});
+      this.selectEntityInfoFormGroup.get('entityInfo').patchValue(null, {emitEvent: false});
     }
   }
 

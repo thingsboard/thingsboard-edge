@@ -230,6 +230,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   attributeScopeChanged(attributeScope: TelemetryType) {
     this.attributeScope = attributeScope;
     this.mode = 'default';
+    this.paginator.pageIndex = 0;
     this.updateData(true);
   }
 

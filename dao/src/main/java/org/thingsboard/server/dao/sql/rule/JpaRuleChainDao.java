@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.model.sql.RuleChainEntity;
 import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -113,7 +114,13 @@ public class JpaRuleChainDao extends JpaAbstractSearchTextDao<RuleChainEntity, R
     }
 
     @Override
+    public Collection<RuleChain> findByTenantIdAndTypeAndName(TenantId tenantId, RuleChainType type, String name) {
+        return DaoUtil.convertDataList(ruleChainRepository.findByTenantIdAndTypeAndName(tenantId.getId(), type, name));
+    }
+
+    @Override
     public Long countByTenantId(TenantId tenantId) {
         return ruleChainRepository.countByTenantId(tenantId.getId());
     }
+
 }

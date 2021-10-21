@@ -273,6 +273,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     if (this.breakpointObserverSubscription) {
       this.breakpointObserverSubscription.unsubscribe();
     }
+    this.dashboardTimewindowChangedSubject.complete();
     this.gridster = null;
   }
 

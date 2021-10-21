@@ -30,31 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="markdown-content" [ngClass]="{'tb-edit-mode': !readonly}"
-     tb-fullscreen [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()">
-  <label *ngIf="label" class="tb-title no-padding" [ngClass]="{'tb-required': required}">{{ label }}</label>
-  <div [fxShow]="!readonly && !disabled" class="markdown-content-editor">
-    <div class="buttons-panel">
-      <button [fxShow]="!editorMode"
-              class="edit-toggle"
-              type="button"
-              mat-button (click)="toggleEditMode()">{{ 'markdown.edit' | translate }}</button>
-      <button [fxShow]="editorMode"
-              class="edit-toggle"
-              type="button"
-              mat-button (click)="toggleEditMode()">{{ 'markdown.preview' | translate }}</button>
-      <button mat-button mat-icon-button (click)="fullscreen = !fullscreen"
-              matTooltip="{{(fullscreen ? 'fullscreen.exit' : 'fullscreen.expand') | translate}}"
-              matTooltipPosition="above">
-        <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
-      </button>
-    </div>
-    <div [fxShow]="editorMode" #markdownEditor class="tb-markdown-editor"></div>
-    <div [fxShow]="!editorMode" class="tb-markdown-view-container">
-      <markdown [data]="renderValue" class="tb-markdown-view"></markdown>
-    </div>
-  </div>
-  <div *ngIf="readonly || disabled" class="tb-markdown-view-container">
-    <markdown [data]="renderValue" class="tb-markdown-view"></markdown>
-  </div>
+<ng-container #markdownContainer>
+</ng-container>
+<div *ngIf="error && !fallbackToPlainMarkdown" style="color: #f00; font-size: 14px;
+                                                      line-height: 28px;
+                                                      background: #efefef;">
+  {{error}}
+</div>
+<div #fallbackElement [fxShow]="error && fallbackToPlainMarkdown" class="tb-markdown-view" [ngClass]="markdownClass" [ngStyle]="style">
 </div>

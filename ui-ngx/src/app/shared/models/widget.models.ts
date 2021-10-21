@@ -167,6 +167,7 @@ export interface WidgetTypeParameters {
   useCustomDatasources?: boolean;
   maxDatasources?: number;
   maxDataKeys?: number;
+  datasourcesOptional?: boolean;
   dataKeysOptional?: boolean;
   stateData?: boolean;
   hasDataPageLink?: boolean;

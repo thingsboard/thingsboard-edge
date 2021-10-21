@@ -32,14 +32,17 @@ package org.thingsboard.server.dao.service;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -90,6 +93,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
+import org.thingsboard.server.dao.sql.relation.RelationRepository;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.ArrayList;
@@ -106,8 +110,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
+@Slf4j
 public abstract class BaseEntityServiceTest extends AbstractServiceTest {
+
+    static final int ENTITY_COUNT = 5;
 
     @Autowired
     private AttributesService attributesService;
@@ -123,6 +131,9 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
     @Autowired
     private JdbcTemplate template;
+
+    @Autowired
+    private RelationRepository relationRepository;
 
     @Before
     public void before() {
@@ -143,7 +154,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         tenantService.deleteTenant(tenantId);
     }
 
-    
+
     @Test
     public void testCountEntitiesByQuery() throws InterruptedException {
         List<Device> devices = new ArrayList<>();
@@ -277,7 +288,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     public void testCountHierarchicalEntitiesByQuery() throws InterruptedException {
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
-        createTestHierarchy(assets, devices, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         RelationsQueryFilter filter = new RelationsQueryFilter();
         filter.setRootEntity(tenantId);
@@ -286,7 +297,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         EntityCountQuery countQuery = new EntityCountQuery(filter);
 
         long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, countQuery);
-        Assert.assertEquals(30, count);
+        Assert.assertEquals(31, count);
 
         filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
         count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, countQuery);
@@ -422,11 +433,25 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
     @Test
     public void testHierarchicalFindEntityDataWithAttributesByQuery() throws ExecutionException, InterruptedException {
+        doTestHierarchicalFindEntityDataWithAttributesByQuery(0, false);
+    }
+
+    @Test
+    public void testHierarchicalFindEntityDataWithAttributesByQueryWithLevel() throws ExecutionException, InterruptedException {
+        doTestHierarchicalFindEntityDataWithAttributesByQuery(2, false);
+    }
+
+    @Test
+    public void testHierarchicalFindEntityDataWithAttributesByQueryWithLastLevelOnly() throws ExecutionException, InterruptedException {
+        doTestHierarchicalFindEntityDataWithAttributesByQuery(2, true);
+    }
+
+    private void doTestHierarchicalFindEntityDataWithAttributesByQuery(final int maxLevel, final boolean fetchLastLevelOnly) throws ExecutionException, InterruptedException {
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
         List<Long> temperatures = new ArrayList<>();
         List<Long> highTemperatures = new ArrayList<>();
-        createTestHierarchy(assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
+        createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
 
         List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
@@ -439,6 +464,8 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         filter.setRootEntity(tenantId);
         filter.setDirection(EntitySearchDirection.FROM);
         filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
+        filter.setMaxLevel(maxLevel);
+        filter.setFetchLastLevelOnly(fetchLastLevelOnly);
 
         EntityDataSortOrder sortOrder = new EntityDataSortOrder(
                 new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
@@ -491,14 +518,13 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         deviceService.deleteDevicesByTenantId(tenantId);
     }
 
-    
     @Test
     public void testHierarchicalFindDevicesWithAttributesByQuery() throws ExecutionException, InterruptedException {
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
         List<Long> temperatures = new ArrayList<>();
         List<Long> highTemperatures = new ArrayList<>();
-        createTestHierarchy(assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
+        createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
 
         List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
@@ -511,6 +537,8 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         filter.setRootEntity(tenantId);
         filter.setDirection(EntitySearchDirection.FROM);
         filter.setRelationType("Contains");
+        filter.setMaxLevel(2);
+        filter.setFetchLastLevelOnly(true);
 
         EntityDataSortOrder sortOrder = new EntityDataSortOrder(
                 new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
@@ -564,14 +592,14 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         deviceService.deleteDevicesByTenantId(tenantId);
     }
 
-    
+
     @Test
     public void testHierarchicalFindAssetsWithAttributesByQuery() throws ExecutionException, InterruptedException {
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
         List<Long> consumptions = new ArrayList<>();
         List<Long> highConsumptions = new ArrayList<>();
-        createTestHierarchy(assets, devices, consumptions, highConsumptions, new ArrayList<>(), new ArrayList<>());
+        createTestHierarchy(tenantId, assets, devices, consumptions, highConsumptions, new ArrayList<>(), new ArrayList<>());
 
         List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < assets.size(); i++) {
@@ -636,8 +664,8 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         deviceService.deleteDevicesByTenantId(tenantId);
     }
 
-    private void createTestHierarchy(List<Asset> assets, List<Device> devices, List<Long> consumptions, List<Long> highConsumptions, List<Long> temperatures, List<Long> highTemperatures) throws InterruptedException {
-        for (int i = 0; i < 5; i++) {
+    private void createTestHierarchy(TenantId tenantId, List<Asset> assets, List<Device> devices, List<Long> consumptions, List<Long> highConsumptions, List<Long> temperatures, List<Long> highTemperatures) throws InterruptedException {
+        for (int i = 0; i < ENTITY_COUNT; i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
             asset.setName("Asset" + i);
@@ -647,18 +675,19 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             //TO make sure devices have different created time
             Thread.sleep(1);
             assets.add(asset);
-            EntityRelation er = new EntityRelation();
-            er.setFrom(tenantId);
-            er.setTo(asset.getId());
-            er.setType("Manages");
-            er.setTypeGroup(RelationTypeGroup.COMMON);
-            relationService.saveRelation(tenantId, er);
+            createRelation(tenantId, "Manages", tenantId, asset.getId());
             long consumption = (long) (Math.random() * 100);
             consumptions.add(consumption);
             if (consumption > 50) {
                 highConsumptions.add(consumption);
             }
-            for (int j = 0; j < 5; j++) {
+
+            //tenant -> asset : one-to-one but many edges
+            for (int n = 0; n < ENTITY_COUNT; n++) {
+                createRelation(tenantId, "UseCase-" + n, tenantId, asset.getId());
+            }
+
+            for (int j = 0; j < ENTITY_COUNT; j++) {
                 Device device = new Device();
                 device.setTenantId(tenantId);
                 device.setName("A" + i + "Device" + j);
@@ -668,22 +697,125 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
                 //TO make sure devices have different created time
                 Thread.sleep(1);
                 devices.add(device);
-                er = new EntityRelation();
-                er.setFrom(asset.getId());
-                er.setTo(device.getId());
-                er.setType("Contains");
-                er.setTypeGroup(RelationTypeGroup.COMMON);
-                relationService.saveRelation(tenantId, er);
+                createRelation(tenantId, "Contains", asset.getId(), device.getId());
                 long temperature = (long) (Math.random() * 100);
                 temperatures.add(temperature);
                 if (temperature > 45) {
                     highTemperatures.add(temperature);
                 }
+
+                //asset -> device : one-to-one but many edges
+                for (int n = 0; n < ENTITY_COUNT; n++) {
+                    createRelation(tenantId, "UseCase-" + n, asset.getId(), device.getId());
+                }
             }
+        }
+
+        //asset -> device one-to-many shared with other assets
+        for (int n = 0; n < devices.size(); n = n + ENTITY_COUNT) {
+            createRelation(tenantId, "SharedWithAsset0", assets.get(0).getId(), devices.get(n).getId());
+        }
+
+        createManyCustomRelationsBetweenTwoNodes(tenantId, "UseCase", assets, devices);
+        createHorizontalRingRelations(tenantId, "Ring(Loop)-Ast", assets);
+        createLoopRelations(tenantId, "Loop-Tnt-Ast-Dev", tenantId, assets.get(0).getId(), devices.get(0).getId());
+        createLoopRelations(tenantId, "Loop-Tnt-Ast", tenantId, assets.get(1).getId());
+        createLoopRelations(tenantId, "Loop-Ast-Tnt-Ast", assets.get(2).getId(), tenantId, assets.get(3).getId());
+
+        //printAllRelations();
+    }
+
+    private ResultSetExtractor<List<List<String>>> getListResultSetExtractor() {
+        return rs -> {
+            List<List<String>> list = new ArrayList<>();
+            final int columnCount = rs.getMetaData().getColumnCount();
+            List<String> columns = new ArrayList<>(columnCount);
+            for (int i = 1; i <= columnCount; i++) {
+                columns.add(rs.getMetaData().getColumnName(i));
+            }
+            list.add(columns);
+            while (rs.next()) {
+                List<String> data = new ArrayList<>(columnCount);
+                for (int i = 1; i <= columnCount; i++) {
+                    data.add(rs.getString(i));
+                }
+                list.add(data);
+            }
+            return list;
+        };
+    }
+
+    /*
+     * This useful to reproduce exact data in the PostgreSQL and play around with pgadmin query and analyze tool
+     * */
+    private void printAllRelations() {
+        System.out.println("" +
+                "DO\n" +
+                "$$\n" +
+                "    DECLARE\n" +
+                "        someint integer;\n" +
+                "    BEGIN\n" +
+                "        DROP TABLE IF EXISTS relation_test;\n" +
+                "        CREATE TABLE IF NOT EXISTS relation_test\n" +
+                "        (\n" +
+                "            from_id             uuid,\n" +
+                "            from_type           varchar(255),\n" +
+                "            to_id               uuid,\n" +
+                "            to_type             varchar(255),\n" +
+                "            relation_type_group varchar(255),\n" +
+                "            relation_type       varchar(255),\n" +
+                "            additional_info     varchar,\n" +
+                "            CONSTRAINT relation_test_pkey PRIMARY KEY (from_id, from_type, relation_type_group, relation_type, to_id, to_type)\n" +
+                "        );");
+
+        relationRepository.findAll().forEach(r ->
+                System.out.printf("INSERT INTO relation_test (from_id, from_type, to_id, to_type, relation_type_group, relation_type, additional_info)" +
+                                " VALUES (%s, %s, %s, %s, %s, %s, %s);\n",
+                        quote(r.getFromId()), quote(r.getFromType()), quote(r.getToId()), quote(r.getToType()),
+                        quote(r.getRelationTypeGroup()), quote(r.getRelationType()), quote(r.getAdditionalInfo()))
+        );
+
+        System.out.println("" +
+                "    END\n" +
+                "$$;");
+    }
+
+    private String quote(Object s) {
+        return s == null ? null : "'" + s + "'";
+    }
+
+    void createLoopRelations(TenantId tenantId, String type, EntityId... ids) {
+        assertThat("ids lenght", ids.length, Matchers.greaterThanOrEqualTo(1));
+        //chain all from the head to the tail
+        for (int i = 1; i < ids.length; i++) {
+            relationService.saveRelation(tenantId, new EntityRelation(ids[i - 1], ids[i], type, RelationTypeGroup.COMMON));
+        }
+        //chain tail -> head
+        relationService.saveRelation(tenantId, new EntityRelation(ids[ids.length - 1], ids[0], type, RelationTypeGroup.COMMON));
+    }
+
+    void createHorizontalRingRelations(TenantId tenantId, String type, List<Asset> assets) {
+        createLoopRelations(tenantId, type, assets.stream().map(Asset::getId).toArray(EntityId[]::new));
+    }
+
+    void createManyCustomRelationsBetweenTwoNodes(TenantId tenantId, String type, List<Asset> assets, List<Device> devices) {
+        for (int i = 1; i <= 5; i++) {
+            final String typeI = type + i;
+            createOneToManyRelations(tenantId, typeI, tenantId, assets.stream().map(Asset::getId).collect(Collectors.toList()));
+            assets.forEach(asset ->
+                    createOneToManyRelations(tenantId, typeI, asset.getId(), devices.stream().map(Device::getId).collect(Collectors.toList())));
         }
     }
 
-    
+    void createOneToManyRelations(TenantId tenantId, String type, EntityId from, List<EntityId> toIds) {
+        toIds.forEach(toId -> createRelation(tenantId, type, from, toId));
+    }
+
+    void createRelation(TenantId tenantId, String type, EntityId from, EntityId toId) {
+        relationService.saveRelation(tenantId, new EntityRelation(from, toId, type, RelationTypeGroup.COMMON));
+    }
+
+
     @Test
     public void testSimpleFindEntityDataByQuery() throws InterruptedException {
         List<Device> devices = new ArrayList<>();
@@ -989,7 +1121,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testBuildNumericPredicateQueryOperations() throws ExecutionException, InterruptedException{
+    public void testBuildNumericPredicateQueryOperations() throws ExecutionException, InterruptedException {
 
         List<Device> devices = new ArrayList<>();
         List<Long> temperatures = new ArrayList<>();
@@ -1149,7 +1281,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
         deviceService.deleteDevicesByTenantId(tenantId);
     }
-    
+
     @Test
     public void testFindEntityDataByQueryWithTimeseries() throws ExecutionException, InterruptedException {
 
@@ -1240,7 +1372,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testBuildStringPredicateQueryOperations() throws ExecutionException, InterruptedException{
+    public void testBuildStringPredicateQueryOperations() throws ExecutionException, InterruptedException {
 
         List<Device> devices = new ArrayList<>();
         List<String> attributeStrings = new ArrayList<>();
@@ -1260,11 +1392,11 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             devices.add(deviceService.saveDevice(device));
             //TO make sure devices have different created time
             Thread.sleep(1);
-            List<StringFilterPredicate.StringOperation> operationValues= Arrays.asList(StringFilterPredicate.StringOperation.values());
+            List<StringFilterPredicate.StringOperation> operationValues = Arrays.asList(StringFilterPredicate.StringOperation.values());
             StringFilterPredicate.StringOperation operation = operationValues.get(new Random().nextInt(operationValues.size()));
             String operationName = operation.name();
             attributeStrings.add(operationName);
-            switch(operation){
+            switch (operation) {
                 case EQUAL:
                     equalStrings.add(operationName);
                     notContainsStrings.add(operationName);
@@ -1420,7 +1552,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testBuildStringPredicateQueryOperationsForEntityType() throws ExecutionException, InterruptedException{
+    public void testBuildStringPredicateQueryOperationsForEntityType() throws ExecutionException, InterruptedException {
 
         List<Device> devices = new ArrayList<>();
 
@@ -1537,7 +1669,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testBuildSimplePredicateQueryOperations() throws InterruptedException{
+    public void testBuildSimplePredicateQueryOperations() throws InterruptedException {
 
         List<Device> devices = new ArrayList<>();
 
@@ -1610,7 +1742,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         return loadedEntities;
     }
 
-    private List<KeyFilter> createStringKeyFilters(String key, EntityKeyType keyType, StringFilterPredicate.StringOperation operation, String value){
+    private List<KeyFilter> createStringKeyFilters(String key, EntityKeyType keyType, StringFilterPredicate.StringOperation operation, String value) {
         KeyFilter filter = new KeyFilter();
         filter.setKey(new EntityKey(keyType, key));
         StringFilterPredicate predicate = new StringFilterPredicate();
@@ -1621,7 +1753,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         return Collections.singletonList(filter);
     }
 
-    private KeyFilter createNumericKeyFilter(String key, EntityKeyType keyType, NumericFilterPredicate.NumericOperation operation, double value){
+    private KeyFilter createNumericKeyFilter(String key, EntityKeyType keyType, NumericFilterPredicate.NumericOperation operation, double value) {
         KeyFilter filter = new KeyFilter();
         filter.setKey(new EntityKey(keyType, key));
         NumericFilterPredicate predicate = new NumericFilterPredicate();

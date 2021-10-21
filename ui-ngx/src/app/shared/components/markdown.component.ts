@@ -29,140 +29,181 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Ace } from 'ace-builds';
+import {
+  ChangeDetectorRef,
+  Component,
+  ComponentFactory,
+  ComponentRef, ElementRef,
+  EventEmitter,
+  Inject,
+  Injector,
+  Input, OnChanges,
+  Output,
+  SimpleChanges,
+  Type, ViewChild,
+  ViewContainerRef
+} from '@angular/core';
+import { HelpService } from '@core/services/help.service';
+import { MarkdownService, PrismPlugin } from 'ngx-markdown';
+import { DynamicComponentFactoryService } from '@core/services/dynamic-component-factory.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { getAce } from '@shared/models/ace/ace.models';
+import { SHARED_MODULE_TOKEN } from '@shared/components/tokens';
+import { isDefinedAndNotNull } from '@core/utils';
+import { Observable, of, ReplaySubject } from 'rxjs';
 
 @Component({
   selector: 'tb-markdown',
-  templateUrl: './markdown.component.html',
-  styleUrls: ['./markdown.component.scss'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => MarkdownComponent),
-      multi: true
-    }
-  ]
+  templateUrl: './markdown.component.html'
 })
-export class MarkdownComponent implements OnInit, ControlValueAccessor {
+export class TbMarkdownComponent implements OnChanges {
 
-  @Input() label: string;
+  @ViewChild('markdownContainer', {read: ViewContainerRef, static: true}) markdownContainer: ViewContainerRef;
+  @ViewChild('fallbackElement', {static: true}) fallbackElement: ElementRef<HTMLElement>;
 
-  @Input() disabled: boolean;
+  @Input() data: string | undefined;
 
-  @Input() readonly: boolean;
+  @Input() markdownClass: string | undefined;
 
-  @ViewChild('markdownEditor', {static: true})
-  markdownEditorElmRef: ElementRef;
+  @Input() style: { [klass: string]: any } = {};
 
-  private markdownEditor: Ace.Editor;
-
-  editorMode = true;
-
-  fullscreen = false;
-
-  markdownValue: string;
-  renderValue: string;
-
-  ignoreChange = false;
-
-  private propagateChange = null;
-
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  get lineNumbers(): boolean { return this.lineNumbersValue; }
+  set lineNumbers(value: boolean) { this.lineNumbersValue = coerceBooleanProperty(value); }
 
-  constructor() {
-  }
+  @Input()
+  get fallbackToPlainMarkdown(): boolean { return this.fallbackToPlainMarkdownValue; }
+  set fallbackToPlainMarkdown(value: boolean) { this.fallbackToPlainMarkdownValue = coerceBooleanProperty(value); }
 
-  ngOnInit(): void {
-    if (!this.readonly) {
-      const editorElement = this.markdownEditorElmRef.nativeElement;
-      let editorOptions: Partial<Ace.EditorOptions> = {
-        mode: 'ace/mode/markdown',
-        theme: 'ace/theme/github',
-        showGutter: true,
-        showPrintMargin: false,
-        readOnly: false
-      };
+  @Output() ready = new EventEmitter<void>();
 
-      const advancedOptions = {
-        enableSnippets: true,
-        enableBasicAutocompletion: true,
-        enableLiveAutocompletion: true
-      };
+  private lineNumbersValue = false;
+  private fallbackToPlainMarkdownValue = false;
 
-      editorOptions = {...editorOptions, ...advancedOptions};
+  isMarkdownReady = false;
 
-      getAce().subscribe(
-        (ace) => {
-          this.markdownEditor = ace.edit(editorElement, editorOptions);
-          this.markdownEditor.session.setUseWrapMode(false);
-          this.markdownEditor.setValue(this.markdownValue ? this.markdownValue : '', -1);
-          this.markdownEditor.on('change', () => {
-            if (!this.ignoreChange) {
-              this.updateView();
-            }
-          });
-         }
-      );
+  error = null;
 
+  private tbMarkdownInstanceComponentRef: ComponentRef<any>;
+  private tbMarkdownInstanceComponentFactory: ComponentFactory<any>;
+
+  constructor(private help: HelpService,
+              private cd: ChangeDetectorRef,
+              public markdownService: MarkdownService,
+              @Inject(SHARED_MODULE_TOKEN) private sharedModule: Type<any>,
+              private dynamicComponentFactoryService: DynamicComponentFactoryService) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (isDefinedAndNotNull(this.data)) {
+      this.render(this.data);
     }
   }
 
-  registerOnChange(fn: any): void {
-    this.propagateChange = fn;
+  private render(markdown: string) {
+    const compiled = this.markdownService.compile(markdown, false);
+    let template = this.sanitizeCurlyBraces(compiled);
+    let markdownClass = 'tb-markdown-view';
+    if (this.markdownClass) {
+      markdownClass += ` ${this.markdownClass}`;
+    }
+    template = `<div [ngStyle]="style" class="${markdownClass}">${template}</div>`;
+    this.markdownContainer.clear();
+    const parent = this;
+    let readyObservable: Observable<void>;
+    this.dynamicComponentFactoryService.createDynamicComponentFactory(
+      class TbMarkdownInstance {
+        ngOnDestroy(): void {
+          parent.destroyMarkdownInstanceResources();
+        }
+      },
+      template,
+      [this.sharedModule],
+      true
+    ).subscribe((factory) => {
+      this.tbMarkdownInstanceComponentFactory = factory;
+      const injector: Injector = Injector.create({providers: [], parent: this.markdownContainer.injector});
+      try {
+        this.tbMarkdownInstanceComponentRef =
+          this.markdownContainer.createComponent(this.tbMarkdownInstanceComponentFactory, 0, injector);
+        this.tbMarkdownInstanceComponentRef.instance.style = this.style;
+        this.handlePlugins(this.tbMarkdownInstanceComponentRef.location.nativeElement);
+        this.markdownService.highlight(this.tbMarkdownInstanceComponentRef.location.nativeElement);
+        readyObservable = this.handleImages(this.tbMarkdownInstanceComponentRef.location.nativeElement);
+        this.error = null;
+      } catch (error) {
+        readyObservable = this.handleError(compiled, error);
+      }
+      this.cd.detectChanges();
+      readyObservable.subscribe(() => {
+        this.ready.emit();
+      });
+    },
+    (error) => {
+      readyObservable = this.handleError(compiled, error);
+      this.cd.detectChanges();
+      readyObservable.subscribe(() => {
+        this.ready.emit();
+      });
+    });
   }
 
-  registerOnTouched(fn: any): void {
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-  }
-
-  writeValue(value: string): void {
-    this.editorMode = true;
-    this.markdownValue = value;
-    this.renderValue = this.markdownValue ? this.markdownValue : ' ';
-    if (this.markdownEditor) {
-      this.ignoreChange = true;
-      this.markdownEditor.setValue(this.markdownValue ? this.markdownValue : '', -1);
-      this.ignoreChange = false;
+  private handleError(template: string, error): Observable<void> {
+    this.error = (error ? error + '' : 'Failed to render markdown!').replace(/\n/g, '<br>');
+    this.destroyMarkdownInstanceResources();
+    if (this.fallbackToPlainMarkdownValue) {
+      this.markdownContainer.clear();
+      const element = this.fallbackElement.nativeElement;
+      element.innerHTML = template;
+      this.handlePlugins(element);
+      this.markdownService.highlight(element);
+      return this.handleImages(element);
+    } else {
+      return of(null);
     }
   }
 
-  updateView() {
-    const editorValue = this.markdownEditor.getValue();
-    if (this.markdownValue !== editorValue) {
-      this.markdownValue = editorValue;
-      this.renderValue = this.markdownValue ? this.markdownValue : ' ';
-      this.propagateChange(this.markdownValue);
+  private handlePlugins(element: HTMLElement): void {
+    if (this.lineNumbers) {
+      this.setPluginClass(element, PrismPlugin.LineNumbers);
     }
   }
 
-  onFullscreen() {
-    if (this.markdownEditor) {
-      setTimeout(() => {
-        this.markdownEditor.resize();
-      }, 0);
+  private setPluginClass(element: HTMLElement, plugin: string | string[]): void {
+    const preElements = element.querySelectorAll('pre');
+    for (let i = 0; i < preElements.length; i++) {
+      const classes = plugin instanceof Array ? plugin : [plugin];
+      preElements.item(i).classList.add(...classes);
     }
   }
 
-  toggleEditMode() {
-    this.editorMode = !this.editorMode;
-    if (this.editorMode && this.markdownEditor) {
-      setTimeout(() => {
-        this.markdownEditor.resize();
-      }, 0);
+  private handleImages(element: HTMLElement): Observable<void> {
+    const imgs = $('img', element);
+    if (imgs.length) {
+      let totalImages = imgs.length;
+      const imagesLoadedSubject = new ReplaySubject<void>();
+      imgs.each((index, img) => {
+        $(img).one('load error', () => {
+          totalImages--;
+          if (totalImages === 0) {
+            imagesLoadedSubject.next();
+            imagesLoadedSubject.complete();
+          }
+        });
+      });
+      return imagesLoadedSubject.asObservable();
+    } else {
+      return of(null);
     }
+  }
+
+  private sanitizeCurlyBraces(template: string): string {
+    return template.replace(/{/g, '&#123;').replace(/}/g, '&#125;');
+  }
+
+  private destroyMarkdownInstanceResources() {
+    if (this.tbMarkdownInstanceComponentFactory) {
+      this.dynamicComponentFactoryService.destroyDynamicComponentFactory(this.tbMarkdownInstanceComponentFactory);
+      this.tbMarkdownInstanceComponentFactory = null;
+    }
+    this.tbMarkdownInstanceComponentRef = null;
   }
 }

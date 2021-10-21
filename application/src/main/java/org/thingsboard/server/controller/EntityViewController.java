@@ -83,8 +83,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
 /**
  * Created by Victor Basanets on 8/28/2017.
