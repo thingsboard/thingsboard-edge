@@ -57,6 +57,7 @@ import { ConverterDebugInput, TestConverterInputParams } from '@shared/models/co
 import { base64toString, isEqual, stringToBase64 } from '@core/utils';
 import { ConverterService } from '@core/http/converter.service';
 import { beautifyJs } from '@shared/models/beautify.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 export interface ConverterTestDialogData {
   isDecoder: boolean;
@@ -115,6 +116,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<ConverterTestDialogComponent, string>,
               public fb: FormBuilder,
+              public wl: WhiteLabelingService,
               private converterService: ConverterService) {
     super(store, router, dialogRef);
     this.isDecoder = this.data.isDecoder;
