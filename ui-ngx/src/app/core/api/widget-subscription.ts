@@ -123,6 +123,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   caulculateLegendData: boolean;
   displayLegend: boolean;
   stateData: boolean;
+  datasourcesOptional: boolean;
   decimals: number;
   units: string;
   comparisonEnabled: boolean;
@@ -198,6 +199,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.callbacks.dataLoading = this.callbacks.dataLoading || (() => {});
       this.callbacks.timeWindowUpdated = this.callbacks.timeWindowUpdated || (() => {});
       this.alarmSource = options.alarmSource;
+      this.datasourcesOptional = options.datasourcesOptional;
       this.alarmDataListener = null;
       this.alarms = emptyPageData();
       this.originalTimewindow = null;
@@ -229,6 +231,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.callbacks.timeWindowUpdated = this.callbacks.timeWindowUpdated || (() => {});
 
       this.configuredDatasources = this.ctx.utils.validateDatasources(options.datasources);
+      this.datasourcesOptional = options.datasourcesOptional;
       this.entityDataListeners = [];
       this.hasDataPageLink = options.hasDataPageLink;
       this.singleEntity = options.singleEntity;
@@ -465,7 +468,7 @@ export class WidgetSubscription implements IWidgetSubscription {
           }
         });
         this.configureLoadedData();
-        this.hasResolvedData = this.datasources.length > 0;
+        this.hasResolvedData = this.datasources.length > 0 || this.datasourcesOptional;
         this.updateDataTimewindow();
         this.notifyDataLoaded();
         this.onDataUpdated(true);
