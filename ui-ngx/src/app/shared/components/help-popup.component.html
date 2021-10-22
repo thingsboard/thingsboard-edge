@@ -31,7 +31,7 @@
 
 -->
 <button #toggleHelpButton
-        *ngIf="!textMode"
+        *ngIf="(wl.isEnableHelpLinks$() | async) && !textMode"
         mat-icon-button
         color="primary"
         class="tb-help-popup-button tb-mat-32"
@@ -43,7 +43,7 @@
   <mat-spinner *ngIf="popoverVisible && !popoverReady" class="tb-help-popup-button-loading" mode="indeterminate" diameter="20" strokeWidth="2"></mat-spinner>
 </button>
 <button #toggleHelpTextButton
-        *ngIf="textMode"
+        *ngIf="(wl.isEnableHelpLinks$() | async) && textMode"
         mat-button
         color="primary"
         class="tb-help-popup-text-button"

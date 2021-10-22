@@ -110,6 +110,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     onIconClick: this.onIconClick.bind(this),
     onToggleFullscreen: this.onToggleFullscreen.bind(this),
     onHelpClick: this.onHelpClick.bind(this),
+    isHelpEnabled: this.whiteLabelingService.isEnableHelpLinks(),
     primaryPalette: this.whiteLabelingService.getPrimaryPalette(),
     accentPalette: this.whiteLabelingService.getAccentPalette()
   };

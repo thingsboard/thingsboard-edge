@@ -138,6 +138,7 @@ class ThingsboardSchemaForm extends React.Component<JsonFormProps, any> {
           onIconClick: OnIconClickFn,
           onToggleFullscreen: onToggleFullscreenFn,
           onHelpClick: onHelpClickFn,
+          isHelpEnabled: boolean,
           mapper: {[type: string]: any}): JSX.Element {
     const type = form.type;
     const Field = this.mapper[type];
@@ -157,6 +158,7 @@ class ThingsboardSchemaForm extends React.Component<JsonFormProps, any> {
                   onIconClick={onIconClick}
                   onToggleFullscreen={onToggleFullscreen}
                   onHelpClick={onHelpClick}
+                  isHelpEnabled={isHelpEnabled}
                   mapper={mapper} builder={this.builder}/>;
   }
 
@@ -168,7 +170,7 @@ class ThingsboardSchemaForm extends React.Component<JsonFormProps, any> {
     }
     const forms = merged.map(function(form, index) {
       return this.builder(form, this.props.model, index, this.onChange, this.onColorClick,
-        this.onIconClick, this.onToggleFullscreen, this.onHelpClick, mapper);
+        this.onIconClick, this.onToggleFullscreen, this.onHelpClick, this.props.isHelpEnabled, mapper);
     }.bind(this));
 
     let formClass = 'SchemaForm';

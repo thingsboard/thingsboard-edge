@@ -203,7 +203,7 @@ class ThingsboardAceEditor extends React.Component<ThingsboardAceEditorProps, Th
                           <label>{this.props.mode}</label>
                           { this.props.onTidy ? <Button style={ styles.tidyButtonStyle }
                                                        className='tidy-button' onClick={this.onTidy}>Tidy</Button> : null }
-                          { this.props.form.helpId ? <div style={ {position: 'relative', display: 'inline-block', marginLeft: '5px'} }>
+                          { (this.props.isHelpEnabled && this.props.form.helpId) ? <div style={ {position: 'relative', display: 'inline-block', marginLeft: '5px'} }>
                             <IconButton color='primary'
                                         className='help-button' onClick={this.onHelp}>
                                         {this.state.helpVisible ? <Help /> : <HelpOutline /> }

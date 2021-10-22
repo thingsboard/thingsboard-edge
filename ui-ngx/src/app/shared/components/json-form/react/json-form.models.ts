@@ -81,6 +81,7 @@ export interface JsonFormProps {
   onIconClick?: OnIconClickFn;
   onToggleFullscreen?: onToggleFullscreenFn;
   onHelpClick?: onHelpClickFn;
+  isHelpEnabled?: boolean;
   mapper?: {[type: string]: any};
   primaryPalette?: ColorPalette;
   accentPalette?: ColorPalette;
@@ -132,6 +133,7 @@ export type ComponentBuilderFn = (form: JsonFormData,
                                   onIconClick: OnIconClickFn,
                                   onToggleFullscreen: onToggleFullscreenFn,
                                   onHelpClick: onHelpClickFn,
+                                  isHelpEnabled: boolean,
                                   mapper: {[type: string]: any}) => JSX.Element;
 
 export interface JsonFormFieldProps {
@@ -146,6 +148,7 @@ export interface JsonFormFieldProps {
   onChangeValidate?: (e: any, forceUpdate?: boolean) => void;
   onToggleFullscreen?: onToggleFullscreenFn;
   onHelpClick?: onHelpClickFn;
+  isHelpEnabled?: boolean;
   valid?: boolean;
   error?: string;
   options?: {

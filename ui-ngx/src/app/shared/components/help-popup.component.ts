@@ -43,6 +43,7 @@ import { TbPopoverService } from '@shared/components/popover.service';
 import { PopoverPlacement } from '@shared/components/popover.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { isDefinedAndNotNull } from '@core/utils';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -81,7 +82,8 @@ export class HelpPopupComponent implements OnChanges, OnDestroy {
               private element: ElementRef<HTMLElement>,
               private sanitizer: DomSanitizer,
               private renderer: Renderer2,
-              private popoverService: TbPopoverService) {
+              private popoverService: TbPopoverService,
+              public wl: WhiteLabelingService) {
   }
 
   ngOnChanges(changes: SimpleChanges): void {

@@ -34,7 +34,7 @@ import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
 import { catchError, mergeMap, tap } from 'rxjs/operators';
-import { helpBaseUrl } from '@shared/models/constants';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 const NOT_FOUND_CONTENT = '## Not found';
 
@@ -43,12 +43,11 @@ const NOT_FOUND_CONTENT = '## Not found';
 })
 export class HelpService {
 
-  private helpBaseUrl = helpBaseUrl;
-
   private helpCache: {[lang: string]: {[key: string]: string}} = {};
 
   constructor(
     private translate: TranslateService,
+    private wl: WhiteLabelingService,
     private http: HttpClient
   ) {}
 
@@ -91,7 +90,7 @@ export class HelpService {
 
   private processVariables(content: string): string {
     const baseUrlReg = /\${baseUrl}/g;
-    return content.replace(baseUrlReg, this.helpBaseUrl);
+    return content.replace(baseUrlReg, this.wl.getHelpLinkBaseUrl());
   }
 
   private processIncludes(content: string): Observable<string> {
