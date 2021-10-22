@@ -33,9 +33,8 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -84,6 +83,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 
 @RestController
 @TbCoreComponent
@@ -145,7 +165,7 @@ public class DashboardController extends BaseController {
     }
 
     @ApiOperation(value = "Get Dashboard (getDashboardById)",
-            notes = "Get the dashboard based on 'dashboardId' parameter. " + DASHBOARD_DEFINITION,
+            notes = "Get the dashboard based on 'dashboardId' parameter. " + DASHBOARD_DEFINITION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -169,7 +189,8 @@ public class DashboardController extends BaseController {
                     "The newly created Dashboard id will be present in the response. " +
                     "Specify existing Dashboard id to update the dashboard. " +
                     "Referencing non-existing dashboard Id will cause 'Not Found' error. " +
-                    "Only users with 'TENANT_ADMIN') authority may create the dashboards.",
+                    "Only users with 'TENANT_ADMIN') authority may create the dashboards." +
+            TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -183,7 +204,8 @@ public class DashboardController extends BaseController {
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",
-            notes = "Delete the Dashboard. Only users with 'TENANT_ADMIN') authority may delete the dashboards.")
+            notes = "Delete the Dashboard. Only users with 'TENANT_ADMIN') authority may delete the dashboards." +
+            TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard/{dashboardId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
@@ -214,7 +236,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Dashboards by System Administrator (getTenantDashboards)",
             notes = "Returns a page of dashboard info objects owned by tenant. " + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS +
-                    "Only users with 'SYS_ADMIN' authority may use this method.",
+                    SYSTEM_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/tenant/{tenantId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
@@ -266,7 +288,7 @@ public class DashboardController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (mobile != null && mobile.booleanValue()) {
+            if (mobile != null && mobile) {
                 return checkNotNull(dashboardService.findMobileDashboardsByTenantId(tenantId, pageLink));
             } else {
                 return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
@@ -281,7 +303,9 @@ public class DashboardController extends BaseController {
     @ResponseBody
     public PageData<DashboardInfo> getUserDashboards(
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
             @RequestParam int page,
+            @ApiParam(value = HIDDEN_FOR_MOBILE)
             @RequestParam(required = false) Boolean mobile,
             @RequestParam(required = false) String textSearch,
             @RequestParam(required = false) String sortProperty,
@@ -323,7 +347,9 @@ public class DashboardController extends BaseController {
             @RequestParam int pageSize,
             @RequestParam int page,
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = DASHBOARD_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             checkParameter("entityGroupId", strEntityGroupId);
@@ -432,8 +458,7 @@ public class DashboardController extends BaseController {
             notes = "Returns the home dashboard object that is configured as 'homeDashboardId' parameter in the 'additionalInfo' of the User. " +
                     "If 'homeDashboardId' parameter is not set on the User level and the User has authority 'CUSTOMER_USER', check the same parameter for the corresponding Customer. " +
                     "If 'homeDashboardId' parameter is not set on the User and Customer levels then checks the same parameter for the Tenant that owns the user. "
-                    + DASHBOARD_DEFINITION + " " +
-                    "Only users with 'TENANT_ADMIN' or 'CUSTOMER_USER' authority should use this method.",
+                    + DASHBOARD_DEFINITION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/dashboard/home", method = RequestMethod.GET)
@@ -477,7 +502,7 @@ public class DashboardController extends BaseController {
             notes = "Returns the home dashboard info object that is configured as 'homeDashboardId' parameter in the 'additionalInfo' of the User. " +
                     "If 'homeDashboardId' parameter is not set on the User level and the User has authority 'CUSTOMER_USER', check the same parameter for the corresponding Customer. " +
                     "If 'homeDashboardId' parameter is not set on the User and Customer levels then checks the same parameter for the Tenant that owns the user. " +
-                    "Only users with 'TENANT_ADMIN' or 'CUSTOMER_USER' authority should use this method.",
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/dashboard/home/info", method = RequestMethod.GET)
@@ -512,7 +537,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Home Dashboard Info (getTenantHomeDashboardInfo)",
             notes = "Returns the home dashboard info object that is configured as 'homeDashboardId' parameter in the 'additionalInfo' of the corresponding tenant. " +
-            "Only users with 'TENANT_ADMIN' authority may use this method.",
+            TENANT_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/dashboard/home/info", method = RequestMethod.GET)
@@ -562,7 +587,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Update Tenant Home Dashboard Info (getTenantHomeDashboardInfo)",
             notes = "Update the home dashboard assignment for the current tenant. " +
-                    "Only users with 'TENANT_ADMIN' authority may use this method.",
+                    TENANT_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/dashboard/home/info", method = RequestMethod.POST)

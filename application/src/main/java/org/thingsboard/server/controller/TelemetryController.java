@@ -118,6 +118,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_TYPE_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+
+
 /**
  * Created by ashvayka on 22.03.18.
  */
@@ -197,7 +205,8 @@ public class TelemetryController extends BaseController {
     @ApiOperation(value = "Get all attribute keys (getAttributeKeys)",
             notes = "Returns a list of all attribute key names for the selected entity. " +
                     "In the case of device entity specified, a response will include merged attribute key names list from each scope: " +
-                    "SERVER_SCOPE, CLIENT_SCOPE, SHARED_SCOPE. " + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    "SERVER_SCOPE, CLIENT_SCOPE, SHARED_SCOPE. "
+                    + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/keys/attributes", method = RequestMethod.GET)
@@ -210,7 +219,8 @@ public class TelemetryController extends BaseController {
 
     @ApiOperation(value = "Get all attributes keys by scope (getAttributeKeysByScope)",
             notes = "Returns a list of attribute key names from the specified attributes scope for the selected entity. " +
-                    "If scope parameter is omitted, Get all attribute keys(getAttributeKeys) API will be called. " + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    "If scope parameter is omitted, Get all attribute keys(getAttributeKeys) API will be called. "
+                    + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/keys/attributes/{scope}", method = RequestMethod.GET)
@@ -225,7 +235,7 @@ public class TelemetryController extends BaseController {
 
     @ApiOperation(value = "Get attributes (getAttributes)",
             notes = GET_ALL_ATTRIBUTES_BASE_DESCRIPTION + " If 'keys' parameter is omitted, AttributeData class objects will be added to the response for all existing keys of the selected entity. " +
-                    INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/values/attributes", method = RequestMethod.GET)
@@ -243,7 +253,7 @@ public class TelemetryController extends BaseController {
             notes = GET_ALL_ATTRIBUTES_BY_SCOPE_BASE_DESCRIPTION + " In case that 'keys' parameter is not selected, " +
                     "AttributeData class objects will be added to the response for all existing attribute keys from the " +
                     "specified attributes scope of the selected entity. If 'scope' parameter is omitted, " +
-                    "Get attributes (getAttributes) API will be called. " + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    "Get attributes (getAttributes) API will be called. " + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/values/attributes/{scope}", method = RequestMethod.GET)
@@ -260,7 +270,7 @@ public class TelemetryController extends BaseController {
 
     @ApiOperation(value = "Get timeseries keys (getTimeseriesKeys)",
             notes = "Returns a list of all telemetry key names for the selected entity based on entity id and entity type specified. " +
-                    INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/keys/timeseries", method = RequestMethod.GET)
@@ -274,7 +284,8 @@ public class TelemetryController extends BaseController {
 
     @ApiOperation(value = "Get latest timeseries (getLatestTimeseries)",
             notes = "Returns a JSON structure that represents a Map, where the map key is a telemetry key name " +
-                    "and map value - is a singleton list of TsData class objects. " + TS_DATA_CLASS_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    "and map value - is a singleton list of TsData class objects. "
+                    + TS_DATA_CLASS_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/values/timeseries", method = RequestMethod.GET)
@@ -295,7 +306,8 @@ public class TelemetryController extends BaseController {
                     "and map value - is a list of TsData class objects. " + TS_DATA_CLASS_DESCRIPTION +
                     "This method allows us to group original data into intervals and aggregate it using one of the aggregation methods or just limit the number of TsData objects to fetch for each key specified. " +
                     "See the desription of the request parameters for more details. " +
-                    "The result can also be sorted in ascending or descending order. " + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    "The result can also be sorted in ascending or descending order. "
+                    + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/values/timeseries", method = RequestMethod.GET, params = {"keys", "startTs", "endTs"})
@@ -336,7 +348,7 @@ public class TelemetryController extends BaseController {
             notes = "Creates or updates the device attributes based on device id, specified attribute scope, " +
                     "and request payload that represents a JSON object with key-value format of attributes to create or update. " +
                     "For example, '{\"temperature\": 26}'. Key is a unique parameter and cannot be overwritten. Only value can " +
-                    "be overwritten for the key. ",
+                    "be overwritten for the key. " + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = SAVE_ATTIRIBUTES_STATUS_OK +
@@ -359,7 +371,7 @@ public class TelemetryController extends BaseController {
     }
 
     @ApiOperation(value = "Save or update attributes (saveEntityAttributesV1)",
-            notes = SAVE_ENTITY_ATTRIBUTES_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+            notes = SAVE_ENTITY_ATTRIBUTES_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = SAVE_ATTIRIBUTES_STATUS_OK + SAVE_ENTITY_ATTRIBUTES_STATUS_OK),
@@ -380,7 +392,7 @@ public class TelemetryController extends BaseController {
     }
 
     @ApiOperation(value = "Save or update attributes (saveEntityAttributesV2)",
-            notes = SAVE_ENTITY_ATTRIBUTES_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+            notes = SAVE_ENTITY_ATTRIBUTES_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = SAVE_ATTIRIBUTES_STATUS_OK + SAVE_ENTITY_ATTRIBUTES_STATUS_OK),
@@ -401,7 +413,7 @@ public class TelemetryController extends BaseController {
     }
 
     @ApiOperation(value = "Save or update telemetry (saveEntityTelemetry)",
-            notes = SAVE_ENTITY_TIMESERIES_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+            notes = SAVE_ENTITY_TIMESERIES_DESCRIPTION + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = SAVE_ENTITY_TIMESERIES_STATUS_OK),
@@ -422,7 +434,8 @@ public class TelemetryController extends BaseController {
     }
 
     @ApiOperation(value = "Save or update telemetry with TTL (saveEntityTelemetryWithTTL)",
-            notes = SAVE_ENTITY_TIMESERIES_DESCRIPTION + "The ttl parameter used only in case of Cassandra DB use for timeseries data storage. " + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+            notes = SAVE_ENTITY_TIMESERIES_DESCRIPTION + "The ttl parameter used only in case of Cassandra DB use for timeseries data storage. "
+                    + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = SAVE_ENTITY_TIMESERIES_STATUS_OK),
@@ -446,7 +459,7 @@ public class TelemetryController extends BaseController {
     @ApiOperation(value = "Delete entity timeseries (deleteEntityTimeseries)",
             notes = "Delete timeseries for selected entity based on entity id, entity type, keys " +
                     "and removal time range. To delete all data for keys parameter 'deleteAllDataForKeys' should be set to true, " +
-                    "otherwise, will be deleted data that is in range of the selected time interval. ",
+                    "otherwise, will be deleted data that is in range of the selected time interval. " + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Timeseries for the selected keys in the request was removed. " +
@@ -521,7 +534,7 @@ public class TelemetryController extends BaseController {
 
     @ApiOperation(value = "Delete device attributes (deleteEntityAttributes)",
             notes = "Delete device attributes from the specified attributes scope based on device id and a list of keys to delete. " +
-                    "Selected keys will be deleted only if there are exist in the specified attribute scope. Referencing a non-existing device Id will cause an error",
+                    "Selected keys will be deleted only if there are exist in the specified attribute scope. Referencing a non-existing device Id will cause an error" + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Device attributes was removed for the selected keys in the request. " +
@@ -544,7 +557,7 @@ public class TelemetryController extends BaseController {
 
     @ApiOperation(value = "Delete entity attributes (deleteEntityAttributes)",
             notes = "Delete entity attributes from the specified attributes scope based on entity id, entity type and a list of keys to delete. " +
-                    "Selected keys will be deleted only if there are exist in the specified attribute scope." + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION,
+                    "Selected keys will be deleted only if there are exist in the specified attribute scope." + INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Entity attributes was removed for the selected keys in the request. " +

@@ -297,7 +297,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         EntityCountQuery countQuery = new EntityCountQuery(filter);
 
         long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, countQuery);
-        Assert.assertEquals(31, count);
+        Assert.assertEquals(31, count); //due to the loop relations in hierarchy, the TenantId included in total count (1*Tenant + 5*Asset + 5*5*Devices = 31)
 
         filter.setFilters(Collections.singletonList(new RelationEntityTypeFilter("Contains", Collections.singletonList(EntityType.DEVICE))));
         count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsPE, countQuery);

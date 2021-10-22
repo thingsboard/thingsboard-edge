@@ -100,6 +100,30 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_INFO_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_NAME_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 
 @RestController
 @TbCoreComponent
@@ -117,7 +141,8 @@ public class DeviceController extends BaseController {
     @ApiOperation(value = "Get Device (getDeviceById)",
             notes = "Fetch the Device object based on the provided Device Id. " +
                     "If the user has the authority of 'TENANT_ADMIN', the server checks that the device is owned by the same tenant. " +
-                    "If the user has the authority of 'CUSTOMER_USER', the server checks that the device is assigned to the same customer.")
+                    "If the user has the authority of 'CUSTOMER_USER', the server checks that the device is assigned to the same customer."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/{deviceId}", method = RequestMethod.GET)
     @ResponseBody
@@ -138,7 +163,8 @@ public class DeviceController extends BaseController {
             "The newly created device id will be present in the response. " +
             "Specify existing Device id to update the device. " +
             "Referencing non-existing device Id will cause 'Not Found' error." +
-            "\n\nDevice name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the device names and non-unique 'label' field for user-friendly visualization purposes.")
+            "\n\nDevice name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the device names and non-unique 'label' field for user-friendly visualization purposes."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device", method = RequestMethod.POST)
     @ResponseBody
@@ -289,7 +315,8 @@ public class DeviceController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Device (getTenantDevice)",
             notes = "Requested device must be owned by tenant that the user belongs to. " +
-                    "Device name is an unique property of device. So it can be used to identify the device.")
+                    "Device name is an unique property of device. So it can be used to identify the device."
+                    + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/devices", params = {"deviceName"}, method = RequestMethod.GET)
     @ResponseBody
@@ -307,7 +334,7 @@ public class DeviceController extends BaseController {
 
     @ApiOperation(value = "Get Customer Devices (getCustomerDevices)",
             notes = "Returns a page of devices objects assigned to customer. " +
-                    PAGE_DATA_PARAMETERS)
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/devices", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -343,6 +370,9 @@ public class DeviceController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Customer Device Infos (getCustomerDeviceInfos)",
+            notes = "Returns a page of devices info objects assigned to customer. " +
+                    PAGE_DATA_PARAMETERS + DEVICE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/devices", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -451,6 +481,9 @@ public class DeviceController extends BaseController {
         }).collect(Collectors.toList());
     }
 
+    @ApiOperation(value = "Get Device Types (getDeviceTypes)",
+            notes = "Returns a set of unique device profile names based on devices that are either owned by the tenant or assigned to the customer which user is performing the request."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/types", method = RequestMethod.GET)
     @ResponseBody
@@ -471,7 +504,7 @@ public class DeviceController extends BaseController {
                     "Once device is claimed, the customer becomes its owner and customer users may access device data as well as control the device. \n" +
                     "In order to enable claiming devices feature a system parameter security.claim.allowClaimingByDefault should be set to true, " +
                     "otherwise a server-side claimingAllowed attribute with the value true is obligatory for provisioned devices. \n" +
-                    "See official documentation for more details regarding claiming.")
+                    "See official documentation for more details regarding claiming." + CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('CUSTOMER_USER')")
     @RequestMapping(value = "/customer/device/{deviceName}/claim", method = RequestMethod.POST)
     @ResponseBody
@@ -539,7 +572,8 @@ public class DeviceController extends BaseController {
     }
 
     @ApiOperation(value = "Reclaim device (reClaimDevice)",
-            notes = "Reclaiming means the device will be unassigned from the customer and the device will be available for claiming again.")
+            notes = "Reclaiming means the device will be unassigned from the customer and the device will be available for claiming again."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/device/{deviceName}/claim", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
@@ -593,7 +627,8 @@ public class DeviceController extends BaseController {
     }
 
     @ApiOperation(value = "Assign device to tenant (assignDeviceToTenant)",
-            notes = "Creates assignment of the device to tenant. Thereafter tenant will be able to reassign the device to a customer.")
+            notes = "Creates assignment of the device to tenant. Thereafter tenant will be able to reassign the device to a customer."
+                    + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/{tenantId}/device/{deviceId}", method = RequestMethod.POST)
     @ResponseBody
@@ -670,12 +705,19 @@ public class DeviceController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Count devices by device profile  (countByDeviceProfileAndEmptyOtaPackage)",
+            notes = "The platform gives an ability to load OTA (over-the-air) packages to devices. " +
+                    "It can be done in two different ways: device scope or device profile scope." +
+                    "In the response you will find the number of devices with specified device profile, but without previously defined device scope OTA package. " +
+                    "It can be useful when you want to define number of devices that will be affected with future OTA package" + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/devices/count/{otaPackageType}/{otaPackageId}/{entityGroupId}", method = RequestMethod.GET)
     @ResponseBody
-    public Long countByDeviceGroupAndEmptyOtaPackage(@PathVariable("otaPackageType") String otaPackageType,
-                                                     @PathVariable("otaPackageId") String otaPackageId,
-                                                     @PathVariable("entityGroupId") String deviceGroupId) throws ThingsboardException {
+    public Long countByDeviceGroupAndEmptyOtaPackage(
+            @ApiParam(value = "OTA package type", allowableValues = "FIRMWARE, SOFTWARE")
+            @PathVariable("otaPackageType") String otaPackageType,
+            @PathVariable("otaPackageId") String otaPackageId,
+            @PathVariable("entityGroupId") String deviceGroupId) throws ThingsboardException {
         checkParameter("OtaPackageType", otaPackageType);
         checkParameter("OtaPackageId", otaPackageId);
         checkParameter("EntityGroupId", deviceGroupId);

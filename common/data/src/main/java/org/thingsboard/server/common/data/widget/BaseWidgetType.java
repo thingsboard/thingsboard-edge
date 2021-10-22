@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.widget;
 
+import io.swagger.annotations.ApiModelProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
@@ -44,12 +45,16 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements TenantEnti
 
     private static final long serialVersionUID = 8388684344603660756L;
 
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id.", readOnly = true)
     private TenantId tenantId;
     @NoXss
+    @ApiModelProperty(position = 4, value = "Reference to widget bundle", readOnly = true)
     private String bundleAlias;
     @NoXss
+    @ApiModelProperty(position = 5, value = "Unique alias that is used in dashboards as a reference widget type", readOnly = true)
     private String alias;
     @NoXss
+    @ApiModelProperty(position = 6, value = "Widget name used in search and UI", readOnly = true)
     private String name;
 
     public BaseWidgetType() {
@@ -72,5 +77,20 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements TenantEnti
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.WIDGET_TYPE;
+    }
+
+    @ApiModelProperty(position = 1, value = "JSON object with the Widget Type Id. " +
+            "Specify this field to update the Widget Type. " +
+            "Referencing non-existing Widget Type Id will cause error. " +
+            "Omit this field to create new Widget Type." )
+    @Override
+    public WidgetTypeId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the Widget Type creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
     }
 }

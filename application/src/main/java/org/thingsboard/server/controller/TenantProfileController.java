@@ -55,6 +55,8 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import static org.thingsboard.server.controller.ControllerConstants.*;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")

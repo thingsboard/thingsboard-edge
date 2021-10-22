@@ -79,10 +79,11 @@ import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.nosql.CassandraBufferedRateExecutor;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -482,7 +483,11 @@ public class ActorSystemContext {
 
     @Autowired(required = false)
     @Getter
-    private CassandraBufferedRateExecutor cassandraBufferedRateExecutor;
+    private CassandraBufferedRateReadExecutor cassandraBufferedRateReadExecutor;
+
+    @Autowired(required = false)
+    @Getter
+    private CassandraBufferedRateWriteExecutor cassandraBufferedRateWriteExecutor;
 
     @Autowired(required = false)
     @Getter

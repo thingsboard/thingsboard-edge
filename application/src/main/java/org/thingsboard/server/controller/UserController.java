@@ -89,6 +89,8 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
+import static org.thingsboard.server.controller.ControllerConstants.*;
+
 @RequiredArgsConstructor
 @RestController
 @TbCoreComponent

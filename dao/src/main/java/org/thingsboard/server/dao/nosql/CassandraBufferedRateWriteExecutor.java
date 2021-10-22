@@ -37,9 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.stats.DefaultCounter;
-import org.thingsboard.server.common.stats.StatsCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.util.AbstractBufferedRateExecutor;
@@ -47,8 +44,6 @@ import org.thingsboard.server.dao.util.AsyncTaskContext;
 import org.thingsboard.server.dao.util.NoSqlAnyDao;
 
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by ashvayka on 24.10.18.
@@ -56,15 +51,11 @@ import java.util.Map;
 @Component
 @Slf4j
 @NoSqlAnyDao
-public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<CassandraStatementTask, TbResultSetFuture, TbResultSet> {
+public class CassandraBufferedRateWriteExecutor extends AbstractBufferedRateExecutor<CassandraStatementTask, TbResultSetFuture, TbResultSet> {
 
-    @Autowired
-    private EntityService entityService;
-    private Map<TenantId, String> tenantNamesCache = new HashMap<>();
+    static final String BUFFER_NAME = "Write";
 
-    private boolean printTenantNames;
-
-    public CassandraBufferedRateExecutor(
+    public CassandraBufferedRateWriteExecutor(
             @Value("${cassandra.query.buffer_size}") int queueLimit,
             @Value("${cassandra.query.concurrent_limit}") int concurrencyLimit,
             @Value("${cassandra.query.permit_max_wait_time}") long maxWaitTime,
@@ -75,62 +66,26 @@ public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<
             @Value("${cassandra.query.tenant_rate_limits.configuration}") String tenantRateLimitsConfiguration,
             @Value("${cassandra.query.tenant_rate_limits.print_tenant_names}") boolean printTenantNames,
             @Value("${cassandra.query.print_queries_freq:0}") int printQueriesFreq,
-            @Autowired StatsFactory statsFactory) {
-        super(queueLimit, concurrencyLimit, maxWaitTime, dispatcherThreads, callbackThreads, pollMs, tenantRateLimitsEnabled, tenantRateLimitsConfiguration, printQueriesFreq, statsFactory);
-        this.printTenantNames = printTenantNames;
+            @Autowired StatsFactory statsFactory,
+            @Autowired EntityService entityService) {
+        super(queueLimit, concurrencyLimit, maxWaitTime, dispatcherThreads, callbackThreads, pollMs, tenantRateLimitsEnabled, tenantRateLimitsConfiguration, printQueriesFreq, statsFactory,
+                entityService, printTenantNames);
     }
 
     @Scheduled(fixedDelayString = "${cassandra.query.rate_limit_print_interval_ms}")
+    @Override
     public void printStats() {
-        int queueSize = getQueueSize();
-        int rateLimitedTenantsCount = (int) stats.getRateLimitedTenants().values().stream()
-                .filter(defaultCounter -> defaultCounter.get() > 0)
-                .count();
-
-        if (queueSize > 0
-                || rateLimitedTenantsCount > 0
-                || concurrencyLevel.get() > 0
-                || stats.getStatsCounters().stream().anyMatch(counter -> counter.get() > 0)
-        ) {
-            StringBuilder statsBuilder = new StringBuilder();
-
-            statsBuilder.append("queueSize").append(" = [").append(queueSize).append("] ");
-            stats.getStatsCounters().forEach(counter -> {
-                statsBuilder.append(counter.getName()).append(" = [").append(counter.get()).append("] ");
-            });
-            statsBuilder.append("totalRateLimitedTenants").append(" = [").append(rateLimitedTenantsCount).append("] ");
-            statsBuilder.append(CONCURRENCY_LEVEL).append(" = [").append(concurrencyLevel.get()).append("] ");
-
-            stats.getStatsCounters().forEach(StatsCounter::clear);
-            log.info("Permits {}", statsBuilder);
-        }
-
-        stats.getRateLimitedTenants().entrySet().stream()
-                .filter(entry -> entry.getValue().get() > 0)
-                .forEach(entry -> {
-                    TenantId tenantId = entry.getKey();
-                    DefaultCounter counter = entry.getValue();
-                    int rateLimitedRequests = counter.get();
-                    counter.clear();
-                    if (printTenantNames) {
-                        String name = tenantNamesCache.computeIfAbsent(tenantId, tId -> {
-                            try {
-                                return entityService.fetchEntityNameAsync(TenantId.SYS_TENANT_ID, tenantId).get();
-                            } catch (Exception e) {
-                                log.error("[{}] Failed to get tenant name", tenantId, e);
-                                return "N/A";
-                            }
-                        });
-                        log.info("[{}][{}] Rate limited requests: {}", tenantId, name, rateLimitedRequests);
-                    } else {
-                        log.info("[{}] Rate limited requests: {}", tenantId, rateLimitedRequests);
-                    }
-                });
+        super.printStats();
     }
 
     @PreDestroy
     public void stop() {
         super.stop();
+    }
+
+    @Override
+    public String getBufferName() {
+        return BUFFER_NAME;
     }
 
     @Override
@@ -148,7 +103,7 @@ public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<
         CassandraStatementTask task = taskCtx.getTask();
         return task.executeAsync(
                 statement ->
-                    this.submit(new CassandraStatementTask(task.getTenantId(), task.getSession(), statement))
+                        this.submit(new CassandraStatementTask(task.getTenantId(), task.getSession(), statement))
         );
     }
 

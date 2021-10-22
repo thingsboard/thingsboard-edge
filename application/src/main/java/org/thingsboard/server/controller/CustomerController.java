@@ -70,7 +70,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_HIDE_TOOLBAR;
+import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_ID;
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 
 @RestController
 @TbCoreComponent
@@ -82,7 +98,8 @@ public class CustomerController extends BaseController {
             "If the user has the authority of 'Customer User', the server checks that the user belongs to the customer.";
 
     @ApiOperation(value = "Get Customer (getCustomerById)",
-            notes = "Get the Customer object based on the provided Customer Id. " + CUSTOMER_SECURITY_CHECK)
+            notes = "Get the Customer object based on the provided Customer Id. "
+                    + CUSTOMER_SECURITY_CHECK+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
@@ -104,7 +121,8 @@ public class CustomerController extends BaseController {
 
 
     @ApiOperation(value = "Get short Customer info (getShortCustomerInfoById)",
-            notes = "Get the short customer object that contains only the title and 'isPublic' flag. " + CUSTOMER_SECURITY_CHECK)
+            notes = "Get the short customer object that contains only the title and 'isPublic' flag. "
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/shortInfo", method = RequestMethod.GET)
     @ResponseBody
@@ -126,7 +144,8 @@ public class CustomerController extends BaseController {
     }
 
     @ApiOperation(value = "Get Customer Title (getCustomerTitleById)",
-            notes = "Get the title of the customer. " + CUSTOMER_SECURITY_CHECK)
+            notes = "Get the title of the customer. "
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/title", method = RequestMethod.GET, produces = "application/text")
     @ResponseBody
@@ -147,7 +166,7 @@ public class CustomerController extends BaseController {
             notes = "Creates or Updates the Customer. When creating customer, platform generates Customer Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
                     "The newly created Customer Id will be present in the response. " +
                     "Specify existing Customer Id to update the Customer. " +
-                    "Referencing non-existing Customer Id will cause 'Not Found' error.")
+                    "Referencing non-existing Customer Id will cause 'Not Found' error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
@@ -178,7 +197,9 @@ public class CustomerController extends BaseController {
     }
 
     @ApiOperation(value = "Delete Customer (deleteCustomer)",
-            notes = "Deletes the Customer and all customer Users. All assigned Dashboards, Assets, Devices, etc. will be unassigned but not deleted. Referencing non-existing Customer Id will cause an error.")
+            notes = "Deletes the Customer and all customer Users. " +
+                    "All assigned Dashboards, Assets, Devices, etc. will be unassigned but not deleted. " +
+                    "Referencing non-existing Customer Id will cause an error."+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
@@ -212,7 +233,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Customers (getCustomers)",
             notes = "Returns a page of customers owned by tenant. " +
-                    PAGE_DATA_PARAMETERS)
+                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -238,7 +259,7 @@ public class CustomerController extends BaseController {
     }
 
     @ApiOperation(value = "Get Tenant Customer by Customer title (getTenantCustomer)",
-            notes = "Get the Customer using Customer Title. " + ADMINISTRATOR_AUTHORITY_ONLY)
+            notes = "Get the Customer using Customer Title. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/customers", params = {"customerTitle"}, method = RequestMethod.GET)
     @ResponseBody
