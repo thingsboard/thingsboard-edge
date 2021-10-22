@@ -47,7 +47,7 @@
       </div>
       <div style="padding-bottom: 20px;"><span style="font-weight: bold;">{{ 'solution-template.level' | translate }}: </span><span class="level">{{ solutionTemplateDetails.level }}</span></div>
       <mat-divider style="margin-bottom: 20px;"></mat-divider>
-      <tb-markdown style="padding-top: 20px;" [data]="solutionTemplateDetails.highlights" lineNumbers fallbackToPlainMarkdown></tb-markdown>
+      <tb-markdown [style]="{ paddingTop: '20px' }" [data]="solutionTemplateDetails.highlights" lineNumbers fallbackToPlainMarkdown></tb-markdown>
     </div>
     <div fxFlex.gt-md="50" class="preview-container mat-elevation-z1" style="padding: 20px;">
       <ngx-hm-carousel #carousel

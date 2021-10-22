@@ -3109,10 +3109,6 @@
         "privacy-policy": "Privacy Policy",
         "recaptcha-title": "reCAPTCHA"
     },
-    "markdown": {
-        "copy-code": "Click to copy",
-        "copied": "Copied!"
-    },
     "ota-update": {
         "add": "Add package",
         "assign-firmware": "Assigned firmware",
@@ -4253,7 +4249,9 @@
     },
     "markdown": {
       "edit": "Edit",
-      "preview": "Preview"
+      "preview": "Preview",
+      "copy-code": "Click to copy",
+      "copied": "Copied!"
     },
     "white-labeling": {
         "white-labeling": "White Labeling",
