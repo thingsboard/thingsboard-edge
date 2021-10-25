@@ -1093,6 +1093,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
             whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
+            String uiHelpBaseUrl = null;
+            if (storedWl != null && storedWl.has("uiHelpBaseUrl")) {
+                JsonNode uiHelpBaseUrlJson = storedWl.get("uiHelpBaseUrl");
+                if (uiHelpBaseUrlJson.isTextual()) {
+                    if (!StringUtils.isEmpty(uiHelpBaseUrlJson.asText())) {
+                        uiHelpBaseUrl = uiHelpBaseUrlJson.asText();
+                    }
+                }
+            }
+            whiteLabelingParams.setUiHelpBaseUrl(uiHelpBaseUrl);
             if (storedWl != null && storedWl.has("enableHelpLinks")) {
                 whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
             } else {

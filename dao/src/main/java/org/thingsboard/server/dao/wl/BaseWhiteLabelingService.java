@@ -373,6 +373,9 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
                     if (!jsonNode.has("helpLinkBaseUrl")) {
                         result.setHelpLinkBaseUrl("https://thingsboard.io");
                     }
+                    if (!jsonNode.has("uiHelpBaseUrl")) {
+                        result.setUiHelpBaseUrl(null);
+                    }
                     if (!jsonNode.has("enableHelpLinks")) {
                         result.setEnableHelpLinks(true);
                     }
@@ -386,6 +389,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             result = new WhiteLabelingParams();
             if (isSystem) {
                 result.setHelpLinkBaseUrl("https://thingsboard.io");
+                result.setUiHelpBaseUrl(null);
                 result.setEnableHelpLinks(true);
             }
         }

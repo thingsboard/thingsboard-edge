@@ -46,6 +46,7 @@ public class WhiteLabelingParams {
     protected String faviconChecksum;
     protected PaletteSettings paletteSettings;
     protected String helpLinkBaseUrl;
+    protected String uiHelpBaseUrl;
     protected Boolean enableHelpLinks;
     protected boolean whiteLabelingEnabled = true;
     protected Boolean showNameVersion;
@@ -75,6 +76,9 @@ public class WhiteLabelingParams {
         }
         if (otherWlParams.helpLinkBaseUrl != null) {
             this.helpLinkBaseUrl = otherWlParams.helpLinkBaseUrl;
+        }
+        if (otherWlParams.uiHelpBaseUrl != null) {
+            this.uiHelpBaseUrl = otherWlParams.uiHelpBaseUrl;
         }
         if (otherWlParams.enableHelpLinks != null) {
             this.enableHelpLinks = otherWlParams.enableHelpLinks;

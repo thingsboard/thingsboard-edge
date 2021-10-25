@@ -4290,6 +4290,7 @@
         "prohibit-different-url": "Prohibit to use hostname from the client request headers",
         "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",
+        "ui-help-base-url": "UI help base url",
         "enable-help-links": "Enable help links",
         "error-verification-url": "A domain name shouldn't contain symbols '/' and ':'. Example: thingsboard.io",
         "show-platform-name-version": "Show platform name and version",

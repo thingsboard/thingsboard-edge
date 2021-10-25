@@ -50,13 +50,23 @@ const NOT_FOUND_CONTENT: HelpData = {
 export class HelpService {
 
   private helpCache: {[lang: string]: {[key: string]: string}} = {};
+  private wlHelpBaseUrl: string;
 
   constructor(
     private translate: TranslateService,
     private wl: WhiteLabelingService,
     private http: HttpClient,
     private uiSettingsService: UiSettingsService
-  ) {}
+  ) {
+    this.wl.getUiHelpBaseUrl$().subscribe(
+      (helpBaseUrl) => {
+        if (this.wlHelpBaseUrl !== helpBaseUrl) {
+          this.wlHelpBaseUrl = helpBaseUrl;
+          this.helpCache = {};
+        }
+      }
+    );
+  }
 
   getHelpContent(key: string): Observable<string> {
     const lang = this.translate.currentLang;
@@ -91,8 +101,16 @@ export class HelpService {
     }
   }
 
+  private getHelpBaseUrl(): Observable<string> {
+    if (this.wlHelpBaseUrl) {
+      return of(this.wlHelpBaseUrl);
+    } else {
+      return this.uiSettingsService.getHelpBaseUrl();
+    }
+  }
+
   private loadHelpContent(lang: string, key: string): Observable<HelpData> {
-    return this.uiSettingsService.getHelpBaseUrl().pipe(
+    return this.getHelpBaseUrl().pipe(
       mergeMap((helpBaseUrl) => {
         return this.loadHelpContentFromBaseUrl(helpBaseUrl, lang, key).pipe(
           catchError((e) => {

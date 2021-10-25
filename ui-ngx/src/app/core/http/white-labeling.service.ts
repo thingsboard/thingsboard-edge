@@ -172,6 +172,14 @@ export class WhiteLabelingService {
     return this.asWhiteLabelingObservable(() => this.getHelpLinkBaseUrl());
   }
 
+  public getUiHelpBaseUrl(): string {
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().uiHelpBaseUrl : '';
+  }
+
+  public getUiHelpBaseUrl$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.getUiHelpBaseUrl());
+  }
+
   public isEnableHelpLinks(): boolean {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().enableHelpLinks : true;
   }

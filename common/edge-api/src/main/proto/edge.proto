@@ -487,6 +487,7 @@ message WhiteLabelingParamsProto {
   optional string faviconChecksum = 6;
   PaletteSettingsProto paletteSettings = 7;
   optional string helpLinkBaseUrl = 8;
+  optional string uiHelpBaseUrl = 13;
   optional bool enableHelpLinks = 9;
   optional bool showNameVersion = 10;
   optional string platformName = 11;

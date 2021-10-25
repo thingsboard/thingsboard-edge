@@ -60,6 +60,7 @@ export interface WhiteLabelingParams {
   faviconChecksum?: string;
   paletteSettings?: PaletteSettings;
   helpLinkBaseUrl?: string;
+  uiHelpBaseUrl?: string;
   enableHelpLinks?: boolean;
   showNameVersion?: boolean;
   platformName?: string;

@@ -92,6 +92,9 @@ public class WhiteLabelingParamsProtoConstructor {
         if (whiteLabelingParams.getHelpLinkBaseUrl() != null) {
             builder.setHelpLinkBaseUrl(whiteLabelingParams.getHelpLinkBaseUrl());
         }
+        if (whiteLabelingParams.getUiHelpBaseUrl() != null) {
+            builder.setUiHelpBaseUrl(whiteLabelingParams.getUiHelpBaseUrl());
+        }
         if (whiteLabelingParams.getEnableHelpLinks() != null) {
             builder.setEnableHelpLinks(whiteLabelingParams.getEnableHelpLinks());
         }
