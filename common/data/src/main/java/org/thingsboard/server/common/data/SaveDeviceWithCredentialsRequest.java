@@ -28,37 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.objects;
+package org.thingsboard.server.common.data;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Created by Victor Basanets on 9/05/2017.
- */
 @ApiModel
 @Data
-@NoArgsConstructor
-public class TelemetryEntityView implements Serializable {
+public class SaveDeviceWithCredentialsRequest {
 
-    @ApiModelProperty(position = 1, required = true, value = "List of time-series data keys to expose", example = "temperature, humidity")
-    private List<String> timeseries;
-    @ApiModelProperty(position = 2, required = true, value = "JSON object with attributes to expose")
-    private AttributesEntityView attributes;
+    @ApiModelProperty(position = 1, value = "The JSON with device entity.", required = true)
+    private final Device device;
+    @ApiModelProperty(position = 2, value = "The JSON with credentials entity.", required = true)
+    private final DeviceCredentials credentials;
 
-    public TelemetryEntityView(List<String> timeseries, AttributesEntityView attributes) {
-
-        this.timeseries = new ArrayList<>(timeseries);
-        this.attributes = attributes;
-    }
-
-    public TelemetryEntityView(TelemetryEntityView obj) {
-        this(obj.getTimeseries(), obj.getAttributes());
-    }
 }
