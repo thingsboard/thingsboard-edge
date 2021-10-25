@@ -120,7 +120,7 @@ public class DashboardController extends BaseController {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    @Value("${dashboard.max_datapoints_limit}")
+    @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
 
     @ApiOperation(value = "Get server time (getServerTime)",

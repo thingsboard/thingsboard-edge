@@ -33,10 +33,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
-import { catchError, mergeMap, tap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import { UiSettingsService } from '@core/http/ui-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
-const NOT_FOUND_CONTENT = '## Not found';
+const localHelpBaseUrl = '/assets';
+
+const NOT_FOUND_CONTENT: HelpData = {
+  content: '## Not found',
+  helpBaseUrl: localHelpBaseUrl
+};
 
 @Injectable({
   providedIn: 'root'
@@ -48,7 +54,8 @@ export class HelpService {
   constructor(
     private translate: TranslateService,
     private wl: WhiteLabelingService,
-    private http: HttpClient
+    private http: HttpClient,
+    private uiSettingsService: UiSettingsService
   ) {}
 
   getHelpContent(key: string): Observable<string> {
@@ -84,13 +91,38 @@ export class HelpService {
     }
   }
 
-  private loadHelpContent(lang: string, key: string): Observable<string> {
-    return this.http.get(`/assets/help/${lang}/${key}.md`, {responseType: 'text'} );
+  private loadHelpContent(lang: string, key: string): Observable<HelpData> {
+    return this.uiSettingsService.getHelpBaseUrl().pipe(
+      mergeMap((helpBaseUrl) => {
+        return this.loadHelpContentFromBaseUrl(helpBaseUrl, lang, key).pipe(
+          catchError((e) => {
+            if (localHelpBaseUrl !== helpBaseUrl) {
+              return this.loadHelpContentFromBaseUrl(localHelpBaseUrl, lang, key);
+            } else {
+              throw e;
+            }
+          })
+        );
+      })
+    );
   }
 
-  private processVariables(content: string): string {
-    const baseUrlReg = /\${baseUrl}/g;
-    return content.replace(baseUrlReg, this.wl.getHelpLinkBaseUrl());
+  private loadHelpContentFromBaseUrl(helpBaseUrl: string, lang: string, key: string): Observable<HelpData> {
+    return this.http.get(`${helpBaseUrl}/help/${lang}/${key}.md`, {responseType: 'text'} ).pipe(
+      map((content) => {
+        return {
+          content,
+          helpBaseUrl
+        };
+      })
+    );
+  }
+
+  private processVariables(helpData: HelpData): string {
+    const baseUrlReg = /\${siteBaseUrl}/g;
+    helpData.content = helpData.content.replace(baseUrlReg, this.wl.getHelpLinkBaseUrl());
+    const helpBaseUrlReg = /\${helpBaseUrl}/g;
+    return helpData.content.replace(helpBaseUrlReg, helpData.helpBaseUrl);
   }
 
   private processIncludes(content: string): Observable<string> {
@@ -109,4 +141,9 @@ export class HelpService {
     }
   }
 
+}
+
+interface HelpData {
+  content: string;
+  helpBaseUrl: string;
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -28,36 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const forwardUrl = "http://localhost:8080";
-const wsForwardUrl = "ws://localhost:8080";
-const ruleNodeUiforwardUrl = forwardUrl;
+package org.thingsboard.server.controller;
 
-const PROXY_CONFIG = {
-  "/api": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/static/rulenode": {
-    "target": ruleNodeUiforwardUrl,
-    "secure": false,
-  },
-  "/static/widgets": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/oauth2": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/login/oauth2": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/api/ws": {
-    "target": wsForwardUrl,
-    "ws": true,
-    "secure": false
-  },
-};
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-module.exports = PROXY_CONFIG;
+@RestController
+@TbCoreComponent
+@RequestMapping("/api")
+public class UiSettingsController extends BaseController {
+
+    @Value("${ui.help.base-url}")
+    private String helpBaseUrl;
+
+    @ApiOperation(value = "Get UI help base url (getHelpBaseUrl)",
+            notes = "Get UI help base url used to fetch help assets. " +
+                    "The actual value of the base url is configurable in the system configuration file.")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/uiSettings/helpBaseUrl", method = RequestMethod.GET)
+    @ResponseBody
+    public String getHelpBaseUrl() throws ThingsboardException {
+        return helpBaseUrl;
+    }
+
+}
