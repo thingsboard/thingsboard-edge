@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -75,6 +76,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
 
     private static final ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
 
+    @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
@@ -96,6 +98,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return processRequest(routingKey, suffix, new JsonHttpIntegrationMsg(requestHeaders, msg, new DeferredResult<>()));
     }
 
+    @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
@@ -106,6 +109,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return processRequest(routingKey, suffix, new JsonHttpIntegrationMsg(requestHeaders, msg, new DeferredResult<>()));
     }
 
+    @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.TEXT_PLAIN_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
@@ -116,6 +120,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return processRequest(routingKey, suffix, new StringHttpIntegrationMsg(requestHeaders, msg, new DeferredResult<>()));
     }
 
+    @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
@@ -168,6 +173,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return fileArrayNode;
     }
 
+    @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @SuppressWarnings("unchecked")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
     @ResponseStatus(value = HttpStatus.OK)

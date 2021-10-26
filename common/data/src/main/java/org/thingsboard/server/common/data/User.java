@@ -110,7 +110,7 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 11, value = "Customer or Tenant Id")
+    @ApiModelProperty(position = 11, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

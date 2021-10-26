@@ -89,7 +89,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
         return parentCustomerId;
     }
 
-    @ApiModelProperty(position = 8, readOnly = true, value = "JSON object with parent Customer Id or Tenant Id")
+    @ApiModelProperty(position = 8, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return parentCustomerId != null && !parentCustomerId.isNullUid() ? parentCustomerId : tenantId;

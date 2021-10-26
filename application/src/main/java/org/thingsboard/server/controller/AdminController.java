@@ -108,8 +108,8 @@ public class AdminController extends BaseController {
     public AdminSettings getAdminSettings(
             @ApiParam(value = "A string value of the key (e.g. 'general' or 'mail').")
             @PathVariable("key") String key,
-                                          @RequestParam(required = false,
-                                                  defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
+            @ApiParam(value = "Use system settings if settings are not defined on tenant level.")
+            @RequestParam(required = false, defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             AdminSettings adminSettings;
@@ -192,8 +192,9 @@ public class AdminController extends BaseController {
     }
 
     @ApiOperation(value = "Send test email (sendTestMail)",
-            notes = "Attempts to send test email to the System Administrator User using Mail Settings provided as a parameter. " +
-                    "You may change the 'To' email in the user profile of the System Administrator. " + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+            notes = "Attempts to send test email using Mail Settings provided as a parameter. " +
+                    "Email is sent to the address specified in the profile of user who is performing the request" +
+                    "You may change the 'To' email in the user profile of the System/Tenant Administrator. " + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings/testMail", method = RequestMethod.POST)
     public void sendTestMail(

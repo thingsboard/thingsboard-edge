@@ -114,6 +114,7 @@ public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
         return tenantId;
     }
 
+    @ApiModelProperty(position = 20, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

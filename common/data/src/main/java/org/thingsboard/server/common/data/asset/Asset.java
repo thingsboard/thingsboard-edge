@@ -120,7 +120,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 9, required = true, value = "JSON object with Customer or Tenant Id")
+    @ApiModelProperty(position = 9, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
