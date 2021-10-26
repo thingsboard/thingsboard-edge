@@ -212,6 +212,7 @@ public class DeviceController extends BaseController {
                                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         Device device = checkNotNull(deviceAndCredentials.getDevice());
         DeviceCredentials credentials = checkNotNull(deviceAndCredentials.getCredentials());
+        boolean created = device.getId() == null;
         try {
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithCredentials(device1, credentials));
@@ -221,7 +222,7 @@ public class DeviceController extends BaseController {
             return savedDevice;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), device,
-                    null, device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
