@@ -29,35 +29,44 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SelfRegistrationService } from '@core/http/self-register.service';
+import { Observable } from 'rxjs/internal/Observable';
+
+export interface SignupDialogData {
+  title: string;
+  content$: Observable<string>;
+}
 
 @Component({
-  selector: 'tb-privacy-policy-dialog',
-  templateUrl: './privacy-policy-dialog.component.html',
+  selector: 'tb-signup-dialog',
+  templateUrl: './signup-dialog.component.html',
   styleUrls: []
 })
-export class PrivacyPolicyDialogComponent extends DialogComponent<PrivacyPolicyDialogComponent, boolean> implements OnInit {
+export class SignupDialogComponent extends DialogComponent<SignupDialogComponent, boolean> implements OnInit {
 
-  privacyPolicyText: SafeHtml;
+  title: string;
+  dialogText: SafeHtml;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
+              @Inject(MAT_DIALOG_DATA) public data: SignupDialogData,
               private selfRegistrationService: SelfRegistrationService,
               private domSanitizer: DomSanitizer,
-              public dialogRef: MatDialogRef<PrivacyPolicyDialogComponent, boolean>) {
+              public dialogRef: MatDialogRef<SignupDialogComponent, boolean>) {
     super(store, router, dialogRef);
+    this.title = this.data.title;
   }
 
   ngOnInit(): void {
-    this.selfRegistrationService.loadPrivacyPolicy().subscribe((privacyPolicy) => {
-      this.privacyPolicyText = this.domSanitizer.bypassSecurityTrustHtml(privacyPolicy);
+    this.data.content$.subscribe((content) => {
+      this.dialogText = this.domSanitizer.bypassSecurityTrustHtml(content);
     });
   }
 

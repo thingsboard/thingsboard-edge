@@ -3107,7 +3107,8 @@
         "accept-privacy-policy": "Accept Privacy Policy",
         "accept": "Accept",
         "privacy-policy": "Privacy Policy",
-        "recaptcha-title": "reCAPTCHA"
+        "recaptcha-title": "reCAPTCHA",
+        "terms-of-use": "Terms of Use"
     },
     "ota-update": {
         "add": "Add package",
@@ -4214,6 +4215,7 @@
         "captcha-secret-key": "reCAPTCHA secret key",
         "notification-email": "Notification email",
         "privacy-policy-text": "Privacy policy text",
+        "terms-of-use-text": "Terms of Use text",
         "text-message-page": "Text Message for signup page",
         "enable-mobile-self-registration": "Enable self registration from mobile application",
         "mobile-self-registration-title": "Mobile application self registration settings",
@@ -4229,7 +4231,11 @@
         "mobile-app-scheme-required": "Application URL scheme is required",
         "mobile-app-host": "Application URL hostname",
         "mobile-app-host-placeholder": "Ex.: my.app.host",
-        "mobile-app-host-required": "Application URL hostname is required"
+        "mobile-app-host-required": "Application URL hostname is required",
+        "show-privacy-policy": "Show Privacy Policy",
+        "show-terms-of-use": "Show Terms of Use",
+        "domain-settings": "Domain settings",
+        "general-settings": "General settings"
     },
     "solution-template": {
       "solution-template": "Solution template",

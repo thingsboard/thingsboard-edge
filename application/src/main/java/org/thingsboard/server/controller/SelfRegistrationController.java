@@ -62,6 +62,7 @@ public class SelfRegistrationController extends BaseController {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String PRIVACY_POLICY = "privacyPolicy";
+    private static final String TERMS_OF_USE = "termsOfUse";
 
     @Autowired
     private SelfRegistrationService selfRegistrationService;
@@ -80,6 +81,10 @@ public class SelfRegistrationController extends BaseController {
                 JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
                 if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                     savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
+                JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    savedSelfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
                 }
             }
             return savedSelfRegistrationParams;
@@ -102,6 +107,10 @@ public class SelfRegistrationController extends BaseController {
                 if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                     selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
                 }
+                JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+                }
             }
             return selfRegistrationParams;
         } catch (Exception e) {
@@ -121,6 +130,8 @@ public class SelfRegistrationController extends BaseController {
             SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
             result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
             result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
+            result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
+            result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
 
             return result;
         } catch (Exception e) {
@@ -136,6 +147,21 @@ public class SelfRegistrationController extends BaseController {
                     request.getServerName()));
             if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                 return privacyPolicyNode.get(PRIVACY_POLICY).toString();
+            }
+            return "";
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @RequestMapping(value = "/noauth/selfRegistration/termsOfUse", method = RequestMethod.GET)
+    @ResponseBody
+    public String getTermsOfUse(HttpServletRequest request) throws ThingsboardException {
+        try {
+            JsonNode termsOfUse = MAPPER.readTree(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
+                    request.getServerName()));
+            if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
+                return termsOfUse.get(TERMS_OF_USE).toString();
             }
             return "";
         } catch (Exception e) {
