@@ -315,6 +315,7 @@ public class CustomerController extends BaseController {
     @RequestMapping(value = "/customers", params = {"customerIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Customer> getCustomersByIds(
+            @ApiParam(value = "A list of customer ids, separated by comma ','", required = true)
             @RequestParam("customerIds") String[] strCustomerIds) throws ThingsboardException {
         checkArrayParameter("customerIds", strCustomerIds);
         try {
@@ -354,8 +355,7 @@ public class CustomerController extends BaseController {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
-        EntityType entityType = entityGroup.getType();
-        checkEntityGroupType(entityType);
+        checkEntityGroupType(EntityType.CUSTOMER, entityGroup.getType());
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(customerService.findCustomersByEntityGroupId(entityGroupId, pageLink));

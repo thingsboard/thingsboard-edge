@@ -468,6 +468,19 @@ public abstract class BaseController {
         return checkEntityGroupType(groupType);
     }
 
+    void checkEntityGroupType(EntityType expected, EntityType actual) throws ThingsboardException {
+        if (expected == null) {
+            throw new RuntimeException("Expected Entitytype is not specified!");
+        }
+        if (actual == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (!expected.equals(actual)) {
+            throw new ThingsboardException("Expected entity group with type '" + expected + "' but received '" + actual + "'!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
+
     EntityType checkEntityGroupType(EntityType groupType) throws ThingsboardException {
         if (groupType == null) {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
