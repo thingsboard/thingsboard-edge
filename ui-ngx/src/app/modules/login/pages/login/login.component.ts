@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, HostBinding, OnInit } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -57,6 +57,8 @@ export class LoginComponent extends PageComponent implements OnInit {
     password: ''
   });
   oauth2Clients: Array<OAuth2ClientInfo> = null;
+
+  @HostBinding('class') class = 'tb-custom-css';
 
   constructor(protected store: Store<AppState>,
               private authService: AuthService,
