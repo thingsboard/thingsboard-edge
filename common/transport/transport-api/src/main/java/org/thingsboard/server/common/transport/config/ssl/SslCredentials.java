@@ -28,22 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.config;
+package org.thingsboard.server.common.transport.config.ssl;
 
-import org.thingsboard.server.common.transport.config.ssl.SslCredentials;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.X509Certificate;
 
-public interface LwM2MSecureServerConfig {
+public interface SslCredentials {
 
-    Integer getId();
+    void init(boolean trustsOnly) throws IOException, GeneralSecurityException;
 
-    String getHost();
+    KeyStore getKeyStore();
 
-    Integer getPort();
+    String getKeyPassword();
 
-    String getSecureHost();
+    String getKeyAlias();
 
-    Integer getSecurePort();
+    PrivateKey getPrivateKey();
 
-    SslCredentials getSslCredentials();
+    PublicKey getPublicKey();
+
+    X509Certificate[] getCertificateChain();
+
+    X509Certificate[] getTrustedCertificates();
+
+    TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException, KeyStoreException;
+
+    KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException;
 
 }

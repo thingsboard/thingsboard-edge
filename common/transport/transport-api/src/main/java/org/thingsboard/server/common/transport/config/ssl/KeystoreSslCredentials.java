@@ -28,22 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.config;
+package org.thingsboard.server.common.transport.config.ssl;
 
-import org.thingsboard.server.common.transport.config.ssl.SslCredentials;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.ResourceUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
-public interface LwM2MSecureServerConfig {
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 
-    Integer getId();
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class KeystoreSslCredentials extends AbstractSslCredentials {
 
-    String getHost();
+    private String type;
+    private String storeFile;
+    private String storePassword;
+    private String keyPassword;
+    private String keyAlias;
 
-    Integer getPort();
+    @Override
+    protected boolean canUse() {
+        return ResourceUtils.resourceExists(this, this.storeFile);
+    }
 
-    String getSecureHost();
+    @Override
+    protected KeyStore loadKeyStore(boolean trustsOnly, char[] keyPasswordArray) throws IOException, GeneralSecurityException {
+        String keyStoreType = StringUtils.isEmpty(this.type) ? KeyStore.getDefaultType() : this.type;
+        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+        try (InputStream tsFileInputStream = ResourceUtils.getInputStream(this, this.storeFile)) {
+            keyStore.load(tsFileInputStream, StringUtils.isEmpty(this.storePassword) ? new char[0] : this.storePassword.toCharArray());
+        }
+        return keyStore;
+    }
 
-    Integer getSecurePort();
-
-    SslCredentials getSslCredentials();
-
+    @Override
+    protected void updateKeyAlias(String keyAlias) {
+        this.keyAlias = keyAlias;
+    }
 }

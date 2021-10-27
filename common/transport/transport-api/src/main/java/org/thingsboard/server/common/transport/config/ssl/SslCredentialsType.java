@@ -28,22 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.config;
+package org.thingsboard.server.common.transport.config.ssl;
 
-import org.thingsboard.server.common.transport.config.ssl.SslCredentials;
-
-public interface LwM2MSecureServerConfig {
-
-    Integer getId();
-
-    String getHost();
-
-    Integer getPort();
-
-    String getSecureHost();
-
-    Integer getSecurePort();
-
-    SslCredentials getSslCredentials();
-
+public enum SslCredentialsType {
+    PEM,
+    KEYSTORE
 }

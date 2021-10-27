@@ -28,57 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.config;
+package org.thingsboard.server.common.transport.config.ssl;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.server.Ssl;
+import org.springframework.boot.web.server.SslStoreProvider;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.transport.config.ssl.SslCredentials;
-import org.thingsboard.server.common.transport.config.ssl.SslCredentialsConfig;
 
-@Slf4j
+import java.security.KeyStore;
+
 @Component
-@ConditionalOnExpression("('${service.type:null}'=='tb-transport' && '${transport.lwm2m.enabled:false}'=='true') || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core'")
-public class LwM2MTransportBootstrapConfig implements LwM2MSecureServerConfig {
-
-    @Getter
-    @Value("${transport.lwm2m.bootstrap.id:}")
-    private Integer id;
-
-    @Getter
-    @Value("${transport.lwm2m.bootstrap.bind_address:}")
-    private String host;
-
-    @Getter
-    @Value("${transport.lwm2m.bootstrap.bind_port:}")
-    private Integer port;
-
-    @Getter
-    @Value("${transport.lwm2m.bootstrap.security.bind_address:}")
-    private String secureHost;
-
-    @Getter
-    @Value("${transport.lwm2m.bootstrap.security.bind_port:}")
-    private Integer securePort;
+@ConditionalOnExpression("'${spring.main.web-environment:true}'=='true' && '${server.ssl.enabled:false}'=='true'")
+public class SslCredentialsWebServerCustomizer implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
 
     @Bean
-    @ConfigurationProperties(prefix = "transport.lwm2m.bootstrap.security.credentials")
-    public SslCredentialsConfig lwm2mBootstrapCredentials() {
-        return new SslCredentialsConfig("LWM2M Bootstrap DTLS Credentials", false);
+    @ConfigurationProperties(prefix = "server.ssl.credentials")
+    public SslCredentialsConfig httpServerSslCredentials() {
+        return new SslCredentialsConfig("HTTP Server SSL Credentials", false);
     }
 
     @Autowired
-    @Qualifier("lwm2mBootstrapCredentials")
-    private SslCredentialsConfig credentialsConfig;
+    @Qualifier("httpServerSslCredentials")
+    private SslCredentialsConfig httpServerSslCredentialsConfig;
+
+    private final ServerProperties serverProperties;
+
+    public SslCredentialsWebServerCustomizer(ServerProperties serverProperties) {
+        this.serverProperties = serverProperties;
+    }
 
     @Override
-    public SslCredentials getSslCredentials() {
-        return this.credentialsConfig.getCredentials();
+    public void customize(ConfigurableServletWebServerFactory factory) {
+        SslCredentials sslCredentials = this.httpServerSslCredentialsConfig.getCredentials();
+        Ssl ssl = serverProperties.getSsl();
+        ssl.setKeyAlias(sslCredentials.getKeyAlias());
+        ssl.setKeyPassword(sslCredentials.getKeyPassword());
+        factory.setSsl(ssl);
+        factory.setSslStoreProvider(new SslStoreProvider() {
+            @Override
+            public KeyStore getKeyStore() {
+                return sslCredentials.getKeyStore();
+            }
+
+            @Override
+            public KeyStore getTrustStore() {
+                return null;
+            }
+        });
     }
 }
