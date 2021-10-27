@@ -32,14 +32,17 @@ package org.thingsboard.server.controller;
 
 public class ControllerConstants {
 
+    protected static final String ENTITY_GROUP_ID = "entityGroupId";
     protected static final String NEW_LINE = "\n\n";
     protected static final int DEFAULT_PAGE_SIZE = 1000;
+    protected static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
     protected static final String ENTITY_TYPE = "entityType";
     protected static final String CUSTOMER_ID = "customerId";
     protected static final String TENANT_ID = "tenantId";
     protected static final String DEVICE_ID = "deviceId";
     protected static final String RPC_ID = "rpcId";
     protected static final String ENTITY_ID = "entityId";
+
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
             "See the 'Model' tab of the Response Class for more details. ";
@@ -1548,6 +1551,8 @@ public class ControllerConstants {
     protected static final String RBAC_GROUP_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for specified group.";
     protected static final String RBAC_GROUP_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for specified group.";
     protected static final String RBAC_GROUP_DELETE_CHECK = " Security check is performed to verify that the user has 'DELETE' permission for specified group.";
+    protected static final String RBAC_GROUP_ADD_CHECK = " Security check is performed to verify that the user has 'ADD_TO_GROUP' permission for specified group.";
+    protected static final String RBAC_GROUP_REMOVE_CHECK = " Security check is performed to verify that the user has 'REMOVE_FROM_GROUP' permission for specified group.";
 
     protected static final String RBAC_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for the entity (entities).";
     protected static final String RBAC_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for the entity (entities).";
@@ -1555,4 +1560,5 @@ public class ControllerConstants {
 
     protected static final String WL_READ_CHECK = "\n\nSecurity check is performed to verify that the user has 'READ' permission for the white labeling resource.";
     protected static final String WL_WRITE_CHECK = "\n\nSecurity check is performed to verify that the user has 'WRITE' permission for the white labeling resource.";
+
 }

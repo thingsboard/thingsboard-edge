@@ -103,7 +103,7 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CU
 import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.WL_WRITE_CHECK;
-import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 
 @RestController
 @TbCoreComponent

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,6 +46,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+@ApiModel
 @Data
 @NoArgsConstructor
 public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId {
@@ -71,19 +73,23 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     private static final String GROUP_EDGE_ALL_STARTS_WITH = "[Edge]";
     private static final String GROUP_EDGE_ALL_ENDS_WITH = "All";
     public static final String GROUP_EDGE_ALL_NAME_PATTERN = GROUP_EDGE_ALL_STARTS_WITH + " %s " + GROUP_EDGE_ALL_ENDS_WITH;
+    public static final String ENTITY_GROUP_TYPE_ALLOWABLE_VALUES = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD,EDGE";
 
-    @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD,EDGE")
+    @ApiModelProperty(position = 5, required = true, allowableValues = ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
     private EntityType type;
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(position = 4, required = true, value = "Name of the entity group", example = "Water meters")
     @NoXss
     private String name;
 
+    @ApiModelProperty(position = 3, value = "JSON object with the owner of the group - Tenant or Customer Id.")
     private EntityId ownerId;
 
+    @ApiModelProperty(position = 6, value = "Arbitrary JSON with additional information about the group")
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode additionalInfo;
 
+    @ApiModelProperty(position = 7, value = "JSON with the configuration for UI components: list of columns, settings, actions, etc ")
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode configuration;
 
@@ -111,10 +117,12 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         return ownerId;
     }
 
+    @ApiModelProperty(position = 8, value = "Indicates special group 'All' that contains all entities and can't be deleted.")
     public boolean isGroupAll() {
         return GROUP_ALL_NAME.equals(name);
     }
 
+    @ApiModelProperty(position = 9, value = "Indicates special edge group 'All' that contains all entities and can't be deleted.")
     public boolean isEdgeGroupAll() {
         return name.startsWith(GROUP_EDGE_ALL_STARTS_WITH) && name.endsWith(GROUP_EDGE_ALL_ENDS_WITH);
     }
@@ -125,5 +133,20 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
             return getAdditionalInfo().get("isPublic").asBoolean();
         }
         return false;
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the entity group creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
+    }
+
+    @ApiModelProperty(position = 1, value = "JSON object with the EntityGroupId Id. " +
+            "Specify this field to update the Entity Group. " +
+            "Referencing non-existing Entity Group Id will cause error. " +
+            "Omit this field to create new Entity Group." )
+    @Override
+    public EntityGroupId getId() {
+        return super.getId();
     }
 }

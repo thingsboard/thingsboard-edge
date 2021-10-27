@@ -105,7 +105,7 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PA
 import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.USER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.USER_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 
 @RequiredArgsConstructor
 @RestController
