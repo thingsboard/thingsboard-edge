@@ -167,7 +167,7 @@
         [required]="true"
         [entityType]="entityType.EDGE">
       </tb-entity-subtype-autocomplete>
-      <div *ngIf="resource.EDGE | hasGenericPermission: operation.WRITE">
+      <div *ngIf="(resource.EDGE | hasGenericPermission: operation.CREATE) || (resource.EDGE | hasGenericPermission: operation.WRITE)">
         <div class="tb-hint" [innerHTML]="'edge.edge-license-key-hint' | translate"></div>
         <mat-form-field class="mat-block">
           <mat-label translate>edge.edge-license-key</mat-label>

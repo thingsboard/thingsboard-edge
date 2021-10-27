@@ -136,7 +136,8 @@ public class EdgeController extends BaseController {
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.READ);
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            SecurityUser user = getCurrentUser();
+            if (!hasPermissionEdgeCreateOrWrite(user)) {
                 cleanUpLicenseKey(edge);
             }
             return edge;
@@ -402,7 +403,7 @@ public class EdgeController extends BaseController {
             } else {
                 result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
             }
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!hasPermissionEdgeCreateOrWrite(user)) {
                 for (Edge edge : result.getData()) {
                     cleanUpLicenseKey(edge);
                 }
@@ -468,7 +469,7 @@ public class EdgeController extends BaseController {
                 edgesFuture = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
             }
             List<Edge> edges = edgesFuture.get();
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!hasPermissionEdgeCreateOrWrite(user)) {
                 for (Edge edge : edges) {
                     cleanUpLicenseKey(edge);
                 }
@@ -504,7 +505,7 @@ public class EdgeController extends BaseController {
                     return false;
                 }
             }).collect(Collectors.toList());
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
+            if (!hasPermissionEdgeCreateOrWrite(user)) {
                 for (Edge edge : edges) {
                     cleanUpLicenseKey(edge);
                 }
@@ -637,10 +638,6 @@ public class EdgeController extends BaseController {
         }, null);
     }
 
-    private void cleanUpLicenseKey(Edge edge) {
-        edge.setEdgeLicenseKey(null);
-    }
-
     @RequestMapping(value = "/license/checkInstance", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<JsonNode> checkInstance(@RequestBody JsonNode request) throws ThingsboardException {
@@ -664,5 +661,14 @@ public class EdgeController extends BaseController {
             log.error("Error occurred: [{}]", e.getMessage(), e);
             throw new ThingsboardException(e, ThingsboardErrorCode.SUBSCRIPTION_VIOLATION);
         }
+    }
+
+    private void cleanUpLicenseKey(Edge edge) {
+        edge.setEdgeLicenseKey(null);
+    }
+
+    private boolean hasPermissionEdgeCreateOrWrite(SecurityUser user) throws ThingsboardException {
+        return accessControlService.hasPermission(user, Resource.EDGE, Operation.CREATE) ||
+               accessControlService.hasPermission(user, Resource.EDGE, Operation.WRITE);
     }
 }
