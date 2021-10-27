@@ -30,31 +30,21 @@
 ///
 
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   forwardRef,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   Output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable, of } from 'rxjs';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  publishReplay,
-  refCount,
-  share,
-  switchMap,
-  tap
-} from 'rxjs/operators';
+import { merge, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, map, publishReplay, refCount, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -63,7 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { isEqual } from '@core/utils';
+import { isEqual, isString } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -75,7 +65,7 @@ import { isEqual } from '@core/utils';
     multi: true
   }]
 })
-export class EntityGroupAutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges, AfterViewInit {
+export class EntityGroupAutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges, OnDestroy {
 
   selectEntityGroupFormGroup: FormGroup;
 
@@ -126,6 +116,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   searchText = '';
 
   private dirty = false;
+  private cleanFilteredEntityGroups: Subject<Array<EntityGroupInfo>> = new Subject();
 
   private propagateChange = (v: any) => { };
 
@@ -146,7 +137,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   ngOnInit() {
-    this.filteredEntityGroups = this.selectEntityGroupFormGroup.get('entityGroup').valueChanges
+    const getEntityGroups =  this.selectEntityGroupFormGroup.get('entityGroup').valueChanges
       .pipe(
         debounceTime(150),
         tap(value => {
@@ -162,10 +153,14 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           }
         }),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-        distinctUntilChanged(),
-        switchMap(name => this.fetchEntityGroups(name) ),
+        switchMap(name => this.fetchEntityGroups(name)),
         share()
       );
+
+    this.filteredEntityGroups = merge(
+      this.cleanFilteredEntityGroups,
+      getEntityGroups
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -186,8 +181,10 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-
-  ngAfterViewInit(): void {}
+  ngOnDestroy() {
+    this.cleanFilteredEntityGroups.complete();
+    this.cleanFilteredEntityGroups = null;
+  }
 
   getCurrentEntityGroup(): EntityGroupInfo | null {
     const currentEntityGroup = this.selectEntityGroupFormGroup.get('entityGroup').value;
@@ -238,15 +235,20 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   reset() {
+    this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
     this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
+    setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
   }
 
-  updateView(value: string | null, entityGroup: EntityGroupInfo) {
+  updateView(value: string | null, entityGroup: EntityGroupInfo | string | null ) {
     if (this.modelValue !== value) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
-      this.entityGroupLoaded.next(entityGroup);
+      if (!(isString(entityGroup) || entityGroup === null)) {
+        // @ts-ignore
+        this.entityGroupLoaded.next(entityGroup);
+      }
     }
   }
 
