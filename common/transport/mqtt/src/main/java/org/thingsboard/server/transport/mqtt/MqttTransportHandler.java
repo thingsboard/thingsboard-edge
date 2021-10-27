@@ -1028,7 +1028,6 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     @Override
     public void onAttributeUpdate(UUID sessionId, AttributeUpdateNotificationMsg notification) {
         log.trace("[{}] Received attributes update notification to device", sessionId);
-        log.info("[{}] : attrSubTopicType: {}", notification.toString(), attrSubTopicType);
         String topic;
         MqttTransportAdaptor adaptor;
         switch (attrSubTopicType) {
@@ -1064,7 +1063,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     @Override
     public void onToDeviceRpcRequest(UUID sessionId, ToDeviceRpcRequestMsg rpcRequest) {
-        log.info("[{}] Received RPC command to device", sessionId);
+        log.trace("[{}] Received RPC command to device", sessionId);
         String baseTopic;
         MqttTransportAdaptor adaptor;
         switch (rpcSubTopicType) {

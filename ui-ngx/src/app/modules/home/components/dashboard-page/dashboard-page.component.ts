@@ -241,6 +241,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   thingsboardVersion: string = env.tbVersion;
 
+  translatedDashboardTitle: string;
+
   currentDashboardId: string;
 
   setStateDashboardId = false;
@@ -410,6 +412,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.reset();
 
     this.dashboard = data.dashboard;
+    this.translatedDashboardTitle = this.getTranslatedDashboardTitle();
     this.entityGroup = data.entityGroup;
     if (!this.embedded && this.dashboard.id) {
       this.setStateDashboardId = true;
@@ -487,6 +490,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   private reset() {
     this.dashboard = null;
+    this.translatedDashboardTitle = null;
     this.dashboardConfiguration = null;
     this.dashboardLogoCache = undefined;
     this.prevDashboard = null;
@@ -579,6 +583,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     } else {
       return false;
     }
+  }
+
+  private getTranslatedDashboardTitle(): string {
+    return this.utils.customTranslation(this.dashboard.title, this.dashboard.title);
   }
 
   public displayExport(): boolean {
@@ -886,6 +894,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public saveDashboard() {
+    this.translatedDashboardTitle = this.getTranslatedDashboardTitle();
     this.setEditMode(false, false);
     this.notifyDashboardUpdated();
   }

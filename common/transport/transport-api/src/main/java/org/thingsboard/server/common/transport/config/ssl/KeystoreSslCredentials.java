@@ -28,30 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.selfregistration;
+package org.thingsboard.server.common.transport.config.ssl;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.ResourceUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 
 @Data
-@EqualsAndHashCode
-public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
+@EqualsAndHashCode(callSuper = false)
+public class KeystoreSslCredentials extends AbstractSslCredentials {
 
-    private String adminSettingsId;
-    private String domainName;
-    private String captchaSecretKey;
-    private String privacyPolicy;
-    private String termsOfUse;
-    private String notificationEmail;
-    private String defaultDashboardId;
-    private boolean defaultDashboardFullscreen;
-    private List<GroupPermission> permissions;
-    private String pkgName;
-    private String appSecret;
-    private String appScheme;
-    private String appHost;
+    private String type;
+    private String storeFile;
+    private String storePassword;
+    private String keyPassword;
+    private String keyAlias;
 
+    @Override
+    protected boolean canUse() {
+        return ResourceUtils.resourceExists(this, this.storeFile);
+    }
+
+    @Override
+    protected KeyStore loadKeyStore(boolean trustsOnly, char[] keyPasswordArray) throws IOException, GeneralSecurityException {
+        String keyStoreType = StringUtils.isEmpty(this.type) ? KeyStore.getDefaultType() : this.type;
+        KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+        try (InputStream tsFileInputStream = ResourceUtils.getInputStream(this, this.storeFile)) {
+            keyStore.load(tsFileInputStream, StringUtils.isEmpty(this.storePassword) ? new char[0] : this.storePassword.toCharArray());
+        }
+        return keyStore;
+    }
+
+    @Override
+    protected void updateKeyAlias(String keyAlias) {
+        this.keyAlias = keyAlias;
+    }
 }

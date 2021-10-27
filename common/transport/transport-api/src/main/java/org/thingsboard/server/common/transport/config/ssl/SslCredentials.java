@@ -28,30 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.selfregistration;
+package org.thingsboard.server.common.transport.config.ssl;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.permission.GroupPermission;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.X509Certificate;
 
-import java.util.List;
+public interface SslCredentials {
 
-@Data
-@EqualsAndHashCode
-public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
+    void init(boolean trustsOnly) throws IOException, GeneralSecurityException;
 
-    private String adminSettingsId;
-    private String domainName;
-    private String captchaSecretKey;
-    private String privacyPolicy;
-    private String termsOfUse;
-    private String notificationEmail;
-    private String defaultDashboardId;
-    private boolean defaultDashboardFullscreen;
-    private List<GroupPermission> permissions;
-    private String pkgName;
-    private String appSecret;
-    private String appScheme;
-    private String appHost;
+    KeyStore getKeyStore();
+
+    String getKeyPassword();
+
+    String getKeyAlias();
+
+    PrivateKey getPrivateKey();
+
+    PublicKey getPublicKey();
+
+    X509Certificate[] getCertificateChain();
+
+    X509Certificate[] getTrustedCertificates();
+
+    TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException, KeyStoreException;
+
+    KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException;
 
 }

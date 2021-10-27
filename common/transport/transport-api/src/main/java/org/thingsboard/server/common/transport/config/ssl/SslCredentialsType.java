@@ -28,30 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.selfregistration;
+package org.thingsboard.server.common.transport.config.ssl;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-
-import java.util.List;
-
-@Data
-@EqualsAndHashCode
-public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
-
-    private String adminSettingsId;
-    private String domainName;
-    private String captchaSecretKey;
-    private String privacyPolicy;
-    private String termsOfUse;
-    private String notificationEmail;
-    private String defaultDashboardId;
-    private boolean defaultDashboardFullscreen;
-    private List<GroupPermission> permissions;
-    private String pkgName;
-    private String appSecret;
-    private String appScheme;
-    private String appHost;
-
+public enum SslCredentialsType {
+    PEM,
+    KEYSTORE
 }
