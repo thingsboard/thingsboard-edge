@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -72,12 +73,18 @@ import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_HIDE_TOOLBAR;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_ID;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
@@ -96,7 +103,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Customer (getCustomerById)",
             notes = "Get the Customer object based on the provided Customer Id. "
-                    + CUSTOMER_SECURITY_CHECK+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+                    + CUSTOMER_SECURITY_CHECK+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
@@ -119,7 +126,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get short Customer info (getShortCustomerInfoById)",
             notes = "Get the short customer object that contains only the title and 'isPublic' flag. "
-                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/shortInfo", method = RequestMethod.GET)
     @ResponseBody
@@ -142,7 +149,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Customer Title (getCustomerTitleById)",
             notes = "Get the title of the customer. "
-                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/title", method = RequestMethod.GET, produces = "application/text")
     @ResponseBody
@@ -163,12 +170,13 @@ public class CustomerController extends BaseController {
             notes = "Creates or Updates the Customer. When creating customer, platform generates Customer Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
                     "The newly created Customer Id will be present in the response. " +
                     "Specify existing Customer Id to update the Customer. " +
-                    "Referencing non-existing Customer Id will cause 'Not Found' error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+                    "Referencing non-existing Customer Id will cause 'Not Found' error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
     public Customer saveCustomer(@ApiParam(value = "A JSON value representing the customer.") @RequestBody Customer customer,
-                @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                                 @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
+                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
             String prevHomeDashboardId = null;
             boolean prevHideDashboardToolbar = true;
@@ -196,7 +204,7 @@ public class CustomerController extends BaseController {
     @ApiOperation(value = "Delete Customer (deleteCustomer)",
             notes = "Deletes the Customer and all customer Users. " +
                     "All assigned Dashboards, Assets, Devices, etc. will be unassigned but not deleted. " +
-                    "Referencing non-existing Customer Id will cause an error."+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+                    "Referencing non-existing Customer Id will cause an error."+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
@@ -230,7 +238,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Customers (getCustomers)",
             notes = "Returns a page of customers owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -256,7 +264,7 @@ public class CustomerController extends BaseController {
     }
 
     @ApiOperation(value = "Get Tenant Customer by Customer title (getTenantCustomer)",
-            notes = "Get the Customer using Customer Title. " + TENANT_AUTHORITY_PARAGRAPH)
+            notes = "Get the Customer using Customer Title. " + TENANT_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/customers", params = {"customerTitle"}, method = RequestMethod.GET)
     @ResponseBody
@@ -272,14 +280,22 @@ public class CustomerController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Customers (getUserCustomers)",
+            notes = "Returns a page of customers available for the user. " +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Customer> getUserCustomers(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
             @RequestParam int page,
+            @ApiParam(value = CUSTOMER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -292,6 +308,9 @@ public class CustomerController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get customers by Customer Ids (getCustomersByEntityGroupId)",
+            notes = "Returns a list of Customer objects based on the provided ids. Filters the list based on the user permissions. " +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customers", params = {"customerIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -312,15 +331,24 @@ public class CustomerController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get customers by Entity Group Id (getCustomersByEntityGroupId)",
+            notes = "Returns a page of Customer objects that belongs to specified Entity Group Id. " +
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Customer> getCustomersByEntityGroupId(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
-            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = CUSTOMER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);

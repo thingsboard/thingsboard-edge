@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,14 +51,27 @@ import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 public class CustomTranslationController extends BaseController {
 
+    private static final String CUSTOM_TRANSLATION_EXAMPLE = "\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\"translationMap\":{\"es_ES\":\"{\\\"home\\\":\\\"MyHome\\\"}\"}}" +
+            MARKDOWN_CODE_BLOCK_END;
+
     @Autowired
     private CustomTranslationService customTranslationService;
 
+    @ApiOperation(value = "Get end-user Custom Translation configuration (getCustomTranslation)",
+            notes = "Fetch the Custom Translation map for the end user. The custom translation is configured in the white labeling parameters. " +
+                    "If custom translation translation is defined on the tenant level, it overrides the custom translation of the system level. " +
+                    "Similar, if the custom translation is defined on the customer level, it overrides the translation configuration of the tenant level."
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -76,6 +92,16 @@ public class CustomTranslationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Custom Translation configuration (getCurrentCustomTranslation)",
+            notes = "Fetch the Custom Translation map that corresponds to the authority of the user. " +
+                    "The API call is designed to load the custom translation items for edition. " +
+                    "So, the result is NOT merged with the parent level configuration. " +
+                    "Let's assume there is a custom translation configured on a system level. " +
+                    "And there is no custom translation items configured on a tenant level. " +
+                    "In such a case, the API call will return empty object for the tenant administrator. " +
+                    "\n\n Response example: " + CUSTOM_TRANSLATION_EXAMPLE +
+                    ControllerConstants.WL_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customTranslation/currentCustomTranslation", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -97,10 +123,16 @@ public class CustomTranslationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Custom Translation (saveCustomTranslation)",
+            notes = "Creates or Updates the Custom Translation map." +
+                    "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation saveCustomTranslation(@RequestBody CustomTranslation customTranslation) throws ThingsboardException {
+    public CustomTranslation saveCustomTranslation(
+            @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
+            @RequestBody CustomTranslation customTranslation) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);

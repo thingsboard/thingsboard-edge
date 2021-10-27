@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -124,7 +125,9 @@ public class CustomMenuController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomMenu saveCustomMenu(@RequestBody(required = false) CustomMenu customMenu) throws ThingsboardException {
+    public CustomMenu saveCustomMenu(
+            @ApiParam(value = "A JSON value representing the custom menu")
+            @RequestBody(required = false) CustomMenu customMenu) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);

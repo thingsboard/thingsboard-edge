@@ -33,6 +33,8 @@ package org.thingsboard.server.common.data.translation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j;
@@ -45,11 +47,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@ApiModel
 @Data
 @EqualsAndHashCode
 @Log4j
 public class CustomTranslation {
 
+    @ApiModelProperty(value = "Map of locale IDs to stringified json object with custom translations", required = true)
     private Map<String, String> translationMap = new HashMap<>();
 
     private static ObjectMapper mapper = new ObjectMapper();

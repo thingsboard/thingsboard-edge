@@ -94,6 +94,7 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_C
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
@@ -228,7 +229,7 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Get Customer Assets (getCustomerAssets)",
-            notes = "Returns a page of assets objects assigned to customer. " +
+            notes = "Returns a page of assets objects owned by customer. " +
                     PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
@@ -265,9 +266,9 @@ public class AssetController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "Get Customer Asset Infos (getCustomerAssetInfos)",
-            notes = "Returns a page of assets info objects assigned to customer. " +
-                    PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get Assets (getUserAssets)",
+            notes = "Returns a page of assets objects available for the user. " +
+                    PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
