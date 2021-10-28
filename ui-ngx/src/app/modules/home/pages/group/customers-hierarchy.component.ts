@@ -71,7 +71,7 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
 import { Edge, edgeEntityGroupTypes } from '@shared/models/edge.models';
 import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
-import { Authority } from "@shared/models/authority.enum";
+import { Authority } from '@shared/models/authority.enum';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { RuleChainParams } from '@shared/models/rule-chain.models';
@@ -134,10 +134,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     hierarchyView: true,
     hierarchyCallbacks: this.hierarchyCallbacks
   };
-  entityGroupsTableConfig: EntityGroupsTableConfig | EntityTableConfig<BaseData<HasId>> = this.resolveEntityGroupTableConfig(this.entityGroupParams);
+  entityGroupsTableConfig: EntityGroupsTableConfig | EntityTableConfig<BaseData<HasId>> =
+    this.resolveEntityGroupTableConfig(this.entityGroupParams);
   entityGroupStateInfo: EntityGroupStateInfo<BaseData<HasId>> = null;
 
-  public edgeId: string = '';
+  public edgeId = '';
 
   public nodeEditCallbacks: NavTreeEditCallbacks = {};
 
@@ -183,7 +184,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
               (customers: Customer[]) => {
               cb(this.customersToNodes(node.id, entityGroup.id.id, customers));
             });
-        } if (entityGroup.type === EntityType.EDGE) {
+        } else if (entityGroup.type === EntityType.EDGE) {
           const customerData: EdgeNodeCustomerData = {
             customerId: node.data.entity.ownerId.id,
             customerGroupId: node.data.parentEntityGroupId
@@ -217,9 +218,10 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         if (node.data.type === 'edge') {
           cb(this.loadNodesForEdge(node.id, parentEntityGroupId, edge, customerData));
         } else {
-          this.entityGroupService.getEdgeEntityGroups(node.data.edge.id.id, node.data.groupsType, {ignoreLoading: true}).subscribe((entityGroups) => {
-            cb(this.edgeEntityGroupsToNodes(node.id, parentEntityGroupId, customerData, edge, entityGroups));
-          });
+          this.entityGroupService.getEdgeEntityGroups(node.data.edge.id.id, node.data.groupsType, {ignoreLoading: true})
+            .subscribe((entityGroups) => {
+              cb(this.edgeEntityGroupsToNodes(node.id, parentEntityGroupId, customerData, edge, entityGroups));
+            });
         }
       }
     }
@@ -405,7 +407,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.entityGroupNodesMap[parentNodeId] = nodesMap;
     }
     const node: CustomersHierarchyNode = {
-      id: (++this.nodeIdCounter)+'',
+      id: (++this.nodeIdCounter) + '',
       icon: false,
       text: entityGroupNodeText(entityGroup),
       children: entityGroup.type === EntityType.CUSTOMER || entityGroup.type === EntityType.EDGE,
@@ -421,8 +423,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     return node;
   }
 
-  private edgeEntityGroupsToNodes(parentNodeId: string, parentEntityGroupId: string,
-                                  customerData: EdgeNodeCustomerData, edge: Edge, entityGroups: EntityGroupInfo[]): CustomersHierarchyNode[] {
+  private edgeEntityGroupsToNodes(parentNodeId: string, parentEntityGroupId: string, customerData: EdgeNodeCustomerData,
+                                  edge: Edge, entityGroups: EntityGroupInfo[]): CustomersHierarchyNode[] {
     const nodes: CustomersHierarchyNode[] = [];
     this.entityGroupNodesMap[parentNodeId] = {};
     if (entityGroups) {
@@ -445,7 +447,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.entityGroupNodesMap[parentNodeId] = nodesMap;
     }
     const node: CustomersHierarchyNode = {
-      id: (++this.nodeIdCounter)+'',
+      id: (++this.nodeIdCounter) + '',
       icon: false,
       text: entityGroupNodeText(entityGroup),
       children: false,
@@ -482,7 +484,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.customerNodesMap[parentNodeId] = nodesMap;
     }
     const node: CustomersHierarchyNode = {
-      id: (++this.nodeIdCounter)+'',
+      id: (++this.nodeIdCounter) + '',
       icon: false,
       text: customerNodeText(customer),
       children: true,
@@ -502,7 +504,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   }
 
   private edgesToNodes(parentNodeId: string, groupId: string, edges: Edge[], customerData: EdgeNodeCustomerData): CustomersHierarchyNode[] {
-    var nodes: CustomersHierarchyNode[] = [];
+    const nodes: CustomersHierarchyNode[] = [];
     this.edgeNodesMap[parentNodeId] = {};
     if (edges) {
       edges.forEach((edge) => {
@@ -520,7 +522,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.edgeNodesMap[parentNodeId] = nodesMap;
     }
     const node: CustomersHierarchyNode = {
-      id: (++this.nodeIdCounter)+'',
+      id: (++this.nodeIdCounter) + '',
       icon: false,
       text: edgeNodeText(edge),
       children: true,
@@ -550,7 +552,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     }
     this.allowedGroupTypes.forEach((groupType) => {
       const node: CustomersHierarchyNode = {
-        id: (++this.nodeIdCounter)+'',
+        id: (++this.nodeIdCounter) + '',
         icon: false,
         text: entityGroupsNodeText(this.translate, groupType),
         children: true,
@@ -569,7 +571,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     return nodes;
   }
 
-  private loadNodesForEdge(parentNodeId: string, parentEntityGroupId: string, edge: Edge, customerData: EdgeNodeCustomerData): CustomersHierarchyNode[] {
+  private loadNodesForEdge(parentNodeId: string, parentEntityGroupId: string, edge: Edge,
+                           customerData: EdgeNodeCustomerData): CustomersHierarchyNode[] {
     const nodes: CustomersHierarchyNode[] = [];
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
@@ -609,7 +612,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   private createBaseEdgeNode(parentEntityGroupId: string, edge: Edge, customerData: EdgeNodeCustomerData, groupType: EntityType) {
     return {
-      id: (++this.nodeIdCounter)+'',
+      id: (++this.nodeIdCounter) + '',
       icon: false,
       children: false,
       data: {
@@ -656,7 +659,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         }, 0);
       }
     } else {
-      this.openNode(parentNodeId, () => {this.onGroupSelected(parentNodeId, groupId)});
+      this.openNode(parentNodeId, () => this.onGroupSelected(parentNodeId, groupId));
     }
   }
 
@@ -677,11 +680,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
             }, 0);
           }
         } else {
-          this.openNode(customerNodeId, () => {this.onCustomerGroupsSelected(parentNodeId, customerId, groupsType)});
+          this.openNode(customerNodeId, () => this.onCustomerGroupsSelected(parentNodeId, customerId, groupsType));
         }
       }
     } else {
-      this.openNode(parentNodeId, () => {this.onCustomerGroupsSelected(parentNodeId, customerId, groupsType)});
+      this.openNode(parentNodeId, () => this.onCustomerGroupsSelected(parentNodeId, customerId, groupsType));
     }
   }
 
@@ -702,11 +705,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
             }, 0);
           }
         } else {
-          this.openNode(edgeNodeId, () => {this.onEdgeGroupsSelected(parentNodeId, edgeId, groupsType)});
+          this.openNode(edgeNodeId, () => this.onEdgeGroupsSelected(parentNodeId, edgeId, groupsType));
         }
       }
     } else {
-      this.openNode(parentNodeId, () => {this.onEdgeGroupsSelected(parentNodeId, edgeId, groupsType)});
+      this.openNode(parentNodeId, () => this.onEdgeGroupsSelected(parentNodeId, edgeId, groupsType));
     }
   }
 
@@ -744,7 +747,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     if (nodeIds) {
       const nodeText = entityGroupNodeText(entityGroup);
       nodeIds.forEach((nodeId) => {
-        this.nodeEditCallbacks.updateNode(nodeId, nodeText);
+        this.nodeEditCallbacks.updateNode(nodeId, nodeText, {entity: entityGroup});
       });
     }
   }
