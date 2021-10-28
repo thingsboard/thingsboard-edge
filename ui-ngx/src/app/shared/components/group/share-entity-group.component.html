@@ -38,9 +38,9 @@
     notFoundText="customer.no-customers-matching"
     requiredText="customer.customer-required">
   </tb-owner-autocomplete>
-  <mat-checkbox formControlName="isAllUserGroup" style="padding-bottom: 16px;">{{ 'entity-group.all-users' | translate }}</mat-checkbox>
+  <mat-checkbox formControlName="allUserGroup" style="padding-bottom: 16px;">{{ 'entity-group.all-users' | translate }}</mat-checkbox>
   <tb-entity-group-select
-    *ngIf="!shareEntityGroupFormGroup.get('isAllUserGroup').value"
+    *ngIf="!shareEntityGroupFormGroup.get('allUserGroup').value"
     [ownerId]="shareEntityGroupFormGroup.get('ownerId').value"
     formControlName="userGroupId"
     [allowedGroupTypes]="[entityType.USER]"

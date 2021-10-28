@@ -516,7 +516,7 @@ export interface EntityGroupParams {
 
 export interface ShareGroupRequest {
   ownerId: EntityId;
-  isAllUserGroup: boolean;
+  allUserGroup: boolean;
   userGroupId?: EntityGroupId;
   readElseWrite: boolean;
   roleIds?: RoleId[];

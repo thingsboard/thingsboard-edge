@@ -104,7 +104,7 @@ export class EntityGroupWizardDialogComponent extends
 
     const shareGroupRequest: ShareGroupRequest = {
       ownerId: null,
-      isAllUserGroup: true,
+      allUserGroup: true,
       readElseWrite: true
     };
 

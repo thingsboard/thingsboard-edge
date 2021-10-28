@@ -83,7 +83,7 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
   ngOnInit() {
     this.shareEntityGroupFormGroup = this.fb.group({
       ownerId: [null, Validators.required],
-      isAllUserGroup: [null],
+      allUserGroup: [null],
       userGroupId: [null],
       permissionType: [null],
       roleIds: [null]
@@ -91,7 +91,7 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
     this.shareEntityGroupFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
-    this.shareEntityGroupFormGroup.get('isAllUserGroup').valueChanges.subscribe(() => {
+    this.shareEntityGroupFormGroup.get('allUserGroup').valueChanges.subscribe(() => {
       this.updateValidators();
     });
     this.shareEntityGroupFormGroup.get('permissionType').valueChanges.subscribe(() => {
@@ -123,8 +123,8 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
   }
 
   private updateValidators() {
-    const isAllUserGroup: boolean = this.shareEntityGroupFormGroup.get('isAllUserGroup').value;
-    if (isAllUserGroup) {
+    const allUserGroup: boolean = this.shareEntityGroupFormGroup.get('allUserGroup').value;
+    if (allUserGroup) {
       this.shareEntityGroupFormGroup.get('userGroupId').clearValidators();
     } else {
       this.shareEntityGroupFormGroup.get('userGroupId').setValidators(Validators.required);
