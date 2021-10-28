@@ -136,9 +136,11 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
-    public Asset saveAsset(@RequestBody Asset asset,
-                           @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-                           @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+    public Asset saveAsset(
+               @ApiParam(value = "A JSON value representing the asset.", required = true)
+               @RequestBody Asset asset,
+               @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
+               @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         if (TB_SERVICE_QUEUE.equals(asset.getType())) {
             throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
