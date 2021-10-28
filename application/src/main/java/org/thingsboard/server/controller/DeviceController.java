@@ -427,7 +427,7 @@ public class DeviceController extends BaseController {
     }
 
     @ApiOperation(value = "Get Devices By Ids (getDevicesByIds)",
-            notes = "Requested devices must be owned by tenant or assigned to customer which user is performing the request. ")
+            notes = "Requested devices must be owned by tenant or assigned to customer which user is performing the request. " + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/devices", params = {"deviceIds"}, method = RequestMethod.GET)
     @ResponseBody
