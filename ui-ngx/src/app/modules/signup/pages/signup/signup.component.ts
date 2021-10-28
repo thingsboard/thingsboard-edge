@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnInit, ViewChild } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -64,6 +64,8 @@ export class SignupComponent extends PageComponent implements OnInit {
   acceptPrivacyPolicy: boolean;
   acceptTermsOfUse: boolean;
   signupParams = this.selfRegistrationService.signUpParams;
+
+  @HostBinding('class') class = 'tb-custom-css';
 
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
