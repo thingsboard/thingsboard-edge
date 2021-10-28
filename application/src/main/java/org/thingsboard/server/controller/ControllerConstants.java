@@ -605,6 +605,80 @@ public class ControllerConstants {
             MARKDOWN_CODE_BLOCK_END +
             "";
 
+    protected static final String ENTITY_GROUP_FILTER = "\n\n## Group Entities Filter\n\n" +
+            "Allows to filter multiple entities of the same type using the entity group type and id. " +
+            "For example, this entity filter selects all devices that " +
+            "belong to the group 'e52b0020-2a7a-11ec-94eb-213c95f54092':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroup\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroup\": \"e52b0020-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_LIST_FILTER = "\n\n## Group List Filter\n\n" +
+            "Return multiple groups of the same type using specified ids. " +
+            "For example, this entity filter selects 2 device groups (if they are present in the system) " +
+            "with ids 'e52b0020-2a7a-11ec-94eb-213c95f54092' and 'e52b0020-2a7a-11ec-94eb-213c95f54093':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroupList\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupList\": [\"e52b0020-2a7a-11ec-94eb-213c95f54092\", \"e52b0020-2a7a-11ec-94eb-213c95f54093\"]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_NAME_FILTER = "\n\n## Group Name Filter\n\n" +
+            "Allows to filter entity groups based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all devices which name starts with 'CAT':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroupName\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"CAT\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITIES_BY_GROUP_NAME_FILTER = "\n\n## Entities by Group Name Filter\n\n" +
+            "Allows to filter entities that belong to group based on the entity type and the group name. " +
+            "Optional parameter 'ownerId' allows you to specify the owner of the group (Tenant or Customer, current user owner by default)." +
+            "For example, this entity filter selects all devices which belong to group 'Water Meters':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entitiesByGroupName\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n Other example, this entity filter selects all devices which belong to group 'Water Meters' which in turn belongs to (sub-)Customer with id 'e52b0020-2a7a-11ec-94eb-213c95f54093': \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entitiesByGroupName\",\n" +
+            "  \"ownerId\": \"e52b0020-2a7a-11ec-94eb-213c95f54093\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_OWNER_FILTER = "\n\n## Entity owner Filter\n\n" +
+            "Allows to fetch owner (Tenant or Customer) of the specified entity. " +
+            "For example, this entity filter selects owner of the device with id 'e52b0020-2a7a-11ec-94eb-213c95f54093':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"stateEntityOwner\",\n" +
+            "  \"singleEntity\": {\n" +
+            "    \"id\": \"d521edb0-2a7a-11ec-94eb-213c95f54092\",\n" +
+            "    \"entityType\": \"DEVICE\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
     protected static final String EMPTY = "\n\n## Entity Type Filter\n\n" +
             "Allows to filter multiple entities of the same type using the **'starts with'** expression over entity name. " +
             "For example, this entity filter selects all devices which name starts with 'Air Quality':\n\n" +
@@ -616,7 +690,8 @@ public class ControllerConstants {
     protected static final String ENTITY_FILTERS =
             "\n\n # Entity Filters" +
                     "\nEntity Filter body depends on the 'type' parameter. Let's review available entity filter types. In fact, they do correspond to available dashboard aliases." +
-                    SINGLE_ENTITY + ENTITY_LIST + ENTITY_NAME + ENTITY_TYPE_FILTER + ASSET_TYPE + DEVICE_TYPE + EDGE_TYPE + ENTITY_VIEW_TYPE + API_USAGE + RELATIONS_QUERY_FILTER
+                    SINGLE_ENTITY + ENTITY_GROUP_FILTER + ENTITY_LIST + ENTITY_NAME + ENTITY_TYPE_FILTER + ENTITY_GROUP_LIST_FILTER + ENTITY_GROUP_NAME_FILTER + ENTITIES_BY_GROUP_NAME_FILTER +
+                    ENTITY_OWNER_FILTER + ASSET_TYPE + DEVICE_TYPE + EDGE_TYPE + ENTITY_VIEW_TYPE + API_USAGE + RELATIONS_QUERY_FILTER
                     + ASSET_QUERY_FILTER + DEVICE_QUERY_FILTER + EV_QUERY_FILTER + EDGE_QUERY_FILTER;
 
     protected static final String FILTER_KEY = "\n\n## Filter Key\n\n" +
