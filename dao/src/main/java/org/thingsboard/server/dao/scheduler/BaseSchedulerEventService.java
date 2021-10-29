@@ -265,8 +265,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     }
 
     @Override
-    public PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId,
-                                                                                                 EdgeId edgeId, PageLink pageLink) {
+    public PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findSchedulerEventInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
