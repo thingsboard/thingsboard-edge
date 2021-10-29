@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.provision.sql;
+package org.thingsboard.server.transport.mqtt.claim.sql;
 
 import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.mqtt.provision.AbstractMqttProvisionProtoDeviceTest;
+import org.thingsboard.server.transport.mqtt.claim.AbstractMqttClaimJsonDeviceTest;
 
 @DaoSqlTest
-public class MqttProvisionDeviceProtoSqlTest extends AbstractMqttProvisionProtoDeviceTest {
+public class MqttClaimDeviceJsonTest extends AbstractMqttClaimJsonDeviceTest {
 }

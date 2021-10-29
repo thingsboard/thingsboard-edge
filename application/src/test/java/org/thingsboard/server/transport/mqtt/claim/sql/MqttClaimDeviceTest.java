@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.telemetry.attributes.sql;
+package org.thingsboard.server.transport.mqtt.claim.sql;
 
 import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.mqtt.telemetry.attributes.AbstractMqttAttributesJsonIntegrationTest;
+import org.thingsboard.server.transport.mqtt.claim.AbstractMqttClaimDeviceTest;
 
 @DaoSqlTest
-public class MqttAttributesSqlJsonIntegrationTest extends AbstractMqttAttributesJsonIntegrationTest {
+public class MqttClaimDeviceTest extends AbstractMqttClaimDeviceTest {
 }

@@ -28,11 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.claim.sql;
+package org.thingsboard.server.transport.mqtt.rpc.sql;
 
 import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.mqtt.claim.AbstractMqttClaimProtoDeviceTest;
+import org.thingsboard.server.transport.mqtt.rpc.AbstractMqttServerSideRpcDefaultIntegrationTest;
 
+/**
+ * Created by Valerii Sosliuk on 8/22/2017.
+ */
 @DaoSqlTest
-public class MqttClaimDeviceProtoSqlTest extends AbstractMqttClaimProtoDeviceTest {
+public class MqttServerSideRpcIntegrationTest extends AbstractMqttServerSideRpcDefaultIntegrationTest {
 }

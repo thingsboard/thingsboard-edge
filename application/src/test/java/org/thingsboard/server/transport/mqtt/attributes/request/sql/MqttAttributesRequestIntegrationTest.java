@@ -28,14 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.rpc.sql;
+package org.thingsboard.server.transport.mqtt.attributes.request.sql;
 
 import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.mqtt.rpc.AbstractMqttServerSideRpcDefaultIntegrationTest;
+import org.thingsboard.server.transport.mqtt.attributes.request.AbstractMqttAttributesRequestIntegrationTest;
 
-/**
- * Created by Valerii Sosliuk on 8/22/2017.
- */
 @DaoSqlTest
-public class MqttServerSideRpcSqlIntegrationTest extends AbstractMqttServerSideRpcDefaultIntegrationTest {
+public class MqttAttributesRequestIntegrationTest extends AbstractMqttAttributesRequestIntegrationTest {
 }

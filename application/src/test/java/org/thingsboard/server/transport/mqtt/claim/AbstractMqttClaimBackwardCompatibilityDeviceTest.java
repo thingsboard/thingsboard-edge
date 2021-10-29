@@ -28,47 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.attributes.updates;
+package org.thingsboard.server.transport.mqtt.claim;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.common.data.device.profile.MqttTopics;
-import org.thingsboard.server.transport.mqtt.attributes.AbstractMqttAttributesIntegrationTest;
 
 @Slf4j
-public abstract class AbstractMqttAttributesUpdatesIntegrationTest extends AbstractMqttAttributesIntegrationTest {
+public abstract class AbstractMqttClaimBackwardCompatibilityDeviceTest extends AbstractMqttClaimDeviceTest {
 
     @Before
     public void beforeTest() throws Exception {
-        processBeforeTest("Test Subscribe to attribute updates", "Gateway Test Subscribe to attribute updates", TransportPayloadType.JSON, null, null);
+        processBeforeTest("Test Claim device", "Test Claim gateway", TransportPayloadType.PROTOBUF, null, null, true, true);
+        createCustomerAndUser();
     }
 
     @After
-    public void afterTest() throws Exception {
-        processAfterTest();
+    public void afterTest() throws Exception { super.afterTest(); }
+
+    @Test
+    public void testGatewayClaimingDevice() throws Exception {
+        processTestGatewayClaimingDevice("Test claiming gateway device Proto", false);
     }
 
     @Test
-    public void testJsonSubscribeToAttributesUpdatesFromTheServer() throws Exception {
-        processJsonTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
+    public void testGatewayClaimingDeviceWithoutSecretAndDuration() throws Exception {
+        processTestGatewayClaimingDevice("Test claiming gateway device empty payload Proto", true);
     }
 
-    @Test
-    public void testJsonSubscribeToAttributesUpdatesFromTheServerOnShortTopic() throws Exception {
-        processJsonTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_TOPIC);
-    }
-
-    @Test
-    public void testJsonSubscribeToAttributesUpdatesFromTheServerOnShortJsonTopic() throws Exception {
-        processJsonTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC);
-    }
-
-    @Test
-    public void testJsonSubscribeToAttributesUpdatesFromTheServerGateway() throws Exception {
-        processJsonGatewayTestSubscribeToAttributesUpdates();
+    protected void processTestGatewayClaimingDevice(String deviceName, boolean emptyPayload) throws Exception {
+        processProtoTestGatewayClaimDevice(deviceName, emptyPayload);
     }
 
 }

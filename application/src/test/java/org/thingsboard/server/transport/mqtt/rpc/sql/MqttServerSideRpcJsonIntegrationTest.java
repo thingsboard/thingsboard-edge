@@ -34,5 +34,5 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.rpc.AbstractMqttServerSideRpcJsonIntegrationTest;
 
 @DaoSqlTest
-public class MqttServerSideRpcJsonSqlIntegrationTest extends AbstractMqttServerSideRpcJsonIntegrationTest {
+public class MqttServerSideRpcJsonIntegrationTest extends AbstractMqttServerSideRpcJsonIntegrationTest {
 }
