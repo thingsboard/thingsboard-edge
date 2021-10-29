@@ -30,9 +30,12 @@
  */
 package org.thingsboard.server.common.data.signup;
 
+import io.swagger.annotations.ApiModel;
+
 /**
  * Created by igor on 12/13/16.
  */
+@ApiModel
 public enum SignUpResult {
 
     SUCCESS,
