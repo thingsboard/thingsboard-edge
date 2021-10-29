@@ -1789,8 +1789,9 @@ public class ControllerConstants {
             MARKDOWN_CODE_BLOCK_END;
 
     static final String CONVERTER_CONFIGURATION_DESCRIPTION = "# Converter Configuration" + NEW_LINE +
-            "Converter configuration (**'configuration'** field) is the JSON object that contains two fields: **'decoder'** and **'encoder'**. " +
-            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. See the examples of each one below. " + NEW_LINE +
+            "Converter configuration (**'configuration'** field) is the JSON object that should contain one of two possible fields: **'decoder'** or **'encoder'**. " +
+            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'. " +
+            "See the examples of each one below. " + NEW_LINE +
             "## Uplink Converter Configuration" + NEW_LINE +
             CONVERTER_UPLINK_CONFIGURATION + NEW_LINE +
             "Decoder field in the more readable form:" + NEW_LINE +
