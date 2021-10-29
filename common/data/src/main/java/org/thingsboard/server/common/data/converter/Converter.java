@@ -127,8 +127,9 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.debugMode = debugMode;
     }
 
-    @ApiModelProperty(position = 7, value = "JSON object representing converter configuration. Contains two fields: decoder and encoder. " +
-            "The former is used when converter has UPLINK type, the latter is used - when DOWNLINK type")
+    @ApiModelProperty(position = 7, value = "JSON object representing converter configuration. It should contain one of two possible fields: 'decoder' or 'encoder'. " +
+            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. " +
+            "It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'")
     public JsonNode getConfiguration() {
         return configuration;
     }

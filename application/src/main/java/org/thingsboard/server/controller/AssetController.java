@@ -117,7 +117,7 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.GET)
     @ResponseBody
-    public Asset getAssetById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION)
+    public Asset getAssetById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION, required = true)
                               @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
         checkParameter(ASSET_ID, strAssetId);
         try {
@@ -269,7 +269,7 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Get Assets (getUserAssets)",
-            notes = "Returns a page of assets objects available for the user. " +
+            notes = "Returns a page of assets objects available for the current user. " +
                     PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)

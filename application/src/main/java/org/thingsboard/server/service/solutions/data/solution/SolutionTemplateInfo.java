@@ -30,14 +30,18 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@ApiModel
 @Data
 @NoArgsConstructor
 public class SolutionTemplateInfo extends SolutionTemplate {
-
+    @ApiModelProperty(position = 7, value = "URL of the preview image")
     private String previewImageUrl;
+    @ApiModelProperty(position = 8, value = "Short description to display on template card")
     private String shortDescription;
 
     public SolutionTemplateInfo(SolutionTemplateInfo solution) {

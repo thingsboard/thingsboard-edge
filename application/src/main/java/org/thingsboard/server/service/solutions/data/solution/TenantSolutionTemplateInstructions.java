@@ -30,19 +30,25 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
+@ApiModel
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class TenantSolutionTemplateInstructions {
 
+    @ApiModelProperty(position = 1, value = "Id of the group that contains main dashboard of the solution")
     private EntityGroupId dashboardGroupId;
+    @ApiModelProperty(position = 2, value = "Id of the main dashboard of the solution")
     private DashboardId dashboardId;
+    @ApiModelProperty(position = 3, value = "Markdown with solution usage instructions")
     private String details;
 
     public TenantSolutionTemplateInstructions(TenantSolutionTemplateInstructions instructions) {
