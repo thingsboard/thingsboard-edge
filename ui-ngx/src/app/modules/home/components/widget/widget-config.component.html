@@ -311,7 +311,7 @@
           </mat-expansion-panel-header>
           <ng-template matExpansionPanelContent>
             <mat-slide-toggle formControlName="enableDataExport"
-                          [fxShow]="widgetType === widgetTypes.alarm || widgetType === widgetTypes.latest || widgetType === widgetTypes.timeseries">
+                          [fxShow]="widgetType !== widgetTypes.rpc">
               {{ 'widget-config.enable-data-export' | translate }}
             </mat-slide-toggle>
             <div fxLayout.xs="column" fxLayoutAlign.xs="center" fxLayout="row" fxLayoutAlign="start center"
@@ -417,7 +417,6 @@
                 <input matInput formControlName="margin">
               </mat-form-field>
             </div>
->>>>>>> upstream/imp/new-widget-settings
           </div>
           <mat-slide-toggle formControlName="dropShadow" style="margin-bottom: 8px">
             {{ 'widget-config.drop-shadow' | translate }}
