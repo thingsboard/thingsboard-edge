@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,6 +66,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.GROUP_PERMISSION_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.ROLE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ROLE_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.ROLE_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -70,11 +92,64 @@ import java.util.stream.Collectors;
 public class RoleController extends BaseController {
 
     public static final String ROLE_ID = "roleId";
+    public static final String ROLE_SHORT_DESCRIPTION = "Role Contains a set of permissions. Role has two types. " +
+            "Generic Role may be assigned to the user group and will provide permissions for all entities of a certain type. " +
+            "Group Role may be assigned to both user and entity group and will provides permissions only for the entities that belong to specified entity group. " +
+            "The assignment of the Role to the User Group is done using [Group Permission Controller](/swagger-ui.html#/group-permission-controller).";
 
+    public static final String ROLE_PERMISSIONS_DESCRIPTION = "Example of Generic Role with read-only permissions for any resource and all permissions for the 'DEVICE' and 'PROFILE' resources is listed below: \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"name\": \"Read-Only User\",\n" +
+            "  \"type\": \"GENERIC\",\n" +
+            "  \"permissions\": {\n" +
+            "    \"ALL\": [\n" +
+            "      \"READ\",\n" +
+            "      \"RPC_CALL\",\n" +
+            "      \"READ_CREDENTIALS\",\n" +
+            "      \"READ_ATTRIBUTES\",\n" +
+            "      \"READ_TELEMETRY\"\n" +
+            "    ],\n" +
+            "    \"DEVICE\": [\n" +
+            "      \"ALL\"\n" +
+            "    ]\n" +
+            "    \"PROFILE\": [\n" +
+            "      \"ALL\"\n" +
+            "    ]\n" +
+            "  },\n" +
+            "  \"additionalInfo\": {\n" +
+            "    \"description\": \"Read-only permissions for everything, Write permissions for devices and own profile.\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\nExample of Group Role with read-only permissions. Note that the group role has no association with the resources. The type of the resource is taken from the entity group that this role is assigned to: \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"name\": \"Entity Group Read-only User\",\n" +
+            "  \"type\": \"GROUP\",\n" +
+            "  \"permissions\": [\n" +
+            "    \"READ\",\n" +
+            "    \"RPC_CALL\",\n" +
+            "    \"READ_CREDENTIALS\",\n" +
+            "    \"READ_ATTRIBUTES\",\n" +
+            "    \"READ_TELEMETRY\"\n" +
+            "  ],\n" +
+            "  \"additionalInfo\": {\n" +
+            "    \"description\": \"Read-only permissions.\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END + "\n\n";
+
+    @ApiOperation(value = "Get Role by Id (getRoleById)",
+            notes = "Fetch the Role object based on the provided Role Id. " +
+                    ROLE_SHORT_DESCRIPTION + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.GET)
     @ResponseBody
-    public Role getRoleById(@PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
+    public Role getRoleById(
+            @ApiParam(value = ROLE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
         checkParameter(ROLE_ID, strRoleId);
         try {
             return checkRoleId(new RoleId(toUUID(strRoleId)), Operation.READ);
@@ -83,10 +158,19 @@ public class RoleController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Role (saveRole)",
+            notes = "Creates or Updates the Role. When creating Role, platform generates Role Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+                    "The newly created Role id will be present in the response. " +
+                    "Specify existing Role id to update the permission. " +
+                    "Referencing non-existing Group Permission Id will cause 'Not Found' error." +
+                    "\n\n" + ROLE_SHORT_DESCRIPTION + "\n\n" + ROLE_PERMISSIONS_DESCRIPTION +
+                    ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role", method = RequestMethod.POST)
     @ResponseBody
-    public Role saveRole(@RequestBody Role role) throws ThingsboardException {
+    public Role saveRole(
+            @ApiParam(value = "A JSON value representing the role.", required = true)
+            @RequestBody Role role) throws ThingsboardException {
         try {
             role.setTenantId(getCurrentUser().getTenantId());
             if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
@@ -112,10 +196,14 @@ public class RoleController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Delete role (deleteRole)",
+            notes = "Deletes the role. Referencing non-existing role Id will cause an error." + "\n\n" + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteRole(@PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
+    public void deleteRole(
+            @ApiParam(value = ROLE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
         checkParameter(ROLE_ID, strRoleId);
         try {
             RoleId roleId = new RoleId(toUUID(strRoleId));
@@ -142,15 +230,24 @@ public class RoleController extends BaseController {
         return groupPermissionService.findGroupPermissionByTenantIdAndRoleId(tenantId, roleId, new PageLink(1)).getTotalElements() > 0;
     }
 
+    @ApiOperation(value = "Get Roles (getRoles)",
+            notes = "Returns a page of roles that are available for the current user. " + ROLE_SHORT_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/roles", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Role> getRoles(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
             @RequestParam int page,
+            @ApiParam(value = "Type of the role", allowableValues = "GENERIC, GROUP")
             @RequestParam(required = false) String type,
+            @ApiParam(value = ROLE_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ROLE_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ);
@@ -175,10 +272,13 @@ public class RoleController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Roles By Ids (getRolesByIds)",
+            notes = "Returns the list of rows based on their ids. " + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/roles", params = {"roleIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Role> getRolesByIds(
+            @ApiParam(value = "A list of role ids, separated by comma ','")
             @RequestParam("roleIds") String[] strRoleIds) throws ThingsboardException {
         checkArrayParameter("roleIds", strRoleIds);
         try {

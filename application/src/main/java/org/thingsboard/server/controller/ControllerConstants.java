@@ -62,6 +62,7 @@ public class ControllerConstants {
     protected static final String ASSET_ID_PARAM_DESCRIPTION = "A string value representing the asset id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ROLE_ID_PARAM_DESCRIPTION = "A string value representing the role id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String GROUP_PERMISSION_ID_PARAM_DESCRIPTION = "A string value representing the group permission id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String OTA_PACKAGE_ID_PARAM_DESCRIPTION = "A string value representing the ota package id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_TYPE_PARAM_DESCRIPTION = "A string value representing the entity type. For example, 'DEVICE'";
@@ -87,6 +88,7 @@ public class ControllerConstants {
     protected static final String WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the widget bundle title.";
     protected static final String RPC_TEXT_SEARCH_DESCRIPTION = "Not implemented. Leave empty.";
     protected static final String DEVICE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the device name.";
+    protected static final String ROLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the role name.";
     protected static final String ENTITY_VIEW_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity view name.";
     protected static final String USER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the user email.";
     protected static final String TENANT_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the tenant name.";
@@ -104,6 +106,7 @@ public class ControllerConstants {
     protected static final String CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, email, country, city";
     protected static final String RPC_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, expirationTime, request, response";
     protected static final String DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, deviceProfileName, label, customerTitle";
+    protected static final String ROLE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, description";
     protected static final String ENTITY_VIEW_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type";
     protected static final String ENTITY_VIEW_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, customerTitle";
     protected static final String USER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, firstName, lastName, email";
