@@ -35,9 +35,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -79,11 +82,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DEBUG_INPUT_DEFINITION;
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TEST_DOWNLINK_CONVERTER_DEFINITION;
+import static org.thingsboard.server.controller.ControllerConstants.TEST_UPLINK_CONVERTER_DEFINITION;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class ConverterController extends BaseController {
+
 
     @Autowired
     private EventService eventService;
@@ -95,10 +117,16 @@ public class ConverterController extends BaseController {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    @ApiOperation(value = "Get Converter (getConverterById)",
+            notes = "Fetch the Converter object based on the provided Converter Id. " +
+                    "The server checks that the converter is owned by the same tenant. "
+                    + NEW_LINE + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.GET)
     @ResponseBody
-    public Converter getConverterById(@PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
+    public Converter getConverterById(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
+                                      @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
@@ -108,10 +136,18 @@ public class ConverterController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Converter (saveConverter)",
+            notes = "Create or update the Converter. When creating converter, platform generates Converter Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+                    "The newly created converter id will be present in the response. " +
+                    "Specify existing Converter id to update the converter. " +
+                    "Referencing non-existing converter Id will cause 'Not Found' error. " +
+                    "Converter name is unique in the scope of tenant. " + NEW_LINE +
+                    CONVERTER_CONFIGURATION_DESCRIPTION
+                    + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
-    public Converter saveConverter(@RequestBody Converter converter) throws ThingsboardException {
+    public Converter saveConverter(@ApiParam(required = true, value = "A JSON value representing the converter.") @RequestBody Converter converter) throws ThingsboardException {
         try {
             converter.setTenantId(getCurrentUser().getTenantId());
             boolean created = converter.getId() == null;
@@ -134,14 +170,22 @@ public class ConverterController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Converters (getConverters)",
+            notes = "Returns a page of converters owned by tenant. " +
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Converter> getConverters(
+            @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
             @RequestParam int page,
+            @ApiParam(value = CONVERTER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
@@ -153,10 +197,14 @@ public class ConverterController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Delete converter (deleteConverter)",
+            notes = "Deletes the converter and all the relations (from and to the converter). " +
+                    "Referencing non-existing converter Id will cause an error. " +
+                    "If the converter is associated with the integration, it will not be allowed for deletion." + NEW_LINE + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteConverter(@PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
+    public void deleteConverter(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION) @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
@@ -179,10 +227,15 @@ public class ConverterController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get latest debug input event (getLatestConverterDebugInput)",
+            notes = "Returns a JSON object of the latest debug event representing the input message the converter processed. " + NEW_LINE +
+                    CONVERTER_DEBUG_INPUT_DEFINITION +
+                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
-    public JsonNode getLatestConverterDebugInput(@PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
+    public JsonNode getLatestConverterDebugInput(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
+                                                 @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
         try {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
@@ -236,10 +289,15 @@ public class ConverterController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Test converter function (testUpLinkConverter)",
+            notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
+                    TEST_UPLINK_CONVERTER_DEFINITION
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
-    public JsonNode testUpLinkConverter(@RequestBody JsonNode inputParams) throws ThingsboardException {
+    public JsonNode testUpLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+                                        @RequestBody JsonNode inputParams) throws ThingsboardException {
         try {
             String payloadBase64 = inputParams.get("payload").asText();
             byte[] payload = Base64.getDecoder().decode(payloadBase64);
@@ -273,10 +331,15 @@ public class ConverterController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Test converter function (testDownLinkConverter)",
+            notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
+                    TEST_DOWNLINK_CONVERTER_DEFINITION
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
-    public JsonNode testDownLinkConverter(@RequestBody JsonNode inputParams) throws ThingsboardException {
+    public JsonNode testDownLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+                                          @RequestBody JsonNode inputParams) throws ThingsboardException {
         try {
             String data = inputParams.get("msg").asText();
             JsonNode metadata = inputParams.get("metadata");
@@ -336,10 +399,14 @@ public class ConverterController extends BaseController {
         AbstractDownlinkDataConverter.parseDownlinkData(src);
     }
 
+    @ApiOperation(value = "Get Converters By Ids (getConvertersByIds)",
+            notes = "Requested converters must be owned by tenant which is performing the request. " +
+                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Converter> getConvertersByIds(
+            @ApiParam(value = "A list of converter ids, separated by comma ','", required = true)
             @RequestParam("converterIds") String[] strConverterIds) throws ThingsboardException {
         checkArrayParameter("converterIds", strConverterIds);
         try {

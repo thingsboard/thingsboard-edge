@@ -60,6 +60,7 @@ public class ControllerConstants {
     protected static final String CUSTOMER_ID_PARAM_DESCRIPTION = "A string value representing the customer id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String USER_ID_PARAM_DESCRIPTION = "A string value representing the user id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ASSET_ID_PARAM_DESCRIPTION = "A string value representing the asset id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String CONVERTER_ID_PARAM_DESCRIPTION = "A string value representing the converter id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ROLE_ID_PARAM_DESCRIPTION = "A string value representing the role id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
@@ -84,6 +85,7 @@ public class ControllerConstants {
     protected static final String EDGE_TYPE_DESCRIPTION = "A string value representing the edge type. For example, 'default'";
     protected static final String RULE_CHAIN_TYPE_DESCRIPTION = "Rule chain type (CORE or EDGE)";
     protected static final String ASSET_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the asset name.";
+    protected static final String CONVERTER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the converter name.";
     protected static final String DASHBOARD_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the dashboard title.";
     protected static final String WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the widget bundle title.";
     protected static final String RPC_TEXT_SEARCH_DESCRIPTION = "Not implemented. Leave empty.";
@@ -116,6 +118,7 @@ public class ControllerConstants {
     protected static final String TENANT_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, tenantProfileName, title, email, country, state, city, address, address2, zip, phone, email";
     protected static final String DEVICE_PROFILE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, transportType, description, isDefault";
     protected static final String ASSET_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
+    protected static final String CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode";
     protected static final String ALARM_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, startTs, endTs, type, ackTs, clearTs, severity, status";
     protected static final String EVENT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, id";
     protected static final String EDGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
@@ -206,7 +209,7 @@ public class ControllerConstants {
     protected static final String IS_BOOTSTRAP_SERVER_PARAM_DESCRIPTION = "A Boolean value representing the Server SecurityInfo for future Bootstrap client mode settings. Values: 'true' for Bootstrap Server; 'false' for Lwm2m Server. ";
 
     protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION =
-                    "{\n" +
+            "{\n" +
                     "  \"device\": {\n" +
                     "    \"name\": \"LwRpk00000000\",\n" +
                     "    \"type\": \"lwm2mProfileRpk\"\n" +
@@ -1547,7 +1550,7 @@ public class ControllerConstants {
     protected static final String ENTITY_ATTRIBUTE_SCOPES = " List of possible attribute scopes depends on the entity type: " +
             "\n\n * SERVER_SCOPE - supported for all entity types;" +
             "\n * CLIENT_SCOPE - supported for devices;" +
-            "\n * SHARED_SCOPE - supported for devices. "+ "\n\n";
+            "\n * SHARED_SCOPE - supported for devices. " + "\n\n";
 
     protected static final String ATTRIBUTE_DATA_EXAMPLE = "[\n" +
             "  {\"key\": \"stringAttributeKey\", \"value\": \"value\", \"lastUpdateTs\": 1609459200000},\n" +
@@ -1627,7 +1630,7 @@ public class ControllerConstants {
             "\n\n JSON array with timestamps: \n\n" +
             MARKDOWN_CODE_BLOCK_START +
             "[{\"ts\":1634712287000,\"values\":{\"temperature\":26, \"humidity\":87}}, {\"ts\":1634712588000,\"values\":{\"temperature\":25, \"humidity\":88}}]" +
-            MARKDOWN_CODE_BLOCK_END ;
+            MARKDOWN_CODE_BLOCK_END;
 
     protected static final String RBAC_GROUP_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for specified group.";
     protected static final String RBAC_GROUP_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for specified group.";
@@ -1642,4 +1645,218 @@ public class ControllerConstants {
     protected static final String WL_READ_CHECK = "\n\nSecurity check is performed to verify that the user has 'READ' permission for the white labeling resource.";
     protected static final String WL_WRITE_CHECK = "\n\nSecurity check is performed to verify that the user has 'WRITE' permission for the white labeling resource.";
 
+    private static final String CONVERTER_UPLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\",\n" +
+            "   \"encoder\":null\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_DOWNLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"decoder\":null,\n" +
+            "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempFreq = msg.temperatureUploadFrequency;\\ndata.humFreq = msg.humidityUploadFrequency;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEXT_UPLINK_CONFIGURATION = "```text\n" +
+            "// Decode an uplink message from a buffer\n" +
+            "// payload - array of bytes\n" +
+            "// metadata - key/value object\n" +
+            "\n" +
+            "/** Decoder **/\n" +
+            "\n" +
+            "// decode payload to string\n" +
+            "var payloadStr = decodeToString(payload);\n" +
+            "\n" +
+            "// decode payload to JSON\n" +
+            "// var data = decodeToJson(payload);\n" +
+            "\n" +
+            "var deviceName = 'Device A';\n" +
+            "var deviceType = 'thermostat';\n" +
+            "var customerName = 'customer';\n" +
+            "var groupName = 'thermostat devices';\n" +
+            "// use assetName and assetType instead of deviceName and deviceType\n" +
+            "// to automatically create assets instead of devices.\n" +
+            "// var assetName = 'Asset A';\n" +
+            "// var assetType = 'building';\n" +
+            "\n" +
+            "// Result object with device/asset attributes/telemetry data\n" +
+            "var result = {\n" +
+            "// Use deviceName and deviceType or assetName and assetType, but not both.\n" +
+            "   deviceName: deviceName,\n" +
+            "   deviceType: deviceType,\n" +
+            "// assetName: assetName,\n" +
+            "// assetType: assetType,\n" +
+            "   customerName: customerName,\n" +
+            "   groupName: groupName,\n" +
+            "   attributes: {\n" +
+            "       model: 'Model A',\n" +
+            "       serialNumber: 'SN111',\n" +
+            "       integrationName: metadata['integrationName']\n" +
+            "   },\n" +
+            "   telemetry: {\n" +
+            "       temperature: 42,\n" +
+            "       humidity: 80,\n" +
+            "       rawData: payloadStr\n" +
+            "   }\n" +
+            "};\n" +
+            "\n" +
+            "/** Helper functions **/\n" +
+            "\n" +
+            "function decodeToString(payload) {\n" +
+            "   return String.fromCharCode.apply(String, payload);\n" +
+            "}\n" +
+            "\n" +
+            "function decodeToJson(payload) {\n" +
+            "   // covert payload to string.\n" +
+            "   var str = decodeToString(payload);\n" +
+            "\n" +
+            "   // parse string to JSON\n" +
+            "   var data = JSON.parse(str);\n" +
+            "   return data;\n" +
+            "}\n" +
+            "\n" +
+            "return result;" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEXT_DOWNLINK_CONFIGURATION = "```text\n" +
+            "// Encode downlink data from incoming Rule Engine message\n" +
+            "\n" +
+            "// msg - JSON message payload downlink message json\n" +
+            "// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\n" +
+            "// metadata - list of key-value pairs with additional data about the message\n" +
+            "// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\n" +
+            "\n" +
+            "/** Encoder **/\n" +
+            "\n" +
+            "var data = {};\n" +
+            "\n" +
+            "// Process data from incoming message and metadata\n" +
+            "\n" +
+            "data.tempFreq = msg.temperatureUploadFrequency;\n" +
+            "data.humFreq = msg.humidityUploadFrequency;\n" +
+            "\n" +
+            "data.devSerialNumber = metadata['ss_serialNumber'];\n" +
+            "\n" +
+            "// Result object with encoded downlink payload\n" +
+            "var result = {\n" +
+            "\n" +
+            "    // downlink data content type: JSON, TEXT or BINARY (base64 format)\n" +
+            "    contentType: \"JSON\",\n" +
+            "\n" +
+            "    // downlink data\n" +
+            "    data: JSON.stringify(data),\n" +
+            "\n" +
+            "    // Optional metadata object presented in key/value format\n" +
+            "    metadata: {\n" +
+            "            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\n" +
+            "    }\n" +
+            "\n" +
+            "};\n" +
+            "\n" +
+            "return result;" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_UPLINK_DEBUG_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"inContentType\":\"JSON\",\n" +
+            "   \"inContent\":\"{\\\"temp\\\":40}\",\n" +
+            "   \"inMetadata\":\"{\\\"Header:sec-ch-ua\\\":\\\"\\\\\\\"Chromium\\\\\\\";v=\\\\\\\"94\\\\\\\", \\\\\\\"Google Chrome\\\\\\\";v=\\\\\\\"94\\\\\\\", \\\\\\\";Not A Brand\\\\\\\";v=\\\\\\\"99\\\\\\\"\\\",\\\"Header:user-agent\\\":\\\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36\\\",\\\"integrationName\\\":\\\"Integration\\\",\\\"Header:cookie\\\":\\\"GUID=zYSs8hymSwZKv8kHALKY; redirect_to=%2F; JSESSIONID=B0A7C8E481409CE7924E738DB04F62F9\\\",\\\"Header:sec-ch-ua-platform\\\":\\\"\\\\\\\"Linux\\\\\\\"\\\",\\\"Header:accept\\\":\\\"*/*\\\",\\\"Header:origin\\\":\\\"http://localhost:8080\\\",\\\"Header:sec-fetch-site\\\":\\\"same-origin\\\",\\\"Header:connection\\\":\\\"keep-alive\\\",\\\"Header:accept-encoding\\\":\\\"gzip, deflate, br\\\",\\\"Header:content-type\\\":\\\"application/json\\\",\\\"Header:content-length\\\":\\\"16\\\",\\\"Header:sec-fetch-mode\\\":\\\"cors\\\",\\\"Header:sec-ch-ua-mobile\\\":\\\"?0\\\",\\\"Header:sec-fetch-dest\\\":\\\"empty\\\",\\\"Header:host\\\":\\\"localhost:8080\\\",\\\"Header:referer\\\":\\\"http://localhost:8080/swagger-ui.html\\\",\\\"Header:accept-language\\\":\\\"en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,uk;q=0.6,und;q=0.5\\\"}\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_DOWNLINK_DEBUG_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"inContentType\":\"JSON\",\n" +
+            "   \"inContent\":\"{\\\"temp\\\":42,\\\"humidity\\\":77}\",\n" +
+            "   \"inMsgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"inMetadata\":\"{\\\"data\\\":\\\"40\\\"}\",\n" +
+            "   \"inIntegrationMetadata\":\"{\\\"integrationName\\\":\\\"Integration\\\"}\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_UPLINK_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "   },\n" +
+            "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_UPLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"output\":\"{\\\"deviceName\\\":\\\"Device A\\\",\\\"deviceType\\\":\\\"thermostat\\\",\\\"customerName\\\":\\\"customer\\\",\\\"groupName\\\":\\\"thermostat devices\\\",\\\"attributes\\\":{\\\"model\\\":\\\"Model A\\\",\\\"serialNumber\\\":\\\"SN111\\\"},\\\"telemetry\\\":{\\\"temperature\\\":42,\\\"humidity\\\":80,\\\"rawData\\\":\\\"{\\\\n    \\\\\\\"data\\\\\\\": \\\\\\\"data\\\\\\\"\\\\n}\\\"}}\",\n" +
+            "   \"error\":\"\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String CONVERTER_CONFIGURATION_DESCRIPTION = "# Converter Configuration" + NEW_LINE +
+            "Converter configuration (**'configuration'** field) is the JSON object that contains two fields: **'decoder'** and **'encoder'**. " +
+            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. See the examples of each one below. " + NEW_LINE +
+            "## Uplink Converter Configuration" + NEW_LINE +
+            CONVERTER_UPLINK_CONFIGURATION + NEW_LINE +
+            "Decoder field in the more readable form:" + NEW_LINE +
+            CONVERTER_TEXT_UPLINK_CONFIGURATION + NEW_LINE +
+            "## Downlink Converter Configuration" + NEW_LINE +
+            CONVERTER_DOWNLINK_CONFIGURATION + NEW_LINE +
+            "Encoder field in the more readable form:" + NEW_LINE +
+            CONVERTER_TEXT_DOWNLINK_CONFIGURATION + NEW_LINE;
+
+    static final String CONVERTER_DEBUG_INPUT_DEFINITION = "## Uplink Converter Debug Input Event Example" + NEW_LINE +
+            CONVERTER_UPLINK_DEBUG_INPUT + NEW_LINE +
+            " * 'inContentType' - content type of the message received by the integration; \n" +
+            " * 'inContent' - message data received; \n" +
+            " * 'inMetadata' - integration metadata (e.g. headers)." + NEW_LINE +
+            "## Downlink Converter Debug Input Event Example" + NEW_LINE +
+            CONVERTER_DOWNLINK_DEBUG_INPUT + NEW_LINE +
+            " * 'inContentType' - content type of the message received by the integration; \n" +
+            " * 'inContent' - content of the message pushed from the rule engine; \n" +
+            " * 'inMsgType' - type of the message pushed from the rule engine; \n" +
+            " * 'inMetadata' - content of the message metadata pushed from the rule engine; \n" +
+            " * 'inIntegrationMetadata' - integration metadata. \n";
+
+    static final String TEST_UPLINK_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            CONVERTER_TEST_UPLINK_INPUT + NEW_LINE +
+            " * 'metadata' - integration metadata; \n" +
+            " * 'payload' - base64 string representation of the data; \n" +
+            " * 'decoder' - string representation of the decoder configuration." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            CONVERTER_TEST_UPLINK_OUTPUT + NEW_LINE +
+            " * 'output' - string representation of the output message; \n" +
+            " * 'error' - string representation of the error message. \n";
+
+    private static final String CONVERTER_TEST_DOWNLINK_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "      \"data\":\"40\"\n" +
+            "   },\n" +
+            "   \"msg\":\"{\\n    \\\"temp\\\": 42,\\n    \\\"humidity\\\": 77\\n}\",\n" +
+            "   \"msgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"integrationMetadata\":{\n" +
+            "      \"integrationName\":\"Integration\"\n" +
+            "   },\n" +
+            "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempValue = msg.temp;\\ndata.humValue = msg.humidity;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_DOWNLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"contentType\":\"JSON\",\n" +
+            "   \"data\":\"{\\\"tempValue\\\":42,\\\"humValue\\\":77}\",\n" +
+            "   \"metadata\":{\n" +
+            "      \"topic\":\"sensor/Temp Sensor/upload\"\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String TEST_DOWNLINK_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            CONVERTER_TEST_DOWNLINK_INPUT + NEW_LINE +
+            " * 'metadata' - message metadata pushed from the rule engine; \n" +
+            " * 'msg' - message data pushed from the rule engine; \n" +
+            " * 'msgType' - type of the message pushed from the rule engine; \n" +
+            " * 'integrationMetadata' - integration metadata object; \n" +
+            " * 'encoder' - string representation of the encoder configuration." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            CONVERTER_TEST_DOWNLINK_OUTPUT + NEW_LINE +
+            " * 'contentType' - downlink data content type; \n" +
+            " * 'data' - downlink data; \n" +
+            " * 'metadata' - optional metadata object. \n";
 }
