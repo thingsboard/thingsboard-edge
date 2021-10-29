@@ -30,25 +30,14 @@
 #
 
 version: '2.2'
-
 services:
-  tb-pe-http-integration:
-    restart: always
-    image: "thingsboard/tb-pe-http-integration:latest"
+  broker:
+    image: eclipse-mosquitto
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+#    network_mode: bridge
+#    container_name: broker
+#    network_mode: host
     ports:
-      - "8082"
-    environment:
-      INTEGRATION_ROUTING_KEY: routing-key-123456
-      INTEGRATION_SECRET: secret-key-123456
-      RPC_HOST: tb-core1
-      RPC_PORT: 9090
-  tb-pe-mqtt-integration:
+      - "1883"
     restart: always
-    image: "thingsboard/tb-pe-mqtt-integration:latest"
-    ports:
-      - "8082"
-    environment:
-      INTEGRATION_ROUTING_KEY: routing-key-123456
-      INTEGRATION_SECRET: secret-key-123456
-      RPC_HOST: tb-core1
-      RPC_PORT: 9090

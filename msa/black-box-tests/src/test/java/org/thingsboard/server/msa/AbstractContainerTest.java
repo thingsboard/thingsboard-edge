@@ -37,7 +37,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -71,18 +70,27 @@ import java.util.Random;
 public abstract class AbstractContainerTest {
     protected static final String HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
-    protected static String rpcURL;
+    protected static String rpcURLHttp;
+    protected static String rpcURLMqtt;
+    protected static String rpcURLHost;
+    protected static Integer rpcURLPort;
     protected static String TB_TOKEN;
     protected static RestClient restClient;
-    protected static RestClient rpcRestClient;
+    protected static RestClient rpcHTTPRestClient;
+    protected static RestClient rpcMQTTTRestClient;
     protected ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public static void before() throws Exception {
         String  rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
         Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
-        rpcURL = "http://" + rpcHost + ":" + rpcPort;
-        rpcRestClient = new RestClient(rpcURL);
+        rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
+        rpcHTTPRestClient = new RestClient(rpcURLHttp);
+        log.info("finish http");
+        rpcURLHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-mqtt-integration", 8082);
+        rpcURLPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-mqtt-integration", 8082);
+        rpcURLMqtt = "tcp://" + rpcURLHost + ":" + rpcURLPort;
+        log.info("finish mqtt");
 
         restClient = new RestClient(HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
@@ -128,8 +136,8 @@ public abstract class AbstractContainerTest {
 
     protected Device createDevice(String name) {
         Device device = new Device();
-        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
-        device.setType("DEFAULT");
+        device.setName(name);
+        device.setType("default");
         return restClient.saveDevice(device);
     }
 

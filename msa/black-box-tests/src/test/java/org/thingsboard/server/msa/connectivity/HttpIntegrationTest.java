@@ -40,12 +40,17 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
@@ -139,10 +144,27 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         createUplink();
         integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
         restClient.saveIntegration(integration);
-        Thread.sleep(15000);
-        WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
-        ResponseEntity uplinkResponse = rpcRestClient.getRestTemplate().
-                postForEntity(rpcURL + "/api/v1/integrations/http/" + integration.getRoutingKey(),
+        IntegrationId integrationId = restClient.getIntegrationByRoutingKey(routingKey).get().getId();
+
+        TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
+        boolean isConnected = false;
+        for (int i=0; i<50; i++) {
+            Thread.sleep(500);
+            PageData<Event> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
+            if (events.getData().isEmpty()) continue;
+            String event = events.getData().get(0).getBody().get("event").asText();
+            String success = events.getData().get(0).getBody().get("success").asText();
+            log.info(event + " " + success);
+            if (event.equals("STARTED") && success.equals("true")) {
+                isConnected = true;
+                break;
+            }
+            log.error(events.getData().toString());
+        }
+        Assert.assertTrue("RPC have not connected to TB", isConnected);
+        WsClient wsClient = subscribeToWebSocket(   device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
+        ResponseEntity uplinkResponse = rpcHTTPRestClient.getRestTemplate().
+                postForEntity(rpcURLHttp + "/api/v1/integrations/http/" + integration.getRoutingKey(),
                         createPayloadForUplink(device.getName(), device.getType()),
                         ResponseEntity.class);
         Assert.assertTrue(uplinkResponse.getStatusCode().is2xxSuccessful());
@@ -151,7 +173,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         wsClient.closeBlocking();
         restClient.deleteDevice(device.getId());
         ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(restClient.getIntegrationByRoutingKey(routingKey).get().getId());
+        restClient.deleteIntegration(integrationId);
         restClient.deleteConverter(idForDelete);
     }
 

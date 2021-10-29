@@ -65,6 +65,10 @@ public class ContainerTestSuite {
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
 
+//    @Rule
+//    public static final @NotNull HiveMQTestContainerRule hiveMQTestContainerRule = new HiveMQTestContainerRule();
+
+    //TODO : don't forget add info about add docker image for mosquitto
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         if (testContainer == null) {
@@ -95,6 +99,7 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.postgres.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                         new File(targetDir + "docker-compose.http.integration.yml"),
+                        new File(targetDir + "docker-compose.mosquitto.yml"),
                         new File(targetDir + "advanced/docker-compose.kafka.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
@@ -103,12 +108,16 @@ public class ContainerTestSuite {
                         .withEnv("LOAD_BALANCER_NAME", "")
                         .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(400)))
                         .withExposedService("tb-pe-http-integration", 8082)
+                        .withExposedService("tb-pe-mqtt-integration", 8082)
+                        .withExposedService("broker", 1883)
                         .waitingFor("tb-core1", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-core2", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-http-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-http-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-mqtt-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
+//                        .waitingFor("eclipse-mosquitto", Wait.forLogMessage(".* .*", 1).withStartupTimeout(Duration.ofSeconds(400)))
+                        .waitingFor("tb-pe-mqtt-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-pe-http-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)));
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
