@@ -39,6 +39,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,7 +51,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -100,9 +101,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.group.EntityGroup.EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
@@ -115,10 +119,12 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_R
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_REMOVE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 
 @RestController
@@ -961,11 +967,23 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Assign entity group to edge (assignEntityGroupToEdge)",
+            notes = "Creates assignment of an existing entity group to an instance of The Edge. " +
+                    "Assignment works in async way - first, notification event pushed to edge service queue on platform. " +
+                    "Second, remote edge service will receive a copy of assignment entity group " +
+                    EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
+                    "Third, once entity group will be delivered to edge service, edge will request entities of this group to be send to edge. " +
+                    "Once entities will be delivered to edge service, they are going to be available for usage on remote edge instance." +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.POST)
     @ResponseBody
-    public EntityGroup assignEntityGroupToEdge(@PathVariable("edgeId") String strEdgeId,
-                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+    public EntityGroup assignEntityGroupToEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+                                               @PathVariable(EDGE_ID) String strEdgeId,
+                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+                                               @PathVariable("groupType") String strGroupType,
+                                               @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
                                                @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
@@ -996,11 +1014,22 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Unassign entity group from edge (unassignEntityGroupFromEdge)",
+            notes = "Clears assignment of the entity group to the edge. " +
+                    "Unassignment works in async way - first, 'unassign' notification event pushed to edge queue on platform. " +
+                    "Second, remote edge service will receive an 'unassign' command to remove entity group " +
+                    EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
+                    "Third, once 'unassign' command will be delivered to edge service, it's going to remove entity group and entities inside this group locally." +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.DELETE)
     @ResponseBody
-    public EntityGroup unassignEntityGroupFromEdge(@PathVariable("edgeId") String strEdgeId,
-                                                   @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+    public EntityGroup unassignEntityGroupFromEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+                                                   @PathVariable(EDGE_ID) String strEdgeId,
+                                                   @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+                                                   @PathVariable("groupType") String strGroupType,
+                                                   @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
                                                    @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
@@ -1030,12 +1059,18 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get All Edge Entity Groups by entity type (getAllEdgeEntityGroups)",
+            notes = "Fetch the list of Entity Group Info objects based on the provided Entity Type and assigned to the provided Edge entity. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/allEntityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getAllEdgeEntityGroups(
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
             @PathVariable("edgeId") String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         try {
             EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
@@ -1064,23 +1099,32 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Edge Entity Groups by entity type (getEdgeEntityGroups)",
+            notes = "Returns a page of Entity Group Info objects based on the provided Entity Type and assigned to the provided Edge entity. " +
+                    ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getEdgeEntityGroups(
-            @PathVariable("edgeId") String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+            @PathVariable(EDGE_ID) String strEdgeId,
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
             @RequestParam int page,
-            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         try {
             EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             checkEdgeId(edgeId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            PageLink pageLink = createPageLink(pageSize, page, null, sortProperty, sortOrder);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
                 return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink));
