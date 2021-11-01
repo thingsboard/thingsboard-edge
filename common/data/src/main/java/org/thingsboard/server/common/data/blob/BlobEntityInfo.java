@@ -31,6 +31,8 @@
 package org.thingsboard.server.common.data.blob;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
@@ -50,10 +52,15 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
 
     private static final long serialVersionUID = 2807223040519549363L;
 
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
     private TenantId tenantId;
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", readOnly = true)
     private CustomerId customerId;
+    @ApiModelProperty(position = 6, value = "blob entity name", readOnly = true, example = "report-2021-10-29_14:00:00.pdf")
     private String name;
+    @ApiModelProperty(position = 7, value = "blob entity type", readOnly = true, example = "report")
     private String type;
+    @ApiModelProperty(position = 8, value = "blob content type", readOnly = true, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
     private String contentType;
 
     public BlobEntityInfo() {
@@ -73,6 +80,19 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
         this.contentType = blobEntityInfo.getContentType();
     }
 
+    @ApiModelProperty(position = 1, value = "JSON object with the blob entity Id. " +
+            "Referencing non-existing blob entity Id will cause error")
+    @Override
+    public BlobEntityId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the blob entity creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -83,6 +103,12 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
         return name;
     }
 
+    @ApiModelProperty(position = 9, value = "Additional parameters of the blob entity", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Override
+    public JsonNode getAdditionalInfo() {
+        return super.getAdditionalInfo();
+    }
+
 
     @Override
     @JsonIgnore
@@ -90,6 +116,7 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
         return EntityType.BLOB_ENTITY;
     }
 
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
