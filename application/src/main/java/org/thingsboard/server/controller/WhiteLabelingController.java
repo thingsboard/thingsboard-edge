@@ -36,9 +36,12 @@ import io.bit3.jsass.Options;
 import io.bit3.jsass.Output;
 import io.bit3.jsass.OutputStyle;
 import io.bit3.jsass.importer.Import;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,6 +73,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -79,6 +86,8 @@ public class WhiteLabelingController extends BaseController {
     private static final String SCSS_CLASSPATH_PATTERN = "classpath:scss/*.scss";
     private static final String APP_THEME_SCSS = "app-theme.scss";
     private static final String LOGIN_THEME_SCSS = "login-theme.scss";
+    private static final String LOGO_CHECKSUM_DESC = "Logo image checksum. Expects value from the browser cache to compare it with the value from settings. If value matches, the 'logoImageUrl' will be null.";
+    private static final String FAVICON_CHECKSUM_DESC = "Favicon image checksum. Expects value from the browser cache to compare it with the value from settings. If value matches, the 'faviconImageUrl' will be null.";
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
@@ -120,11 +129,16 @@ public class WhiteLabelingController extends BaseController {
         this.saasOptions.setOutputStyle(OutputStyle.COMPRESSED);
     }
 
+
+    @ApiOperation(value = "Get White Labeling parameters",
+            notes = "Returns white-labeling parameters for the current user.", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public WhiteLabelingParams getWhiteLabelParams(
+            @ApiParam(value = LOGO_CHECKSUM_DESC, required = true)
             @RequestParam(required = false) String logoImageChecksum,
+            @ApiParam(value = FAVICON_CHECKSUM_DESC, required = true)
             @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
@@ -144,10 +158,14 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Login White Labeling parameters",
+            notes = "Returns login white-labeling parameters based on the hostname from request.", produces = MediaType.APPLICATION_JSON_VALUE)
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(
+            @ApiParam(value = LOGO_CHECKSUM_DESC, required = true)
             @RequestParam(required = false) String logoImageChecksum,
+            @ApiParam(value = FAVICON_CHECKSUM_DESC, required = true)
             @RequestParam(required = false) String faviconChecksum,
             HttpServletRequest request) throws ThingsboardException {
         try {
@@ -157,6 +175,15 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get White Labeling configuration (getCurrentWhiteLabelParams)",
+            notes = "Fetch the White Labeling configuration that corresponds to the authority of the user. " +
+                    "The API call is designed to load the White Labeling configuration for edition. " +
+                    "So, the result is NOT merged with the parent level White Labeling configuration. " +
+                    "Let's assume there is a custom White Labeling  configured on a system level. " +
+                    "And there is no custom White Labeling  items configured on a tenant level. " +
+                    "In such a case, the API call will return default object for the tenant administrator. " +
+                    ControllerConstants.WL_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -178,6 +205,15 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Login White Labeling configuration (getCurrentWhiteLabelParams)",
+            notes = "Fetch the Login  White Labeling configuration that corresponds to the authority of the user. " +
+                    "The API call is designed to load the Login White Labeling configuration for edition. " +
+                    "So, the result is NOT merged with the parent level White Labeling configuration. " +
+                    "Let's assume there is a custom White Labeling  configured on a system level. " +
+                    "And there is no custom White Labeling  items configured on a tenant level. " +
+                    "In such a case, the API call will return default object for the tenant administrator. " +
+                    ControllerConstants.WL_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentLoginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -199,10 +235,15 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update White Labeling configuration (saveWhiteLabelParams)",
+            notes = "Creates or Updates the White Labeling configuration." +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public WhiteLabelingParams saveWhiteLabelParams(@RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException {
+    public WhiteLabelingParams saveWhiteLabelParams(
+            @ApiParam(value = "A JSON value representing the white labeling configuration")
+            @RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);
@@ -220,10 +261,15 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Login White Labeling configuration (saveWhiteLabelParams)",
+            notes = "Creates or Updates the White Labeling configuration." +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/loginWhiteLabelParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public LoginWhiteLabelingParams saveLoginWhiteLabelParams(@RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws ThingsboardException {
+    public LoginWhiteLabelingParams saveLoginWhiteLabelParams(
+            @ApiParam(value = "A JSON value representing the login white labeling configuration")
+            @RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);
@@ -241,10 +287,15 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Preview Login White Labeling configuration (saveWhiteLabelParams)",
+            notes = "Merge the White Labeling configuration with the parent configuration and return the result." +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/previewWhiteLabelParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public WhiteLabelingParams previewWhiteLabelParams(@RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException {
+    public WhiteLabelingParams previewWhiteLabelParams(
+            @ApiParam(value = "A JSON value representing the white labeling configuration")
+            @RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);
@@ -262,6 +313,9 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Check White Labeling Allowed",
+            notes = "Check if the White Labeling is enabled for the current user owner (tenant or customer)" +
+                    ControllerConstants.WL_WRITE_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/isWhiteLabelingAllowed", method = RequestMethod.GET)
     @ResponseBody
@@ -280,6 +334,9 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Check Customer White Labeling Allowed",
+            notes = "Check if the White Labeling is enabled for the customers of the current tenant" +
+                    ControllerConstants.WL_WRITE_CHECK + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/whiteLabel/isCustomerWhiteLabelingAllowed", method = RequestMethod.GET)
     @ResponseBody
@@ -291,10 +348,16 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/noauth/whiteLabel/loginThemeCss", method = RequestMethod.POST, produces = "plain/text")
+    @ApiOperation(value = "Get Login Theme CSS",
+            notes = "Generates the login theme CSS based on the provided Palette Settings",
+            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = "/noauth/whiteLabel/loginThemeCss", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
-    public String getLoginThemeCss(@RequestBody PaletteSettings paletteSettings,
-                                   @RequestParam(name = "darkForeground", required = false) boolean darkForeground) throws ThingsboardException {
+    public String getLoginThemeCss(
+            @ApiParam(value = "A JSON value representing the Palette settings")
+            @RequestBody PaletteSettings paletteSettings,
+            @ApiParam(value = "Dark foreground enabled flag")
+            @RequestParam(name = "darkForeground", required = false) boolean darkForeground) throws ThingsboardException {
         try {
             return this.generateThemeCss(paletteSettings, true, darkForeground);
         } catch (Exception e) {
@@ -302,10 +365,15 @@ public class WhiteLabelingController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Application Theme CSS",
+            notes = "Generates the application theme CSS based on the provided Palette Settings",
+            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/whiteLabel/appThemeCss", method = RequestMethod.POST, produces = "plain/text")
+    @RequestMapping(value = "/whiteLabel/appThemeCss", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
-    public String getAppThemeCss(@RequestBody PaletteSettings paletteSettings) throws ThingsboardException {
+    public String getAppThemeCss(
+            @ApiParam(value = "A JSON value representing the Palette settings")
+            @RequestBody PaletteSettings paletteSettings) throws ThingsboardException {
         try {
             return this.generateThemeCss(paletteSettings, false, false);
         } catch (Exception e) {
@@ -351,7 +419,7 @@ public class WhiteLabelingController extends BaseController {
             palette.getColors().forEach(
                     (hue, hex) -> colorsList.add(String.format("%s: %s", hue, hex))
             );
-            return "\n"+String.join(",\n", colorsList)+"\n";
+            return "\n" + String.join(",\n", colorsList) + "\n";
         } else {
             return "";
         }
