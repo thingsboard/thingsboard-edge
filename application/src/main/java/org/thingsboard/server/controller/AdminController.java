@@ -100,8 +100,14 @@ public class AdminController extends BaseController {
     @Autowired
     private UpdateService updateService;
 
+    protected static final String RESOURCE_READ_CHECK = "\n\nSecurity check is performed to verify that " +
+            "the user has 'READ' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
+    protected static final String RESOURCE_WRITE_CHECK = "\n\nSecurity check is performed to verify that " +
+            "the user has 'WRITE' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
+
     @ApiOperation(value = "Get the Administration Settings object using key (getAdminSettings)",
-            notes = "Get the Administration Settings object using specified string key. Referencing non-existing key will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+            notes = "Get the Administration Settings object using specified string key. " +
+                    "Referencing non-existing key will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings/{key}", method = RequestMethod.GET)
     @ResponseBody
@@ -136,7 +142,7 @@ public class AdminController extends BaseController {
     @ApiOperation(value = "Get the Administration Settings object using key (getAdminSettings)",
             notes = "Creates or Updates the Administration Settings. Platform generates random Administration Settings Id during settings creation. " +
                     "The Administration Settings Id will be present in the response. Specify the Administration Settings Id when you would like to update the Administration Settings. " +
-                    "Referencing non-existing Administration Settings Id will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+                    "Referencing non-existing Administration Settings Id will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     @ResponseBody
@@ -161,7 +167,7 @@ public class AdminController extends BaseController {
     }
 
     @ApiOperation(value = "Get the Security Settings object",
-            notes = "Get the Security Settings object that contains password policy, etc." + SYSTEM_AUTHORITY_PARAGRAPH)
+            notes = "Get the Security Settings object that contains password policy, etc." + SYSTEM_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/securitySettings", method = RequestMethod.GET)
     @ResponseBody
@@ -175,7 +181,7 @@ public class AdminController extends BaseController {
     }
 
     @ApiOperation(value = "Update Security Settings (saveSecuritySettings)",
-            notes = "Updates the Security Settings object that contains password policy, etc." + SYSTEM_AUTHORITY_PARAGRAPH)
+            notes = "Updates the Security Settings object that contains password policy, etc." + SYSTEM_AUTHORITY_PARAGRAPH + RESOURCE_WRITE_CHECK)
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/securitySettings", method = RequestMethod.POST)
     @ResponseBody
@@ -194,7 +200,7 @@ public class AdminController extends BaseController {
     @ApiOperation(value = "Send test email (sendTestMail)",
             notes = "Attempts to send test email using Mail Settings provided as a parameter. " +
                     "Email is sent to the address specified in the profile of user who is performing the request" +
-                    "You may change the 'To' email in the user profile of the System/Tenant Administrator. " + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+                    "You may change the 'To' email in the user profile of the System/Tenant Administrator. " + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings/testMail", method = RequestMethod.POST)
     public void sendTestMail(
@@ -209,7 +215,7 @@ public class AdminController extends BaseController {
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
-                if(!adminSettings.getJsonValue().has("password")) {
+                if (!adminSettings.getJsonValue().has("password")) {
                     AdminSettings mailSettings;
                     if (Authority.SYS_ADMIN.equals(authority)) {
                         mailSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail"));
@@ -228,7 +234,7 @@ public class AdminController extends BaseController {
 
     @ApiOperation(value = "Send test sms (sendTestMail)",
             notes = "Attempts to send test sms to the System Administrator User using SMS Settings and phone number provided as a parameters of the request. "
-                    + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+                    + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings/testSms", method = RequestMethod.POST)
     public void sendTestSms(
@@ -288,10 +294,10 @@ public class AdminController extends BaseController {
     private AdminSettings saveTenantAdminSettings(AdminSettings adminSettings) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
-        if(adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
+        if (adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
             JsonNode oldMailSettings = objectMapper.readTree(getEntityAttributeValue(getTenantId(), "mail"));
             if (oldMailSettings != null) {
-                if(oldMailSettings.has("password")) {
+                if (oldMailSettings.has("password")) {
                     ((ObjectNode) jsonValue).put("password", oldMailSettings.get("password").asText());
                 }
             }

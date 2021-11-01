@@ -101,7 +101,7 @@ public class BlobEntityController extends BaseController {
     @ApiOperation(value = "Get Blob Entity With Customer Info (getBlobEntityInfoById)",
             notes = "Fetch the BlobEntityWithCustomerInfo object based on the provided Blob entity Id. " +
                     BLOB_ENTITY_INFO_WITH_CUSTOMER_INFO_DESCRIPTION + INVALID_BLOB_ENTITY_ID +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/info/{blobEntityId}", method = RequestMethod.GET)
@@ -120,7 +120,7 @@ public class BlobEntityController extends BaseController {
 
     @ApiOperation(value = "Download Blob Entity By Id (downloadBlobEntity)",
             notes = "Download report file based on the provided Blob entity Id. " +
-                    INVALID_BLOB_ENTITY_ID + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK)
+                    INVALID_BLOB_ENTITY_ID + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/{blobEntityId}/download", method = RequestMethod.GET)
     @ResponseBody
@@ -176,7 +176,7 @@ public class BlobEntityController extends BaseController {
     @ApiOperation(value = "Get Blob Entities (getBlobEntities)",
             notes = "Returns a page of BlobEntityWithCustomerInfo object that are available for the current user. "
                     + BLOB_ENTITY_INFO_WITH_CUSTOMER_INFO_DESCRIPTION + PAGE_DATA_PARAMETERS
-                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", method = RequestMethod.GET)
@@ -198,7 +198,7 @@ public class BlobEntityController extends BaseController {
             @RequestParam(required = false) Long startTime,
             @ApiParam(value = BLOB_ENTITY_QUERY_END_TIME_DESCRIPTION)
             @RequestParam(required = false) Long endTime
-            ) throws ThingsboardException {
+    ) throws ThingsboardException {
         try {
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             TenantId tenantId = getCurrentUser().getTenantId();
@@ -206,14 +206,14 @@ public class BlobEntityController extends BaseController {
                 return new PageData<>();
             }
             if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                if (type != null && type.trim().length()>0) {
+                if (type != null && type.trim().length() > 0) {
                     return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndType(tenantId, type, pageLink));
                 } else {
                     return checkNotNull(blobEntityService.findBlobEntitiesByTenantId(tenantId, pageLink));
                 }
             } else { //CUSTOMER_USER
                 CustomerId customerId = getCurrentUser().getCustomerId();
-                if (type != null && type.trim().length()>0) {
+                if (type != null && type.trim().length() > 0) {
                     return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
                 } else {
                     return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
@@ -223,9 +223,10 @@ public class BlobEntityController extends BaseController {
             throw handleException(e);
         }
     }
+
     @ApiOperation(value = "Get Blob Entities By Ids (getBlobEntitiesByIds)",
             notes = "Requested blob entities must be owned by tenant or assigned to customer which user is performing the request. "
-                    + BLOB_ENTITY_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+                    + BLOB_ENTITY_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", params = {"blobEntityIds"}, method = RequestMethod.GET)
