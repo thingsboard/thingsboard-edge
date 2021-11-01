@@ -37,8 +37,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class MqttIntegrationTest extends AbstractContainerTest {
-    private static final String routingKey = "routing-key-123456";
-    private static final String secretKey = "secret-key-123456";
+    private static final String routingKey = "routing-key-1234567";
+    private static final String secretKey = "secret-key-1234567";
     private static final String login = "tenant@thingsboard.org";
     private static final String password = "tenant";
     private static final String key = "temperature";
@@ -110,7 +110,6 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Integration integration = createIntegration(isRemote);
         integration.setDefaultConverterId(savedConverter.getId());
         restClient.saveIntegration(integration);
-        log.info(restClient.getIntegrationByRoutingKey(routingKey).get().toString());
 
         log.info(String.valueOf(restClient.getTenantDevices("default", new PageLink(1024)).getData().size()));
         Thread.sleep(10000);
@@ -119,22 +118,14 @@ public class MqttIntegrationTest extends AbstractContainerTest {
 
         log.info(restClient.getDeviceById(device.getId()).get().toString());
         while (restClient.getTimeseriesKeys(device.getId()).isEmpty()) {
-            log.info("!" + restClient.getLatestTimeseries(device.getId(), List.of(key)).toString());
-            for (int i = 0; i < 1e9; i++) {}
+            Thread.sleep(500);
         }
         List<TsKvEntry> latestTimeseries = restClient.getLatestTimeseries(device.getId(), List.of(key));
-        log.info("!" + latestTimeseries.toString());
-        log.info("!!!!!" + restClient.getTimeseriesKeys(device.getId()));
-        log.info(restClient.getTenantDevices("default", new PageLink(1024)).getData().toString());
-        log.info(String.valueOf(restClient.getTenantDevices("", new PageLink(1024)).getData().size()));
         Assert.assertFalse(latestTimeseries.isEmpty());
         Assert.assertEquals(key,  latestTimeseries.get(0).getKey());
         Assert.assertEquals(value,  latestTimeseries.get(0).getValue().toString());
 
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(restClient.getIntegrationByRoutingKey(routingKey).get().getId());
-        restClient.deleteConverter(idForDelete);
+        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(routingKey).get().getId());
     }
 
     @Test
@@ -147,8 +138,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Integration integration = createIntegration(isRemote);
         integration.setDefaultConverterId(savedConverter.getId());
         restClient.saveIntegration(integration);
-        log.info(restClient.getIntegrationByRoutingKey(routingKey).get().toString());
-
+        Thread.sleep(10000);
         anotherVariable();
 
         IntegrationId integrationId = restClient.getIntegrationByRoutingKey(routingKey).get().getId();
@@ -163,14 +153,14 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Assert.assertTrue("RPC have not connected to TB", isConnected);
 
         List<TsKvEntry> latestTimeseries = restClient.getLatestTimeseries(device.getId(), List.of(key));
-        log.info("!" + latestTimeseries.toString());
-        log.info("!!!!!" + restClient.getTimeseriesKeys(device.getId()));
-        log.info(restClient.getTenantDevices("default", new PageLink(1024)).getData().toString());
-        log.info(String.valueOf(restClient.getTenantDevices("", new PageLink(1024)).getData().size()));
         Assert.assertFalse(latestTimeseries.isEmpty());
         Assert.assertEquals(key,  latestTimeseries.get(0).getKey());
         Assert.assertEquals(value,  latestTimeseries.get(0).getValue().toString());
 
+        deleteAllObject(device, integration, integrationId);
+    }
+
+    private void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
         restClient.deleteDevice(device.getId());
         ConverterId idForDelete = integration.getDefaultConverterId();
         restClient.deleteIntegration(integrationId);
@@ -217,7 +207,6 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         String content = createPayloadForUplink().toString();
         int qos = 0;
 
-        log.info("START MY BOY");
         String broker = "tcp://" + host + ":" + port;
         String subClientId = RandomStringUtils.randomAlphanumeric(10);
         MemoryPersistence persistence = new MemoryPersistence();
@@ -229,11 +218,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         log.info(connOpts.toString());
         connOpts.setCleanSession(true);
 
-        log.info("checking");
-        log.info("Mqtt Connecting to broker: " + broker);
-
         sampleClientSubs.connect(connOpts);
-        log.info("Mqtt");
         AtomicBoolean check = new AtomicBoolean(false);
         sampleClientSubs.setCallback(new MqttCallback() {
             @Override
@@ -255,38 +240,25 @@ public class MqttIntegrationTest extends AbstractContainerTest {
             }
         });
         sampleClientSubs.subscribe(topic);
-        log.info("Subscribed");
-        log.info("Listening");
-
 
         try {
             String prodClientId = RandomStringUtils.randomAlphanumeric(10);
             MqttClient sampleClient = new MqttClient(broker, prodClientId, persistence);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
-            log.info("Connecting to broker: " + broker);
             sampleClient.connect(options);
-            log.info("Connected to broker");
-            log.info("Publishing message:" + content);
             MqttMessage message = new MqttMessage(content.getBytes());
             message.setQos(qos);
             message.setRetained(true);
             sampleClient.publish(topic, message);
-            log.info("Message published");
             sampleClient.disconnect();
             sampleClient.close();
         } catch (MqttException me) {
-            log.info("reason " + me.getReasonCode());
-            log.info("msg " + me.getMessage());
-            log.info("loc " + me.getLocalizedMessage());
-            log.info("cause " + me.getCause());
-            log.info("excep " + me);
             me.printStackTrace();
         }
         while (!check.get()) {
             Thread.sleep(500);
             log.info(String.valueOf(sampleClientSubs.isConnected()));
-            log.info("wait message");
         }
     }
 

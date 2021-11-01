@@ -65,10 +65,6 @@ public class ContainerTestSuite {
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
 
-//    @Rule
-//    public static final @NotNull HiveMQTestContainerRule hiveMQTestContainerRule = new HiveMQTestContainerRule();
-
-    //TODO : don't forget add info about add docker image for mosquitto
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         if (testContainer == null) {

@@ -48,7 +48,7 @@ services:
     ports:
       - "8082"
     environment:
-      INTEGRATION_ROUTING_KEY: routing-key-123456
-      INTEGRATION_SECRET: secret-key-123456
+      INTEGRATION_ROUTING_KEY: routing-key-1234567
+      INTEGRATION_SECRET: secret-key-1234567
       RPC_HOST: tb-core1
       RPC_PORT: 9090

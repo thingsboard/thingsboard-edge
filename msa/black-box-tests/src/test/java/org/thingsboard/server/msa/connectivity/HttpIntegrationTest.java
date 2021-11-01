@@ -154,7 +154,6 @@ public class HttpIntegrationTest extends AbstractContainerTest {
             if (events.getData().isEmpty()) continue;
             String event = events.getData().get(0).getBody().get("event").asText();
             String success = events.getData().get(0).getBody().get("success").asText();
-            log.info(event + " " + success);
             if (event.equals("STARTED") && success.equals("true")) {
                 isConnected = true;
                 break;

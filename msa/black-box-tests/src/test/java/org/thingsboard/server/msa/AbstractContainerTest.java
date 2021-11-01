@@ -59,7 +59,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-
 import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.util.List;
@@ -71,13 +70,9 @@ public abstract class AbstractContainerTest {
     protected static final String HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
     protected static String rpcURLHttp;
-    protected static String rpcURLMqtt;
-    protected static String rpcURLHost;
-    protected static Integer rpcURLPort;
     protected static String TB_TOKEN;
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
-    protected static RestClient rpcMQTTTRestClient;
     protected ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
@@ -86,11 +81,6 @@ public abstract class AbstractContainerTest {
         Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
         rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
         rpcHTTPRestClient = new RestClient(rpcURLHttp);
-        log.info("finish http");
-        rpcURLHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-mqtt-integration", 8082);
-        rpcURLPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-mqtt-integration", 8082);
-        rpcURLMqtt = "tcp://" + rpcURLHost + ":" + rpcURLPort;
-        log.info("finish mqtt");
 
         restClient = new RestClient(HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
