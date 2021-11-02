@@ -142,4 +142,6 @@ public class DataConstants {
 
     public static final String UPDATE_FIRMWARE = "updateFirmware";
     public static final String UPDATE_SOFTWARE = "updateSoftware";
+
+    public static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix_";
 }
