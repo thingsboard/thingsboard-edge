@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -54,12 +55,17 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
 
     private static final long serialVersionUID = 2807343040519549363L;
 
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
     private TenantId tenantId;
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", readOnly = true)
     private CustomerId customerId;
     @NoXss
+    @ApiModelProperty(position = 6, value = "scheduler event name", example = "Weekly Dashboard Report")
     private String name;
+    @ApiModelProperty(position = 7, value = "scheduler event type", example = "generateReport")
     @NoXss
     private String type;
+    @ApiModelProperty(position = 8, value = "a JSON value with schedule time configuration", dataType = "com.fasterxml.jackson.databind.JsonNode")
     private transient JsonNode schedule;
     @JsonIgnore
     private byte[] scheduleBytes;
@@ -86,11 +92,33 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
         return getName();
     }
 
+    @ApiModelProperty(position = 1, value = "JSON object with the scheduler event Id. " +
+            "Specify this field to update the scheduler event. " +
+            "Referencing non-existing scheduler event Id will cause error. " +
+            "Omit this field to create new scheduler event" )
+    @Override
+    public SchedulerEventId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the scheduler event creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
+    }
+
+    @ApiModelProperty(position = 10, value = "Additional parameters of the scheduler event", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Override
+    public JsonNode getAdditionalInfo() {
+        return super.getAdditionalInfo();
+    }
+
     @Override
     public String getName() {
         return name;
     }
 
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
