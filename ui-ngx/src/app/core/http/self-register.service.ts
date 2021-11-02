@@ -98,4 +98,8 @@ export class SelfRegistrationService {
     return this.http.get<SelfRegistrationParams>(`/api/selfRegistration/selfRegistrationParams`, defaultHttpOptionsFromConfig(config));
   }
 
+  public deleteSelfRegistrationParams(domainName: string, config?: RequestConfig) {
+    return this.http.delete(`/api/selfRegistration/selfRegistrationParams/${domainName}`, defaultHttpOptionsFromConfig(config));
+  }
+
 }

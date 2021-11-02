@@ -29,19 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
-import { SelfRegistrationParams } from '@shared/models/self-register.models';
+import { selfRegistrationAttributes, SelfRegistrationParams } from '@shared/models/self-register.models';
 import { deepClone, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { AttributeService } from '@core/http/attribute.service';
+import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
+import { TenantId } from '@shared/models/id/tenant-id';
+import { concatMap, map, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-self-registration',
@@ -53,6 +58,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   selfRegistrationFormGroup: FormGroup;
   selfRegistrationParams: SelfRegistrationParams;
   registerLink: string;
+  deleteDisabled: boolean = true;
 
   entityTypes = EntityType;
 
@@ -73,6 +79,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   constructor(protected store: Store<AppState>,
               private router: Router,
               private selfRegistrationService: SelfRegistrationService,
+              private attributeService: AttributeService,
               private translate: TranslateService,
               public fb: FormBuilder) {
     super(store);
@@ -82,6 +89,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     this.buildSelfRegistrationForm();
     this.selfRegistrationService.getSelfRegistrationParams().subscribe(
       (selfRegistrationParams) => {
+        this.enableDeleteSelfRegistration(selfRegistrationParams);
         this.onSelfRegistrationParamsLoaded(selfRegistrationParams);
       }
     );
@@ -154,9 +162,36 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       ...this.selfRegistrationParamsFromFormValue(this.selfRegistrationFormGroup.value)};
     this.selfRegistrationService.saveSelfRegistrationParams(this.selfRegistrationParams).subscribe(
       (selfRegistrationParams) => {
+        this.enableDeleteSelfRegistration(selfRegistrationParams);
         this.onSelfRegistrationParamsLoaded(selfRegistrationParams);
       }
     );
+  }
+
+  delete(): void {
+    const authUser = getCurrentAuthUser(this.store);
+    const tenantId = new TenantId(authUser.tenantId);
+    const deletedAttributesObservable = this.attributeService.getEntityAttributes(tenantId, AttributeScope.SERVER_SCOPE).pipe(
+      map(attributes =>
+        attributes.filter(
+          attribute => selfRegistrationAttributes.indexOf(attribute.key) !== -1)
+      ),
+      concatMap(selfRegistrationAttributes =>
+        this.attributeService.deleteEntityAttributes(tenantId, AttributeScope.SERVER_SCOPE, selfRegistrationAttributes))
+    );
+    deletedAttributesObservable.pipe(
+      concatMap(() => this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName)),
+      tap(() => {
+        this.onSelfRegistrationParamsLoaded({} as SelfRegistrationParams);
+        this.deleteDisabled = true;
+        this.selfRegistrationFormGroup.reset();
+        this.selfRegistrationFormGroup.markAsPristine();
+        for (const key in this.selfRegistrationFormGroup.controls) {
+          this.selfRegistrationFormGroup.get(key).clearValidators();
+          this.selfRegistrationFormGroup.get(key).updateValueAndValidity();
+        }
+      })
+    ).subscribe();
   }
 
   confirmForm(): FormGroup {
@@ -221,6 +256,10 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   private convertHTMLToText(str: string): string {
     return str.replace(/<br\s*[/]?>/gi, '\n');
+  }
+
+  private enableDeleteSelfRegistration(selfRegistrationParams): void {
+    this.deleteDisabled = !selfRegistrationParams.adminSettingsId;
   }
 
 }
