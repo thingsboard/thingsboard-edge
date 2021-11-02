@@ -84,7 +84,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
             return;
         }
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getUplinkContentType(), message.getDeviceMetadata()));
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), message.getDeviceMetadata()));
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
@@ -92,11 +92,11 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                 }
             }
             if (configuration.isDebugMode()) {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(message.getPayload()), "OK", null);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(message.getPayload()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
         }
     }
 

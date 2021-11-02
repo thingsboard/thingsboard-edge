@@ -34,15 +34,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
+import org.eclipse.leshan.core.request.ContentFormat;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.common.data.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,6 +54,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
@@ -101,9 +105,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         }
         CoAP.ResponseCode status = CoAP.ResponseCode.CREATED;
         Exception exception = null;
-        String strMessage = "";
         try {
-            strMessage = msg.asString();
             List<UplinkData> uplinkDataList = getUplinkDataList(context, msg);
             processUplinkData(context, uplinkDataList);
         } catch (Exception e) {
@@ -120,7 +122,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", msg.getContentType(), strMessage, isOk ? "OK" : "ERROR", exception);
+                persistDebug(context, "Uplink", msg.getContentType(), mapper.writeValueAsString(msg.getPayloadBytes()), isOk ? "OK" : "ERROR", exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -165,7 +167,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         switch (securityMode) {
             case NO_SECURE:
                 this.integrationResource =
-                         addIntegrationResource(getEndpointUri(coapClientConfiguration.getCoapEndpoint()));
+                        addIntegrationResource(getEndpointUri(coapClientConfiguration.getCoapEndpoint()));
                 break;
             case DTLS:
                 checkDtlsEnabled();
@@ -231,7 +233,19 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, CoapIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        // TODO: 4/13/21 consider to add more data from CoapExchange to metadata!
+        OptionSet options = msg.getExchange().getRequestOptions();
+        if (options.getContentFormat() >= 0) {
+            metadataMap.put("Option:content-format", Integer.toString(options.getContentFormat()));
+        }
+        if (options.getLocationPath() != null && !options.getLocationPath().isEmpty()) {
+            metadataMap.put("Option:location-path", String.join(",", options.getLocationPath()));
+        }
+        if (options.getLocationQuery() != null && !options.getLocationQuery().isEmpty()) {
+            metadataMap.put("Option:location-query", String.join(",", options.getLocationQuery()));
+        }
+        if (StringUtils.isNotEmpty(options.getUriString())) {
+            metadataMap.put("Option:uri", options.getUriString());
+        }
         return convertToUplinkDataList(context, msg.getPayloadBytes(), new UplinkMetaData(msg.getContentType(), metadataMap));
     }
 

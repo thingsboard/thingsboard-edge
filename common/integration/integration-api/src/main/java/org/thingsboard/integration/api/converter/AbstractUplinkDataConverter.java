@@ -38,6 +38,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.adaptor.JsonConverter;
@@ -165,17 +166,17 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return JsonConverter.convertToAttributesProto(src);
     }
 
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
+    private void persistUplinkDebug(ConverterContext context, UplinkContentType inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
         try {
-            persistDebug(context, getTypeUplink (inMessage), inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
+            persistDebug(context, getTypeUplink (inMessage), inMessageType.name(), inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
             log.warn("Failed to persist uplink debug message");
         }
     }
 
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, UplinkMetaData metadata, Exception e) {
+    private void persistUplinkDebug(ConverterContext context, UplinkContentType inMessageType, byte[] inMessage, UplinkMetaData metadata, Exception e) {
         try {
-            persistDebug(context, "Uplink", inMessageType, inMessage, null, null, metadataToJson(metadata), e);
+            persistDebug(context, "Uplink", inMessageType.name(), inMessage, null, null, metadataToJson(metadata), e);
         } catch (JsonProcessingException ex) {
             log.warn("Failed to persist uplink debug message", ex);
         }

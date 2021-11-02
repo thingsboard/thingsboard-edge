@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -57,9 +58,12 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
+import org.thingsboard.integration.api.controller.BinaryHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.StringHttpIntegrationMsg;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.io.IOException;
@@ -75,6 +79,23 @@ import java.util.Optional;
 public class HttpIntegrationController extends BaseIntegrationController {
 
     private static final ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
+
+    @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
+                                                         @PathVariable("suffix") Optional<String> suffix,
+                                                         @RequestHeader Map<String, String> requestHeaders,
+                                                         InputStream request) throws ThingsboardException {
+        log.debug("[{}] Received binary form request", routingKey);
+
+        try {
+            return processRequest(routingKey, suffix, new BinaryHttpIntegrationMsg(requestHeaders, IOUtils.toByteArray(request), new DeferredResult<>()));
+        } catch (IOException e) {
+            throw new ThingsboardException(ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
     @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})

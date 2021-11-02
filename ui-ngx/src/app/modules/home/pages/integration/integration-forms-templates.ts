@@ -238,8 +238,8 @@ export const templates = {
   },
   [IntegrationType.MQTT]: {
     clientConfiguration: {
-      host: 'localhost',
-      port: 11883,
+      host: '',
+      port: 1883,
       cleanSession: true,
       ssl: false,
       connectTimeoutSec: 10,

@@ -57,7 +57,7 @@ public interface EventRepository extends PagingAndSortingRepository<EventEntity,
                                                        UUID entityId);
 
     @Query("SELECT e FROM EventEntity e WHERE e.tenantId = :tenantId AND e.entityType = :entityType " +
-            "AND e.entityId = :entityId AND e.eventType = :eventType ORDER BY e.eventType DESC, e.id DESC")
+            "AND e.entityId = :entityId AND e.eventType = :eventType ORDER BY e.createdTime DESC")
     List<EventEntity> findLatestByTenantIdAndEntityTypeAndEntityIdAndEventType(
             @Param("tenantId") UUID tenantId,
             @Param("entityType") EntityType entityType,

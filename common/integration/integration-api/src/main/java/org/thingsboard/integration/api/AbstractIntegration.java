@@ -43,6 +43,7 @@ import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.DataConstants;
@@ -91,12 +92,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             Map.Entry<String, JsonNode> md = it.next();
             mdMap.put(md.getKey(), md.getValue().asText());
         }
-        this.metadataTemplate = new UplinkMetaData(getUplinkContentType(), mdMap);
+        this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
         this.integrationStatistics = new IntegrationStatistics();
     }
 
-    protected String getUplinkContentType() {
-        return "JSON";
+    protected UplinkContentType getDefaultUplinkContentType() {
+        return UplinkContentType.JSON;
     }
 
     @Override
@@ -228,6 +229,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             throw new IllegalArgumentException("Unable to resolve provided hostname: " + host);
         }
         return false;
+    }
+
+    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Exception exception) {
+        persistDebug(context, type, messageType.name(), message, status, exception);
     }
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {

@@ -54,6 +54,7 @@ import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.JSDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.JSUplinkEvaluator;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.DataConstants;
@@ -306,7 +307,7 @@ public class ConverterController extends BaseController {
 
             Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
             });
-            UplinkMetaData uplinkMetaData = new UplinkMetaData("JSON", metadataMap);
+            UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
 
             String output = "";
             String errorText = "";

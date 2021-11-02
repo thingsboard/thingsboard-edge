@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.integration.api.data.UplinkContentType;
 
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public abstract class HttpIntegrationMsg<T> {
     protected final T msg;
     private final DeferredResult<ResponseEntity> callback;
 
+    public abstract UplinkContentType getContentType();
     public abstract byte[] getMsgInBytes();
 
 }

@@ -28,29 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.controller;
+package org.thingsboard.integration.api.data;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.data.UplinkContentType;
+public enum UplinkContentType {
 
-import java.util.Map;
+    JSON, TEXT, BINARY
 
-public class JsonHttpIntegrationMsg extends HttpIntegrationMsg<JsonNode> {
-
-    public JsonHttpIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, DeferredResult<ResponseEntity> callback) {
-        super(requestHeaders, msg, callback);
-    }
-
-    @Override
-    public UplinkContentType getContentType() {
-        return UplinkContentType.JSON;
-    }
-
-    @Override
-    public byte[] getMsgInBytes() {
-        return JacksonUtil.writeValueAsBytes(msg);
-    }
 }

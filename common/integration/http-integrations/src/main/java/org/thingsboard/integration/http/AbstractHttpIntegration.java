@@ -68,7 +68,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context,  getTypeUplink(msg) , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context,  getTypeUplink(msg) , getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

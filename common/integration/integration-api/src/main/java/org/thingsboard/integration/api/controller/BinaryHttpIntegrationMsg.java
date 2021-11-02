@@ -30,27 +30,25 @@
  */
 package org.thingsboard.integration.api.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkContentType;
 
 import java.util.Map;
 
-public class JsonHttpIntegrationMsg extends HttpIntegrationMsg<JsonNode> {
+public class BinaryHttpIntegrationMsg extends HttpIntegrationMsg<byte[]> {
 
-    public JsonHttpIntegrationMsg(Map<String, String> requestHeaders, JsonNode msg, DeferredResult<ResponseEntity> callback) {
+    public BinaryHttpIntegrationMsg(Map<String, String> requestHeaders, byte[] msg, DeferredResult<ResponseEntity> callback) {
         super(requestHeaders, msg, callback);
     }
 
     @Override
     public UplinkContentType getContentType() {
-        return UplinkContentType.JSON;
+        return UplinkContentType.BINARY;
     }
 
     @Override
     public byte[] getMsgInBytes() {
-        return JacksonUtil.writeValueAsBytes(msg);
+        return msg;
     }
 }

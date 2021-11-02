@@ -83,7 +83,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
