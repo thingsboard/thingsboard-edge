@@ -74,6 +74,7 @@ import {
   getCellStyleInfo,
   getRowStyleInfo,
   getTableCellButtonActions,
+  noDataMessage,
   prepareTableCellButtonActions,
   RowStyleInfo,
   TableCellButtonActionDescriptor,
@@ -141,6 +142,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   public textSearch: string = null;
   public sources: TimeseriesTableSource[];
   public sourceIndex: number;
+  public noDataDisplayMessageText: string;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -265,6 +267,9 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       this.defaultPageSize = pageSize;
     }
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
+    this.noDataDisplayMessageText =
+      noDataMessage(this.widgetConfig.noDataDisplayMessage, 'widget.no-data-found', this.utils, this.translate);
 
     let cssString = constructTableCssString(this.widgetConfig);
 
