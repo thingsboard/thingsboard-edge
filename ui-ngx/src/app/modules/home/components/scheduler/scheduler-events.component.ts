@@ -153,7 +153,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
-  noDataDisplayMessage: string;
+  noDataDisplayMessageText: string;
 
   displayedColumns: string[];
   pageLink: PageLink;
@@ -275,6 +275,14 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {
       this.defaultSortOrder = this.settings.defaultSortOrder;
     }
+
+    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
+    if (isNotEmptyStr(noDataDisplayMessage)) {
+      this.noDataDisplayMessageText = this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
+    } else {
+      this.noDataDisplayMessageText = this.translate.instant('scheduler.no-scheduler-events');
+    }
+
     const sortOrder: SortOrder = sortOrderFromString(this.defaultSortOrder);
     if (sortOrder.property === 'type') {
       sortOrder.property = 'typeName';
@@ -282,7 +290,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (sortOrder.property === 'customer') {
       sortOrder.property = 'customerTitle';
     }
-    this.noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '';
     this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
     if (this.settings.forceDefaultEventType && this.settings.forceDefaultEventType.length) {
       this.defaultEventType = this.settings.forceDefaultEventType;
@@ -332,13 +339,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.ctx.detectChanges();
       }
     });
-  }
-
-  get noDataDisplayMessageText() {
-    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
-    return isNotEmptyStr(noDataDisplayMessage)
-      ? this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage)
-      : this.translate.instant('scheduler.no-scheduler-events');
   }
 
   ngAfterViewInit() {

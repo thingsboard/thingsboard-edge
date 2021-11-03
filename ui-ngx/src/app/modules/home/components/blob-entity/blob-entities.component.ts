@@ -98,7 +98,7 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
   timewindow: Timewindow;
   pageLink: TimePageLink;
 
-  noDataDisplayMessage: string;
+  noDataDisplayMessageText: string;
 
   textSearchMode = false;
 
@@ -173,9 +173,16 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     }
     this.timewindow = historyInterval(DAY);
     const currentTime = Date.now();
-    this.noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '';
     this.pageLink = new TimePageLink(this.defaultPageSize, 0, null, sortOrder,
       currentTime - this.timewindow.history.timewindowMs, currentTime);
+
+    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
+    if (isNotEmptyStr(noDataDisplayMessage)) {
+      this.noDataDisplayMessageText = this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
+    } else {
+      this.noDataDisplayMessageText = this.translate.instant('blob-entity.no-blob-entities-prompt');
+    }
+
     if (this.settings.forceDefaultType && this.settings.forceDefaultType.length) {
       this.defaultType = this.settings.forceDefaultType;
     }
@@ -207,13 +214,6 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
         this.ctx.detectChanges();
       }
     });
-  }
-
-  get noDataDisplayMessageText() {
-    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
-    return isNotEmptyStr(noDataDisplayMessage)
-      ? this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage)
-      : this.translate.instant('blob-entity.no-blob-entities-prompt');
   }
 
   ngAfterViewInit(): void {
