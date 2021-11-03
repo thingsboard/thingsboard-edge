@@ -184,12 +184,6 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       tap(() => {
         this.onSelfRegistrationParamsLoaded({} as SelfRegistrationParams);
         this.deleteDisabled = true;
-        this.selfRegistrationFormGroup.reset();
-        this.selfRegistrationFormGroup.markAsPristine();
-        for (const key in this.selfRegistrationFormGroup.controls) {
-          this.selfRegistrationFormGroup.get(key).clearValidators();
-          this.selfRegistrationFormGroup.get(key).updateValueAndValidity();
-        }
       })
     ).subscribe();
   }
