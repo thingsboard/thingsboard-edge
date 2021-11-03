@@ -41,9 +41,6 @@ import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -63,8 +60,6 @@ public class HttpIntegrationTest extends AbstractContainerTest {
     private static final String secretKey = "secret-key-123456";
     private static final String login = "tenant@thingsboard.org";
     private static final String password = "tenant";
-    private static final String key = "temperature";
-    private static final String value = "42";
     private static final String config = " {\"baseUrl\":\"" + HTTPS_URL + "\"," +
             "\"replaceNoContentToOk\":true," +
             "\"enableSecurity\":false," +
@@ -117,7 +112,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         Device device = createDevice("http_");
         boolean isRemote = false;
         Integration integration = createIntegration(isRemote);
-        createUplink();
+        createUplink(CUSTOM_CONVERTER_CONFIGURATION);
         integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
         restClient.saveIntegration(integration);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
@@ -129,10 +124,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         Assert.assertTrue(verify(actualLatestTelemetry, key, value));
         wsClient.closeBlocking();
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(restClient.getIntegrationByRoutingKey(routingKey).get().getId());
-        restClient.deleteConverter(idForDelete);
+        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(routingKey).get().getId());
     }
 
     @Test
@@ -141,15 +133,15 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         Device device = createDevice("http_");
         boolean isRemote = true;
         Integration integration = createIntegration(isRemote);
-        createUplink();
+        createUplink(CUSTOM_CONVERTER_CONFIGURATION);
         integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
         restClient.saveIntegration(integration);
         IntegrationId integrationId = restClient.getIntegrationByRoutingKey(routingKey).get().getId();
 
         TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
         boolean isConnected = false;
-        for (int i=0; i<50; i++) {
-            Thread.sleep(500);
+        for (int i = 0; i < countWait; i++) {
+            Thread.sleep(timeWait);
             PageData<Event> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             String event = events.getData().get(0).getBody().get("event").asText();
@@ -158,10 +150,9 @@ public class HttpIntegrationTest extends AbstractContainerTest {
                 isConnected = true;
                 break;
             }
-            log.error(events.getData().toString());
         }
         Assert.assertTrue("RPC have not connected to TB", isConnected);
-        WsClient wsClient = subscribeToWebSocket(   device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
+        WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity uplinkResponse = rpcHTTPRestClient.getRestTemplate().
                 postForEntity(rpcURLHttp + "/api/v1/integrations/http/" + integration.getRoutingKey(),
                         createPayloadForUplink(device.getName(), device.getType()),
@@ -170,10 +161,15 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         Assert.assertTrue(verify(actualLatestTelemetry, key, value));
         wsClient.closeBlocking();
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integrationId);
-        restClient.deleteConverter(idForDelete);
+        deleteAllObject(device, integration, integrationId);
+    }
+
+    private JsonNode createPayloadForUplink(String name, String type) throws JsonProcessingException {
+        JsonObject values = new JsonObject();
+        values.addProperty("deviceName", name);
+        values.addProperty("deviceType", type);
+        values.addProperty(key, value);
+        return mapper.readTree(values.toString());
     }
 
     private Integration createIntegration(boolean isRemote) throws JsonProcessingException {
@@ -188,22 +184,6 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         integration.setRemote(isRemote);
         integration.setDebugMode(true);
         return integration;
-    }
-
-    private void createUplink() {
-        Converter converter = new Converter();
-        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
-        restClient.saveConverter(converter);
-    }
-
-    protected JsonNode createPayloadForUplink(String name, String type) throws JsonProcessingException {
-        JsonObject values = new JsonObject();
-        values.addProperty("deviceName", name);
-        values.addProperty("deviceType", type);
-        values.addProperty(key, value);
-        return mapper.readTree(values.toString());
     }
 
 

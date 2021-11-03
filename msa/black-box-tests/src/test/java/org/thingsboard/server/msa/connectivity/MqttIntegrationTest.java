@@ -19,8 +19,6 @@ import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -41,12 +39,9 @@ public class MqttIntegrationTest extends AbstractContainerTest {
     private static final String secretKey = "secret-key-1234567";
     private static final String login = "tenant@thingsboard.org";
     private static final String password = "tenant";
-    private static final String key = "temperature";
-    private static final String value = "42";
     private static String host = "broker";
     private static Integer port = 1883;
     private static final String topic = "tb/mqtt/device";
-    private static final String deviceName = "mqtt_device";
 
     private static final String CONFIG_INTEGRATION = "{\n" +
             "  \"clientConfiguration\": {\n" +
@@ -71,59 +66,60 @@ public class MqttIntegrationTest extends AbstractContainerTest {
             "  \"metadata\": {}\n" +
             "}";
 
-    private static final JsonNode CUSTOM_UPLINK_CONVERTER_CONFIGURATION = new ObjectMapper()
-            .createObjectNode().put("decoder",
-                    "var payloadStr = decodeToString(payload);\n" +
-                            "var data = JSON.parse(payloadStr);\n" +
-                            "var topicPattern = '" + topic + "';\n" +
-                            "\n" +
-                            "var deviceName =  '" + deviceName + "';\n" +
-                            "var deviceType = 'default';\n" +
-                            "var result = {\n" +
-                            "   deviceName: deviceName,\n" +
-                            "   deviceType: deviceType,\n" +
-                            "   telemetry: {\n" +
-                            "       temperature: data.temperature,\n" +
-                            "   }\n" +
-                            "};\n" +
-                            "\n" +
-                            "function decodeToString(payload) {\n" +
-                            "   return String.fromCharCode.apply(String, payload);\n" +
-                            "}\n" +
-                            "\n" +
-                            "function decodeToJson(payload) {\n" +
-                            "   var str = decodeToString(payload);\n" +
-                            "\n" +
-                            "   var data = JSON.parse(str);\n" +
-                            "   return data;\n" +
-                            "}\n" +
-                            "return result;");
+    private static final String CONFIG_CONVERTER = "var payloadStr = decodeToString(payload);\n" +
+            "var data = JSON.parse(payloadStr);\n" +
+            "var topicPattern = '" + topic + "';\n" +
+            "\n" +
+            "var deviceName =  '" + "DEVICE_NAME" + "';\n" +
+            "var deviceType = 'DEFAULT';\n" +
+            "var result = {\n" +
+            "   deviceName: deviceName,\n" +
+            "   deviceType: deviceType,\n" +
+            "   telemetry: {\n" +
+            "       temperature: data.temperature,\n" +
+            "   }\n" +
+            "};\n" +
+            "\n" +
+            "function decodeToString(payload) {\n" +
+            "   return String.fromCharCode.apply(String, payload);\n" +
+            "}\n" +
+            "\n" +
+            "function decodeToJson(payload) {\n" +
+            "   var str = decodeToString(payload);\n" +
+            "\n" +
+            "   var data = JSON.parse(str);\n" +
+            "   return data;\n" +
+            "}\n" +
+            "return result;";
 
     @Test
     public void telemetryUploadWithIntegration() throws Exception {
 
         restClient.login(login, password);
-        Device device = createDevice(deviceName);
+        Device device = createDevice("mqtt_");
+        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         getBrokerAddress();
         boolean isRemote = false;
-        Converter savedConverter = createUplink();
+        Converter savedConverter = createUplink(configConverter);
         Integration integration = createIntegration(isRemote);
         integration.setDefaultConverterId(savedConverter.getId());
         restClient.saveIntegration(integration);
 
-        log.info(String.valueOf(restClient.getTenantDevices("default", new PageLink(1024)).getData().size()));
-        Thread.sleep(10000);
+        sendMessageToBroker();
 
-        anotherVariable();
-
-        log.info(restClient.getDeviceById(device.getId()).get().toString());
-        while (restClient.getTimeseriesKeys(device.getId()).isEmpty()) {
-            Thread.sleep(500);
+        boolean hasTelemetry = false;
+        for (int i = 0; i < countWait; i++) {
+            Thread.sleep(timeWait);
+            if (restClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            hasTelemetry = true;
+            break;
         }
+        Assert.assertTrue("Device doesn't has telemetry", hasTelemetry);
+
         List<TsKvEntry> latestTimeseries = restClient.getLatestTimeseries(device.getId(), List.of(key));
         Assert.assertFalse(latestTimeseries.isEmpty());
-        Assert.assertEquals(key,  latestTimeseries.get(0).getKey());
-        Assert.assertEquals(value,  latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(key, latestTimeseries.get(0).getKey());
+        Assert.assertEquals(value, latestTimeseries.get(0).getValue().toString());
 
         deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(routingKey).get().getId());
     }
@@ -131,47 +127,49 @@ public class MqttIntegrationTest extends AbstractContainerTest {
     @Test
     public void telemetryUploadWithRemoteIntegration() throws Exception {
         restClient.login(login, password);
-        Device device = createDevice("mqtt_device");
+        Device device = createDevice("mqtt_");
+        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         getBrokerAddress();
         boolean isRemote = true;
-        Converter savedConverter = createUplink();
+        Converter savedConverter = createUplink(configConverter);
         Integration integration = createIntegration(isRemote);
         integration.setDefaultConverterId(savedConverter.getId());
         restClient.saveIntegration(integration);
-        Thread.sleep(10000);
-        anotherVariable();
+        sendMessageToBroker();
 
         IntegrationId integrationId = restClient.getIntegrationByRoutingKey(routingKey).get().getId();
         TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
         boolean isConnected = false;
-        for (int i=0; i<50; i++) {
-            Thread.sleep(500);
+        for (int i = 0; i < countWait; i++) {
+            Thread.sleep(timeWait);
             PageData<Event> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             isConnected = true;
+            break;
         }
         Assert.assertTrue("RPC have not connected to TB", isConnected);
 
+        boolean hasTelemetry = false;
+        for (int i = 0; i < countWait; i++) {
+            Thread.sleep(timeWait);
+            if (restClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            hasTelemetry = true;
+            break;
+        }
+        Assert.assertTrue("Device doesn't has telemetry", hasTelemetry);
+
         List<TsKvEntry> latestTimeseries = restClient.getLatestTimeseries(device.getId(), List.of(key));
-        Assert.assertFalse(latestTimeseries.isEmpty());
-        Assert.assertEquals(key,  latestTimeseries.get(0).getKey());
-        Assert.assertEquals(value,  latestTimeseries.get(0).getValue().toString());
+        Assert.assertEquals(key, latestTimeseries.get(0).getKey());
+        Assert.assertEquals(value, latestTimeseries.get(0).getValue().toString());
 
         deleteAllObject(device, integration, integrationId);
-    }
-
-    private void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integrationId);
-        restClient.deleteConverter(idForDelete);
     }
 
     private void getBrokerAddress() {
         host = ContainerTestSuite.getTestContainer().getServiceHost("broker", 1883);
         port = ContainerTestSuite.getTestContainer().getServicePort("broker", 1883);
-        log.info("{}:{}", host, port);
     }
+
     private Integration createIntegration(boolean isRemote) throws JsonProcessingException {
         Integration integration = new Integration();
         JsonNode conf = mapper.readTree(CONFIG_INTEGRATION);
@@ -185,25 +183,10 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         integration.setRemote(isRemote);
         integration.setDebugMode(true);
         integration.setAllowCreateDevicesOrAssets(true);
-        log.info(integration.toString());
         return integration;
     }
 
-    private Converter createUplink() {
-        Converter converter = new Converter();
-        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(CUSTOM_UPLINK_CONVERTER_CONFIGURATION);
-        return restClient.saveConverter(converter);
-    }
-
-    protected JsonNode createPayloadForUplink() throws JsonProcessingException {
-        JsonObject values = new JsonObject();
-        values.addProperty(key, value);
-        return mapper.readTree(values.toString());
-    }
-
-    public void anotherVariable() throws MqttException, InterruptedException, JsonProcessingException {
+    public void sendMessageToBroker() throws MqttException, InterruptedException, JsonProcessingException {
         String content = createPayloadForUplink().toString();
         int qos = 0;
 
@@ -215,7 +198,6 @@ public class MqttIntegrationTest extends AbstractContainerTest {
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setKeepAliveInterval(30);
-        log.info(connOpts.toString());
         connOpts.setCleanSession(true);
 
         sampleClientSubs.connect(connOpts);
@@ -223,20 +205,20 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         sampleClientSubs.setCallback(new MqttCallback() {
             @Override
             public void connectionLost(Throwable throwable) {
-                log.info(throwable.getMessage());
+                log.trace(throwable.getMessage());
             }
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) {
                 check.set(mqttMessage.toString().equals(content));
-                log.info("s = {}, message = {}", s, mqttMessage);
+                log.trace("s = {}, message = {}", s, mqttMessage);
             }
 
             @SneakyThrows
             @Override
             public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
                 check.set(true);
-                log.info(iMqttDeliveryToken.getMessage().toString());
+                log.trace(iMqttDeliveryToken.getMessage().toString());
             }
         });
         sampleClientSubs.subscribe(topic);
@@ -256,10 +238,16 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         } catch (MqttException me) {
             me.printStackTrace();
         }
-        while (!check.get()) {
-            Thread.sleep(500);
-            log.info(String.valueOf(sampleClientSubs.isConnected()));
+        for (int i=0; i<countWait; i++) {
+            Thread.sleep(timeWait);
+            if (check.get()) break;
         }
+        Assert.assertTrue("Broker doesn't get message", check.get());
     }
 
+    private JsonNode createPayloadForUplink() throws JsonProcessingException {
+        JsonObject values = new JsonObject();
+        values.addProperty(key, value);
+        return mapper.readTree(values.toString());
+    }
 }

@@ -94,7 +94,7 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
-                        new File(targetDir + "docker-compose.http.integration.yml"),
+                        new File(targetDir + "docker-compose.integration.yml"),
                         new File(targetDir + "docker-compose.mosquitto.yml"),
                         new File(targetDir + "advanced/docker-compose.kafka.yml"))
                         .withPull(false)
@@ -112,7 +112,6 @@ public class ContainerTestSuite {
                         .waitingFor("tb-http-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-mqtt-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-//                        .waitingFor("eclipse-mosquitto", Wait.forLogMessage(".* .*", 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-pe-mqtt-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
                         .waitingFor("tb-pe-http-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)));
             } catch (Exception e) {

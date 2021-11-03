@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -56,7 +57,12 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLContext;
@@ -74,6 +80,10 @@ public abstract class AbstractContainerTest {
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
     protected ObjectMapper mapper = new ObjectMapper();
+    protected static final String key = "temperature";
+    protected static final String value = "42";
+    protected static final int countWait = 50;
+    protected static final int timeWait = 500;
 
     @BeforeClass
     public static void before() throws Exception {
@@ -126,8 +136,8 @@ public abstract class AbstractContainerTest {
 
     protected Device createDevice(String name) {
         Device device = new Device();
-        device.setName(name);
-        device.setType("default");
+        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        device.setType("DEFAULT");
         return restClient.saveDevice(device);
     }
 
@@ -209,6 +219,21 @@ public abstract class AbstractContainerTest {
         values.addProperty("longKey", 73L);
 
         return values;
+    }
+
+    protected Converter createUplink(JsonNode config) {
+        Converter converter = new Converter();
+        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(config);
+        return restClient.saveConverter(converter);
+    }
+
+    protected void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
+        restClient.deleteDevice(device.getId());
+        ConverterId idForDelete = integration.getDefaultConverterId();
+        restClient.deleteIntegration(integrationId);
+        restClient.deleteConverter(idForDelete);
     }
 
     protected enum CmdsType {
