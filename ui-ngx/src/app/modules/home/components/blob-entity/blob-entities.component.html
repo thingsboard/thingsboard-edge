@@ -165,7 +165,7 @@
         </table>
         <span [fxShow]="(dataSource.isEmpty() | async) && !dataSource.dataLoading"
               fxLayoutAlign="center center"
-              class="no-data-found" translate>{{ 'blob-entity.no-blob-entities-prompt' }}</span>
+              class="no-data-found">{{ noDataDisplayMessageText }}</span>
         <span [fxShow]="dataSource.dataLoading"
               fxLayoutAlign="center center"
               class="no-data-found">{{ 'common.loading' | translate }}</span>

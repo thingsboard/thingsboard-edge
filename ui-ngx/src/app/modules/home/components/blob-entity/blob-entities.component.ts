@@ -51,8 +51,9 @@ import { catchError, debounceTime, distinctUntilChanged, map, take, tap } from '
 import { TranslateService } from '@ngx-translate/core';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
-import { isDefined, isNumber } from '@core/utils';
+import { isDefined, isNotEmptyStr, isNumber } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-blob-entities',
@@ -97,11 +98,14 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
   timewindow: Timewindow;
   pageLink: TimePageLink;
 
+  noDataDisplayMessage: string;
+
   textSearchMode = false;
 
   dataSource: BlobEntitiesDatasource;
 
   constructor(protected store: Store<AppState>,
+              private utils: UtilsService,
               public translate: TranslateService,
               private blobEntityService: BlobEntityService,
               private userPermissionsService: UserPermissionsService,
@@ -169,6 +173,7 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     }
     this.timewindow = historyInterval(DAY);
     const currentTime = Date.now();
+    this.noDataDisplayMessage = isNotEmptyStr(this.settings.noDataDisplayMessage) ? this.settings.noDataDisplayMessage : '';
     this.pageLink = new TimePageLink(this.defaultPageSize, 0, null, sortOrder,
       currentTime - this.timewindow.history.timewindowMs, currentTime);
     if (this.settings.forceDefaultType && this.settings.forceDefaultType.length) {
@@ -202,6 +207,13 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
         this.ctx.detectChanges();
       }
     });
+  }
+
+  get noDataDisplayMessageText() {
+    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
+    return isNotEmptyStr(noDataDisplayMessage)
+      ? this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage)
+      : this.translate.instant('blob-entity.no-blob-entities-prompt');
   }
 
   ngAfterViewInit(): void {
