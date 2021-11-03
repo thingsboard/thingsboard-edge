@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -55,6 +55,8 @@ export class CreatePasswordComponent extends PageComponent implements OnInit, On
     password: [''],
     password2: ['']
   });
+
+  @HostBinding('class') class = 'tb-custom-css';
 
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
