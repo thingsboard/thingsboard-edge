@@ -30,11 +30,15 @@
  */
 package org.thingsboard.integration.http;
 
+import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.util.ExceptionUtil;
+
+import javax.script.ScriptException;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -61,18 +65,30 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
             exception = e;
             status = "ERROR";
-            msg.getCallback().setResult(new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR));
+            handleException(msg, e);
         }
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context,  getTypeUplink(msg) , getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context, getTypeUplink(msg), getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
         }
+    }
+
+    private void handleException(T msg, Exception e) {
+        HttpStatus status;
+        Exception se = ExceptionUtil.lookupExceptionInCause(e, ScriptException.class, JsonParseException.class);
+        if (se != null) {
+            e = se;
+            status = HttpStatus.BAD_REQUEST;
+        } else {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        msg.getCallback().setResult(context.isExceptionStackTraceEnabled() ? new ResponseEntity<>(toString(e), status) : new ResponseEntity<>(status));
     }
 
     protected abstract ResponseEntity doProcess(T msg) throws Exception;
@@ -80,6 +96,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
     protected static ResponseEntity fromStatus(HttpStatus status) {
         return new ResponseEntity<>(status);
     }
-    protected abstract String getTypeUplink(T msg) ;
+
+    protected abstract String getTypeUplink(T msg);
 
 }

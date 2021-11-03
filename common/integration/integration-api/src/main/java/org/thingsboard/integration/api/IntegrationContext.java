@@ -128,4 +128,6 @@ public interface IntegrationContext {
     //TODO @ashvayka: Implement
     boolean isClosed();
 
+    boolean isExceptionStackTraceEnabled();
+
 }

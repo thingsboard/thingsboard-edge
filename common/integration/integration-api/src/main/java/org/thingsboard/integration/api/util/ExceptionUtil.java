@@ -28,53 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.converter;
+package org.thingsboard.integration.api.util;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.integration.api.util.LogSettingsComponent;
-import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.server.common.data.converter.Converter;
+import com.google.gson.JsonParseException;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.EntityId;
 
-/**
- * Created by ashvayka on 02.12.17.
- */
-@RequiredArgsConstructor
-public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
+import javax.script.ScriptException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-    private final JsInvokeService jsInvokeService;
-    private final LogSettingsComponent logSettings;
-    private JSUplinkEvaluator evaluator;
+@Slf4j
+public class ExceptionUtil {
 
-    @Override
-    public void init(Converter configuration) {
-        super.init(configuration);
-        String decoder = configuration.getConfiguration().get("decoder").asText();
-        this.evaluator = new JSUplinkEvaluator(configuration.getTenantId(), jsInvokeService,  configuration.getId(), decoder);
+    public static Exception lookupExceptionInCause(Throwable source, Class<? extends Exception>... clazzes) {
+        if (source == null) {
+            return null;
+        }
+        for (Class<?> clazz : clazzes) {
+            if (clazz.isAssignableFrom(source.getClass())) {
+                return (Exception) source;
+            }
+        }
+        return lookupExceptionInCause(source.getCause(), clazzes);
     }
 
-    @Override
-    public void update(Converter configuration) {
-        destroy();
-        init(configuration);
-    }
-
-    @Override
-    public void destroy() {
-        if (this.evaluator != null) {
-            this.evaluator.destroy();
+    public static String toString(Exception e, EntityId componentId, boolean stackTraceEnabled) {
+        Exception exception = lookupExceptionInCause(e, ScriptException.class, JsonParseException.class);
+        if (exception != null && StringUtils.isNotEmpty(exception.getMessage())) {
+            return exception.getMessage();
+        } else {
+            if (stackTraceEnabled) {
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                return sw.toString();
+            } else {
+                log.warn("[{}] Unknown error during message processing", componentId, e);
+                return "Please contact system administrator";
+            }
         }
     }
-
-    @Override
-    public ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return evaluator.execute(data, metadata);
-    }
-
-    @Override
-    boolean isExceptionStackTraceEnabled() {
-        return logSettings.isExceptionStackTraceEnabled();
-    }
-
 }

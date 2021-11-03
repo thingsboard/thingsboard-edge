@@ -38,6 +38,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
@@ -68,34 +69,38 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     @Override
     public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
                                                             ExecutorService callBackExecutorService) throws Exception {
-        try {
-            long startTime = System.currentTimeMillis();
-            ListenableFuture<Object> convertFuture = doConvertUplink(data, metadata);
-            return Futures.transform(convertFuture, convertResult -> {
-                String rawResult = (String) convertResult;
-                if (log.isTraceEnabled()) {
-                    log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
-                }
-                JsonElement element = new JsonParser().parse(rawResult);
-                List<UplinkData> result = new ArrayList<>();
-                if (element.isJsonArray()) {
-                    for (JsonElement uplinkJson : element.getAsJsonArray()) {
-                        result.add(parseUplinkData(uplinkJson.getAsJsonObject()));
-                    }
-                } else if (element.isJsonObject()) {
-                    result.add(parseUplinkData(element.getAsJsonObject()));
-                }
-                if (configuration.isDebugMode()) {
-                    persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
-                }
-                return result;
-            }, callBackExecutorService);
-        } catch (Exception e) {
-            if (configuration.isDebugMode()) {
-                persistUplinkDebug(context, metadata.getContentType(), data, metadata, e);
+        long startTime = System.currentTimeMillis();
+        ListenableFuture<Object> convertFuture = doConvertUplink(data, metadata);
+        ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, convertResult -> {
+            String rawResult = (String) convertResult;
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
             }
-            throw e;
-        }
+            JsonElement element = new JsonParser().parse(rawResult);
+            List<UplinkData> resultList = new ArrayList<>();
+            if (element.isJsonArray()) {
+                for (JsonElement uplinkJson : element.getAsJsonArray()) {
+                    resultList.add(parseUplinkData(uplinkJson.getAsJsonObject()));
+                }
+            } else if (element.isJsonObject()) {
+                resultList.add(parseUplinkData(element.getAsJsonObject()));
+            }
+            if (configuration.isDebugMode()) {
+                persistUplinkDebug(context, metadata.getContentType(), data, rawResult, metadata);
+            }
+            return resultList;
+        }, callBackExecutorService);
+        DonAsynchron.withCallback(result, r -> {
+        }, t -> {
+            if (t instanceof Exception) {
+                if (configuration.isDebugMode()) {
+                    persistUplinkDebug(context, metadata.getContentType(), data, metadata, (Exception) t);
+                }
+            } else {
+                log.warn("[{}][{}] Unhandled exception: ", configuration.getId(), configuration.getName(), t);
+            }
+        }, callBackExecutorService);
+        return result;
     }
 
     protected abstract ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
@@ -108,12 +113,18 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (isAsset) {
             builder.assetName(src.get("assetName").getAsString());
             builder.assetType(src.get("assetType").getAsString());
+            if (src.has("assetLabel")) {
+                builder.assetLabel(src.get("assetLabel").getAsString());
+            }
         } else {
             builder.deviceName(src.get("deviceName").getAsString());
             if (src.has("deviceType")) {
                 builder.deviceType(src.get("deviceType").getAsString());
             } else {
                 builder.deviceType(DEFAULT_DEVICE_TYPE);
+            }
+            if (src.has("deviceLabel")) {
+                builder.deviceLabel(src.get("deviceLabel").getAsString());
             }
         }
 
@@ -168,7 +179,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private void persistUplinkDebug(ConverterContext context, UplinkContentType inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
         try {
-            persistDebug(context, getTypeUplink (inMessage), inMessageType.name(), inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
+            persistDebug(context, getTypeUplink(inMessage), inMessageType.name(), inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
             log.warn("Failed to persist uplink debug message");
         }
@@ -186,7 +197,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return mapper.writeValueAsString(metaData.getKvMap());
     }
 
-    private String getTypeUplink (byte[] inMessage) throws JsonProcessingException {
-        return (inMessage != null && inMessage.length >23 &&Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent")))? "Downlink_Sent": "Uplink";
+    private String getTypeUplink(byte[] inMessage) throws JsonProcessingException {
+        return (inMessage != null && inMessage.length > 23 && Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent"))) ? "Downlink_Sent" : "Uplink";
     }
 }

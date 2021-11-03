@@ -35,11 +35,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.util.ExceptionUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -62,9 +61,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     }
 
     protected String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+        return ExceptionUtil.toString(e, configuration.getId(), isExceptionStackTraceEnabled());
     }
 
     private String convertToString(String messageType, byte[] message) {
@@ -113,4 +110,6 @@ public abstract class AbstractDataConverter implements TBDataConverter {
             log.error("Failed to save the debug event!", e);
         }
     }
+
+    abstract boolean isExceptionStackTraceEnabled();
 }

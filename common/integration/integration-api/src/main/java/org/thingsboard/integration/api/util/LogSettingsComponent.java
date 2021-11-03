@@ -28,53 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api.converter;
+package org.thingsboard.integration.api.util;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.integration.api.util.LogSettingsComponent;
-import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.server.common.data.converter.Converter;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-/**
- * Created by ashvayka on 02.12.17.
- */
-@RequiredArgsConstructor
-public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
+@Component
+public class LogSettingsComponent {
 
-    private final JsInvokeService jsInvokeService;
-    private final LogSettingsComponent logSettings;
-    private JSUplinkEvaluator evaluator;
-
-    @Override
-    public void init(Converter configuration) {
-        super.init(configuration);
-        String decoder = configuration.getConfiguration().get("decoder").asText();
-        this.evaluator = new JSUplinkEvaluator(configuration.getTenantId(), jsInvokeService,  configuration.getId(), decoder);
-    }
-
-    @Override
-    public void update(Converter configuration) {
-        destroy();
-        init(configuration);
-    }
-
-    @Override
-    public void destroy() {
-        if (this.evaluator != null) {
-            this.evaluator.destroy();
-        }
-    }
-
-    @Override
-    public ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
-        return evaluator.execute(data, metadata);
-    }
-
-    @Override
-    boolean isExceptionStackTraceEnabled() {
-        return logSettings.isExceptionStackTraceEnabled();
-    }
+    @Value("${server.log_controller_error_stack_trace:true}")
+    @Getter
+    private boolean exceptionStackTraceEnabled;
 
 }
