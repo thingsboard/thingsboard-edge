@@ -85,6 +85,13 @@ public class SelfRegistrationController extends BaseController {
     @Autowired
     private AdminSettingsService adminSettingsService;
 
+    @ApiOperation(value = "Create Or Update Self Registration parameters (saveSelfRegistrationParams)",
+            notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+                    "The newly created Admin Settings Id will be present in the response. " +
+                    "Specify existing Admin Settings Id to update the Self Registration parameters. " +
+                    "Referencing non-existing Admin Settings Id will cause 'Not Found' error." +
+                    "\n\n" + SELF_REGISTRATION_DESC +
+                    TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
