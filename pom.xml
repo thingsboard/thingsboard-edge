@@ -61,8 +61,8 @@
         <spring-data-redis.version>2.4.3</spring-data-redis.version>
         <jedis.version>3.3.0</jedis.version>
         <jjwt.version>0.7.0</jjwt.version>
-        <slf4j.version>1.7.7</slf4j.version>
-        <logback.version>1.2.3</logback.version>
+        <slf4j.version>1.7.32</slf4j.version>
+        <logback.version>1.2.6</logback.version>
         <rat.version>0.10</rat.version>
         <cassandra.version>4.10.0</cassandra.version>
         <metrics.version>4.0.5</metrics.version>
@@ -100,10 +100,8 @@
         <rabbitmq.version>4.8.0</rabbitmq.version>
         <surfire.version>2.19.1</surfire.version>
         <jar-plugin.version>3.0.2</jar-plugin.version>
-        <swagger.version>1.5.10</swagger.version>
-        <springfox-swagger.version>2.6.1</springfox-swagger.version>
-        <springfox-swagger-ui-rfc6570.version>1.0.0</springfox-swagger-ui-rfc6570.version>
-        <swagger-annotations.version>1.5.10</swagger-annotations.version>
+        <springfox-swagger.version>3.0.2</springfox-swagger.version>
+        <swagger-annotations.version>1.6.3</swagger-annotations.version>
         <spatial4j.version>0.7</spatial4j.version>
         <jts.version>1.15.0</jts.version>
         <bouncycastle.version>1.67</bouncycastle.version>
@@ -1756,13 +1754,8 @@
                 <version>${curator.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.swagger</groupId>
-                <artifactId>swagger-annotations</artifactId>
-                <version>${swagger.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.springfox</groupId>
-                <artifactId>springfox-swagger2</artifactId>
+                <groupId>org.thingsboard</groupId>
+                <artifactId>springfox-boot-starter</artifactId>
                 <version>${springfox-swagger.version}</version>
             </dependency>
             <dependency>
@@ -1860,11 +1853,6 @@
                 <groupId>de.ruedigermoeller</groupId>
                 <artifactId>fst</artifactId>
                 <version>${fst.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.springfox.ui</groupId>
-                <artifactId>springfox-swagger-ui-rfc6570</artifactId>
-                <version>${springfox-swagger-ui-rfc6570.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.spatial4j</groupId>

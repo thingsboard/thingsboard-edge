@@ -112,10 +112,12 @@ import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_S
 import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TYPES_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.RULE_CHAIN_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RULE_NODE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @Slf4j
 @RestController
@@ -201,7 +203,7 @@ public class RuleChainController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Rule Chain (saveRuleChain)",
-            notes = "Create or update the Rule Chain. When creating Rule Chain, platform generates Rule Chain Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+            notes = "Create or update the Rule Chain. When creating Rule Chain, platform generates Rule Chain Id as " + UUID_WIKI_LINK +
                     "The newly created Rule Chain Id will be present in the response. " +
                     "Specify existing Rule Chain id to update the rule chain. " +
                     "Referencing non-existing rule chain Id will cause 'Not Found' error." +
@@ -454,7 +456,7 @@ public class RuleChainController extends BaseController {
     @RequestMapping(value = "/ruleNode/{ruleNodeId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
     public JsonNode getLatestRuleNodeDebugInput(
-            @ApiParam(value = RULE_CHAIN_ID_PARAM_DESCRIPTION)
+            @ApiParam(value = RULE_NODE_ID_PARAM_DESCRIPTION)
             @PathVariable(RULE_NODE_ID) String strRuleNodeId) throws ThingsboardException {
         checkParameter(RULE_NODE_ID, strRuleNodeId);
         try {

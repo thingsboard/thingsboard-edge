@@ -96,6 +96,8 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_D
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 @RestController
@@ -129,7 +131,7 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Asset (saveAsset)",
-            notes = "Creates or Updates the Asset. When creating asset, platform generates Asset Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+            notes = "Creates or Updates the Asset. When creating asset, platform generates Asset Id as " + UUID_WIKI_LINK +
                     "The newly created Asset id will be present in the response. " +
                     "Specify existing Asset id to update the asset. " +
                     "Referencing non-existing Asset Id will cause 'Not Found' error." + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
