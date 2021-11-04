@@ -66,6 +66,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import java.nio.ByteBuffer;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_CHECKSUM_ALGORITHM_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.OTA_PACKAGE_ID_PARAM_DESCRIPTION;
@@ -312,16 +313,27 @@ public class OtaPackageController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get group OTA Package Infos (getGroupOtaPackages)",
+            notes = "Returns a page of OTA Package Info objects owned by tenant, and by entity group. " +
+                    PAGE_DATA_PARAMETERS + OTA_PACKAGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            produces = "application/json")
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/otaPackages/group/{groupId}/{type}", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<OtaPackageInfo> getGroupOtaPackages(@PathVariable("groupId") String strGroupId,
-                                                   @PathVariable("type") String strType,
-                                                   @RequestParam int pageSize,
-                                                   @RequestParam int page,
-                                                   @RequestParam(required = false) String textSearch,
-                                                   @RequestParam(required = false) String sortProperty,
-                                                   @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+    public PageData<OtaPackageInfo> getGroupOtaPackages(@ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
+                                                        @PathVariable("groupId") String strGroupId,
+                                                        @ApiParam(value = "OTA Package type.", allowableValues = "FIRMWARE, SOFTWARE")
+                                                        @PathVariable("type") String strType,
+                                                        @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+                                                        @RequestParam int pageSize,
+                                                        @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+                                                        @RequestParam int page,
+                                                        @ApiParam(value = OTA_PACKAGE_TEXT_SEARCH_DESCRIPTION)
+                                                        @RequestParam(required = false) String textSearch,
+                                                        @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = OTA_PACKAGE_SORT_PROPERTY_ALLOWABLE_VALUES)
+                                                        @RequestParam(required = false) String sortProperty,
+                                                        @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+                                                        @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("groupId", strGroupId);
         checkParameter("type", strType);
         try {
