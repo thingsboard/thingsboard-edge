@@ -28,69 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.dao.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.validation.Length;
 
-import java.util.Objects;
-import java.util.Optional;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-public abstract class BasicKvEntry implements KvEntry {
+@Slf4j
+public class StringLengthValidator implements ConstraintValidator<Length, String> {
+    private int max;
 
-    @Length(fieldName = "attribute key")
-    private final String key;
-
-    protected BasicKvEntry(String key) {
-        this.key = key;
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        if (StringUtils.isEmpty(value)) {
+            return true;
+        }
+        return value.length() <= max;
     }
 
     @Override
-    public String getKey() {
-        return key;
-    }
-
-    @Override
-    public Optional<String> getStrValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<Long> getLongValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<Boolean> getBooleanValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<Double> getDoubleValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<String> getJsonValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BasicKvEntry)) return false;
-        BasicKvEntry that = (BasicKvEntry) o;
-        return Objects.equals(key, that.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(key);
-    }
-
-    @Override
-    public String toString() {
-        return "BasicKvEntry{" +
-                "key='" + key + '\'' +
-                '}';
+    public void initialize(Length constraintAnnotation) {
+        this.max = constraintAnnotation.max();
     }
 }

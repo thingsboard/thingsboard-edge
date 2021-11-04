@@ -31,18 +31,17 @@
 package org.thingsboard.server.common.data.widget;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.thingsboard.server.common.data.EntityType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
-import java.util.Arrays;
 
 @ApiModel
 public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity {
@@ -55,12 +54,14 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
     private TenantId tenantId;
 
     @NoXss
+    @Length(fieldName = "alias")
     @Getter
     @Setter
     @ApiModelProperty(position = 4, value = "Unique alias that is used in widget types as a reference widget bundle", readOnly = true)
     private String alias;
 
     @NoXss
+    @Length(fieldName = "title")
     @Getter
     @Setter
     @ApiModelProperty(position = 5, value = "Title used in search and UI", readOnly = true)
@@ -72,6 +73,7 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
     private String image;
 
     @NoXss
+    @Length(fieldName = "description")
     @Getter
     @Setter
     @ApiModelProperty(position = 7, value = "Description", readOnly = true)

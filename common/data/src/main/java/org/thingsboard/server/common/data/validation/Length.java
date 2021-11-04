@@ -28,69 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.common.data.validation;
 
-import org.thingsboard.server.common.data.validation.Length;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.Objects;
-import java.util.Optional;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@Constraint(validatedBy = {})
+public @interface Length {
+    String message() default "length of {fieldName} must be equal or less than {max}";
 
-public abstract class BasicKvEntry implements KvEntry {
+    String fieldName();
 
-    @Length(fieldName = "attribute key")
-    private final String key;
+    int max() default 255;
 
-    protected BasicKvEntry(String key) {
-        this.key = key;
-    }
+    Class<?>[] groups() default {};
 
-    @Override
-    public String getKey() {
-        return key;
-    }
-
-    @Override
-    public Optional<String> getStrValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<Long> getLongValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<Boolean> getBooleanValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<Double> getDoubleValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public Optional<String> getJsonValue() {
-        return Optional.ofNullable(null);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BasicKvEntry)) return false;
-        BasicKvEntry that = (BasicKvEntry) o;
-        return Objects.equals(key, that.key);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(key);
-    }
-
-    @Override
-    public String toString() {
-        return "BasicKvEntry{" +
-                "key='" + key + '\'' +
-                '}';
-    }
+    Class<? extends Payload>[] payload() default {};
 }

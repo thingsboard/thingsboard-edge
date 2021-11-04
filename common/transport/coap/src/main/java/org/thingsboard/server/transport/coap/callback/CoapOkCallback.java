@@ -49,9 +49,7 @@ public class CoapOkCallback implements TransportServiceCallback<Void> {
 
     @Override
     public void onSuccess(Void msg) {
-        Response response = new Response(onSuccessResponse);
-        response.setConfirmable(isConRequest());
-        exchange.respond(response);
+        exchange.respond(new Response(onSuccessResponse));
     }
 
     @Override

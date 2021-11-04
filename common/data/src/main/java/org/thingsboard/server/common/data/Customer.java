@@ -38,6 +38,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 public class Customer extends ContactBased<CustomerId> implements GroupEntity<CustomerId> {
@@ -45,6 +46,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
     private static final long serialVersionUID = -1599722990298929275L;
 
     @NoXss
+    @Length(fieldName = "title")
     @ApiModelProperty(position = 3, value = "Title of the customer", example = "Company A")
     private String title;
     @ApiModelProperty(position = 5, required = true, value = "JSON object with Tenant Id")
@@ -59,7 +61,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
     public Customer(CustomerId id) {
         super(id);
     }
-    
+
     public Customer(Customer customer) {
         super(customer);
         this.tenantId = customer.getTenantId();

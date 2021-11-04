@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.ConstraintValidator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -574,6 +575,7 @@ public class BaseRelationService implements RelationService {
         if (relation == null) {
             throw new DataValidationException("Relation type should be specified!");
         }
+        ConstraintValidator.validateFields(relation);
         validate(relation.getFrom(), relation.getTo(), relation.getType(), relation.getTypeGroup());
     }
 
