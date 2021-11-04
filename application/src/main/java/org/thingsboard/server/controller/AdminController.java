@@ -121,7 +121,7 @@ public class AdminController extends BaseController {
             AdminSettings adminSettings;
             if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
-                adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
+                adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key), "No Administration settings found for key: " + key);
             } else {
                 adminSettings = getTenantAdminSettings(key, systemByDefault);
                 if (adminSettings.getKey().equals("mailTemplates")) {

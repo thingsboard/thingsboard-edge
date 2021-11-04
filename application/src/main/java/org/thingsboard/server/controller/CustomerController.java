@@ -274,7 +274,7 @@ public class CustomerController extends BaseController {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle));
+            return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle), "Customer with title [" + customerTitle + "] is not found");
         } catch (Exception e) {
             throw handleException(e);
         }

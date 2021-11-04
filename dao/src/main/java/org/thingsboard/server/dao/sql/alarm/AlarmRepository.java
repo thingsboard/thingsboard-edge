@@ -67,9 +67,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-            "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) "
+            "AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "  OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "  OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) "
             ,
             countQuery = "" +
                     "SELECT count(a) + " + //alarms with relations only
@@ -85,9 +85,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                     "    AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
                     "    AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
                     "    AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-                    "    AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "    OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "    OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) " +
+                    "    AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "    OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "    OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) " +
                     " )" +
                     "FROM AlarmEntity a " +
                     "INNER JOIN RelationEntity re ON a.id = re.toId " +
@@ -99,9 +99,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                     "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
                     "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
                     "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-                    "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) ")
+                    "AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "  OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) ")
     Page<AlarmInfoEntity> findAlarms(@Param("tenantId") UUID tenantId,
                                      @Param("affectedEntityId") UUID affectedEntityId,
                                      @Param("affectedEntityType") String affectedEntityType,
@@ -116,9 +116,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-            "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) ",
+            "AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "  OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "  OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) ",
             countQuery = "" +
                     "SELECT count(a) " +
                     "FROM AlarmEntity a " +
@@ -126,9 +126,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                     "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
                     "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
                     "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-                    "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) ")
+                    "AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "  OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) ")
     Page<AlarmInfoEntity> findAllAlarms(@Param("tenantId") UUID tenantId,
                                         @Param("startTime") Long startTime,
                                         @Param("endTime") Long endTime,
@@ -141,9 +141,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-            "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) "
+            "AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "  OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "  OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) "
             ,
             countQuery = "" +
                     "SELECT count(a) " +
@@ -152,9 +152,9 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                     "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
                     "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
                     "AND ((:alarmStatuses) IS NULL OR a.status in (:alarmStatuses)) " +
-                    "AND (LOWER(a.type) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT(:searchText, '%')) " +
-                    "  OR LOWER(a.status) LIKE LOWER(CONCAT(:searchText, '%'))) ")
+                    "AND (LOWER(a.type) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "  OR LOWER(a.severity) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "  OR LOWER(a.status) LIKE LOWER(CONCAT('%', :searchText, '%'))) ")
     Page<AlarmInfoEntity> findCustomerAlarms(@Param("tenantId") UUID tenantId,
                                              @Param("customerId") UUID customerId,
                                              @Param("startTime") Long startTime,

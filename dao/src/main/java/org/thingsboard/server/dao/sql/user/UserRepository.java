@@ -50,7 +50,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, U
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.customerId = :customerId AND u.authority = :authority " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<UserEntity> findUsersByAuthority(@Param("tenantId") UUID tenantId,
                                           @Param("customerId") UUID customerId,
                                           @Param("searchText") String searchText,
@@ -59,7 +59,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, U
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.authority = :authority " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") UUID tenantId,
                                                    @Param("searchText") String searchText,
                                                    @Param("authority") Authority authority,
@@ -71,7 +71,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, U
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<UserEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                          @Param("textSearch") String textSearch,
                                          Pageable pageable);
@@ -82,7 +82,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, U
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<UserEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                           @Param("textSearch") String textSearch,
                                           Pageable pageable);
@@ -90,7 +90,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, U
     List<UserEntity> findUsersByTenantIdAndIdIn(UUID tenantId, List<UUID> userIds);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<UserEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                     @Param("searchText") String searchText,
                                     Pageable pageable);
