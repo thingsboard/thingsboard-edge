@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
@@ -57,8 +58,10 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
     private TenantId tenantId;
     private CustomerId customerId;
     @NoXss
+    @Length(fieldName = "name")
     private String name;
     @NoXss
+    @Length(fieldName = "type")
     private String type;
     private transient JsonNode schedule;
     @JsonIgnore

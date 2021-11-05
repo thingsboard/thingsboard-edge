@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -56,10 +57,13 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
     private TenantId tenantId;
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id", readOnly = true)
     private CustomerId customerId;
+    @Length(fieldName = "name")
     @ApiModelProperty(position = 6, value = "blob entity name", readOnly = true, example = "report-2021-10-29_14:00:00.pdf")
     private String name;
+    @Length(fieldName = "type")
     @ApiModelProperty(position = 7, value = "blob entity type", readOnly = true, example = "report")
     private String type;
+    @Length(fieldName = "contentType")
     @ApiModelProperty(position = 8, value = "blob content type", readOnly = true, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
     private String contentType;
 

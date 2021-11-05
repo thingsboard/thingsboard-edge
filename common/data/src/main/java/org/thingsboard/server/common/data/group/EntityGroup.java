@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
@@ -81,6 +82,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
     @ApiModelProperty(position = 4, required = true, value = "Name of the entity group", example = "Water meters")
     @NoXss
+    @Length(fieldName = "name")
     private String name;
 
     @ApiModelProperty(position = 3, value = "JSON object with the owner of the group - Tenant or Customer Id.")
