@@ -75,6 +75,7 @@ import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIG
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SCHEDULER_EVENT_ID_PARAM_DESCRIPTION;
@@ -90,19 +91,30 @@ import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 @Slf4j
 public class SchedulerEventController extends BaseController {
 
-    public static final String SCHEDULER_EVENT_INFO_DESCRIPTION = "Scheduler Events allows you to schedule various types of events with flexible schedule configuration. " +
-            "Scheduler fires configured scheduler events according to their schedule. ";
-
-    public static final String SCHEDULER_EVENT_DESCRIPTION = "Scheduler Event extends Scheduler Event Info object and adds 'configuration' - a JSON structure of scheduler event configuration.";
+    private static final String SCHEDULER_EVENT_INFO_DESCRIPTION = "Scheduler Events allows you to schedule various types of events with flexible schedule configuration. " +
+            "Scheduler fires configured scheduler events according to their schedule. See the 'Model' tab of the Response Class for more details. ";
+    private static final String SCHEDULER_EVENT_WITH_CUSTOMER_INFO_DESCRIPTION = "Scheduler Event With Customer Info extends Scheduler Event Info object and adds " +
+            "'customerTitle' - a String value representing the title of the customer which user created a Scheduler Event and " +
+            "'customerIsPublic' - a boolean parameter that specifies if customer is public. See the 'Model' tab of the Response Class for more details. ";
+    private static final String SCHEDULER_EVENT_DESCRIPTION = "Scheduler Event extends Scheduler Event Info object and adds " +
+            "'configuration' - a JSON structure of scheduler event configuration. See the 'Model' tab of the Response Class for more details. ";
+    private static final String INVALID_SCHEDULER_EVENT_ID = "Referencing non-existing Scheduler Event Id will cause 'Not Found' error.";
 
     private static final int DEFAULT_SCHEDULER_EVENT_LIMIT = 100;
 
     public static final String SCHEDULER_EVENT_ID = "schedulerEventId";
 
+    @ApiOperation(value = "Get Scheduler Event With Customer Info (getSchedulerEventInfoById)",
+            notes = "Fetch the SchedulerEventWithCustomerInfo object based on the provided scheduler event Id. " +
+                    SCHEDULER_EVENT_WITH_CUSTOMER_INFO_DESCRIPTION + INVALID_SCHEDULER_EVENT_ID +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/info/{schedulerEventId}", method = RequestMethod.GET)
     @ResponseBody
-    public SchedulerEventWithCustomerInfo getSchedulerEventInfoById(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+    public SchedulerEventWithCustomerInfo getSchedulerEventInfoById(
+            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -112,10 +124,17 @@ public class SchedulerEventController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Scheduler Event (getSchedulerEventById)",
+            notes = "Fetch the SchedulerEvent object based on the provided scheduler event Id. " +
+                    SCHEDULER_EVENT_DESCRIPTION + INVALID_SCHEDULER_EVENT_ID +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/{schedulerEventId}", method = RequestMethod.GET)
     @ResponseBody
-    public SchedulerEvent getSchedulerEventById(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+    public SchedulerEvent getSchedulerEventById(
+            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -125,10 +144,19 @@ public class SchedulerEventController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Save Scheduler Event (saveSchedulerEvent)",
+            notes = "Creates or Updates scheduler event. " + SCHEDULER_EVENT_DESCRIPTION +
+                    "When creating scheduler event, platform generates scheduler event Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+                    "The newly created scheduler event id will be present in the response. Specify existing scheduler event id to update the scheduler event. " +
+                    "Referencing non-existing scheduler event Id will cause 'Not Found' error. " +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent", method = RequestMethod.POST)
     @ResponseBody
-    public SchedulerEvent saveSchedulerEvent(@RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
+    public SchedulerEvent saveSchedulerEvent(
+            @ApiParam(value = "A JSON value representing the Scheduler Event.")
+            @RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
         log.trace("saveSchedulerEvent {}", schedulerEvent);
         try {
             schedulerEvent.setTenantId(getCurrentUser().getTenantId());
@@ -165,10 +193,14 @@ public class SchedulerEventController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Delete Scheduler Event (deleteSchedulerEvent)",
+            notes = "Deletes the scheduler event. " + INVALID_SCHEDULER_EVENT_ID + "\n\n" + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/{schedulerEventId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteSchedulerEvent(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+    public void deleteSchedulerEvent(
+            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -193,10 +225,15 @@ public class SchedulerEventController extends BaseController {
     }
 
 
+    @ApiOperation(value = "Get Scheduler Events By Type (getSchedulerEvents)",
+            notes = "Requested scheduler events must be owned by tenant or assigned to customer which user is performing the request. "
+                    + SCHEDULER_EVENT_WITH_CUSTOMER_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvents", method = RequestMethod.GET)
     @ResponseBody
     public List<SchedulerEventWithCustomerInfo> getSchedulerEvents(
+            @ApiParam(value = "A string value representing the scheduler type. For example, 'generateReport'")
             @RequestParam(required = false) String type) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
@@ -220,10 +257,15 @@ public class SchedulerEventController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Scheduler Events By Ids (getSchedulerEventsByIds)",
+            notes = "Requested scheduler events must be owned by tenant or assigned to customer which user is performing the request. "
+                    + SCHEDULER_EVENT_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvents", params = {"schedulerEventIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<SchedulerEventInfo> getSchedulerEventsByIds(
+            @ApiParam(value = "A list of scheduler event ids, separated by comma ','", required = true)
             @RequestParam("schedulerEventIds") String[] strSchedulerEventIds) throws ThingsboardException {
         checkArrayParameter("schedulerEventIds", strSchedulerEventIds);
         try {

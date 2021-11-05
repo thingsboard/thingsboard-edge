@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -45,6 +46,7 @@ public class SchedulerEvent extends SchedulerEventInfo {
 
     private static final long serialVersionUID = 2807343050519549363L;
 
+    @ApiModelProperty(position = 9, value = "a JSON value with scheduler event configuration", dataType = "com.fasterxml.jackson.databind.JsonNode")
     private transient JsonNode configuration;
     @JsonIgnore
     private byte[] configurationBytes;

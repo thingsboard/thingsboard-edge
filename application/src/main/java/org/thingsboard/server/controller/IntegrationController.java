@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,6 +64,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_CONFIGURATION_DEFINITION;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -71,10 +89,16 @@ public class IntegrationController extends BaseController {
 
     private static final String INTEGRATION_ID = "integrationId";
 
+    @ApiOperation(value = "Get Integration (getIntegrationById)",
+            notes = "Fetch the Integration object based on the provided Integration Id. " +
+                    "The server checks that the integration is owned by the same tenant. "
+                    + NEW_LINE + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
     @ResponseBody
-    public Integration getIntegrationById(@PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+    public Integration getIntegrationById(@ApiParam(required = true, value = INTEGRATION_ID_PARAM_DESCRIPTION)
+                                          @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
@@ -84,14 +108,19 @@ public class IntegrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Integration by Routing Key (getIntegrationByRoutingKey)",
+            notes = "Fetch the Integration object based on the provided routing key. " +
+                    "The server checks that the integration is owned by the same tenant. "
+                    + NEW_LINE + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/routingKey/{routingKey}", method = RequestMethod.GET)
     @ResponseBody
     public Integration getIntegrationByRoutingKey(
+            @ApiParam(required = true, value = "A string value representing the integration routing key. For example, '542047e6-c1b2-112e-a87e-e49247c09d4b'")
             @PathVariable("routingKey") String routingKey) throws ThingsboardException {
         try {
             Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
-            checkNotNull(integration);
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
             return integration;
         } catch (Exception e) {
@@ -99,10 +128,19 @@ public class IntegrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Integration (saveIntegration)",
+            notes = "Create or update the Integration. When creating integration, platform generates Integration Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+                    "The newly created integration id will be present in the response. " +
+                    "Specify existing Integration id to update the integration. " +
+                    "Referencing non-existing integration Id will cause 'Not Found' error. " +
+                    "Integration configuration is validated for each type of the integration before it can be created. " +
+                    INTEGRATION_CONFIGURATION_DEFINITION
+                    + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration", method = RequestMethod.POST)
     @ResponseBody
-    public Integration saveIntegration(@RequestBody Integration integration) throws ThingsboardException {
+    public Integration saveIntegration(@ApiParam(required = true, value = "A JSON value representing the integration.")
+                                       @RequestBody Integration integration) throws ThingsboardException {
         try {
             integration.setTenantId(getCurrentUser().getTenantId());
             boolean created = integration.getId() == null;
@@ -123,15 +161,22 @@ public class IntegrationController extends BaseController {
         }
     }
 
-
+    @ApiOperation(value = "Get Integrations (getIntegrations)",
+            notes = "Returns a page of integrations owned by tenant. " +
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Integration> getIntegrations(
+            @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
             @RequestParam int page,
+            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
@@ -143,10 +188,14 @@ public class IntegrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Check integration connectivity (checkIntegrationConnection)",
+            notes = "Checks if the connection to the integration is established. " +
+                    "Throws an error if the connection is not established. Example: Failed to connect to MQTT broker at host:port.")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/check", method = RequestMethod.POST)
     @ResponseBody
-    public void checkIntegrationConnection(@RequestBody Integration integration) throws ThingsboardException {
+    public void checkIntegrationConnection(@ApiParam(required = true, value = "A JSON value representing the integration.")
+                                           @RequestBody Integration integration) throws ThingsboardException {
         try {
             checkNotNull(integration);
             integration.setTenantId(getCurrentUser().getTenantId());
@@ -156,10 +205,15 @@ public class IntegrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Delete integration (deleteIntegration)",
+            notes = "Deletes the integration and all the relations (from and to the integration). " +
+                    "Referencing non-existing integration Id will cause an error. " +
+                    NEW_LINE + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteIntegration(@PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+    public void deleteIntegration(@ApiParam(required = true, value = INTEGRATION_ID_PARAM_DESCRIPTION)
+                                  @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
@@ -183,10 +237,14 @@ public class IntegrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Integrations By Ids (getIntegrationsByIds)",
+            notes = "Requested integrations must be owned by tenant which is performing the request. " +
+                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrations", params = {"integrationIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Integration> getIntegrationsByIds(
+            @ApiParam(value = "A list of integration ids, separated by comma ','", required = true)
             @RequestParam("integrationIds") String[] strIntegrationIds) throws ThingsboardException {
         checkArrayParameter("integrationIds", strIntegrationIds);
         try {

@@ -30,13 +30,17 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 
 @Data
 public class SchedulerEventWithCustomerInfo extends SchedulerEventInfo {
 
+    @ApiModelProperty(position = 11, value = "Title of the customer", example = "Company A")
     private String customerTitle;
+
+    @ApiModelProperty(position = 12, value = "Parameter that specifies if customer is public", readOnly = true,  dataType = "boolean")
     private boolean customerIsPublic;
 
     public SchedulerEventWithCustomerInfo() {
