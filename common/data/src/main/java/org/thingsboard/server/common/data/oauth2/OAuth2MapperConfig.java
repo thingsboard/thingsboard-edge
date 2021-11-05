@@ -36,6 +36,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.validation.Valid;
+
 @Builder(toBuilder = true)
 @EqualsAndHashCode
 @Data
@@ -47,8 +49,10 @@ public class OAuth2MapperConfig {
     private boolean activateUser;
     @ApiModelProperty(value = "Type of OAuth2 mapper. Depending on this param, different mapper config fields must be specified", required = true)
     private MapperType type;
+    @Valid
     @ApiModelProperty(value = "Mapper config for BASIC and GITHUB mapper types")
     private OAuth2BasicMapperConfig basic;
+    @Valid
     @ApiModelProperty(value = "Mapper config for CUSTOM mapper type")
     private OAuth2CustomMapperConfig custom;
 }
