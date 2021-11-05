@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
@@ -62,10 +63,12 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id", readOnly = true)
     private CustomerId customerId;
     @NoXss
+    @Length(fieldName = "name")
     @ApiModelProperty(position = 6, value = "scheduler event name", example = "Weekly Dashboard Report")
     private String name;
     @ApiModelProperty(position = 7, value = "scheduler event type", example = "generateReport")
     @NoXss
+    @Length(fieldName = "type")
     private String type;
     @ApiModelProperty(position = 8, value = "a JSON value with schedule time configuration", dataType = "com.fasterxml.jackson.databind.JsonNode")
     private transient JsonNode schedule;

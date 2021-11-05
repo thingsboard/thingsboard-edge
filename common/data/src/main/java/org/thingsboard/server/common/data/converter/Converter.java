@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
@@ -51,6 +52,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
 
     private TenantId tenantId;
     @NoXss
+    @Length(fieldName = "name")
     private String name;
     private ConverterType type;
     private boolean debugMode;

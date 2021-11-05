@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
@@ -69,6 +70,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ", readOnly = true)
     private CustomerId customerId;
     @NoXss
+    @Length(fieldName = "name")
     @ApiModelProperty(position = 6, required = true, value = "Role Name", example = "Read-Only")
     private String name;
     @ApiModelProperty(position = 7, required = true, value = "Type of the role: generic or group", example = "GROUP")

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
@@ -54,13 +55,18 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private ConverterId defaultConverterId;
     private ConverterId downlinkConverterId;
     @NoXss
+    @Length(fieldName = "name")
     private String name;
+    @NoXss
+    @Length(fieldName = "routingKey")
     private String routingKey;
     private IntegrationType type;
     private boolean debugMode;
     private Boolean enabled;
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
+    @NoXss
+    @Length(fieldName = "secret")
     private String secret;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
