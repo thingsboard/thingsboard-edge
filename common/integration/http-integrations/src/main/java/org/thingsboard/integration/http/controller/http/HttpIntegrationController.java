@@ -81,7 +81,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
     private static final ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
                                                          @PathVariable("suffix") Optional<String> suffix,
@@ -98,7 +98,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
 
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
                                                          @PathVariable("suffix") Optional<String> suffix,
@@ -120,7 +120,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
     }
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST, RequestMethod.PUT})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
                                                          @PathVariable("suffix") Optional<String> suffix,
@@ -131,7 +131,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
     }
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.TEXT_PLAIN_VALUE})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.TEXT_PLAIN_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
                                                          @PathVariable("suffix") Optional<String> suffix,
@@ -142,7 +142,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
     }
 
     @ApiOperation(value = "Process request from HTTP integrations", hidden = true)
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST, RequestMethod.PUT}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(@PathVariable("routingKey") String routingKey,
                                                          @PathVariable("suffix") Optional<String> suffix,

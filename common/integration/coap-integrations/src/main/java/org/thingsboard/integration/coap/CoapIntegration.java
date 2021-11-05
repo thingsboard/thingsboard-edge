@@ -44,6 +44,7 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.util.ConvertUtil;
 import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.StringUtils;
 
@@ -96,7 +97,6 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
     @Override
     public void process(CoapIntegrationMsg msg) {
         CoapExchange exchange = msg.getExchange();
-        exchange.accept();
         Request request = exchange.advanced().getRequest();
         String dtlsSessionIdStr = request.getSourceContext().get(DTLS_SESSION_ID_KEY);
         if (integrationResource == null && dtlsSessionIdStr == null) {
@@ -109,7 +109,7 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
             List<UplinkData> uplinkDataList = getUplinkDataList(context, msg);
             processUplinkData(context, uplinkDataList);
         } catch (Exception e) {
-            log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+            log.error("Failed to apply data converter function: {}", e.getMessage(), e);
             status = CoAP.ResponseCode.BAD_REQUEST;
             exception = e;
         }
@@ -122,7 +122,8 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", msg.getContentType(), mapper.writeValueAsString(msg.getPayloadBytes()), isOk ? "OK" : "ERROR", exception);
+                persistDebug(context, "Uplink", msg.getContentType(),
+                        ConvertUtil.toDebugMessage(msg.getContentType(), msg.getPayloadBytes()), isOk ? "OK" : "ERROR", exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -216,6 +217,11 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
 
             @Override
             public void handlePOST(CoapExchange exchange) {
+                process(new CoapIntegrationMsg(exchange));
+            }
+
+            @Override
+            public void handlePUT(CoapExchange exchange) {
                 process(new CoapIntegrationMsg(exchange));
             }
 

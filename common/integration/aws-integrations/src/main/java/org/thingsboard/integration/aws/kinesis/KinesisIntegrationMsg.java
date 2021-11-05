@@ -31,16 +31,15 @@
 package org.thingsboard.integration.aws.kinesis;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.util.ConvertUtil;
 
 import java.nio.ByteBuffer;
 
 @Data
 public class KinesisIntegrationMsg {
-
-    private static ObjectMapper mapper = new ObjectMapper();
 
     private final String shardId;
     private final String sequenceNumber;
@@ -56,19 +55,11 @@ public class KinesisIntegrationMsg {
     }
 
     public JsonNode toJson() {
-        ObjectNode json = mapper.createObjectNode();
+        ObjectNode json = JacksonUtil.newObjectNode();
         json.put("shardId", shardId);
         json.put("sequenceNumber", sequenceNumber);
         json.put("partitionKey", partitionKey);
-        JsonNode payloadJson = null;
-        try {
-            payloadJson = mapper.readTree(payload);
-        } catch (Exception e) {}
-        if (payloadJson != null) {
-            json.set("payload", payloadJson);
-        } else {
-            json.put("payload", payload);
-        }
+        ConvertUtil.putJson(json, payload);
         return json;
     }
 }

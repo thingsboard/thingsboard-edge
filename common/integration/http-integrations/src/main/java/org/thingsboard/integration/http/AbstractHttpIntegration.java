@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
+import org.thingsboard.integration.api.util.ConvertUtil;
 import org.thingsboard.integration.api.util.ExceptionUtil;
 
 import javax.script.ScriptException;
@@ -72,7 +73,8 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, getTypeUplink(msg), getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context, getTypeUplink(msg), msg.getContentType(),
+                        ConvertUtil.toDebugMessage(msg.getContentType(), msg.getMsgInBytes()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
