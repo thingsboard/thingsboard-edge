@@ -43,7 +43,7 @@
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
-      <form [formGroup]="selfRegistrationFormGroup">
+      <form [formGroup]="selfRegistrationFormGroup" #selfRegistrationForm="ngForm">
         <fieldset [disabled]="isLoading$ | async">
           <fieldset class="fields-group">
             <legend class="group-title" translate>
@@ -197,7 +197,7 @@
           </tb-registration-permissions>
           <div fxLayout="row" fxLayoutAlign="end center">
             <button style="margin-right: 10px" mat-raised-button color="warn" [disabled]="(isLoading$ | async) || deleteDisabled"
-                    (click)="delete()">
+                    (click)="delete(selfRegistrationForm)">
               {{ 'action.delete' | translate }}
             </button>
             <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
