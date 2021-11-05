@@ -63,6 +63,9 @@
         <mat-error *ngIf="entityForm.get('name').hasError('required')">
           {{ 'converter.name-required' | translate }}
         </mat-error>
+        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+          {{ 'converter.name-max-length' | translate }}
+        </mat-error>
       </mat-form-field>
       <mat-form-field class="mat-block">
         <mat-label translate>converter.type</mat-label>

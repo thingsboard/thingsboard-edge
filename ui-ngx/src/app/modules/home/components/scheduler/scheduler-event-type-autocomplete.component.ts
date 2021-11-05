@@ -30,7 +30,16 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, share, startWith, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -53,9 +62,13 @@ interface SchedulerEventTypeInfo {
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SchedulerEventTypeAutocompleteComponent),
     multi: true
+  }, {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => SchedulerEventTypeAutocompleteComponent),
+    multi: true
   }]
 })
-export class SchedulerEventTypeAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class SchedulerEventTypeAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, Validator, OnDestroy {
 
   schedulerEventTypeFormGroup: FormGroup;
 
@@ -92,7 +105,7 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
               private userPermissionsService: UserPermissionsService,
               private fb: FormBuilder) {
     this.schedulerEventTypeFormGroup = this.fb.group({
-      schedulerEventType: [null]
+      schedulerEventType: [null, Validators.maxLength(255)]
     });
   }
 
@@ -104,7 +117,6 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
   }
 
   ngOnInit() {
-
     this.schedulerEventTypes = [];
     Object.keys(this.schedulerEventConfigTypes).forEach(key => {
       this.schedulerEventTypes.push(
@@ -124,7 +136,7 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
         startWith<string | SchedulerEventTypeInfo>(''),
         map((value) => value ? (typeof value === 'string' ? value : value.name) : ''),
         distinctUntilChanged(),
-        switchMap(schedulerEventType => this.fetchSchedulerEventTypes(schedulerEventType) ),
+        switchMap(schedulerEventType => this.fetchSchedulerEventTypes(schedulerEventType)),
         share()
       );
   }
@@ -160,9 +172,18 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
     this.dirty = true;
   }
 
+  validate(): ValidationErrors | null {
+    return this.schedulerEventTypeFormGroup.valid ? null : {
+      schedulerEventTypeFormGroup: false
+    };
+  }
+
   onFocus() {
     if (this.dirty) {
-      this.schedulerEventTypeFormGroup.get('schedulerEventType').updateValueAndValidity({onlySelf: true, emitEvent: true});
+      this.schedulerEventTypeFormGroup.get('schedulerEventType').updateValueAndValidity({
+        onlySelf: true,
+        emitEvent: true
+      });
       this.dirty = false;
     }
   }
@@ -193,8 +214,8 @@ export class SchedulerEventTypeAutocompleteComponent implements ControlValueAcce
     if (searchText && searchText.length) {
       result = this.schedulerEventTypes.filter((eventTypeInfo) =>
         eventTypeInfo.name.toLowerCase().includes(searchText.toLowerCase()));
-      if (!result.length) {
-        result = [{ name: searchText, value: searchText }];
+      if (!result.length && searchText.length < 256) {
+        result = [{name: searchText, value: searchText}];
       }
     }
     return of(result);

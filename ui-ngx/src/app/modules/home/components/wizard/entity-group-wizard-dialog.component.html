@@ -59,6 +59,9 @@
               <mat-error *ngIf="entityGroupWizardFormGroup.get('name').hasError('required')">
                 {{ 'entity-group.name-required' | translate }}
               </mat-error>
+              <mat-error *ngIf="entityGroupWizardFormGroup.get('name').hasError('maxlength')">
+              {{ 'entity-group.name-max-length' | translate }}
+              </mat-error>
             </mat-form-field>
             <mat-form-field class="mat-block">
               <mat-label translate>entity-group.description</mat-label>

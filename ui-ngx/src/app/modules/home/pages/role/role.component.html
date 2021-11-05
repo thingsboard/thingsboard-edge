@@ -57,6 +57,9 @@
         <mat-error *ngIf="entityForm.get('name').hasError('required')">
           {{ 'role.name-required' | translate }}
         </mat-error>
+        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+          {{ 'role.name-max-length' | translate }}
+        </mat-error>
       </mat-form-field>
       <mat-form-field class="mat-block">
         <mat-label translate>role.role-type</mat-label>

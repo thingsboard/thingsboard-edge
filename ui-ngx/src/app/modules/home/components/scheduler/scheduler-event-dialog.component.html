@@ -51,6 +51,9 @@
         <mat-error *ngIf="schedulerEventFormGroup.get('name').hasError('required')">
           {{ 'scheduler.name-required' | translate }}
         </mat-error>
+        <mat-error *ngIf="schedulerEventFormGroup.get('name').hasError('maxlength')">
+          {{ 'scheduler.name-max-length' | translate }}
+        </mat-error>
       </mat-form-field>
       <mat-tab-group dynamicHeight>
         <mat-tab label="{{ 'scheduler.configuration' | translate }}">
