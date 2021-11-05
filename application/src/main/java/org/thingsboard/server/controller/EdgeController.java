@@ -88,6 +88,7 @@ import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARA
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -100,7 +101,6 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_D
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
@@ -608,9 +608,9 @@ public class EdgeController extends BaseController {
     }
 
     @ApiOperation(value = "Import the bulk of edges (processEdgesBulkImport)",
-            notes = "There's an ability to import the bulk of edges using the only .csv file." + TENANT_AUTHORITY_PARAGRAPH,
+            notes = "There's an ability to import the bulk of edges using the only .csv file." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping("/edge/bulk_import")
     public BulkImportResult<Edge> processEdgesBulkImport(@RequestBody BulkImportRequest request) throws Exception {
         SecurityUser user = getCurrentUser();

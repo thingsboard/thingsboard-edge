@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
@@ -58,15 +59,26 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     private TenantId tenantId;
     private CustomerId customerId;
     private RuleChainId rootRuleChainId;
+    @NoXss
     @Length(fieldName = "name")
     private String name;
+    @NoXss
     @Length(fieldName = "type")
     private String type;
+    @NoXss
     @Length(fieldName = "label")
     private String label;
+    @NoXss
+    @Length(fieldName = "routingKey")
     private String routingKey;
+    @NoXss
+    @Length(fieldName = "secret")
     private String secret;
+    @NoXss
+    @Length(fieldName = "edgeLicenseKey", max = 30)
     private String edgeLicenseKey;
+    @NoXss
+    @Length(fieldName = "cloudEndpoint")
     private String cloudEndpoint;
 
     public Edge() {

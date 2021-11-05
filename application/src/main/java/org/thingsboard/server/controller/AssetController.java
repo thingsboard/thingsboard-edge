@@ -82,6 +82,7 @@ import static org.thingsboard.server.controller.ControllerConstants.ASSET_SORT_P
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_TYPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
@@ -95,9 +96,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_A
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
-import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 @RestController
@@ -402,7 +401,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Import the bulk of assets (processAssetsBulkImport)",
             notes = "There's an ability to import the bulk of assets using the only .csv file." + "\n\n" + RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping("/asset/bulk_import")
     public BulkImportResult<Asset> processAssetBulkImport(@RequestBody BulkImportRequest request) throws Exception {
         return assetBulkImportService.processBulkImport(request, getCurrentUser(), importedAssetInfo -> {

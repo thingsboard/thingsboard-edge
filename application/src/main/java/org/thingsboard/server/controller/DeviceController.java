@@ -778,7 +778,7 @@ public class DeviceController extends BaseController {
 
     @ApiOperation(value = "Import the bulk of devices (processDevicesBulkImport)",
             notes = "There's an ability to import the bulk of devices using the only .csv file." + RBAC_WRITE_CHECK)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping("/device/bulk_import")
     public BulkImportResult<Device> processDevicesBulkImport(@RequestBody BulkImportRequest request) throws Exception {
         return deviceBulkImportService.processBulkImport(request, getCurrentUser(), importedDeviceInfo -> {
