@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.converter.Converter;
 
 import java.nio.charset.StandardCharsets;
 
+import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
+
 /**
  * Created by ashvayka on 18.12.17.
  */
@@ -64,30 +66,15 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         return ExceptionUtil.toString(e, configuration.getId(), isExceptionStackTraceEnabled());
     }
 
-    private String convertToString(String messageType, byte[] message) {
-        if (message == null) {
-            return null;
-        }
-        switch (messageType) {
-            case "JSON":
-            case "TEXT":
-                return new String(message, StandardCharsets.UTF_8);
-            case "BINARY":
-                return Base64Utils.encodeToString(message);
-            default:
-                throw new RuntimeException("Message type: " + messageType + " is not supported!");
-        }
-    }
-
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                                 String outMessageType, byte[] outMessage, String metadata, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
                 .put("server", context.getServiceId())
                 .put("type", type)
                 .put("inMessageType", inMessageType)
-                .put("in", convertToString(inMessageType, inMessage))
+                .put("in", toDebugMessage(inMessageType, inMessage))
                 .put("outMessageType", outMessageType)
-                .put("out", convertToString(outMessageType, outMessage))
+                .put("out", toDebugMessage(outMessageType, outMessage))
                 .put("metadata", metadata);
 
         if (exception != null) {

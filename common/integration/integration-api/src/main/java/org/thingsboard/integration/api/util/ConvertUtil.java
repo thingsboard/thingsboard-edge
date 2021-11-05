@@ -28,34 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.mqtt;
+package org.thingsboard.integration.api.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.netty.buffer.ByteBuf;
-import lombok.Data;
+import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.util.ConvertUtil;
+import org.thingsboard.integration.api.data.UplinkContentType;
 
-/**
- * Created by ashvayka on 04.12.17.
- */
-@Data
-public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
+import java.nio.charset.StandardCharsets;
 
-    private final String topic;
-    private final byte[] payload;
+public class ConvertUtil {
 
-    public BasicMqttIntegrationMsg(String topic, ByteBuf payload) {
-        this.topic = topic;
-        this.payload = new byte[payload.readableBytes()];
-        payload.readBytes(this.payload);
+    public static String toDebugMessage(UplinkContentType messageType, byte[] message) {
+        return toDebugMessage(messageType.name(), message);
     }
 
-    @Override
-    public JsonNode toJson() {
-        ObjectNode json = JacksonUtil.newObjectNode().put("topic", topic);
-        ConvertUtil.putJson(json, payload);
-        return json;
+    public static String toDebugMessage(String messageType, byte[] message) {
+        if (message == null) {
+            return null;
+        }
+        switch (messageType) {
+            case "JSON":
+            case "TEXT":
+                return new String(message, StandardCharsets.UTF_8);
+            case "BINARY":
+                return Base64Utils.encodeToString(message);
+            default:
+                throw new RuntimeException("Message type: " + messageType + " is not supported!");
+        }
     }
+
+    public static void putJson(ObjectNode root, byte[] payload){
+        try {
+            JsonNode payloadJson = JacksonUtil.fromBytes(payload);
+            root.set("payload", payloadJson);
+        } catch (IllegalArgumentException e) {
+            root.put("payload", payload);
+        }
+    }
+
 }

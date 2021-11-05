@@ -31,34 +31,22 @@
 package org.thingsboard.integration.tcpip;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.util.ConvertUtil;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 
 @Data
 public class IpIntegrationMsg {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     private final SocketAddress address;
     private final byte[] payload;
 
-
     public JsonNode toJson() {
-        ObjectNode json = mapper.createObjectNode();
-        JsonNode payloadJson = null;
-        try {
-            payloadJson = mapper.readTree(payload);
-        } catch (IOException e) {
-        }
-        if (payloadJson != null) {
-            json.set("payload", payloadJson);
-        } else {
-            json.put("payload", payload);
-        }
+        ObjectNode json = JacksonUtil.newObjectNode();
+        ConvertUtil.putJson(json, payload);
         return json;
     }
 }
