@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 
