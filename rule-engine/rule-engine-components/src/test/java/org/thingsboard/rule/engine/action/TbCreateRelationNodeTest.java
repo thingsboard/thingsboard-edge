@@ -44,6 +44,7 @@ import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -67,6 +69,7 @@ import java.util.concurrent.Callable;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -119,6 +122,8 @@ public class TbCreateRelationNodeTest {
         AssetId assetId = new AssetId(Uuids.timeBased());
         Asset asset = new Asset();
         asset.setId(assetId);
+
+        TbContext tbContext = mock(TbContext.class);
 
         when(assetService.findAssetByTenantIdAndName(any(), eq("AssetName"))).thenReturn(asset);
         when(assetService.findAssetByIdAsync(any(), eq(assetId))).thenReturn(Futures.immediateFuture(asset));
@@ -209,6 +214,10 @@ public class TbCreateRelationNodeTest {
         when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
         when(ctx.getRelationService()).thenReturn(relationService);
         when(ctx.getAssetService()).thenReturn(assetService);
+
+        TbPeContext tbPeContext = mock(TbPeContext.class);
+        when(ctx.getPeContext()).thenReturn(tbPeContext);
+
 
         node = new TbCreateRelationNode();
         node.init(ctx, nodeConfiguration);
