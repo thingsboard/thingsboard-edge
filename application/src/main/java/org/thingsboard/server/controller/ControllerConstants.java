@@ -64,6 +64,7 @@ public class ControllerConstants {
     protected static final String ASSET_ID_PARAM_DESCRIPTION = "A string value representing the asset id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION = "A string value representing the solution template id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String CONVERTER_ID_PARAM_DESCRIPTION = "A string value representing the converter id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String INTEGRATION_ID_PARAM_DESCRIPTION = "A string value representing the integration id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ROLE_ID_PARAM_DESCRIPTION = "A string value representing the role id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
@@ -94,6 +95,7 @@ public class ControllerConstants {
     protected static final String ASSET_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the asset name.";
     protected static final String BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the blob entity name.";
     protected static final String CONVERTER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the converter name.";
+    protected static final String INTEGRATION_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the integration name.";
     protected static final String DASHBOARD_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the dashboard title.";
     protected static final String WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the widget bundle title.";
     protected static final String RPC_TEXT_SEARCH_DESCRIPTION = "Not implemented. Leave empty.";
@@ -127,6 +129,7 @@ public class ControllerConstants {
     protected static final String DEVICE_PROFILE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, transportType, description, isDefault";
     protected static final String ASSET_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
     protected static final String CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode";
+    protected static final String INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode, allowCreateDevicesOrAssets, enabled, remote, routingKey, secret";
     protected static final String ALARM_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, startTs, endTs, type, ackTs, clearTs, severity, status";
     protected static final String EVENT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, id";
     protected static final String EDGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
@@ -1869,4 +1872,36 @@ public class ControllerConstants {
             " * 'contentType' - downlink data content type; \n" +
             " * 'data' - downlink data; \n" +
             " * 'metadata' - optional metadata object. \n";
+
+    private static final String INTEGRATION_CONFIGURATION_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"clientConfiguration\":{\n" +
+            "      \"host\":\"broker.hivemq.com\",\n" +
+            "      \"port\":1883,\n" +
+            "      \"cleanSession\":false,\n" +
+            "      \"ssl\":false,\n" +
+            "      \"connectTimeoutSec\":10,\n" +
+            "      \"clientId\":\"\",\n" +
+            "      \"maxBytesInMessage\":32368,\n" +
+            "      \"credentials\":{\n" +
+            "         \"type\":\"anonymous\"\n" +
+            "      }\n" +
+            "   },\n" +
+            "   \"downlinkTopicPattern\":\"${topic}\",\n" +
+            "   \"topicFilters\":[\n" +
+            "      {\n" +
+            "         \"filter\":\"tb/mqtt-integration-tutorial/sensors/+/temperature\",\n" +
+            "         \"qos\":0\n" +
+            "      }\n" +
+            "   ],\n" +
+            "   \"metadata\":{\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String INTEGRATION_CONFIGURATION_DEFINITION = NEW_LINE +
+            "# Integration Configuration" + NEW_LINE +
+            "Integration configuration (**'configuration'** field) is the JSON object representing the special configuration per integration type with " +
+            "the connectivity fields and other important parameters dependent on the specific integration type. Let's review the configuration object for the MQTT Integration type below. " +
+            NEW_LINE + INTEGRATION_CONFIGURATION_EXAMPLE + NEW_LINE;
 }
