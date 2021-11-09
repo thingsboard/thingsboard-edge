@@ -142,12 +142,12 @@ export class SignupComponent extends PageComponent implements OnInit {
       return false;
     }
     if (this.signupParams.showPrivacyPolicy && !this.acceptPrivacyPolicy) {
-      this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.no-accept-privacy-policy'),
+      this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.accept-privacy-policy-message'),
         type: 'error' }));
       return false;
     }
     if (this.signupParams.showTermsOfUse && !this.acceptTermsOfUse) {
-      this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.no-accept-terms-of-use'),
+      this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.accept-terms-of-use-message'),
         type: 'error' }));
       return false;
     }
