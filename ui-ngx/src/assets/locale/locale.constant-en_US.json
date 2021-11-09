@@ -3146,8 +3146,10 @@
         "accept-privacy-policy": "Accept Privacy Policy",
         "accept": "Accept",
         "privacy-policy": "Privacy Policy",
+        "no-accept-privacy-policy": "You must accept our Privacy Policy",
         "recaptcha-title": "reCAPTCHA",
-        "terms-of-use": "Terms of Use"
+        "terms-of-use": "Terms of Use",
+        "no-accept-terms-of-use": "You must accept our Terms Of Use"
     },
     "ota-update": {
         "add": "Add package",
