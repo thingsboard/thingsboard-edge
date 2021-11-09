@@ -84,6 +84,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_A
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
 @TbCoreComponent
@@ -159,7 +160,7 @@ public class RoleController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Role (saveRole)",
-            notes = "Creates or Updates the Role. When creating Role, platform generates Role Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+            notes = "Creates or Updates the Role. When creating Role, platform generates Role Id as " + UUID_WIKI_LINK +
                     "The newly created Role id will be present in the response. " +
                     "Specify existing Role id to update the permission. " +
                     "Referencing non-existing Group Permission Id will cause 'Not Found' error." +

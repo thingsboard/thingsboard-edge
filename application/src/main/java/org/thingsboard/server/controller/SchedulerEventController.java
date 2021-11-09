@@ -83,6 +83,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_A
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 
 @RestController
@@ -146,7 +147,7 @@ public class SchedulerEventController extends BaseController {
 
     @ApiOperation(value = "Save Scheduler Event (saveSchedulerEvent)",
             notes = "Creates or Updates scheduler event. " + SCHEDULER_EVENT_DESCRIPTION +
-                    "When creating scheduler event, platform generates scheduler event Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+                    "When creating scheduler event, platform generates scheduler event Id as " + UUID_WIKI_LINK +
                     "The newly created scheduler event id will be present in the response. Specify existing scheduler event id to update the scheduler event. " +
                     "Referencing non-existing scheduler event Id will cause 'Not Found' error. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,

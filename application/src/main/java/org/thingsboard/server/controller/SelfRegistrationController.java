@@ -60,6 +60,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
 
 @RestController
@@ -79,7 +80,7 @@ public class SelfRegistrationController extends BaseController {
     private SelfRegistrationService selfRegistrationService;
 
     @ApiOperation(value = "Create Or Update Self Registration parameters (saveSelfRegistrationParams)",
-            notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+            notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as " + UUID_WIKI_LINK +
                     "The newly created Admin Settings Id will be present in the response. " +
                     "Specify existing Admin Settings Id to update the Self Registration parameters. " +
                     "Referencing non-existing Admin Settings Id will cause 'Not Found' error." +

@@ -78,6 +78,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_A
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
 @TbCoreComponent
@@ -129,7 +130,7 @@ public class IntegrationController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Integration (saveIntegration)",
-            notes = "Create or update the Integration. When creating integration, platform generates Integration Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+            notes = "Create or update the Integration. When creating integration, platform generates Integration Id as " + UUID_WIKI_LINK +
                     "The newly created integration id will be present in the response. " +
                     "Specify existing Integration id to update the integration. " +
                     "Referencing non-existing integration Id will cause 'Not Found' error. " +

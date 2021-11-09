@@ -100,6 +100,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERT
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TEST_DOWNLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.TEST_UPLINK_CONVERTER_DEFINITION;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
 @TbCoreComponent
@@ -138,7 +139,7 @@ public class ConverterController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Converter (saveConverter)",
-            notes = "Create or update the Converter. When creating converter, platform generates Converter Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address). " +
+            notes = "Create or update the Converter. When creating converter, platform generates Converter Id as " + UUID_WIKI_LINK +
                     "The newly created converter id will be present in the response. " +
                     "Specify existing Converter id to update the converter. " +
                     "Referencing non-existing converter Id will cause 'Not Found' error. " +

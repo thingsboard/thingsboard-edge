@@ -69,6 +69,7 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PA
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
 @TbCoreComponent
@@ -124,7 +125,7 @@ public class GroupPermissionController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Group Permission (saveGroupPermission)",
-            notes = "Creates or Updates the Group Permission. When creating group permission, platform generates Group Permission Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
+            notes = "Creates or Updates the Group Permission. When creating group permission, platform generates Group Permission Id as " + UUID_WIKI_LINK +
                     "The newly created Group Permission id will be present in the response. " +
                     "Specify existing Group Permission id to update the permission. " +
                     "Referencing non-existing Group Permission Id will cause 'Not Found' error." +

@@ -34,7 +34,7 @@ public class ControllerConstants {
 
     protected static final String ENTITY_GROUP_ID = "entityGroupId";
     protected static final String NEW_LINE = "\n\n";
-    protected static final String UUID_WIKI_LINK = "[time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address%29) ";
+    protected static final String UUID_WIKI_LINK = "[time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address)). ";
     protected static final int DEFAULT_PAGE_SIZE = 1000;
     protected static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
     protected static final String ENTITY_TYPE = "entityType";
