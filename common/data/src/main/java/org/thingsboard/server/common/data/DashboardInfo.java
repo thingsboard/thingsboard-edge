@@ -55,6 +55,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     @NoXss
     @Length(fieldName = "title")
     private String title;
+    @Length(fieldName = "image", max = 1000000)
     private String image;
     @Valid
     private Set<ShortCustomerInfo> assignedCustomers;

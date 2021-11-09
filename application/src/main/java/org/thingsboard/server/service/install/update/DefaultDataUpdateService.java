@@ -134,6 +134,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -284,35 +285,38 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(DeviceProfileEntity deviceProfile) {
-                    if (deviceProfile.getProfileData().has("alarms") &&
-                            !deviceProfile.getProfileData().get("alarms").isNull()) {
-                        boolean isUpdated = false;
-                        JsonNode alarms = deviceProfile.getProfileData().get("alarms");
-                        for (JsonNode alarm : alarms) {
-                            if (alarm.has("createRules")) {
-                                JsonNode createRules = alarm.get("createRules");
-                                for (AlarmSeverity severity : AlarmSeverity.values()) {
-                                    if (createRules.has(severity.name())) {
-                                        JsonNode spec = createRules.get(severity.name()).get("condition").get("spec");
-                                        if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
-                                            isUpdated = true;
-                                        }
-                                    }
-                                }
-                            }
-                            if (alarm.has("clearRule") && !alarm.get("clearRule").isNull()) {
-                                JsonNode spec = alarm.get("clearRule").get("condition").get("spec");
-                                if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
-                                    isUpdated = true;
-                                }
-                            }
-                        }
-                        if (isUpdated) {
-                            deviceProfileRepository.save(deviceProfile);
-                        }
+                    if (convertDeviceProfileForVersion330(deviceProfile.getProfileData())) {
+                        deviceProfileRepository.save(deviceProfile);
                     }
                 }
             };
+
+    boolean convertDeviceProfileForVersion330(JsonNode profileData) {
+        boolean isUpdated = false;
+        if (profileData.has("alarms") && !profileData.get("alarms").isNull()) {
+            JsonNode alarms = profileData.get("alarms");
+            for (JsonNode alarm : alarms) {
+                if (alarm.has("createRules")) {
+                    JsonNode createRules = alarm.get("createRules");
+                    for (AlarmSeverity severity : AlarmSeverity.values()) {
+                        if (createRules.has(severity.name())) {
+                            JsonNode spec = createRules.get(severity.name()).get("condition").get("spec");
+                            if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
+                                isUpdated = true;
+                            }
+                        }
+                    }
+                }
+                if (alarm.has("clearRule") && !alarm.get("clearRule").isNull()) {
+                    JsonNode spec = alarm.get("clearRule").get("condition").get("spec");
+                    if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
+                        isUpdated = true;
+                    }
+                }
+            }
+        }
+        return isUpdated;
+    }
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
             new PaginatedUpdater<>() {
@@ -982,6 +986,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private final PaginatedUpdater<String, Tenant> tenantsAlarmsCustomerUpdater =
             new PaginatedUpdater<>() {
 
+                final AtomicLong processed = new AtomicLong();
+
                 @Override
                 protected String getName() {
                     return "Tenants alarms customer updater";
@@ -999,11 +1005,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(Tenant tenant) {
-                    updateTenantAlarmsCustomer(tenant.getId());
+                    updateTenantAlarmsCustomer(tenant.getId(), getName(), processed);
                 }
             };
 
-    private void updateTenantAlarmsCustomer(TenantId tenantId) {
+    private void updateTenantAlarmsCustomer(TenantId tenantId, String name, AtomicLong processed) {
         AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024*4), null, null, false);
         PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
         boolean hasNext = true;
@@ -1012,6 +1018,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 if (alarm.getCustomerId() == null && alarm.getOriginator() != null) {
                     alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()));
                     alarmDao.save(tenantId, alarm);
+                }
+                if (processed.incrementAndGet() % 1000 == 0) {
+                    log.info("{}: {} alarms processed so far...", name, processed);
                 }
             }
             if (alarms.hasNext()) {
@@ -1203,7 +1212,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
     }
 
-    private boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
+    boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
         if (spec != null) {
             if (spec.has("type") && spec.get("type").asText().equals("DURATION")) {
                 if (spec.has("value")) {

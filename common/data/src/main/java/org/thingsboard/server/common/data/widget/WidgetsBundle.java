@@ -67,6 +67,7 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
     @ApiModelProperty(position = 5, value = "Title used in search and UI", readOnly = true)
     private String title;
 
+    @Length(fieldName = "image", max = 1000000)
     @Getter
     @Setter
     @ApiModelProperty(position = 6, value = "Base64 encoded thumbnail", readOnly = true)

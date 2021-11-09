@@ -28,52 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.page;
+package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+public interface CacheCleanupService {
 
-@Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class TimePageLink extends PageLink {
+    void clearCache(String fromVersion) throws Exception;
 
-    private final Long startTime;
-    private final Long endTime;
-
-    public TimePageLink(PageLink pageLink, Long startTime, Long endTime) {
-        super(pageLink);
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-
-    public TimePageLink(int pageSize) {
-        this(pageSize, 0);
-    }
-
-    public TimePageLink(int pageSize, int page) {
-        this(pageSize, page, null);
-    }
-
-    public TimePageLink(int pageSize, int page, String textSearch) {
-        this(pageSize, page, textSearch, null, null, null);
-    }
-
-    public TimePageLink(int pageSize, int page, String textSearch, SortOrder sortOrder) {
-        this(pageSize, page, textSearch, sortOrder, null, null);
-    }
-
-    public TimePageLink(int pageSize, int page, String textSearch, SortOrder sortOrder, Long startTime, Long endTime) {
-        super(pageSize, page, textSearch, sortOrder);
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-
-    @JsonIgnore
-    public TimePageLink nextPageLink() {
-        return new TimePageLink(this.getPageSize(), this.getPage()+1, this.getTextSearch(), this.getSortOrder(),
-                this.startTime, this.endTime);
-    }
 }
