@@ -62,7 +62,7 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
             "AND re.relationType = :relationType " +
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType " +
-            "AND LOWER(e.name) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(@Param("parentEntityId") UUID parentEntityId,
                                                               @Param("parentEntityType") String parentEntityType,
                                                               @Param("relationType") String relationType,
