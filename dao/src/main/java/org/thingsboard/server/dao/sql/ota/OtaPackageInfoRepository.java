@@ -101,7 +101,7 @@ public interface OtaPackageInfoRepository extends CrudRepository<OtaPackageInfoE
             "WHERE r.fromId = :groupId AND r.fromType = 'ENTITY_GROUP' AND r.relationTypeGroup = 'FROM_ENTITY_GROUP')) " +
             "AND ota.type = :type " +
             "AND (ota.data IS NOT NULL OR ota.url IS NOT NULL) " +
-            "AND LOWER(ota.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+            "AND LOWER(ota.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantIdAndDeviceGroupAndTypeAndHasData(@Param("groupId") UUID groupId,
                                                                                 @Param("type") OtaPackageType type,
                                                                                 @Param("searchText") String searchText,
