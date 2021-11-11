@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -151,6 +152,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         if (ruleChain == null) {
             return false;
         }
+        ConstraintValidator.validateFields(ruleChainMetaData);
 
         if (CollectionUtils.isNotEmpty(ruleChainMetaData.getConnections())) {
             validateCircles(ruleChainMetaData.getConnections());
