@@ -44,7 +44,8 @@
 
     <properties>
         <main.dir>${basedir}</main.dir>
-        <thingsboard-cloud.version>3.3.1PE-SNAPSHOT</thingsboard-cloud.version>
+        <thingsboard-pe.version>3.3.1PE</thingsboard-pe.version>
+        <thingsboard-ce.version>3.3.1</thingsboard-ce.version>
         <pkg.disabled>true</pkg.disabled>
         <pkg.process-resources.phase>none</pkg.process-resources.phase>
         <pkg.package.phase>none</pkg.package.phase>
@@ -153,7 +154,7 @@
     </properties>
 
     <modules>
-        <module>netty-mqtt</module>
+<!--        <module>netty-mqtt</module>-->
         <module>common</module>
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
@@ -887,7 +888,7 @@
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>netty-mqtt</artifactId>
-                <version>${project.version}</version>
+                <version>${thingsboard-ce.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
@@ -1048,7 +1049,7 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>edge-api</artifactId>
-                <version>${thingsboard-cloud.version}</version>
+                <version>${thingsboard-pe.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard</groupId>
@@ -1079,7 +1080,7 @@
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>rest-client</artifactId>
-                <version>${thingsboard-cloud.version}</version>
+                <version>${thingsboard-pe.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -1914,10 +1915,10 @@
             <id>thingsboard-repo</id>
             <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
         </repository>
-        <repository>
-            <id>tb-edge-develop-repo</id>
-            <url>https://edge.jfrog.io/artifactory/edge-libs-snapshot-local/</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>tb-edge-develop-repo</id>-->
+<!--            <url>https://edge.jfrog.io/artifactory/edge-libs-snapshot-local/</url>-->
+<!--        </repository>-->
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>

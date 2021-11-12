@@ -61,7 +61,6 @@
 <!--        <module>tb-node</module>-->
 <!--        <module>transport</module>-->
         <module>tb-edge</module>
-        <module>tb-edge-monolith</module>
 <!--        <module>integration</module>-->
     </modules>
 

@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -31,20 +31,40 @@
 
 FROM thingsboard/openjdk11
 
-COPY start-tb-edge.sh ${pkg.name}.deb /tmp/
+COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-tb-edge.sh /usr/bin
+    && mv /tmp/start-tb-edge.sh /usr/bin \
+    && mv /tmp/upgrade-tb-edge.sh /usr/bin \
+    && mv /tmp/install-tb-edge.sh /usr/bin
 
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
-RUN rm /tmp/${pkg.name}.deb
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
-RUN chown -R ${pkg.user}:${pkg.user} /tmp
+RUN mv /tmp/logback.xml ${pkg.installFolder}/conf \
+    && mv /tmp/${pkg.name}.conf ${pkg.installFolder}/conf
 
+ENV DATA_FOLDER=/data
+
+ENV SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+ENV SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
+ENV SPRING_DATASOURCE_USERNAME=postgres
+ENV SPRING_DATASOURCE_PASSWORD=postgres
+
+RUN mkdir -p /data
+RUN chown -R ${pkg.user}:${pkg.user} /data
+
+RUN chown -R ${pkg.user}:${pkg.user} /var/log/${pkg.name}
 RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
 
 USER ${pkg.user}
+
+EXPOSE 8080
+EXPOSE 1883
+EXPOSE 5683/udp
+EXPOSE 5685/udp
+
+VOLUME ["/data"]
 
 CMD ["start-tb-edge.sh"]

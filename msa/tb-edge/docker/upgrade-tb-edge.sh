@@ -30,25 +30,29 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db.sh
-
 CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
-firstlaunch=${DATA_FOLDER}/.firstlaunch
+upgradeversion=${DATA_FOLDER}/.upgradeversion
 
 source "${CONF_FOLDER}/${configfile}"
 
-if [ ! -f ${firstlaunch} ]; then
-    install-tb-edge.sh --loadDemo
-    touch ${firstlaunch}
+FROM_VERSION=`cat ${upgradeversion}`
+
+echo "Starting ThingsBoard upgrade ..."
+
+if [[ -z "${FROM_VERSION// }" ]]; then
+    echo "FROM_VERSION variable is invalid or unspecified!"
+    exit 1
+else
+    fromVersion="${FROM_VERSION// }"
 fi
 
-echo "Starting ThingsBoard Edge ..."
+java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
+                -Dspring.jpa.hibernate.ddl-auto=none \
+                -Dinstall.upgrade=true \
+                -Dinstall.upgrade.from_version=${fromVersion} \
+                -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
+                org.springframework.boot.loader.PropertiesLauncher
 
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
-
-stop-db.sh
+echo "${pkg.upgradeVersion}" > ${upgradeversion}
