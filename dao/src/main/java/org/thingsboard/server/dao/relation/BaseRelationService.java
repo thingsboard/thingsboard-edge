@@ -44,7 +44,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -451,6 +453,53 @@ public class BaseRelationService implements RelationService {
         }
     }
 
+    @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#to, #typeGroup, #fromTypes, 'TO_AND_FROM_TYPES'}")
+    @Override
+    public List<EntityRelation> findByToAndFromTypes(TenantId tenantId, EntityId to, List<EntityType> fromTypes, RelationTypeGroup typeGroup) {
+        validate(to);
+        validateTypeGroup(typeGroup);
+        validateFromTypes(fromTypes);
+        try {
+            return relationDao.findAllByToAndFromTypes(tenantId, to, fromTypes, typeGroup).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public ListenableFuture<List<EntityRelation>> findByToAndFromTypesAsync(TenantId tenantId, EntityId to, List<EntityType> fromTypes, RelationTypeGroup typeGroup) {
+        log.trace("Executing findByToAndFromTypes [{}][{}]", to, typeGroup);
+        validate(to);
+        validateTypeGroup(typeGroup);
+
+        List<Object> toAndFromTypesAndTypeGroup = new ArrayList<>();
+        toAndFromTypesAndTypeGroup.add(to);
+        toAndFromTypesAndTypeGroup.add(fromTypes);
+        toAndFromTypesAndTypeGroup.add(typeGroup);
+        toAndFromTypesAndTypeGroup.add(EntitySearchDirection.TO.name());
+
+        Cache cache = cacheManager.getCache(RELATIONS_CACHE);
+        @SuppressWarnings("unchecked")
+        List<EntityRelation> fromCache = cache.get(toAndFromTypesAndTypeGroup, List.class);
+        if (fromCache != null) {
+            return Futures.immediateFuture(fromCache);
+        } else {
+            ListenableFuture<List<EntityRelation>> relationsFuture = relationDao.findAllByToAndFromTypes(tenantId, to, fromTypes, typeGroup);
+            Futures.addCallback(relationsFuture,
+                    new FutureCallback<>() {
+                        @Override
+                        public void onSuccess(@Nullable List<EntityRelation> result) {
+                            cache.putIfAbsent(toAndFromTypesAndTypeGroup, result);
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+                        }
+                    }, MoreExecutors.directExecutor());
+            return relationsFuture;
+        }
+    }
+
     @Override
     public ListenableFuture<List<EntityRelationInfo>> findInfoByTo(TenantId tenantId, EntityId to, RelationTypeGroup typeGroup) {
         log.trace("Executing findInfoByTo [{}][{}]", to, typeGroup);
@@ -599,6 +648,12 @@ public class BaseRelationService implements RelationService {
     private void validateTypeGroup(RelationTypeGroup typeGroup) {
         if (typeGroup == null) {
             throw new DataValidationException("Relation type group should be specified!");
+        }
+    }
+
+    private void validateFromTypes(List<EntityType> fromTypes) {
+        if (CollectionUtils.isEmpty(fromTypes)) {
+            throw new DataValidationException("Relation from types should be specified!");
         }
     }
 

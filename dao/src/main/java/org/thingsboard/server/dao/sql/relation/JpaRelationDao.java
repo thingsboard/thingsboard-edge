@@ -34,8 +34,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -47,6 +47,7 @@ import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Valerii Sosliuk on 5/29/2017.
@@ -106,6 +107,16 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
                         to.getId(),
                         to.getEntityType().name(),
                         relationType,
+                        typeGroup.name())));
+    }
+
+    @Override
+    public ListenableFuture<List<EntityRelation>> findAllByToAndFromTypes(TenantId tenantId, EntityId to, List<EntityType> fromTypes, RelationTypeGroup typeGroup) {
+        return service.submit(() -> DaoUtil.convertDataList(
+                relationRepository.findAllByToIdAndToTypeAndFromTypeInAndRelationTypeGroup(
+                        to.getId(),
+                        to.getEntityType().name(),
+                        fromTypes.stream().map(Enum::name).collect(Collectors.toList()),
                         typeGroup.name())));
     }
 
