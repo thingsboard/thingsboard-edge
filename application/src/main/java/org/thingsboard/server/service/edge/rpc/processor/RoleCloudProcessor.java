@@ -100,7 +100,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     role.setAdditionalInfo(JacksonUtil.toJsonNode(roleProto.getAdditionalInfo()));
                     role.setPermissions(JacksonUtil.toJsonNode(roleProto.getPermissions()));
 
-                    replaceWriteOperationsToReadIfRequired(role);
+                    role = replaceWriteOperationsToReadIfRequired(role);
 
                     if (roleProto.hasCustomerIdMSB() && roleProto.hasCustomerIdLSB()) {
                         UUID customerUUID = safeGetUUID(roleProto.getCustomerIdMSB(),
@@ -130,7 +130,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private void replaceWriteOperationsToReadIfRequired(Role role) throws JsonProcessingException {
+    Role replaceWriteOperationsToReadIfRequired(Role role) throws JsonProcessingException {
         if (RoleType.GROUP.equals(role.getType())) {
             CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             List<Operation> originOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
@@ -148,28 +148,43 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
             JavaType resourceType = mapper.getTypeFactory().constructType(Resource.class);
             MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
             Map<Resource, List<Operation>> originPermissions = mapper.readValue(role.getPermissions().toString(), mapType);
+            Map<Resource, List<Operation>> newPermissions = new HashMap<>();
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();
-                if (Resource.DEVICE.equals(entry.getKey()) || Resource.ALARM.equals(entry.getKey())) {
-                    continue;
+                List<Operation> newOperations = null;
+                switch (entry.getKey()) {
+                    case DEVICE:
+                    case ALARM:
+                        newOperations = entry.getValue();
+                        break;
+                    case ALL:
+                        if (originOperations.contains(Operation.ALL)) {
+                            newPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                        } else {
+                            newOperations = originOperations.stream()
+                                    .filter(allowedGenericOperations::contains)
+                                    .collect(Collectors.toList());
+                        }
+                        break;
+                    default:
+                        if (originOperations.contains(Operation.ALL)) {
+                            newOperations = new ArrayList<>(allowedGenericOperations);
+                        } else {
+                            newOperations = originOperations.stream()
+                                    .filter(allowedGenericOperations::contains)
+                                    .collect(Collectors.toList());
+                        }
+                        break;
                 }
-                if (Resource.ALL.equals(entry.getKey()) && originOperations.contains(Operation.ALL)) {
-                    originPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
-                    originPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
-                    originPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                if (newOperations != null) {
+                    newPermissions.put(entry.getKey(), newOperations);
                 }
-                List<Operation> operations;
-                if (originOperations.contains(Operation.ALL)) {
-                    operations = new ArrayList<>(allowedGenericOperations);
-                } else {
-                    operations = originOperations.stream()
-                            .filter(allowedGenericOperations::contains)
-                            .collect(Collectors.toList());
-                }
-                originPermissions.put(entry.getKey(), operations);
             }
-            role.setPermissions(mapper.valueToTree(originPermissions));
+            role.setPermissions(mapper.valueToTree(newPermissions));
         }
+        return role;
     }
 
 

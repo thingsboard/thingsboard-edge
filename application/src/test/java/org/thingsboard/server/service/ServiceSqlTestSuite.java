@@ -42,6 +42,7 @@ import java.util.Arrays;
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({
         "org.thingsboard.server.service.resource.*Test",
+        "org.thingsboard.server.service.edge.*Test",
         })
 public class ServiceSqlTestSuite {
 
