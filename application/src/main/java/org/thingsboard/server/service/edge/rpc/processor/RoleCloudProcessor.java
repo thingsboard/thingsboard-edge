@@ -151,7 +151,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
             Map<Resource, List<Operation>> newPermissions = new HashMap<>();
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();
-                List<Operation> newOperations = null;
+                List<Operation> newOperations;
                 switch (entry.getKey()) {
                     case DEVICE:
                     case ALARM:
@@ -162,6 +162,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                             newPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
                             newPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
                             newPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
+                            newOperations = new ArrayList<>(allowedGenericOperations);
                         } else {
                             newOperations = originOperations.stream()
                                     .filter(allowedGenericOperations::contains)
@@ -178,9 +179,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                         }
                         break;
                 }
-                if (newOperations != null) {
-                    newPermissions.put(entry.getKey(), newOperations);
-                }
+                newPermissions.put(entry.getKey(), newOperations);
             }
             role.setPermissions(mapper.valueToTree(newPermissions));
         }

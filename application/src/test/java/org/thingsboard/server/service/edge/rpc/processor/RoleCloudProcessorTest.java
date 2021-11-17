@@ -99,6 +99,7 @@ public class RoleCloudProcessorTest {
         Assert.assertTrue(newPermissions.containsKey(Resource.DEVICE_GROUP));
         Assert.assertTrue(newPermissions.containsKey(Resource.DEVICE));
         Assert.assertTrue(newPermissions.containsKey(Resource.ALARM));
+        Assert.assertTrue(newPermissions.containsKey(Resource.ASSET));
     }
 
 }
