@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -48,11 +49,14 @@ import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
-import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -66,8 +70,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -83,17 +85,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
@@ -110,26 +112,45 @@ public class TbAlarmsCountV2NodeTest {
     @Mock
     private RuleEngineAlarmService alarmService;
 
+    private ListeningExecutor dbExecutor;
+
     private TbAlarmsCountNodeV2 node;
     private TbNodeConfiguration nodeConfiguration;
-
-    private RelationsQuery relationsQuery;
-    private EntityId rootEntityId;
 
     private Map<EntityId, Integer> expectedAllAlarmsCountMap;
     private Map<EntityId, Integer> expectedActiveAlarmsCountMap;
     private Map<EntityId, Integer> expectedLastDayAlarmsCountMap;
     private Set<Long> alarmCreatedTimes;
 
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
 
     @Before
-    @SuppressWarnings("unchecked")
-    public void init() {
-        TbAlarmsCountNodeV2Configuration config = new TbAlarmsCountNodeV2Configuration();
-        node = new TbAlarmsCountNodeV2();
+    public void before() {
+        dbExecutor = new ListeningExecutor() {
+            @Override
+            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
+                try {
+                    return Futures.immediateFuture(task.call());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-        when(ctx.getRelationService()).thenReturn(relationService);
+            @Override
+            public void execute(Runnable command) {
+                command.run();
+            }
+        };
+    }
+
+    public void init(TbAlarmsCountNodeV2Configuration configuration) throws TbNodeException {
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
+
+        when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
+
+        if (configuration.isCountAlarmsForPropagationEntities()) {
+            when(ctx.getRelationService()).thenReturn(relationService);
+        }
 
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
@@ -139,22 +160,56 @@ public class TbAlarmsCountV2NodeTest {
 
         when(ctx.getAlarmService()).thenReturn(alarmService);
 
-        relationsQuery = new RelationsQuery();
-        relationsQuery.setDirection(EntitySearchDirection.FROM);
-        relationsQuery.setMaxLevel(1);
-        RelationEntityTypeFilter entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
-        relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
+        node = new TbAlarmsCountNodeV2();
 
-        rootEntityId = new TenantId(Uuids.timeBased());
+        expectedAllAlarmsCountMap = new HashMap<>();
+        expectedActiveAlarmsCountMap = new HashMap<>();
+        expectedLastDayAlarmsCountMap = new HashMap<>();
+        alarmCreatedTimes = new HashSet<>();
+    }
 
-        ParentEntitiesRelationsQuery parentEntitiesRelationsQuery = new ParentEntitiesRelationsQuery();
-        parentEntitiesRelationsQuery.setRootEntityId(rootEntityId);
+    @Test
+    public void alarmsCountV2Test() throws Exception {
+        init(createConfig());
+        performAlarmsCountTest();
+    }
 
-        parentEntitiesRelationsQuery.setRelationsQuery(relationsQuery);
-        parentEntitiesRelationsQuery.setChildRelationsQuery(relationsQuery);
+    @Test
+    public void alarmsCountV2TestWithCountAlarmsForPropagationEntitiesEnabled() throws Exception {
+        init(createConfigWithCountAlarmsForPropagationEntitiesEnabled());
+        testWithCountAlarmsForPropagationEntitiesEnabled();
+    }
 
-        config.setCountAlarmsForPropagationEntities(true);
+    @Test
+    public void alarmsCountV2TestWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected() throws Exception {
+        List<EntityType> propagationEntityTypes = Collections.singletonList(EntityType.ASSET);
+        init(createConfigWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(propagationEntityTypes));
+        testWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(propagationEntityTypes);
+    }
 
+
+    private TbAlarmsCountNodeV2Configuration createConfig() {
+        TbAlarmsCountNodeV2Configuration configuration = new TbAlarmsCountNodeV2Configuration();
+        configuration.setCountAlarmsForPropagationEntities(false);
+        configuration.setAlarmsCountMappings(getAlarmsCountMappings());
+        configuration.setPropagationEntityTypes(Collections.emptyList());
+        return configuration;
+    }
+
+    private TbAlarmsCountNodeV2Configuration createConfigWithCountAlarmsForPropagationEntitiesEnabled() {
+        TbAlarmsCountNodeV2Configuration configuration = createConfig();
+        configuration.setCountAlarmsForPropagationEntities(true);
+        return configuration;
+    }
+
+    private TbAlarmsCountNodeV2Configuration createConfigWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(List<EntityType> propagationEntityTypes) {
+        TbAlarmsCountNodeV2Configuration configuration = createConfig();
+        configuration.setCountAlarmsForPropagationEntities(true);
+        configuration.setPropagationEntityTypes(propagationEntityTypes);
+        return configuration;
+    }
+
+    private List<AlarmsCountMapping> getAlarmsCountMappings() {
         List<AlarmsCountMapping> alarmsCountMappings = new ArrayList<>();
 
         AlarmsCountMapping allAlarmsCountMapping = new AlarmsCountMapping();
@@ -170,48 +225,125 @@ public class TbAlarmsCountV2NodeTest {
         activeAlarmsCountMapping.setStatusList(Arrays.asList(AlarmStatus.ACTIVE_ACK, AlarmStatus.ACTIVE_UNACK));
         activeAlarmsCountMapping.setTarget("activeAlarmsCount");
         alarmsCountMappings.add(activeAlarmsCountMapping);
-
-        config.setAlarmsCountMappings(alarmsCountMappings);
-
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
-
-        expectedAllAlarmsCountMap = new HashMap<>();
-        expectedActiveAlarmsCountMap = new HashMap<>();
-        expectedLastDayAlarmsCountMap = new HashMap<>();
-        alarmCreatedTimes = new HashSet<>();
-    }
-
-    @Test
-    public void parentEntitiesByRelationQueryAlarmsCount() throws Exception {
-        performAlarmsCountTest();
-    }
-
-    @Test
-    public void childEntitiesFailedByRelationQueryAlarmsCount() throws Exception {
-        performAlarmsCountTest();
+        return alarmsCountMappings;
     }
 
     private void performAlarmsCountTest() throws Exception {
-        List<EntityRelation> parentEntityRelations = new ArrayList<>();
+        int totalEntitiesCount = 10 + (int) (Math.random() * 20);
+        List<AlarmInfo> alarms;
 
+        for (int i = 0; i < totalEntitiesCount; i++) {
+            EntityId deviceId = new DeviceId(Uuids.timeBased());
+            alarms = generateAlarms(deviceId, Collections.emptyList());
+            expectedAllAlarmsCountMap.put(deviceId, alarms.size());
+            expectedActiveAlarmsCountMap.put(deviceId, countActive(alarms));
+            expectedLastDayAlarmsCountMap.put(deviceId, countLastDay(alarms));
+        }
+
+        node.init(ctx, nodeConfiguration);
+
+        expectedAllAlarmsCountMap.keySet().forEach(entityId -> {
+            Alarm alarm = new Alarm();
+            alarm.setOriginator(entityId);
+            alarm.setPropagate(true);
+            try {
+                TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                        TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
+                node.onMsg(ctx, alarmMsg);
+            } catch (Exception e) {
+                log.error("Exception occurred during onMsg processing: ", e);
+            }
+        });
+
+        verifyResult(totalEntitiesCount);
+    }
+
+    private void testWithCountAlarmsForPropagationEntitiesEnabled() throws Exception {
+        EntityId rootEntityId = new TenantId(Uuids.timeBased());
+        List<AlarmInfo> parentEntityAlarms = new ArrayList<>();
         int parentCount = 10 + (int) (Math.random() * 20);
 
         int totalChildCount = 0;
 
+        Map<EntityId, EntityId> childToParentRelationsMap = new HashMap<>();
+
         for (int i = 0; i < parentCount; i++) {
             EntityId parentEntityId = new AssetId(Uuids.timeBased());
-            parentEntityRelations.add(createEntityRelation(rootEntityId, parentEntityId));
-
             List<AlarmInfo> childAlarms = new ArrayList<>();
 
-            List<EntityRelation> childRelations = new ArrayList<>();
             int childCount = 10 + (int) (Math.random() * 20);
 
             totalChildCount += childCount;
 
             for (int c = 0; c < childCount; c++) {
                 EntityId childEntityId = new DeviceId(Uuids.timeBased());
-                childRelations.add(createEntityRelation(parentEntityId, childEntityId));
+                childToParentRelationsMap.put(childEntityId, parentEntityId);
+                List<AlarmInfo> alarms = generateAlarms(childEntityId, Collections.emptyList());
+                expectedAllAlarmsCountMap.put(childEntityId, alarms.size());
+                expectedActiveAlarmsCountMap.put(childEntityId, countActive(alarms));
+                expectedLastDayAlarmsCountMap.put(childEntityId, countLastDay(alarms));
+                childAlarms.addAll(alarms);
+            }
+
+            List<AlarmInfo> alarms = generateAlarms(parentEntityId, childAlarms);
+            parentEntityAlarms.addAll(alarms);
+            expectedAllAlarmsCountMap.put(parentEntityId, alarms.size());
+            expectedActiveAlarmsCountMap.put(parentEntityId, countActive(alarms));
+            expectedLastDayAlarmsCountMap.put(parentEntityId, countLastDay(alarms));
+        }
+
+        List<AlarmInfo> rootEntityAlarms = generateAlarms(rootEntityId, parentEntityAlarms);
+        expectedAllAlarmsCountMap.put(rootEntityId, rootEntityAlarms.size());
+        expectedActiveAlarmsCountMap.put(rootEntityId, countActive(rootEntityAlarms));
+        expectedLastDayAlarmsCountMap.put(rootEntityId, countLastDay(rootEntityAlarms));
+
+        node.init(ctx, nodeConfiguration);
+
+        expectedAllAlarmsCountMap.keySet().forEach(entityId -> {
+            EntityId parentEntityId = childToParentRelationsMap.get(entityId);
+            if (parentEntityId != null) {
+                AlarmId alarmId = new AlarmId(Uuids.timeBased());
+                EntityRelation parentEntityToAlarmRelation = createEntityRelation(parentEntityId, alarmId);
+                EntityRelation rootEntityToAlarmRelation = createEntityRelation(rootEntityId, alarmId);
+                List<EntityRelation> alarmRelations = new ArrayList<>();
+                alarmRelations.add(parentEntityToAlarmRelation);
+                alarmRelations.add(rootEntityToAlarmRelation);
+                when(ctx.getRelationService().findByToAsync(any(), eq(alarmId), eq(RelationTypeGroup.ALARM))).thenReturn(Futures.immediateFuture(alarmRelations));
+                Alarm alarm = new Alarm();
+                alarm.setId(alarmId);
+                alarm.setOriginator(entityId);
+                alarm.setPropagate(true);
+                try {
+                    TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                            TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
+                    node.onMsg(ctx, alarmMsg);
+                } catch (Exception e) {
+                    log.error("Exception occurred during onMsg processing: ", e);
+                }
+            }
+        });
+
+        verifyResult(totalChildCount * 3);
+    }
+
+    private void testWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(List<EntityType> propagationEntityTypes) throws Exception {
+        int parentCount = 10 + (int) (Math.random() * 20);
+
+        int totalChildCount = 0;
+
+        Map<EntityId, EntityId> childToParentRelationsMap = new HashMap<>();
+
+        for (int i = 0; i < parentCount; i++) {
+            EntityId parentEntityId = new AssetId(Uuids.timeBased());
+            List<AlarmInfo> childAlarms = new ArrayList<>();
+
+            int childCount = 10 + (int) (Math.random() * 20);
+
+            totalChildCount += childCount;
+
+            for (int c = 0; c < childCount; c++) {
+                EntityId childEntityId = new DeviceId(Uuids.timeBased());
+                childToParentRelationsMap.put(childEntityId, parentEntityId);
                 List<AlarmInfo> alarms = generateAlarms(childEntityId, Collections.emptyList());
                 expectedAllAlarmsCountMap.put(childEntityId, alarms.size());
                 expectedActiveAlarmsCountMap.put(childEntityId, countActive(alarms));
@@ -228,20 +360,31 @@ public class TbAlarmsCountV2NodeTest {
         node.init(ctx, nodeConfiguration);
 
         expectedAllAlarmsCountMap.keySet().forEach(entityId -> {
-            Alarm alarm = new Alarm();
-            alarm.setOriginator(entityId);
-            alarm.setPropagate(true);
-            try {
-                TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
-                        TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
-                node.onMsg(ctx, alarmMsg);
-            } catch (Exception e) {
+            EntityId parentEntityId = childToParentRelationsMap.get(entityId);
+            if (parentEntityId != null) {
+                AlarmId alarmId = new AlarmId(Uuids.timeBased());
+                List<EntityRelation> alarmRelations = Collections.singletonList(createEntityRelation(parentEntityId, alarmId));
+                when(ctx.getRelationService().findByToAndFromTypesAsync(any(), eq(alarmId), eq(propagationEntityTypes), eq(RelationTypeGroup.ALARM))).thenReturn(Futures.immediateFuture(alarmRelations));
+                Alarm alarm = new Alarm();
+                alarm.setId(alarmId);
+                alarm.setOriginator(entityId);
+                alarm.setPropagate(true);
+                try {
+                    TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                            TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
+                    node.onMsg(ctx, alarmMsg);
+                } catch (Exception e) {
+                    log.error("Exception occurred during onMsg processing: ", e);
+                }
             }
         });
 
-        int totalEntities = parentCount + totalChildCount;
+        verifyResult(totalChildCount * 2);
+    }
+
+    private void verifyResult(int totalEntitiesCount) {
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(totalEntities)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(totalEntitiesCount)).enqueueForTellNext(captor.capture(), eq(TbRelationTypes.SUCCESS));
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
             verifyMessage(msg);
