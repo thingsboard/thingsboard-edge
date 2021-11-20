@@ -281,7 +281,6 @@ export class TbCanvasDigitalGauge {
 
   init() {
     let updateSetting = false;
-
     if (this.localSettings.useFixedLevelColor && this.localSettings.fixedLevelColors?.length > 0) {
       this.localSettings.levelColors = this.settingLevelColorsSubscribe(this.localSettings.fixedLevelColors);
       updateSetting = true;
@@ -299,6 +298,11 @@ export class TbCanvasDigitalGauge {
   settingLevelColorsSubscribe(options: FixedLevelColors[]): ColorLevelSetting[] {
     let levelColorsDatasource: Datasource[] = [];
     const predefineLevelColors: ColorLevelSetting[] = [];
+
+    predefineLevelColors.push({
+      value: this.localSettings.minValue,
+      color: this.localSettings.gaugeColor
+    });
 
     function setLevelColor(levelSetting: AttributeSourceProperty, color: string) {
       if (levelSetting.valueSource === 'predefinedValue' && isFinite(levelSetting.value)) {
@@ -443,4 +447,8 @@ export class TbCanvasDigitalGauge {
     this.gauge.update({width: this.ctx.width, height: this.ctx.height} as GenericOptions);
   }
 
+  destroy() {
+    this.gauge.destroy();
+    this.gauge = null;
+  }
 }

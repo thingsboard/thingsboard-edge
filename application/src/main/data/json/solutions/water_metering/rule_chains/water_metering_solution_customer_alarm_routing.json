@@ -1,0 +1,595 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Water Metering Solution Customer Alarm Routing",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 6,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 974,
+          "layoutY": 772
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
+        "name": "To All Customer Users",
+        "debugMode": false,
+        "configuration": {
+          "searchEntityGroupForTenantOnly": false,
+          "groupType": "USER",
+          "groupName": "Customer Users"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 977,
+          "layoutY": 699
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
+        "name": "To All Customer Users",
+        "debugMode": false,
+        "configuration": {
+          "searchEntityGroupForTenantOnly": false,
+          "groupType": "USER",
+          "groupName": "Customer Users"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 978,
+          "layoutY": 627
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
+        "name": "To All Customer Users",
+        "debugMode": false,
+        "configuration": {
+          "searchEntityGroupForTenantOnly": false,
+          "groupType": "USER",
+          "groupName": "Customer Users"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 978,
+          "layoutY": 133
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
+        "name": "To All Customer Users",
+        "debugMode": false,
+        "configuration": {
+          "searchEntityGroupForTenantOnly": false,
+          "groupType": "USER",
+          "groupName": "Customer Users"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 982,
+          "layoutY": 285
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
+        "name": "To All Customer Users",
+        "debugMode": false,
+        "configuration": {
+          "searchEntityGroupForTenantOnly": false,
+          "groupType": "USER",
+          "groupName": "Customer Users"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 981,
+          "layoutY": 212
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode",
+        "name": "To All Customer Users",
+        "debugMode": false,
+        "configuration": {
+          "searchEntityGroupForTenantOnly": false,
+          "groupType": "USER",
+          "groupName": "Customer Users"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 51,
+          "layoutY": 481
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetCustomerAttributeNode",
+        "name": "Load Customer Settings",
+        "debugMode": false,
+        "configuration": {
+          "attrMapping": {
+            "lowTempEmailEnabled": "lowTempEmailEnabled",
+            "dailyConsumptionEmailEnabled": "dailyConsumptionEmailEnabled",
+            "weeklyConsumptionEmailEnabled": "weeklyConsumptionEmailEnabled",
+            "lowTempSmsEnabled": "lowTempSmsEnabled",
+            "dailyConsumptionSmsEnabled": "dailyConsumptionSmsEnabled",
+            "weeklyConsumptionSmsEnabled": "weeklyConsumptionSmsEnabled"
+          },
+          "telemetry": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1282,
+          "layoutY": 698
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Load User Phone Number",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "phoneNumber"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1604,
+          "layoutY": 696
+        },
+        "type": "org.thingsboard.rule.engine.sms.TbSendSmsNode",
+        "name": "Send SMS",
+        "debugMode": false,
+        "configuration": {
+          "numbersToTemplate": "${ss_phoneNumber}",
+          "smsMessageTemplate": "Device ${deviceName} reports high daily water consumption!",
+          "useSystemSmsSettings": true,
+          "smsProviderConfiguration": null
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1283,
+          "layoutY": 774
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Load User Phone Number",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "phoneNumber"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1605,
+          "layoutY": 770
+        },
+        "type": "org.thingsboard.rule.engine.sms.TbSendSmsNode",
+        "name": "Send SMS",
+        "debugMode": false,
+        "configuration": {
+          "numbersToTemplate": "${ss_phoneNumber}",
+          "smsMessageTemplate": "Device ${deviceName} reports high weekly water consumption!",
+          "useSystemSmsSettings": true,
+          "smsProviderConfiguration": null
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1278,
+          "layoutY": 628
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Load User Phone Number",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "phoneNumber"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1603,
+          "layoutY": 625
+        },
+        "type": "org.thingsboard.rule.engine.sms.TbSendSmsNode",
+        "name": "Send SMS",
+        "debugMode": false,
+        "configuration": {
+          "numbersToTemplate": "${ss_phoneNumber}",
+          "smsMessageTemplate": "Device ${deviceName} has low water temperature!",
+          "useSystemSmsSettings": true,
+          "smsProviderConfiguration": null
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1574,
+          "layoutY": 135
+        },
+        "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
+        "name": "Send Email",
+        "debugMode": false,
+        "configuration": {
+          "fromTemplate": "",
+          "toTemplate": "${userEmail}",
+          "ccTemplate": null,
+          "bccTemplate": null,
+          "subjectTemplate": "Device ${deviceName} reports high daily water consumption!",
+          "bodyTemplate": "The device consumed $[details.data]m3 of water which exceeds configured daily threshold!"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1273,
+          "layoutY": 133
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Load User Email",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "email": "userEmail"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1862,
+          "layoutY": 205
+        },
+        "type": "org.thingsboard.rule.engine.mail.TbSendEmailNode",
+        "name": "Send Email",
+        "debugMode": false,
+        "configuration": {
+          "useSystemSmtpSettings": true,
+          "smtpHost": "localhost",
+          "smtpPort": 25,
+          "username": null,
+          "password": null,
+          "smtpProtocol": "smtp",
+          "timeout": 10000,
+          "enableTls": false,
+          "tlsVersion": "TLSv1.2",
+          "enableProxy": false,
+          "proxyHost": null,
+          "proxyPort": null,
+          "proxyUser": null,
+          "proxyPassword": null
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 358,
+          "layoutY": 481
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsSwitchNode",
+        "name": "Switch Alarm Type",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "var relations = [];\n\nswitch (msg.type) {\n    case 'Low Temperature Customer Alarm':\n        if (metadata.lowTempEmailEnabled === 'true'){\n            relations.push('Low Temperature Email');\n        }\n        if (metadata.lowTempSmsEnabled === 'true'){\n            relations.push('Low Temperature SMS');\n        }\n        break;\n    case 'Daily Consumption Threshold Exceeded Customer Alarm':\n        if (metadata.dailyConsumptionEmailEnabled === 'true'){\n            relations.push('Daily Consumption Email');\n        }\n        if (metadata.dailyConsumptionSmsEnabled === 'true'){\n            relations.push('Daily Consumption SMS');\n        }\n        break; \n    case 'Weekly Consumption Threshold Exceeded Customer Alarm':\n        if (metadata.weeklyConsumptionEmailEnabled === 'true'){\n            relations.push('Weekly Consumption Email');\n        }\n        if (metadata.weeklyConsumptionSmsEnabled === 'true'){\n            relations.push('Weekly Consumption SMS');\n        }\n        break;\n    default:\n        relations.push('Other');\n}\n\nreturn relations;"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1274,
+          "layoutY": 286
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Load User Email",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "email": "userEmail"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1573,
+          "layoutY": 285
+        },
+        "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
+        "name": "Send Email",
+        "debugMode": false,
+        "configuration": {
+          "fromTemplate": "",
+          "toTemplate": "${userEmail}",
+          "ccTemplate": null,
+          "bccTemplate": null,
+          "subjectTemplate": "Device ${deviceName} has low water temperature!",
+          "bodyTemplate": "Water temperature is $[details.data]%."
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1572,
+          "layoutY": 210
+        },
+        "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
+        "name": "Send Email",
+        "debugMode": false,
+        "configuration": {
+          "fromTemplate": "",
+          "toTemplate": "${userEmail}",
+          "ccTemplate": null,
+          "bccTemplate": null,
+          "subjectTemplate": "Device ${deviceName} reports high weekly water consumption!",
+          "bodyTemplate": "The device consumed $[details.data]m3 of water which exceeds configured weekly threshold!"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1275,
+          "layoutY": 209
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Load User Email",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "email": "userEmail"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1623,
+          "layoutY": 1003
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbAckNode",
+        "name": "Ack Messages without phone number",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 680,
+          "layoutY": 772
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Fetch Device Name",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "name": "deviceName"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 681,
+          "layoutY": 698
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Fetch Device Name",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "name": "deviceName"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 675,
+          "layoutY": 209
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Fetch Device Name",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "name": "deviceName"
+          }
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 676,
+          "layoutY": 135
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
+        "name": "Fetch Device Name",
+        "debugMode": false,
+        "configuration": {
+          "fieldsMapping": {
+            "name": "deviceName"
+          }
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 11,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 14,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 17,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 20,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 16,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 21,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 21,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 21,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 15,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 2,
+        "type": "Low Temperature SMS"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 23,
+        "type": "Daily Consumption SMS"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 22,
+        "type": "Weekly Consumption SMS"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 24,
+        "type": "Weekly Consumption Email"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 25,
+        "type": "Daily Consumption Email"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 4,
+        "type": "Low Temperature Email"
+      },
+      {
+        "fromIndex": 17,
+        "toIndex": 18,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 18,
+        "toIndex": 15,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 19,
+        "toIndex": 15,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 20,
+        "toIndex": 19,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 22,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 23,
+        "toIndex": 1,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 5,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 25,
+        "toIndex": 3,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

@@ -39,6 +39,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -136,6 +137,10 @@ public class IntegrationContextComponent {
     @Autowired
     private EntityGroupService entityGroupService;
 
+    @Lazy
+    @Autowired
+    private LogSettingsComponent logSettingsComponent;
+
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService callBackExecutorService;
@@ -143,7 +148,7 @@ public class IntegrationContextComponent {
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
-        scheduledExecutorService = Executors.newScheduledThreadPool(3);
+        scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
         callBackExecutorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("integration-callback"));
     }
@@ -165,5 +170,9 @@ public class IntegrationContextComponent {
 
     ExecutorService getCallBackExecutorService() {
         return callBackExecutorService;
+    }
+
+    public boolean isExceptionStackTraceEnabled() {
+        return logSettingsComponent.isExceptionStackTraceEnabled();
     }
 }

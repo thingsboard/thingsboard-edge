@@ -29,4 +29,12 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
+  .tb-hint.client-id {
+    margin-top: -1.25em;
+    max-width: fit-content;
+
+    &.invisible {
+      visibility: hidden;
+    }
+  }
 }

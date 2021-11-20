@@ -192,7 +192,7 @@
                              'tb-read-only': groupPermission.readOnly,
                              'mat-selected': dataSource.selection.isSelected(groupPermission)}"
                  *matRowDef="let groupPermission; columns: displayedColumns;"
-                 (click)="dataSource.selection.toggle(groupPermission)"></mat-row>
+                 (click)="onRowClick($event, groupPermission)"></mat-row>
       </table>
       <span [fxShow]="dataSource.isEmpty() | async"
             fxLayoutAlign="center center"

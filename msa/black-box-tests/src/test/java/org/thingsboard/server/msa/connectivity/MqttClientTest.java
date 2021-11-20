@@ -46,6 +46,7 @@ import org.junit.*;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttHandler;
@@ -275,7 +276,7 @@ public class MqttClientTest extends AbstractContainerTest {
         JsonObject serverRpcPayload = new JsonObject();
         serverRpcPayload.addProperty("method", "getValue");
         serverRpcPayload.addProperty("params", true);
-        ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
+        ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName())));
         ListenableFuture<ResponseEntity> future = service.submit(() -> {
             try {
                 return restClient.getRestTemplate()
@@ -299,6 +300,7 @@ public class MqttClientTest extends AbstractContainerTest {
         mqttClient.publish("v1/devices/me/rpc/response/" + requestId, Unpooled.wrappedBuffer(clientResponse.toString().getBytes())).get();
 
         ResponseEntity serverResponse = future.get(5, TimeUnit.SECONDS);
+        service.shutdownNow();
         Assert.assertTrue(serverResponse.getStatusCode().is2xxSuccessful());
         Assert.assertEquals(clientResponse.toString(), serverResponse.getBody());
 

@@ -33,6 +33,7 @@ import { Injectable } from '@angular/core';
 import {
   checkBoxCell,
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -51,6 +52,7 @@ import { ResourcesLibraryComponent } from '@home/pages/admin/resource/resources-
 import { PageLink } from '@shared/models/page/page-link';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { map } from 'rxjs/operators';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableConfig<Resource, PageLink, ResourceInfo>> {
@@ -60,6 +62,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
 
   constructor(private store: Store<AppState>,
               private resourceService: ResourceService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe) {
 
@@ -130,6 +133,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     this.config.deleteEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.detailsReadonly = (resource) => !this.isResourceEditable(resource, authUser.authority);
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

@@ -286,6 +286,15 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
     }
   }
 
+  onRowClick($event: Event, relation) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (!this.readonly) {
+      this.dataSource.selection.toggle(relation);
+    }
+  }
+
   reloadGroupPermissions() {
     this.updateData(true);
   }

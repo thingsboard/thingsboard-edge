@@ -453,6 +453,19 @@ export class MenuService {
         asyncPages: of(edgePages)
       }
     );
+    if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'solution-template.solution-templates',
+          type: 'link',
+          path: '/solutionTemplates',
+          icon: 'apps',
+          disabled: disabledItems.indexOf('solution_templates') > -1,
+          isNew: true
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       sections.push(
         {
@@ -775,7 +788,22 @@ export class MenuService {
         ]
       }
     );
-
+    /** @voba - merge comment - hide this on edge
+    if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
+      homeSections.push(
+        {
+          name: 'solution-template.management',
+          places: [
+            {
+              name: 'solution-template.solution-templates',
+              icon: 'apps',
+              path: '/solutionTemplates',
+              disabled: disabledItems.indexOf('solution_templates') > -1
+            }
+          ]
+        }
+      );
+    }**/
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       homeSections.push(
         {

@@ -60,6 +60,8 @@ import {
 } from '@home/components/alias/entity-aliases-dialog.component';
 import { ItemBufferService, WidgetItem } from '@core/services/item-buffer.service';
 import {
+  BulkImportRequest,
+  BulkImportResult,
   CSV_TYPE,
   FileType,
   ImportWidgetResult,
@@ -70,12 +72,12 @@ import {
   XLSX_TYPE,
   ZIP_TYPE
 } from './import-export.models';
-import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
+import { EntityType } from '@shared/models/entity-type.models';
 import { UtilsService } from '@core/services/utils.service';
 import { WidgetService } from '@core/http/widget.service';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
-import { ImportEntitiesResultInfo, ImportEntityData } from '@shared/models/entity.models';
+import { ImportEntityData, ImportEntitiesResultInfo } from '@shared/models/entity.models';
 import { RequestConfig } from '@core/http/http-utils';
 import { RuleChain, RuleChainImport, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
@@ -87,8 +89,11 @@ import { DeviceProfileService } from '@core/http/device-profile.service';
 import { DeviceProfile } from '@shared/models/device.models';
 import { TenantProfile } from '@shared/models/tenant.model';
 import { TenantProfileService } from '@core/http/tenant-profile.service';
+import { DeviceService } from '@core/http/device.service';
+import { AssetService } from '@core/http/asset.service';
+import { EdgeService } from '@core/http/edge.service';
 
-import { Column, Borders, Workbook} from 'exceljs';
+import { Borders, Column, Workbook } from 'exceljs';
 import * as moment_ from 'moment';
 
 const moment = moment_;
@@ -109,6 +114,9 @@ export class ImportExportService {
               private entityService: EntityService,
               private ruleChainService: RuleChainService,
               private converterService: ConverterService,
+              private deviceService: DeviceService,
+              private assetService: AssetService,
+              private edgeService: EdgeService,
               private utils: UtilsService,
               private itembuffer: ItemBufferService,
               private dialog: MatDialog) {
@@ -377,6 +385,17 @@ export class ImportExportService {
     );
   }
 
+  public bulkImportEntities(entitiesData: BulkImportRequest, entityType: EntityType, config?: RequestConfig): Observable<BulkImportResult> {
+    switch (entityType) {
+      case EntityType.DEVICE:
+        return this.deviceService.bulkImportDevices(entitiesData, config);
+      case EntityType.ASSET:
+        return this.assetService.bulkImportAssets(entitiesData, config);
+      case EntityType.EDGE:
+        return this.edgeService.bulkImportEdges(entitiesData, config);
+    }
+  }
+
   public importEntities(entitiesData: ImportEntityData[], customerId: CustomerId, entityType: EntityType,
                         entityGroupId: string, updateData: boolean,
                         importEntityCompleted?: () => void, config?: RequestConfig): Observable<ImportEntitiesResultInfo> {
@@ -387,7 +406,8 @@ export class ImportExportService {
     const importEntitiesObservables: Observable<ImportEntitiesResultInfo>[] = [];
     for (let i = 0; i < partSize; i++) {
       let saveEntityPromise: Observable<ImportEntitiesResultInfo>;
-      saveEntityPromise = this.entityService.saveEntityParameters(customerId, entityType, entityGroupId, entitiesData[i], updateData, config);
+      saveEntityPromise = this.entityService.saveEntityParameters(customerId, entityType, entityGroupId, entitiesData[i],
+                                                                  updateData, config);
       const importEntityPromise = saveEntityPromise.pipe(
           tap((res) => {
             if (importEntityCompleted) {
@@ -768,6 +788,8 @@ export class ImportExportService {
       if (isObject(obj2[key])) {
         obj1[key] = obj1[key] || {};
         obj1[key] = {...obj1[key], ...this.sumObject(obj1[key], obj2[key])};
+      } else if (isString(obj2[key])) {
+        obj1[key] = (obj1[key] || '') + `${obj2[key]}\n`;
       } else {
         obj1[key] = (obj1[key] || 0) + obj2[key];
       }
@@ -891,9 +913,6 @@ export class ImportExportService {
 
   private editMissingAliases(widgets: Array<Widget>, isSingleWidget: boolean,
                              customTitle: string, missingEntityAliases: EntityAliases): Observable<EntityAliases> {
-    const allowedEntityTypes: Array<EntityType | AliasEntityType> =
-      this.entityService.prepareAllowedEntityTypesList(null, true);
-
     return this.dialog.open<EntityAliasesDialogComponent, EntityAliasesDialogData,
       EntityAliases>(EntityAliasesDialogComponent, {
       disableClose: true,
@@ -903,8 +922,7 @@ export class ImportExportService {
         widgets,
         customTitle,
         isSingleWidget,
-        disableAdd: true,
-        allowedEntityTypes
+        disableAdd: true
       }
     }).afterClosed().pipe(
       map((updatedEntityAliases) => {

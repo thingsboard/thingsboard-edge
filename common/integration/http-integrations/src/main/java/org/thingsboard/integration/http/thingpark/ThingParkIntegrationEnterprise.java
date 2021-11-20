@@ -110,9 +110,6 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         JsonNode json = configuration.getConfiguration();
         if (downlinkConverter != null) {
             this.securityAsId = json.get(AS_ID + "New").asText();
@@ -201,7 +198,7 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         mdMap.put("AS_ID", params.getAsId());
         mdMap.put("LrnDevEui", params.getLrnDevEui());
         mdMap.put("LrnFPort", params.getLrnFPort());
-        return convertToUplinkDataList(context, data, new UplinkMetaData(getUplinkContentType(), mdMap));
+        return convertToUplinkDataList(context, data, new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
     }
 
     protected void processGetRestToken(DownlinkData downlink, IntegrationContext context, TbMsg msg) {

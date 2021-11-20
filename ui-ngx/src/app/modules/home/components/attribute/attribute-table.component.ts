@@ -32,6 +32,7 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Injector,
@@ -134,7 +135,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   viewsInited = false;
 
   selectedWidgetsBundleAlias: string = null;
-  widgetsBundle: WidgetsBundle = null;
+  widgetBundleSet = false;
   widgetsLoaded = false;
   widgetsCarouselIndex = 0;
   widgetsList: Array<Array<Widget>> = [];
@@ -209,7 +210,8 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
               private dashboardUtils: DashboardUtilsService,
               private widgetService: WidgetService,
               private userPermissionsService: UserPermissionsService,
-              private zone: NgZone) {
+              private zone: NgZone,
+              private cd: ChangeDetectorRef) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'key', direction: Direction.ASC };
@@ -228,6 +230,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   attributeScopeChanged(attributeScope: TelemetryType) {
     this.attributeScope = attributeScope;
     this.mode = 'default';
+    this.paginator.pageIndex = 0;
     this.updateData(true);
   }
 
@@ -423,8 +426,8 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     this.widgetsList = [];
     this.widgetsListCache = [];
     this.widgetsLoaded = false;
+    this.widgetBundleSet = false;
     this.widgetsCarouselIndex = 0;
-    this.widgetsBundle = null;
     this.selectedWidgetsBundleAlias = 'cards';
 
     const entitiAliases: EntityAliases = {};
@@ -478,15 +481,16 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     }
   }
 
-  onWidgetsBundleChanged() {
+  onWidgetsBundleChanged(widgetsBundle: WidgetsBundle) {
+    this.widgetBundleSet = !!widgetsBundle;
     if (this.mode === 'widget') {
       this.widgetsList = [];
       this.widgetsListCache = [];
       this.widgetsCarouselIndex = 0;
-      if (this.widgetsBundle) {
+      if (widgetsBundle) {
         this.widgetsLoaded = false;
-        const bundleAlias = this.widgetsBundle.alias;
-        const isSystem = this.widgetsBundle.tenantId.id === NULL_UUID;
+        const bundleAlias = widgetsBundle.alias;
+        const isSystem = widgetsBundle.tenantId.id === NULL_UUID;
         this.widgetService.getBundleWidgetTypes(bundleAlias, isSystem).subscribe(
           (widgetTypes) => {
             widgetTypes = widgetTypes.sort((a, b) => {
@@ -524,6 +528,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
               }
             }
             this.widgetsLoaded = true;
+            this.cd.markForCheck();
           }
         );
       }

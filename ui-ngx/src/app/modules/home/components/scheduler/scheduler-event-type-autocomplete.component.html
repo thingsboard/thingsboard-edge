@@ -55,4 +55,7 @@
   <mat-error *ngIf="schedulerEventTypeFormGroup.get('schedulerEventType').hasError('required')">
     {{ 'scheduler.event-type-required' | translate }}
   </mat-error>
+  <mat-error *ngIf="schedulerEventTypeFormGroup.get('schedulerEventType').hasError('maxlength')">
+    {{ 'scheduler.event-type-max-length' | translate }}
+  </mat-error>
 </mat-form-field>

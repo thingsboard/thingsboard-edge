@@ -234,9 +234,9 @@ public final class IntegrationGrpcSession implements Closeable {
         try {
             if (msg.getDeviceDataCount() > 0) {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
-                    Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
+                    Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
-                    UUID sessionId = UUID.randomUUID();
+                    UUID sessionId = this.sessionId;
                     TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                             .setSessionIdMSB(sessionId.getMostSignificantBits())
                             .setSessionIdLSB(sessionId.getLeastSignificantBits())
@@ -269,7 +269,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getAssetDataCount() > 0) {
                 for (AssetUplinkDataProto data : msg.getAssetDataList()) {
-                    Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getCustomerName(), data.getGroupName());
+                    Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
                     if (data.hasPostTelemetryMsg()) {
                         data.getPostTelemetryMsg().getTsKvListList()
@@ -298,7 +298,7 @@ public final class IntegrationGrpcSession implements Closeable {
             if (msg.getEntityViewDataCount() > 0) {
                 for (EntityViewDataProto data : msg.getEntityViewDataList()) {
                     Device device = ctx.getPlatformIntegrationService()
-                            .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null);
+                            .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null, null);
                     ctx.getPlatformIntegrationService().getOrCreateEntityView(configuration, device, data);
                 }
             }

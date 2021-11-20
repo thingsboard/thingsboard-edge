@@ -45,6 +45,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -98,7 +99,6 @@ import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -198,12 +198,16 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}"),
             @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.id}")
     })
+    @Transactional
     @Override
     public Device saveDeviceWithAccessToken(Device device, String accessToken) {
         return doSaveDevice(device, accessToken, true);
     }
 
-    @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
+    @Caching(evict= {
+            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}"),
+            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.id}")
+    })
     @Override
     public Device saveDevice(Device device, boolean doValidate) {
         return doSaveDevice(device, null, doValidate);
@@ -218,6 +222,12 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return doSaveDevice(device, null, true);
     }
 
+    @Caching(evict= {
+            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}"),
+            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.id}")
+    })
+    @Transactional
+    @Override
     public Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials) {
         if (device.getId() == null) {
             Device deviceWithName = this.findDeviceByTenantIdAndName(device.getTenantId(), device.getName());
@@ -232,6 +242,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             if (foundDeviceCredentials == null) {
                 deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
             } else {
+                deviceCredentials.setId(foundDeviceCredentials.getId());
                 deviceCredentialsService.updateDeviceCredentials(device.getTenantId(), deviceCredentials);
             }
         }
@@ -245,8 +256,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
             deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
-            deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
-            entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+            deviceCredentialsService.createDeviceCredentials(savedDevice.getTenantId(), deviceCredentials);
+
+            // TODO - voba - is this required or it's done on processor level?
+            // entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
         return savedDevice;
     }
@@ -274,7 +287,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             }
             device.setType(deviceProfile.getName());
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
-            savedDevice = deviceDao.save(device.getTenantId(), device);
+            savedDevice = deviceDao.saveAndFlush(device.getTenantId(), device);
+            if (device.getId() == null) {
+                entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+            }
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_name_unq_key")) {
@@ -470,6 +486,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 }, MoreExecutors.directExecutor());
     }
 
+    @Transactional
     @Override
     public PageData<Device> findDevicesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
@@ -495,11 +512,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return deviceDao.findDevicesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
-    @Transactional
-    @Caching(evict= {
-            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}"),
-            @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.id}")
-    })
     @Override
     public Device assignDeviceToTenant(TenantId tenantId, Device device) {
         log.trace("Executing assignDeviceToTenant [{}][{}]", tenantId, device);
@@ -518,11 +530,20 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
         relationService.removeRelations(device.getTenantId(), device.getId());
 
+        TenantId oldTenantId = device.getTenantId();
+
         device.setTenantId(tenantId);
         device.setCustomerId(null);
-        Device assignedDevice = doSaveDevice(device, null, true);
-        entityGroupService.addEntityToEntityGroupAll(assignedDevice.getTenantId(), assignedDevice.getOwnerId(), assignedDevice.getId());
-        return assignedDevice;
+
+        Device savedDevice = doSaveDevice(device, null, true);
+        entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+
+        // explicitly remove device with previous tenant id from cache
+        // result device object will have different tenant id and will not remove entity from cache
+        removeDeviceFromCacheByName(oldTenantId, device.getName());
+        removeDeviceFromCacheById(oldTenantId, device.getId());
+
+        return savedDevice;
     }
 
     @Override
@@ -568,7 +589,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 throw new ProvisionFailedException(ProvisionResponseStatus.FAILURE.name());
             }
         }
-        removeDeviceFromCacheById(savedDevice.getTenantId(), savedDevice.getId());
+        removeDeviceFromCacheById(savedDevice.getTenantId(), savedDevice.getId()); // eviction by name is described as annotation @CacheEvict above
         return savedDevice;
     }
 
@@ -601,6 +622,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                     }
                     if (!old.getName().equals(device.getName())) {
                         removeDeviceFromCacheByName(tenantId, old.getName());
+                        removeDeviceFromCacheById(tenantId, device.getId());
                     }
                 }
 
@@ -732,5 +754,21 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
 
         return deviceDao.countByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type);
+    }
+
+    private RuntimeException handleDeviceSaveException(Device device, Exception t)  {
+        ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+        if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_name_unq_key")) {
+            // remove device from cache in case null value cached in the distributed redis.
+            if (device != null) {
+                removeDeviceFromCacheByName(device.getTenantId(), device.getName());
+                removeDeviceFromCacheById(device.getTenantId(), device.getId());
+            }
+            return new DataValidationException("Device with such name already exists!");
+        } else if (t instanceof RuntimeException) {
+            return (RuntimeException)t;
+        } else {
+            return new RuntimeException("Failed to save device!", t);
+        }
     }
 }

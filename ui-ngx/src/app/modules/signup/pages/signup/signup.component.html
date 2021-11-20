@@ -80,10 +80,19 @@
                 <re-captcha #recaptcha formControlName="recaptchaResponse" [siteKey]="signupParams.captchaSiteKey"></re-captcha>
               </div>
               <mat-checkbox class="tb-accept-privacy-policy"
+                            *ngIf="signupParams.showPrivacyPolicy"
                             [(ngModel)]="acceptPrivacyPolicy"
                             [ngModelOptions]="{standalone: true}">
                 <div>
                   {{ 'signup.accept' | translate}} <span class="privacy-policy" (click)="openPrivacyPolicy($event)" translate>signup.privacy-policy</span>
+                </div>
+              </mat-checkbox>
+              <mat-checkbox class="tb-accept-terms-of-use"
+                            *ngIf="signupParams.showTermsOfUse"
+                            [(ngModel)]="acceptTermsOfUse"
+                            [ngModelOptions]="{standalone: true}">
+                <div>
+                  {{ 'signup.accept' | translate}} <span class="terms-of-use" (click)="openTermsOfUse($event)" translate>signup.terms-of-use</span>
                 </div>
               </mat-checkbox>
               <div fxLayout="column" fxLayoutGap="12px" style="padding-top: 15px;">

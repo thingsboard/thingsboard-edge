@@ -32,7 +32,8 @@
 -->
 <a mat-button routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: !section.notExact}"
   [queryParams]="section.queryParams"
-  [routerLink]="section.path">
+  [routerLink]="section.path"
+  [ngClass]="{'is-new': section.isNew}">
   <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
   <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon != null">{{section.icon}}</mat-icon>
   <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>

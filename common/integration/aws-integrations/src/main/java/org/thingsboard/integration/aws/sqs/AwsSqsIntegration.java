@@ -69,10 +69,6 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            stopped = true;
-            return;
-        }
         stopped = false;
         this.context = params.getContext();
         this.sqsConfiguration = mapper.readValue(
@@ -112,7 +108,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
             }
         } catch (Exception e) {
             log.trace(e.getMessage(), e);
-            persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
             taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }
     }
@@ -129,7 +125,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     @Override
     public void process(SqsIntegrationMsg message) {
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getUplinkContentType(), message.getDeviceMetadata()));
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), message.getDeviceMetadata()));
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
@@ -137,11 +133,11 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                 }
             }
             if (configuration.isDebugMode()) {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(message.getJson()), "OK", null);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(message.getJson()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
         }
     }
 

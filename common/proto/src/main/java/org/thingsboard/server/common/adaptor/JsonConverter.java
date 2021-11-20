@@ -121,10 +121,14 @@ public class JsonConverter {
     }
 
     private static void parseObject(long systemTs, Map<Long, List<KvEntry>> result, PostTelemetryMsg.Builder builder, JsonObject jo) {
-        if (result != null) {
-            parseObject(result, systemTs, jo);
-        } else {
-            parseObject(builder, systemTs, jo);
+        try {
+            if (result != null) {
+                parseObject(result, systemTs, jo);
+            } else {
+                parseObject(builder, systemTs, jo);
+            }
+        } catch (Exception e) {
+            throw new JsonSyntaxException(CAN_T_PARSE_VALUE + jo);
         }
     }
 
@@ -200,10 +204,17 @@ public class JsonConverter {
     }
 
     private static void parseWithTs(PostTelemetryMsg.Builder request, JsonObject jo) {
-        TsKvListProto.Builder builder = TsKvListProto.newBuilder();
-        builder.setTs(jo.get("ts").getAsLong());
-        builder.addAllKv(parseProtoValues(jo.get("values").getAsJsonObject()));
-        request.addTsKvList(builder.build());
+        JsonElement tsJsonElement = jo.get("ts");
+        if (tsJsonElement.isJsonNull()) {
+            throw new JsonSyntaxException(CAN_T_PARSE_VALUE + "ts is null!");
+        } else if (tsJsonElement.isJsonArray()) {
+            throw new JsonSyntaxException(CAN_T_PARSE_VALUE + "ts is array!");
+        } else {
+            TsKvListProto.Builder builder = TsKvListProto.newBuilder();
+            builder.setTs(tsJsonElement.getAsLong());
+            builder.addAllKv(parseProtoValues(jo.get("values").getAsJsonObject()));
+            request.addTsKvList(builder.build());
+        }
     }
 
     private static List<KeyValueProto> parseProtoValues(JsonObject valuesObject) {
@@ -580,10 +591,17 @@ public class JsonConverter {
     }
 
     public static void parseWithTs(Map<Long, List<KvEntry>> result, JsonObject jo) {
-        long ts = jo.get("ts").getAsLong();
-        JsonObject valuesObject = jo.get("values").getAsJsonObject();
-        for (KvEntry entry : parseValues(valuesObject)) {
-            result.computeIfAbsent(ts, tmp -> new ArrayList<>()).add(entry);
+        JsonElement tsJsonElement = jo.get("ts");
+        if (tsJsonElement.isJsonNull()) {
+            throw new JsonSyntaxException(CAN_T_PARSE_VALUE + "ts is null!");
+        } else if (tsJsonElement.isJsonArray()) {
+            throw new JsonSyntaxException(CAN_T_PARSE_VALUE + "ts is array!");
+        } else {
+            long ts = tsJsonElement.getAsLong();
+            JsonObject valuesObject = jo.get("values").getAsJsonObject();
+            for (KvEntry entry : parseValues(valuesObject)) {
+                result.computeIfAbsent(ts, tmp -> new ArrayList<>()).add(entry);
+            }
         }
     }
 
@@ -593,6 +611,14 @@ public class JsonConverter {
 
     public static String toJson(JsonElement element) {
         return GSON.toJson(element);
+    }
+
+    public static JsonObject toJsonObject(Object o) {
+        return (JsonObject) GSON.toJsonTree(o);
+    }
+
+    public static <T> T fromJson(JsonElement element, Class<T> type) {
+        return GSON.fromJson(element, type);
     }
 
     public static void setTypeCastEnabled(boolean enabled) {

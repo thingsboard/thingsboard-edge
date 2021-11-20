@@ -38,6 +38,7 @@ import org.eclipse.leshan.core.response.ReadResponse;
 import org.eclipse.leshan.server.registration.Registration;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
 import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
@@ -63,9 +64,11 @@ public interface LwM2mUplinkMsgHandler {
 
     void onDeviceUpdate(TransportProtos.SessionInfoProto sessionInfo, Device device, Optional<DeviceProfile> deviceProfileOpt);
 
-    void onResourceUpdate(Optional<TransportProtos.ResourceUpdateMsg> resourceUpdateMsgOpt);
+    void onDeviceDelete(DeviceId deviceId);
 
-    void onResourceDelete(Optional<TransportProtos.ResourceDeleteMsg> resourceDeleteMsgOpt);
+    void onResourceUpdate(TransportProtos.ResourceUpdateMsg resourceUpdateMsgOpt);
+
+    void onResourceDelete(TransportProtos.ResourceDeleteMsg resourceDeleteMsgOpt);
 
     void onAwakeDev(Registration registration);
 

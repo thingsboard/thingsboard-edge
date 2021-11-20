@@ -1,0 +1,3757 @@
+{
+  "title": "Smart office",
+  "configuration": {
+    "widgets": {
+      "783e83b2-bb20-460b-b4a4-7fbbc08aa27c": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "sizeX": 26,
+        "sizeY": 12,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 2592000000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgba(255,255,255,0.15)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "alarmsTitle": "Alarms",
+            "enableSelectColumnDisplay": true,
+            "enableFilter": true
+          },
+          "title": "New Alarms table",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": "alarms",
+            "entityAliasId": "e73f4fd0-3136-89e7-f802-e071e6e19a6d",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {},
+                "_hash": 0.7160841983752053
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Originator",
+                "color": "#4caf50",
+                "settings": {},
+                "_hash": 0.01300421716139466
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {},
+                "_hash": 0.1447917515829038
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {},
+                "_hash": 0.09241352843515527
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Details",
+                "color": "#9c27b0",
+                "settings": {
+                  "columnWidth": "0px",
+                  "useCellStyleFunction": true,
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "if (alarm.details.data) {\n    return alarm.details.data;\n}\nreturn '';\n",
+                  "cellStyleFunction": "var style = {\n    fontWeight: 600,\n    color: 'rgb(251, 69, 64)'\n};\n\nreturn style;"
+                },
+                "_hash": 0.4062302818196104,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#9c27b0",
+                "settings": {
+                  "columnWidth": "0px",
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.8477401307684032
+              }
+            ]
+          },
+          "alarmSearchStatus": "ACTIVE",
+          "alarmsPollingInterval": 5,
+          "datasources": [],
+          "enableDataExport": true,
+          "widgetStyle": {
+            "backgroundImage": "url(https://thingsboard.io/images/dashboards/smart-building/alarms-bg.jpg)",
+            "backgroundSize": "cover",
+            "backgroundPosition": "center",
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "actions": {
+            "actionCellButton": [
+              {
+                "name": "Navigate to Details",
+                "icon": "play_arrow",
+                "type": "custom",
+                "customFunction": "var deviceService = widgetContext.deviceService;\nif (entityId.entityType === 'DEVICE') {\n    deviceService.getDevice(entityId.id, {ignoreLoading: true}).subscribe(\n        function (device) {\n            var deviceType = device.type;\n            var params = {\n                entityId: entityId,\n                entityName: entityName\n            };\n            var targetDashboardStateId;\n            switch (deviceType) {\n              case \"energy-meter\":\n                  targetDashboardStateId = \"energy_meter\";\n                  break;\n              case \"hvac\":\n                  targetDashboardStateId = \"hvac\";\n                  break;\n              case \"smart-sensor\":\n                  targetDashboardStateId = \"smart_sensor\";\n                  break;\n              case \"water-meter\":\n                  targetDashboardStateId = \"water_meter\";\n                  break;\n            }\n            if (targetDashboardStateId) {\n                  widgetContext.stateController.openState(targetDashboardStateId, params, false);\n            }\n        }\n    );\n}",
+                "id": "1b5c890d-e94f-3317-012a-d3ba9cb12cc9"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "displayTimewindow": true,
+          "alarmStatusList": [
+            "ACTIVE",
+            "CLEARED"
+          ],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": false
+        },
+        "id": "783e83b2-bb20-460b-b4a4-7fbbc08aa27c"
+      },
+      "17ad8f4c-da3c-6a50-99ae-357e27f0af40": {
+        "isSystemType": true,
+        "bundleAlias": "maps_v2",
+        "typeAlias": "image_map",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 22,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "temperature",
+                  "color": "#8bc34a",
+                  "settings": {},
+                  "_hash": 0.1389647910354801
+                },
+                {
+                  "name": "power",
+                  "type": "timeseries",
+                  "label": "power",
+                  "color": "#3f51b5",
+                  "settings": {},
+                  "_hash": 0.9561344749428415
+                },
+                {
+                  "name": "water",
+                  "type": "timeseries",
+                  "label": "water",
+                  "color": "#e91e63",
+                  "settings": {},
+                  "_hash": 0.07356390203422203
+                },
+                {
+                  "name": "airFlow",
+                  "type": "timeseries",
+                  "label": "airFlow",
+                  "color": "#ffeb3b",
+                  "settings": {},
+                  "_hash": 0.7319416423264777
+                },
+                {
+                  "name": "enabled",
+                  "type": "timeseries",
+                  "label": "enabled",
+                  "color": "#ffeb3b",
+                  "settings": {},
+                  "_hash": 0.012952143478854872
+                },
+                {
+                  "name": "amperage",
+                  "type": "timeseries",
+                  "label": "amperage",
+                  "color": "#03a9f4",
+                  "settings": {},
+                  "_hash": 0.9977180851736969
+                },
+                {
+                  "name": "voltage",
+                  "type": "timeseries",
+                  "label": "voltage",
+                  "color": "#ff9800",
+                  "settings": {},
+                  "_hash": 0.5907646987619091
+                },
+                {
+                  "name": "frequency",
+                  "type": "timeseries",
+                  "label": "frequency",
+                  "color": "#673ab7",
+                  "settings": {},
+                  "_hash": 0.12188283119718779
+                },
+                {
+                  "name": "targetTemperature",
+                  "type": "timeseries",
+                  "label": "targetTemperature",
+                  "color": "#cddc39",
+                  "settings": {},
+                  "_hash": 0.7337733812197624
+                },
+                {
+                  "name": "enabled",
+                  "type": "timeseries",
+                  "label": "enabledText",
+                  "color": "#009688",
+                  "settings": {},
+                  "_hash": 0.7950194373671926,
+                  "postFuncBody": "return value === 'true' ? 'ON' : 'OFF';"
+                },
+                {
+                  "name": "enabled",
+                  "type": "timeseries",
+                  "label": "enabledTextColor",
+                  "color": "#795548",
+                  "settings": {},
+                  "_hash": 0.6090071911452675,
+                  "postFuncBody": "return value === 'true' ? '#43a047' : '#f44336';"
+                },
+                {
+                  "name": "humidity",
+                  "type": "timeseries",
+                  "label": "humidity",
+                  "color": "#00bcd4",
+                  "settings": {},
+                  "_hash": 0.5744184012686038
+                },
+                {
+                  "name": "co2",
+                  "type": "timeseries",
+                  "label": "co2",
+                  "color": "#ff5722",
+                  "settings": {},
+                  "_hash": 0.4484428199566908
+                },
+                {
+                  "name": "tvoc",
+                  "type": "timeseries",
+                  "label": "tvoc",
+                  "color": "#9e9e9e",
+                  "settings": {},
+                  "_hash": 0.7163832277308244
+                },
+                {
+                  "name": "occupancy",
+                  "type": "timeseries",
+                  "label": "occupancyText",
+                  "color": "#2962ff",
+                  "settings": {},
+                  "_hash": 0.3574594042021839,
+                  "postFuncBody": "return value === 'true' ? 'Occupied' : 'Free';"
+                },
+                {
+                  "name": "energy",
+                  "type": "timeseries",
+                  "label": "energy",
+                  "color": "#00c853",
+                  "settings": {},
+                  "_hash": 0.48130961726228816
+                },
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#ff5722",
+                  "settings": {},
+                  "_hash": 0.046553157420540225
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#9e9e9e",
+                  "settings": {},
+                  "_hash": 0.10821421103015472
+                },
+                {
+                  "name": "type",
+                  "type": "attribute",
+                  "label": "type",
+                  "color": "#2962ff",
+                  "settings": {},
+                  "_hash": 0.6203531659263102
+                },
+                {
+                  "name": "type",
+                  "type": "attribute",
+                  "label": "labelColor",
+                  "color": "#d50000",
+                  "settings": {},
+                  "_hash": 0.6251657234134782,
+                  "postFuncBody": "if (value === 'smart-sensor') {\n    return '#ff3d00';\n} else if (value === 'hvac') {\n    return '#008000';\n} else if (value === 'energy-meter') {\n    return '#f68b38';\n} else if (value === 'water-meter') {\n    return '#1b76d2';\n}\nreturn '#000000';"
+                },
+                {
+                  "name": "type",
+                  "type": "attribute",
+                  "label": "friendlyName",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.06074376013993765,
+                  "postFuncBody": "if (value === 'smart-sensor') {\n    return 'Smart Sensor';\n} else if (value === 'hvac') {\n    return 'HVAC';\n} else if (value === 'energy-meter') {\n    return 'Energy Meter';\n} else if (value === 'water-meter') {\n    return 'Water Meter';\n}\nreturn value;"
+                }
+              ],
+              "entityAliasId": "e73f4fd0-3136-89e7-f802-e071e6e19a6d"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "showLabel": true,
+            "label": "<div style=\"position: relative; white-space: nowrap; text-align: center; font-size: 16px; top: 5px;\"><span style=\"margin-left: -500%;\"></span><span style=\"border: solid ${labelColor}; border-radius: 10px; color: ${labelColor}; background-color: #fff; padding-left: 5px; padding-right: 5px; padding-top: 3px; padding-bottom: 3px;\">${friendlyName}</span><span style=\"margin-right: -500%;\"></span></div>",
+            "markerImageSize": 34,
+            "useColorFunction": false,
+            "markerImages": [
+              "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4KCjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNDQwOCIKICAgeD0iMHB4IgogICB5PSIwcHgiCiAgIHZpZXdCb3g9IjAgMCAxNTAgMTUwIgogICBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxNTAgMTUwOyIKICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIKICAgc29kaXBvZGk6ZG9jbmFtZT0ic21hcnQtc2Vuc29yLnN2ZyIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMC45Mi40IChmNDcyMDU0LCAyMDE5LTAyLTE3KSI+PG1ldGFkYXRhCiAgIGlkPSJtZXRhZGF0YTEwMCI+PHJkZjpSREY+PGNjOldvcmsKICAgICAgIHJkZjphYm91dD0iIj48ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD48ZGM6dHlwZQogICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPjxkYzp0aXRsZT48L2RjOnRpdGxlPjwvY2M6V29yaz48L3JkZjpSREY+PC9tZXRhZGF0YT48ZGVmcwogICBpZD0iZGVmczk4Ij4KCQoJCjwvZGVmcz48c29kaXBvZGk6bmFtZWR2aWV3CiAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiCiAgIGJvcmRlcm9wYWNpdHk9IjEiCiAgIG9iamVjdHRvbGVyYW5jZT0iMTAiCiAgIGdyaWR0b2xlcmFuY2U9IjEwIgogICBndWlkZXRvbGVyYW5jZT0iMTAiCiAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwIgogICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjE5MjAiCiAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijk4NCIKICAgaWQ9Im5hbWVkdmlldzk2IgogICBzaG93Z3JpZD0iZmFsc2UiCiAgIGlua3NjYXBlOnpvb209IjEuODgwOTA0IgogICBpbmtzY2FwZTpjeD0iLTYyLjIwODE4OCIKICAgaW5rc2NhcGU6Y3k9IjEwMi40NjA0MyIKICAgaW5rc2NhcGU6d2luZG93LXg9IjE5MjAiCiAgIGlua3NjYXBlOndpbmRvdy15PSIyNyIKICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnNDQwOCIgLz4KPHN0eWxlCiAgIHR5cGU9InRleHQvY3NzIgogICBpZD0ic3R5bGU3NSI+Cgkuc3Qwe29wYWNpdHk6MC44OTI7ZW5hYmxlLWJhY2tncm91bmQ6bmV3ICAgIDt9Cgkuc3Qxe2ZpbGw6dXJsKCNTVkdJRF8xXyk7fQoJLnN0MntmaWxsOiNGNDQzMzY7fQoJLnN0M3tmaWxsOiNGRkZGRkY7fQo8L3N0eWxlPgoKCgo8ZwogICBpZD0iZzExNTQiPjxnCiAgICAgaWQ9ImxheWVyMSI+Cgk8ZwogICBjbGFzcz0ic3QwIgogICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTQ2LjQzOCAtMjc2LjAyOCkiCiAgIGlkPSJwYXRoNjg4MS0zLTUtNS0xLTgtNC00LTctOCI+CgkJCgkJCTxyYWRpYWxHcmFkaWVudAogICBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIKICAgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgwLjY3OTMgNy42MDAwMDBlLTAzIC0wLjUwOSAwLjU2MTIgLTIzMi42Mjg2IC0xNDExLjcyNDYpIgogICByPSI0OS45MDEyIgogICBjeT0iMzE3OC40NTgiCiAgIGN4PSIzMDg1LjIxNDgiCiAgIGlkPSJTVkdJRF8xXyI+CgkJCTxzdG9wCiAgIGlkPSJzdG9wNzciCiAgIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiCiAgIG9mZnNldD0iMCIgLz4KCQkJPHN0b3AKICAgaWQ9InN0b3A3OSIKICAgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMDtzdG9wLW9wYWNpdHk6MC4xODgiCiAgIG9mZnNldD0iMSIgLz4KCQk8L3JhZGlhbEdyYWRpZW50PgoJCTxwYXRoCiAgIGlkPSJwYXRoODIiCiAgIGQ9Ik0yODUuNiwzODguNWMxMC4zLTEyLjQsNC40LTIyLjQtMTQuNC0yMi40Yy0xOC45LDAtNDIuNCwxMC01My45LDIyLjRjLTE2LjgsMTgsMC40LDIzLjUtMC4yLDM1ICAgIGMtMC4xLDEuOCwzLjksMS44LDcsMEMyNDMuOSw0MTIsMjcwLjYsNDA2LjUsMjg1LjYsMzg4LjUiCiAgIGNsYXNzPSJzdDEiIC8+Cgk8L2c+Cgk8cGF0aAogICBkPSJNMTI0LjcsNjkuMWMtMC45LTI3LjUtMjIuMy00OS44LTQ5LjgtNDkuOHMtNDksMjIuMy00OS44LDQ5LjggICBjLTEuMyw0MC4xLDMwLjcsNTIuMiw0NC43LDc4YzIuMiw0LDgsNCwxMC4xLDBDOTQsMTIxLjMsMTI2LDEwOS4yLDEyNC43LDY5LjEiCiAgIGNsYXNzPSJzdDIiCiAgIGlkPSJwYXRoNjg4MS0zLTUtNS0xLTgtNC00IiAvPgo8L2c+PGNpcmNsZQogICAgIGlkPSJwYXRoNDk3OCIKICAgICBjbGFzcz0ic3QyIgogICAgIGN4PSI3NC45MDAwMDIiCiAgICAgY3k9IjY5LjA5OTk5OCIKICAgICByPSI0OS45MDAwMDIiCiAgICAgc3R5bGU9ImZpbGw6I2Y0NDMzNiIgLz48ZwogICAgIGlkPSJnNDkxNSI+CgkJPHBhdGgKICAgaWQ9InBhdGg2ODgzLTItMy01LTItNC05LTQtOSIKICAgY2xhc3M9InN0MyIKICAgZD0iTSA3NC44LDEwNi40IEMgNTQuMiwxMDYuNCAzNy40LDg5LjcgMzcuNCw2OSBjIDAsLTIwLjYgMTYuNywtMzcuNCAzNy40LC0zNy40IDIwLjYsMCAzNy40LDE2LjcgMzcuNCwzNy40IDAsMjAuNyAtMTYuNywzNy40IC0zNy40LDM3LjQiCiAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgIHN0eWxlPSJmaWxsOiNmZmZmZmYiIC8+Cgk8L2c+PGcKICAgICB0cmFuc2Zvcm09Im1hdHJpeCgwLjkxODk0Mzg2LDAsMCwwLjkxODk0Mzg2LDEyMi41MDQ2NCwtNC4yMzg4NDk3KSIKICAgICBzdHlsZT0iZmlsbDojZjQ0MzM2O2ZpbGwtb3BhY2l0eToxIgogICAgIGlkPSJnMTEzMyI+PHBhdGgKICAgICAgIGQ9Im0gLTY2LjA5MTcyMSw5NC44NTg0NTQgYyAwLjYwMDAwOSwwIDEuMTU5OTQ1LC0wLjIzNzIyNiAxLjU3NjY5MywtMC42Njg5MzMgbCAzLjExMzMxMSwtMy4yMjAxNjkgYyAwLjc5MTI4NSwtMC44MTggMC44MjIyNzQsLTIuMTIxNjY5IDAuMDcwNTMsLTIuOTY3NDUyIC0yLjAzNjE4MiwtMi4yOTE1NzMgLTMuMTU3NjU5LC01LjI0NzI3IC0zLjE1NzY1OSwtOC4zMjE1NzkgMCwtMy4wNzQzMDkgMS4xMjE0NzcsLTYuMDI5NDcxIDMuMTU4MTk0LC04LjMyMjExMyAwLjc1MTIxMiwtMC44NDUyNDggMC43MjAyMjMsLTIuMTQ4OTE4IC0wLjA3MTA2LC0yLjk2NjkxNyBsIC0zLjExMzMxMSwtMy4yMjAxNyBjIC0wLjQxNjc0OCwtMC40MzE3MDcgLTAuOTc2Njg0LC0wLjY2ODkzMiAtMS41NzY2OTMsLTAuNjY4OTMyIC0wLjYwOTYyNiwwIC0xLjE5NTIwOCwwLjI1NjQ1OSAtMS42MDcxNDcsMC43MDQxOTUgLTMuNjM2OTE2LDMuOTUxNjE0IC01LjYzOTk3Myw5LjA5MTQ5MiAtNS42Mzk5NzMsMTQuNDczOTM3IDAsNS4zODI0NDUgMi4wMDMwNTcsMTAuNTIyMzIzIDUuNjM5OTczLDE0LjQ3MzkzNyAwLjQxMTkzOSwwLjQ0NzczNiAwLjk5NzUyMSwwLjcwNDE5NiAxLjYwNzE0NywwLjcwNDE5NiB6IgogICAgICAgaWQ9InBhdGgxNzkiCiAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgICAgc3R5bGU9ImZpbGw6I2Y0NDMzNjtmaWxsLW9wYWNpdHk6MTtzdHJva2Utd2lkdGg6MC4xMzY3Nzg0NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2NzY3NjY2MiIC8+PHBhdGgKICAgICAgIGQ9Im0gLTI2LjcwODA3OSw1NS4zOTE0NjIgYyAtMC40MTI0NzIsLTAuNDI3OTY2IC0wLjk4OTUwNiwtMC42NzMyMDYgLTEuNTgzMTA0LC0wLjY3MzIwNiAtMC41OTg0MDUsMCAtMS4xNTY3MzksMC4yMzY2OTEgLTEuNTcyOTUyLDAuNjY3MzI5IGwgLTMuMTA4NTAzLDMuMjE1MzYyIGMgLTAuODIwMTM2LDAuODQ4NDU0IC0wLjgyNzA4MiwyLjE3Nzc2OSAtMC4wMTYwMywzLjAyNzI5MiAyLjEzODIzMywyLjIzODY3OCAzLjg0Nzk2Myw0LjgxNTAyOCA1LjA4MTEwNSw3LjY1NjM4NiAxLjQyOTc2MywzLjI5MzM2OSAyLjE1NDI2MSw2Ljc5MDgzNiAyLjE1NDI2MSwxMC4zOTU2OTYgMCwzLjYwNDg2IC0wLjcyNDQ5OCw3LjEwMjMyNyAtMi4xNTM3MjYsMTAuMzk1MTYyIC0xLjIzMzY3NywyLjg0MTg5MiAtMi45NDM0MDcsNS40MTgyNDIgLTUuMDgxNjQsNy42NTY5MjEgLTAuODExMDUzLDAuODQ4OTg4IC0wLjgwNDEwNywyLjE3ODgzOCAwLjAxNjAzLDMuMDI3Mjk2IGwgMy4xMDg1MDMsMy4yMTUzNiBjIDAuNDE2MjEzLDAuNDMwNjQgMC45NzQ1NDcsMC42NjczMyAxLjU3Mjk1MiwwLjY2NzMzIDAuNTkzNTk4LDAgMS4xNzA2MzIsLTAuMjQ1MjQgMS41ODMxMDQsLTAuNjczMjEgMi45MTcyMjgsLTMuMDIzNTUgNS4yNDQ1OTgsLTYuNTEzMDA0IDYuOTE5MDY2LC0xMC4zNzA1ODQgMS45MTQzNjMsLTQuNDExMTA1IDIuODg1MTcsLTkuMDk0MTYzIDIuODg1MTcsLTEzLjkxODI3NSAwLC00LjgyNDExMSAtMC45NzA4MDcsLTkuNTA3MTcgLTIuODg1NzA1LC0xMy45MTg4MDkgLTEuNjczOTMzLC0zLjg1NzA0NSAtNC4wMDE4MzcsLTcuMzQ2NDk4IC02LjkxODUzMSwtMTAuMzcwMDUgeiIKICAgICAgIGlkPSJwYXRoMTgxIgogICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICAgIHN0eWxlPSJmaWxsOiNmNDQzMzY7ZmlsbC1vcGFjaXR5OjE7c3Ryb2tlLXdpZHRoOjAuMTM2Nzc4NDQiCiAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNzY2NjY3NjY2Njc2Njc2NjIiAvPjxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDojZjQ0MzM2O2ZpbGwtb3BhY2l0eToxO3N0cm9rZS13aWR0aDowLjEzNjc3ODQ0IgogICAgICAgZD0ibSAtNTEuOTE5OTIyLDY5LjgxNjQwNiBjIC01LjQzODU0NiwwIC05Ljg2MTMyOCw0LjQyNDczNSAtOS44NjEzMjgsOS44NjMyODIgMCw1LjQzODU0NiA0LjQyMjc4Miw5Ljg2MzI4MSA5Ljg2MTMyOCw5Ljg2MzI4MSA1LjQzODU0NiwwIDkuODYzMjgxLC00LjQyNDczNSA5Ljg2MzI4MSwtOS44NjMyODEgMCwtNS40Mzg1NDcgLTQuNDI0NzM1LC05Ljg2MzI4MiAtOS44NjMyODEsLTkuODYzMjgyIHogbSAwLDIuMDUyNzM1IGMgNC4zMDc0NTIsMCA3LjgxMjUsMy41MDMwOTUgNy44MTI1LDcuODEwNTQ3IDAsNC4zMDc0NTIgLTMuNTUyNTc1LC0yLjI5MDg4MyAtNy44NTk0OTIsLTIuMjkwODgzIC00LjMwNjkxOCwwIC03Ljc2MzU1NSw2LjU5ODMzNSAtNy43NjM1NTUsMi4yOTA4ODMgMCwtNC4zMDc0NTIgMy41MDM2MjksLTcuODEwNTQ3IDcuODEwNTQ3LC03LjgxMDU0NyB6IgogICAgICAgaWQ9InBhdGgxODUiCiAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJzc3Nzc3Nzc3NzIiAvPjxwYXRoCiAgICAgICBkPSJtIC03Ny4xMTY4NTIsNTUuNDI4Njg4IGMgMC40MTI0NzIsLTAuNDI3OTY2IDAuOTg5NTA2LC0wLjY3MzIwNiAxLjU4MzEwNCwtMC42NzMyMDYgMC41OTg0MDUsMCAxLjE1NjczOSwwLjIzNjY5MSAxLjU3Mjk1MiwwLjY2NzMyOSBsIDMuMTA4NTAzLDMuMjE1MzYyIGMgMC44MjAxMzYsMC44NDg0NTQgMC44MjcwODIsMi4xNzc3NjkgMC4wMTYwMywzLjAyNzI5MiAtMi4xMzgyMzMsMi4yMzg2NzggLTMuODQ3OTYzLDQuODE1MDI4IC01LjA4MTEwNSw3LjY1NjM4NiAtMS40Mjk3NjMsMy4yOTMzNjkgLTIuMTU0MjYxLDYuNzkwODM2IC0yLjE1NDI2MSwxMC4zOTU2OTYgMCwzLjYwNDg2IDAuNzI0NDk4LDcuMTAyMzI3IDIuMTUzNzI2LDEwLjM5NTE2MiAxLjIzMzY3NywyLjg0MTg5MiAyLjk0MzQwNyw1LjQxODI0MyA1LjA4MTY0LDcuNjU2OTIzIDAuODExMDUzLDAuODQ4OTkgMC44MDQxMDcsMi4xNzg4NDMgLTAuMDE2MDMsMy4wMjcyOTggbCAtMy4xMDg1MDMsMy4yMTUzNiBjIC0wLjQxNjIxMywwLjQzMDY0IC0wLjk3NDU0NywwLjY2NzMzIC0xLjU3Mjk1MiwwLjY2NzMzIC0wLjU5MzU5OCwwIC0xLjE3MDYzMiwtMC4yNDUyNCAtMS41ODMxMDQsLTAuNjczMjEgLTIuOTE3MjI4LC0zLjAyMzU1IC01LjI0NDU5OSwtNi41MTMwMDggLTYuOTE5MDY3LC0xMC4zNzA1ODggLTEuOTE0MzYzLC00LjQxMTEwNSAtMi44ODUxNzMsLTkuMDk0MTYzIC0yLjg4NTE3MywtMTMuOTE4Mjc1IDAsLTQuODI0MTExIDAuOTcwODEsLTkuNTA3MTcgMi44ODU3MDgsLTEzLjkxODgwOSAxLjY3MzkzMywtMy44NTcwNDUgNC4wMDE4MzgsLTcuMzQ2NDk4IDYuOTE4NTMyLC0xMC4zNzAwNSB6IgogICAgICAgaWQ9InBhdGgxODEtNSIKICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgICBzdHlsZT0iZmlsbDojZjQ0MzM2O2ZpbGwtb3BhY2l0eToxO3N0cm9rZS13aWR0aDowLjEzNjc3ODQ0IgogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjc2NjY2NzY2NjY3NjY3NjYyIgLz48cGF0aAogICAgICAgZD0ibSAtMzcuNzEwOTA3LDk0Ljg4ODYxNSBjIC0wLjYwMDAwOSwwIC0xLjE1OTk0NSwtMC4yMzcyMjYgLTEuNTc2NjkzLC0wLjY2ODkzMyBsIC0zLjExMzMxMSwtMy4yMjAxNjkgYyAtMC43OTEyODUsLTAuODE4IC0wLjgyMjI3NCwtMi4xMjE2NjkgLTAuMDcwNTMsLTIuOTY3NDUyIDIuMDM2MTgyLC0yLjI5MTU3MyAzLjE1NzY1OSwtNS4yNDcyNyAzLjE1NzY1OSwtOC4zMjE1NzkgMCwtMy4wNzQzMDkgLTEuMTIxNDc3LC02LjAyOTQ3MSAtMy4xNTgxOTQsLTguMzIyMTEzIC0wLjc1MTIxMiwtMC44NDUyNDggLTAuNzIwMjIzLC0yLjE0ODkxOCAwLjA3MTA2LC0yLjk2NjkxNyBsIDMuMTEzMzExLC0zLjIyMDE3IGMgMC40MTY3NDgsLTAuNDMxNzA3IDAuOTc2Njg0LC0wLjY2ODkzMiAxLjU3NjY5MywtMC42Njg5MzIgMC42MDk2MjYsMCAxLjE5NTIwOCwwLjI1NjQ1OSAxLjYwNzE0NywwLjcwNDE5NSAzLjYzNjkxNiwzLjk1MTYxNCA1LjYzOTk3Myw5LjA5MTQ5MiA1LjYzOTk3MywxNC40NzM5MzcgMCw1LjM4MjQ0NSAtMi4wMDMwNTcsMTAuNTIyMzIzIC01LjYzOTk3MywxNC40NzM5MzcgLTAuNDExOTM5LDAuNDQ3NzM2IC0wLjk5NzUyMSwwLjcwNDE5NiAtMS42MDcxNDcsMC43MDQxOTYgeiIKICAgICAgIGlkPSJwYXRoMTc5LTUiCiAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgICAgc3R5bGU9ImZpbGw6I2Y0NDMzNjtmaWxsLW9wYWNpdHk6MTtzdHJva2Utd2lkdGg6MC4xMzY3Nzg0NCIKICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY3NjY2NzY3NjY2MiIC8+PC9nPjwvZz48L3N2Zz4=",
+              "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4KCjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNDQwOCIKICAgeD0iMHB4IgogICB5PSIwcHgiCiAgIHZpZXdCb3g9IjAgMCAxNTAgMTUwIgogICBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxNTAgMTUwOyIKICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIKICAgc29kaXBvZGk6ZG9jbmFtZT0iYWlyY29uZGl0aW9uZXItb2ZmLnN2ZyIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMC45Mi40IChmNDcyMDU0LCAyMDE5LTAyLTE3KSI+PG1ldGFkYXRhCiAgIGlkPSJtZXRhZGF0YTI0ODkiPjxyZGY6UkRGPjxjYzpXb3JrCiAgICAgICByZGY6YWJvdXQ9IiI+PGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+PGRjOnR5cGUKICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz48L2NjOldvcms+PC9yZGY6UkRGPjwvbWV0YWRhdGE+PGRlZnMKICAgaWQ9ImRlZnMyNDg3Ij4KCQoJCgoJCgkKPC9kZWZzPjxzb2RpcG9kaTpuYW1lZHZpZXcKICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgYm9yZGVyb3BhY2l0eT0iMSIKICAgb2JqZWN0dG9sZXJhbmNlPSIxMCIKICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgIGd1aWRldG9sZXJhbmNlPSIxMCIKICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiCiAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTkyMCIKICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iOTg0IgogICBpZD0ibmFtZWR2aWV3MjQ4NSIKICAgc2hvd2dyaWQ9ImZhbHNlIgogICBpbmtzY2FwZTp6b29tPSIyLjIyNTAyOTMiCiAgIGlua3NjYXBlOmN4PSIyNS4yNDA3NzgiCiAgIGlua3NjYXBlOmN5PSI2Mi4xNTQ4OTUiCiAgIGlua3NjYXBlOndpbmRvdy14PSIxOTIwIgogICBpbmtzY2FwZTp3aW5kb3cteT0iMjciCiAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiCiAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9InN2ZzQ0MDgiIC8+CjxzdHlsZQogICB0eXBlPSJ0ZXh0L2NzcyIKICAgaWQ9InN0eWxlMjQ2MCI+Cgkuc3Qwe29wYWNpdHk6MC44OTI7ZW5hYmxlLWJhY2tncm91bmQ6bmV3ICAgIDt9Cgkuc3Qxe2ZpbGw6dXJsKCNTVkdJRF8xXyk7fQoJLnN0MntmaWxsOiMxOTc2RDI7fQoJLnN0M3tmaWxsOiNGRkZGRkY7fQoJLnN0NHtmaWxsOiNGRjAwMDA7fQo8L3N0eWxlPgoKCjxnCiAgIGlkPSJnMzA1NiI+PGcKICAgICBpZD0icGF0aDY4ODEtMy01LTUtMS04LTQtNC03LTgiCiAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTE0Ni40MzgsLTI3Ni4wMjgpIgogICAgIGNsYXNzPSJzdDAiCiAgICAgc3R5bGU9Im9wYWNpdHk6MC44OTIwMDAwMztlbmFibGUtYmFja2dyb3VuZDpuZXciPgoJCQoJCQk8cmFkaWFsR3JhZGllbnQKICAgaWQ9IlNWR0lEXzFfIgogICBjeD0iMzk3OS41NjQyIgogICBjeT0iMzg5NS40ODM5IgogICByPSI0OS45MDA1MDEiCiAgIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMC42NzkzLDAuMDA3NiwtMC41MDksMC41NjEyLC00NzUuMTk0OCwtMTgyMC45MTY1KSIKICAgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgoJCQk8c3RvcAogICBvZmZzZXQ9IjAiCiAgIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiCiAgIGlkPSJzdG9wMjQ2MiIgLz4KCQkJPHN0b3AKICAgb2Zmc2V0PSIxIgogICBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwO3N0b3Atb3BhY2l0eTowLjE4OCIKICAgaWQ9InN0b3AyNDY0IiAvPgoJCTwvcmFkaWFsR3JhZGllbnQ+CgkJPHBhdGgKICAgY2xhc3M9InN0MSIKICAgZD0ibSAyODUuNiwzODguNSBjIDEwLjMsLTEyLjQgNC40LC0yMi40IC0xNC40LC0yMi40IC0xOC45LDAgLTQyLjQsMTAgLTUzLjksMjIuNCAtMTYuOCwxOCAwLjQsMjMuNSAtMC4yLDM1IC0wLjEsMS44IDMuOSwxLjggNywwIDE5LjgsLTExLjUgNDYuNSwtMTcgNjEuNSwtMzUiCiAgIGlkPSJwYXRoMjQ2NyIKICAgc3R5bGU9ImZpbGw6dXJsKCNTVkdJRF8xXykiCiAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiIC8+Cgk8L2c+PHBhdGgKICAgICBpZD0icGF0aDY4ODEtMy01LTUtMS04LTQtNCIKICAgICBjbGFzcz0ic3QyIgogICAgIGQ9Ik0gMTI0LjcsNjkuMSBDIDEyMy44LDQxLjYgMTAyLjQsMTkuMyA3NC45LDE5LjMgYyAtMjcuNSwwIC00OSwyMi4zIC00OS44LDQ5LjggLTEuMyw0MC4xIDMwLjcsNTIuMiA0NC43LDc4IDIuMiw0IDgsNCAxMC4xLDAgMTQuMSwtMjUuOCA0Ni4xLC0zNy45IDQ0LjgsLTc4IgogICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgc3R5bGU9ImZpbGw6IzAwODAwMDtmaWxsLW9wYWNpdHk6MSIgLz48Y2lyY2xlCiAgICAgaWQ9InBhdGg0OTc4IgogICAgIGNsYXNzPSJzdDIiCiAgICAgY3g9Ijc0LjkwMDAwMiIKICAgICBjeT0iNjkuMDk5OTk4IgogICAgIHI9IjQ5LjkwMDAwMiIKICAgICBzdHlsZT0iZmlsbDojMDA4MDAwO2ZpbGwtb3BhY2l0eToxIiAvPjxnCiAgICAgaWQ9Imc0OTE1Ij4KCQk8cGF0aAogICBpZD0icGF0aDY4ODMtMi0zLTUtMi00LTktNC05IgogICBjbGFzcz0ic3QzIgogICBkPSJNIDc0LjgsMTA2LjQgQyA1NC4yLDEwNi40IDM3LjQsODkuNyAzNy40LDY5IGMgMCwtMjAuNiAxNi43LC0zNy40IDM3LjQsLTM3LjQgMjAuNiwwIDM3LjQsMTYuNyAzNy40LDM3LjQgMCwyMC43IC0xNi43LDM3LjQgLTM3LjQsMzcuNCIKICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KCTwvZz48ZwogICAgIGlkPSJnMjQ4MiI+Cgk8ZwogICBpZD0iZzI0ODAiPgoJCTxwYXRoCiAgIGlkPSJwYXRoMjQ3NiIKICAgZD0iTTkxLjQsNzIuMmwtMTEuOC0zLjhjMC0wLjQtMC4xLTAuNy0wLjItMWMwLjUtMC4yLDEtMC4zLDEuNS0wLjVjNC43LTEuOCw3LjQtMy43LDgtNS45ICAgIGMwLjQtMS40LDAtMi44LTEuMy00LjJjLTEtMS4xLTMuMy0yLjctMy40LTIuN2MtMC40LTAuMy0wLjktMC4yLTEuMSwwLjJsLTcuMywxMC4xYy0wLjIsMC0wLjQsMC0wLjYsMGMtMC4xLDAtMC4zLDAtMC40LDAgICAgYzAtMy43LTAuNS04LjUtMi40LTEwLjZjLTAuOC0wLjgtMS43LTEuMy0yLjctMS4zYzAsMCwwLDAsMCwwYy0wLjcsMC0xLjUsMC4yLTIuNCwwLjZjLTEsMC41LTIuNiwxLjYtMy4zLDIuMiAgICBjLTAuMiwwLjItMC4zLDAuMy0wLjQsMC4zYy0wLjIsMC4yLTAuMywwLjQtMC4zLDAuN2MwLDAuMiwwLjEsMC4zLDAuMiwwLjRsNy43LDEwLjVjLTAuMSwwLjItMC4yLDAuNC0wLjIsMC42ICAgIGMtMi41LTAuOC01LjctMS42LTguMi0xLjZjLTIsMC0zLjUsMC41LTQuNCwxLjVjLTAuOCwwLjktMS4xLDIuMS0wLjgsMy43YzAuMiwxLjUsMS4xLDQuMSwxLjIsNC4yYzAuMSwwLjMsMC40LDAuNiwwLjgsMC42ICAgIGMwLjEsMCwwLjIsMCwwLjMsMEw3Mi4xLDcyYzAuMSwwLjEsMC4zLDAuMywwLjQsMC40Yy0wLjQsMC42LTAuOSwxLjItMS4zLDEuOWMtMi44LDQuMi0zLjgsNy40LTMsOS41YzAuNSwxLjQsMS43LDIuMywzLjUsMi42ICAgIGMxLDAuMiwyLjUsMC4yLDMuNiwwLjJjMC41LDAsMC44LDAsMC44LDBjMC40LDAsMC44LTAuNCwwLjgtMC44bC0wLjEtMTIuOGMwLjItMC4xLDAuNS0wLjIsMC43LTAuNGMwLjQsMC41LDAuOCwxLDEuMiwxLjUgICAgYzMuMSwzLjksNS44LDUuOSw4LDUuOWMxLDAsMi41LTAuNCwzLjYtMi42YzAuNy0xLjMsMS41LTQsMS41LTQuMUM5Mi4xLDcyLjgsOTEuOSw3Mi40LDkxLjQsNzIuMnogTTc1LjIsNzEuMSAgICBjLTEuMywwLTIuMy0xLTIuMy0yLjNjMC0xLjMsMS0yLjMsMi4zLTIuM2MxLjMsMCwyLjMsMSwyLjMsMi4zQzc3LjUsNzAuMSw3Ni41LDcxLjEsNzUuMiw3MS4xeiIKICAgY2xhc3M9InN0NCIgLz4KCQk8cGF0aAogICBpZD0icGF0aDI0NzgiCiAgIGQ9Ik05OC4xLDQ1SDUxLjljLTAuNSwwLTAuOSwwLjQtMC45LDAuOXY0Ni4yYzAsMC41LDAuNCwwLjksMC45LDAuOWg0Ni4yYzAuNSwwLDAuOS0wLjQsMC45LTAuOVY0NS45ICAgIEM5OSw0NS40LDk4LjYsNDUsOTguMSw0NXogTTUzLjIsNDguN2MwLTAuOCwwLjctMS41LDEuNS0xLjVjMC44LDAsMS41LDAuNywxLjUsMS41YzAsMC44LTAuNywxLjUtMS41LDEuNSAgICBDNTMuOSw1MC4yLDUzLjIsNDkuNSw1My4yLDQ4Ljd6IE03NSw4OC4zYy0xMC42LDAtMTkuMy04LjYtMTkuMy0xOS4zUzY0LjQsNDkuNyw3NSw0OS43YzEwLjYsMCwxOS4zLDguNiwxOS4zLDE5LjMgICAgUzg1LjYsODguMyw3NSw4OC4zeiBNOTUuMyw5MC44Yy0wLjgsMC0xLjUtMC43LTEuNS0xLjVjMC0wLjgsMC43LTEuNSwxLjUtMS41YzAuOCwwLDEuNSwwLjcsMS41LDEuNSAgICBDOTYuOCw5MC4xLDk2LjEsOTAuOCw5NS4zLDkwLjh6IgogICBjbGFzcz0ic3Q0IiAvPgoJPC9nPgo8L2c+PC9nPgo8L3N2Zz4=",
+              "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4KCjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNDQwOCIKICAgeD0iMHB4IgogICB5PSIwcHgiCiAgIHZpZXdCb3g9IjAgMCAxNTAgMTUwIgogICBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxNTAgMTUwOyIKICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIKICAgc29kaXBvZGk6ZG9jbmFtZT0iYWlyY29uZGl0aW9uZXItb24uc3ZnIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjkyLjQgKGY0NzIwNTQsIDIwMTktMDItMTcpIj48bWV0YWRhdGEKICAgaWQ9Im1ldGFkYXRhMTc0OCI+PHJkZjpSREY+PGNjOldvcmsKICAgICAgIHJkZjphYm91dD0iIj48ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD48ZGM6dHlwZQogICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPjwvY2M6V29yaz48L3JkZjpSREY+PC9tZXRhZGF0YT48ZGVmcwogICBpZD0iZGVmczE3NDYiPgoJCgkKCgkKCQo8L2RlZnM+PHNvZGlwb2RpOm5hbWVkdmlldwogICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICBib3JkZXJvcGFjaXR5PSIxIgogICBvYmplY3R0b2xlcmFuY2U9IjEwIgogICBncmlkdG9sZXJhbmNlPSIxMCIKICAgZ3VpZGV0b2xlcmFuY2U9IjEwIgogICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIKICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxOTIwIgogICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI5ODQiCiAgIGlkPSJuYW1lZHZpZXcxNzQ0IgogICBzaG93Z3JpZD0iZmFsc2UiCiAgIGlua3NjYXBlOnpvb209IjIuMjI1MDI5MyIKICAgaW5rc2NhcGU6Y3g9IjMxLjc1NjQxMSIKICAgaW5rc2NhcGU6Y3k9IjYyLjE1NDg5NSIKICAgaW5rc2NhcGU6d2luZG93LXg9IjE5MjAiCiAgIGlua3NjYXBlOndpbmRvdy15PSIyNyIKICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnNDQwOCIgLz4KPHN0eWxlCiAgIHR5cGU9InRleHQvY3NzIgogICBpZD0ic3R5bGUxNzE3Ij4KCS5zdDB7b3BhY2l0eTowLjg5MjtlbmFibGUtYmFja2dyb3VuZDpuZXcgICAgO30KCS5zdDF7ZmlsbDp1cmwoI1NWR0lEXzFfKTt9Cgkuc3Qye2ZpbGw6IzE5NzZEMjt9Cgkuc3Qze2ZpbGw6I0ZGRkZGRjt9Cgkuc3Q0e2ZpbGw6IzAwODAwMDt9Cjwvc3R5bGU+CgoKPGcKICAgaWQ9ImcxNzczIj48ZwogICAgIGlkPSJwYXRoNjg4MS0zLTUtNS0xLTgtNC00LTctOCIKICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTQ2LjQzOCwtMjc2LjAyOCkiCiAgICAgY2xhc3M9InN0MCIKICAgICBzdHlsZT0ib3BhY2l0eTowLjg5MjAwMDAzO2VuYWJsZS1iYWNrZ3JvdW5kOm5ldyI+CgkJCgkJCTxyYWRpYWxHcmFkaWVudAogICBpZD0iU1ZHSURfMV8iCiAgIGN4PSIzOTc5LjU2NDIiCiAgIGN5PSIzODk1LjQ4MzkiCiAgIHI9IjQ5LjkwMDUwMSIKICAgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgwLjY3OTMsMC4wMDc2LC0wLjUwOSwwLjU2MTIsLTQ3NS4xOTQ4LC0xODIwLjkxNjUpIgogICBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CgkJCTxzdG9wCiAgIG9mZnNldD0iMCIKICAgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMCIKICAgaWQ9InN0b3AxNzE5IiAvPgoJCQk8c3RvcAogICBvZmZzZXQ9IjEiCiAgIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAuMTg4IgogICBpZD0ic3RvcDE3MjEiIC8+CgkJPC9yYWRpYWxHcmFkaWVudD4KCQk8cGF0aAogICBjbGFzcz0ic3QxIgogICBkPSJtIDI4NS42LDM4OC41IGMgMTAuMywtMTIuNCA0LjQsLTIyLjQgLTE0LjQsLTIyLjQgLTE4LjksMCAtNDIuNCwxMCAtNTMuOSwyMi40IC0xNi44LDE4IDAuNCwyMy41IC0wLjIsMzUgLTAuMSwxLjggMy45LDEuOCA3LDAgMTkuOCwtMTEuNSA0Ni41LC0xNyA2MS41LC0zNSIKICAgaWQ9InBhdGgxNzI0IgogICBzdHlsZT0iZmlsbDp1cmwoI1NWR0lEXzFfKSIKICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz4KCTwvZz48cGF0aAogICAgIGlkPSJwYXRoNjg4MS0zLTUtNS0xLTgtNC00IgogICAgIGNsYXNzPSJzdDIiCiAgICAgZD0iTSAxMjQuNyw2OS4xIEMgMTIzLjgsNDEuNiAxMDIuNCwxOS4zIDc0LjksMTkuMyBjIC0yNy41LDAgLTQ5LDIyLjMgLTQ5LjgsNDkuOCAtMS4zLDQwLjEgMzAuNyw1Mi4yIDQ0LjcsNzggMi4yLDQgOCw0IDEwLjEsMCAxNC4xLC0yNS44IDQ2LjEsLTM3LjkgNDQuOCwtNzgiCiAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICBzdHlsZT0iZmlsbDojMDA4MDAwO2ZpbGwtb3BhY2l0eToxIiAvPjxjaXJjbGUKICAgICBpZD0icGF0aDQ5NzgiCiAgICAgY2xhc3M9InN0MiIKICAgICBjeD0iNzQuOTAwMDAyIgogICAgIGN5PSI2OS4wOTk5OTgiCiAgICAgcj0iNDkuOTAwMDAyIgogICAgIHN0eWxlPSJmaWxsOiMwMDgwMDA7ZmlsbC1vcGFjaXR5OjEiIC8+PGcKICAgICBpZD0iZzQ5MTUiPgoJCTxwYXRoCiAgIGlkPSJwYXRoNjg4My0yLTMtNS0yLTQtOS00LTkiCiAgIGNsYXNzPSJzdDMiCiAgIGQ9Ik0gNzQuOCwxMDYuNCBDIDU0LjIsMTA2LjQgMzcuNCw4OS43IDM3LjQsNjkgYyAwLC0yMC42IDE2LjcsLTM3LjQgMzcuNCwtMzcuNCAyMC42LDAgMzcuNCwxNi43IDM3LjQsMzcuNCAwLDIwLjcgLTE2LjcsMzcuNCAtMzcuNCwzNy40IgogICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICBzdHlsZT0iZmlsbDojZmZmZmZmIiAvPgoJPC9nPjxnCiAgICAgaWQ9ImcxNzQxIj4KCTxnCiAgIGlkPSJnMTczNSI+CgkJPGFuaW1hdGVUcmFuc2Zvcm0KICAgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiCiAgIGR1cj0iMC43NXMiCiAgIHRvPSIzNjAgNzUgNjguNzUiCiAgIGZyb209IjAgNzUgNjguNzUiCiAgIHR5cGU9InJvdGF0ZSIKICAgYXR0cmlidXRlVHlwZT0iWE1MIgogICBhdHRyaWJ1dGVOYW1lPSJ0cmFuc2Zvcm0iIC8+CgkJPHBhdGgKICAgaWQ9InBhdGgxNzMzIgogICBkPSJNOTEuNCw3Mi4ybC0xMS44LTMuOGMwLTAuNC0wLjEtMC43LTAuMi0xYzAuNS0wLjIsMS0wLjMsMS41LTAuNWM0LjctMS44LDcuNC0zLjcsOC01LjkgICAgYzAuNC0xLjQsMC0yLjgtMS4zLTQuMmMtMS0xLjEtMy4zLTIuNy0zLjQtMi43Yy0wLjQtMC4zLTAuOS0wLjItMS4xLDAuMmwtNy4zLDEwLjFjLTAuMiwwLTAuNCwwLTAuNiwwYy0wLjEsMC0wLjMsMC0wLjQsMCAgICBjMC0zLjctMC41LTguNS0yLjQtMTAuNmMtMC44LTAuOC0xLjctMS4zLTIuNy0xLjNjMCwwLDAsMCwwLDBjLTAuNywwLTEuNSwwLjItMi40LDAuNmMtMSwwLjUtMi42LDEuNi0zLjMsMi4yICAgIGMtMC4yLDAuMi0wLjMsMC4zLTAuNCwwLjNjLTAuMiwwLjItMC4zLDAuNC0wLjMsMC43YzAsMC4yLDAuMSwwLjMsMC4yLDAuNGw3LjcsMTAuNWMtMC4xLDAuMi0wLjIsMC40LTAuMiwwLjYgICAgYy0yLjUtMC44LTUuNy0xLjYtOC4yLTEuNmMtMiwwLTMuNSwwLjUtNC40LDEuNWMtMC44LDAuOS0xLjEsMi4xLTAuOCwzLjdjMC4yLDEuNSwxLjEsNC4xLDEuMiw0LjJjMC4xLDAuMywwLjQsMC42LDAuOCwwLjYgICAgYzAuMSwwLDAuMiwwLDAuMywwTDcyLjEsNzJjMC4xLDAuMSwwLjMsMC4zLDAuNCwwLjRjLTAuNCwwLjYtMC45LDEuMi0xLjMsMS45Yy0yLjgsNC4yLTMuOCw3LjQtMyw5LjVjMC41LDEuNCwxLjcsMi4zLDMuNSwyLjYgICAgYzEsMC4yLDIuNSwwLjIsMy42LDAuMmMwLjUsMCwwLjgsMCwwLjgsMGMwLjQsMCwwLjgtMC40LDAuOC0wLjhsLTAuMS0xMi44YzAuMi0wLjEsMC41LTAuMiwwLjctMC40YzAuNCwwLjUsMC44LDEsMS4yLDEuNSAgICBjMy4xLDMuOSw1LjgsNS45LDgsNS45YzEsMCwyLjUtMC40LDMuNi0yLjZjMC43LTEuMywxLjUtNCwxLjUtNC4xQzkyLjEsNzIuOCw5MS45LDcyLjQsOTEuNCw3Mi4yeiBNNzUuMiw3MS4xICAgIGMtMS4zLDAtMi4zLTEtMi4zLTIuM2MwLTEuMywxLTIuMywyLjMtMi4zYzEuMywwLDIuMywxLDIuMywyLjNDNzcuNSw3MC4xLDc2LjUsNzEuMSw3NS4yLDcxLjF6IgogICBjbGFzcz0ic3Q0IiAvPgoJPC9nPgoJPGcKICAgaWQ9ImcxNzM5Ij4KCQk8cGF0aAogICBpZD0icGF0aDE3MzciCiAgIGQ9Ik05OC4xLDQ1SDUxLjljLTAuNSwwLTAuOSwwLjQtMC45LDAuOXY0Ni4yYzAsMC41LDAuNCwwLjksMC45LDAuOWg0Ni4yYzAuNSwwLDAuOS0wLjQsMC45LTAuOVY0NS45ICAgIEM5OSw0NS40LDk4LjYsNDUsOTguMSw0NXogTTUzLjIsNDguN2MwLTAuOCwwLjctMS41LDEuNS0xLjVjMC44LDAsMS41LDAuNywxLjUsMS41YzAsMC44LTAuNywxLjUtMS41LDEuNSAgICBDNTMuOSw1MC4yLDUzLjIsNDkuNSw1My4yLDQ4Ljd6IE03NSw4OC4zYy0xMC42LDAtMTkuMy04LjYtMTkuMy0xOS4zUzY0LjQsNDkuNyw3NSw0OS43YzEwLjYsMCwxOS4zLDguNiwxOS4zLDE5LjMgICAgUzg1LjYsODguMyw3NSw4OC4zeiBNOTUuMyw5MC44Yy0wLjgsMC0xLjUtMC43LTEuNS0xLjVjMC0wLjgsMC43LTEuNSwxLjUtMS41YzAuOCwwLDEuNSwwLjcsMS41LDEuNSAgICBDOTYuOCw5MC4xLDk2LjEsOTAuOCw5NS4zLDkwLjh6IgogICBjbGFzcz0ic3Q0IiAvPgoJPC9nPgo8L2c+PC9nPgo8L3N2Zz4=",
+              "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4KCjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNDQwOCIKICAgeD0iMHB4IgogICB5PSIwcHgiCiAgIHZpZXdCb3g9IjAgMCAxNTAgMTUwIgogICBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxNTAgMTUwOyIKICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIKICAgc29kaXBvZGk6ZG9jbmFtZT0iZW5lcmd5LW1ldGVyLnN2ZyIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMC45Mi40IChmNDcyMDU0LCAyMDE5LTAyLTE3KSI+PG1ldGFkYXRhCiAgIGlkPSJtZXRhZGF0YTEwMCI+PHJkZjpSREY+PGNjOldvcmsKICAgICAgIHJkZjphYm91dD0iIj48ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD48ZGM6dHlwZQogICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPjxkYzp0aXRsZT48L2RjOnRpdGxlPjwvY2M6V29yaz48L3JkZjpSREY+PC9tZXRhZGF0YT48ZGVmcwogICBpZD0iZGVmczk4Ij4KCQoJCgoJCgkKPC9kZWZzPjxzb2RpcG9kaTpuYW1lZHZpZXcKICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgYm9yZGVyb3BhY2l0eT0iMSIKICAgb2JqZWN0dG9sZXJhbmNlPSIxMCIKICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgIGd1aWRldG9sZXJhbmNlPSIxMCIKICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiCiAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTkyMCIKICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iOTg0IgogICBpZD0ibmFtZWR2aWV3OTYiCiAgIHNob3dncmlkPSJmYWxzZSIKICAgaW5rc2NhcGU6em9vbT0iMC45NDA0NTIwMiIKICAgaW5rc2NhcGU6Y3g9Ii0yNjcuMDM4MjIiCiAgIGlua3NjYXBlOmN5PSIyODIuOTgwNTEiCiAgIGlua3NjYXBlOndpbmRvdy14PSIxOTIwIgogICBpbmtzY2FwZTp3aW5kb3cteT0iMjciCiAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiCiAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9InN2ZzQ0MDgiIC8+CjxzdHlsZQogICB0eXBlPSJ0ZXh0L2NzcyIKICAgaWQ9InN0eWxlNzUiPgoJLnN0MHtvcGFjaXR5OjAuODkyO2VuYWJsZS1iYWNrZ3JvdW5kOm5ldyAgICA7fQoJLnN0MXtmaWxsOnVybCgjU1ZHSURfMV8pO30KCS5zdDJ7ZmlsbDojRjQ0MzM2O30KCS5zdDN7ZmlsbDojRkZGRkZGO30KPC9zdHlsZT4KCgoKPGcKICAgaWQ9ImcxMzExIj48ZwogICAgIHN0eWxlPSJvcGFjaXR5OjAuODkyMDAwMDM7ZW5hYmxlLWJhY2tncm91bmQ6bmV3IgogICAgIGlkPSJwYXRoNjg4MS0zLTUtNS0xLTgtNC00LTctOCIKICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTQ2LjQzOCwtMjc2LjAyOCkiCiAgICAgY2xhc3M9InN0MCI+CgkJCgkJCTxyYWRpYWxHcmFkaWVudAogICBpZD0iU1ZHSURfMV8iCiAgIGN4PSIzMDg1LjIxNDgiCiAgIGN5PSIzMTc4LjQ1OCIKICAgcj0iNDkuOTAxMTk5IgogICBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAuNjc5MywwLjAwNzYsLTAuNTA5LDAuNTYxMiwtMjMyLjYyODYsLTE0MTEuNzI0NikiCiAgIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KCQkJPHN0b3AKICAgb2Zmc2V0PSIwIgogICBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwIgogICBpZD0ic3RvcDc3IiAvPgoJCQk8c3RvcAogICBvZmZzZXQ9IjEiCiAgIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAuMTg4IgogICBpZD0ic3RvcDc5IiAvPgoJCTwvcmFkaWFsR3JhZGllbnQ+CgkJPHBhdGgKICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgc3R5bGU9ImZpbGw6dXJsKCNTVkdJRF8xXykiCiAgIGNsYXNzPSJzdDEiCiAgIGQ9Im0gMjg1LjYsMzg4LjUgYyAxMC4zLC0xMi40IDQuNCwtMjIuNCAtMTQuNCwtMjIuNCAtMTguOSwwIC00Mi40LDEwIC01My45LDIyLjQgLTE2LjgsMTggMC40LDIzLjUgLTAuMiwzNSAtMC4xLDEuOCAzLjksMS44IDcsMCAxOS44LC0xMS41IDQ2LjUsLTE3IDYxLjUsLTM1IgogICBpZD0icGF0aDgyIiAvPgoJPC9nPjxwYXRoCiAgICAgc3R5bGU9ImZpbGw6I2Y2OGIzODtmaWxsLW9wYWNpdHk6MSIKICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgIGlkPSJwYXRoNjg4MS0zLTUtNS0xLTgtNC00IgogICAgIGNsYXNzPSJzdDIiCiAgICAgZD0iTSAxMjQuNyw2OS4xIEMgMTIzLjgsNDEuNiAxMDIuNCwxOS4zIDc0LjksMTkuMyBjIC0yNy41LDAgLTQ5LDIyLjMgLTQ5LjgsNDkuOCAtMS4zLDQwLjEgMzAuNyw1Mi4yIDQ0LjcsNzggMi4yLDQgOCw0IDEwLjEsMCAxNC4xLC0yNS44IDQ2LjEsLTM3LjkgNDQuOCwtNzgiIC8+PGcKICAgICBpZD0iZzQ5MTUiPgoJCTxwYXRoCiAgIGlkPSJwYXRoNjg4My0yLTMtNS0yLTQtOS00LTkiCiAgIGNsYXNzPSJzdDMiCiAgIGQ9Ik0gNzQuOCwxMDYuNCBDIDU0LjIsMTA2LjQgMzcuNCw4OS43IDM3LjQsNjkgYyAwLC0yMC42IDE2LjcsLTM3LjQgMzcuNCwtMzcuNCAyMC42LDAgMzcuNCwxNi43IDM3LjQsMzcuNCAwLDIwLjcgLTE2LjcsMzcuNCAtMzcuNCwzNy40IgogICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICBzdHlsZT0iZmlsbDojZmZmZmZmIiAvPgoJPC9nPjxnCiAgICAgc3R5bGU9ImZpbGw6I2Y2OGIzODtmaWxsLW9wYWNpdHk6MSIKICAgICBpZD0iZzU1NzgtMi04IgogICAgIHRyYW5zZm9ybT0ibWF0cml4KDAuMTI0ODI1MzMsMC4wNDIwMzkwNCwtMC4wNDIwMzkwNCwwLjEyNDgyNTMzLDUzLjE0MjY1LDMxLjM5NzY4OSkiPjxwYXRoCiAgICAgICBzdHlsZT0iZmlsbDojZjY4YjM4O2ZpbGwtb3BhY2l0eToxIgogICAgICAgaWQ9InBhdGg1NTgwLTAtOSIKICAgICAgIGQ9Im0gMzYyLjI5NiwxMjUuMDU1IGMgLTIuODUxLC0yLjg1MyAtNi4wOTIsLTQuMjggLTkuNzA2LC00LjI4NyAtMC43NywwIC0xLjkwMiwwLjE5MyAtMy40MzIsMC41NzIgTCAyMzYuMSwxNDkuMzE5IDI4NC45MTcsMTcuMTMgYyAwLjk1MSwtMS45MDMgMS40MzEsLTMuNjE0IDEuNDMxLC01LjEzOSAwLC0zLjIzNCAtMS4yNDIsLTYuMDQgLTMuNzEzLC04LjQyIEMgMjgwLjE2MSwxLjE4OCAyNzcuMTE1LDAgMjczLjUwMSwwIGggLTkzLjY0NSBjIC0zLjA0NSwwIC01LjcwOCwwLjg1NSAtNy45OTQsMi41NjggLTIuMjg0LDEuNzE1IC0zLjgwOSwzLjkwNSAtNC41NjgsNi41NjcgbCAtNTcuMzg2LDIzNS41NDYgYyAtMC45NTMsNC41NjQgMC4yODQsOC4yNzcgMy43MTEsMTEuMTM1IDIuNDczLDIuMDk5IDUuNDIxLDMuMTM5IDguODQ4LDMuMTM5IDEuNTI0LDAgMi42NjYsLTAuMDg5IDMuNDI3LC0wLjI4MSBsIDExNS45MTQsLTI4LjgzOCAtNTYuMjQ0LDIzMC42OTEgYyAtMC43NiwzLjA0NSAtMC4zMzMsNS44OTkgMS4yODcsOC41NjIgMS42MTksMi42NjkgNC4wNDcsNC40NzYgNy4yODEsNS40MjcgMS45MDMsMC4zNzcgMy4yMzksMC41NjggMy45OTksMC41NjggNS41MiwwIDkuNTE0LC0yLjM3NSAxMS45OTEsLTcuMTM2IEwgMzY0LjI5NCwxMzcuNjE2IGMgMi4wOTUsLTQuNTY3IDEuNDM0LC04Ljc1NiAtMS45OTgsLTEyLjU2MSB6IgogICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz48L2c+PC9nPjwvc3ZnPg==",
+              "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4KCjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnNDQwOCIKICAgeD0iMHB4IgogICB5PSIwcHgiCiAgIHZpZXdCb3g9IjAgMCAxNTAgMTUwIgogICBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxNTAgMTUwOyIKICAgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIKICAgc29kaXBvZGk6ZG9jbmFtZT0id2F0ZXItbWV0ZXIuc3ZnIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjkyLjQgKGY0NzIwNTQsIDIwMTktMDItMTcpIj48bWV0YWRhdGEKICAgaWQ9Im1ldGFkYXRhMTAwIj48cmRmOlJERj48Y2M6V29yawogICAgICAgcmRmOmFib3V0PSIiPjxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PjxkYzp0eXBlCiAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+PGRjOnRpdGxlPjwvZGM6dGl0bGU+PC9jYzpXb3JrPjwvcmRmOlJERj48L21ldGFkYXRhPjxkZWZzCiAgIGlkPSJkZWZzOTgiPgoJCgkKCgkKCQo8L2RlZnM+PHNvZGlwb2RpOm5hbWVkdmlldwogICBwYWdlY29sb3I9IiNmZmZmZmYiCiAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICBib3JkZXJvcGFjaXR5PSIxIgogICBvYmplY3R0b2xlcmFuY2U9IjEwIgogICBncmlkdG9sZXJhbmNlPSIxMCIKICAgZ3VpZGV0b2xlcmFuY2U9IjEwIgogICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIKICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxOTIwIgogICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI5ODQiCiAgIGlkPSJuYW1lZHZpZXc5NiIKICAgc2hvd2dyaWQ9ImZhbHNlIgogICBpbmtzY2FwZTp6b29tPSIwLjk0MDQ1MjAyIgogICBpbmtzY2FwZTpjeD0iLTIwNC43MjYyNyIKICAgaW5rc2NhcGU6Y3k9IjE0Ny43NzYyNyIKICAgaW5rc2NhcGU6d2luZG93LXg9IjE5MjAiCiAgIGlua3NjYXBlOndpbmRvdy15PSIyNyIKICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnNDQwOCIgLz4KPHN0eWxlCiAgIHR5cGU9InRleHQvY3NzIgogICBpZD0ic3R5bGU3NSI+Cgkuc3Qwe29wYWNpdHk6MC44OTI7ZW5hYmxlLWJhY2tncm91bmQ6bmV3ICAgIDt9Cgkuc3Qxe2ZpbGw6dXJsKCNTVkdJRF8xXyk7fQoJLnN0MntmaWxsOiNGNDQzMzY7fQoJLnN0M3tmaWxsOiNGRkZGRkY7fQo8L3N0eWxlPgoKCgo8ZwogICBpZD0iZzE0NTQiPjxnCiAgICAgc3R5bGU9Im9wYWNpdHk6MC44OTIwMDAwMztlbmFibGUtYmFja2dyb3VuZDpuZXciCiAgICAgaWQ9InBhdGg2ODgxLTMtNS01LTEtOC00LTQtNy04IgogICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xNDYuNDM4LC0yNzYuMDI4KSIKICAgICBjbGFzcz0ic3QwIj4KCQkKCQkJPHJhZGlhbEdyYWRpZW50CiAgIGlkPSJTVkdJRF8xXyIKICAgY3g9IjMwODUuMjE0OCIKICAgY3k9IjMxNzguNDU4IgogICByPSI0OS45MDExOTkiCiAgIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMC42NzkzLDAuMDA3NiwtMC41MDksMC41NjEyLC0yMzIuNjI4NiwtMTQxMS43MjQ2KSIKICAgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgoJCQk8c3RvcAogICBvZmZzZXQ9IjAiCiAgIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiCiAgIGlkPSJzdG9wNzciIC8+CgkJCTxzdG9wCiAgIG9mZnNldD0iMSIKICAgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMDtzdG9wLW9wYWNpdHk6MC4xODgiCiAgIGlkPSJzdG9wNzkiIC8+CgkJPC9yYWRpYWxHcmFkaWVudD4KCQk8cGF0aAogICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICBzdHlsZT0iZmlsbDp1cmwoI1NWR0lEXzFfKSIKICAgY2xhc3M9InN0MSIKICAgZD0ibSAyODUuNiwzODguNSBjIDEwLjMsLTEyLjQgNC40LC0yMi40IC0xNC40LC0yMi40IC0xOC45LDAgLTQyLjQsMTAgLTUzLjksMjIuNCAtMTYuOCwxOCAwLjQsMjMuNSAtMC4yLDM1IC0wLjEsMS44IDMuOSwxLjggNywwIDE5LjgsLTExLjUgNDYuNSwtMTcgNjEuNSwtMzUiCiAgIGlkPSJwYXRoODIiIC8+Cgk8L2c+PHBhdGgKICAgICBzdHlsZT0iZmlsbDojMWI3NmQyO2ZpbGwtb3BhY2l0eToxIgogICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgaWQ9InBhdGg2ODgxLTMtNS01LTEtOC00LTQiCiAgICAgY2xhc3M9InN0MiIKICAgICBkPSJNIDEyNC43LDY5LjEgQyAxMjMuOCw0MS42IDEwMi40LDE5LjMgNzQuOSwxOS4zIGMgLTI3LjUsMCAtNDksMjIuMyAtNDkuOCw0OS44IC0xLjMsNDAuMSAzMC43LDUyLjIgNDQuNyw3OCAyLjIsNCA4LDQgMTAuMSwwIDE0LjEsLTI1LjggNDYuMSwtMzcuOSA0NC44LC03OCIgLz48ZwogICAgIGlkPSJnNDkxNSI+CgkJPHBhdGgKICAgaWQ9InBhdGg2ODgzLTItMy01LTItNC05LTQtOSIKICAgY2xhc3M9InN0MyIKICAgZD0iTSA3NC44LDEwNi40IEMgNTQuMiwxMDYuNCAzNy40LDg5LjcgMzcuNCw2OSBjIDAsLTIwLjYgMTYuNywtMzcuNCAzNy40LC0zNy40IDIwLjYsMCAzNy40LDE2LjcgMzcuNCwzNy40IDAsMjAuNyAtMTYuNywzNy40IC0zNy40LDM3LjQiCiAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgIHN0eWxlPSJmaWxsOiNmZmZmZmYiIC8+Cgk8L2c+PHBhdGgKICAgICBkPSJNIDg2Ljc3MDc2Myw1Ni41NTU1NDcgQyA4Mi43ODAzMjEsNDkuOTY5NzE2IDc4LjM0MjQ5Miw0NC4yNjk2NSA3Ni4wNTIxMTcsNDEuNDU3NjAyIDc1Ljc0NTQxLDQxLjA4MTIxNSA3NS4yODU2NDksNDAuODYyNjEgNzQuNzk5OTk1LDQwLjg2Mjc3OCBjIC0wLjQ4NTY0NCwwIC0wLjk0NTQxNSwwLjIxODU5NCAtMS4yNTIxMTIsMC41OTUxMDYgLTIuMjkwMzc1LDIuODEyNTUzIC02LjcyODIwNCw4LjUxNDM2NSAtMTAuNzE4MDc5LDE1LjEwMDc1OCAtNS4xNDIzODgsOC40ODg0OCAtNy43NDk1OTQsMTUuNTA2NTAxIC03Ljc0OTU5NCwyMC44NTg3ODkgMCwxMC44NzM0MDggOC44NDYzODIsMTkuNzE5NzkxIDE5LjcxOTc4NSwxOS43MTk3OTEgMTAuODczNDEzLDAgMTkuNzE5Nzk1LC04Ljg0NjM4MyAxOS43MTk3OTUsLTE5LjcxOTc5MSAwLC01LjM1NTY2NSAtMi42MDY2NDUsLTEyLjM3NDgxMSAtNy43NDkwMjcsLTIwLjg2MjE2NSB6IG0gLTkuMjY0NTEyLDMzLjMxODU3OSBjIC0xLjE1MTQ5NSwwLjI5NDQ4NyAtMi4zNDY3MTcsMC40NDM2MTkgLTMuNTUzMjQ2LDAuNDQzNjE5IC03LjM2NzQ4MSwwIC0xMy4zNjA3NDQsLTUuNTY3OTMyIC0xMy4zNjA3NDQsLTEyLjQxMTk1IDAsLTEuNjUyMjI2IDAuNDM1OTk0LC0zLjU4MjYxNyAxLjI5NTUwMywtNS43MzcyMDggMC4xNDUxOSwtMC4zNjQwNTggMC41NTg4NTksLTAuNTcxODA4IDAuOTY2NjgzLC0wLjQ4MzcwNCAwLjQwNzUyNSwwLjA4NzgxIDAuNjgxMTU3LDAuNDQzMDQgMC42MzkxNywwLjgyOTQzMyAtMC4wNTAyOSwwLjQ2MjEyOCAtMC4wNzU2NywwLjkxMzUwOCAtMC4wNzU2NywxLjM0MTEzOSAwLDcuNDQ3OTYgNi4wMDExMzcsMTMuNjg0ODg2IDEzLjk1OTUxMywxNC41MDcwNjEgMC4zOTYwNTUsMC4wNDA5NiAwLjcwNTA1OSwwLjMzNzE4NSAwLjczNjYzNCwwLjcwNjQxNSAwLjAzMTczLDAuMzY5MjAxIC0wLjIyMzQyNSwwLjcwNzE1NSAtMC42MDc1OTYsMC44MDU1MjIgeiIKICAgICBpZD0id2F0ZXJEcm9wIgogICAgIHN0eWxlPSJmaWxsOiMxYjc2ZDI7c3Ryb2tlLXdpZHRoOjAuNTYyNzQ3MjQ7ZmlsbC1vcGFjaXR5OjEiCiAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz48L2c+PC9zdmc+"
+            ],
+            "useMarkerImageFunction": true,
+            "markerImageFunction": "var type = dsData[dsIndex]['type'];\nif (type == 'smart-sensor') {\n\tvar res = {\n\t    url: images[0],\n\t    size: 60\n\t}\n\treturn res;\n} else if (type == 'hvac') {\n    var enabled = dsData[dsIndex]['enabled'];\n\tvar res = {\n\t    url: enabled === 'true' ? images[2] : images[1],\n\t    size: 60\n\t}\n\treturn res;\n} else if (type == 'energy-meter') {\n    var res = {\n\t    url: images[3],\n\t    size: 60\n\t}\n\treturn res;\n} else if (type == 'water-meter') {\n    var res = {\n\t    url: images[4],\n\t    size: 60\n\t}\n\treturn res;\n}",
+            "color": "#fe7569",
+            "xPosKeyName": "xPos",
+            "yPosKeyName": "yPos",
+            "posFunction": "return {x: origXPos, y: origYPos};",
+            "markerOffsetX": 0.5,
+            "markerOffsetY": 1,
+            "showTooltip": true,
+            "autocloseTooltip": true,
+            "labelFunction": "var deviceType = dsData[dsIndex]['deviceType'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "tooltipFunction": "var deviceType = dsData[dsIndex]['type'];\r\n\r\nvar tooltip = '<b>${friendlyName}</b><br/>${entityName}<br/>';\r\nvar typeTooltip = '';\r\n\r\nif (deviceType == \"smart-sensor\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">Temperature:</span>&nbsp;<span style=\"color:#f44336; font-weight: 600;\">${temperature:1} °C</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Humidity:</span>&nbsp;<span style=\"color:#1e88e5; font-weight: 600;\">${humidity:1} %</span><br/>';\r\n    typeTooltip += '<br/><b>Air quality</b><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">CO2 level:</span>&nbsp;<span style=\"color:#9f4295; font-weight: 600;\">${co2:0} ppm</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">TVOC level:</span>&nbsp;<span style=\"color:#3d9d9a; font-weight: 600;\">${tvoc:3} ppm</span><br/>';\r\n    typeTooltip += '<br/><span style=\"font-weight: 500; color:#666;\">Occupancy:</span>&nbsp;<span style=\"color:#00897b; font-weight: 600;\">${occupancyText}</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"smart_sensor\">Smart sensor details</link-act><br/></div>';\r\n} else if (deviceType == \"energy-meter\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">Energy consumption:</span>&nbsp;<span style=\"color:#673ab7; font-weight: 600;\">${energy:4} kWh</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Power consumption:</span>&nbsp;<span style=\"color:rgb(30, 136, 229); font-weight: 600;\">${power:0} W</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Current (Amperage):</span>&nbsp;<span style=\"color:#f44336; font-weight: 600;\">${amperage:2} A</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Voltage:</span>&nbsp;<span style=\"color:#2196f3; font-weight: 600;\">${voltage:2} V</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Frequency:</span>&nbsp;<span style=\"color:rgb(104, 159, 56); font-weight: 600;\">${frequency:2} Hz</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"energy_meter\">Energy meter details</link-act><br/></div>';\r\n} else if (deviceType == \"water-meter\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">Water consumption:</span>&nbsp;<span style=\"color:#01579b; font-weight: 600;\">${water:3} gal</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"water_meter\">Water meter details</link-act><br/></div>';\r\n} else if (deviceType == \"hvac\") {\r\n    typeTooltip = '<br/><span style=\"font-weight: 500; color:#666;\">State:</span>&nbsp;<span style=\"color:${enabledTextColor}; font-weight: 600;\">${enabledText}</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Target temperature:</span>&nbsp;<span style=\"color:#4caf50; font-weight: 600;\">${targetTemperature:1} °C</span><br/>';\r\n    typeTooltip += '<span style=\"font-weight: 500; color:#666;\">Air flow:</span>&nbsp;<span style=\"color:#2196f3; font-weight: 600;\">${airFlow:1} cfm</span><br/>';\r\n    typeTooltip += '<br/><link-act name=\"hvac\">HVAC details</link-act><br/></div>';\r\n}\r\n\r\nreturn tooltip + typeTooltip;",
+            "mapImageUrl": "data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
+            "imageEntityAlias": "Office",
+            "imageUrlAttribute": "floorPlan",
+            "useTooltipFunction": true,
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}",
+            "showTooltipAction": "click",
+            "provider": "image-map",
+            "defaultCenterPosition": "0,0",
+            "fitMapBounds": true,
+            "mapPageSize": 16384,
+            "latKeyName": "latitude",
+            "lngKeyName": "longitude"
+          },
+          "title": "Floor  plan",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "actions": {
+            "tooltipAction": [
+              {
+                "id": "16ff2309-875f-6b03-26b9-8ad80980a4cc",
+                "name": "energy_meter",
+                "icon": "more_horiz",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "energy_meter",
+                "setEntityId": true
+              },
+              {
+                "id": "4be8fcdd-794e-3d7d-b2f6-b5251b602699",
+                "name": "hvac",
+                "icon": "more_horiz",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "hvac",
+                "setEntityId": true
+              },
+              {
+                "id": "afd89b03-2da9-14a8-05ba-d459d8a59336",
+                "name": "smart_sensor",
+                "icon": "more_horiz",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "smart_sensor",
+                "setEntityId": true
+              },
+              {
+                "id": "f3bf9c20-eeb6-03e2-812d-d80165a79752",
+                "name": "water_meter",
+                "icon": "more_horiz",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "water_meter",
+                "setEntityId": true
+              }
+            ]
+          },
+          "enableDataExport": true,
+          "displayTimewindow": true
+        },
+        "id": "17ad8f4c-da3c-6a50-99ae-357e27f0af40"
+      },
+      "e6421a08-76a7-5fbb-c9be-42d00154a468": {
+        "isSystemType": true,
+        "bundleAlias": "control_widgets",
+        "typeAlias": "switch_control",
+        "type": "rpc",
+        "title": "New widget",
+        "sizeX": 7,
+        "sizeY": 3,
+        "config": {
+          "targetDeviceAliases": [],
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "requestTimeout": 500,
+            "initialValue": true,
+            "getValueMethod": "getEnabled",
+            "setValueMethod": "setEnabled",
+            "showOnOffLabels": false,
+            "title": "HVAC switch",
+            "retrieveValueMethod": "timeseries",
+            "valueKey": "enabled",
+            "parseValueFunction": "return data ? true : false;",
+            "convertValueFunction": "return value;"
+          },
+          "title": "HVAC Control",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "decimals": 2,
+          "datasources": [],
+          "enableDataExport": true,
+          "targetDeviceAliasIds": [
+            "e1d6944f-e5b9-224b-9496-a0d48d46f4ce"
+          ]
+        },
+        "id": "e6421a08-76a7-5fbb-c9be-42d00154a468"
+      },
+      "40d59849-9d6a-6de4-a023-76ea9fe29a5a": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 22,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "Temperature",
+                  "color": "#ff5722",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.7387395503161205,
+                  "units": "°C",
+                  "decimals": 1
+                }
+              ],
+              "entityAliasId": "3c5dbaaf-e9af-bee3-891e-7202c319af16"
+            },
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "power",
+                  "type": "timeseries",
+                  "label": "Power",
+                  "color": "rgb(30, 136, 229)",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "axisTitle": "Power, Watt",
+                    "axisTickDecimals": 0
+                  },
+                  "_hash": 0.7590636902287273,
+                  "units": "W",
+                  "decimals": 0
+                }
+              ],
+              "entityAliasId": "fe18dacb-77de-1cfd-9583-f76e4708c331"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "interval": 300000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Temperature, °C",
+              "tickDecimals": 1
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": true,
+              "horizontalLines": true,
+              "outlineWidth": 1
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Temperature and Power History",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa",
+            "backgroundImage": "url(https://thingsboard.io/images/dashboards/smart-building/energy-bg.jpg)",
+            "backgroundSize": "cover",
+            "backgroundPosition": "center"
+          },
+          "units": "°C",
+          "decimals": 1,
+          "useDashboardTimewindow": true,
+          "showLegend": true,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "actions": {}
+        },
+        "id": "40d59849-9d6a-6de4-a023-76ea9fe29a5a"
+      },
+      "5c002504-7d9d-856e-bdf6-64c7c84ef790": {
+        "isSystemType": true,
+        "bundleAlias": "control_widgets",
+        "typeAlias": "knob_control",
+        "type": "rpc",
+        "title": "New widget",
+        "sizeX": 7,
+        "sizeY": 8,
+        "config": {
+          "targetDeviceAliases": [],
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "requestTimeout": 500,
+            "maxValue": 40,
+            "initialValue": 22,
+            "minValue": 10,
+            "title": "HVAC Control",
+            "getValueMethod": "getTemperature",
+            "setValueMethod": "setTemperature"
+          },
+          "title": "New Knob Control",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "decimals": 1,
+          "datasources": [],
+          "enableDataExport": true,
+          "targetDeviceAliasIds": [
+            "e1d6944f-e5b9-224b-9496-a0d48d46f4ce"
+          ]
+        },
+        "id": "5c002504-7d9d-856e-bdf6-64c7c84ef790"
+      },
+      "27efeadc-842a-b232-fe8e-1a41bec1e630": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "entities_table",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 19,
+        "sizeY": 11,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 300000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgba(255,255,255,0.15)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSearch": true,
+            "displayPagination": false,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "entityName",
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "entitiesTitle": "Devices",
+            "entityNameColumnTitle": "Name",
+            "enableSelectColumnDisplay": true
+          },
+          "title": "New Entities table",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "type",
+                  "type": "attribute",
+                  "label": "Type",
+                  "color": "#2196f3",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "if (value === 'smart-sensor') {\n    return 'Smart Sensor';\n} else if (value === 'hvac') {\n    return 'HVAC';\n} else if (value === 'energy-meter') {\n    return 'Energy Meter';\n} else if (value === 'water-meter') {\n    return 'Water Meter';\n}\nreturn value;"
+                  },
+                  "_hash": 0.09977301437404118
+                }
+              ],
+              "entityAliasId": "e73f4fd0-3136-89e7-f802-e071e6e19a6d"
+            }
+          ],
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa",
+            "backgroundImage": "url(https://thingsboard.io/images/dashboards/smart-building/devices-bg.jpg)",
+            "backgroundSize": "cover"
+          },
+          "actions": {
+            "headerButton": [],
+            "actionCellButton": [
+              {
+                "name": "Navigate to Device Details",
+                "icon": "play_arrow",
+                "type": "custom",
+                "customFunction": "var deviceService = widgetContext.deviceService;\n\ndeviceService.getDevice(entityId.id, {ignoreLoading: true}).subscribe(\n    function (device) {\n        var deviceType = device.type;\n        var params = {\n            entityId: entityId,\n            entityName: entityName\n        };\n        var targetDashboardStateId;\n        switch (deviceType) {\n          case \"energy-meter\":\n              targetDashboardStateId = \"energy_meter\";\n              break;\n          case \"hvac\":\n              targetDashboardStateId = \"hvac\";\n              break;\n          case \"smart-sensor\":\n              targetDashboardStateId = \"smart_sensor\";\n              break;\n          case \"water-meter\":\n              targetDashboardStateId = \"water_meter\";\n              break;\n        }\n        if (targetDashboardStateId) {\n              widgetContext.stateController.openState(targetDashboardStateId, params, false);\n        }\n    }\n);\n",
+                "id": "f1d4aacf-d420-6ce9-1fd2-8e459258fbcc"
+              }
+            ],
+            "rowClick": [
+              {
+                "name": "Navigate to Device Details",
+                "icon": "more_horiz",
+                "type": "custom",
+                "customFunction": "var deviceService = widgetContext.deviceService;\n\ndeviceService.getDevice(entityId.id, {ignoreLoading: true}).subscribe(\n    function (device) {\n        var deviceType = device.type;\n        var params = {\n            entityId: entityId,\n            entityName: entityName\n        };\n        var targetDashboardStateId;\n        switch (deviceType) {\n          case \"energy-meter\":\n              targetDashboardStateId = \"energy_meter\";\n              break;\n          case \"hvac\":\n              targetDashboardStateId = \"hvac\";\n              break;\n          case \"smart-sensor\":\n              targetDashboardStateId = \"smart_sensor\";\n              break;\n          case \"water-meter\":\n              targetDashboardStateId = \"water_meter\";\n              break;\n        }\n        if (targetDashboardStateId) {\n              widgetContext.stateController.openState(targetDashboardStateId, params, false);\n        }\n    }\n);\n",
+                "id": "c1120dc4-a51a-d4f6-b403-96ad6255fcb9"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": ""
+        },
+        "id": "27efeadc-842a-b232-fe8e-1a41bec1e630"
+      },
+      "2dcb5560-c55f-e238-022e-69baba7c2022": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "sizeX": 18,
+        "sizeY": 12,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 2592000000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": false,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "alarmsTitle": "${entityName}: Alarms",
+            "enableSelectColumnDisplay": true,
+            "enableFilter": true
+          },
+          "title": "New Alarms table",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": "alarms",
+            "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {},
+                "_hash": 0.8093349429174124
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {},
+                "_hash": 0.5559241521907601
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {},
+                "_hash": 0.5291086563667198
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#ffc107",
+                "settings": {
+                  "columnWidth": "0px",
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.5593535448978897
+              }
+            ]
+          },
+          "alarmSearchStatus": "ACTIVE",
+          "alarmsPollingInterval": 5,
+          "datasources": [],
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "actions": {},
+          "displayTimewindow": true,
+          "alarmStatusList": [
+            "ACTIVE",
+            "CLEARED"
+          ],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": true
+        },
+        "id": "2dcb5560-c55f-e238-022e-69baba7c2022"
+      },
+      "f9fcbc13-1a44-5114-a294-c6831e3494ab": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "timeseries_bars_flot",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 17,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "energy",
+                  "type": "timeseries",
+                  "label": "Energy Consumed",
+                  "color": "#673ab7",
+                  "settings": {
+                    "showLines": false,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left",
+                    "axisTickDecimals": 1
+                  },
+                  "_hash": 0.5693030217652919
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "selectedTab": 0,
+            "realtime": {
+              "timewindowMs": 86400000,
+              "interval": 3600000
+            },
+            "aggregation": {
+              "type": "SUM",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 14,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Energy, kWh",
+              "titleAngle": 90
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": true,
+            "tooltipIndividual": false,
+            "defaultBarWidth": 600
+          },
+          "title": "Energy consumption",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "actions": {},
+          "enableDataExport": true,
+          "units": "kWh",
+          "decimals": 4,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": true
+          }
+        },
+        "id": "f9fcbc13-1a44-5114-a294-c6831e3494ab"
+      },
+      "762e5f79-91b0-5509-5b31-4e8cf685b974": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 14,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "voltage",
+                  "type": "timeseries",
+                  "label": "Voltage",
+                  "color": "#2196f3",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.765192942619622
+                },
+                {
+                  "name": "frequency",
+                  "type": "timeseries",
+                  "label": "Frequency",
+                  "color": "#4caf50",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "axisTitle": "Frequency, Hz",
+                    "axisTickDecimals": 1
+                  },
+                  "_hash": 0.3449874612775916,
+                  "units": "Hz",
+                  "decimals": 2
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "selectedTab": 0,
+            "realtime": {
+              "timewindowMs": 86400000,
+              "interval": 3600000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Voltage, V",
+              "titleAngle": 90,
+              "tickDecimals": 1
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Voltage and Frequency",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "V",
+          "decimals": 2,
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "actions": {}
+        },
+        "id": "762e5f79-91b0-5509-5b31-4e8cf685b974"
+      },
+      "2687115f-98f5-ff39-d0e7-54288d8f38b2": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "vertical_bar_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 3,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "voltage",
+                  "type": "timeseries",
+                  "label": "voltage",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.47461480824082414
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgb(254, 255, 255)",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 250,
+            "minValue": 230,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": false,
+            "gaugeWidthScale": 0.75,
+            "levelColors": [],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 12
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 8,
+              "style": "normal",
+              "weight": "500",
+              "color": "#ffffff"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 1.2,
+            "gaugeColor": "#b5dffb",
+            "showTitle": true,
+            "gaugeType": "verticalBar",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "title": "Voltage",
+            "unitTitle": "Voltage",
+            "defaultColor": "#0277bd"
+          },
+          "title": "New Vertical bar - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "enableDataExport": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "V",
+          "decimals": 2,
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {}
+        },
+        "id": "2687115f-98f5-ff39-d0e7-54288d8f38b2"
+      },
+      "4284c162-8811-321a-d2e5-7fd90f35dfb8": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "vertical_bar_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 3,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "frequency",
+                  "type": "timeseries",
+                  "label": "frequency",
+                  "color": "rgb(104, 159, 56)",
+                  "settings": {},
+                  "_hash": 0.3636422861294406
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgb(254, 255, 255)",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 65,
+            "minValue": 45,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": false,
+            "gaugeWidthScale": 0.75,
+            "levelColors": [],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 12
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 8,
+              "style": "normal",
+              "weight": "500",
+              "color": "#ffffff"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 1.2,
+            "showTitle": true,
+            "gaugeType": "verticalBar",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "title": "Frequency",
+            "unitTitle": "Frequency"
+          },
+          "title": "New Vertical bar - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "enableDataExport": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "Hz",
+          "decimals": 2,
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {}
+        },
+        "id": "4284c162-8811-321a-d2e5-7fd90f35dfb8"
+      },
+      "bd5975b3-6965-5f0a-0dd7-4a590136a0bd": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "simple_neon_gauge_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 6,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "power",
+                  "type": "timeseries",
+                  "label": "power",
+                  "color": "#673ab7",
+                  "settings": {},
+                  "_hash": 0.5373482732538397
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fffefe",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 6000,
+            "minValue": 0,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": true,
+            "gaugeWidthScale": 1,
+            "levelColors": [],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 14
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 1.5,
+            "gaugeType": "donut",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "showTitle": true,
+            "title": "Power",
+            "unitTitle": "Power"
+          },
+          "title": "New Simple neon gauge - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false,
+          "units": "W",
+          "decimals": 0
+        },
+        "id": "bd5975b3-6965-5f0a-0dd7-4a590136a0bd"
+      },
+      "bcce547e-b105-aea0-1d0c-81d67a3c4123": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 14,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "amperage",
+                  "type": "timeseries",
+                  "label": "Current",
+                  "color": "#f44336",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.6167224417637194,
+                  "units": "A",
+                  "decimals": 4
+                },
+                {
+                  "name": "power",
+                  "type": "timeseries",
+                  "label": "Power",
+                  "color": "#673ab7",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "axisTitle": "Power, Watt",
+                    "axisTickDecimals": 0
+                  },
+                  "_hash": 0.2591302548452452,
+                  "units": "W",
+                  "decimals": 0
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "selectedTab": 0,
+            "realtime": {
+              "timewindowMs": 86400000,
+              "interval": 3600000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Amperage, A",
+              "titleAngle": 90,
+              "tickDecimals": 2
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Current (Amperage) and Power",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "A",
+          "decimals": 4,
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "actions": {}
+        },
+        "id": "bcce547e-b105-aea0-1d0c-81d67a3c4123"
+      },
+      "7a97e0a8-71c0-6d38-a3cd-4354cec69868": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 24,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "airFlow",
+                  "type": "timeseries",
+                  "label": "Air Flow",
+                  "color": "#2196f3",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.01829984897096404,
+                  "units": "cfm",
+                  "decimals": 1
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Air Flow History",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": true,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "actions": {}
+        },
+        "id": "7a97e0a8-71c0-6d38-a3cd-4354cec69868"
+      },
+      "4995d457-dd23-fb27-f0b9-3428e6afd8f4": {
+        "isSystemType": true,
+        "bundleAlias": "control_widgets",
+        "typeAlias": "switch_control",
+        "type": "rpc",
+        "title": "New widget",
+        "sizeX": 7,
+        "sizeY": 3,
+        "config": {
+          "targetDeviceAliases": [],
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "requestTimeout": 500,
+            "initialValue": true,
+            "getValueMethod": "getEnabled",
+            "setValueMethod": "setEnabled",
+            "showOnOffLabels": false,
+            "title": "HVAC switch",
+            "retrieveValueMethod": "timeseries",
+            "valueKey": "enabled",
+            "parseValueFunction": "return data ? true : false;",
+            "convertValueFunction": "return value;"
+          },
+          "title": "HVAC Control",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "decimals": 2,
+          "datasources": [],
+          "enableDataExport": true,
+          "targetDeviceAliasIds": [
+            "a0faf37a-3c5d-e721-f445-de7914947895"
+          ]
+        },
+        "id": "4995d457-dd23-fb27-f0b9-3428e6afd8f4"
+      },
+      "d8c48695-965c-2416-ec8c-2f90d2b8fdd5": {
+        "isSystemType": true,
+        "bundleAlias": "control_widgets",
+        "typeAlias": "knob_control",
+        "type": "rpc",
+        "title": "New widget",
+        "sizeX": 7,
+        "sizeY": 8,
+        "config": {
+          "targetDeviceAliases": [],
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "requestTimeout": 500,
+            "maxValue": 40,
+            "initialValue": 22,
+            "minValue": 10,
+            "title": "HVAC control",
+            "getValueMethod": "getTemperature",
+            "setValueMethod": "setTemperature"
+          },
+          "title": "HVAC Control",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "decimals": 1,
+          "datasources": [],
+          "enableDataExport": true,
+          "targetDeviceAliasIds": [
+            "a0faf37a-3c5d-e721-f445-de7914947895"
+          ]
+        },
+        "id": "d8c48695-965c-2416-ec8c-2f90d2b8fdd5"
+      },
+      "b03b4768-2c48-b70d-e09c-a7a119626094": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "html_value_card",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 8,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "airFlow",
+                  "type": "timeseries",
+                  "label": "airFlow",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.28404466543453477
+                },
+                {
+                  "name": "targetTemperature",
+                  "type": "timeseries",
+                  "label": "targetTemperature",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.5501994374067034
+                },
+                {
+                  "name": "enabled",
+                  "type": "timeseries",
+                  "label": "enabledText",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.9230378377775053,
+                  "postFuncBody": "return value === 'true' ? 'ON' : 'OFF';"
+                },
+                {
+                  "name": "enabled",
+                  "type": "timeseries",
+                  "label": "enabledTextColor",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.4989312087417017,
+                  "postFuncBody": "return value === 'true' ? '#43a047' : '#f44336';"
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 20px;\n   display: flex;\n   flex-direction: row;\n   align-items: center;\n   justify-content: space-around;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   height: 100%;\n}\n\n.card h1 {\n    text-transform: uppercase;\n    color: rgba(0, 0, 0, 0.67);\n    font-size: 16px;\n    font-weight: bold;\n    margin: 0;\n    padding-bottom: 10px;\n    line-height: 32px;\n}\n\n.card .value {\n    font-size: 38px;\n    font-weight: 500;\n}\n\n.card .value.state {\n    font-weight: 500;\n}\n\n.card .value.temp {\n    color: #4caf50;\n}\n\n.card .value.air-flow {\n    color: #2196f3;\n}\n\n.card .description {\n    font-size: 20px;\n    color: #999;\n}\n",
+            "cardHtml": "<div class='card'>\n    <div class='content'>\n        <div class='column'>\n            <h1>State</h1>\n            <div class='value state' style='color: ${enabledTextColor};'>\n                ${enabledText}\n            </div>    \n            <br/>\n            <h1>Target Temperature</h1>\n            <div class='value temp'>\n                ${targetTemperature:1} °C\n            </div>    \n            <br/>\n            <h1>Air Flow</h1>\n            <div class='value air-flow'>\n                ${airFlow:1} cfm\n            </div>    \n        </div>\n    </div>\n</div>"
+          },
+          "title": "New HTML Value Card",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false
+        },
+        "id": "b03b4768-2c48-b70d-e09c-a7a119626094"
+      },
+      "c369c3e7-8243-8f00-0a95-8b5b9cc79543": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 18,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "Temperature",
+                  "color": "#ff5722",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.7387395503161205,
+                  "units": "°C",
+                  "decimals": 1
+                },
+                {
+                  "name": "humidity",
+                  "type": "timeseries",
+                  "label": "Humidity",
+                  "color": "#1e88e5",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "axisTitle": "Humidity, %",
+                    "axisTickDecimals": 1
+                  },
+                  "_hash": 0.3113393006398675,
+                  "units": "%",
+                  "decimals": 1
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "selectedTab": 0,
+            "realtime": {
+              "timewindowMs": 86400000,
+              "interval": 900000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Temperature, °C",
+              "tickDecimals": 1
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Temperature and Humidity",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "°C",
+          "decimals": 1,
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "actions": {}
+        },
+        "id": "c369c3e7-8243-8f00-0a95-8b5b9cc79543"
+      },
+      "fd83d356-1e9b-4515-660e-a182680b9cca": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 18,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "co2",
+                  "type": "timeseries",
+                  "label": "CO2",
+                  "color": "#9f4295",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left",
+                    "axisTickDecimals": 0
+                  },
+                  "_hash": 0.7387395503161205,
+                  "units": "ppm",
+                  "decimals": 0
+                },
+                {
+                  "name": "tvoc",
+                  "type": "timeseries",
+                  "label": "TVOC",
+                  "color": "#3d9d9a",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "axisTitle": "TVOC Level, ppm",
+                    "axisTickDecimals": 2
+                  },
+                  "_hash": 0.3113393006398675,
+                  "units": "ppm",
+                  "decimals": 3
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "selectedTab": 0,
+            "realtime": {
+              "timewindowMs": 86400000,
+              "interval": 900000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "CO2 Level, ppm",
+              "tickDecimals": 0
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Air Quality",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "°C",
+          "decimals": 1,
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "actions": {}
+        },
+        "id": "fd83d356-1e9b-4515-660e-a182680b9cca"
+      },
+      "e3bba377-13d4-9cec-6a83-55c5f7223863": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "state_chart",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 24,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "occupancy",
+                  "type": "timeseries",
+                  "label": "Occupancy",
+                  "color": "#00897b",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": true,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.7302854944455417,
+                  "postFuncBody": "return value === 'true' ? 1 : 0;"
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "interval": 300000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "ticksFormatter": "if (value > 0 && value <= 1) {\n    return 'Occupied';\n} else if (value === 0) {\n    return 'Free';\n} else {\n    return '';\n}",
+              "title": "Occupancy status",
+              "tickSize": 1,
+              "max": 1.2
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'Occupied';\n} else if (value === 0) {\n    return 'Free';\n} else {\n    return '';\n}",
+            "smoothLines": false
+          },
+          "title": "Occupancy History",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "actions": {},
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false
+          },
+          "enableDataExport": true,
+          "alarmSearchStatus": "ACTIVE",
+          "alarmsPollingInterval": 5
+        },
+        "id": "e3bba377-13d4-9cec-6a83-55c5f7223863"
+      },
+      "bbd9b83c-086f-4c17-80ce-2ccfeba7f671": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "simple_neon_gauge_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 6,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "temperature",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.8343620367331097
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fffefe",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 40,
+            "minValue": 10,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": true,
+            "gaugeWidthScale": 0.5,
+            "levelColors": [
+              "#9575cd",
+              "#f44336"
+            ],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 14
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 0,
+            "gaugeType": "donut",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "showTitle": true,
+            "title": "Temperature",
+            "unitTitle": "Temperature",
+            "roundedLineCap": true,
+            "gaugeColor": "rgba(0, 0, 0, 0)"
+          },
+          "title": "New Simple neon gauge - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false,
+          "units": "°C",
+          "decimals": 1
+        },
+        "id": "bbd9b83c-086f-4c17-80ce-2ccfeba7f671"
+      },
+      "c0148b33-1c64-70e4-8040-94ae5623af48": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "simple_neon_gauge_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 6,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "humidity",
+                  "type": "timeseries",
+                  "label": "humidity",
+                  "color": "#1e88e5",
+                  "settings": {},
+                  "_hash": 0.8343620367331097
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fffefe",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 100,
+            "minValue": 0,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": true,
+            "gaugeWidthScale": 0.5,
+            "levelColors": [
+              "#e3f2fd",
+              "#1565c0"
+            ],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 14
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 0,
+            "gaugeType": "donut",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "showTitle": true,
+            "title": "Humidity",
+            "unitTitle": "Humidity",
+            "roundedLineCap": true,
+            "gaugeColor": "rgba(0, 0, 0, 0)"
+          },
+          "title": "New Simple neon gauge - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false,
+          "units": "%",
+          "decimals": 1
+        },
+        "id": "c0148b33-1c64-70e4-8040-94ae5623af48"
+      },
+      "0340e45d-0401-ffbc-d201-ce22ba326cec": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "simple_neon_gauge_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 6,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "co2",
+                  "type": "timeseries",
+                  "label": "co2",
+                  "color": "#9f4295",
+                  "settings": {},
+                  "_hash": 0.8343620367331097
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fffefe",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 2500,
+            "minValue": 0,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": true,
+            "gaugeWidthScale": 0.5,
+            "levelColors": [
+              "#f3e5f5",
+              "#9f4295"
+            ],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 14
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 0,
+            "gaugeType": "donut",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "showTitle": true,
+            "title": "CO2",
+            "unitTitle": "CO2",
+            "roundedLineCap": true,
+            "gaugeColor": "rgba(0, 0, 0, 0)"
+          },
+          "title": "New Simple neon gauge - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false,
+          "units": "ppm",
+          "decimals": 0
+        },
+        "id": "0340e45d-0401-ffbc-d201-ce22ba326cec"
+      },
+      "4e80ab3a-cbca-0d14-c829-20ebf1f84c60": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "simple_neon_gauge_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 6,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "tvoc",
+                  "type": "timeseries",
+                  "label": "tvoc",
+                  "color": "#3d9d9a",
+                  "settings": {},
+                  "_hash": 0.8343620367331097
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fffefe",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 1,
+            "minValue": 0,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": true,
+            "gaugeWidthScale": 0.5,
+            "levelColors": [
+              "#e0f2f1",
+              "#3d9d9a"
+            ],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 14
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 0,
+            "gaugeType": "donut",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "showTitle": true,
+            "title": "TVOC",
+            "unitTitle": "TVOC",
+            "roundedLineCap": true,
+            "gaugeColor": "rgba(0, 0, 0, 0)"
+          },
+          "title": "New Simple neon gauge - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false,
+          "units": "ppm",
+          "decimals": 3
+        },
+        "id": "4e80ab3a-cbca-0d14-c829-20ebf1f84c60"
+      },
+      "90c90206-7111-b511-5f8b-bbcf609c9a51": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "simple_neon_gauge_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 6,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "amperage",
+                  "type": "timeseries",
+                  "label": "amperage",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.5373482732538397
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fffefe",
+          "color": "rgba(1, 1, 1, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "maxValue": 25,
+            "minValue": 0,
+            "donutStartAngle": 90,
+            "showValue": true,
+            "showMinMax": true,
+            "gaugeWidthScale": 1,
+            "levelColors": [],
+            "titleFont": {
+              "family": "Roboto",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "labelFont": {
+              "family": "Roboto",
+              "size": 8,
+              "style": "normal",
+              "weight": "500"
+            },
+            "valueFont": {
+              "family": "Roboto",
+              "style": "normal",
+              "weight": "500",
+              "size": 14
+            },
+            "minMaxFont": {
+              "family": "Segment7Standard",
+              "size": 12,
+              "style": "normal",
+              "weight": "500"
+            },
+            "neonGlowBrightness": 0,
+            "dashThickness": 1.5,
+            "gaugeType": "donut",
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear",
+            "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+            "showTitle": true,
+            "title": "Current",
+            "unitTitle": "Current"
+          },
+          "title": "New Simple neon gauge - justGage",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false,
+          "units": "A",
+          "decimals": 2,
+          "alarmSearchStatus": "UNACK",
+          "alarmsPollingInterval": 5
+        },
+        "id": "90c90206-7111-b511-5f8b-bbcf609c9a51"
+      },
+      "b39719de-1487-eb54-f1e8-cf347f79e6f3": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "timeseries_bars_flot",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 37,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "water",
+                  "type": "timeseries",
+                  "label": "Water Consumed",
+                  "color": "#01579b",
+                  "settings": {
+                    "showLines": false,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left",
+                    "axisTickDecimals": 0
+                  },
+                  "_hash": 0.5693030217652919
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "interval": 3600000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "SUM",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 14,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Water, gal",
+              "titleAngle": 90,
+              "tickDecimals": 0
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": true,
+            "tooltipIndividual": false,
+            "defaultBarWidth": 600
+          },
+          "title": "Water consumption",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "actions": {},
+          "enableDataExport": true,
+          "units": "gal",
+          "decimals": 4,
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": true
+          }
+        },
+        "id": "b39719de-1487-eb54-f1e8-cf347f79e6f3"
+      },
+      "243602be-600b-f4f2-bf9e-2687d953fd2d": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "state_chart",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 17,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "enabled",
+                  "type": "timeseries",
+                  "label": "HVAC State",
+                  "color": "#00897b",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": true,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.7302854944455417,
+                  "postFuncBody": "return value === 'true' ? 1 : 0;"
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "interval": 300000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "ticksFormatter": "if (value > 0 && value <= 1) {\n    return 'On';\n} else if (value === 0) {\n    return 'Off';\n} else {\n    return '';\n}",
+              "title": "State",
+              "tickSize": 1,
+              "max": 1.2
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'On';\n} else if (value === 0) {\n    return 'Off';\n} else {\n    return '';\n}",
+            "smoothLines": false
+          },
+          "title": "State History",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "actions": {},
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false
+          },
+          "enableDataExport": true
+        },
+        "id": "243602be-600b-f4f2-bf9e-2687d953fd2d"
+      },
+      "6c2775cc-ad54-202e-28a2-746a5c0e9da5": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "state_chart",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 16,
+        "sizeY": 11,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "targetTemperature",
+                  "type": "timeseries",
+                  "label": "Target Temperature",
+                  "color": "#4caf50",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": true,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.7302854944455417
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "interval": 300000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "title": "Target Temperature, °C",
+              "tickDecimals": 1
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": false
+          },
+          "title": "Target Temperature History",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": true,
+          "actions": {},
+          "legendConfig": {
+            "position": "bottom",
+            "showMin": true,
+            "showMax": true,
+            "showAvg": true,
+            "showTotal": false
+          },
+          "enableDataExport": true,
+          "units": "°C",
+          "decimals": 1
+        },
+        "id": "6c2775cc-ad54-202e-28a2-746a5c0e9da5"
+      },
+      "e69c1626-73c5-3152-f396-bb453ede4c5c": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "sizeX": 23,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "dataKeys": [
+                {
+                  "name": "voltage",
+                  "type": "timeseries",
+                  "label": "Voltage",
+                  "color": "#f57f17",
+                  "settings": {
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left"
+                  },
+                  "_hash": 0.9297794613684938
+                }
+              ],
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895"
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "interval": 300000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "tickDecimals": 2,
+              "title": "Voltage, V"
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": true,
+              "horizontalLines": true,
+              "outlineWidth": 1
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": true
+          },
+          "title": "Battery Discharge",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "mobileHeight": null,
+          "enableDataExport": true,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "units": "V",
+          "decimals": 3,
+          "useDashboardTimewindow": false,
+          "alarmSearchStatus": "ACTIVE",
+          "alarmsPollingInterval": 5,
+          "showLegend": true,
+          "actions": {}
+        },
+        "id": "e69c1626-73c5-3152-f396-bb453ede4c5c"
+      },
+      "aed80ec8-81d4-c6f7-e71f-5ab04f5ded06": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "html_value_card",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 11,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "energy",
+                  "type": "timeseries",
+                  "label": "energy",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.7340171524826664
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "cardCss": ".card,\n.card * {\n    box-sizing: border-box;\n}    \n.card {\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n.card .content {\n    height: 100%;\n}\n.card .upper-bar {\n    position: relative;\n    z-index: 0;\n    overflow: hidden;\n    height: 70%;\n    box-shadow: 0 1px 3px 0 rgba(0,0,0,.26);\n    color: #fff;\n}\n.card .lower-bar {\n    height: 30%;\n    padding-left: 16px;\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n}\n\n.card .right-top-bar {\n    display: none;\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n}\n\n.card .right-top-bar .icon-container {\n    display: none;\n    box-shadow: 0px 0px 4px 2px rgba(0,0,0,.26);\n    cursor: pointer;\n    border: 3px solid #fff;\n    color: #fff;\n    background-color: rgb(255, 157, 12);\n}\n\n.card .right-top-bar .icon-container .icon {\n    color: #fff;\n}\n\n.card .right-top-bar .icon-container:hover {\n    border: 3px solid rgb(255, 157, 12);\n    color: rgb(255, 157, 12);\n    background-color: #fff;\n}\n\n.card .right-top-bar .icon-container:hover .icon {\n    color: rgb(255, 157, 12);\n}\n\n.card .image-shade {\n    width: 100%;\n    height: 100%;\n    padding-left: 16px;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n    background-color: rgba(255, 157, 12, .5);\n    z-index: 0;\n}\n.card h1 {\n    margin: 0;\n    font-size: 20px;\n    font-weight: bold;\n    line-height: 30px;\n}\n.card .icon-container {\n    height: 40px;\n    width: 40px;\n    border-radius: 50%;\n    border: 3px solid rgb(255, 157, 12);\n    text-align: center;\n}\n.card .description {\n    margin-left: 16px;\n    font-size: 20px;\n    font-weight: 500;\n    color: rgb(255, 157, 12);\n}\n.card .value {\n    font-size: 40px;\n    font-weight: 300;\n    letter-spacing: -2px;\n}\n.card .icon {\n    line-height: 36px;\n    color: rgb(255, 157, 12);\n}\n.card video {\n    position: absolute;\n    top: 75%;\n    left: 0;\n    width: 160%;\n    z-index: -1;\n    transform: translateY(-70%);\n}",
+            "cardHtml": "<div class='card' id=\"energyConsumptionHtmlCard\">\n    <div class='content'>\n       <div class='upper-bar'>\n           <video loop muted autoplay>\n               <source src=\"https://thingsboard.io/images/dashboards/districts/energy-consumed-bg.mp4\" type=\"video/mp4\">\n               <source src=\"https://thingsboard.io/images/dashboards/districts/energy-consumed-bg.webm\" type=\"video/webm\">\n           </video>\n            <div class='image-shade'>\n                <h1>Total</h1>\n                <div class='value'>${energy:2} kWh</div>\n            </div>\n       </div>\n       <div class='lower-bar'>\n           <div class='icon-container'>\n               <div class='material-icons icon'>flash_on</div>\n           </div>\n           <div class='description'>Energy consumed per minute</div>\n       </div>\n       <div class='right-top-bar'>\n           <div class='icon-container'>\n               <div id='open-statistics' class='material-icons icon'>flash_on</div>\n           </div>\n       </div>\n    </div>\n</div>\n"
+          },
+          "title": "New HTML Value Card",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {
+            "headerButton": []
+          },
+          "enableDataExport": false,
+          "decimals": 5
+        },
+        "id": "aed80ec8-81d4-c6f7-e71f-5ab04f5ded06"
+      },
+      "3e6a95ab-ecf3-f65a-5432-8f8636373a30": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "html_value_card",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 11,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "a0faf37a-3c5d-e721-f445-de7914947895",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "water",
+                  "type": "timeseries",
+                  "label": "water",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.6336446887523188
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "cardCss": ".card,\n.card * {\n    box-sizing: border-box;\n}    \n.card {\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n.card .content {\n    height: 100%;\n}\n.card .upper-bar {\n    position: relative;\n    z-index: 0;\n    overflow: hidden;\n    height: 70%;\n    box-shadow: 0 1px 3px 0 rgba(0,0,0,.26);\n    color: #fff;\n}\n.card .lower-bar {\n    height: 30%;\n    padding-left: 16px;\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n}\n\n.card .right-top-bar {\n    display: none;\n    position: absolute;\n    top: 10px;\n    right: 10px;\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n}\n\n.card .right-top-bar .icon-container {\n    display: none;\n    box-shadow: 0px 0px 4px 2px rgba(0,0,0,.26);\n    cursor: pointer;\n    border: 3px solid #fff;\n    color: #fff;\n    background-color: rgb(0, 132, 214);\n}\n\n.card .right-top-bar .icon-container .icon {\n    color: #fff;\n}\n\n.card .right-top-bar .icon-container:hover {\n    border: 3px solid rgb(0, 132, 214);\n    color: rgb(0, 132, 214);\n    background-color: #fff;\n}\n\n.card .right-top-bar .icon-container:hover .icon {\n    color: rgb(0, 132, 214);\n}\n\n.card .image-shade {\n    width: 100%;\n    height: 100%;\n    padding-left: 16px;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n    background-color: rgba(0, 132, 214, .5);\n    z-index: 0;\n}\n.card h1 {\n    margin: 0;\n    font-size: 20px;\n    font-weight: bold;\n    line-height: 30px;\n}\n.card .icon-container {\n    height: 40px;\n    width: 40px;\n    border-radius: 50%;\n    border: 3px solid rgb(0, 132, 214);\n    text-align: center;\n}\n.card .description {\n    margin-left: 16px;\n    font-size: 20px;\n    font-weight: 500;\n    color: rgb(0, 132, 214);\n}\n.card .value {\n    font-size: 40px;\n    font-weight: 300;\n    letter-spacing: -2px;\n}\n.card .icon {\n    line-height: 36px;\n    color: rgb(0, 132, 214);\n}\n.card video {\n    position: absolute;\n    top: 75%;\n    left: 0;\n    width: 160%;\n    z-index: -1;\n    transform: translateY(-70%);\n}",
+            "cardHtml": "<div class='card' id=\"waterConsumptionHtmlCard\">\n    <div class='content'>\n       <div class='upper-bar'>\n           <video loop muted autoplay>\n               <source src=\"https://thingsboard.io/images/dashboards/districts/water-consumed-bg.mp4\" type=\"video/mp4\">\n               <source src=\"https://thingsboard.io/images/dashboards/districts/water-consumed-bg.webm\" type=\"video/webm\">\n           </video>\n            <div class='image-shade'>\n                <h1>Total</h1>\n                <div class='value'>${water:2} gal</div>\n            </div>\n       </div>\n       <div class='lower-bar'>\n           <div class='icon-container'>\n               <div class='material-icons icon'>pool</div>\n           </div>\n           <div class='description'>Water consumed per minute</div>\n       </div>\n       <div class='right-top-bar'>\n           <div class='icon-container'>\n               <div id='open-statistics' class='material-icons icon'>pool</div>\n           </div>\n       </div>\n    </div>\n</div>\n"
+          },
+          "title": "New HTML Value Card",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {
+            "headerButton": []
+          },
+          "enableDataExport": false
+        },
+        "id": "3e6a95ab-ecf3-f65a-5432-8f8636373a30"
+      },
+      "76429f16-a535-6643-3f22-8ab61808be46": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "html_value_card",
+        "type": "latest",
+        "title": "New widget",
+        "sizeX": 7,
+        "sizeY": 12,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "4dd49440-57ee-0435-5dbd-f72fe063a687",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "address",
+                  "type": "attribute",
+                  "label": "address",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.6861944279099801
+                },
+                {
+                  "name": "phone",
+                  "type": "attribute",
+                  "label": "phone",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.3933128969024231,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return '<span>' + value + '</span>';"
+                },
+                {
+                  "name": "email",
+                  "type": "attribute",
+                  "label": "email",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.34010498857790705
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .content {\n   padding: 20px;\n   display: flex;\n   flex-direction: row;\n   align-items: center;\n   height: 100%;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   height: 100%;\n}\n\n.card h1 {\n    text-transform: uppercase;\n    color: #777;\n    font-size: 18px;\n    font-weight: bold;\n    margin: 0;\n    padding-bottom: 6px;\n    line-height: 20px;\n}\n\n.card h2 {\n    color: #333;\n    font-size: 16px;\n    font-weight: bold;\n    margin: 0;\n    padding-bottom: 10px;\n    line-height: 20px;\n}\n\n.card h3 {\n    color: #666;\n    font-size: 14px;\n    font-weight: bold;\n    margin: 0;\n    padding-bottom: 6px;\n    padding-top: 14px;\n    line-height: 18px;\n}\n\n.card .value {\n    font-size: 14px;\n    font-weight: 300;\n}\n\n.card .description {\n    font-size: 20px;\n    color: #999;\n}\n\n.card i.fa {\n    font-size: 20px;\n    padding-right: 10px;\n}\n",
+            "cardHtml": "<div class='card' id=\"deviceContactInfoCard\">\n    <div class='content'>\n        <div class='column'>\n            <h2>${entityName}</h2>\n            <h3><i class=\"fa fa-map-marker\"></i>Address</h3>\n            <div class='value' id=\"contactAddress\">\n                ${address}\n            </div>    \n            <h3><i class=\"fa fa-phone\"></i>Phone</h3>\n            <div class='value' id=\"contactPhone\">\n               ${phone}\n            </div>    \n            <h3><i class=\"fa fa-envelope\"></i>Email</h3>\n            <div class='value' id=\"contactEmail\">\n               ${email}\n            </div>    \n        </div>\n    </div>\n</div>"
+          },
+          "title": "Contact Info",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "borderBottom": "solid 1px #aaa",
+            "borderRight": "solid 1px #aaa"
+          },
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "opacity": "0.67",
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "enableDataExport": false
+        },
+        "id": "76429f16-a535-6643-3f22-8ab61808be46"
+      }
+    },
+    "states": {
+      "energy_meter": {
+        "name": "Energy Meter: ${entityName}",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "2dcb5560-c55f-e238-022e-69baba7c2022": {
+                "sizeX": 21,
+                "sizeY": 11,
+                "row": 12,
+                "col": 7
+              },
+              "f9fcbc13-1a44-5114-a294-c6831e3494ab": {
+                "sizeX": 17,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 11
+              },
+              "762e5f79-91b0-5509-5b31-4e8cf685b974": {
+                "sizeX": 14,
+                "sizeY": 11,
+                "mobileHeight": null,
+                "row": 12,
+                "col": 28
+              },
+              "2687115f-98f5-ff39-d0e7-54288d8f38b2": {
+                "sizeX": 3,
+                "sizeY": 11,
+                "row": 12,
+                "col": 42
+              },
+              "4284c162-8811-321a-d2e5-7fd90f35dfb8": {
+                "sizeX": 3,
+                "sizeY": 11,
+                "row": 12,
+                "col": 45
+              },
+              "bd5975b3-6965-5f0a-0dd7-4a590136a0bd": {
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 0,
+                "col": 42
+              },
+              "bcce547e-b105-aea0-1d0c-81d67a3c4123": {
+                "sizeX": 14,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 28
+              },
+              "90c90206-7111-b511-5f8b-bbcf609c9a51": {
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 6,
+                "col": 42
+              },
+              "aed80ec8-81d4-c6f7-e71f-5ab04f5ded06": {
+                "sizeX": 11,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              },
+              "76429f16-a535-6643-3f22-8ab61808be46": {
+                "sizeX": 7,
+                "sizeY": 11,
+                "row": 12,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "color": "rgba(0,0,0,0.870588)",
+              "columns": 48,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 5
+            }
+          }
+        }
+      },
+      "hvac": {
+        "name": "HVAC: ${entityName}",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "2dcb5560-c55f-e238-022e-69baba7c2022": {
+                "sizeX": 17,
+                "sizeY": 12,
+                "row": 11,
+                "col": 7
+              },
+              "7a97e0a8-71c0-6d38-a3cd-4354cec69868": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 11,
+                "col": 24
+              },
+              "4995d457-dd23-fb27-f0b9-3428e6afd8f4": {
+                "sizeX": 7,
+                "sizeY": 3,
+                "row": 0,
+                "col": 0
+              },
+              "d8c48695-965c-2416-ec8c-2f90d2b8fdd5": {
+                "sizeX": 7,
+                "sizeY": 8,
+                "row": 3,
+                "col": 0
+              },
+              "b03b4768-2c48-b70d-e09c-a7a119626094": {
+                "sizeX": 8,
+                "sizeY": 11,
+                "row": 0,
+                "col": 40
+              },
+              "243602be-600b-f4f2-bf9e-2687d953fd2d": {
+                "sizeX": 17,
+                "sizeY": 11,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 7
+              },
+              "6c2775cc-ad54-202e-28a2-746a5c0e9da5": {
+                "sizeX": 16,
+                "sizeY": 11,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 24
+              },
+              "76429f16-a535-6643-3f22-8ab61808be46": {
+                "sizeX": 7,
+                "sizeY": 12,
+                "row": 11,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "color": "rgba(0,0,0,0.870588)",
+              "columns": 48,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 5
+            }
+          }
+        }
+      },
+      "smart_sensor": {
+        "name": "Smart Sensor: ${entityName}",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "2dcb5560-c55f-e238-022e-69baba7c2022": {
+                "sizeX": 17,
+                "sizeY": 12,
+                "row": 12,
+                "col": 7
+              },
+              "c369c3e7-8243-8f00-0a95-8b5b9cc79543": {
+                "sizeX": 18,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 0
+              },
+              "fd83d356-1e9b-4515-660e-a182680b9cca": {
+                "sizeX": 18,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 24
+              },
+              "e3bba377-13d4-9cec-6a83-55c5f7223863": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 12,
+                "col": 24
+              },
+              "bbd9b83c-086f-4c17-80ce-2ccfeba7f671": {
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 0,
+                "col": 18
+              },
+              "c0148b33-1c64-70e4-8040-94ae5623af48": {
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 6,
+                "col": 18
+              },
+              "0340e45d-0401-ffbc-d201-ce22ba326cec": {
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 0,
+                "col": 42
+              },
+              "4e80ab3a-cbca-0d14-c829-20ebf1f84c60": {
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 6,
+                "col": 42
+              },
+              "76429f16-a535-6643-3f22-8ab61808be46": {
+                "sizeX": 7,
+                "sizeY": 12,
+                "row": 12,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "color": "rgba(0,0,0,0.870588)",
+              "columns": 48,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 5
+            }
+          }
+        }
+      },
+      "water_meter": {
+        "name": "Water Meter: ${entityName}",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "2dcb5560-c55f-e238-022e-69baba7c2022": {
+                "sizeX": 18,
+                "sizeY": 12,
+                "row": 12,
+                "col": 7
+              },
+              "b39719de-1487-eb54-f1e8-cf347f79e6f3": {
+                "sizeX": 37,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 11
+              },
+              "e69c1626-73c5-3152-f396-bb453ede4c5c": {
+                "sizeX": 23,
+                "sizeY": 12,
+                "mobileHeight": null,
+                "row": 12,
+                "col": 25
+              },
+              "3e6a95ab-ecf3-f65a-5432-8f8636373a30": {
+                "sizeX": 11,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              },
+              "76429f16-a535-6643-3f22-8ab61808be46": {
+                "sizeX": 7,
+                "sizeY": 12,
+                "row": 12,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "color": "rgba(0,0,0,0.870588)",
+              "columns": 48,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 5
+            }
+          }
+        }
+      },
+      "office_details": {
+        "name": "Smart office",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "17ad8f4c-da3c-6a50-99ae-357e27f0af40": {
+                "sizeX": 22,
+                "sizeY": 12,
+                "row": 11,
+                "col": 26
+              },
+              "e6421a08-76a7-5fbb-c9be-42d00154a468": {
+                "sizeX": 7,
+                "sizeY": 3,
+                "row": 0,
+                "col": 0
+              },
+              "40d59849-9d6a-6de4-a023-76ea9fe29a5a": {
+                "sizeX": 22,
+                "sizeY": 11,
+                "mobileHeight": null,
+                "row": 0,
+                "col": 26
+              },
+              "5c002504-7d9d-856e-bdf6-64c7c84ef790": {
+                "sizeX": 7,
+                "sizeY": 8,
+                "row": 3,
+                "col": 0
+              },
+              "27efeadc-842a-b232-fe8e-1a41bec1e630": {
+                "sizeX": 19,
+                "sizeY": 11,
+                "row": 0,
+                "col": 7
+              },
+              "783e83b2-bb20-460b-b4a4-7fbbc08aa27c": {
+                "sizeX": 26,
+                "sizeY": 12,
+                "row": 11,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "color": "rgba(0,0,0,0.870588)",
+              "columns": 48,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70,
+              "margin": 5
+            }
+          }
+        }
+      }
+    },
+    "entityAliases": {
+      "4dd49440-57ee-0435-5dbd-f72fe063a687": {
+        "id": "4dd49440-57ee-0435-5dbd-f72fe063a687",
+        "alias": "Office",
+        "filter": {
+          "type": "singleEntity",
+          "resolveMultiple": false,
+          "singleEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          }
+        }
+      },
+      "3c5dbaaf-e9af-bee3-891e-7202c319af16": {
+        "id": "3c5dbaaf-e9af-bee3-891e-7202c319af16",
+        "alias": "Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          },
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": null,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "smart-sensor"
+          ]
+        }
+      },
+      "e1d6944f-e5b9-224b-9496-a0d48d46f4ce": {
+        "id": "e1d6944f-e5b9-224b-9496-a0d48d46f4ce",
+        "alias": "HVAC",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          },
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": null,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "hvac"
+          ]
+        }
+      },
+      "fe18dacb-77de-1cfd-9583-f76e4708c331": {
+        "id": "fe18dacb-77de-1cfd-9583-f76e4708c331",
+        "alias": "Energy Meters",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          },
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": null,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "energy-meter"
+          ]
+        }
+      },
+      "e73f4fd0-3136-89e7-f802-e071e6e19a6d": {
+        "id": "e73f4fd0-3136-89e7-f802-e071e6e19a6d",
+        "alias": "Office Devices",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": {
+            "entityType": "ASSET",
+            "id": "51833d60-60b3-11eb-adab-69485f2f5834"
+          },
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": null,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "energy-meter",
+            "smart-sensor",
+            "hvac",
+            "water-meter"
+          ]
+        }
+      },
+      "a0faf37a-3c5d-e721-f445-de7914947895": {
+        "id": "a0faf37a-3c5d-e721-f445-de7914947895",
+        "alias": "Current Device",
+        "filter": {
+          "type": "stateEntity",
+          "resolveMultiple": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null
+        }
+      }
+    },
+    "timewindow": {
+      "hideInterval": false,
+      "hideAggregation": false,
+      "hideAggInterval": false,
+      "selectedTab": 0,
+      "realtime": {
+        "timewindowMs": 86400000,
+        "interval": 900000
+      },
+      "aggregation": {
+        "type": "AVG",
+        "limit": 2500
+      }
+    },
+    "settings": {
+      "stateControllerId": "entity",
+      "showTitle": false,
+      "showDashboardsSelect": false,
+      "showEntitiesSelect": false,
+      "showDashboardTimewindow": true,
+      "showDashboardExport": true,
+      "toolbarAlwaysOpen": true,
+      "titleColor": "rgba(0,0,0,0.870588)",
+      "showFilters": true
+    },
+    "filters": {}
+  },
+  "name": "Smart office"
+}

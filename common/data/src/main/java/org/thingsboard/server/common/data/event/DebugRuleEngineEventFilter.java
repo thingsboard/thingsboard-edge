@@ -30,18 +30,26 @@
  */
 package org.thingsboard.server.common.data.event;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.StringUtils;
 
 @Data
 public abstract class DebugRuleEngineEventFilter extends DebugEventFilter {
 
+    @ApiModelProperty(position = 4, value = "String value representing msg direction type (incoming to entity or outcoming from entity)", allowableValues = "IN, OUT")
     private String msgDirectionType;
+    @ApiModelProperty(position = 5, value = "The case insensitive 'contains' filter based on data (key and value) for the message.", example = "humidity")
     private String dataSearch;
+    @ApiModelProperty(position = 6, value = "The case insensitive 'contains' filter based on metadata (key and value) for the message.", example = "deviceName")
     private String metadataSearch;
+    @ApiModelProperty(position = 7, value = "String value representing the entity type", allowableValues = "DEVICE")
     private String entityName;
+    @ApiModelProperty(position = 8, value = "String value representing the type of message routing", example = "Success")
     private String relationType;
+    @ApiModelProperty(position = 9, value = "String value representing the entity id in the event body (originator of the message)", example = "de9d54a0-2b7a-11ec-a3cc-23386423d98f")
     private String entityId;
+    @ApiModelProperty(position = 10, value = "String value representing the message type", example = "POST_TELEMETRY_REQUEST")
     private String msgType;
 
     @Override

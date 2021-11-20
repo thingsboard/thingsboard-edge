@@ -30,17 +30,21 @@
  */
 package org.thingsboard.server.common.data.menu;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 
+@ApiModel
 @Data
 @EqualsAndHashCode
 public class CustomMenu {
 
+    @ApiModelProperty(value = "List of disabled regular menu items", required = true, example = "home")
     private ArrayList<String> disabledMenuItems = new ArrayList<>();
-
+    @ApiModelProperty(value = "List of custom menu items", required = true)
     private ArrayList<CustomMenuItem> menuItems = new ArrayList<>();
 
 }

@@ -218,12 +218,6 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
       case AliasFilterType.apiUsageState:
         this.filterFormGroup = this.fb.group({});
         break;
-      case AliasFilterType.edgeType:
-        this.filterFormGroup = this.fb.group({
-          edgeType: [filter ? filter.edgeType : null, [Validators.required]],
-          edgeNameFilter: [filter ? filter.edgeNameFilter : '', []],
-        });
-        break;
       case AliasFilterType.relationsQuery:
       case AliasFilterType.assetSearchQuery:
       case AliasFilterType.deviceSearchQuery:

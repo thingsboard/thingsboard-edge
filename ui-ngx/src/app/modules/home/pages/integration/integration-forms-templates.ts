@@ -238,8 +238,8 @@ export const templates = {
   },
   [IntegrationType.MQTT]: {
     clientConfiguration: {
-      host: 'localhost',
-      port: 11883,
+      host: '',
+      port: 1883,
       cleanSession: true,
       ssl: false,
       connectTimeoutSec: 10,
@@ -464,8 +464,9 @@ export const templates = {
         port: 8883,
         ssl: true,
         connectTimeoutSec: 10,
+        maxBytesInMessage: 32368,
         credentials: {
-        type: 'basic',
+          type: 'basic',
           username: '',
           password: ''
       },
@@ -476,8 +477,9 @@ export const templates = {
     }],
       downlinkTopicPattern: '',
       fieldValidators: {
-      'clientConfiguration.host': [Validators.required],
+        'clientConfiguration.host': [Validators.required],
         'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
+        'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
         'clientConfiguration.credentials.username': [Validators.required],
         'clientConfiguration.credentials.password': [Validators.required],
         downlinkTopicPattern: [Validators.required],

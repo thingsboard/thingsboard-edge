@@ -121,7 +121,7 @@ export class WhiteLabelingService {
   }
 
   public logoImageHeight(): number {
-    return this.getCurrentWlParams() ? this.getCurrentWlParams().logoImageHeight: null;
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().logoImageHeight : null;
   }
 
   public logoImageHeight$(): Observable<number> {
@@ -172,6 +172,14 @@ export class WhiteLabelingService {
     return this.asWhiteLabelingObservable(() => this.getHelpLinkBaseUrl());
   }
 
+  public getUiHelpBaseUrl(): string {
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().uiHelpBaseUrl : '';
+  }
+
+  public getUiHelpBaseUrl$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.getUiHelpBaseUrl());
+  }
+
   public isEnableHelpLinks(): boolean {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().enableHelpLinks : true;
   }
@@ -213,9 +221,9 @@ export class WhiteLabelingService {
     }
     if (storedFaviconChecksum) {
       if (storedLogoImageChecksum) {
-        url += '&'
+        url += '&';
       } else {
-        url += '?'
+        url += '?';
       }
       url += `faviconChecksum=${storedFaviconChecksum}`;
     }
@@ -261,9 +269,9 @@ export class WhiteLabelingService {
     }
     if (storedFaviconChecksum) {
       if (storedLogoImageChecksum) {
-        url += '&'
+        url += '&';
       } else {
-        url += '?'
+        url += '?';
       }
       url += `faviconChecksum=${storedFaviconChecksum}`;
     }
@@ -477,8 +485,8 @@ export class WhiteLabelingService {
       themeChecksum = objectHashCode(paletteSettings);
     }
     const prefix = isLoginTheme ? 'tb-login' : 'tb-app';
-    const storedThemeChecksum = localStorage.getItem(prefix+'_theme_checksum');
-    const storedThemeCss = localStorage.getItem(prefix+'_theme_css');
+    const storedThemeChecksum = localStorage.getItem(prefix + '_theme_checksum');
+    const storedThemeCss = localStorage.getItem(prefix + '_theme_css');
     let themeCssObservable: Observable<string>;
     let storeCssTheme;
     if (!storedThemeChecksum || !isEqual(themeChecksum, storedThemeChecksum)
@@ -493,8 +501,8 @@ export class WhiteLabelingService {
     return themeCssObservable.pipe(
       tap((themeCss) => {
         if (storeCssTheme) {
-          localStorage.setItem(prefix+'_theme_checksum', themeChecksum);
-          localStorage.setItem(prefix+'_theme_css', themeCss);
+          localStorage.setItem(prefix + '_theme_checksum', themeChecksum);
+          localStorage.setItem(prefix + '_theme_css', themeCss);
         }
         applyThemeStyle(themeCss, isLoginTheme);
       })
@@ -502,33 +510,33 @@ export class WhiteLabelingService {
   }
 
   private updateImages(wlParams: WhiteLabelingParams, prefix: string) {
-    const storedLogoImageChecksum = localStorage.getItem(prefix+'_logo_image_checksum');
-    const storedFaviconChecksum = localStorage.getItem(prefix+'_favicon_checksum');
+    const storedLogoImageChecksum = localStorage.getItem(prefix + '_logo_image_checksum');
+    const storedFaviconChecksum = localStorage.getItem(prefix + '_favicon_checksum');
     const logoImageChecksum = wlParams.logoImageChecksum;
     if (logoImageChecksum && !isEqual(storedLogoImageChecksum, logoImageChecksum)) {
       const logoImageUrl = wlParams.logoImageUrl;
-      localStorage.setItem(prefix+'_logo_image_checksum', logoImageChecksum);
-      localStorage.setItem(prefix+'_logo_image_url', logoImageUrl);
+      localStorage.setItem(prefix + '_logo_image_checksum', logoImageChecksum);
+      localStorage.setItem(prefix + '_logo_image_url', logoImageUrl);
     } else {
-      wlParams.logoImageUrl = localStorage.getItem(prefix+'_logo_image_url');
+      wlParams.logoImageUrl = localStorage.getItem(prefix + '_logo_image_url');
     }
     wlParams.logoImageSafeUrl = this.sanitizer.bypassSecurityTrustUrl(wlParams.logoImageUrl);
     const faviconChecksum = wlParams.faviconChecksum;
     if (faviconChecksum && !isEqual(storedFaviconChecksum, faviconChecksum)) {
       const favicon = wlParams.favicon;
-      localStorage.setItem(prefix+'_favicon_checksum', faviconChecksum);
-      localStorage.setItem(prefix+'_favicon_url', favicon.url);
-      localStorage.setItem(prefix+'_favicon_type', favicon.type);
+      localStorage.setItem(prefix + '_favicon_checksum', faviconChecksum);
+      localStorage.setItem(prefix + '_favicon_url', favicon.url);
+      localStorage.setItem(prefix + '_favicon_type', favicon.type);
     } else {
       wlParams.favicon = {
-        url: localStorage.getItem(prefix+'_favicon_url'),
-        type: localStorage.getItem(prefix+'_favicon_type'),
+        url: localStorage.getItem(prefix + '_favicon_url'),
+        type: localStorage.getItem(prefix + '_favicon_type'),
       };
     }
   }
 
 
-  private asWhiteLabelingObservable<T> (valueSource: () => T): Observable<T> {
+  private asWhiteLabelingObservable<T>(valueSource: () => T): Observable<T> {
     return this.changeWhiteLabelingSubject.pipe(
       map(() => valueSource())
     );
@@ -571,7 +579,7 @@ function applyCustomCss(customCss: string, isLoginTheme: boolean) {
   }
   let css;
   if (customCss && customCss.length) {
-    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-dark' : 'tb-default';
+    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-custom-css' : 'tb-default';
     css = cssParser.applyNamespacing(customCss);
     if (typeof css !== 'string') {
       css = cssParser.getCSSForEditor(css);

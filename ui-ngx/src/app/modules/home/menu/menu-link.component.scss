@@ -29,5 +29,18 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-
+  a.is-new::after {
+    content: "NEW";
+    font-size: 12px;
+    transform: translate(-10px,4px);
+    display: inline-block;
+    border-radius: 10px;
+    line-height: 22px;
+    height: 20px;
+    background: #fff;
+    color: #00695c;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
 }
+

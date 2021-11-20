@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
@@ -81,6 +82,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+
+    @Value("${zk.enabled}")
+    private Boolean zkEnabled;
 
     @Autowired
     private TenantDao tenantDao;
@@ -275,14 +279,25 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
                     if (!StringUtils.isEmpty(tenant.getEmail())) {
                         validateEmail(tenant.getEmail());
                     }
+                    validateTenantProfile(tenantId, tenant);
                 }
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Tenant tenant) {
-//                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
-//                    if (old == null) {
-//                        throw new DataValidationException("Can't update non existing tenant!");
-//                    }
+                    /* merge comment
+                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
+                    if (old == null) {
+                        throw new DataValidationException("Can't update non existing tenant!");
+                    }
+                    validateTenantProfile(tenantId, tenant);
+                     */
+                }
+
+                private void validateTenantProfile(TenantId tenantId, Tenant tenant) {
+                    TenantProfile tenantProfileById = tenantProfileService.findTenantProfileById(tenantId, tenant.getTenantProfileId());
+                    if (!zkEnabled && (tenantProfileById.isIsolatedTbCore() || tenantProfileById.isIsolatedTbRuleEngine())) {
+                        throw new DataValidationException("Can't use isolated tenant profiles in monolith setup!");
+                    }
                 }
             };
 

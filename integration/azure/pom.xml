@@ -35,11 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-<<<<<<< HEAD
         <version>3.3.2EDGE-SNAPSHOT</version>
-=======
-        <version>3.3.2EDGE-SNAPSHOT</version>
->>>>>>> upstream/master
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.integration</groupId>

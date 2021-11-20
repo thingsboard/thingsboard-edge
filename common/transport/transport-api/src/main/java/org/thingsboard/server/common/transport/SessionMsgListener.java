@@ -73,7 +73,7 @@ public interface SessionMsgListener {
 
     default void onDeviceDeleted(DeviceId deviceId) {}
 
-    default void onResourceUpdate(Optional<ResourceUpdateMsg> resourceUpdateMsgOpt) {}
+    default void onResourceUpdate(ResourceUpdateMsg resourceUpdateMsgOpt) {}
 
-    default void onResourceDelete(Optional<ResourceDeleteMsg> resourceUpdateMsgOpt) {}
+    default void onResourceDelete(ResourceDeleteMsg resourceUpdateMsgOpt) {}
 }

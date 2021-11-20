@@ -41,6 +41,7 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.util.ConvertUtil;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -60,10 +61,6 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
     @PostConstruct
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            stopped = true;
-            return;
-        }
         stopped = false;
         this.context = params.getContext();
         this.pubSubConfiguration = getClientConfiguration(configuration, PubSubIntegrationConfiguration.class);
@@ -83,12 +80,12 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
     }
 
     @Override
-    public void process(PubSubIntegrationMsg message) {
+    public void process(PubSubIntegrationMsg msg) {
         if (stopped) {
             return;
         }
         try {
-            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getUplinkContentType(), message.getDeviceMetadata()));
+            List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), msg.getDeviceMetadata()));
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
@@ -96,11 +93,12 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                 }
             }
             if (configuration.isDebugMode()) {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(message.getPayload()), "OK", null);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(),
+                        ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
+            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
         }
     }
 

@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,12 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -66,6 +68,13 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_TYPE_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -78,13 +87,17 @@ public class OwnerController extends BaseController {
     @Autowired
     private OwnersCacheService ownersCacheService;
 
+    @ApiOperation(value = "Change owner to tenant (changeOwnerToTenant)",
+            notes = "Tenant changes Owner from Customer or sub-Customer to Tenant. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/owner/TENANT/{ownerId}/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void changeOwnerToTenant(
-            @PathVariable(OWNER_ID) String ownerIdStr,
-            @PathVariable(ENTITY_TYPE) String entityType,
-            @PathVariable(ENTITY_ID) String entityIdStr) throws ThingsboardException {
+    public void changeOwnerToTenant(@ApiParam(value = TENANT_ID_PARAM_DESCRIPTION)
+                                    @PathVariable(OWNER_ID) String ownerIdStr,
+                                    @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION)
+                                    @PathVariable(ENTITY_TYPE) String entityType,
+                                    @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION)
+                                    @PathVariable(ENTITY_ID) String entityIdStr) throws ThingsboardException {
         checkParameter(OWNER_ID, ownerIdStr);
         checkParameter(ENTITY_TYPE, entityType);
         checkParameter(ENTITY_ID, entityIdStr);
@@ -107,13 +120,18 @@ public class OwnerController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Change owner to tenant (changeOwnerToCustomer)",
+            notes = "Tenant/Customer changes Owner to Customer or sub-Customer. " +
+                    "Sub-Customer can`t perform this operation! " + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void changeOwnerToCustomer(
-            @PathVariable(OWNER_ID) String ownerIdStr,
-            @PathVariable(ENTITY_TYPE) String entityType,
-            @PathVariable(ENTITY_ID) String entityIdStr) throws ThingsboardException {
+    public void changeOwnerToCustomer(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
+                                      @PathVariable(OWNER_ID) String ownerIdStr,
+                                      @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION)
+                                      @PathVariable(ENTITY_TYPE) String entityType,
+                                      @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION)
+                                      @PathVariable(ENTITY_ID) String entityIdStr) throws ThingsboardException {
         checkParameter(OWNER_ID, ownerIdStr);
         checkParameter(ENTITY_TYPE, entityType);
         checkParameter(ENTITY_ID, entityIdStr);

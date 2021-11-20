@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Customer D",
+    "country": "Germany",
+    "city": "Berlin",
+    "zip": "98000",
+    "address": "17, boulevard Albert",
+    "attributes": {},
+    "relations": [
+    ],
+    "assetGroups": [],
+    "deviceGroups": ["Temperature & Humidity sensors"],
+    "userGroups": [
+      {
+        "name": "Customer Administrators",
+        "groupRoles": [
+          {
+            "roleName": "Read Only",
+            "groupType": "DASHBOARD",
+            "groupName": "Customer dashboards"
+          }
+        ]
+      }
+    ],
+    "users": [
+      {
+        "name": "john.$random@customer.com",
+        "firstname": "John",
+        "lastname": "Doe",
+        "password": "customer",
+        "group": "Customer Administrators",
+        "attributes": {
+        },
+        "dashboard": {
+          "name": "Temperature & Humidity",
+          "fullScreen": true
+        }
+      },
+      {
+        "name": "jane.$random@customer.com",
+        "firstname": "Jane",
+        "lastname": "Doe",
+        "password": "customer",
+        "group": "Customer Administrators",
+        "attributes": {
+        },
+        "dashboard": {
+          "name": "Temperature & Humidity",
+          "fullScreen": false
+        }
+      }
+    ]
+  }
+]

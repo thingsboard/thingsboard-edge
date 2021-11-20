@@ -38,7 +38,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { SelfRegistrationParams } from '@shared/models/self-register.models';
-import { deepClone, isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
+import { deepClone, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -98,6 +98,9 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       defaultDashboardId: [null],
       defaultDashboardFullscreen: [false],
       privacyPolicy: [null],
+      showPrivacyPolicy: [true],
+      termsOfUse: [null],
+      showTermsOfUse: [true],
       enableMobileSelfRegistration: [false],
       pkgName: [null, [Validators.required]],
       appSecret: [null, [Validators.required, Validators.minLength(16), Validators.maxLength(2048),
@@ -185,6 +188,12 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     }
     if (!selfRegistrationFormValue.permissions) {
       selfRegistrationFormValue.permissions = [];
+    }
+    if (selfRegistrationFormValue.showPrivacyPolicy == null) {
+      selfRegistrationFormValue.showPrivacyPolicy = true;
+    }
+    if (selfRegistrationFormValue.showTermsOfUse == null) {
+      selfRegistrationFormValue.showTermsOfUse = false;
     }
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);

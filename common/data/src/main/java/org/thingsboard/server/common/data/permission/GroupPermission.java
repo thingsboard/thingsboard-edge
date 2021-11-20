@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.permission;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -147,10 +148,15 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             Arrays.asList(Operation.READ, Operation.RPC_CALL, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY);
 
     private TenantId tenantId;
+    @ApiModelProperty(position = 4, value = "JSON object with the User Group Id. Represent user group that will have permissions to perform operations against corresponding Entity Group.")
     private EntityGroupId userGroupId;
+    @ApiModelProperty(position = 5, value = "JSON object with the Role Id. Represent set of permissions.")
     private RoleId roleId;
+    @ApiModelProperty(position = 6, value = "JSON object with the Entity Group Id. Represent entity (device, asset, etc.) group.")
     private EntityGroupId entityGroupId;
+    @ApiModelProperty(position = 7, value = "Type of the entities in the group: DEVICE, ASSET, CUSTOMER, etc.")
     private EntityType entityGroupType;
+    @ApiModelProperty(position = 8, value = "Public or Private permissions. Private by default.", example = "false")
     private boolean isPublic;
 
     public GroupPermission() {
@@ -171,11 +177,13 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         this.isPublic = groupPermission.isPublic();
     }
 
+    @ApiModelProperty(position = 3, value = "JSON object with the Tenant Id.", readOnly = true)
     @Override
     public TenantId getTenantId() {
         return tenantId;
     }
 
+    @ApiModelProperty(position = 8, value = "Name of the Group Permissions. Auto-generated", readOnly = true)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Override
     public String getName() {
@@ -190,6 +198,21 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.GROUP_PERMISSION;
+    }
+
+    @ApiModelProperty(position = 1, value = "JSON object with the Group Permission Id. " +
+            "Specify this field to update the Group Permission. " +
+            "Referencing non-existing Group Permission Id will cause error. " +
+            "Omit this field to create new Group Permission." )
+    @Override
+    public GroupPermissionId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the group permission creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
     }
 
 }

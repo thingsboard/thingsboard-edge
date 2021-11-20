@@ -52,6 +52,7 @@ import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.integration.storage.EventStorage;
@@ -138,6 +139,9 @@ public class RemoteIntegrationManagerService {
     @Autowired
     private JsInvokeService jsInvokeService;
 
+    @Autowired
+    private LogSettingsComponent logSettingsComponent;
+
     @Autowired(required = false)
     private CoapServerService coapServerService;
 
@@ -181,6 +185,7 @@ public class RemoteIntegrationManagerService {
     @PreDestroy
     public void destroy() throws InterruptedException {
         log.info("[{}] Starting destroying process", serviceId);
+        initialized = false;
         if (uplinkDataConverter != null) {
             uplinkDataConverter.destroy();
         }
@@ -283,7 +288,7 @@ public class RemoteIntegrationManagerService {
     }
 
     private TBUplinkDataConverter createUplinkConverter(ConverterConfigurationProto uplinkConverter) throws IOException {
-        JSUplinkDataConverter uplinkDataConverter = new JSUplinkDataConverter(jsInvokeService);
+        JSUplinkDataConverter uplinkDataConverter = new JSUplinkDataConverter(jsInvokeService, logSettingsComponent);
         Converter converter = constructConverter(uplinkConverter, ConverterType.UPLINK);
         uplinkConverterId = converter.getId();
         uplinkDataConverter.init(converter);
@@ -292,7 +297,7 @@ public class RemoteIntegrationManagerService {
 
     private TBDownlinkDataConverter createDownlinkConverter(ConverterConfigurationProto downLinkConverter) throws IOException {
         if (!StringUtils.isEmpty(downLinkConverter.getConfiguration())) {
-            JSDownlinkDataConverter downlinkDataConverter = new JSDownlinkDataConverter(jsInvokeService);
+            JSDownlinkDataConverter downlinkDataConverter = new JSDownlinkDataConverter(jsInvokeService, logSettingsComponent);
             Converter converter = constructConverter(downLinkConverter, ConverterType.DOWNLINK);
             downlinkConverterId = converter.getId();
             downlinkDataConverter.init(converter);
@@ -427,15 +432,21 @@ public class RemoteIntegrationManagerService {
 
     private void processHandleMessages() {
         executor.submit(() -> {
-            while (!Thread.interrupted()) {
+            boolean interrupted = false;
+            while (!interrupted) {
                 try {
                     if (initialized) {
                         rpcClient.handleMsgs();
                     } else {
                         Thread.sleep(TimeUnit.SECONDS.toMillis(1));
                     }
+                } catch (InterruptedException e) {
+                    interrupted = true;
                 } catch (Exception e) {
                     log.warn("Failed to process messages handling!", e);
+                }
+                if (!interrupted) {
+                    interrupted = Thread.interrupted();
                 }
             }
         });

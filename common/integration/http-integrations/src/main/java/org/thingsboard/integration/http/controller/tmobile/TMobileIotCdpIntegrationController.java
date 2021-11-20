@@ -32,6 +32,7 @@ package org.thingsboard.integration.http.controller.tmobile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,6 +57,7 @@ import java.util.Map;
 @Slf4j
 public class TMobileIotCdpIntegrationController extends BaseIntegrationController {
 
+    @ApiOperation(value = "Process request from T Mobile IoT integration", hidden = true)
     @RequestMapping(value = "/{routingKey}", consumes = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public void processCheck(
@@ -65,6 +67,7 @@ public class TMobileIotCdpIntegrationController extends BaseIntegrationControlle
         log.debug("[{}] Received validation request: {}", routingKey, requestHeaders);
     }
 
+    @ApiOperation(value = "Process request from T Mobile IoT integration", hidden = true)
     @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.OK)

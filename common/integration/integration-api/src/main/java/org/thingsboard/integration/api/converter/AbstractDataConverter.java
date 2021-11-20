@@ -35,12 +35,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.util.ExceptionUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+
+import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
 
 /**
  * Created by ashvayka on 18.12.17.
@@ -62,24 +63,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     }
 
     protected String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
-
-    private String convertToString(String messageType, byte[] message) {
-        if (message == null) {
-            return null;
-        }
-        switch (messageType) {
-            case "JSON":
-            case "TEXT":
-                return new String(message, StandardCharsets.UTF_8);
-            case "BINARY":
-                return Base64Utils.encodeToString(message);
-            default:
-                throw new RuntimeException("Message type: " + messageType + " is not supported!");
-        }
+        return ExceptionUtil.toString(e, configuration.getId(), isExceptionStackTraceEnabled());
     }
 
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
@@ -88,9 +72,9 @@ public abstract class AbstractDataConverter implements TBDataConverter {
                 .put("server", context.getServiceId())
                 .put("type", type)
                 .put("inMessageType", inMessageType)
-                .put("in", convertToString(inMessageType, inMessage))
+                .put("in", toDebugMessage(inMessageType, inMessage))
                 .put("outMessageType", outMessageType)
-                .put("out", convertToString(outMessageType, outMessage))
+                .put("out", toDebugMessage(outMessageType, outMessage))
                 .put("metadata", metadata);
 
         if (exception != null) {
@@ -113,4 +97,5 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         }
     }
 
+    abstract boolean isExceptionStackTraceEnabled();
 }

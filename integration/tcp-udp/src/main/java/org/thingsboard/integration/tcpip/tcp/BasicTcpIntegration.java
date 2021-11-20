@@ -73,9 +73,6 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         try {
             tcpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")), TcpConfigurationParameters.class);
             bossGroup = new NioEventLoopGroup();

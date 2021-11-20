@@ -57,7 +57,7 @@ public interface PlatformIntegrationService {
 
     ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
 
-    ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration integration);
+    void updateIntegration(Integration integration);
 
     ListenableFuture<Void> deleteIntegration(IntegrationId integration);
 
@@ -71,9 +71,9 @@ public interface PlatformIntegrationService {
 
     void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
 
-    Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName);
+    Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
 
-    Asset getOrCreateAsset(Integration configuration, String assetName, String assetType, String customerName, String groupName);
+    Asset getOrCreateAsset(Integration configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
 
     EntityView getOrCreateEntityView(Integration configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
 }

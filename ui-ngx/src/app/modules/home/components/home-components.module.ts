@@ -64,7 +64,6 @@ import { EntityAliasSelectComponent } from '@home/components/alias/entity-alias-
 import { DataKeysComponent } from '@home/components/widget/data-keys.component';
 import { DataKeyConfigDialogComponent } from '@home/components/widget/data-key-config-dialog.component';
 import { DataKeyConfigComponent } from '@home/components/widget/data-key-config.component';
-import { LegendConfigPanelComponent } from '@home/components/widget/legend-config-panel.component';
 import { LegendConfigComponent } from '@home/components/widget/legend-config.component';
 import { ManageWidgetActionsComponent } from '@home/components/widget/action/manage-widget-actions.component';
 import { WidgetActionDialogComponent } from '@home/components/widget/action/widget-action-dialog.component';
@@ -182,6 +181,7 @@ import { WidgetContainerComponent } from '@home/components/widget/widget-contain
 import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snpm/snmp-device-profile-transport.module';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
+import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';
 
 @NgModule({
   declarations:
@@ -222,7 +222,6 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
       DataKeysComponent,
       DataKeyConfigComponent,
       DataKeyConfigDialogComponent,
-      LegendConfigPanelComponent,
       LegendConfigComponent,
       ManageWidgetActionsComponent,
       WidgetActionDialogComponent,
@@ -319,9 +318,10 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
       EmbedDashboardDialogComponent,
       OtaUpdateEventConfigComponent,
       TargetSelectComponent,
+      DisplayWidgetTypesPanelComponent,
+      SolutionInstallDialogComponent,
       CloudEventTableComponent,
-      CloudEventDetailsDialogComponent,
-      DisplayWidgetTypesPanelComponent
+      CloudEventDetailsDialogComponent
     ],
   imports: [
     CommonModule,
@@ -453,9 +453,10 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     EmbedDashboardDialogComponent,
     OtaUpdateEventConfigComponent,
     TargetSelectComponent,
+    DisplayWidgetTypesPanelComponent,
+    SolutionInstallDialogComponent,
     CloudEventTableComponent,
-    CloudEventDetailsDialogComponent,
-    DisplayWidgetTypesPanelComponent
+    CloudEventDetailsDialogComponent
   ],
   providers: [
     WidgetComponentService,

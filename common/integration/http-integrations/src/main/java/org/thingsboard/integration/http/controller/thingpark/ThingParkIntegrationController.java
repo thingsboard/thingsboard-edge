@@ -33,6 +33,7 @@ package org.thingsboard.integration.http.controller.thingpark;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +60,7 @@ import java.util.Map;
 @Slf4j
 public class ThingParkIntegrationController extends BaseIntegrationController {
 
+    @ApiOperation(value = "Process request from ThingPark integrations", hidden = true)
     @SuppressWarnings("rawtypes")
     @RequestMapping("/thingpark/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)
@@ -72,6 +74,7 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
         return getResult (allRequestParams, IntegrationType.THINGPARK, request, requestHeaders, routingKey, msg);
     }
 
+    @ApiOperation(value = "Process request from ThingPark integrations", hidden = true)
     @SuppressWarnings("rawtypes")
     @RequestMapping( "/tpe/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)

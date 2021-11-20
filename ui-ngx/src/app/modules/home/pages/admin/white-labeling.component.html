@@ -112,6 +112,11 @@
             <mat-label translate>white-labeling.help-link-base-url</mat-label>
             <input matInput formControlName="helpLinkBaseUrl"/>
           </mat-form-field>
+          <mat-form-field *ngIf="!isLoginWl && isSysAdmin && wlSettings.get('enableHelpLinks').value" class="mat-block"
+                          floatLabel="always">
+            <mat-label translate>white-labeling.ui-help-base-url</mat-label>
+            <input matInput formControlName="uiHelpBaseUrl" [placeholder]="uiHelpBaseUrlPlaceholder$ | async"/>
+          </mat-form-field>
           <div formGroupName="paletteSettings" fxLayout="column">
             <tb-palette
               label="{{ 'white-labeling.primary-palette' | translate }}"

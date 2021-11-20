@@ -257,6 +257,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 deviceRpcRequestMsg.getRequestMsg().getParams());
 
         UUID requestUUID = new UUID(deviceRpcRequestMsg.getRequestUuidMSB(), deviceRpcRequestMsg.getRequestUuidLSB());
+        // TODO: voba - add retries from the cloud
         ToDeviceRpcRequest rpcRequest = new ToDeviceRpcRequest(requestUUID,
                 tenantId,
                 deviceId,
@@ -264,6 +265,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 expTime,
                 body,
                 false,
+                1,
                 null
         );
 

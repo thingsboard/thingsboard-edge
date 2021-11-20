@@ -50,6 +50,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
 
   @Input() integrationType: IntegrationType;
   @Input() routingKey;
+  @Input() isAdd;
 
   integrationTypes = IntegrationType;
 
@@ -98,9 +99,13 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
         this.thingparkEnableSecurityNewChanged();
       });
     } else if (this.integrationTypeLoriot) {
-      this.form.get('server').valueChanges.subscribe((val) => {
-        this.form.get('loriotDownlinkUrl').setValue(`https://${val}.loriot.io/1/rest`);
-      });
+      if (this.isAdd || !this.form.get('sendDownlink').value) {
+        this.form.get('server').valueChanges.subscribe((val) => {
+          if (this.form.get('loriotDownlinkUrl').pristine) {
+            this.form.get('loriotDownlinkUrl').setValue(`https://${val}.loriot.io/1/rest`);
+          }
+        });
+      }
       merge(this.form.get('sendDownlink').valueChanges, this.form.get('createLoriotOutput').valueChanges).subscribe(() => {
         this.loriotEnableFields();
       });

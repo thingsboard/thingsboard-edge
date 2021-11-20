@@ -33,6 +33,8 @@ package org.thingsboard.integration.http.controller.chirpstack;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +58,7 @@ import java.util.Map;
 @Slf4j
 public class ChirpStackIntegrationController extends BaseIntegrationController {
 
+    @ApiOperation(hidden = true, value = "Process request from ChirpStack")
     @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)

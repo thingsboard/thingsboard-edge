@@ -44,8 +44,10 @@ public class UplinkData {
 
     private final String deviceName;
     private final String deviceType;
+    private final String deviceLabel;
     private final String assetName;
     private final String assetType;
+    private final String assetLabel;
     private final String customerName;
     private final String groupName;
     private final PostTelemetryMsg telemetry;

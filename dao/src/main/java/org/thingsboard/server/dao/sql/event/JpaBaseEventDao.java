@@ -56,10 +56,6 @@ import org.thingsboard.server.dao.event.EventDao;
 import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -217,7 +213,7 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
                         eventFilter.getEntityId(),
                         eventFilter.getMsgType(),
                         eventFilter.isError(),
-                        eventFilter.getError(),
+                        eventFilter.getErrorStr(),
                         eventFilter.getDataSearch(),
                         eventFilter.getMetadataSearch(),
                         DaoUtil.toPageable(pageLink)));
@@ -236,7 +232,7 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
                         eventFilter.getMessage(),
                         eventFilter.getStatus(),
                         eventFilter.isError(),
-                        eventFilter.getError(),
+                        eventFilter.getErrorStr(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -254,7 +250,7 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
                         eventFilter.getOut(),
                         eventFilter.getMetadata(),
                         eventFilter.isError(),
-                        eventFilter.getError(),
+                        eventFilter.getErrorStr(),
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -268,7 +264,7 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
                         notNull(pageLink.getEndTime()),
                         eventFilter.getServer(),
                         eventFilter.getMethod(),
-                        eventFilter.getError(),
+                        eventFilter.getErrorStr(),
                         DaoUtil.toPageable(pageLink))
         );
     }
@@ -287,7 +283,7 @@ public class JpaBaseEventDao extends JpaAbstractDao<EventEntity, Event> implemen
                         eventFilter.getEvent(),
                         statusFilterEnabled,
                         statusFilter,
-                        eventFilter.getError(),
+                        eventFilter.getErrorStr(),
                         DaoUtil.toPageable(pageLink))
         );
     }

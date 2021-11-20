@@ -124,7 +124,7 @@ public class FileEventStorage implements EventStorage {
         try {
             Thread.sleep(settings.getNoRecordsSleepInterval());
         } catch (InterruptedException e) {
-            log.warn("Failed to sleep a bit", e);
+            log.warn("Sleep interrupted!");
         }
     }
 

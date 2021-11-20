@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, Renderer2, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -41,15 +41,21 @@ import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { MatVerticalStepper } from '@angular/material/stepper';
 import {
+  BulkImportRequest,
+  BulkImportResult,
+  ColumnMapping,
   convertCSVToJson,
   CsvColumnParam,
+  CSVDelimiter,
   CsvToJsonConfig,
   CsvToJsonResult,
   ImportEntityColumnType
 } from '@home/components/import-export/import-export.models';
-import { EdgeImportEntityData, ImportEntitiesResultInfo, ImportEntityData } from '@app/shared/models/entity.models';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { TableColumnsAssignmentComponent } from '@home/components/import-export/table-columns-assignment.component';
+import { Ace } from 'ace-builds';
+import { getAce } from '@shared/models/ace/ace.models';
 
 export interface ImportDialogCsvData {
   entityType: EntityType;
@@ -66,9 +72,15 @@ export interface ImportDialogCsvData {
   styleUrls: ['./import-dialog-csv.component.scss']
 })
 export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvComponent, boolean>
-  implements OnInit {
+  implements AfterViewInit {
 
   @ViewChild('importStepper', {static: true}) importStepper: MatVerticalStepper;
+
+  @ViewChild('columnsAssignmentComponent', {static: true})
+  columnsAssignmentComponent: TableColumnsAssignmentComponent;
+
+  @ViewChild('failureDetailsEditor')
+  failureDetailsEditorElmRef: ElementRef;
 
   entityType: EntityType;
   importTitle: string;
@@ -76,7 +88,7 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
   customerId: CustomerId;
   entityGroupId: string;
 
-  delimiters: {key: string, value: string}[] = [{
+  delimiters: { key: CSVDelimiter, value: string }[] = [{
     key: ',',
     value: ','
   }, {
@@ -97,9 +109,10 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
   columnTypesFormGroup: FormGroup;
 
   isImportData = false;
-  progressCreate = 0;
-  statistical: ImportEntitiesResultInfo;
+  statistical: BulkImportResult;
 
+  private allowAssignColumn: ImportEntityColumnType[];
+  private initEditorComponent = false;
   private parseData: CsvToJsonResult;
 
   constructor(protected store: Store<AppState>,
@@ -108,7 +121,8 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
               public dialogRef: MatDialogRef<ImportDialogCsvComponent, boolean>,
               public translate: TranslateService,
               private importExport: ImportExportService,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private renderer: Renderer2) {
     super(store, router, dialogRef);
     this.entityType = data.entityType;
     this.importTitle = data.importTitle;
@@ -131,7 +145,12 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
     });
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit() {
+    let columns = this.columnsAssignmentComponent.columnTypes;
+    if (this.entityType === EntityType.DEVICE) {
+      columns = columns.concat(this.columnsAssignmentComponent.columnDeviceCredentials);
+    }
+    this.allowAssignColumn = columns.map(column => column.value);
   }
 
   cancel(): void {
@@ -179,8 +198,10 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
     return convertCSVToJson(importData, config,
       (messageId, params) => {
         this.store.dispatch(new ActionNotificationShow(
-          {message: this.translate.instant(messageId, params),
-            type: 'error'}));
+          {
+            message: this.translate.instant(messageId, params),
+            type: 'error'
+          }));
       }
     );
   }
@@ -190,9 +211,14 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
     const isHeader: boolean = this.importParametersFormGroup.get('isHeader').value;
     for (let i = 0; i < this.parseData.headers.length; i++) {
       let columnParam: CsvColumnParam;
-      if (isHeader && this.parseData.headers[i].search(/^(name|type|label)$/im) === 0) {
+      let findEntityColumnType: ImportEntityColumnType;
+      if (isHeader) {
+        const headerColumnName = this.parseData.headers[i].toUpperCase();
+        findEntityColumnType = this.allowAssignColumn.find(column => column === headerColumnName);
+      }
+      if (isHeader && findEntityColumnType) {
         columnParam = {
-          type: ImportEntityColumnType[this.parseData.headers[i].toLowerCase()],
+          type: findEntityColumnType,
           key: this.parseData.headers[i].toLowerCase(),
           sampleData: this.parseData.rows[0][i]
         };
@@ -210,76 +236,18 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
 
 
   private addEntities() {
-    const importData = this.parseData;
-    const parameterColumns: CsvColumnParam[] = this.columnTypesFormGroup.get('columnsParam').value;
-    const entitiesData: ImportEntityData[] = [];
-    let sentDataLength = 0;
-    for (let row = 0; row < importData.rows.length; row++) {
-      const entityData: ImportEntityData = this.constructDraftImportEntityData();
-      const i = row;
-      for (let j = 0; j < parameterColumns.length; j++) {
-        switch (parameterColumns[j].type) {
-          case ImportEntityColumnType.serverAttribute:
-            entityData.attributes.server.push({
-              key: parameterColumns[j].key,
-              value: importData.rows[i][j]
-            });
-            break;
-          case ImportEntityColumnType.timeseries:
-            entityData.timeseries.push({
-              key: parameterColumns[j].key,
-              value: importData.rows[i][j]
-            });
-            break;
-          case ImportEntityColumnType.sharedAttribute:
-            entityData.attributes.shared.push({
-              key: parameterColumns[j].key,
-              value: importData.rows[i][j]
-            });
-            break;
-          case ImportEntityColumnType.accessToken:
-            entityData.accessToken = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.name:
-            entityData.name = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.type:
-            entityData.type = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.label:
-            entityData.label = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.isGateway:
-            entityData.gateway = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.description:
-            entityData.description = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.edgeLicenseKey:
-            (entityData as EdgeImportEntityData).edgeLicenseKey = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.cloudEndpoint:
-            (entityData as EdgeImportEntityData).cloudEndpoint = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.routingKey:
-            (entityData as EdgeImportEntityData).routingKey = importData.rows[i][j];
-            break;
-          case ImportEntityColumnType.secret:
-            (entityData as EdgeImportEntityData).secret = importData.rows[i][j];
-            break;
-        }
+    const entitiesData: BulkImportRequest = {
+      file: this.selectFileFormGroup.get('importData').value,
+      customerId: this.customerId,
+      entityGroupId: this.entityGroupId,
+      mapping: {
+        columns: this.processingColumnsParams(),
+        delimiter: this.importParametersFormGroup.get('delim').value,
+        header: this.importParametersFormGroup.get('isHeader').value,
+        update: this.importParametersFormGroup.get('isUpdate').value
       }
-      entitiesData.push(entityData);
-    }
-    const createImportEntityCompleted = () => {
-      sentDataLength++;
-      this.progressCreate = Math.round((sentDataLength / importData.rows.length) * 100);
     };
-
-    const isUpdate: boolean = this.importParametersFormGroup.get('isUpdate').value;
-
-    this.importExport.importEntities(entitiesData, this.customerId, this.entityType, this.entityGroupId, isUpdate,
-      createImportEntityCompleted, {ignoreErrors: true, resendRequest: true}).subscribe(
+    this.importExport.bulkImportEntities(entitiesData, this.entityType, {ignoreErrors: true}).subscribe(
       (result) => {
         this.statistical = result;
         this.isImportData = false;
@@ -288,31 +256,63 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
     );
   }
 
-  private constructDraftImportEntityData(): ImportEntityData {
-    const entityData: ImportEntityData = {
-      name: '',
-      type: '',
-      description: '',
-      gateway: null,
-      label: '',
-      accessToken: '',
-      attributes: {
-        server: [],
-        shared: []
-      },
-      timeseries: []
-    };
-    if (this.entityType === EntityType.EDGE) {
-      const edgeEntityData: EdgeImportEntityData = entityData as EdgeImportEntityData;
-      edgeEntityData.edgeLicenseKey = '';
-      edgeEntityData.cloudEndpoint = '';
-      edgeEntityData.routingKey = '';
-      edgeEntityData.secret = '';
-      return edgeEntityData;
-    } else {
-      return entityData;
+  private processingColumnsParams(): Array<ColumnMapping> {
+    const parameterColumns: CsvColumnParam[] = this.columnTypesFormGroup.get('columnsParam').value;
+    const allowKeyForTypeColumns: ImportEntityColumnType[] = [
+      ImportEntityColumnType.serverAttribute,
+      ImportEntityColumnType.timeseries,
+      ImportEntityColumnType.sharedAttribute
+    ];
+    return parameterColumns.map(column => ({
+      type: column.type,
+      key: allowKeyForTypeColumns.some(type => type === column.type) ? column.key : undefined
+    }));
+  }
+
+  initEditor() {
+    if (!this.initEditorComponent) {
+      this.createEditor(this.failureDetailsEditorElmRef, this.statistical.errorsList);
     }
   }
 
+  private createEditor(editorElementRef: ElementRef, contents: string[]): void {
+    const editorElement = editorElementRef.nativeElement;
+    let editorOptions: Partial<Ace.EditorOptions> = {
+      mode: 'ace/mode/java',
+      theme: 'ace/theme/github',
+      showGutter: false,
+      showPrintMargin: false,
+      readOnly: true
+    };
+
+    const advancedOptions = {
+      enableSnippets: false,
+      enableBasicAutocompletion: false,
+      enableLiveAutocompletion: false
+    };
+
+    editorOptions = {...editorOptions, ...advancedOptions};
+    const content = contents.map(error => error.replace('\n', '')).join('\n');
+    getAce().subscribe(
+      (ace) => {
+        const editor = ace.edit(editorElement, editorOptions);
+        editor.session.setUseWrapMode(false);
+        editor.setValue(content, -1);
+        this.updateEditorSize(editorElement, content, editor);
+      }
+    );
+  }
+
+  private updateEditorSize(editorElement: any, content: string, editor: Ace.Editor) {
+    let newHeight = 200;
+    if (content && content.length > 0) {
+      const lines = content.split('\n');
+      newHeight = 16 * lines.length + 24;
+    }
+    const minHeight = Math.min(200, newHeight);
+    this.renderer.setStyle(editorElement, 'minHeight', minHeight.toString() + 'px');
+    this.renderer.setStyle(editorElement, 'height', newHeight.toString() + 'px');
+    editor.resize();
+  }
 
 }

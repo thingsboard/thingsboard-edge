@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.role;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,6 +46,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
@@ -62,15 +64,20 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public static final String ROLE_PUBLIC_USER_ENTITY_GROUP_NAME = "Entity Group Public User";
     public static final String ROLE_READ_ONLY_ENTITY_GROUP_NAME = "Entity Group Read-only User";
     public static final String ROLE_WRITE_ENTITY_GROUP_NAME = "Entity Group Write User";
-
     public static final String ROLE_EDGE_CE_TENANT_ADMIN_NAME = "Edge CE Tenant Administrator";
     public static final String ROLE_EDGE_CE_CUSTOMER_USER_NAME = "Edge CE Customer User";
 
+    @ApiModelProperty(position = 3, required = true, value = "JSON object with Tenant Id.", readOnly = true)
     private TenantId tenantId;
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ", readOnly = true)
     private CustomerId customerId;
     @NoXss
+    @Length(fieldName = "name")
+    @ApiModelProperty(position = 6, required = true, value = "Role Name", example = "Read-Only")
     private String name;
+    @ApiModelProperty(position = 7, required = true, value = "Type of the role: generic or group", example = "GROUP")
     private RoleType type;
+    @ApiModelProperty(position = 8, value = "JSON object with the set of permissions. Structure is specific for role type", readOnly = true)
     private transient JsonNode permissions;
     @JsonIgnore
     private byte[] permissionsBytes;
@@ -93,6 +100,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
         return getName();
     }
 
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -119,6 +127,27 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
 
     public void setPermissions(JsonNode permissions) {
         setJson(permissions, json -> this.permissions = json, bytes -> this.permissionsBytes = bytes);
+    }
+
+    @ApiModelProperty(position = 1, value = "JSON object with the Role Id. " +
+            "Specify this field to update the Role. " +
+            "Referencing non-existing Role Id will cause error. " +
+            "Omit this field to create new Role." )
+    @Override
+    public RoleId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the role creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
+    }
+
+    @ApiModelProperty(position = 13, value = "Additional parameters of the role", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Override
+    public JsonNode getAdditionalInfo() {
+        return super.getAdditionalInfo();
     }
 
 }

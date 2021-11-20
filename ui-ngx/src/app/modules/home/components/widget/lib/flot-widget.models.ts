@@ -34,7 +34,7 @@
 
 import { DataKey, Datasource, DatasourceData, JsonSettingsSchema } from '@shared/models/widget.models';
 import * as moment_ from 'moment';
-import { DataKeyType } from "@shared/models/telemetry/telemetry.models";
+import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { ComparisonDuration } from '@shared/models/time/time.models';
 
 export declare type ChartType = 'line' | 'pie' | 'bar' | 'state' | 'graph';
@@ -160,6 +160,7 @@ export interface TbFlotComparisonSettings {
   comparisonEnabled: boolean;
   timeForComparison: ComparisonDuration;
   xaxisSecond: TbFlotSecondXAxisSettings;
+  comparisonCustomIntervalValue?: number;
 }
 
 export interface TbFlotThresholdsSettings {
@@ -197,6 +198,7 @@ export interface TbFlotPieSettings {
     color: string;
     width: number;
   };
+  showTooltip: boolean,
   showLabels: boolean;
   fontColor: string;
   fontSize: number;
@@ -324,6 +326,12 @@ export function flotSettingsSchema(chartType: ChartType): JsonSettingsSchema {
     title: 'Hide zero/false values from tooltip',
     type: 'boolean',
     default: false
+  };
+
+  properties.showTooltip = {
+    title: 'Show tooltip',
+    type: 'boolean',
+    default: true
   };
 
   properties.grid = {
@@ -472,9 +480,11 @@ export function flotSettingsSchema(chartType: ChartType): JsonSettingsSchema {
   schema.form.push('tooltipCumulative');
   schema.form.push({
     key: 'tooltipValueFormatter',
-    type: 'javascript'
+    type: 'javascript',
+    helpId: 'widget/lib/flot/tooltip_value_format_fn'
   });
   schema.form.push('hideZeros');
+  schema.form.push('showTooltip');
   schema.form.push({
     key: 'grid',
     items: [
@@ -521,7 +531,8 @@ export function flotSettingsSchema(chartType: ChartType): JsonSettingsSchema {
       },
       {
         key: 'yaxis.ticksFormatter',
-        type: 'javascript'
+        type: 'javascript',
+        helpId: 'widget/lib/flot/ticks_formatter_fn'
       }
     ]
   });
@@ -536,11 +547,11 @@ export function flotSettingsSchema(chartType: ChartType): JsonSettingsSchema {
     schema.form.push(chartSettingsSchemaForComparison.form, chartSettingsSchemaForCustomLegend.form);
     schema.groupInfoes.push({
       formIndex: schema.groupInfoes.length,
-      GroupTitle:'Comparison Settings'
+      GroupTitle: 'Comparison Settings'
     });
     schema.groupInfoes.push({
       formIndex: schema.groupInfoes.length,
-      GroupTitle:'Custom Legend Settings'
+      GroupTitle: 'Custom Legend Settings'
     });
   }
   return schema;
@@ -560,6 +571,11 @@ const chartSettingsSchemaForComparison: JsonSettingsSchema = {
         title: 'Time to show historical data',
         type: 'string',
         default: 'previousInterval'
+      },
+      comparisonCustomIntervalValue: {
+        title: 'Custom interval value (ms)',
+        type: 'number',
+        default: 7200000
       },
       xaxisSecond: {
         title: 'Second X axis',
@@ -611,8 +627,16 @@ const chartSettingsSchemaForComparison: JsonSettingsSchema = {
         {
           value: 'years',
           label: 'Year ago'
+        },
+        {
+          value: 'customInterval',
+          label: 'Custom interval'
         }
       ]
+    },
+    {
+      key: 'comparisonCustomIntervalValue',
+      condition: 'model.timeForComparison === "customInterval"'
     },
     {
       key: 'xaxisSecond',
@@ -741,6 +765,11 @@ export const flotPieSettingsSchema: JsonSettingsSchema = {
             }
           }
         },
+        showTooltip: {
+          title: 'Show Tooltip',
+          type: 'boolean',
+          default: true,
+        },
         showLabels: {
           title: 'Show labels',
           type: 'boolean',
@@ -774,6 +803,7 @@ export const flotPieSettingsSchema: JsonSettingsSchema = {
           'stroke.width'
         ]
       },
+      'showTooltip',
       'showLabels',
       {
         key: 'fontColor',
@@ -967,13 +997,15 @@ export function flotDatakeySettingsSchema(defaultShowLines: boolean, chartType: 
       },
       {
         key: 'pointShapeFormatter',
-        type: 'javascript'
+        type: 'javascript',
+        helpId: 'widget/lib/flot/point_shape_format_fn'
       },
       'showPointsLineWidth',
       'showPointsRadius',
       {
         key: 'tooltipValueFormatter',
-        type: 'javascript'
+        type: 'javascript',
+        helpId: 'widget/lib/flot/tooltip_value_format_fn'
       },
       'showSeparateAxis',
       'axisMin',
@@ -998,7 +1030,8 @@ export function flotDatakeySettingsSchema(defaultShowLines: boolean, chartType: 
       },
       {
         key: 'axisTicksFormatter',
-        type: 'javascript'
+        type: 'javascript',
+        helpId: 'widget/lib/flot/ticks_formatter_fn'
       }
     ]
   };

@@ -30,7 +30,7 @@
 ///
 
 import { TimeService } from '@core/services/time.service';
-import { deepClone, isDefined, isUndefined } from '@app/core/utils';
+import { deepClone, isDefined, isNumeric, isUndefined } from '@app/core/utils';
 import * as moment_ from 'moment';
 import * as momentTz from 'moment-timezone';
 
@@ -43,7 +43,7 @@ export const DAY = 24 * HOUR;
 export const WEEK = 7 * DAY;
 export const YEAR = DAY * 365;
 
-export type ComparisonDuration = moment_.unitOfTime.DurationConstructor | 'previousInterval';
+export type ComparisonDuration = moment_.unitOfTime.DurationConstructor | 'previousInterval' | 'customInterval';
 
 export enum TimewindowType {
   REALTIME,
@@ -656,7 +656,7 @@ export function calculateIntervalComparisonEndTime(interval: QuickTimeInterval,
 }
 
 export function createTimewindowForComparison(subscriptionTimewindow: SubscriptionTimewindow,
-                                              timeUnit: ComparisonDuration): SubscriptionTimewindow {
+                                              timeUnit: ComparisonDuration, customIntervalValue: number): SubscriptionTimewindow {
   const timewindowForComparison: SubscriptionTimewindow = {
     fixedWindow: null,
     realtimeWindowMs: null,
@@ -682,6 +682,15 @@ export function createTimewindowForComparison(subscriptionTimewindow: Subscripti
         const timeInterval = subscriptionTimewindow.fixedWindow.endTimeMs - subscriptionTimewindow.fixedWindow.startTimeMs;
         endTimeMs = subscriptionTimewindow.fixedWindow.startTimeMs;
         startTimeMs = endTimeMs - timeInterval;
+      }
+    } else if (timeUnit === 'customInterval') {
+      if (isNumeric(customIntervalValue) && isFinite(customIntervalValue) && customIntervalValue > 0) {
+        const timeInterval = subscriptionTimewindow.fixedWindow.endTimeMs - subscriptionTimewindow.fixedWindow.startTimeMs;
+        endTimeMs = subscriptionTimewindow.fixedWindow.endTimeMs - Math.round(customIntervalValue);
+        startTimeMs = endTimeMs - timeInterval;
+      } else {
+        endTimeMs = subscriptionTimewindow.fixedWindow.endTimeMs;
+        startTimeMs = subscriptionTimewindow.fixedWindow.startTimeMs;
       }
     } else {
       const timeInterval = subscriptionTimewindow.fixedWindow.endTimeMs - subscriptionTimewindow.fixedWindow.startTimeMs;

@@ -38,7 +38,7 @@ import {
   Input,
   NgZone,
   OnDestroy,
-  OnInit,
+  OnInit, Optional,
   StaticProvider,
   ViewChild,
   ViewContainerRef,
@@ -94,7 +94,11 @@ import { Observable, of, Subscription } from 'rxjs';
 import { FooterFabButtons } from '@shared/components/footer-fab-buttons.component';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { DashboardService } from '@core/http/dashboard.service';
-import { DashboardContextMenuItem, WidgetContextMenuItem } from '../../models/dashboard-component.models';
+import {
+  DashboardContextMenuItem,
+  IDashboardComponent,
+  WidgetContextMenuItem
+} from '../../models/dashboard-component.models';
 import { WidgetComponentService } from '../../components/widget/widget-component.service';
 import { FormBuilder } from '@angular/forms';
 import { ItemBufferService } from '@core/services/item-buffer.service';
@@ -142,6 +146,12 @@ import {
 } from '@home/components/dashboard-page/widget-types-panel.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import {
+  SolutionInstallDialogComponent,
+  SolutionInstallDialogData
+} from '@home/components/solution/solution-install-dialog.component';
+import { SolutionsService } from '@core/http/solutions.service';
+import { SolutionInstallResponse } from '@shared/models/solution-template.models';
 import { MobileService } from '@core/services/mobile.service';
 
 import {
@@ -191,6 +201,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   dashboard: Dashboard;
   dashboardConfiguration: DashboardConfiguration;
 
+  @Input()
+  parentDashboard?: IDashboardComponent = null;
+
   @ViewChild('dashboardContainer') dashboardContainer: ElementRef<HTMLElement>;
 
   prevDashboard: Dashboard;
@@ -219,8 +232,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   isToolbarOpenedAnimate = false;
   isRightLayoutOpened = false;
 
-  allowedEntityTypes: Array<EntityType | AliasEntityType> = null;
-
   editingWidget: Widget = null;
   editingWidgetLayout: WidgetLayout = null;
   editingWidgetOriginal: Widget = null;
@@ -229,6 +240,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   editingLayoutCtx: DashboardPageLayoutContext = null;
 
   thingsboardVersion: string = env.tbVersion;
+
+  translatedDashboardTitle: string;
 
   currentDashboardId: string;
 
@@ -334,17 +347,21 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private wl: WhiteLabelingService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
+              private solutionsService: SolutionsService,
               private mobileService: MobileService,
               private fb: FormBuilder,
               private dialog: MatDialog,
               private translate: TranslateService,
               private ngZone: NgZone,
+              @Optional() @Inject('embeddedValue') private embeddedValue,
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
               private cd: ChangeDetectorRef,
               private sanitizer: DomSanitizer) {
     super(store);
-
+    if (isDefinedAndNotNull(embeddedValue)) {
+      this.embedded = embeddedValue;
+    }
   }
 
   ngOnInit() {
@@ -395,6 +412,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.reset();
 
     this.dashboard = data.dashboard;
+    this.translatedDashboardTitle = this.getTranslatedDashboardTitle();
     this.entityGroup = data.entityGroup;
     if (!this.embedded && this.dashboard.id) {
       this.setStateDashboardId = true;
@@ -424,7 +442,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.readonly = !this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, this.entityGroup);
       this.entityGroupId = this.entityGroup.id.id;
     } else {
-      if (this.embedded || (!this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))) {
+      if (this.embedded || (this.singlePageMode && !this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))
+               || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView) {
         this.readonly = true;
       }
     }
@@ -443,11 +462,35 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.window.parent.postMessage(JSON.stringify(message), '*');
     }
 
-    this.allowedEntityTypes = this.entityService.prepareAllowedEntityTypesList(null, true);
+    const solutionTemplateId = this.route.snapshot.queryParamMap.get('solutionTemplateId');
+    if (solutionTemplateId) {
+      this.utils.updateQueryParam('solutionTemplateId', null);
+      this.router.navigate([], {
+        queryParams: {
+          solutionTemplateId: null
+        },
+        queryParamsHandling: 'merge'
+      });
+      this.solutionsService.getSolutionTemplateInstructions(solutionTemplateId).subscribe(
+        (solutionTemplateInstructions) => {
+          const solutionInstallResponse: SolutionInstallResponse = {...solutionTemplateInstructions, success: true};
+          this.dialog.open<SolutionInstallDialogComponent, SolutionInstallDialogData>(SolutionInstallDialogComponent, {
+            disableClose: true,
+            panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+            data: {
+              solutionInstallResponse,
+              instructions: false,
+              showMainDashboardButton: false
+            }
+          });
+        }
+      );
+    }
   }
 
   private reset() {
     this.dashboard = null;
+    this.translatedDashboardTitle = null;
     this.dashboardConfiguration = null;
     this.dashboardLogoCache = undefined;
     this.prevDashboard = null;
@@ -540,6 +583,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     } else {
       return false;
     }
+  }
+
+  private getTranslatedDashboardTitle(): string {
+    return this.utils.customTranslation(this.dashboard.title, this.dashboard.title);
   }
 
   public displayExport(): boolean {
@@ -704,8 +751,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       data: {
         entityAliases: deepClone(this.dashboard.configuration.entityAliases),
         widgets: this.dashboardUtils.getWidgetsArray(this.dashboard),
-        isSingleEntityAlias: false,
-        allowedEntityTypes: this.allowedEntityTypes
+        isSingleEntityAlias: false
       }
     }).afterClosed().subscribe((entityAliases) => {
       if (entityAliases) {
@@ -848,6 +894,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public saveDashboard() {
+    this.translatedDashboardTitle = this.getTranslatedDashboardTitle();
     this.setEditMode(false, false);
     this.notifyDashboardUpdated();
   }
@@ -904,6 +951,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         if (revert) {
           this.dashboard = this.prevDashboard;
           this.dashboardLogoCache = undefined;
+          this.dashboardConfiguration = this.dashboard.configuration;
         }
       } else {
         this.resetHighlight();

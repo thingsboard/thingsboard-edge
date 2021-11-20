@@ -52,6 +52,9 @@
         <mat-error *ngIf="entityForm.get('name').hasError('required')">
           {{ 'integration.name-required' | translate }}
         </mat-error>
+        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+          {{ 'integration.name-max-length' | translate }}
+        </mat-error>
       </mat-form-field>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.type</mat-label>
@@ -114,7 +117,7 @@
     </div>
     <fieldset [disabled]="(isLoading$ | async) || !isEdit" *ngIf="integrationForm">
       <section *ngIf="integrationInfo?.http">
-        <tb-http-integration-form #integrationFormComponent [form]="integrationForm" [integrationType]="integrationType"
+        <tb-http-integration-form #integrationFormComponent [form]="integrationForm" [integrationType]="integrationType" [isAdd]="isAdd"
           [routingKey]="entityForm.get('routingKey').value">
         </tb-http-integration-form>
       </section>

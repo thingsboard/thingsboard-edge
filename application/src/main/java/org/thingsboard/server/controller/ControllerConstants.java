@@ -1,0 +1,1907 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.controller;
+
+public class ControllerConstants {
+
+    protected static final String ENTITY_GROUP_ID = "entityGroupId";
+    protected static final String NEW_LINE = "\n\n";
+    protected static final String UUID_WIKI_LINK = "[time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address)). ";
+    protected static final int DEFAULT_PAGE_SIZE = 1000;
+    protected static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
+    protected static final String ENTITY_TYPE = "entityType";
+    protected static final String CUSTOMER_ID = "customerId";
+    protected static final String TENANT_ID = "tenantId";
+    protected static final String DEVICE_ID = "deviceId";
+    protected static final String EDGE_ID = "edgeId";
+    protected static final String RPC_ID = "rpcId";
+    protected static final String ENTITY_ID = "entityId";
+
+    protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
+            "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
+            "See the 'Model' tab of the Response Class for more details. ";
+    protected static final String DASHBOARD_ID_PARAM_DESCRIPTION = "A string value representing the device id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String RPC_ID_PARAM_DESCRIPTION = "A string value representing the rpc id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_GROUP_ID_PARAM_DESCRIPTION = "A string value representing the Entity Group Id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION = "A string value representing the Entity Group Id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'. " +
+            "If specified, the entity will be added to the corresponding entity group.";
+    protected static final String DEVICE_ID_PARAM_DESCRIPTION = "A string value representing the device id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_VIEW_ID_PARAM_DESCRIPTION = "A string value representing the entity view id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String DEVICE_PROFILE_ID_PARAM_DESCRIPTION = "A string value representing the device profile id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String TENANT_PROFILE_ID_PARAM_DESCRIPTION = "A string value representing the tenant profile id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String TENANT_ID_PARAM_DESCRIPTION = "A string value representing the tenant id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String EDGE_ID_PARAM_DESCRIPTION = "A string value representing the edge id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String CUSTOMER_ID_PARAM_DESCRIPTION = "A string value representing the customer id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String USER_ID_PARAM_DESCRIPTION = "A string value representing the user id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ASSET_ID_PARAM_DESCRIPTION = "A string value representing the asset id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION = "A string value representing the solution template id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String CONVERTER_ID_PARAM_DESCRIPTION = "A string value representing the converter id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String INTEGRATION_ID_PARAM_DESCRIPTION = "A string value representing the integration id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ROLE_ID_PARAM_DESCRIPTION = "A string value representing the role id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String GROUP_PERMISSION_ID_PARAM_DESCRIPTION = "A string value representing the group permission id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String BLOB_ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the blob entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String OTA_PACKAGE_ID_PARAM_DESCRIPTION = "A string value representing the ota package id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String SCHEDULER_EVENT_ID_PARAM_DESCRIPTION = "A string value representing the scheduler id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_TYPE_PARAM_DESCRIPTION = "A string value representing the entity type. For example, 'DEVICE'";
+    protected static final String RULE_CHAIN_ID_PARAM_DESCRIPTION = "A string value representing the rule chain id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String RULE_NODE_ID_PARAM_DESCRIPTION = "A string value representing the rule node id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String WIDGET_BUNDLE_ID_PARAM_DESCRIPTION = "A string value representing the widget bundle id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String WIDGET_TYPE_ID_PARAM_DESCRIPTION = "A string value representing the widget type id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String RESOURCE_ID_PARAM_DESCRIPTION = "A string value representing the resource id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String SYSTEM_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'SYS_ADMIN' authority.";
+    protected static final String SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'SYS_ADMIN' or 'TENANT_ADMIN' authority.";
+    protected static final String TENANT_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'TENANT_ADMIN' authority.";
+    protected static final String TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'TENANT_ADMIN' or 'CUSTOMER_USER' authority.";
+    protected static final String CUSTOMER_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'CUSTOMER_USER' authority.";
+    protected static final String AVAILABLE_FOR_ANY_AUTHORIZED_USER = "\n\nAvailable for any authorized user. ";
+    protected static final String PAGE_SIZE_DESCRIPTION = "Maximum amount of entities in a one page";
+    protected static final String PAGE_NUMBER_DESCRIPTION = "Sequence number of page starting from 0";
+    protected static final String DEVICE_TYPE_DESCRIPTION = "Device type as the name of the device profile";
+    protected static final String ENTITY_VIEW_TYPE_DESCRIPTION = "Entity View type";
+    protected static final String ASSET_TYPE_DESCRIPTION = "Asset type";
+    protected static final String EDGE_TYPE_DESCRIPTION = "A string value representing the edge type. For example, 'default'";
+    protected static final String RULE_CHAIN_TYPE_DESCRIPTION = "Rule chain type (CORE or EDGE)";
+    protected static final String BLOB_ENTITY_TYPE_DESCRIPTION = "A string value representing the blob entity type. For example, 'report'";
+    protected static final String ASSET_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the asset name.";
+    protected static final String BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the blob entity name.";
+    protected static final String CONVERTER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the converter name.";
+    protected static final String INTEGRATION_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the integration name.";
+    protected static final String DASHBOARD_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the dashboard title.";
+    protected static final String WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the widget bundle title.";
+    protected static final String RPC_TEXT_SEARCH_DESCRIPTION = "Not implemented. Leave empty.";
+    protected static final String DEVICE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the device name.";
+    protected static final String ROLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the role name.";
+    protected static final String ENTITY_VIEW_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity view name.";
+    protected static final String USER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the user email.";
+    protected static final String TENANT_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the tenant name.";
+    protected static final String TENANT_PROFILE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the tenant profile name.";
+    protected static final String RULE_CHAIN_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the rule chain name.";
+    protected static final String DEVICE_PROFILE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the device profile name.";
+    protected static final String CUSTOMER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the customer title.";
+    protected static final String EDGE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the edge name.";
+    protected static final String EVENT_TEXT_SEARCH_DESCRIPTION = "The value is not used in searching.";
+    protected static final String AUDIT_LOG_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on one of the next properties: entityType, entityName, userName, actionType, actionStatus.";
+    protected static final String ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity group name.";
+    protected static final String ENTITY_GROUP_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, description";
+    protected static final String SORT_PROPERTY_DESCRIPTION = "Property of entity to sort by";
+    protected static final String DASHBOARD_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title";
+    protected static final String CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, email, country, city";
+    protected static final String RPC_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, expirationTime, request, response";
+    protected static final String DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, deviceProfileName, label, customerTitle";
+    protected static final String ROLE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, description";
+    protected static final String ENTITY_VIEW_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type";
+    protected static final String ENTITY_VIEW_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, customerTitle";
+    protected static final String USER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, firstName, lastName, email";
+    protected static final String TENANT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, email, country, state, city, address, address2, zip, phone, email";
+    protected static final String TENANT_PROFILE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, description, isDefault";
+    protected static final String TENANT_PROFILE_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "id, name";
+    protected static final String TENANT_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, tenantProfileName, title, email, country, state, city, address, address2, zip, phone, email";
+    protected static final String DEVICE_PROFILE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, transportType, description, isDefault";
+    protected static final String ASSET_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
+    protected static final String CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode";
+    protected static final String INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode, allowCreateDevicesOrAssets, enabled, remote, routingKey, secret";
+    protected static final String ALARM_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, startTs, endTs, type, ackTs, clearTs, severity, status";
+    protected static final String EVENT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, id";
+    protected static final String EDGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
+    protected static final String RULE_CHAIN_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, root";
+    protected static final String WIDGET_BUNDLE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, tenantId";
+    protected static final String AUDIT_LOG_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, entityType, entityName, userName, actionType, actionStatus";
+    protected static final String BLOB_ENTITY_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, contentType, customerTitle";
+    protected static final String SORT_ORDER_DESCRIPTION = "Sort order. ASC (ASCENDING) or DESC (DESCENDING)";
+    protected static final String SORT_ORDER_ALLOWABLE_VALUES = "ASC, DESC";
+    protected static final String RPC_STATUS_ALLOWABLE_VALUES = "QUEUED, SENT, DELIVERED, SUCCESSFUL, TIMEOUT, EXPIRED, FAILED";
+    protected static final String RULE_CHAIN_TYPES_ALLOWABLE_VALUES = "CORE, EDGE";
+    protected static final String TRANSPORT_TYPE_ALLOWABLE_VALUES = "DEFAULT, MQTT, COAP, LWM2M, SNMP";
+    protected static final String DEVICE_INFO_DESCRIPTION = "Device Info is an extension of the default Device object that contains information about the assigned customer name and device profile name. ";
+    protected static final String ASSET_INFO_DESCRIPTION = "Asset Info is an extension of the default Asset object that contains information about the assigned customer name. ";
+    protected static final String ALARM_INFO_DESCRIPTION = "Alarm Info is an extension of the default Alarm object that also contains name of the alarm originator.";
+    protected static final String RELATION_INFO_DESCRIPTION = "Relation Info is an extension of the default Relation object that contains information about the 'from' and 'to' entity names. ";
+    protected static final String EDGE_INFO_DESCRIPTION = "Edge Info is an extension of the default Edge object that contains information about the assigned customer name. ";
+    protected static final String DEVICE_PROFILE_INFO_DESCRIPTION = "Device Profile Info is a lightweight object that includes main information about Device Profile excluding the heavyweight configuration object. ";
+    protected static final String QUEUE_SERVICE_TYPE_DESCRIPTION = "Service type (implemented only for the TB-RULE-ENGINE)";
+    protected static final String QUEUE_SERVICE_TYPE_ALLOWABLE_VALUES = "TB-RULE-ENGINE, TB-CORE, TB-TRANSPORT, JS-EXECUTOR";
+    protected static final String OTA_PACKAGE_INFO_DESCRIPTION = "OTA Package Info is a lightweight object that includes main information about the OTA Package excluding the heavyweight data. ";
+    protected static final String OTA_PACKAGE_DESCRIPTION = "OTA Package is a heavyweight object that includes main information about the OTA Package and also data. ";
+    protected static final String OTA_PACKAGE_CHECKSUM_ALGORITHM_ALLOWABLE_VALUES = "MD5, SHA256, SHA384, SHA512, CRC32, MURMUR3_32, MURMUR3_128";
+    protected static final String OTA_PACKAGE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the ota package title.";
+    protected static final String OTA_PACKAGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, type, title, version, tag, url, fileName, dataSize, checksum";
+    protected static final String RESOURCE_INFO_DESCRIPTION = "Resource Info is a lightweight object that includes main information about the Resource excluding the heavyweight data. ";
+    protected static final String RESOURCE_DESCRIPTION = "Resource is a heavyweight object that includes main information about the Resource and also data. ";
+
+    protected static final String RESOURCE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the resource title.";
+    protected static final String RESOURCE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, resourceType, tenantId";
+    protected static final String LWM2M_OBJECT_DESCRIPTION = "LwM2M Object is a object that includes information about the LwM2M model which can be used in transport configuration for the LwM2M device profile. ";
+    protected static final String LWM2M_OBJECT_SORT_PROPERTY_ALLOWABLE_VALUES = "id, name";
+
+    protected static final String DEVICE_NAME_DESCRIPTION = "A string value representing the Device name.";
+    protected static final String ASSET_NAME_DESCRIPTION = "A string value representing the Asset name.";
+
+    protected static final String EVENT_START_TIME_DESCRIPTION = "Timestamp. Events with creation time before it won't be queried.";
+    protected static final String EVENT_END_TIME_DESCRIPTION = "Timestamp. Events with creation time after it won't be queried.";
+
+    protected static final String EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION = "Unassignment works in async way - first, 'unassign' notification event pushed to edge queue on platform. ";
+    protected static final String EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION = "(Edge will receive this instantly, if it's currently connected, or once it's going to be connected to platform). ";
+    protected static final String EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION = "Assignment works in async way - first, notification event pushed to edge service queue on platform. ";
+    protected static final String EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION = "(Edge will receive this instantly, if it's currently connected, or once it's going to be connected to platform). ";
+
+    protected static final String MARKDOWN_CODE_BLOCK_START = "```json\n";
+    protected static final String MARKDOWN_CODE_BLOCK_END = "\n```";
+    protected static final String EVENT_ERROR_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"eventType\":\"ERROR\",\n" +
+            "   \"server\":\"ip-172-31-24-152\",\n" +
+            "   \"method\":\"onClusterEventMsg\",\n" +
+            "   \"errorStr\":\"Error Message\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+    protected static final String EVENT_LC_EVENT_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"eventType\":\"LC_EVENT\",\n" +
+            "   \"server\":\"ip-172-31-24-152\",\n" +
+            "   \"event\":\"STARTED\",\n" +
+            "   \"status\":\"Success\",\n" +
+            "   \"errorStr\":\"Error Message\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+    protected static final String EVENT_STATS_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"eventType\":\"STATS\",\n" +
+            "   \"server\":\"ip-172-31-24-152\",\n" +
+            "   \"messagesProcessed\":10,\n" +
+            "   \"errorsOccurred\":5\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+    protected static final String DEBUG_FILTER_OBJ =
+            "   \"msgDirectionType\":\"IN\",\n" +
+                    "   \"server\":\"ip-172-31-24-152\",\n" +
+                    "   \"dataSearch\":\"humidity\",\n" +
+                    "   \"metadataSearch\":\"deviceName\",\n" +
+                    "   \"entityName\":\"DEVICE\",\n" +
+                    "   \"relationType\":\"Success\",\n" +
+                    "   \"entityId\":\"de9d54a0-2b7a-11ec-a3cc-23386423d98f\",\n" +
+                    "   \"msgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+                    "   \"isError\":\"false\",\n" +
+                    "   \"errorStr\":\"Error Message\"\n" +
+                    "}";
+    protected static final String EVENT_DEBUG_RULE_NODE_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"eventType\":\"DEBUG_RULE_NODE\",\n" + DEBUG_FILTER_OBJ + MARKDOWN_CODE_BLOCK_END;
+    protected static final String EVENT_DEBUG_RULE_CHAIN_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"eventType\":\"DEBUG_RULE_CHAIN\",\n" + DEBUG_FILTER_OBJ + MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String IS_BOOTSTRAP_SERVER_PARAM_DESCRIPTION = "A Boolean value representing the Server SecurityInfo for future Bootstrap client mode settings. Values: 'true' for Bootstrap Server; 'false' for Lwm2m Server. ";
+
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION =
+            "{\n" +
+                    "  \"device\": {\n" +
+                    "    \"name\": \"LwRpk00000000\",\n" +
+                    "    \"type\": \"lwm2mProfileRpk\"\n" +
+                    "  },\n" +
+                    "  \"credentials\": {\n" +
+                    "    \"id\": \"null\",\n" +
+                    "    \"createdTime\": 0,\n" +
+                    "    \"deviceId\": \"null\",\n" +
+                    "    \"credentialsType\": \"LWM2M_CREDENTIALS\",\n" +
+                    "    \"credentialsId\": \"LwRpk00000000\",\n" +
+                    "    \"credentialsValue\": {\n" +
+                    "      \"client\": {\n" +
+                    "        \"endpoint\": \"LwRpk00000000\",\n" +
+                    "        \"securityConfigClientMode\": \"RPK\",\n" +
+                    "        \"key\": \"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUEBxNl/RcYJNm8mk91CyVXoIJiROYDlXcSSqK6e5bDHwOW4ZiN2lNnXalyF0Jxw8MbAytnDMERXyAja5VEMeVQ==\"\n" +
+                    "      },\n" +
+                    "      \"bootstrap\": {\n" +
+                    "        \"bootstrapServer\": {\n" +
+                    "          \"securityMode\": \"RPK\",\n" +
+                    "          \"clientPublicKeyOrId\": \"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUEBxNl/RcYJNm8mk91CyVXoIJiROYDlXcSSqK6e5bDHwOW4ZiN2lNnXalyF0Jxw8MbAytnDMERXyAja5VEMeVQ==\",\n" +
+                    "          \"clientSecretKey\": \"MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgd9GAx7yZW37autew5KZykn4IgRpge/tZSjnudnZJnMahRANCAARQQHE2X9Fxgk2byaT3ULJVeggmJE5gOVdxJKorp7lsMfA5bhmI3aU2ddqXIXQnHDwxsDK2cMwRFfICNrlUQx5V\"\n" +
+                    "        },\n" +
+                    "        \"lwm2mServer\": {\n" +
+                    "          \"securityMode\": \"RPK\",\n" +
+                    "          \"clientPublicKeyOrId\": \"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUEBxNl/RcYJNm8mk91CyVXoIJiROYDlXcSSqK6e5bDHwOW4ZiN2lNnXalyF0Jxw8MbAytnDMERXyAja5VEMeVQ==\",\n" +
+                    "          \"clientSecretKey\": \"MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgd9GAx7yZW37autew5KZykn4IgRpge/tZSjnudnZJnMahRANCAARQQHE2X9Fxgk2byaT3ULJVeggmJE5gOVdxJKorp7lsMfA5bhmI3aU2ddqXIXQnHDwxsDK2cMwRFfICNrlUQx5V\"\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}";
+
+    protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION_MARKDOWN =
+            MARKDOWN_CODE_BLOCK_START + DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION + MARKDOWN_CODE_BLOCK_END;
+
+
+    protected static final String FILTER_VALUE_TYPE = NEW_LINE + "## Value Type and Operations" + NEW_LINE +
+            "Provides a hint about the data type of the entity field that is defined in the filter key. " +
+            "The value type impacts the list of possible operations that you may use in the corresponding predicate. For example, you may use 'STARTS_WITH' or 'END_WITH', but you can't use 'GREATER_OR_EQUAL' for string values." +
+            "The following filter value types and corresponding predicate operations are supported: " + NEW_LINE +
+            " * 'STRING' - used to filter any 'String' or 'JSON' values. Operations: EQUAL, NOT_EQUAL, STARTS_WITH, ENDS_WITH, CONTAINS, NOT_CONTAINS; \n" +
+            " * 'NUMERIC' - used for 'Long' and 'Double' values. Operations: EQUAL, NOT_EQUAL, GREATER, LESS, GREATER_OR_EQUAL, LESS_OR_EQUAL; \n" +
+            " * 'BOOLEAN' - used for boolean values. Operations: EQUAL, NOT_EQUAL;\n" +
+            " * 'DATE_TIME' - similar to numeric, transforms value to milliseconds since epoch. Operations: EQUAL, NOT_EQUAL, GREATER, LESS, GREATER_OR_EQUAL, LESS_OR_EQUAL; \n";
+
+    protected static final String DEVICE_PROFILE_ALARM_SCHEDULE_SPECIFIC_TIME_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"schedule\":{\n" +
+            "      \"type\":\"SPECIFIC_TIME\",\n" +
+            "      \"endsOn\":64800000,\n" +
+            "      \"startsOn\":43200000,\n" +
+            "      \"timezone\":\"Europe/Kiev\",\n" +
+            "      \"daysOfWeek\":[\n" +
+            "         1,\n" +
+            "         3,\n" +
+            "         5\n" +
+            "      ]\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+    protected static final String DEVICE_PROFILE_ALARM_SCHEDULE_CUSTOM_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"schedule\":{\n" +
+            "      \"type\":\"CUSTOM\",\n" +
+            "      \"items\":[\n" +
+            "         {\n" +
+            "            \"endsOn\":0,\n" +
+            "            \"enabled\":false,\n" +
+            "            \"startsOn\":0,\n" +
+            "            \"dayOfWeek\":1\n" +
+            "         },\n" +
+            "         {\n" +
+            "            \"endsOn\":64800000,\n" +
+            "            \"enabled\":true,\n" +
+            "            \"startsOn\":43200000,\n" +
+            "            \"dayOfWeek\":2\n" +
+            "         },\n" +
+            "         {\n" +
+            "            \"endsOn\":0,\n" +
+            "            \"enabled\":false,\n" +
+            "            \"startsOn\":0,\n" +
+            "            \"dayOfWeek\":3\n" +
+            "         },\n" +
+            "         {\n" +
+            "            \"endsOn\":57600000,\n" +
+            "            \"enabled\":true,\n" +
+            "            \"startsOn\":36000000,\n" +
+            "            \"dayOfWeek\":4\n" +
+            "         },\n" +
+            "         {\n" +
+            "            \"endsOn\":0,\n" +
+            "            \"enabled\":false,\n" +
+            "            \"startsOn\":0,\n" +
+            "            \"dayOfWeek\":5\n" +
+            "         },\n" +
+            "         {\n" +
+            "            \"endsOn\":0,\n" +
+            "            \"enabled\":false,\n" +
+            "            \"startsOn\":0,\n" +
+            "            \"dayOfWeek\":6\n" +
+            "         },\n" +
+            "         {\n" +
+            "            \"endsOn\":0,\n" +
+            "            \"enabled\":false,\n" +
+            "            \"startsOn\":0,\n" +
+            "            \"dayOfWeek\":7\n" +
+            "         }\n" +
+            "      ],\n" +
+            "      \"timezone\":\"Europe/Kiev\"\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+    protected static final String DEVICE_PROFILE_ALARM_SCHEDULE_ALWAYS_EXAMPLE = MARKDOWN_CODE_BLOCK_START + "\"schedule\": null" + MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String DEVICE_PROFILE_ALARM_CONDITION_REPEATING_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"spec\":{\n" +
+            "      \"type\":\"REPEATING\",\n" +
+            "      \"predicate\":{\n" +
+            "         \"userValue\":null,\n" +
+            "         \"defaultValue\":5,\n" +
+            "         \"dynamicValue\":{\n" +
+            "            \"inherit\":true,\n" +
+            "            \"sourceType\":\"CURRENT_DEVICE\",\n" +
+            "            \"sourceAttribute\":\"tempAttr\"\n" +
+            "         }\n" +
+            "      }\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+    protected static final String DEVICE_PROFILE_ALARM_CONDITION_DURATION_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"spec\":{\n" +
+            "      \"type\":\"DURATION\",\n" +
+            "      \"unit\":\"MINUTES\",\n" +
+            "      \"predicate\":{\n" +
+            "         \"userValue\":null,\n" +
+            "         \"defaultValue\":30,\n" +
+            "         \"dynamicValue\":null\n" +
+            "      }\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String RELATION_TYPE_PARAM_DESCRIPTION = "A string value representing relation type between entities. For example, 'Contains', 'Manages'. It can be any string value.";
+    protected static final String RELATION_TYPE_GROUP_PARAM_DESCRIPTION = "A string value representing relation type group. For example, 'COMMON'";
+
+    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String HOME_DASHBOARD = "homeDashboardId";
+
+    protected static final String SINGLE_ENTITY = "\n\n## Single Entity\n\n" +
+            "Allows to filter only one entity based on the id. For example, this entity filter selects certain device:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"singleEntity\",\n" +
+            "  \"singleEntity\": {\n" +
+            "    \"id\": \"d521edb0-2a7a-11ec-94eb-213c95f54092\",\n" +
+            "    \"entityType\": \"DEVICE\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_LIST = "\n\n## Entity List Filter\n\n" +
+            "Allows to filter entities of the same type using their ids. For example, this entity filter selects two devices:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityList\",\n" +
+            "  \"entityType\": \"DEVICE\",\n" +
+            "  \"entityList\": [\n" +
+            "    \"e6501f30-2a7a-11ec-94eb-213c95f54092\",\n" +
+            "    \"e6657bf0-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_NAME = "\n\n## Entity Name Filter\n\n" +
+            "Allows to filter entities of the same type using the **'starts with'** expression over entity name. " +
+            "For example, this entity filter selects all devices which name starts with 'Air Quality':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityName\",\n" +
+            "  \"entityType\": \"DEVICE\",\n" +
+            "  \"entityNameFilter\": \"Air Quality\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_TYPE_FILTER = "\n\n## Entity Type Filter\n\n" +
+            "Allows to filter entities based on their type (CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, etc)" +
+            "For example, this entity filter selects all tenant customers:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityType\",\n" +
+            "  \"entityType\": \"CUSTOMER\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ASSET_TYPE = "\n\n## Asset Type Filter\n\n" +
+            "Allows to filter assets based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all 'charging station' assets which name starts with 'Tesla':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"assetType\",\n" +
+            "  \"assetType\": \"charging station\",\n" +
+            "  \"assetNameFilter\": \"Tesla\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String DEVICE_TYPE = "\n\n## Device Type Filter\n\n" +
+            "Allows to filter devices based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all 'Temperature Sensor' devices which name starts with 'ABC':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"deviceType\",\n" +
+            "  \"deviceType\": \"Temperature Sensor\",\n" +
+            "  \"deviceNameFilter\": \"ABC\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String EDGE_TYPE = "\n\n## Edge Type Filter\n\n" +
+            "Allows to filter edge instances based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all 'Factory' edge instances which name starts with 'Nevada':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"edgeType\",\n" +
+            "  \"edgeType\": \"Factory\",\n" +
+            "  \"edgeNameFilter\": \"Nevada\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_VIEW_TYPE = "\n\n## Entity View Filter\n\n" +
+            "Allows to filter entity views based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all 'Concrete Mixer' entity views which name starts with 'CAT':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityViewType\",\n" +
+            "  \"entityViewType\": \"Concrete Mixer\",\n" +
+            "  \"entityViewNameFilter\": \"CAT\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String API_USAGE = "\n\n## Api Usage Filter\n\n" +
+            "Allows to query for Api Usage based on optional customer id. If the customer id is not set, returns current tenant API usage." +
+            "For example, this entity filter selects the 'Api Usage' entity for customer with id 'e6501f30-2a7a-11ec-94eb-213c95f54092':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"apiUsageState\",\n" +
+            "  \"customerId\": {\n" +
+            "    \"id\": \"d521edb0-2a7a-11ec-94eb-213c95f54092\",\n" +
+            "    \"entityType\": \"CUSTOMER\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String MAX_LEVEL_DESCRIPTION = "Possible direction values are 'TO' and 'FROM'. The 'maxLevel' defines how many relation levels should the query search 'recursively'. ";
+    protected static final String FETCH_LAST_LEVEL_ONLY_DESCRIPTION = "Assuming the 'maxLevel' is > 1, the 'fetchLastLevelOnly' defines either to return all related entities or only entities that are on the last level of relations. ";
+
+    protected static final String RELATIONS_QUERY_FILTER = "\n\n## Relations Query Filter\n\n" +
+            "Allows to filter entities that are related to the provided root entity. " +
+            MAX_LEVEL_DESCRIPTION +
+            FETCH_LAST_LEVEL_ONLY_DESCRIPTION +
+            "The 'filter' object allows you to define the relation type and set of acceptable entity types to search for. " +
+            "The relation query calculates all related entities, even if they are filtered using different relation types, and then extracts only those who match the 'filters'.\n\n" +
+            "For example, this entity filter selects all devices and assets which are related to the asset with id 'e51de0c0-2a7a-11ec-94eb-213c95f54092':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"relationsQuery\",\n" +
+            "  \"rootEntity\": {\n" +
+            "    \"entityType\": \"ASSET\",\n" +
+            "    \"id\": \"e51de0c0-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "  },\n" +
+            "  \"direction\": \"FROM\",\n" +
+            "  \"maxLevel\": 1,\n" +
+            "  \"fetchLastLevelOnly\": false,\n" +
+            "  \"filters\": [\n" +
+            "    {\n" +
+            "      \"relationType\": \"Contains\",\n" +
+            "      \"entityTypes\": [\n" +
+            "        \"DEVICE\",\n" +
+            "        \"ASSET\"\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+
+    protected static final String ASSET_QUERY_FILTER = "\n\n## Asset Search Query\n\n" +
+            "Allows to filter assets that are related to the provided root entity. Filters related assets based on the relation type and set of asset types. " +
+            MAX_LEVEL_DESCRIPTION +
+            FETCH_LAST_LEVEL_ONLY_DESCRIPTION +
+            "The 'relationType' defines the type of the relation to search for. " +
+            "The 'assetTypes' defines the type of the asset to search for. " +
+            "The relation query calculates all related entities, even if they are filtered using different relation types, and then extracts only assets that match 'relationType' and 'assetTypes' conditions.\n\n" +
+            "For example, this entity filter selects 'charging station' assets which are related to the asset with id 'e51de0c0-2a7a-11ec-94eb-213c95f54092' using 'Contains' relation:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"assetSearchQuery\",\n" +
+            "  \"rootEntity\": {\n" +
+            "    \"entityType\": \"ASSET\",\n" +
+            "    \"id\": \"e51de0c0-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "  },\n" +
+            "  \"direction\": \"FROM\",\n" +
+            "  \"maxLevel\": 1,\n" +
+            "  \"fetchLastLevelOnly\": false,\n" +
+            "  \"relationType\": \"Contains\",\n" +
+            "  \"assetTypes\": [\n" +
+            "    \"charging station\"\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String DEVICE_QUERY_FILTER = "\n\n## Device Search Query\n\n" +
+            "Allows to filter devices that are related to the provided root entity. Filters related devices based on the relation type and set of device types. " +
+            MAX_LEVEL_DESCRIPTION +
+            FETCH_LAST_LEVEL_ONLY_DESCRIPTION +
+            "The 'relationType' defines the type of the relation to search for. " +
+            "The 'deviceTypes' defines the type of the device to search for. " +
+            "The relation query calculates all related entities, even if they are filtered using different relation types, and then extracts only devices that match 'relationType' and 'deviceTypes' conditions.\n\n" +
+            "For example, this entity filter selects 'Charging port' and 'Air Quality Sensor' devices which are related to the asset with id 'e52b0020-2a7a-11ec-94eb-213c95f54092' using 'Contains' relation:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"deviceSearchQuery\",\n" +
+            "  \"rootEntity\": {\n" +
+            "    \"entityType\": \"ASSET\",\n" +
+            "    \"id\": \"e52b0020-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "  },\n" +
+            "  \"direction\": \"FROM\",\n" +
+            "  \"maxLevel\": 2,\n" +
+            "  \"fetchLastLevelOnly\": true,\n" +
+            "  \"relationType\": \"Contains\",\n" +
+            "  \"deviceTypes\": [\n" +
+            "    \"Air Quality Sensor\",\n" +
+            "    \"Charging port\"\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String EV_QUERY_FILTER = "\n\n## Entity View Query\n\n" +
+            "Allows to filter entity views that are related to the provided root entity. Filters related entity views based on the relation type and set of entity view types. " +
+            MAX_LEVEL_DESCRIPTION +
+            FETCH_LAST_LEVEL_ONLY_DESCRIPTION +
+            "The 'relationType' defines the type of the relation to search for. " +
+            "The 'entityViewTypes' defines the type of the entity view to search for. " +
+            "The relation query calculates all related entities, even if they are filtered using different relation types, and then extracts only devices that match 'relationType' and 'deviceTypes' conditions.\n\n" +
+            "For example, this entity filter selects 'Concrete mixer' entity views which are related to the asset with id 'e52b0020-2a7a-11ec-94eb-213c95f54092' using 'Contains' relation:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityViewSearchQuery\",\n" +
+            "  \"rootEntity\": {\n" +
+            "    \"entityType\": \"ASSET\",\n" +
+            "    \"id\": \"e52b0020-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "  },\n" +
+            "  \"direction\": \"FROM\",\n" +
+            "  \"maxLevel\": 1,\n" +
+            "  \"fetchLastLevelOnly\": false,\n" +
+            "  \"relationType\": \"Contains\",\n" +
+            "  \"entityViewTypes\": [\n" +
+            "    \"Concrete mixer\"\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String EDGE_QUERY_FILTER = "\n\n## Edge Search Query\n\n" +
+            "Allows to filter edge instances that are related to the provided root entity. Filters related edge instances based on the relation type and set of edge types. " +
+            MAX_LEVEL_DESCRIPTION +
+            FETCH_LAST_LEVEL_ONLY_DESCRIPTION +
+            "The 'relationType' defines the type of the relation to search for. " +
+            "The 'deviceTypes' defines the type of the device to search for. " +
+            "The relation query calculates all related entities, even if they are filtered using different relation types, and then extracts only devices that match 'relationType' and 'deviceTypes' conditions.\n\n" +
+            "For example, this entity filter selects 'Factory' edge instances which are related to the asset with id 'e52b0020-2a7a-11ec-94eb-213c95f54092' using 'Contains' relation:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"deviceSearchQuery\",\n" +
+            "  \"rootEntity\": {\n" +
+            "    \"entityType\": \"ASSET\",\n" +
+            "    \"id\": \"e52b0020-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "  },\n" +
+            "  \"direction\": \"FROM\",\n" +
+            "  \"maxLevel\": 2,\n" +
+            "  \"fetchLastLevelOnly\": true,\n" +
+            "  \"relationType\": \"Contains\",\n" +
+            "  \"edgeTypes\": [\n" +
+            "    \"Factory\"\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_FILTER = "\n\n## Group Entities Filter\n\n" +
+            "Allows to filter multiple entities of the same type using the entity group type and id. " +
+            "For example, this entity filter selects all devices that " +
+            "belong to the group 'e52b0020-2a7a-11ec-94eb-213c95f54092':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroup\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroup\": \"e52b0020-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_LIST_FILTER = "\n\n## Group List Filter\n\n" +
+            "Return multiple groups of the same type using specified ids. " +
+            "For example, this entity filter selects 2 device groups (if they are present in the system) " +
+            "with ids 'e52b0020-2a7a-11ec-94eb-213c95f54092' and 'e52b0020-2a7a-11ec-94eb-213c95f54093':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroupList\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupList\": [\"e52b0020-2a7a-11ec-94eb-213c95f54092\", \"e52b0020-2a7a-11ec-94eb-213c95f54093\"]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_NAME_FILTER = "\n\n## Group Name Filter\n\n" +
+            "Allows to filter entity groups based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all devices which name starts with 'CAT':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroupName\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"CAT\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITIES_BY_GROUP_NAME_FILTER = "\n\n## Entities by Group Name Filter\n\n" +
+            "Allows to filter entities that belong to group based on the entity type and the group name. " +
+            "Optional parameter 'ownerId' allows you to specify the owner of the group (Tenant or Customer, current user owner by default)." +
+            "For example, this entity filter selects all devices which belong to group 'Water Meters':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entitiesByGroupName\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n Other example, this entity filter selects all devices which belong to group 'Water Meters' which in turn belongs to (sub-)Customer with id 'e52b0020-2a7a-11ec-94eb-213c95f54093': \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entitiesByGroupName\",\n" +
+            "  \"ownerId\": \"e52b0020-2a7a-11ec-94eb-213c95f54093\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_OWNER_FILTER = "\n\n## Entity owner Filter\n\n" +
+            "Allows to fetch owner (Tenant or Customer) of the specified entity. " +
+            "For example, this entity filter selects owner of the device with id 'e52b0020-2a7a-11ec-94eb-213c95f54093':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"stateEntityOwner\",\n" +
+            "  \"singleEntity\": {\n" +
+            "    \"id\": \"d521edb0-2a7a-11ec-94eb-213c95f54092\",\n" +
+            "    \"entityType\": \"DEVICE\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String EMPTY = "\n\n## Entity Type Filter\n\n" +
+            "Allows to filter multiple entities of the same type using the **'starts with'** expression over entity name. " +
+            "For example, this entity filter selects all devices which name starts with 'Air Quality':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_FILTERS =
+            "\n\n # Entity Filters" +
+                    "\nEntity Filter body depends on the 'type' parameter. Let's review available entity filter types. In fact, they do correspond to available dashboard aliases." +
+                    SINGLE_ENTITY + ENTITY_GROUP_FILTER + ENTITY_LIST + ENTITY_NAME + ENTITY_TYPE_FILTER + ENTITY_GROUP_LIST_FILTER + ENTITY_GROUP_NAME_FILTER + ENTITIES_BY_GROUP_NAME_FILTER +
+                    ENTITY_OWNER_FILTER + ASSET_TYPE + DEVICE_TYPE + EDGE_TYPE + ENTITY_VIEW_TYPE + API_USAGE + RELATIONS_QUERY_FILTER
+                    + ASSET_QUERY_FILTER + DEVICE_QUERY_FILTER + EV_QUERY_FILTER + EDGE_QUERY_FILTER;
+
+    protected static final String FILTER_KEY = "\n\n## Filter Key\n\n" +
+            "Filter Key defines either entity field, attribute or telemetry. It is a JSON object that consists the key name and type. " +
+            "The following filter key types are supported: \n\n" +
+            " * 'CLIENT_ATTRIBUTE' - used for client attributes; \n" +
+            " * 'SHARED_ATTRIBUTE' - used for shared attributes; \n" +
+            " * 'SERVER_ATTRIBUTE' - used for server attributes; \n" +
+            " * 'ATTRIBUTE' - used for any of the above; \n" +
+            " * 'TIME_SERIES' - used for time-series values; \n" +
+            " * 'ENTITY_FIELD' - used for accessing entity fields like 'name', 'label', etc. The list of available fields depends on the entity type; \n" +
+            " * 'ALARM_FIELD' - similar to entity field, but is used in alarm queries only; \n" +
+            "\n\n Let's review the example:\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"TIME_SERIES\",\n" +
+            "  \"key\": \"temperature\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String FILTER_PREDICATE = "\n\n## Filter Predicate\n\n" +
+            "Filter Predicate defines the logical expression to evaluate. The list of available operations depends on the filter value type, see above. " +
+            "Platform supports 4 predicate types: 'STRING', 'NUMERIC', 'BOOLEAN' and 'COMPLEX'. The last one allows to combine multiple operations over one filter key." +
+            "\n\nSimple predicate example to check 'value < 100': \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"operation\": \"LESS\",\n" +
+            "  \"value\": {\n" +
+            "    \"defaultValue\": 100,\n" +
+            "    \"dynamicValue\": null\n" +
+            "  },\n" +
+            "  \"type\": \"NUMERIC\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\nComplex predicate example, to check 'value < 10 or value > 20': \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"COMPLEX\",\n" +
+            "  \"operation\": \"OR\",\n" +
+            "  \"predicates\": [\n" +
+            "    {\n" +
+            "      \"operation\": \"LESS\",\n" +
+            "      \"value\": {\n" +
+            "        \"defaultValue\": 10,\n" +
+            "        \"dynamicValue\": null\n" +
+            "      },\n" +
+            "      \"type\": \"NUMERIC\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"operation\": \"GREATER\",\n" +
+            "      \"value\": {\n" +
+            "        \"defaultValue\": 20,\n" +
+            "        \"dynamicValue\": null\n" +
+            "      },\n" +
+            "      \"type\": \"NUMERIC\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\nMore complex predicate example, to check 'value < 10 or (value > 50 && value < 60)': \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"COMPLEX\",\n" +
+            "  \"operation\": \"OR\",\n" +
+            "  \"predicates\": [\n" +
+            "    {\n" +
+            "      \"operation\": \"LESS\",\n" +
+            "      \"value\": {\n" +
+            "        \"defaultValue\": 10,\n" +
+            "        \"dynamicValue\": null\n" +
+            "      },\n" +
+            "      \"type\": \"NUMERIC\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"COMPLEX\",\n" +
+            "      \"operation\": \"AND\",\n" +
+            "      \"predicates\": [\n" +
+            "        {\n" +
+            "          \"operation\": \"GREATER\",\n" +
+            "          \"value\": {\n" +
+            "            \"defaultValue\": 50,\n" +
+            "            \"dynamicValue\": null\n" +
+            "          },\n" +
+            "          \"type\": \"NUMERIC\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"operation\": \"LESS\",\n" +
+            "          \"value\": {\n" +
+            "            \"defaultValue\": 60,\n" +
+            "            \"dynamicValue\": null\n" +
+            "          },\n" +
+            "          \"type\": \"NUMERIC\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n You may also want to replace hardcoded values (for example, temperature > 20) with the more dynamic " +
+            "expression (for example, temperature > 'value of the tenant attribute with key 'temperatureThreshold'). " +
+            "It is possible to use 'dynamicValue' to define attribute of the tenant, customer or user that is performing the API call. " +
+            "See example below: \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"operation\": \"GREATER\",\n" +
+            "  \"value\": {\n" +
+            "    \"defaultValue\": 0,\n" +
+            "    \"dynamicValue\": {\n" +
+            "      \"sourceType\": \"CURRENT_USER\",\n" +
+            "      \"sourceAttribute\": \"temperatureThreshold\"\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"type\": \"NUMERIC\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n Note that you may use 'CURRENT_USER', 'CURRENT_CUSTOMER' and 'CURRENT_TENANT' as a 'sourceType'. The 'defaultValue' is used when the attribute with such a name is not defined for the chosen source.";
+
+    protected static final String KEY_FILTERS =
+            "\n\n # Key Filters" +
+                    "\nKey Filter allows you to define complex logical expressions over entity field, attribute or latest time-series value. The filter is defined using 'key', 'valueType' and 'predicate' objects. " +
+                    "Single Entity Query may have zero, one or multiple predicates. If multiple filters are defined, they are evaluated using logical 'AND'. " +
+                    "The example below checks that temperature of the entity is above 20 degrees:" +
+                    "\n\n" + MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"key\": {\n" +
+                    "    \"type\": \"TIME_SERIES\",\n" +
+                    "    \"key\": \"temperature\"\n" +
+                    "  },\n" +
+                    "  \"valueType\": \"NUMERIC\",\n" +
+                    "  \"predicate\": {\n" +
+                    "    \"operation\": \"GREATER\",\n" +
+                    "    \"value\": {\n" +
+                    "      \"defaultValue\": 20,\n" +
+                    "      \"dynamicValue\": null\n" +
+                    "    },\n" +
+                    "    \"type\": \"NUMERIC\"\n" +
+                    "  }\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
+                    "\n\n Now let's review 'key', 'valueType' and 'predicate' objects in detail."
+                    + FILTER_KEY + FILTER_VALUE_TYPE + FILTER_PREDICATE;
+
+    protected static final String ENTITY_COUNT_QUERY_DESCRIPTION =
+            "Allows to run complex queries to search the count of platform entities (devices, assets, customers, etc) " +
+                    "based on the combination of main entity filter and multiple key filters. Returns the number of entities that match the query definition.\n\n" +
+                    "# Query Definition\n\n" +
+                    "\n\nMain **entity filter** is mandatory and defines generic search criteria. " +
+                    "For example, \"find all devices with profile 'Moisture Sensor'\" or \"Find all devices related to asset 'Building A'\"" +
+                    "\n\nOptional **key filters** allow to filter results of the entity filter by complex criteria against " +
+                    "main entity fields (name, label, type, etc), attributes and telemetry. " +
+                    "For example, \"temperature > 20 or temperature< 10\" or \"name starts with 'T', and attribute 'model' is 'T1000', and timeseries field 'batteryLevel' > 40\"." +
+                    "\n\nLet's review the example:" +
+                    "\n\n" + MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"entityFilter\": {\n" +
+                    "    \"type\": \"entityType\",\n" +
+                    "    \"entityType\": \"DEVICE\"\n" +
+                    "  },\n" +
+                    "  \"keyFilters\": [\n" +
+                    "    {\n" +
+                    "      \"key\": {\n" +
+                    "        \"type\": \"ATTRIBUTE\",\n" +
+                    "        \"key\": \"active\"\n" +
+                    "      },\n" +
+                    "      \"valueType\": \"BOOLEAN\",\n" +
+                    "      \"predicate\": {\n" +
+                    "        \"operation\": \"EQUAL\",\n" +
+                    "        \"value\": {\n" +
+                    "          \"defaultValue\": true,\n" +
+                    "          \"dynamicValue\": null\n" +
+                    "        },\n" +
+                    "        \"type\": \"BOOLEAN\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
+                    "\n\n Example mentioned above search all devices which have attribute 'active' set to 'true'. Now let's review available entity filters and key filters syntax:" +
+                    ENTITY_FILTERS +
+                    KEY_FILTERS +
+                    ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+
+    protected static final String ENTITY_DATA_QUERY_DESCRIPTION =
+            "Allows to run complex queries over platform entities (devices, assets, customers, etc) " +
+                    "based on the combination of main entity filter and multiple key filters. " +
+                    "Returns the paginated result of the query that contains requested entity fields and latest values of requested attributes and time-series data.\n\n" +
+                    "# Query Definition\n\n" +
+                    "\n\nMain **entity filter** is mandatory and defines generic search criteria. " +
+                    "For example, \"find all devices with profile 'Moisture Sensor'\" or \"Find all devices related to asset 'Building A'\"" +
+                    "\n\nOptional **key filters** allow to filter results of the **entity filter** by complex criteria against " +
+                    "main entity fields (name, label, type, etc), attributes and telemetry. " +
+                    "For example, \"temperature > 20 or temperature< 10\" or \"name starts with 'T', and attribute 'model' is 'T1000', and timeseries field 'batteryLevel' > 40\"." +
+                    "\n\nThe **entity fields** and **latest values** contains list of entity fields and latest attribute/telemetry fields to fetch for each entity." +
+                    "\n\nThe **page link** contains information about the page to fetch and the sort ordering." +
+                    "\n\nLet's review the example:" +
+                    "\n\n" + MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"entityFilter\": {\n" +
+                    "    \"type\": \"entityType\",\n" +
+                    "    \"resolveMultiple\": true,\n" +
+                    "    \"entityType\": \"DEVICE\"\n" +
+                    "  },\n" +
+                    "  \"keyFilters\": [\n" +
+                    "    {\n" +
+                    "      \"key\": {\n" +
+                    "        \"type\": \"TIME_SERIES\",\n" +
+                    "        \"key\": \"temperature\"\n" +
+                    "      },\n" +
+                    "      \"valueType\": \"NUMERIC\",\n" +
+                    "      \"predicate\": {\n" +
+                    "        \"operation\": \"GREATER\",\n" +
+                    "        \"value\": {\n" +
+                    "          \"defaultValue\": 0,\n" +
+                    "          \"dynamicValue\": {\n" +
+                    "            \"sourceType\": \"CURRENT_USER\",\n" +
+                    "            \"sourceAttribute\": \"temperatureThreshold\",\n" +
+                    "            \"inherit\": false\n" +
+                    "          }\n" +
+                    "        },\n" +
+                    "        \"type\": \"NUMERIC\"\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"entityFields\": [\n" +
+                    "    {\n" +
+                    "      \"type\": \"ENTITY_FIELD\",\n" +
+                    "      \"key\": \"name\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"type\": \"ENTITY_FIELD\",\n" +
+                    "      \"key\": \"label\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"type\": \"ENTITY_FIELD\",\n" +
+                    "      \"key\": \"additionalInfo\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"latestValues\": [\n" +
+                    "    {\n" +
+                    "      \"type\": \"ATTRIBUTE\",\n" +
+                    "      \"key\": \"model\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"type\": \"TIME_SERIES\",\n" +
+                    "      \"key\": \"temperature\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"pageLink\": {\n" +
+                    "    \"page\": 0,\n" +
+                    "    \"pageSize\": 10,\n" +
+                    "    \"sortOrder\": {\n" +
+                    "      \"key\": {\n" +
+                    "        \"key\": \"name\",\n" +
+                    "        \"type\": \"ENTITY_FIELD\"\n" +
+                    "      },\n" +
+                    "      \"direction\": \"ASC\"\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
+                    "\n\n Example mentioned above search all devices which have attribute 'active' set to 'true'. Now let's review available entity filters and key filters syntax:" +
+                    ENTITY_FILTERS +
+                    KEY_FILTERS +
+                    ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+
+
+    protected static final String ALARM_DATA_QUERY_DESCRIPTION = "This method description defines how Alarm Data Query extends the Entity Data Query. " +
+            "See method 'Find Entity Data by Query' first to get the info about 'Entity Data Query'." +
+            "\n\n The platform will first search the entities that match the entity and key filters. Then, the platform will use 'Alarm Page Link' to filter the alarms related to those entities. " +
+            "Finally, platform fetch the properties of alarm that are defined in the **'alarmFields'** and combine them with the other entity, attribute and latest time-series fields to return the result. " +
+            "\n\n See example of the alarm query below. The query will search first 100 active alarms with type 'Temperature Alarm' or 'Fire Alarm' for any device with current temperature > 0. " +
+            "The query will return combination of the entity fields: name of the device, device model and latest temperature reading and alarms fields: createdTime, type, severity and status: " +
+            "\n\n" + MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"entityFilter\": {\n" +
+            "    \"type\": \"entityType\",\n" +
+            "    \"resolveMultiple\": true,\n" +
+            "    \"entityType\": \"DEVICE\"\n" +
+            "  },\n" +
+            "  \"pageLink\": {\n" +
+            "    \"page\": 0,\n" +
+            "    \"pageSize\": 100,\n" +
+            "    \"textSearch\": null,\n" +
+            "    \"searchPropagatedAlarms\": false,\n" +
+            "    \"statusList\": [\n" +
+            "      \"ACTIVE\"\n" +
+            "    ],\n" +
+            "    \"severityList\": [\n" +
+            "      \"CRITICAL\",\n" +
+            "      \"MAJOR\"\n" +
+            "    ],\n" +
+            "    \"typeList\": [\n" +
+            "      \"Temperature Alarm\",\n" +
+            "      \"Fire Alarm\"\n" +
+            "    ],\n" +
+            "    \"sortOrder\": {\n" +
+            "      \"key\": {\n" +
+            "        \"key\": \"createdTime\",\n" +
+            "        \"type\": \"ALARM_FIELD\"\n" +
+            "      },\n" +
+            "      \"direction\": \"DESC\"\n" +
+            "    },\n" +
+            "    \"timeWindow\": 86400000\n" +
+            "  },\n" +
+            "  \"keyFilters\": [\n" +
+            "    {\n" +
+            "      \"key\": {\n" +
+            "        \"type\": \"TIME_SERIES\",\n" +
+            "        \"key\": \"temperature\"\n" +
+            "      },\n" +
+            "      \"valueType\": \"NUMERIC\",\n" +
+            "      \"predicate\": {\n" +
+            "        \"operation\": \"GREATER\",\n" +
+            "        \"value\": {\n" +
+            "          \"defaultValue\": 0,\n" +
+            "          \"dynamicValue\": null\n" +
+            "        },\n" +
+            "        \"type\": \"NUMERIC\"\n" +
+            "      }\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"alarmFields\": [\n" +
+            "    {\n" +
+            "      \"type\": \"ALARM_FIELD\",\n" +
+            "      \"key\": \"createdTime\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"ALARM_FIELD\",\n" +
+            "      \"key\": \"type\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"ALARM_FIELD\",\n" +
+            "      \"key\": \"severity\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"ALARM_FIELD\",\n" +
+            "      \"key\": \"status\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"entityFields\": [\n" +
+            "    {\n" +
+            "      \"type\": \"ENTITY_FIELD\",\n" +
+            "      \"key\": \"name\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"latestValues\": [\n" +
+            "    {\n" +
+            "      \"type\": \"ATTRIBUTE\",\n" +
+            "      \"key\": \"model\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"TIME_SERIES\",\n" +
+            "      \"key\": \"temperature\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String COAP_TRANSPORT_CONFIGURATION_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"type\":\"COAP\",\n" +
+            "   \"clientSettings\":{\n" +
+            "      \"edrxCycle\":null,\n" +
+            "      \"powerMode\":\"DRX\",\n" +
+            "      \"psmActivityTimer\":null,\n" +
+            "      \"pagingTransmissionWindow\":null\n" +
+            "   },\n" +
+            "   \"coapDeviceTypeConfiguration\":{\n" +
+            "      \"coapDeviceType\":\"DEFAULT\",\n" +
+            "      \"transportPayloadTypeConfiguration\":{\n" +
+            "         \"transportPayloadType\":\"JSON\"\n" +
+            "      }\n" +
+            "   }\n" +
+            "}"
+            + MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String TRANSPORT_CONFIGURATION = "# Transport Configuration" + NEW_LINE +
+            "5 transport configuration types are available:\n" +
+            " * 'DEFAULT';\n" +
+            " * 'MQTT';\n" +
+            " * 'LWM2M';\n" +
+            " * 'COAP';\n" +
+            " * 'SNMP'." + NEW_LINE + "Default type supports basic MQTT, HTTP, CoAP and LwM2M transports. " +
+            "Please refer to the [docs](https://thingsboard.io/docs/user-guide/device-profiles/#transport-configuration) for more details about other types.\n" +
+            "\nSee another example of COAP transport configuration below:" + NEW_LINE + COAP_TRANSPORT_CONFIGURATION_EXAMPLE;
+
+    protected static final String ALARM_FILTER_KEY = "## Alarm Filter Key" + NEW_LINE +
+            "Filter Key defines either entity field, attribute, telemetry or constant. It is a JSON object that consists the key name and type. The following filter key types are supported:\n" +
+            " * 'ATTRIBUTE' - used for attributes values;\n" +
+            " * 'TIME_SERIES' - used for time-series values;\n" +
+            " * 'ENTITY_FIELD' - used for accessing entity fields like 'name', 'label', etc. The list of available fields depends on the entity type;\n" +
+            " * 'CONSTANT' - constant value specified." + NEW_LINE + "Let's review the example:" + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"TIME_SERIES\",\n" +
+            "  \"key\": \"temperature\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String DEVICE_PROFILE_FILTER_PREDICATE = NEW_LINE + "## Filter Predicate" + NEW_LINE +
+            "Filter Predicate defines the logical expression to evaluate. The list of available operations depends on the filter value type, see above. " +
+            "Platform supports 4 predicate types: 'STRING', 'NUMERIC', 'BOOLEAN' and 'COMPLEX'. The last one allows to combine multiple operations over one filter key." + NEW_LINE +
+            "Simple predicate example to check 'value < 100': " + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"operation\": \"LESS\",\n" +
+            "  \"value\": {\n" +
+            "    \"userValue\": null,\n" +
+            "    \"defaultValue\": 100,\n" +
+            "    \"dynamicValue\": null\n" +
+            "  },\n" +
+            "  \"type\": \"NUMERIC\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+            "Complex predicate example, to check 'value < 10 or value > 20': " + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"COMPLEX\",\n" +
+            "  \"operation\": \"OR\",\n" +
+            "  \"predicates\": [\n" +
+            "    {\n" +
+            "      \"operation\": \"LESS\",\n" +
+            "      \"value\": {\n" +
+            "        \"userValue\": null,\n" +
+            "        \"defaultValue\": 10,\n" +
+            "        \"dynamicValue\": null\n" +
+            "      },\n" +
+            "      \"type\": \"NUMERIC\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"operation\": \"GREATER\",\n" +
+            "      \"value\": {\n" +
+            "        \"userValue\": null,\n" +
+            "        \"defaultValue\": 20,\n" +
+            "        \"dynamicValue\": null\n" +
+            "      },\n" +
+            "      \"type\": \"NUMERIC\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+            "More complex predicate example, to check 'value < 10 or (value > 50 && value < 60)': " + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"COMPLEX\",\n" +
+            "  \"operation\": \"OR\",\n" +
+            "  \"predicates\": [\n" +
+            "    {\n" +
+            "      \"operation\": \"LESS\",\n" +
+            "      \"value\": {\n" +
+            "        \"userValue\": null,\n" +
+            "        \"defaultValue\": 10,\n" +
+            "        \"dynamicValue\": null\n" +
+            "      },\n" +
+            "      \"type\": \"NUMERIC\"\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"type\": \"COMPLEX\",\n" +
+            "      \"operation\": \"AND\",\n" +
+            "      \"predicates\": [\n" +
+            "        {\n" +
+            "          \"operation\": \"GREATER\",\n" +
+            "          \"value\": {\n" +
+            "            \"userValue\": null,\n" +
+            "            \"defaultValue\": 50,\n" +
+            "            \"dynamicValue\": null\n" +
+            "          },\n" +
+            "          \"type\": \"NUMERIC\"\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"operation\": \"LESS\",\n" +
+            "          \"value\": {\n" +
+            "            \"userValue\": null,\n" +
+            "            \"defaultValue\": 60,\n" +
+            "            \"dynamicValue\": null\n" +
+            "          },\n" +
+            "          \"type\": \"NUMERIC\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+            "You may also want to replace hardcoded values (for example, temperature > 20) with the more dynamic " +
+            "expression (for example, temperature > value of the tenant attribute with key 'temperatureThreshold'). " +
+            "It is possible to use 'dynamicValue' to define attribute of the tenant, customer or device. " +
+            "See example below:" + NEW_LINE +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"operation\": \"GREATER\",\n" +
+            "  \"value\": {\n" +
+            "    \"userValue\": null,\n" +
+            "    \"defaultValue\": 0,\n" +
+            "    \"dynamicValue\": {\n" +
+            "      \"inherit\": false,\n" +
+            "      \"sourceType\": \"CURRENT_TENANT\",\n" +
+            "      \"sourceAttribute\": \"temperatureThreshold\"\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"type\": \"NUMERIC\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END + NEW_LINE +
+            "Note that you may use 'CURRENT_DEVICE', 'CURRENT_CUSTOMER' and 'CURRENT_TENANT' as a 'sourceType'. The 'defaultValue' is used when the attribute with such a name is not defined for the chosen source. " +
+            "The 'sourceAttribute' can be inherited from the owner of the specified 'sourceType' if 'inherit' is set to true.";
+
+    protected static final String KEY_FILTERS_DESCRIPTION = "# Key Filters" + NEW_LINE +
+            "Key filter objects are created under the **'condition'** array. They allow you to define complex logical expressions over entity field, " +
+            "attribute, latest time-series value or constant. The filter is defined using 'key', 'valueType', " +
+            "'value' (refers to the value of the 'CONSTANT' alarm filter key type) and 'predicate' objects. Let's review each object:" + NEW_LINE +
+            ALARM_FILTER_KEY + FILTER_VALUE_TYPE + NEW_LINE + DEVICE_PROFILE_FILTER_PREDICATE + NEW_LINE;
+
+    protected static final String DEFAULT_DEVICE_PROFILE_DATA_EXAMPLE = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"alarms\":[\n" +
+            "   ],\n" +
+            "   \"configuration\":{\n" +
+            "      \"type\":\"DEFAULT\"\n" +
+            "   },\n" +
+            "   \"provisionConfiguration\":{\n" +
+            "      \"type\":\"DISABLED\",\n" +
+            "      \"provisionDeviceSecret\":null\n" +
+            "   },\n" +
+            "   \"transportConfiguration\":{\n" +
+            "      \"type\":\"DEFAULT\"\n" +
+            "   }\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String CUSTOM_DEVICE_PROFILE_DATA_EXAMPLE = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"alarms\":[\n" +
+            "      {\n" +
+            "         \"id\":\"2492b935-1226-59e9-8615-17d8978a4f93\",\n" +
+            "         \"alarmType\":\"Temperature Alarm\",\n" +
+            "         \"clearRule\":{\n" +
+            "            \"schedule\":null,\n" +
+            "            \"condition\":{\n" +
+            "               \"spec\":{\n" +
+            "                  \"type\":\"SIMPLE\"\n" +
+            "               },\n" +
+            "               \"condition\":[\n" +
+            "                  {\n" +
+            "                     \"key\":{\n" +
+            "                        \"key\":\"temperature\",\n" +
+            "                        \"type\":\"TIME_SERIES\"\n" +
+            "                     },\n" +
+            "                     \"value\":null,\n" +
+            "                     \"predicate\":{\n" +
+            "                        \"type\":\"NUMERIC\",\n" +
+            "                        \"value\":{\n" +
+            "                           \"userValue\":null,\n" +
+            "                           \"defaultValue\":30.0,\n" +
+            "                           \"dynamicValue\":null\n" +
+            "                        },\n" +
+            "                        \"operation\":\"LESS\"\n" +
+            "                     },\n" +
+            "                     \"valueType\":\"NUMERIC\"\n" +
+            "                  }\n" +
+            "               ]\n" +
+            "            },\n" +
+            "            \"dashboardId\":null,\n" +
+            "            \"alarmDetails\":null\n" +
+            "         },\n" +
+            "         \"propagate\":false,\n" +
+            "         \"createRules\":{\n" +
+            "            \"MAJOR\":{\n" +
+            "               \"schedule\":{\n" +
+            "                  \"type\":\"SPECIFIC_TIME\",\n" +
+            "                  \"endsOn\":64800000,\n" +
+            "                  \"startsOn\":43200000,\n" +
+            "                  \"timezone\":\"Europe/Kiev\",\n" +
+            "                  \"daysOfWeek\":[\n" +
+            "                     1,\n" +
+            "                     3,\n" +
+            "                     5\n" +
+            "                  ]\n" +
+            "               },\n" +
+            "               \"condition\":{\n" +
+            "                  \"spec\":{\n" +
+            "                     \"type\":\"DURATION\",\n" +
+            "                     \"unit\":\"MINUTES\",\n" +
+            "                     \"predicate\":{\n" +
+            "                        \"userValue\":null,\n" +
+            "                        \"defaultValue\":30,\n" +
+            "                        \"dynamicValue\":null\n" +
+            "                     }\n" +
+            "                  },\n" +
+            "                  \"condition\":[\n" +
+            "                     {\n" +
+            "                        \"key\":{\n" +
+            "                           \"key\":\"temperature\",\n" +
+            "                           \"type\":\"TIME_SERIES\"\n" +
+            "                        },\n" +
+            "                        \"value\":null,\n" +
+            "                        \"predicate\":{\n" +
+            "                           \"type\":\"COMPLEX\",\n" +
+            "                           \"operation\":\"OR\",\n" +
+            "                           \"predicates\":[\n" +
+            "                              {\n" +
+            "                                 \"type\":\"NUMERIC\",\n" +
+            "                                 \"value\":{\n" +
+            "                                    \"userValue\":null,\n" +
+            "                                    \"defaultValue\":50.0,\n" +
+            "                                    \"dynamicValue\":null\n" +
+            "                                 },\n" +
+            "                                 \"operation\":\"LESS_OR_EQUAL\"\n" +
+            "                              },\n" +
+            "                              {\n" +
+            "                                 \"type\":\"NUMERIC\",\n" +
+            "                                 \"value\":{\n" +
+            "                                    \"userValue\":null,\n" +
+            "                                    \"defaultValue\":30.0,\n" +
+            "                                    \"dynamicValue\":null\n" +
+            "                                 },\n" +
+            "                                 \"operation\":\"GREATER\"\n" +
+            "                              }\n" +
+            "                           ]\n" +
+            "                        },\n" +
+            "                        \"valueType\":\"NUMERIC\"\n" +
+            "                     }\n" +
+            "                  ]\n" +
+            "               },\n" +
+            "               \"dashboardId\":null,\n" +
+            "               \"alarmDetails\":null\n" +
+            "            },\n" +
+            "            \"WARNING\":{\n" +
+            "               \"schedule\":{\n" +
+            "                  \"type\":\"CUSTOM\",\n" +
+            "                  \"items\":[\n" +
+            "                     {\n" +
+            "                        \"endsOn\":0,\n" +
+            "                        \"enabled\":false,\n" +
+            "                        \"startsOn\":0,\n" +
+            "                        \"dayOfWeek\":1\n" +
+            "                     },\n" +
+            "                     {\n" +
+            "                        \"endsOn\":64800000,\n" +
+            "                        \"enabled\":true,\n" +
+            "                        \"startsOn\":43200000,\n" +
+            "                        \"dayOfWeek\":2\n" +
+            "                     },\n" +
+            "                     {\n" +
+            "                        \"endsOn\":0,\n" +
+            "                        \"enabled\":false,\n" +
+            "                        \"startsOn\":0,\n" +
+            "                        \"dayOfWeek\":3\n" +
+            "                     },\n" +
+            "                     {\n" +
+            "                        \"endsOn\":57600000,\n" +
+            "                        \"enabled\":true,\n" +
+            "                        \"startsOn\":36000000,\n" +
+            "                        \"dayOfWeek\":4\n" +
+            "                     },\n" +
+            "                     {\n" +
+            "                        \"endsOn\":0,\n" +
+            "                        \"enabled\":false,\n" +
+            "                        \"startsOn\":0,\n" +
+            "                        \"dayOfWeek\":5\n" +
+            "                     },\n" +
+            "                     {\n" +
+            "                        \"endsOn\":0,\n" +
+            "                        \"enabled\":false,\n" +
+            "                        \"startsOn\":0,\n" +
+            "                        \"dayOfWeek\":6\n" +
+            "                     },\n" +
+            "                     {\n" +
+            "                        \"endsOn\":0,\n" +
+            "                        \"enabled\":false,\n" +
+            "                        \"startsOn\":0,\n" +
+            "                        \"dayOfWeek\":7\n" +
+            "                     }\n" +
+            "                  ],\n" +
+            "                  \"timezone\":\"Europe/Kiev\"\n" +
+            "               },\n" +
+            "               \"condition\":{\n" +
+            "                  \"spec\":{\n" +
+            "                     \"type\":\"REPEATING\",\n" +
+            "                     \"predicate\":{\n" +
+            "                        \"userValue\":null,\n" +
+            "                        \"defaultValue\":5,\n" +
+            "                        \"dynamicValue\":null\n" +
+            "                     }\n" +
+            "                  },\n" +
+            "                  \"condition\":[\n" +
+            "                     {\n" +
+            "                        \"key\":{\n" +
+            "                           \"key\":\"tempConstant\",\n" +
+            "                           \"type\":\"CONSTANT\"\n" +
+            "                        },\n" +
+            "                        \"value\":30,\n" +
+            "                        \"predicate\":{\n" +
+            "                           \"type\":\"NUMERIC\",\n" +
+            "                           \"value\":{\n" +
+            "                              \"userValue\":null,\n" +
+            "                              \"defaultValue\":0.0,\n" +
+            "                              \"dynamicValue\":{\n" +
+            "                                 \"inherit\":false,\n" +
+            "                                 \"sourceType\":\"CURRENT_DEVICE\",\n" +
+            "                                 \"sourceAttribute\":\"tempThreshold\"\n" +
+            "                              }\n" +
+            "                           },\n" +
+            "                           \"operation\":\"EQUAL\"\n" +
+            "                        },\n" +
+            "                        \"valueType\":\"NUMERIC\"\n" +
+            "                     }\n" +
+            "                  ]\n" +
+            "               },\n" +
+            "               \"dashboardId\":null,\n" +
+            "               \"alarmDetails\":null\n" +
+            "            },\n" +
+            "            \"CRITICAL\":{\n" +
+            "               \"schedule\":null,\n" +
+            "               \"condition\":{\n" +
+            "                  \"spec\":{\n" +
+            "                     \"type\":\"SIMPLE\"\n" +
+            "                  },\n" +
+            "                  \"condition\":[\n" +
+            "                     {\n" +
+            "                        \"key\":{\n" +
+            "                           \"key\":\"temperature\",\n" +
+            "                           \"type\":\"TIME_SERIES\"\n" +
+            "                        },\n" +
+            "                        \"value\":null,\n" +
+            "                        \"predicate\":{\n" +
+            "                           \"type\":\"NUMERIC\",\n" +
+            "                           \"value\":{\n" +
+            "                              \"userValue\":null,\n" +
+            "                              \"defaultValue\":50.0,\n" +
+            "                              \"dynamicValue\":null\n" +
+            "                           },\n" +
+            "                           \"operation\":\"GREATER\"\n" +
+            "                        },\n" +
+            "                        \"valueType\":\"NUMERIC\"\n" +
+            "                     }\n" +
+            "                  ]\n" +
+            "               },\n" +
+            "               \"dashboardId\":null,\n" +
+            "               \"alarmDetails\":null\n" +
+            "            }\n" +
+            "         },\n" +
+            "         \"propagateRelationTypes\":null\n" +
+            "      }\n" +
+            "   ],\n" +
+            "   \"configuration\":{\n" +
+            "      \"type\":\"DEFAULT\"\n" +
+            "   },\n" +
+            "   \"provisionConfiguration\":{\n" +
+            "      \"type\":\"ALLOW_CREATE_NEW_DEVICES\",\n" +
+            "      \"provisionDeviceSecret\":\"vaxb9hzqdbz3oqukvomg\"\n" +
+            "   },\n" +
+            "   \"transportConfiguration\":{\n" +
+            "      \"type\":\"MQTT\",\n" +
+            "      \"deviceTelemetryTopic\":\"v1/devices/me/telemetry\",\n" +
+            "      \"deviceAttributesTopic\":\"v1/devices/me/attributes\",\n" +
+            "      \"transportPayloadTypeConfiguration\":{\n" +
+            "         \"transportPayloadType\":\"PROTOBUF\",\n" +
+            "         \"deviceTelemetryProtoSchema\":\"syntax =\\\"proto3\\\";\\npackage telemetry;\\n\\nmessage SensorDataReading {\\n\\n  optional double temperature = 1;\\n  optional double humidity = 2;\\n  InnerObject innerObject = 3;\\n\\n  message InnerObject {\\n    optional string key1 = 1;\\n    optional bool key2 = 2;\\n    optional double key3 = 3;\\n    optional int32 key4 = 4;\\n    optional string key5 = 5;\\n  }\\n}\",\n" +
+            "         \"deviceAttributesProtoSchema\":\"syntax =\\\"proto3\\\";\\npackage attributes;\\n\\nmessage SensorConfiguration {\\n  optional string firmwareVersion = 1;\\n  optional string serialNumber = 2;\\n}\",\n" +
+            "         \"deviceRpcRequestProtoSchema\":\"syntax =\\\"proto3\\\";\\npackage rpc;\\n\\nmessage RpcRequestMsg {\\n  optional string method = 1;\\n  optional int32 requestId = 2;\\n  optional string params = 3;\\n}\",\n" +
+            "         \"deviceRpcResponseProtoSchema\":\"syntax =\\\"proto3\\\";\\npackage rpc;\\n\\nmessage RpcResponseMsg {\\n  optional string payload = 1;\\n}\"\n" +
+            "      }\n" +
+            "   }\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+    protected static final String DEVICE_PROFILE_DATA_DEFINITION = NEW_LINE + "# Device profile data definition" + NEW_LINE +
+            "Device profile data object contains alarm rules configuration, device provision strategy and transport type configuration for device connectivity. Let's review some examples. " +
+            "First one is the default device profile data configuration and second one - the custom one. " +
+            NEW_LINE + DEFAULT_DEVICE_PROFILE_DATA_EXAMPLE + NEW_LINE + CUSTOM_DEVICE_PROFILE_DATA_EXAMPLE +
+            NEW_LINE + "Let's review some specific objects examples related to the device profile configuration:";
+
+    protected static final String ALARM_SCHEDULE = NEW_LINE + "# Alarm Schedule" + NEW_LINE +
+            "Alarm Schedule JSON object represents the time interval during which the alarm rule is active. Note, " +
+            NEW_LINE + DEVICE_PROFILE_ALARM_SCHEDULE_ALWAYS_EXAMPLE + NEW_LINE + "means alarm rule is active all the time. " +
+            "**'daysOfWeek'** field represents Monday as 1, Tuesday as 2 and so on. **'startsOn'** and **'endsOn'** fields represent hours in millis (e.g. 64800000 = 18:00 or 6pm). " +
+            "**'enabled'** flag specifies if item in a custom rule is active for specific day of the week:" + NEW_LINE +
+            "## Specific Time Schedule" + NEW_LINE +
+            DEVICE_PROFILE_ALARM_SCHEDULE_SPECIFIC_TIME_EXAMPLE + NEW_LINE +
+            "## Custom Schedule" +
+            NEW_LINE + DEVICE_PROFILE_ALARM_SCHEDULE_CUSTOM_EXAMPLE + NEW_LINE;
+
+    protected static final String ALARM_CONDITION_TYPE = "# Alarm condition type (**'spec'**)" + NEW_LINE +
+            "Alarm condition type can be either simple, duration, or repeating. For example, 5 times in a row or during 5 minutes." + NEW_LINE +
+            "Note, **'userValue'** field is not used and reserved for future usage, **'dynamicValue'** is used for condition appliance by using the value of the **'sourceAttribute'** " +
+            "or else **'defaultValue'** is used (if **'sourceAttribute'** is absent).\n" +
+            "\n**'sourceType'** of the **'sourceAttribute'** can be: \n" +
+            " * 'CURRENT_DEVICE';\n" +
+            " * 'CURRENT_CUSTOMER';\n" +
+            " * 'CURRENT_TENANT'." + NEW_LINE +
+            "**'sourceAttribute'** can be inherited from the owner if **'inherit'** is set to true (for CURRENT_DEVICE and CURRENT_CUSTOMER)." + NEW_LINE +
+            "## Repeating alarm condition" + NEW_LINE +
+            DEVICE_PROFILE_ALARM_CONDITION_REPEATING_EXAMPLE + NEW_LINE +
+            "## Duration alarm condition" + NEW_LINE +
+            DEVICE_PROFILE_ALARM_CONDITION_DURATION_EXAMPLE + NEW_LINE +
+            "**'unit'** can be: \n" +
+            " * 'SECONDS';\n" +
+            " * 'MINUTES';\n" +
+            " * 'HOURS';\n" +
+            " * 'DAYS'." + NEW_LINE;
+
+    protected static final String PROVISION_CONFIGURATION = "# Provision Configuration" + NEW_LINE +
+            "There are 3 types of device provision configuration for the device profile: \n" +
+            " * 'DISABLED';\n" +
+            " * 'ALLOW_CREATE_NEW_DEVICES';\n" +
+            " * 'CHECK_PRE_PROVISIONED_DEVICES'." + NEW_LINE +
+            "Please refer to the [docs](https://thingsboard.io/docs/user-guide/device-provisioning/) for more details." + NEW_LINE;
+
+    protected static final String DEVICE_PROFILE_DATA = DEVICE_PROFILE_DATA_DEFINITION + ALARM_SCHEDULE + ALARM_CONDITION_TYPE +
+            KEY_FILTERS_DESCRIPTION + PROVISION_CONFIGURATION + TRANSPORT_CONFIGURATION;
+
+    protected static final String DEVICE_PROFILE_ID = "deviceProfileId";
+
+    private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
+
+    protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
+    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
+
+    protected static final String MODEL_DESCRIPTION = "See the 'Model' tab for more details.";
+    protected static final String ENTITY_VIEW_DESCRIPTION = "Entity Views limit the degree of exposure of the Device or Asset telemetry and attributes to the Customers. " +
+            "Every Entity View references exactly one entity (device or asset) and defines telemetry and attribute keys that will be visible to the assigned Customer. " +
+            "As a Tenant Administrator you are able to create multiple EVs per Device or Asset and assign them to different Customers. ";
+    protected static final String ENTITY_VIEW_INFO_DESCRIPTION = "Entity Views Info extends the Entity View with customer title and 'is public' flag. " + ENTITY_VIEW_DESCRIPTION;
+
+    protected static final String ATTRIBUTES_SCOPE_DESCRIPTION = "A string value representing the attributes scope. For example, 'SERVER_SCOPE'.";
+    protected static final String ATTRIBUTES_KEYS_DESCRIPTION = "A string value representing the comma-separated list of attributes keys. For example, 'active,inactivityAlarmTime'.";
+    protected static final String ATTRIBUTES_SCOPE_ALLOWED_VALUES = "SERVER_SCOPE, CLIENT_SCOPE, SHARED_SCOPE";
+    protected static final String ATTRIBUTES_JSON_REQUEST_DESCRIPTION = "A string value representing the json object. For example, '{\"key\":\"value\"}'. See API call description for more details.";
+
+    protected static final String TELEMETRY_KEYS_BASE_DESCRIPTION = "A string value representing the comma-separated list of telemetry keys.";
+    protected static final String TELEMETRY_KEYS_DESCRIPTION = TELEMETRY_KEYS_BASE_DESCRIPTION + " If keys are not selected, the result will return all latest timeseries. For example, 'temperature,humidity'.";
+    protected static final String TELEMETRY_SCOPE_DESCRIPTION = "Value is deprecated, reserved for backward compatibility and not used in the API call implementation. Specify any scope for compatibility";
+    protected static final String TELEMETRY_JSON_REQUEST_DESCRIPTION = "A JSON with the telemetry values. See API call description for more details.";
+
+
+    protected static final String STRICT_DATA_TYPES_DESCRIPTION = "Enables/disables conversion of telemetry values to strings. Conversion is enabled by default. Set parameter to 'true' in order to disable the conversion.";
+    protected static final String INVALID_ENTITY_ID_OR_ENTITY_TYPE_DESCRIPTION = "Referencing a non-existing entity Id or invalid entity type will cause an error. ";
+
+    protected static final String SAVE_ATTIRIBUTES_STATUS_OK = "Attribute from the request was created or updated. ";
+    protected static final String INVALID_STRUCTURE_OF_THE_REQUEST = "Invalid structure of the request";
+    protected static final String SAVE_ATTIRIBUTES_STATUS_BAD_REQUEST = INVALID_STRUCTURE_OF_THE_REQUEST + " or invalid attributes scope provided.";
+    protected static final String SAVE_ENTITY_ATTRIBUTES_STATUS_OK = "Platform creates an audit log event about entity attributes updates with action type 'ATTRIBUTES_UPDATED', " +
+            "and also sends event msg to the rule engine with msg type 'ATTRIBUTES_UPDATED'.";
+    protected static final String SAVE_ENTITY_ATTRIBUTES_STATUS_UNAUTHORIZED = "User is not authorized to save entity attributes for selected entity. Most likely, User belongs to different Customer or Tenant.";
+    protected static final String SAVE_ENTITY_ATTRIBUTES_STATUS_INTERNAL_SERVER_ERROR = "The exception was thrown during processing the request. " +
+            "Platform creates an audit log event about entity attributes updates with action type 'ATTRIBUTES_UPDATED' that includes an error stacktrace.";
+    protected static final String SAVE_ENTITY_TIMESERIES_STATUS_OK = "Timeseries from the request was created or updated. " +
+            "Platform creates an audit log event about entity timeseries updates with action type 'TIMESERIES_UPDATED'.";
+    protected static final String SAVE_ENTITY_TIMESERIES_STATUS_UNAUTHORIZED = "User is not authorized to save entity timeseries for selected entity. Most likely, User belongs to different Customer or Tenant.";
+    protected static final String SAVE_ENTITY_TIMESERIES_STATUS_INTERNAL_SERVER_ERROR = "The exception was thrown during processing the request. " +
+            "Platform creates an audit log event about entity timeseries updates with action type 'TIMESERIES_UPDATED' that includes an error stacktrace.";
+
+    protected static final String ENTITY_ATTRIBUTE_SCOPES = " List of possible attribute scopes depends on the entity type: " +
+            "\n\n * SERVER_SCOPE - supported for all entity types;" +
+            "\n * CLIENT_SCOPE - supported for devices;" +
+            "\n * SHARED_SCOPE - supported for devices. " + "\n\n";
+
+    protected static final String ATTRIBUTE_DATA_EXAMPLE = "[\n" +
+            "  {\"key\": \"stringAttributeKey\", \"value\": \"value\", \"lastUpdateTs\": 1609459200000},\n" +
+            "  {\"key\": \"booleanAttributeKey\", \"value\": false, \"lastUpdateTs\": 1609459200001},\n" +
+            "  {\"key\": \"doubleAttributeKey\", \"value\": 42.2, \"lastUpdateTs\": 1609459200002},\n" +
+            "  {\"key\": \"longKeyExample\", \"value\": 73, \"lastUpdateTs\": 1609459200003},\n" +
+            "  {\"key\": \"jsonKeyExample\",\n" +
+            "    \"value\": {\n" +
+            "      \"someNumber\": 42,\n" +
+            "      \"someArray\": [1,2,3],\n" +
+            "      \"someNestedObject\": {\"key\": \"value\"}\n" +
+            "    },\n" +
+            "    \"lastUpdateTs\": 1609459200004\n" +
+            "  }\n" +
+            "]";
+
+    protected static final String LATEST_TS_STRICT_DATA_EXAMPLE = "{\n" +
+            "  \"stringTsKey\": [{ \"value\": \"value\", \"ts\": 1609459200000}],\n" +
+            "  \"booleanTsKey\": [{ \"value\": false, \"ts\": 1609459200000}],\n" +
+            "  \"doubleTsKey\": [{ \"value\": 42.2, \"ts\": 1609459200000}],\n" +
+            "  \"longTsKey\": [{ \"value\": 73, \"ts\": 1609459200000}],\n" +
+            "  \"jsonTsKey\": [{ \n" +
+            "    \"value\": {\n" +
+            "      \"someNumber\": 42,\n" +
+            "      \"someArray\": [1,2,3],\n" +
+            "      \"someNestedObject\": {\"key\": \"value\"}\n" +
+            "    }, \n" +
+            "    \"ts\": 1609459200000}]\n" +
+            "}\n";
+
+    protected static final String LATEST_TS_NON_STRICT_DATA_EXAMPLE = "{\n" +
+            "  \"stringTsKey\": [{ \"value\": \"value\", \"ts\": 1609459200000}],\n" +
+            "  \"booleanTsKey\": [{ \"value\": \"false\", \"ts\": 1609459200000}],\n" +
+            "  \"doubleTsKey\": [{ \"value\": \"42.2\", \"ts\": 1609459200000}],\n" +
+            "  \"longTsKey\": [{ \"value\": \"73\", \"ts\": 1609459200000}],\n" +
+            "  \"jsonTsKey\": [{ \"value\": \"{\\\"someNumber\\\": 42,\\\"someArray\\\": [1,2,3],\\\"someNestedObject\\\": {\\\"key\\\": \\\"value\\\"}}\", \"ts\": 1609459200000}]\n" +
+            "}\n";
+
+    protected static final String TS_STRICT_DATA_EXAMPLE = "{\n" +
+            "  \"temperature\": [\n" +
+            "    {\n" +
+            "      \"value\": 36.7,\n" +
+            "      \"ts\": 1609459200000\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"value\": 36.6,\n" +
+            "      \"ts\": 1609459201000\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
+
+    protected static final String SAVE_ATTRIBUTES_REQUEST_PAYLOAD = "The request payload is a JSON object with key-value format of attributes to create or update. " +
+            "For example:\n\n"
+            + MARKDOWN_CODE_BLOCK_START
+            + "{\n" +
+            " \"stringKey\":\"value1\", \n" +
+            " \"booleanKey\":true, \n" +
+            " \"doubleKey\":42.0, \n" +
+            " \"longKey\":73, \n" +
+            " \"jsonKey\": {\n" +
+            "    \"someNumber\": 42,\n" +
+            "    \"someArray\": [1,2,3],\n" +
+            "    \"someNestedObject\": {\"key\": \"value\"}\n" +
+            " }\n" +
+            "}"
+            + MARKDOWN_CODE_BLOCK_END + "\n";
+
+    protected static final String SAVE_TIMESERIES_REQUEST_PAYLOAD = "The request payload is a JSON document with three possible formats:\n\n" +
+            "Simple format without timestamp. In such a case, current server time will be used: \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\"temperature\": 26}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n Single JSON object with timestamp: \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\"ts\":1634712287000,\"values\":{\"temperature\":26, \"humidity\":87}}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n JSON array with timestamps: \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "[{\"ts\":1634712287000,\"values\":{\"temperature\":26, \"humidity\":87}}, {\"ts\":1634712588000,\"values\":{\"temperature\":25, \"humidity\":88}}]" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String RBAC_GROUP_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for specified group.";
+    protected static final String RBAC_GROUP_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for specified group.";
+    protected static final String RBAC_GROUP_DELETE_CHECK = " Security check is performed to verify that the user has 'DELETE' permission for specified group.";
+    protected static final String RBAC_GROUP_ADD_CHECK = " Security check is performed to verify that the user has 'ADD_TO_GROUP' permission for specified group.";
+    protected static final String RBAC_GROUP_REMOVE_CHECK = " Security check is performed to verify that the user has 'REMOVE_FROM_GROUP' permission for specified group.";
+
+    protected static final String RBAC_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for the entity (entities).";
+    protected static final String RBAC_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for the entity (entities).";
+    protected static final String RBAC_DELETE_CHECK = " Security check is performed to verify that the user has 'DELETE' permission for the entity (entities).";
+
+    protected static final String WL_READ_CHECK = "\n\nSecurity check is performed to verify that the user has 'READ' permission for the white labeling resource.";
+    protected static final String WL_WRITE_CHECK = "\n\nSecurity check is performed to verify that the user has 'WRITE' permission for the white labeling resource.";
+
+    private static final String CONVERTER_UPLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\",\n" +
+            "   \"encoder\":null\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_DOWNLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"decoder\":null,\n" +
+            "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempFreq = msg.temperatureUploadFrequency;\\ndata.humFreq = msg.humidityUploadFrequency;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEXT_UPLINK_CONFIGURATION = "```text\n" +
+            "// Decode an uplink message from a buffer\n" +
+            "// payload - array of bytes\n" +
+            "// metadata - key/value object\n" +
+            "\n" +
+            "/** Decoder **/\n" +
+            "\n" +
+            "// decode payload to string\n" +
+            "var payloadStr = decodeToString(payload);\n" +
+            "\n" +
+            "// decode payload to JSON\n" +
+            "// var data = decodeToJson(payload);\n" +
+            "\n" +
+            "var deviceName = 'Device A';\n" +
+            "var deviceType = 'thermostat';\n" +
+            "var customerName = 'customer';\n" +
+            "var groupName = 'thermostat devices';\n" +
+            "// use assetName and assetType instead of deviceName and deviceType\n" +
+            "// to automatically create assets instead of devices.\n" +
+            "// var assetName = 'Asset A';\n" +
+            "// var assetType = 'building';\n" +
+            "\n" +
+            "// Result object with device/asset attributes/telemetry data\n" +
+            "var result = {\n" +
+            "// Use deviceName and deviceType or assetName and assetType, but not both.\n" +
+            "   deviceName: deviceName,\n" +
+            "   deviceType: deviceType,\n" +
+            "// assetName: assetName,\n" +
+            "// assetType: assetType,\n" +
+            "   customerName: customerName,\n" +
+            "   groupName: groupName,\n" +
+            "   attributes: {\n" +
+            "       model: 'Model A',\n" +
+            "       serialNumber: 'SN111',\n" +
+            "       integrationName: metadata['integrationName']\n" +
+            "   },\n" +
+            "   telemetry: {\n" +
+            "       temperature: 42,\n" +
+            "       humidity: 80,\n" +
+            "       rawData: payloadStr\n" +
+            "   }\n" +
+            "};\n" +
+            "\n" +
+            "/** Helper functions **/\n" +
+            "\n" +
+            "function decodeToString(payload) {\n" +
+            "   return String.fromCharCode.apply(String, payload);\n" +
+            "}\n" +
+            "\n" +
+            "function decodeToJson(payload) {\n" +
+            "   // covert payload to string.\n" +
+            "   var str = decodeToString(payload);\n" +
+            "\n" +
+            "   // parse string to JSON\n" +
+            "   var data = JSON.parse(str);\n" +
+            "   return data;\n" +
+            "}\n" +
+            "\n" +
+            "return result;" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEXT_DOWNLINK_CONFIGURATION = "```text\n" +
+            "// Encode downlink data from incoming Rule Engine message\n" +
+            "\n" +
+            "// msg - JSON message payload downlink message json\n" +
+            "// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\n" +
+            "// metadata - list of key-value pairs with additional data about the message\n" +
+            "// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\n" +
+            "\n" +
+            "/** Encoder **/\n" +
+            "\n" +
+            "var data = {};\n" +
+            "\n" +
+            "// Process data from incoming message and metadata\n" +
+            "\n" +
+            "data.tempFreq = msg.temperatureUploadFrequency;\n" +
+            "data.humFreq = msg.humidityUploadFrequency;\n" +
+            "\n" +
+            "data.devSerialNumber = metadata['ss_serialNumber'];\n" +
+            "\n" +
+            "// Result object with encoded downlink payload\n" +
+            "var result = {\n" +
+            "\n" +
+            "    // downlink data content type: JSON, TEXT or BINARY (base64 format)\n" +
+            "    contentType: \"JSON\",\n" +
+            "\n" +
+            "    // downlink data\n" +
+            "    data: JSON.stringify(data),\n" +
+            "\n" +
+            "    // Optional metadata object presented in key/value format\n" +
+            "    metadata: {\n" +
+            "            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\n" +
+            "    }\n" +
+            "\n" +
+            "};\n" +
+            "\n" +
+            "return result;" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_UPLINK_DEBUG_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"inContentType\":\"JSON\",\n" +
+            "   \"inContent\":\"{\\\"temp\\\":40}\",\n" +
+            "   \"inMetadata\":\"{\\\"Header:sec-ch-ua\\\":\\\"\\\\\\\"Chromium\\\\\\\";v=\\\\\\\"94\\\\\\\", \\\\\\\"Google Chrome\\\\\\\";v=\\\\\\\"94\\\\\\\", \\\\\\\";Not A Brand\\\\\\\";v=\\\\\\\"99\\\\\\\"\\\",\\\"Header:user-agent\\\":\\\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36\\\",\\\"integrationName\\\":\\\"Integration\\\",\\\"Header:cookie\\\":\\\"GUID=zYSs8hymSwZKv8kHALKY; redirect_to=%2F; JSESSIONID=B0A7C8E481409CE7924E738DB04F62F9\\\",\\\"Header:sec-ch-ua-platform\\\":\\\"\\\\\\\"Linux\\\\\\\"\\\",\\\"Header:accept\\\":\\\"*/*\\\",\\\"Header:origin\\\":\\\"http://localhost:8080\\\",\\\"Header:sec-fetch-site\\\":\\\"same-origin\\\",\\\"Header:connection\\\":\\\"keep-alive\\\",\\\"Header:accept-encoding\\\":\\\"gzip, deflate, br\\\",\\\"Header:content-type\\\":\\\"application/json\\\",\\\"Header:content-length\\\":\\\"16\\\",\\\"Header:sec-fetch-mode\\\":\\\"cors\\\",\\\"Header:sec-ch-ua-mobile\\\":\\\"?0\\\",\\\"Header:sec-fetch-dest\\\":\\\"empty\\\",\\\"Header:host\\\":\\\"localhost:8080\\\",\\\"Header:referer\\\":\\\"http://localhost:8080/swagger-ui.html\\\",\\\"Header:accept-language\\\":\\\"en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,uk;q=0.6,und;q=0.5\\\"}\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_DOWNLINK_DEBUG_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"inContentType\":\"JSON\",\n" +
+            "   \"inContent\":\"{\\\"temp\\\":42,\\\"humidity\\\":77}\",\n" +
+            "   \"inMsgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"inMetadata\":\"{\\\"data\\\":\\\"40\\\"}\",\n" +
+            "   \"inIntegrationMetadata\":\"{\\\"integrationName\\\":\\\"Integration\\\"}\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_UPLINK_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "   },\n" +
+            "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_UPLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"output\":\"{\\\"deviceName\\\":\\\"Device A\\\",\\\"deviceType\\\":\\\"thermostat\\\",\\\"customerName\\\":\\\"customer\\\",\\\"groupName\\\":\\\"thermostat devices\\\",\\\"attributes\\\":{\\\"model\\\":\\\"Model A\\\",\\\"serialNumber\\\":\\\"SN111\\\"},\\\"telemetry\\\":{\\\"temperature\\\":42,\\\"humidity\\\":80,\\\"rawData\\\":\\\"{\\\\n    \\\\\\\"data\\\\\\\": \\\\\\\"data\\\\\\\"\\\\n}\\\"}}\",\n" +
+            "   \"error\":\"\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String CONVERTER_CONFIGURATION_DESCRIPTION = "# Converter Configuration" + NEW_LINE +
+            "Converter configuration (**'configuration'** field) is the JSON object that should contain one of two possible fields: **'decoder'** or **'encoder'**. " +
+            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'. " +
+            "See the examples of each one below. " + NEW_LINE +
+            "## Uplink Converter Configuration" + NEW_LINE +
+            CONVERTER_UPLINK_CONFIGURATION + NEW_LINE +
+            "Decoder field in the more readable form:" + NEW_LINE +
+            CONVERTER_TEXT_UPLINK_CONFIGURATION + NEW_LINE +
+            "## Downlink Converter Configuration" + NEW_LINE +
+            CONVERTER_DOWNLINK_CONFIGURATION + NEW_LINE +
+            "Encoder field in the more readable form:" + NEW_LINE +
+            CONVERTER_TEXT_DOWNLINK_CONFIGURATION + NEW_LINE;
+
+    static final String CONVERTER_DEBUG_INPUT_DEFINITION = "## Uplink Converter Debug Input Event Example" + NEW_LINE +
+            CONVERTER_UPLINK_DEBUG_INPUT + NEW_LINE +
+            " * 'inContentType' - content type of the message received by the integration; \n" +
+            " * 'inContent' - message data received; \n" +
+            " * 'inMetadata' - integration metadata (e.g. headers)." + NEW_LINE +
+            "## Downlink Converter Debug Input Event Example" + NEW_LINE +
+            CONVERTER_DOWNLINK_DEBUG_INPUT + NEW_LINE +
+            " * 'inContentType' - content type of the message received by the integration; \n" +
+            " * 'inContent' - content of the message pushed from the rule engine; \n" +
+            " * 'inMsgType' - type of the message pushed from the rule engine; \n" +
+            " * 'inMetadata' - content of the message metadata pushed from the rule engine; \n" +
+            " * 'inIntegrationMetadata' - integration metadata. \n";
+
+    static final String TEST_UPLINK_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            CONVERTER_TEST_UPLINK_INPUT + NEW_LINE +
+            " * 'metadata' - integration metadata; \n" +
+            " * 'payload' - base64 string representation of the data; \n" +
+            " * 'decoder' - string representation of the decoder configuration." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            CONVERTER_TEST_UPLINK_OUTPUT + NEW_LINE +
+            " * 'output' - string representation of the output message; \n" +
+            " * 'error' - string representation of the error message. \n";
+
+    private static final String CONVERTER_TEST_DOWNLINK_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "      \"data\":\"40\"\n" +
+            "   },\n" +
+            "   \"msg\":\"{\\n    \\\"temp\\\": 42,\\n    \\\"humidity\\\": 77\\n}\",\n" +
+            "   \"msgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"integrationMetadata\":{\n" +
+            "      \"integrationName\":\"Integration\"\n" +
+            "   },\n" +
+            "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempValue = msg.temp;\\ndata.humValue = msg.humidity;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_DOWNLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"contentType\":\"JSON\",\n" +
+            "   \"data\":\"{\\\"tempValue\\\":42,\\\"humValue\\\":77}\",\n" +
+            "   \"metadata\":{\n" +
+            "      \"topic\":\"sensor/Temp Sensor/upload\"\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String TEST_DOWNLINK_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            CONVERTER_TEST_DOWNLINK_INPUT + NEW_LINE +
+            " * 'metadata' - message metadata pushed from the rule engine; \n" +
+            " * 'msg' - message data pushed from the rule engine; \n" +
+            " * 'msgType' - type of the message pushed from the rule engine; \n" +
+            " * 'integrationMetadata' - integration metadata object; \n" +
+            " * 'encoder' - string representation of the encoder configuration." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            CONVERTER_TEST_DOWNLINK_OUTPUT + NEW_LINE +
+            " * 'contentType' - downlink data content type; \n" +
+            " * 'data' - downlink data; \n" +
+            " * 'metadata' - optional metadata object. \n";
+
+    private static final String INTEGRATION_CONFIGURATION_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"clientConfiguration\":{\n" +
+            "      \"host\":\"broker.hivemq.com\",\n" +
+            "      \"port\":1883,\n" +
+            "      \"cleanSession\":false,\n" +
+            "      \"ssl\":false,\n" +
+            "      \"connectTimeoutSec\":10,\n" +
+            "      \"clientId\":\"\",\n" +
+            "      \"maxBytesInMessage\":32368,\n" +
+            "      \"credentials\":{\n" +
+            "         \"type\":\"anonymous\"\n" +
+            "      }\n" +
+            "   },\n" +
+            "   \"downlinkTopicPattern\":\"${topic}\",\n" +
+            "   \"topicFilters\":[\n" +
+            "      {\n" +
+            "         \"filter\":\"tb/mqtt-integration-tutorial/sensors/+/temperature\",\n" +
+            "         \"qos\":0\n" +
+            "      }\n" +
+            "   ],\n" +
+            "   \"metadata\":{\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String INTEGRATION_CONFIGURATION_DEFINITION = NEW_LINE +
+            "# Integration Configuration" + NEW_LINE +
+            "Integration configuration (**'configuration'** field) is the JSON object representing the special configuration per integration type with " +
+            "the connectivity fields and other important parameters dependent on the specific integration type. Let's review the configuration object for the MQTT Integration type below. " +
+            NEW_LINE + INTEGRATION_CONFIGURATION_EXAMPLE + NEW_LINE;
+}

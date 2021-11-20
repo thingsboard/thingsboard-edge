@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.device;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
@@ -44,7 +45,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntity, UUID> {
+public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
 
     String COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
             "WHERE d.device_profile_id = :deviceProfileId " +
@@ -91,7 +92,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<DeviceEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                    @Param("customerId") UUID customerId,
                                                    @Param("searchText") String searchText,
@@ -99,7 +100,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.deviceProfileId = :profileId " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<DeviceEntity> findByTenantIdAndProfileId(@Param("tenantId") UUID tenantId,
                                                   @Param("profileId") UUID profileId,
                                                   @Param("searchText") String searchText,
@@ -110,14 +111,14 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
                                       Pageable pageable);
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                       @Param("textSearch") String textSearch,
                                       Pageable pageable);
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                              @Param("type") String type,
                                              @Param("textSearch") String textSearch,
@@ -126,7 +127,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
             "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                           @Param("customerId") UUID customerId,
                                                           @Param("type") String type,
@@ -142,7 +143,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                            @Param("textSearch") String textSearch,
                                            Pageable pageable);
@@ -153,7 +154,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                             @Param("textSearch") String textSearch,
                                             Pageable pageable);
@@ -165,7 +166,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<UUID> groupIds,
                                                    @Param("type") String type,
                                                    @Param("textSearch") String textSearch,
@@ -207,7 +208,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.deviceProfileId = :deviceProfileId " +
             "AND d.firmwareId = null " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
                                                                                 @Param("deviceProfileId") UUID deviceProfileId,
                                                                                 @Param("textSearch") String textSearch,
@@ -221,7 +222,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.deviceProfileId = :deviceProfileId " +
             "AND d.softwareId = null " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
                                                                                 @Param("deviceProfileId") UUID deviceProfileId,
                                                                                 @Param("textSearch") String textSearch,

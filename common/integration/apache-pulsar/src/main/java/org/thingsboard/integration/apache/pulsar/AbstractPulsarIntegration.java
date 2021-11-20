@@ -39,10 +39,13 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.UplinkContentType;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
 
 @Slf4j
 public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> extends AbstractIntegration<T> {
@@ -98,7 +101,7 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context, "Uplink", UplinkContentType.BINARY, toDebugMessage(UplinkContentType.BINARY, msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

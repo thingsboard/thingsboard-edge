@@ -77,6 +77,7 @@ export interface SchedulerEventsWidgetSettings {
   displayPagination: boolean;
   defaultPageSize: number;
   defaultSortOrder: string;
+  noDataDisplayMessage: string;
   enabledViews: 'both' | 'list' | 'calendar';
   forceDefaultEventType: string;
   customEventTypes: {

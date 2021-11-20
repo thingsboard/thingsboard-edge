@@ -81,9 +81,6 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         JsonNode json = configuration.getConfiguration();
         if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
             applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
@@ -155,10 +152,12 @@ public class ChirpStackIntegration extends BasicHttpIntegration<JsonHttpIntegrat
                     }
                     String payload = new String(downlink.getData(), StandardCharsets.UTF_8);
                     ObjectNode body = mapper.createObjectNode();
-                    body.with(DEVICE_DOWNLINK_QUEUE).put(CONFIRMED, metadata.containsKey(CONFIRMED));
+                    if (metadata.containsKey(CONFIRMED)) {
+                        body.with(DEVICE_DOWNLINK_QUEUE).put(CONFIRMED, metadata.get(CONFIRMED));
+                    }
                     body.with(DEVICE_DOWNLINK_QUEUE).put(DATA, payload);
-                    body.with(DEVICE_DOWNLINK_QUEUE).put(F_PORT, metadata.containsKey(F_PORT));
-                    httpClient.postForEntity(devicesUrl + "/" + metadata.containsKey(DEV_EUI) + "/queue", createRequest(body), String.class);
+                    body.with(DEVICE_DOWNLINK_QUEUE).put(F_PORT, metadata.get(F_PORT));
+                    httpClient.postForEntity(devicesUrl + "/" + metadata.get(DEV_EUI) + "/queue", createRequest(body), String.class);
                     reportDownlinkOk(context, downlink);
                 }
             }

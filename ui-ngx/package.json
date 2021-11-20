@@ -1,6 +1,6 @@
 {
   "name": "thingsboard",
-  "version": "3.3.0-EDGE",
+  "version": "3.3.2EDGE-SNAPHSOT",
   "scripts": {
     "ng": "ng",
     "prestart": "node prepare-theme.js",
@@ -11,7 +11,8 @@
     "build:prod": "ng build --prod --vendor-chunk",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "prepare": "patch-package"
   },
   "private": true,
   "dependencies": {
@@ -53,7 +54,7 @@
     "angular2-hotkeys": "^2.2.0",
     "canvas-gauges": "^2.1.7",
     "compass-sass-mixins": "^0.12.7",
-    "core-js": "^3.12.1",
+    "core-js": "^3.18.3",
     "date-fns": "^2.21.3",
     "exceljs": "~4.1.1",
     "flot": "git://github.com/thingsboard/flot.git#0.9-work",
@@ -85,6 +86,7 @@
     "ngx-drag-drop": "^2.0.0",
     "ngx-flowchart": "git://github.com/thingsboard/ngx-flowchart.git#master",
     "ngx-hm-carousel": "^2.0.0-rc.1",
+    "ngx-markdown": "^11.1.3",
     "ngx-sharebuttons": "^8.0.5",
     "ngx-translate-messageformat-compiler": "^4.9.0",
     "objectpath": "^2.0.0",
@@ -126,6 +128,7 @@
     "@types/js-beautify": "^1.13.1",
     "@types/jstree": "^3.3.40",
     "@types/leaflet": "1.5.17",
+    "@types/leaflet-editable": "^1.2.1",
     "@types/leaflet-polylinedecorator": "^1.6.0",
     "@types/leaflet.markercluster": "^1.4.4",
     "@types/lodash": "^4.14.170",
@@ -148,10 +151,15 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
     "ngrx-store-freeze": "^0.2.4",
+    "patch-package": "^6.4.7",
+    "postinstall-prepare": "^2.0.0",
     "protractor": "~7.0.0",
     "ts-node": "^9.0.0",
     "tslint": "~6.1.3",
     "typescript": "~4.0.3",
     "webpack": "^4.46.0"
+  },
+  "resolutions": {
+    "lodash": "~4.17.21"
   }
 }

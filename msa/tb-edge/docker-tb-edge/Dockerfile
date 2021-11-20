@@ -31,6 +31,8 @@
 
 FROM thingsboard/openjdk11
 
+RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-11-openjdk/security/java.security
+
 COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \

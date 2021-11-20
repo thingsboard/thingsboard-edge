@@ -42,6 +42,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -55,6 +56,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.ConstraintValidator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -216,6 +218,7 @@ public class BaseRelationService implements RelationService {
         }
 
         relationDao.deleteOutboundRelations(tenantId, entityId);
+
     }
 
     @Override
@@ -277,10 +280,13 @@ public class BaseRelationService implements RelationService {
     boolean delete(TenantId tenantId, Cache cache, EntityRelation relation, boolean deleteFromDb) {
         cacheEviction(relation, cache);
         if (deleteFromDb) {
-            return relationDao.deleteRelation(tenantId, relation);
-        } else {
-            return false;
+            try {
+                return relationDao.deleteRelation(tenantId, relation);
+            } catch (ConcurrencyFailureException e) {
+                log.debug("Concurrency exception while deleting relations [{}]", relation, e);
+            }
         }
+        return false;
     }
 
     private void cacheEviction(EntityRelation relation, Cache cache) {
@@ -569,6 +575,7 @@ public class BaseRelationService implements RelationService {
         if (relation == null) {
             throw new DataValidationException("Relation type should be specified!");
         }
+        ConstraintValidator.validateFields(relation);
         validate(relation.getFrom(), relation.getTo(), relation.getType(), relation.getTypeGroup());
     }
 

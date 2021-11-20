@@ -49,10 +49,6 @@ public class BasicPulsarIntegration extends AbstractPulsarIntegration<BasicPulsa
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
-
         stopped = false;
 
         loopExecutor.submit(() -> {
@@ -73,7 +69,7 @@ public class BasicPulsarIntegration extends AbstractPulsarIntegration<BasicPulsa
     @Override
     protected void doProcess(IntegrationContext context, BasicPulsarIntegrationMsg msg) throws Exception {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getMsg(), new UplinkMetaData(getUplinkContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getMsg(), new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);

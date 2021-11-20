@@ -51,6 +51,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -65,7 +66,7 @@ import java.util.Map;
 
 @Slf4j
 @SuppressWarnings("deprecation")
-public class LoriotIntegration extends BasicHttpIntegration {
+public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationMsg> {
     private static final String EUI = "EUI";
     private static final String PORT = "port";
     private static final String DATA = "data";

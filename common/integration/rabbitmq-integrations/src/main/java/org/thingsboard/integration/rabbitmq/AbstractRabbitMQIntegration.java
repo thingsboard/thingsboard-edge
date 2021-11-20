@@ -112,7 +112,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -167,7 +167,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                         log.error("Channel was closed with the error: {}", exception.getMessage());
                         if (configuration.isDebugMode()) {
                             try {
-                                persistDebug(context, "Uplink", getUplinkContentType(), "", "ERROR", exception);
+                                persistDebug(context, "Uplink", getDefaultUplinkContentType(), "", "ERROR", exception);
                             } catch (Exception e) {
                                 log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
                             }

@@ -32,7 +32,7 @@ package org.thingsboard.server.service.integration.rpc;
 
 import com.google.common.io.Resources;
 import io.grpc.Server;
-import io.grpc.netty.NettyServerBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

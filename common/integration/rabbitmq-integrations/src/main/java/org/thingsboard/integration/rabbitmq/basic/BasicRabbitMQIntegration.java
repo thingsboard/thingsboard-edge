@@ -49,9 +49,6 @@ public class BasicRabbitMQIntegration extends AbstractRabbitMQIntegration<BasicR
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
 
         initConsumer();
 
@@ -80,7 +77,7 @@ public class BasicRabbitMQIntegration extends AbstractRabbitMQIntegration<BasicR
     protected void doProcess(IntegrationContext context, BasicRabbitMQIntegrationMsg msg) throws Exception {
         byte[] bytes = msg.getMsg().getBytes();
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, bytes, new UplinkMetaData(getUplinkContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, bytes, new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);

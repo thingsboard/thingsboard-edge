@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +51,8 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -56,6 +61,11 @@ public class CustomMenuController extends BaseController {
     @Autowired
     private CustomMenuService customMenuService;
 
+    @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",
+            notes = "Fetch the Custom Menu object for the end user. The custom menu is configured in the white labeling parameters. " +
+                    "If custom menu configuration on the tenant level is present, it overrides the menu configuration of the system level. " +
+                    "Similar, if the custom menu configuration on the customer level is present, it overrides the menu configuration of the tenant level."
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -79,6 +89,15 @@ public class CustomMenuController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Custom Menu configuration (getCustomMenu)",
+            notes = "Fetch the Custom Menu object that corresponds to the authority of the user. " +
+                    "The API call is designed to load the custom menu items for edition. " +
+                    "So, the result is NOT merged with the parent level configuration. " +
+                    "Let's assume there is a custom menu configured on a system level. " +
+                    "And there is no custom menu items configured on a tenant level. " +
+                    "In such a case, the API call will return empty object for the tenant administrator. " +
+                    ControllerConstants.WL_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/currentCustomMenu", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -100,10 +119,15 @@ public class CustomMenuController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Custom Menu (saveCustomMenu)",
+            notes = "Creates or Updates the Custom Menu configuration." +
+                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomMenu saveCustomMenu(@RequestBody(required = false) CustomMenu customMenu) throws ThingsboardException {
+    public CustomMenu saveCustomMenu(
+            @ApiParam(value = "A JSON value representing the custom menu")
+            @RequestBody(required = false) CustomMenu customMenu) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);

@@ -34,6 +34,7 @@ import { Resolve } from '@angular/router';
 import {
   CellActionDescriptorType,
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -53,6 +54,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { FileSizePipe } from '@shared/pipe/file-size.pipe';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<OtaPackage, PageLink, OtaPackageInfo>> {
@@ -64,6 +66,7 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
               private datePipe: DatePipe,
               private store: Store<AppState>,
               private otaPackageService: OtaPackageService,
+              private userPermissionsService: UserPermissionsService,
               private fileSize: FileSizePipe) {
     this.config.entityType = EntityType.OTA_PACKAGE;
     this.config.entityComponent = OtaUpdateComponent;
@@ -139,6 +142,7 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
 
   resolve(): EntityTableConfig<OtaPackage, PageLink, OtaPackageInfo> {
     this.config.tableTitle = this.translate.instant('ota-update.packages-repository');
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

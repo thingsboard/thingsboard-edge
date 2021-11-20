@@ -36,8 +36,7 @@ export interface MapWidgetInterface {
     map?: any;
     resize();
     update();
-    onInit();
-    onDestroy();
+    destroy();
 }
 
 export interface MapWidgetStaticInterface {

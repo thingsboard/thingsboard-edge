@@ -32,8 +32,11 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,6 +58,11 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -62,14 +70,28 @@ public class SelfRegistrationController extends BaseController {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String PRIVACY_POLICY = "privacyPolicy";
+    private static final String TERMS_OF_USE = "termsOfUse";
+    private static final String SELF_REGISTRATION_DESC = "Self Registration allows users to signup for using the platform and automatically create a Customer account for them. " +
+            "You may configure default dashboard and user roles that will be assigned for this Customer. " +
+            "This allows you to build out-of-the-box solutions for customers. " +
+            "Ability to white-label the login and main pages helps to brand the platform.";
 
     @Autowired
     private SelfRegistrationService selfRegistrationService;
 
+    @ApiOperation(value = "Create Or Update Self Registration parameters (saveSelfRegistrationParams)",
+            notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as " + UUID_WIKI_LINK +
+                    "The newly created Admin Settings Id will be present in the response. " +
+                    "Specify existing Admin Settings Id to update the Self Registration parameters. " +
+                    "Referencing non-existing Admin Settings Id will cause 'Not Found' error." +
+                    "\n\n" + SELF_REGISTRATION_DESC +
+                    TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public SelfRegistrationParams saveSelfRegistrationParams(@RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
+    public SelfRegistrationParams saveSelfRegistrationParams(
+            @ApiParam(value = "A JSON value representing the Self Registration Parameters.", required = true)
+            @RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         try {
             SecurityUser securityUser = getCurrentUser();
             Authority authority = securityUser.getAuthority();
@@ -81,6 +103,10 @@ public class SelfRegistrationController extends BaseController {
                 if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                     savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
                 }
+                JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    savedSelfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+                }
             }
             return savedSelfRegistrationParams;
         } catch (Exception e) {
@@ -88,6 +114,10 @@ public class SelfRegistrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Self Registration parameters (getSelfRegistrationParams)",
+            notes = "Fetch the Self Registration parameters object for the tenant of the current user. "
+                    + TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -102,6 +132,10 @@ public class SelfRegistrationController extends BaseController {
                 if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                     selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
                 }
+                JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+                }
             }
             return selfRegistrationParams;
         } catch (Exception e) {
@@ -109,6 +143,10 @@ public class SelfRegistrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Self Registration form parameters without authentication (getSignUpSelfRegistrationParams)",
+            notes = "Fetch the Self Registration parameters based on the domain name from the request. Available for non-authorized users. " +
+                    "Contains the information to customize the sign-up form."
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @RequestMapping(value = "/noauth/selfRegistration/signUpSelfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(
@@ -121,6 +159,8 @@ public class SelfRegistrationController extends BaseController {
             SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
             result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
             result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
+            result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
+            result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
 
             return result;
         } catch (Exception e) {
@@ -128,6 +168,8 @@ public class SelfRegistrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Privacy Policy for Self Registration form (getPrivacyPolicy)",
+            notes = "Fetch the Privacy Policy based on the domain name from the request. Available for non-authorized users. ")
     @RequestMapping(value = "/noauth/selfRegistration/privacyPolicy", method = RequestMethod.GET)
     @ResponseBody
     public String getPrivacyPolicy(HttpServletRequest request) throws ThingsboardException {
@@ -136,6 +178,23 @@ public class SelfRegistrationController extends BaseController {
                     request.getServerName()));
             if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                 return privacyPolicyNode.get(PRIVACY_POLICY).toString();
+            }
+            return "";
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Terms of Use for Self Registration form (getTermsOfUse)",
+            notes = "Fetch the Terms of Use based on the domain name from the request. Available for non-authorized users. ")
+    @RequestMapping(value = "/noauth/selfRegistration/termsOfUse", method = RequestMethod.GET)
+    @ResponseBody
+    public String getTermsOfUse(HttpServletRequest request) throws ThingsboardException {
+        try {
+            JsonNode termsOfUse = MAPPER.readTree(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
+                    request.getServerName()));
+            if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
+                return termsOfUse.get(TERMS_OF_USE).toString();
             }
             return "";
         } catch (Exception e) {

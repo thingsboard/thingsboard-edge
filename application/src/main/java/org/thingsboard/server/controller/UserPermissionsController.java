@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,18 +48,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class UserPermissionsController extends BaseController {
 
+    @ApiOperation(value = "Get Permissions (getAllowedPermissions)",
+            notes = "Returns a complex object that describes:\n\n" +
+                    " * all possible (both granted and not granted) permissions for the authority of the user (Tenant or Customer);\n" +
+                    " * all granted permissions for the user;\n\n " +
+                    "The result impacts UI behavior and hides certain UI elements if user has no permissions to invoke the related operations. " +
+                    "Nevertheless, all API calls check the permissions each time they are executed on the server side." +
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/permissions/allowedPermissions", method = RequestMethod.GET)
     @ResponseBody
     public AllowedPermissionsInfo getAllowedPermissions() throws ThingsboardException {
         try {
-
             Set<Resource> allowedResources = Resource.resourcesByAuthority.get(getCurrentUser().getAuthority());
             Map<Resource, Set<Operation>> operationsByResource = new HashMap<>();
             allowedResources.forEach(resource -> operationsByResource.put(resource, Resource.operationsByResource.get(resource)));

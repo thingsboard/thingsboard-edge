@@ -70,14 +70,17 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>proto</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>2.3.0</version>
         </dependency>
     </dependencies>
 

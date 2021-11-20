@@ -40,6 +40,7 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.mqtt.AbstractMqttIntegration;
@@ -72,9 +73,6 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        if (!this.configuration.isEnabled()) {
-            return;
-        }
         mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
         subscribeToTopics();
         this.downlinkTopicPattern = getDownlinkTopicPattern();
@@ -139,7 +137,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     protected void doProcess(IntegrationContext context, BasicMqttIntegrationMsg msg) throws Exception {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         mdMap.put("topic", msg.getTopic());
-        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), mdMap));
+        List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(UplinkContentType.BINARY, mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);

@@ -77,6 +77,7 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     private TenantId tenantId;
     private DeviceProfileId deviceProfileId;
 
+    @SuppressWarnings("deprecation")
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 

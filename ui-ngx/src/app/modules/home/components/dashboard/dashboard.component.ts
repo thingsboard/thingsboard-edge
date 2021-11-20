@@ -161,6 +161,9 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   @Input()
   embedded = false;
 
+  @Input()
+  parentDashboard?: IDashboardComponent = null;
+
   embeddedDashboardBackground = this.whiteLabelingService.getPrimaryColor('A100');
 
   dashboardTimewindowChangedSubject: Subject<Timewindow> = new ReplaySubject<Timewindow>();
@@ -218,6 +221,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   }
 
   ngOnInit(): void {
+    this.dashboardWidgets.parentDashboard = this.parentDashboard;
     if (!this.dashboardTimewindow) {
       this.dashboardTimewindow = this.timeService.defaultTimewindow();
     }
@@ -269,6 +273,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     if (this.breakpointObserverSubscription) {
       this.breakpointObserverSubscription.unsubscribe();
     }
+    this.dashboardTimewindowChangedSubject.complete();
     this.gridster = null;
   }
 

@@ -52,6 +52,7 @@ export interface RelationDialogData {
   isAdd: boolean;
   direction: EntitySearchDirection;
   relation: EntityRelation;
+  readonly: boolean;
 }
 
 @Component({
@@ -67,6 +68,7 @@ export class RelationDialogComponent extends DialogComponent<RelationDialogCompo
   isAdd: boolean;
   direction: EntitySearchDirection;
   entitySearchDirection = EntitySearchDirection;
+  readonly: boolean;
 
   additionalInfo: FormControl;
 
@@ -84,6 +86,7 @@ export class RelationDialogComponent extends DialogComponent<RelationDialogCompo
     super(store, router, dialogRef);
     this.isAdd = data.isAdd;
     this.direction = data.direction;
+    this.readonly = data.readonly;
   }
 
   ngOnInit(): void {
@@ -97,6 +100,9 @@ export class RelationDialogComponent extends DialogComponent<RelationDialogCompo
     if (!this.isAdd) {
       this.relationFormGroup.get('type').disable();
       this.relationFormGroup.get('targetEntityIds').disable();
+    }
+    if (this.readonly) {
+      this.additionalInfo.disable();
     }
     this.additionalInfo.valueChanges.subscribe(
       () => {

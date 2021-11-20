@@ -46,6 +46,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -87,7 +88,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     protected EventLoopGroup bossGroup;
     protected EventLoopGroup workerGroup;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("ip-integration-scheduled"));
     protected ScheduledFuture bindFuture = null;
 
     @Override
@@ -210,7 +211,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -255,6 +256,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                 workerGroup.shutdownGracefully();
             }
         }
+        scheduler.shutdownNow();
     }
 
     public byte[] writeValueAsBytes(String msg) {
@@ -299,7 +301,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getUplinkContentType(), metadataMap));
+        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {

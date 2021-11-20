@@ -49,6 +49,8 @@ import { Observable } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
+import { UiSettingsService } from '@core/http/ui-settings.service';
+import { share } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-white-labeling',
@@ -72,6 +74,10 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
   isLoginWl: boolean = this.route.snapshot.data.isLoginWl;
 
+  uiHelpBaseUrlPlaceholder$ = this.uiSettingsService.getHelpBaseUrl().pipe(
+    share()
+  );
+
   thingsboardVersion = env.tbVersion;
 
   showPosition = [
@@ -90,6 +96,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
               private route: ActivatedRoute,
               private userPermissionsService: UserPermissionsService,
               private whiteLabelingService: WhiteLabelingService,
+              private uiSettingsService: UiSettingsService,
               private translate: TranslateService,
               private dialog: MatDialog,
               public fb: FormBuilder) {
@@ -161,6 +168,9 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
         this.fb.control(null, [])
       );
       this.wlSettings.addControl('helpLinkBaseUrl',
+        this.fb.control(null, [])
+      );
+      this.wlSettings.addControl('uiHelpBaseUrl',
         this.fb.control(null, [])
       );
     }

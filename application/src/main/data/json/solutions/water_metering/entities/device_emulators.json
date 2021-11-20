@@ -1,0 +1,75 @@
+[
+  {
+    "name": "WaterMeter",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "telemetryProfiles": [
+      {
+        "key": "pulseCounter",
+        "valueStrategy": {
+          "type": "counter",
+          "precision": 2,
+          "minStartValue": 0,
+          "maxStartValue": 1000,
+          "minEndValue": 10000000,
+          "maxEndValue": 10000000,
+          "minIncrement": 100,
+          "maxIncrement": 200,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 0.5,
+          "nightHoursMultiplier": 0.1
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 20,
+          "maxStartValue": 23,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 32,
+          "maxHighValue": 32,
+          "minIncrement": 0.02,
+          "maxIncrement": 0.02,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.01,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      },
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 5.0,
+          "maxIncrement": 5.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.1,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      },
+      {
+        "key": "leakage",
+        "valueStrategy": {
+          "type": "event",
+          "normalValue": false,
+          "anomalyValue": true,
+          "anomalyChance": 3000
+        }
+      }
+    ]
+  }
+]

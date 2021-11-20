@@ -30,14 +30,23 @@
  */
 package org.thingsboard.server.common.data.selfregistration;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+@ApiModel
 @Data
 @EqualsAndHashCode
 public class SignUpSelfRegistrationParams {
 
+    @ApiModelProperty(position = 2, name = "The text message to appear on login form")
     protected String signUpTextMessage;
+    @ApiModelProperty(position = 3, name = "Captcha site key for 'I'm not a robot' validation")
     protected String captchaSiteKey;
+    @ApiModelProperty(position = 4, name = "Show or hide 'Privacy Policy'")
+    protected Boolean showPrivacyPolicy;
+    @ApiModelProperty(position = 5, name = "Show or hide 'Terms of Use'")
+    protected Boolean showTermsOfUse;
 
 }

@@ -113,6 +113,7 @@ public abstract class AbstractServiceTest {
 
     public static final TenantId SYSTEM_TENANT_ID = new TenantId(EntityId.NULL_UUID);
 
+    @SuppressWarnings("deprecation")
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 

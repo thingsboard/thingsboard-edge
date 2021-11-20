@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.ApiFeature;
@@ -524,7 +525,7 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
             log.info("Initializing tenant states.");
             updateLock.lock();
             try {
-                ExecutorService tmpInitExecutor = Executors.newWorkStealingPool(20);
+                ExecutorService tmpInitExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "init-tenant-states-from-db");
                 try {
                     PageDataIterable<Tenant> tenantIterator = new PageDataIterable<>(tenantService::findTenants, 1024);
                     List<Future<?>> futures = new ArrayList<>();

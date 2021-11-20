@@ -50,7 +50,7 @@ export class NodeScriptTestService {
   }
 
   testNodeScript(script: string, scriptType: string, functionTitle: string,
-                 functionName: string, argNames: string[], ruleNodeId: string): Observable<string> {
+                 functionName: string, argNames: string[], ruleNodeId: string, helpId?: string): Observable<string> {
     if (ruleNodeId) {
       return this.ruleChainService.getLatestRuleNodeDebugInput(ruleNodeId).pipe(
         switchMap((debugIn) => {
@@ -67,18 +67,18 @@ export class NodeScriptTestService {
             msgType = debugIn.msgType;
           }
           return this.openTestScriptDialog(script, scriptType, functionTitle,
-            functionName, argNames, msg, metadata, msgType);
+            functionName, argNames, msg, metadata, msgType, helpId);
         })
       );
     } else {
       return this.openTestScriptDialog(script, scriptType, functionTitle,
-        functionName, argNames);
+        functionName, argNames, null, null, null, helpId);
     }
   }
 
   private openTestScriptDialog(script: string, scriptType: string,
                                functionTitle: string, functionName: string, argNames: string[],
-                               msg?: any, metadata?: {[key: string]: string}, msgType?: string): Observable<string> {
+                               msg?: any, metadata?: {[key: string]: string}, msgType?: string, helpId?: string): Observable<string> {
     if (!msg) {
       msg = {
         temperature: 22.4,
@@ -109,7 +109,8 @@ export class NodeScriptTestService {
           functionName,
           script,
           scriptType,
-          argNames
+          argNames,
+          helpId
         }
       }).afterClosed();
   }

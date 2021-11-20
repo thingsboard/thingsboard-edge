@@ -46,6 +46,7 @@ import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { AuthService } from '@core/auth/auth.service';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 import { PersistentRpc } from '@shared/models/rpc.models';
 
 @Injectable({
@@ -199,5 +200,8 @@ export class DeviceService {
   public unclaimDevice(deviceName: string, config?: RequestConfig) {
     return this.http.delete(`/api/customer/device/${deviceName}/claim`, defaultHttpOptionsFromConfig(config));
   }
-  
+
+  public bulkImportDevices(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
+    return this.http.post<BulkImportResult>('/api/device/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
+  }
 }

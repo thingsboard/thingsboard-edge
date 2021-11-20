@@ -1824,7 +1824,11 @@
         "profile": "Профіль",
         "last-login-time": "Час останнього входу",
         "change-password": "Змінити пароль",
-        "current-password": "Поточний пароль"
+        "current-password": "Поточний пароль",
+        "copy-jwt-token": "Копіювати JWT токен",
+        "valid-till": "Дійсний до {{expirationData}}",
+        "tokenCopiedMessage": "JWT токен скопійовано в буфер обміну",
+        "tokenCopiedWarnMessage": "JWT токен не є дійсним! Перезавантажте сторінку."
     },
     "relation": {
         "relations": "Відношення",
@@ -1853,6 +1857,7 @@
         "any-relation-type": "Будь-який тип",
         "add": "Додати відношення",
         "edit": "Редагувати відношення",
+        "view": "Переглянути відношення",
         "delete-to-relation-title": "Ви впевнені, що хочете видалити відношення до сутності '{{entityName}}'?",
         "delete-to-relation-text": "Будьте обережні, після підтвердження, сутність '{{entityName}}' не буде пов'язана з поточним об'єктом.",
         "delete-to-relations-title": "Ви впевнені, що хочете видалити  { count, plural, 1 {1 відношення} other {# відношення} }?",
@@ -2375,7 +2380,9 @@
         "disable-account": "Вимкнути обліковий запис користувача",
         "enable-account": "Увімкнути обліковий запис користувача",
         "enable-account-message": "Обліковий запис користувача успішно увімкнено!",
-        "disabled-account-message": "Обліковий запис користувача успішно вимкнено!"
+        "disabled-account-message": "Обліковий запис користувача успішно вимкнено!",
+        "copyId": "Копіювати Id користувача",
+        "idCopiedMessage": "Id користувача було скопійовано в буфер обміну"
     },
     "value": {
         "type": "Тип значення",
@@ -2495,7 +2502,7 @@
         "advanced": "Додатково",
         "title": "Назва",
         "general-settings": "Загальні налаштування",
-        "display-title": "Відобразити назву",
+        "display-title": "Відобразити назву у віджеті",
         "drop-shadow": "Тінь",
         "enable-fullscreen": "Увімкнути повноекранний режим",
         "enable-data-export": "Увімкнути експорт даних",
@@ -2505,7 +2512,7 @@
         "margin": "Границі",
         "widget-style": "Стиль віджетів",
         "title-style": "Стиль заголовка",
-        "mobile-mode-settings": "Налаштування мобільного режиму",
+        "mobile-mode-settings": "мобільний режим",
         "order": "Порядок",
         "height": "Висота",
         "units": "Спеціальний символ після значення",
@@ -2513,6 +2520,7 @@
         "timewindow": "Вікно часу",
         "use-dashboard-timewindow": "Використати вікно часу на панелі візуалізації",
         "display-timewindow": "Показувати вікно часу",
+        "legend": "Легенда",
         "display-legend": "Показати легенду",
         "datasources": "Джерела даних",
         "maximum-datasources": "Максимально { count, plural, 1 {1 дозволене джерело даних.} other {# дозволені джерела даних } }",
@@ -2538,9 +2546,13 @@
         "delete-action": "Видалити дію",
         "delete-action-title": "Видалити дію віджета",
         "delete-action-text": "Ви впевнені, що хочете видалити дію віджета '{{actionName}}'?",
-        "display-icon": "Показувати іконку у назві",
+        "title-icon": "Іконка у назві віджету",
+        "display-icon": "Показувати іконку у назві віджету",
         "icon-color": "Колір іконки",
-        "icon-size": "Розмір іконки"
+        "icon-size": "Розмір іконки",
+        "advanced-settings": "Розширені налаштування",
+        "data-settings": "Налаштування даних",
+        "no-data-display-message": "\"Немає данних для відображення\" альтернативний текст"
     },
     "widget-type": {
         "import": "Імпортувати тип віджета",

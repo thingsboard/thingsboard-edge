@@ -55,6 +55,7 @@ import { NavigationCardWidgetComponent } from '@home/components/widget/lib/navig
 import { EdgesOverviewWidgetComponent } from '@home/components/widget/lib/edges-overview-widget.component';
 import { JsonInputWidgetComponent } from '@home/components/widget/lib/json-input-widget.component';
 import { QrCodeWidgetComponent } from '@home/components/widget/lib/qrcode-widget.component';
+import { MarkdownWidgetComponent } from '@home/components/widget/lib/markdown-widget.component';
 
 @NgModule({
   declarations:
@@ -75,7 +76,8 @@ import { QrCodeWidgetComponent } from '@home/components/widget/lib/qrcode-widget
       GatewayFormComponent,
       NavigationCardsWidgetComponent,
       NavigationCardWidgetComponent,
-      QrCodeWidgetComponent
+      QrCodeWidgetComponent,
+      MarkdownWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -99,7 +101,8 @@ import { QrCodeWidgetComponent } from '@home/components/widget/lib/qrcode-widget
     GatewayFormComponent,
     NavigationCardsWidgetComponent,
     NavigationCardWidgetComponent,
-    QrCodeWidgetComponent
+    QrCodeWidgetComponent,
+    MarkdownWidgetComponent
   ],
   providers: [
     CustomDialogService,

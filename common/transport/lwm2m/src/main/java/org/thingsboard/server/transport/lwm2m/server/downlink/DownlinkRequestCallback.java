@@ -32,29 +32,14 @@ package org.thingsboard.server.transport.lwm2m.server.downlink;
 
 public interface DownlinkRequestCallback<R, T> {
 
+    default boolean onSent(R request){
+        return true;
+    };
+
     void onSuccess(R request, T response);
 
     void onValidationError(String params, String msg);
 
     void onError(String params, Exception e);
 
-    static <R, T> DownlinkRequestCallback<R, T> doNothing() {
-        return new DownlinkRequestCallback<>() {
-
-            @Override
-            public void onSuccess(R request, T response) {
-
-            }
-
-            @Override
-            public void onValidationError(String params, String msg) {
-
-            }
-
-            @Override
-            public void onError(String params, Exception e) {
-
-            }
-        };
-    }
 }

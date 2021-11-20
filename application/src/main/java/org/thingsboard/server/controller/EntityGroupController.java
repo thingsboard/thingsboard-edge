@@ -31,14 +31,15 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,13 +51,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -68,6 +71,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -96,6 +100,31 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.group.EntityGroup.EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_ADD_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_DELETE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_REMOVE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_WRITE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 
 @RestController
@@ -103,20 +132,33 @@ import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 @RequestMapping("/api")
 public class EntityGroupController extends BaseController {
 
-    public static final String ENTITY_GROUP_ID = "entityGroupId";
+    public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
+            "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    private static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
+    public static final String ENTITY_GROUP_INFO_DESCRIPTION = "Entity Group Info extends Entity Group object and adds 'ownerIds' - a list of owner ids.";
+    private static final String ENTITY_GROUP_UNIQUE_KEY = "Entity group name is unique in the scope of owner and entity type. For example, you can't create two tenant device groups called 'Water meters'. " +
+            "However, you may create device and asset group with the same name. And also you may create groups with the same name for two different customers of the same tenant. ";
+    private static final String OWNER_TYPE_DESCRIPTION = "Tenant or Customer";
+    private static final String OWNER_ID_DESCRIPTION = "A string value representing the Tenant or Customer id";
+    private static final String ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION = "Entity Group type";
+    private static final String SHORT_ENTITY_VIEW_DESCRIPTION = "Short Entity View object contains the entity id and number of fields (attributes, telemetry, etc). " +
+            "List of those fields is configurable and defined in the group configuration.";
 
     @Autowired
     private OwnersCacheService ownersCacheService;
 
+    @ApiOperation(value = "Get Entity Group Info (getEntityGroupById)",
+            notes = "Fetch the Entity Group object based on the provided Entity Group Id. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    "\n\n" + ENTITY_GROUP_UNIQUE_KEY +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.GET)
     @ResponseBody
-    public EntityGroupInfo getEntityGroupById(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public EntityGroupInfo getEntityGroupById(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             return toEntityGroupInfo(checkEntityGroupId(entityGroupId, Operation.READ));
@@ -125,13 +167,23 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Group by owner, type and name (getEntityGroupByOwnerAndNameAndType)",
+            notes = "Fetch the Entity Group object based on the provided Entity Group Id. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    "\n\n" + ENTITY_GROUP_UNIQUE_KEY +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{ownerType}/{ownerId}/{groupType}/{groupName}", method = RequestMethod.GET)
     @ResponseBody
-    public EntityGroupInfo getEntityGroupByOwnerAndNameAndType(@PathVariable("ownerType") String strOwnerType,
-                                                               @PathVariable("ownerId") String strOwnerId,
-                                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
-                                                               @PathVariable("groupName") String groupName) throws ThingsboardException {
+    public EntityGroupInfo getEntityGroupByOwnerAndNameAndType(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @PathVariable("ownerId") String strOwnerId,
+            @ApiParam(value = "Entity Group type", required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = "Entity Group name", required = true)
+            @PathVariable("groupName") String groupName) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
         checkParameter("groupName", groupName);
@@ -152,10 +204,18 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Create Or Update Entity Group (saveEntityGroup)",
+            notes = "Create or update the Entity Group. When creating Entity Group, platform generates Entity Group Id as " + UUID_WIKI_LINK +
+                    "The newly created Entity Group Id will be present in the response. " +
+                    "Specify existing Entity Group Id to update the group. " +
+                    "Referencing non-existing Entity Group Id will cause 'Not Found' error." +
+                    "\n\n" + ENTITY_GROUP_UNIQUE_KEY + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup", method = RequestMethod.POST)
     @ResponseBody
-    public EntityGroupInfo saveEntityGroup(@RequestBody EntityGroup entityGroup) throws ThingsboardException {
+    public EntityGroupInfo saveEntityGroup(
+            @ApiParam(value = "A JSON value representing the entity group.", required = true)
+            @RequestBody EntityGroup entityGroup) throws ThingsboardException {
         try {
             checkEntityGroupType(entityGroup.getType());
 
@@ -198,11 +258,16 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Delete Entity Group (deleteEntityGroup)",
+            notes = "Deletes the entity group but does not delete the entities in the group, since they are also present in reserved group 'All'. " +
+                    "Referencing non-existing Entity Group Id will cause an error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void deleteEntityGroup(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.DELETE);
@@ -243,11 +308,16 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Groups by entity type (getEntityGroupsByType)",
+            notes = "Fetch the list of Entity Group Info objects based on the provided Entity Type. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByType(
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
@@ -276,13 +346,20 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Groups by owner and entity type (getEntityGroupsByOwnerAndType)",
+            notes = "Fetch the list of Entity Group Info objects based on the provided Owner Id and Entity Type. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/{ownerType}/{ownerId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
             @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
         try {
@@ -300,13 +377,20 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get special group All by owner and entity type (getEntityGroupsByOwnerAndType)",
+            notes = "Fetch reserved group 'All' based on the provided Owner Id and Entity Type. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/all/{ownerType}/{ownerId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public EntityGroupInfo getEntityGroupAllByOwnerAndType(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
             @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
             @PathVariable("ownerId") String strOwnerId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("ownerId", strOwnerId);
         checkParameter("ownerType", strOwnerType);
         try {
@@ -340,12 +424,18 @@ public class EntityGroupController extends BaseController {
         return entityGroupInfo;
     }
 
+    @ApiOperation(value = "Add entities to the group (addEntitiesToEntityGroup)",
+            notes = "Add entities to the specified entity group. "
+                    + ENTITY_GROUP_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_ADD_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/addEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void addEntitiesToEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                         @RequestBody String[] strEntityIds) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void addEntitiesToEntityGroup(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "A list of entity ids, separated by comma ','", required = true)
+            @RequestBody String[] strEntityIds) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         EntityGroup entityGroup = null;
         try {
@@ -399,12 +489,18 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Remove entities from the group (removeEntitiesFromEntityGroup)",
+            notes = "Removes entities from the specified entity group. "
+                    + ENTITY_GROUP_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_REMOVE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/deleteEntities", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void removeEntitiesFromEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                              @RequestBody String[] strEntityIds) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void removeEntitiesFromEntityGroup(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "A list of entity ids, separated by comma ','", required = true)
+            @RequestBody String[] strEntityIds) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
         EntityGroup entityGroup = null;
         try {
@@ -462,15 +558,19 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Group Entity (getGroupEntity)",
+            notes = "Fetch the Short Entity View object based on the group and entity id. " +
+                    SHORT_ENTITY_VIEW_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public ShortEntityView getGroupEntity(
-            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @PathVariable("entityId") String strEntityId) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ENTITY_ID) String strEntityId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkParameter("entityId", strEntityId);
-
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
@@ -487,18 +587,28 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Group Entities (getEntities)",
+            notes = "Returns a page of Short Entity View objects that belongs to specified Entity Group Id. " +
+                    SHORT_ENTITY_VIEW_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<ShortEntityView> getEntities(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
-            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
         EntityType entityType = entityGroup.getType();
@@ -513,11 +623,18 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Groups by Entity Id (getEntityGroupsForEntity)",
+            notes = "Returns a list of groups that contain the specified Entity Id. " +
+                    "For example, all device groups that contain specific device. " +
+                    "The list always contain at least one element - special group 'All'." +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupId> getEntityGroupsForEntity(
-            @ApiParam(value = "Entity type", required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("entityType") String strEntityType,
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("entityType") String strEntityType,
+            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityId") String strEntityId) throws ThingsboardException {
         checkParameter("entityType", strEntityType);
         checkParameter("entityId", strEntityId);
@@ -531,10 +648,14 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Groups by Ids (getDevicesByIds)",
+            notes = "Requested devices must be owned by tenant or assigned to customer which user is performing the request. "
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups", params = {"entityGroupIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroup> getEntityGroupsByIds(
+            @ApiParam(value = "A list of group ids, separated by comma ','")
             @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
         checkArrayParameter("entityGroupIds", strEntityGroupIds);
         try {
@@ -551,14 +672,25 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Owners (getOwners)",
+            notes = "Provides a rage view of Customers that the current user has READ access to. " +
+                    "If the current user is Tenant administrator, the result set also contains the tenant. " +
+                    "The call is designed for the UI auto-complete component to show tenant and all possible Customers " +
+                    "that the user may select to change the owner of the particular entity or entity group."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/owners", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<ContactBased<?>> getOwners(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
             @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
@@ -591,11 +723,17 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Make Entity Group Publicly available (makeEntityGroupPublic)",
+            notes = "Make the entity group available for non authorized users. " +
+                    "Useful for public dashboards that will be embedded into the public websites. "
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/makePublic", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void makeEntityGroupPublic(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void makeEntityGroupPublic(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
 
         GroupPermission groupPermission = new GroupPermission();
         groupPermission.setPublic(true);
@@ -625,7 +763,7 @@ public class EntityGroupController extends BaseController {
 
             JsonNode additionalInfo = entityGroup.getAdditionalInfo();
             if (additionalInfo == null || additionalInfo instanceof NullNode) {
-                additionalInfo = mapper.createObjectNode();
+                additionalInfo = JacksonUtil.newObjectNode();
             }
             ((ObjectNode) additionalInfo).put("isPublic", true);
             ((ObjectNode) additionalInfo).put("publicCustomerId", publicUsers.getOwnerId().getId().toString());
@@ -649,11 +787,17 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Make Entity Group Private (makeEntityGroupPrivate)",
+            notes = "Make the entity group not available for non authorized users. Every group is private by default. " +
+                    "This call is useful to hide the group that was previously made public."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/makePrivate", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void makeEntityGroupPrivate(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void makeEntityGroupPrivate(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
 
         EntityGroup entityGroup = null;
 
@@ -677,7 +821,7 @@ public class EntityGroupController extends BaseController {
 
             JsonNode additionalInfo = entityGroup.getAdditionalInfo();
             if (additionalInfo == null) {
-                additionalInfo = mapper.createObjectNode();
+                additionalInfo = JacksonUtil.newObjectNode();
             }
             ((ObjectNode) additionalInfo).put("isPublic", false);
             ((ObjectNode) additionalInfo).put("publicCustomerId", "");
@@ -699,12 +843,19 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Share the Entity Group (shareEntityGroup)",
+            notes = "Share the entity group with certain user group based on the provided Share Group Request. " +
+                    "The request is quite flexible and processing of the request involves multiple security checks using platform RBAC feature."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/share", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void shareEntityGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                 @RequestBody ShareGroupRequest shareGroupRequest) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void shareEntityGroup(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "The Share Group Request JSON", required = true)
+            @RequestBody ShareGroupRequest shareGroupRequest) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroup entityGroup;
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.CREATE);
@@ -760,13 +911,20 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Share the Entity Group with User group (shareEntityGroupToChildOwnerUserGroup)",
+            notes = "Share the entity group with specified user group using specified role. "
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/{userGroupId}/{roleId}/share", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void shareEntityGroupToChildOwnerUserGroup(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-                                                      @PathVariable("userGroupId") String strUserGroupId,
-                                                      @PathVariable("roleId") String strRoleId) throws ThingsboardException {
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+    public void shareEntityGroupToChildOwnerUserGroup(
+            @ApiParam(value = "A string value representing the Entity Group Id that you would like to share. For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "A string value representing the Entity(User) Group Id that you would like to share with. For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
+            @PathVariable("userGroupId") String strUserGroupId,
+            @ApiParam(value = "A string value representing the Role Id that describes set of permissions you would like to share (read, write, etc). For example, '784f394c-42b6-435a-983c-b7beff2784f9'", required = true)
+            @PathVariable("roleId") String strRoleId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkParameter("userGroupId", strUserGroupId);
         checkParameter("roleId", strRoleId);
         try {
@@ -821,14 +979,26 @@ public class EntityGroupController extends BaseController {
     }
 
     /* merge comment
+    @ApiOperation(value = "Assign entity group to edge (assignEntityGroupToEdge)",
+            notes = "Creates assignment of an existing entity group to an instance of The Edge. " +
+                    "Assignment works in async way - first, notification event pushed to edge service queue on platform. " +
+                    "Second, remote edge service will receive a copy of assignment entity group " +
+                    EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
+                    "Third, once entity group will be delivered to edge service, edge will request entities of this group to be send to edge. " +
+                    "Once entities will be delivered to edge service, they are going to be available for usage on remote edge instance." +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.POST)
     @ResponseBody
-    public EntityGroup assignEntityGroupToEdge(@PathVariable("edgeId") String strEdgeId,
-                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
-                                               @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+    public EntityGroup assignEntityGroupToEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+                                               @PathVariable(EDGE_ID) String strEdgeId,
+                                               @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+                                               @PathVariable("groupType") String strGroupType,
+                                               @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
+                                               @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
@@ -856,14 +1026,25 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Unassign entity group from edge (unassignEntityGroupFromEdge)",
+            notes = "Clears assignment of the entity group to the edge. " +
+                    "Unassignment works in async way - first, 'unassign' notification event pushed to edge queue on platform. " +
+                    "Second, remote edge service will receive an 'unassign' command to remove entity group " +
+                    EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
+                    "Third, once 'unassign' command will be delivered to edge service, it's going to remove entity group and entities inside this group locally." +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.DELETE)
     @ResponseBody
-    public EntityGroup unassignEntityGroupFromEdge(@PathVariable("edgeId") String strEdgeId,
-                                                   @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
-                                                   @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+    public EntityGroup unassignEntityGroupFromEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+                                                   @PathVariable(EDGE_ID) String strEdgeId,
+                                                   @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+                                                   @PathVariable("groupType") String strGroupType,
+                                                   @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION)
+                                                   @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
-        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
@@ -890,12 +1071,18 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get All Edge Entity Groups by entity type (getAllEdgeEntityGroups)",
+            notes = "Fetch the list of Entity Group Info objects based on the provided Entity Type and assigned to the provided Edge entity. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/allEntityGroups/edge/{edgeId}/{groupType}", method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getAllEdgeEntityGroups(
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
             @PathVariable("edgeId") String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         try {
             EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
@@ -904,7 +1091,7 @@ public class EntityGroupController extends BaseController {
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
                 List<EntityGroup> result = new ArrayList<>();
-                PageLink pageLink = new PageLink(DEFAULT_ENTITY_GROUP_LIMIT);
+                PageLink pageLink = new PageLink(ControllerConstants.DEFAULT_ENTITY_GROUP_LIMIT);
                 PageData<EntityGroup> pageData;
                 do {
                     pageData = entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink);
@@ -924,23 +1111,32 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Edge Entity Groups by entity type (getEdgeEntityGroups)",
+            notes = "Returns a page of Entity Group Info objects based on the provided Entity Type and assigned to the provided Edge entity. " +
+                    ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups/edge/{edgeId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EntityGroupInfo> getEdgeEntityGroups(
-            @PathVariable("edgeId") String strEdgeId,
-            @ApiParam(value = "EntityGroup type", required = true, allowableValues = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD") @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+            @PathVariable(EDGE_ID) String strEdgeId,
+            @ApiParam(value = "EntityGroup type", required = true, allowableValues = EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
             @RequestParam int page,
-            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         try {
             EdgeId edgeId = new EdgeId(UUID.fromString(strEdgeId));
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             checkEdgeId(edgeId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            PageLink pageLink = createPageLink(pageSize, page, null, sortProperty, sortOrder);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (groupTypePermissionInfo.isHasGenericRead()) {
                 return toEntityGroupsInfo(entityGroupService.findEdgeEntityGroupsByType(getTenantId(), edgeId, groupType, pageLink));
@@ -963,7 +1159,7 @@ public class EntityGroupController extends BaseController {
 
     private void shareGroup(Role role, EntityGroup userGroup, EntityGroup entityGroup, Set<Operation> mergedOperations) throws ThingsboardException, IOException {
         CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-        List<Operation> roleOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
+        List<Operation> roleOperations = JacksonUtil.readValue(role.getPermissions().toString(), collectionType);
         if (!mergedOperations.isEmpty() && (mergedOperations.contains(Operation.ALL) || mergedOperations.containsAll(roleOperations))) {
             groupPermissionService.saveGroupPermission(getTenantId(), new GroupPermission(getTenantId(), userGroup.getId(), role.getId(), entityGroup.getId(), entityGroup.getId().getEntityType(), false));
         } else {

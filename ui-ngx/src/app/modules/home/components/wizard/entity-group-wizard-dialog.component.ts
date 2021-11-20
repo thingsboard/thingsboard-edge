@@ -97,14 +97,14 @@ export class EntityGroupWizardDialogComponent extends
               private fb: FormBuilder) {
     super(store, router, dialogRef);
     this.entityGroupWizardFormGroup = this.fb.group({
-        name: ['', Validators.required],
+        name: ['', [Validators.required, Validators.maxLength(255)]],
         description: ['']
       }
     );
 
     const shareGroupRequest: ShareGroupRequest = {
       ownerId: null,
-      isAllUserGroup: true,
+      allUserGroup: true,
       readElseWrite: true
     };
 

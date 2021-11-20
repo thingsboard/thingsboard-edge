@@ -99,10 +99,6 @@ public interface EdgeService {
     /* merge comment
     void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
 
-    Object checkInstance(Object request);
-
-    Object activateInstance(String licenseSecret, String releaseDate);
-
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
      */
 

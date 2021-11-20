@@ -117,7 +117,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

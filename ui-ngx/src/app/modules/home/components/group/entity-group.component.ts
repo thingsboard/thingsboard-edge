@@ -99,7 +99,7 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
   buildForm(entity: EntityGroupInfo): FormGroup {
     const form = this.fb.group(
       {
-        name: [entity ? entity.name : '', [Validators.required]],
+        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
         additionalInfo: this.fb.group(
           {
             description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],

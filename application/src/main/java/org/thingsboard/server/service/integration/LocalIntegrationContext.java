@@ -43,6 +43,7 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -85,9 +86,9 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
+        Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
-        UUID sessionId = UUID.randomUUID();
+        UUID sessionId = configuration.getUuidId(); //for local integration context sessionId is exact integrationId
         TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
@@ -118,7 +119,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getCustomerName(), data.getGroupName());
+        Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
         if (data.hasPostTelemetryMsg()) {
             data.getPostTelemetryMsg().getTsKvListList()
@@ -146,7 +147,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
         Device device = ctx.getPlatformIntegrationService()
-                .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null);
+                .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null, null);
         ctx.getPlatformIntegrationService().getOrCreateEntityView(configuration, device, data);
     }
 
@@ -227,5 +228,10 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public ExecutorService getCallBackExecutorService() {
         return ctx.getCallBackExecutorService();
+    }
+
+    @Override
+    public boolean isExceptionStackTraceEnabled() {
+        return ctx.isExceptionStackTraceEnabled();
     }
 }

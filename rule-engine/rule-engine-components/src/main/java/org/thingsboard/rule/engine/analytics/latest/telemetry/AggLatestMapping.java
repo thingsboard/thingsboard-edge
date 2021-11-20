@@ -47,7 +47,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Data
 public class AggLatestMapping {
@@ -63,11 +62,9 @@ public class AggLatestMapping {
                                             ListenableFuture<List<EntityId>> entityIds) {
         ListenableFuture<List<EntityId>> filteredEntityIds =
                 filter != null
-                        ? Futures.transform(entityIds, ids -> {
-                                List<EntityId> filtered = ids.stream().filter(filter.getFilterFunction(ctx, attributesScriptEngineMap)).collect(Collectors.toList());
-                                return filtered;
-                            }, ctx.getJsExecutor())
+                        ? Futures.transformAsync(entityIds, ids -> filter.filterEntityIds(ctx, attributesScriptEngineMap, ids), ctx.getDbCallbackExecutor())
                         : entityIds;
+
         return Futures.transform(filteredEntityIds, ids -> {
             TbAggFunction aggregation = TbAggFunctionFactory.createAggFunction(aggFunction);
             ids.forEach(entityId -> {

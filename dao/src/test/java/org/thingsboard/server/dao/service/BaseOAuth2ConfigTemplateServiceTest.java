@@ -47,7 +47,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
-public class BaseOAuth2ConfigTemplateServiceTest extends AbstractServiceTest {
+public abstract class BaseOAuth2ConfigTemplateServiceTest extends AbstractServiceTest {
 
     @Autowired
     protected OAuth2ConfigTemplateService oAuth2ConfigTemplateService;

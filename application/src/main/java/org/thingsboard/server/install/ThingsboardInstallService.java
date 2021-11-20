@@ -44,6 +44,7 @@ import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
 import org.thingsboard.server.service.install.TsLatestDatabaseSchemaService;
+import org.thingsboard.server.service.install.update.CacheCleanupService;
 import org.thingsboard.server.service.install.update.DataUpdateService;
 
 @Service
@@ -87,16 +88,23 @@ public class ThingsboardInstallService {
     @Autowired
     private DataUpdateService dataUpdateService;
 
+    @Autowired
+    private CacheCleanupService cacheCleanupService;
+
     public void performInstall() {
         try {
             if (isUpgrade) {
                 log.info("Starting ThingsBoard Upgrade from version {} ...", upgradeFromVersion);
+
+                cacheCleanupService.clearCache(upgradeFromVersion);
 
                 switch (upgradeFromVersion) {
                     case "3.3.0":
                         log.info("Updating system data...");
                         systemDataLoaderService.updateSystemWidgets();
                         break;
+
+                    //TODO update CacheCleanupService on the next version upgrade
                     default:
                         throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
 

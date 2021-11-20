@@ -49,6 +49,7 @@ import java.util.Arrays;
         "org.thingsboard.js",
         "org.thingsboard.integration",
         "org.thingsboard.server.common.stats",
+        "org.thingsboard.server.common.transport.config.ssl",
         "org.thingsboard.server.cache"})
 public class TbEdgeInstallApplication {
 

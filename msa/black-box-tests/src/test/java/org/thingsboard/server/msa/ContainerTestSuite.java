@@ -64,19 +64,74 @@ public class ContainerTestSuite {
 
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
-            testContainer = new DockerComposeContainer<>(
-                    new File("./../../docker/docker-compose.yml"),
-                    new File("./../../docker/docker-compose.postgres.yml"),
-                    new File("./../../docker/docker-compose.postgres.volumes.yml"))
-                    .withPull(false)
-                    .withLocalCompose(true)
-                    .withTailChildContainers(!skipTailChildContainers)
-                    .withEnv(installTb.getEnv())
-                    .withEnv(env)
-                    .withEnv("LOAD_BALANCER_NAME", "")
-                    .withExposedService("tb-edge", 8082)
-                    .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
+            try {
+                final String targetDir = FileUtils.getTempDirectoryPath() + "/" + "ContainerTestSuite-" + UUID.randomUUID() + "/";
+                log.info("targetDir {}", targetDir);
+                FileUtils.copyDirectory(new File(SOURCE_DIR), new File(targetDir));
+                replaceInFile(targetDir + "advanced/docker-compose.yml", "    container_name: \"${LOAD_BALANCER_NAME}\"", "", "container_name");
+
+                class DockerComposeContainerImpl<SELF extends DockerComposeContainer<SELF>> extends DockerComposeContainer<SELF> {
+                    public DockerComposeContainerImpl(File... composeFiles) {
+                        super(composeFiles);
+                    }
+
+                    @Override
+                    public void stop() {
+                        super.stop();
+                        tryDeleteDir(targetDir);
+                    }
+                }
+
+                testContainer = new DockerComposeContainerImpl<>(
+                        new File("./../../docker-edge/docker-compose.yml"),
+                        new File("./../../docker-edge/docker-compose.postgres.yml"),
+                        new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
+                        .withPull(false)
+                        .withLocalCompose(true)
+                        .withTailChildContainers(!skipTailChildContainers)
+                        .withEnv(installTb.getEnv())
+                        .withEnv(env)
+                        .withEnv("LOAD_BALANCER_NAME", "")
+                        .withExposedService("tb-edge", 8082)
+                        .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
+            } catch (Exception e) {
+                log.error("Failed to create test container", e);
+                fail("Failed to create test container");
+            }
         }
         return testContainer;
+    }
+
+    private static void tryDeleteDir(String targetDir) {
+        try {
+            log.info("Trying to delete temp dir {}", targetDir);
+            FileUtils.deleteDirectory(new File(targetDir));
+        } catch (IOException e) {
+            log.error("Can't delete temp directory " + targetDir, e);
+        }
+    }
+
+    /**
+     * This workaround is actual until issue will be resolved:
+     * Support container_name in docker-compose file #2472 https://github.com/testcontainers/testcontainers-java/issues/2472
+     * docker-compose files which contain container_name are not supported and the creation of DockerComposeContainer fails due to IllegalStateException.
+     * This has been introduced in #1151 as a quick fix for unintuitive feedback. https://github.com/testcontainers/testcontainers-java/issues/1151
+     * Using the latest testcontainers and waiting for the fix...
+     * */
+    private static void replaceInFile(String sourceFilename, String target, String replacement, String verifyPhrase) {
+        try {
+            File file = new File(sourceFilename);
+            String sourceContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+
+            String outputContent = sourceContent.replace(target, replacement);
+            assertThat(outputContent, (not(containsString(target))));
+            assertThat(outputContent, (not(containsString(verifyPhrase))));
+
+            FileUtils.writeStringToFile(file, outputContent, StandardCharsets.UTF_8);
+            assertThat(FileUtils.readFileToString(file, StandardCharsets.UTF_8), is(outputContent));
+        } catch (IOException e) {
+            log.error("failed to update file " + sourceFilename, e);
+            fail("failed to update file");
+        }
     }
 }

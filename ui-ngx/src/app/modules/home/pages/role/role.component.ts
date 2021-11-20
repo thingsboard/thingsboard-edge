@@ -80,7 +80,7 @@ export class RoleComponent extends EntityComponent<Role> {
   buildForm(entity: Role): FormGroup {
     const form = this.fb.group(
       {
-        name: [entity ? entity.name : '', [Validators.required]],
+        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
         type: [entity ? entity.type : null, [Validators.required]],
         additionalInfo: this.fb.group(
           {

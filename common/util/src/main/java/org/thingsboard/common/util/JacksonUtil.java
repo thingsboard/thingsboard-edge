@@ -36,8 +36,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.CollectionType;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -127,6 +131,47 @@ public class JacksonUtil {
             return OBJECT_MAPPER.readTree(value);
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
+        }
+    }
+
+    public static <T> T readValue(String file, CollectionType clazz) {
+        try {
+            return OBJECT_MAPPER.readValue(file, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static <T> T readValue(File file, TypeReference<T> clazz) {
+        try {
+            return OBJECT_MAPPER.readValue(file, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static <T> T readValue(File file, Class<T> clazz) {
+        try {
+            return OBJECT_MAPPER.readValue(file, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+
+    public static JsonNode toJsonNode(Path file) {
+        try {
+            return OBJECT_MAPPER.readTree(Files.readAllBytes(file));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static <T> T treeToValue(JsonNode node, Class<T> clazz) {
+        try {
+            return OBJECT_MAPPER.treeToValue(node, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't convert value: " + node.toString(), e);
         }
     }
 

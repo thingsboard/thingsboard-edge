@@ -151,6 +151,7 @@ public class BaseOtaPackageService implements OtaPackageService {
         return getHashFunction(checksumAlgorithm).hashBytes(data.array()).toString();
     }
 
+    @SuppressWarnings("deprecation")
     private HashFunction getHashFunction(ChecksumAlgorithm checksumAlgorithm) {
         switch (checksumAlgorithm) {
             case MD5:

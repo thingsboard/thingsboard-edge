@@ -230,12 +230,6 @@ public interface TbContext {
 
     CloudEventService getCloudEventService();
 
-    /**
-     * Js script executors call are completely asynchronous
-     * */
-    @Deprecated
-    ListeningExecutor getJsExecutor();
-
     ListeningExecutor getMailExecutor();
 
     ListeningExecutor getSmsExecutor();

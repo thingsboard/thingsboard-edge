@@ -55,6 +55,7 @@ import { map, mergeMap, publishReplay, refCount, tap } from 'rxjs/operators';
 import { alarmFields } from '@shared/models/alarm.models';
 import { JsFuncComponent } from '@shared/components/js-func.component';
 import { JsonFormComponentData } from '@shared/components/json-form/json-form-component.models';
+import { WidgetService } from '@core/http/widget.service';
 
 @Component({
   selector: 'tb-data-key-config',
@@ -114,13 +115,17 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
 
   keySearchText = '';
 
+  functionScopeVariables: string[];
+
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
               private entityService: EntityService,
               private dialog: MatDialog,
               private translate: TranslateService,
+              private widgetService: WidgetService,
               private fb: FormBuilder) {
     super(store);
+    this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
 
   ngOnInit(): void {

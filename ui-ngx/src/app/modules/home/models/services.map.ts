@@ -55,6 +55,8 @@ import { EdgeService } from '@core/http/edge.service';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { OtaPackageService } from '@core/http/ota-package.service';
+import { RuleEngineService } from '@core/http/rule-engine.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -82,6 +84,8 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['importExport', ImportExportService],
    ['schedulerEventService', SchedulerEventService],
    ['deviceProfileService', DeviceProfileService],
-   ['otaPackageService', OtaPackageService]
+   ['otaPackageService', OtaPackageService],
+   ['ruleEngineService', RuleEngineService],
+   ['userPermissionsService', UserPermissionsService]
   ]
 );

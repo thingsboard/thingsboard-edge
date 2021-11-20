@@ -83,7 +83,7 @@ import {
   KeyFilter,
   updateDatasourceFromEntityInfo
 } from '@shared/models/query/query.models';
-import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
+import { distinct, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { AlarmDataListener } from '@core/api/alarm-data.service';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { RpcStatus } from '@shared/models/rpc.models';
@@ -123,10 +123,12 @@ export class WidgetSubscription implements IWidgetSubscription {
   caulculateLegendData: boolean;
   displayLegend: boolean;
   stateData: boolean;
+  datasourcesOptional: boolean;
   decimals: number;
   units: string;
   comparisonEnabled: boolean;
   timeForComparison: ComparisonDuration;
+  comparisonCustomIntervalValue: number;
   comparisonTimeWindow: WidgetTimewindow;
   timewindowForComparison: SubscriptionTimewindow;
 
@@ -155,6 +157,11 @@ export class WidgetSubscription implements IWidgetSubscription {
   executingSubjects: Array<Subject<any>>;
 
   subscribed = false;
+  widgetTimewindowChangedSubject: Subject<WidgetTimewindow> = new ReplaySubject<WidgetTimewindow>();
+
+  widgetTimewindowChanged$ = this.widgetTimewindowChangedSubject.asObservable().pipe(
+    distinct()
+  );
 
   constructor(subscriptionContext: WidgetSubscriptionContext, public options: WidgetSubscriptionOptions) {
     const subscriptionSubject = new ReplaySubject<IWidgetSubscription>();
@@ -192,6 +199,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.callbacks.dataLoading = this.callbacks.dataLoading || (() => {});
       this.callbacks.timeWindowUpdated = this.callbacks.timeWindowUpdated || (() => {});
       this.alarmSource = options.alarmSource;
+      this.datasourcesOptional = options.datasourcesOptional;
       this.alarmDataListener = null;
       this.alarms = emptyPageData();
       this.originalTimewindow = null;
@@ -223,6 +231,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.callbacks.timeWindowUpdated = this.callbacks.timeWindowUpdated || (() => {});
 
       this.configuredDatasources = this.ctx.utils.validateDatasources(options.datasources);
+      this.datasourcesOptional = options.datasourcesOptional;
       this.entityDataListeners = [];
       this.hasDataPageLink = options.hasDataPageLink;
       this.singleEntity = options.singleEntity;
@@ -251,6 +260,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.comparisonEnabled = options.comparisonEnabled && isHistoryTypeTimewindow(this.timeWindowConfig);
       if (this.comparisonEnabled) {
         this.timeForComparison = options.timeForComparison;
+        this.comparisonCustomIntervalValue = options.comparisonCustomIntervalValue;
 
         this.comparisonTimeWindow = {};
         this.timewindowForComparison = null;
@@ -402,7 +412,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   private prepareDataSubscriptions(): Observable<any> {
-    if (this.hasDataPageLink) {
+    if (this.hasDataPageLink || !this.configuredDatasources || !this.configuredDatasources.length) {
       this.hasResolvedData = true;
       this.notifyDataLoaded();
       return of(null);
@@ -458,7 +468,7 @@ export class WidgetSubscription implements IWidgetSubscription {
           }
         });
         this.configureLoadedData();
-        this.hasResolvedData = this.datasources.length > 0;
+        this.hasResolvedData = this.datasources.length > 0 || this.datasourcesOptional;
         this.updateDataTimewindow();
         this.notifyDataLoaded();
         this.onDataUpdated(true);
@@ -820,6 +830,7 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   update(isTimewindowTypeChanged = false) {
     if (this.type !== widgetType.rpc) {
+      this.widgetTimewindowChangedSubject.next(this.timeWindowConfig);
       if (this.type === widgetType.alarm) {
         this.updateAlarmDataSubscription();
       } else {
@@ -1239,6 +1250,7 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   destroy(): void {
     this.unsubscribe();
+    this.widgetTimewindowChangedSubject.complete();
     for (const cafId of Object.keys(this.cafs)) {
       if (this.cafs[cafId]) {
         this.cafs[cafId]();
@@ -1306,7 +1318,8 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   private updateSubscriptionForComparison(): SubscriptionTimewindow {
-    this.timewindowForComparison = createTimewindowForComparison(this.subscriptionTimewindow, this.timeForComparison);
+    this.timewindowForComparison = createTimewindowForComparison(this.subscriptionTimewindow, this.timeForComparison,
+      this.comparisonCustomIntervalValue);
     this.updateComparisonTimewindow();
     return this.timewindowForComparison;
   }

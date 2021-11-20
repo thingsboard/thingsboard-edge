@@ -243,20 +243,21 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail) throws ThingsboardException {
-        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+        JsonNode jsonConfig = configEntry.jsonConfig;
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
-        sendMail(tenantId, customerId, tbEmail, mailSender);
+        sendMail(tenantId, customerId, tbEmail, mailSender, false);
     }
 
     @Override
     public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender) throws ThingsboardException {
-        sendMail(tenantId, customerId, tbEmail, javaMailSender);
+        sendMail(tenantId, customerId, tbEmail, javaMailSender, true);
     }
 
-    private void sendMail(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender) throws ThingsboardException {
-        ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+    private void sendMail(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender, boolean externalMailSender) throws ThingsboardException {
+        ConfigEntry configEntry = getConfig(tenantId, "mail", true);
         JsonNode jsonConfig = configEntry.jsonConfig;
-        if (!configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
+        if (externalMailSender || !configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
             String mailFrom = getStringValue(jsonConfig, "mailFrom");
             try {
                 MimeMessage mailMsg = javaMailSender.createMimeMessage();
@@ -295,7 +296,7 @@ public class DefaultMailService implements MailService {
                     }
                 }
                 javaMailSender.send(helper.getMimeMessage());
-                if (configEntry.isSystem) {
+                if (!externalMailSender && configEntry.isSystem) {
                     apiUsageClient.report(tenantId, customerId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
                 }
             } catch (Exception e) {

@@ -43,9 +43,12 @@ import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.util.ExceptionUtil;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -54,8 +57,6 @@ import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -91,12 +92,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             Map.Entry<String, JsonNode> md = it.next();
             mdMap.put(md.getKey(), md.getValue().asText());
         }
-        this.metadataTemplate = new UplinkMetaData(getUplinkContentType(), mdMap);
+        this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
         this.integrationStatistics = new IntegrationStatistics();
     }
 
-    protected String getUplinkContentType() {
-        return "JSON";
+    protected UplinkContentType getDefaultUplinkContentType() {
+        return UplinkContentType.JSON;
     }
 
     @Override
@@ -120,7 +121,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException{
+    public void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
         if (integration == null || integration.getConfiguration() == null) {
             throw new IllegalArgumentException("Integration configuration is empty!");
         }
@@ -177,11 +178,15 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
-                .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType());
-        if (data.getCustomerName() != null) {
+                .setDeviceName(data.getDeviceName())
+                .setDeviceType(data.getDeviceType());
+        if (StringUtils.isNotEmpty(data.getDeviceLabel())){
+            builder.setDeviceLabel(data.getDeviceLabel());
+        }
+        if (StringUtils.isNotEmpty(data.getCustomerName())) {
             builder.setCustomerName(data.getCustomerName());
         }
-        if (data.getGroupName() != null) {
+        if (StringUtils.isNotEmpty(data.getGroupName())) {
             builder.setGroupName(data.getGroupName());
         }
         if (data.getTelemetry() != null) {
@@ -196,10 +201,13 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
         AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
                 .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
-        if (data.getCustomerName() != null) {
+        if (StringUtils.isNotEmpty(data.getAssetLabel())){
+            builder.setAssetLabel(data.getAssetLabel());
+        }
+        if (StringUtils.isNotEmpty(data.getCustomerName())) {
             builder.setCustomerName(data.getCustomerName());
         }
-        if (data.getGroupName() != null) {
+        if (StringUtils.isNotEmpty(data.getGroupName())) {
             builder.setGroupName(data.getGroupName());
         }
         if (data.getTelemetry() != null) {
@@ -230,6 +238,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         return false;
     }
 
+    protected void persistDebug(IntegrationContext context, String type, UplinkContentType messageType, String message, String status, Exception exception) {
+        persistDebug(context, type, messageType.name(), message, status, exception);
+    }
+
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
                 .put("server", context.getServiceId())
@@ -245,10 +257,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         context.saveEvent(DataConstants.DEBUG_INTEGRATION, Uuids.timeBased().toString(), node, new DebugEventCallback());
     }
 
-    private String toString(Exception e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
+    protected String toString(Exception e) {
+        return ExceptionUtil.toString(e, configuration.getId(), context.isExceptionStackTraceEnabled());
     }
 
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {

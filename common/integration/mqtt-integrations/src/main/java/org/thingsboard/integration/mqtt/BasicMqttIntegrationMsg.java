@@ -31,20 +31,17 @@
 package org.thingsboard.integration.mqtt;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
-
-import java.io.IOException;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.util.ConvertUtil;
 
 /**
  * Created by ashvayka on 04.12.17.
  */
 @Data
 public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
-
-    private static ObjectMapper mapper = new ObjectMapper();
 
     private final String topic;
     private final byte[] payload;
@@ -57,17 +54,8 @@ public class BasicMqttIntegrationMsg implements MqttIntegrationMsg {
 
     @Override
     public JsonNode toJson() {
-        ObjectNode json = mapper.createObjectNode().put("topic", topic);
-        JsonNode payloadJson = null;
-        try {
-            payloadJson = mapper.readTree(payload);
-        } catch (IOException e) {
-        }
-        if (payloadJson != null) {
-            json.set("payload", payloadJson);
-        } else {
-            json.put("payload", payload);
-        }
+        ObjectNode json = JacksonUtil.newObjectNode().put("topic", topic);
+        ConvertUtil.putJson(json, payload);
         return json;
     }
 }
