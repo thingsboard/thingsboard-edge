@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.msa;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
@@ -37,14 +40,26 @@ import org.testcontainers.containers.DockerComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.UUID;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.connectivity.EdgeClientTest"})
+@Slf4j
 public class ContainerTestSuite {
 
     public static DockerComposeContainer<?> testContainer;
+
+    private static final String SOURCE_DIR = "./../../docker-edge/";
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
@@ -96,7 +111,7 @@ public class ContainerTestSuite {
                         .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
-                fail("Failed to create test container");
+                Assert.fail("Failed to create test container");
             }
         }
         return testContainer;
