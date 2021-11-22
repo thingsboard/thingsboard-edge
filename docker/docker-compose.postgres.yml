@@ -38,7 +38,7 @@ services:
     ports:
     - "5432"
     environment:
-      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb-edge"'
+      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge"'
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./tb-node/pg_test:/var/lib/postgresql/data
