@@ -51,8 +51,8 @@ public class TbEdgeInstaller extends ExternalResource {
     private final Map<String, String> env;
 
     public TbEdgeInstaller() {
-        List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
-                new File("./../../docker-edge/docker-compose.volumes.yml"));
+        List<File> composeFiles = Arrays.asList(new File("./../../docker/docker-compose.yml"),
+                new File("./../../docker/docker-compose.volumes.yml"));
 
         String identifier = Base58.randomString(6).toLowerCase();
         String project = identifier + Base58.randomString(6).toLowerCase();

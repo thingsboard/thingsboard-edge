@@ -850,8 +850,8 @@
                             <exclude>**/src/index.html</exclude>
                             <exclude>**/public/static/rulenode/**</exclude>
                             <exclude>**/*.proto.js</exclude>
-                            <exclude>docker-edge/haproxy/**</exclude>
-                            <exclude>docker-edge/tb-node/**</exclude>
+                            <exclude>docker/haproxy/**</exclude>
+                            <exclude>docker/tb-node/**</exclude>
                             <exclude>src/browserslist</exclude>
                             <exclude>src/main/resources/models/*.xml</exclude>
                             <exclude>src/main/resources/credentials/*.jks</exclude>
@@ -862,7 +862,7 @@
                             <exclude>**/yarn.lock</exclude>
                             <exclude>**/*.raw</exclude>
                             <exclude>.run/**</exclude>
-                            <exclude>docker-edge/**</exclude>
+                            <exclude>docker/**</exclude>
                             <exclude>**/apache/cassandra/io/**</exclude>
                             <exclude>.run/**</exclude>
                         </excludes>

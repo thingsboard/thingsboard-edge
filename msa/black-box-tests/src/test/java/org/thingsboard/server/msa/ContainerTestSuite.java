@@ -59,7 +59,7 @@ public class ContainerTestSuite {
 
     public static DockerComposeContainer<?> testContainer;
 
-    private static final String SOURCE_DIR = "./../../docker-edge/";
+    private static final String SOURCE_DIR = "./../../docker/";
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
@@ -98,9 +98,9 @@ public class ContainerTestSuite {
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
-                        new File("./../../docker-edge/docker-compose.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
+                        new File("./../../docker/docker-compose.yml"),
+                        new File("./../../docker/docker-compose.postgres.yml"),
+                        new File("./../../docker/docker-compose.postgres.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
