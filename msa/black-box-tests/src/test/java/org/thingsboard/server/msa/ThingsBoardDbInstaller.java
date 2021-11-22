@@ -80,7 +80,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
 
         env.put("DOCKER_REPO", "thingsboard");
-        env.put("TB_VERSION", "3.3.1PE-SNAPSHOT");
+        env.put("TB_VERSION", "3.3.2PE-SNAPSHOT");
 
         env.put("EDGE_DOCKER_REPO", "thingsboard");
         env.put("TB_EDGE_DOCKER_NAME", "tb-edge");

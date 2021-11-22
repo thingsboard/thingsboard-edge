@@ -36,7 +36,6 @@ services:
   tb-edge:
     restart: always
     image: "${EDGE_DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
-    #    image: "thingsboard/tb-edge:3.3.0-EDGE-SNAPSHOT"
     ports:
       - "8082"
       - "1883"
@@ -69,6 +68,8 @@ services:
       TB_SERVICE_TYPE: monolith
       MQTT_ENABLED: "false"
       COAP_ENABLED: "false"
+      LWM2M_ENABLED: "false"
+      SNMP_ENABLED: "false"
       EDGES_ENABLED: "true"
     env_file:
       - tb-node.env

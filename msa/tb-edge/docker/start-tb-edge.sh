@@ -37,14 +37,20 @@ firstlaunch=${DATA_FOLDER}/.firstlaunch
 
 source "${CONF_FOLDER}/${configfile}"
 
-if [ ! -f ${firstlaunch} ]; then
-    install-tb-edge.sh --loadDemo
-    touch ${firstlaunch}
+if [ "$INSTALL_TB_EDGE" == "true" ]; then
+
+  install-tb-edge.sh --loadDemo
+
+else
+  if [ ! -f ${firstlaunch} ]; then
+      install-tb-edge.sh --loadDemo
+      touch ${firstlaunch}
+  fi
+
+  echo "Starting ThingsBoard Edge ..."
+
+  java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
+                      -Dspring.jpa.hibernate.ddl-auto=none \
+                      -Dlogging.config=${CONF_FOLDER}/logback.xml \
+                      org.springframework.boot.loader.PropertiesLauncher
 fi
-
-echo "Starting ThingsBoard Edge ..."
-
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
