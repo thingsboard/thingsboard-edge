@@ -88,6 +88,8 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                     if (isEntityExists(tenantId, entityRelation.getTo())
                             && isEntityExists(tenantId, entityRelation.getFrom())) {
                         relationService.saveRelationAsync(tenantId, entityRelation);
+                    } else {
+                        log.warn("Skipping relating update msg because from/to entity doesn't exists on edge, {}", relationUpdateMsg);
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
