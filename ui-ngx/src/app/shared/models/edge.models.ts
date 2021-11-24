@@ -72,11 +72,6 @@ export enum CloudType {
   CE = "CE"
 }
 
-export enum cloudConnectionStatus {
-  true = 'edge.connected',
-  false = 'edge.disconnected'
-}
-
 export enum CloudEventType {
   DASHBOARD = "DASHBOARD",
   ASSET = "ASSET",
