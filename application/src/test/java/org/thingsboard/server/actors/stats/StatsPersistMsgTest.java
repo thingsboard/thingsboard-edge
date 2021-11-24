@@ -28,20 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.tools;
+package org.thingsboard.server.actors.stats;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.EntityType;
+import org.junit.jupiter.api.Test;
+import org.thingsboard.server.common.data.id.TenantId;
 
-/**
- * Created by ashvayka on 22.10.18.
- */
-public class TbRateLimitsException extends RuntimeException {
-    @Getter
-    private final EntityType entityType;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public TbRateLimitsException(EntityType entityType) {
-        super(entityType.name() + " rate limits reached!");
-        this.entityType = entityType;
+class StatsPersistMsgTest {
+
+    @Test
+    void testIsEmpty() {
+        StatsPersistMsg emptyStats = new StatsPersistMsg(0, 0, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+        assertThat(emptyStats.isEmpty()).isTrue();
     }
+
+    @Test
+    void testNotEmpty() {
+        assertThat(new StatsPersistMsg(1, 0, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isEmpty()).isFalse();
+        assertThat(new StatsPersistMsg(0, 1, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isEmpty()).isFalse();
+        assertThat(new StatsPersistMsg(1, 1, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isEmpty()).isFalse();
+    }
+
 }
