@@ -293,6 +293,9 @@ public class CloudManagerService extends BaseCloudEventService {
 
     @PreDestroy
     public void destroy() throws InterruptedException {
+
+        updateConnectivityStatus(false);
+
         String edgeId = currentEdgeSettings != null ? currentEdgeSettings.getEdgeId() : "";
         log.info("[{}] Starting destroying process", edgeId);
         try {
@@ -560,8 +563,7 @@ public class CloudManagerService extends BaseCloudEventService {
         // TODO: voba - verify storage of edge entity
         saveEdge(edgeConfiguration);
 
-        save(DefaultDeviceStateService.ACTIVITY_STATE, true);
-        save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
+        updateConnectivityStatus(true);
 
         AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
         if (newEdgeSetting.getCloudType().equals(CloudType.CE) && existingMailTemplates == null) {
@@ -699,12 +701,22 @@ public class CloudManagerService extends BaseCloudEventService {
         }, MoreExecutors.directExecutor());
     }
 
+    private void updateConnectivityStatus(boolean activityState) {
+        if (tenantId != null) {
+            save(DefaultDeviceStateService.ACTIVITY_STATE, activityState);
+            if (activityState) {
+                save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
+            } else {
+                save(DefaultDeviceStateService.LAST_DISCONNECT_TIME, System.currentTimeMillis());
+            }
+        }
+    }
+
     private void scheduleReconnect(Exception e) {
         initialized = false;
-        if (tenantId != null) {
-            save(DefaultDeviceStateService.ACTIVITY_STATE, false);
-            save(DefaultDeviceStateService.LAST_DISCONNECT_TIME, System.currentTimeMillis());
-        }
+
+        updateConnectivityStatus(false);
+
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
@@ -713,11 +725,15 @@ public class CloudManagerService extends BaseCloudEventService {
                 } catch (Exception ex) {
                     log.error("Exception during disconnect: {}", ex.getMessage());
                 }
-                edgeRpcClient.connect(routingKey, routingSecret,
-                        this::onUplinkResponse,
-                        this::onEdgeUpdate,
-                        this::onDownlink,
-                        this::scheduleReconnect);
+                try {
+                    edgeRpcClient.connect(routingKey, routingSecret,
+                            this::onUplinkResponse,
+                            this::onEdgeUpdate,
+                            this::onDownlink,
+                            this::scheduleReconnect);
+                } catch (Exception ex) {
+                    log.error("Exception during connect: {}", ex.getMessage());
+                }
             }, reconnectTimeoutMs, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }
     }
