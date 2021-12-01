@@ -116,6 +116,10 @@ public final class TbMsg implements Serializable {
         return newMsg(type, originator, null, metaData, dataType, data);
     }
 
+    public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
+        return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), type, originator, null, metaData.copy(), dataType, data, null, null, 0, TbMsgCallback.EMPTY);
+    }
+
     // For Tests only
 
     public static TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data, RuleChainId ruleChainId, RuleNodeId ruleNodeId) {
