@@ -50,7 +50,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { EntityRelationService } from '@core/http/entity-relation.service';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { forkJoin, fromEvent, merge, Observable, Subscription } from 'rxjs';
+import { forkJoin, fromEvent, merge, Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import {
   EntityRelation,
@@ -66,8 +66,8 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation, resourceByEntityType } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { BreakpointObserver } from '@angular/cdk/layout';
-import { MediaBreakpoints } from '@shared/models/constants';
+import { hidePageSizePixelValue } from '@shared/models/constants';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 @Component({
   selector: 'tb-relation-table',
@@ -95,7 +95,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   viewsInited = false;
 
-  private breakpointObserverSubscription$: Subscription;
+  private widgetResize$: ResizeObserver;
   public hidePageSize = true;
 
   @Input()
@@ -134,6 +134,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     this.readonlyValue = coerceBooleanProperty(value);
   }
 
+  @ViewChild('relationTableContainer', {static: true}) relationTableContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -145,8 +146,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
               public dialog: MatDialog,
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
-              private cd: ChangeDetectorRef,
-              private breakpointObserver: BreakpointObserver) {
+              private cd: ChangeDetectorRef) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'type', direction: Direction.ASC };
@@ -157,18 +157,19 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   ngOnInit() {
     this.updateColumns();
-    this.breakpointObserverSubscription$ = this.breakpointObserver
-      .observe(MediaBreakpoints['gt-xs']).subscribe(
-        () => {
-          this.hidePageSize = !this.breakpointObserver.isMatched(MediaBreakpoints['gt-xs']);
-          this.cd.detectChanges();
-        }
-      );
+    this.widgetResize$ = new ResizeObserver(() => {
+      const showHidePageSize = this.relationTableContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+      if (showHidePageSize !== this.hidePageSize) {
+        this.hidePageSize = showHidePageSize;
+        this.cd.detectChanges();
+      }
+    });
+    this.widgetResize$.observe(this.relationTableContainerRef.nativeElement);
   }
 
   ngOnDestroy() {
-    if (this.breakpointObserverSubscription$) {
-      this.breakpointObserverSubscription$.unsubscribe();
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 

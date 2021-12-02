@@ -29,7 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -47,7 +58,7 @@ import {
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject, Subscription } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import {
   catchError,
@@ -102,6 +113,8 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -111,6 +124,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 })
 export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit, OnChanges {
 
+  @ViewChild('schedulerEventWidgetContainer', {static: true}) schedulerEventWidgetContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -185,6 +199,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   schedulerContextMenuEvent: MouseEvent;
 
+  public hidePageSize = false;
+  private widgetResize$: ResizeObserver;
+
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
               public translate: TranslateService,
@@ -192,7 +209,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
               private dialog: MatDialog,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -230,6 +248,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.addEnabled = false;
         this.editEnabled = false;
       }
+    }
+    if (this.displayPagination) {
+      this.widgetResize$ = new ResizeObserver(() => {
+        const showHidePageSize = this.schedulerEventWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.detectChanges();
+        }
+      });
+      this.widgetResize$.observe(this.schedulerEventWidgetContainerRef.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 

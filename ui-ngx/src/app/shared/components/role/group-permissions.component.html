@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="mat-padding tb-entity-table" [ngClass]="{'tb-absolute-fill': groupPermissionsMode === 'group'}">
+<div #groupPermissionContainer class="mat-padding tb-entity-table" [ngClass]="{'tb-absolute-fill': groupPermissionsMode === 'group'}">
   <div fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
     <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
@@ -202,6 +202,7 @@
     <mat-paginator [length]="dataSource.total() | async"
                    [pageIndex]="pageLink.page"
                    [pageSize]="pageLink.pageSize"
-                   [pageSizeOptions]="[10, 20, 30]"></mat-paginator>
+                   [pageSizeOptions]="[10, 20, 30]"
+                   [hidePageSize]="hidePageSize"></mat-paginator>
   </div>
 </div>

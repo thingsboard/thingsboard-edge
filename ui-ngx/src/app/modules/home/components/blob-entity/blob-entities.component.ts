@@ -54,6 +54,8 @@ import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/mod
 import { isDefined, isNotEmptyStr, isNumber } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
 import { UtilsService } from '@core/services/utils.service';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-blob-entities',
@@ -63,6 +65,7 @@ import { UtilsService } from '@core/services/utils.service';
 })
 export class BlobEntitiesComponent extends PageComponent implements OnInit, AfterViewInit {
 
+  @ViewChild('blobEntitiesWidgetContainer', {static: true}) blobEntitiesWidgetContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -104,6 +107,9 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
 
   dataSource: BlobEntitiesDatasource;
 
+  public hidePageSize = false;
+  private widgetResize$: ResizeObserver;
+
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
               public translate: TranslateService,
@@ -133,6 +139,22 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
       this.pageLink = new TimePageLink(this.defaultPageSize, 0, null, sortOrder,
         currentTime - this.timewindow.history.timewindowMs, currentTime);
       this.dataSource = new BlobEntitiesDatasource(this.blobEntityService, this.translate);
+    }
+    if (this.displayPagination) {
+      this.widgetResize$ = new ResizeObserver(() => {
+        const showHidePageSize = this.blobEntitiesWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.ctx.detectChanges();
+        }
+      });
+      this.widgetResize$.observe(this.blobEntitiesWidgetContainerRef.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 
