@@ -68,7 +68,6 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     private long delay;
     private long lastScheduledTs;
     private UUID nextTickId;
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -79,8 +78,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-
-        if (initialized.get() && msg.getType().equals(tickMessageType()) && msg.getId().equals(nextTickId)) {
+        if (msg.getType().equals(tickMessageType()) && msg.getId().equals(nextTickId)) {
             withCallback(aggregate(ctx),
                     m -> scheduleTickMsg(ctx),
                     t -> {
