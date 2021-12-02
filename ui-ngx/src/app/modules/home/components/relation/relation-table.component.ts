@@ -96,7 +96,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
   viewsInited = false;
 
   private widgetResize$: ResizeObserver;
-  public hidePageSize = true;
+  public hidePageSize = false;
 
   @Input()
   set active(active: boolean) {

@@ -140,7 +140,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   private viewInited = false;
 
   private widgetResize$: ResizeObserver;
-  public hidePageSize = true;
+  public hidePageSize = false;
 
   constructor(protected store: Store<AppState>,
               public route: ActivatedRoute,
