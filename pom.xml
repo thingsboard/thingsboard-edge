@@ -130,7 +130,6 @@
         <ua-parser.version>1.4.3</ua-parser.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
-        <jsass.version>5.10.3</jsass.version>
         <micrometer.version>1.5.2</micrometer.version>
         <protobuf-dynamic.version>1.0.3TB</protobuf-dynamic.version>
         <wire-schema.version>3.4.0</wire-schema.version>
@@ -861,6 +860,7 @@
                             <exclude>**/*.raw</exclude>
                             <exclude>.run/**</exclude>
                             <exclude>docker/**</exclude>
+                            <exclude>**/*.patch</exclude>
                             <exclude>**/apache/cassandra/io/**</exclude>
                             <exclude>.run/**</exclude>
                         </excludes>
@@ -1914,11 +1914,6 @@
                 <groupId>com.github.ua-parser</groupId>
                 <artifactId>uap-java</artifactId>
                 <version>${ua-parser.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.bit3</groupId>
-                <artifactId>jsass</artifactId>
-                <version>${jsass.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.amazonaws</groupId>

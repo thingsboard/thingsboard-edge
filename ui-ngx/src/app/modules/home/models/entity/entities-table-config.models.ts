@@ -41,13 +41,13 @@ import { Type } from '@angular/core';
 import { EntityAction } from './entity-component.models';
 import { HasUUID } from '@shared/models/id/has-uuid';
 import { PageLink } from '@shared/models/page/page-link';
-import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
 import { ActivatedRoute } from '@angular/router';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, resourceByEntityType } from '@shared/models/security.models';
 import { DAY, historyInterval } from '@shared/models/time/time.models';
+import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -157,7 +157,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
 
   loadDataOnInit = true;
   onLoadAction: (route: ActivatedRoute) => void = null;
-  table: EntitiesTableComponent = null;
+  table: IEntitiesTableComponent = null;
   useTimePageLink = false;
   defaultTimewindowInterval = historyInterval(DAY);
   entityType: EntityType = null;

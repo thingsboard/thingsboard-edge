@@ -743,6 +743,11 @@ export const markerClusteringSettingsSchemaLeaflet =
                 type: 'number',
                 default: 80
             },
+            spiderfyOnMaxZoom: {
+              title: 'Spiderfy at the max zoom level (to see all cluster markers)',
+              type: 'boolean',
+              default: false
+            },
             chunkedLoading: {
                 title: 'Use chunks for adding markers so that the page does not freeze',
                 type: 'boolean',
@@ -762,6 +767,7 @@ export const markerClusteringSettingsSchemaLeaflet =
         'showCoverageOnHover',
         'animate',
         'maxClusterRadius',
+        'spiderfyOnMaxZoom',
         'chunkedLoading',
         'removeOutsideVisibleBounds'
     ]

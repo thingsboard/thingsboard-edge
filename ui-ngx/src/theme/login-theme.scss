@@ -28,69 +28,70 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '~@angular/material/theming';
+@use '~@angular/material' as mat;
 @import 'login-theme-constants';
 
-$primary-extends: $mat-tb-primary; // extends
-$primary-color-map: (); // color map
+@include mat.core();
 
-$accent-extends: $mat-tb-accent; // extends
-$accent-color-map: (); // color map
+@function get-tb-dark-theme($primary, $accent, $dark-foreground: false, $warn: mat.define-palette(mat.$red-palette)) {
 
-$dark-foreground: false;
+  $backgroundContrastColor: map-get($primary, if($dark-foreground, 900, 200));
+  $backgroundColor: map-get($primary, 500);
 
-$tb-primary-colors: map_merge($primary-extends, $primary-color-map);
-$tb-accent-colors: map_merge($accent-extends, $accent-color-map);
+  $tb-primary-palette-colors: map_merge($primary, (
+    500: $backgroundContrastColor
+  ));
 
-$backgroundContrastColor: map-get($tb-primary-colors, if($dark-foreground, 900, 200));
-$backgroundColor: map-get($tb-primary-colors, 500);
+  $tb-background-palette-colors: map_merge($tb-primary-palette-colors, (
+    800: $backgroundColor
+  ));
 
-$tb-primary-palette-colors: map_merge($tb-primary-colors, (
-  500: $backgroundContrastColor
-));
+  $tb-primary: mat.define-palette($tb-primary-palette-colors);
+  $tb-accent: mat.define-palette($accent);
 
-$tb-background-palette-colors: map_merge($tb-primary-palette-colors, (
-  800: $backgroundColor
-));
+  $tb-dark-theme-background: (
+    status-bar: black,
+    app-bar:    map_get($tb-background-palette-colors, 900),
+    background: map_get($tb-background-palette-colors, 800),
+    hover:      rgba(white, 0.04),
+    card:       map_get($tb-background-palette-colors, 800),
+    dialog:     map_get($tb-background-palette-colors, 800),
+    disabled-button: rgba(white, 0.12),
+    raised-button: map-get($tb-background-palette-colors, 50),
+    focused-button: rgba(white, 0.12),
+    selected-button: map_get($tb-background-palette-colors, 900),
+    selected-disabled-button: map_get($tb-background-palette-colors, 800),
+    disabled-button-toggle: black,
+    unselected-chip: map_get($tb-background-palette-colors, 700),
+    disabled-list-option: black,
+    tooltip: map_get(mat.$grey-palette, 700)
+  );
 
-$tb-primary: mat-palette($tb-primary-palette-colors);
-$tb-accent: mat-palette($tb-accent-colors);
-
-$tb-dark-theme-background: (
-  status-bar: black,
-  app-bar:    map_get($tb-background-palette-colors, 900),
-  background: map_get($tb-background-palette-colors, 800),
-  hover:      rgba(white, 0.04),
-  card:       map_get($tb-background-palette-colors, 800),
-  dialog:     map_get($tb-background-palette-colors, 800),
-  disabled-button: rgba(white, 0.12),
-  raised-button: map-get($tb-background-palette-colors, 50),
-  focused-button: $light-focused,
-  selected-button: map_get($tb-background-palette-colors, 900),
-  selected-disabled-button: map_get($tb-background-palette-colors, 800),
-  disabled-button-toggle: black,
-  unselected-chip: map_get($tb-background-palette-colors, 700),
-  disabled-list-option: black,
-  tooltip: map_get($mat-grey, 700),
-);
-
-@function get-tb-dark-theme($primary, $accent, $dark-foreground: false, $warn: mat-palette($mat-red)) {
   @return (
-    primary: $primary,
-    accent: $accent,
+    primary: $tb-primary,
+    accent: $tb-accent,
     warn: $warn,
     is-dark: true,
-    foreground: if($dark-foreground, $mat-light-theme-foreground, $mat-dark-theme-foreground),
-    background: $tb-dark-theme-background,
+    foreground: if($dark-foreground, mat.$light-theme-foreground-palette, mat.$dark-theme-foreground-palette),
+    background: $tb-dark-theme-background
   );
 }
 
 $tb-theme: get-tb-dark-theme(
-    $tb-primary,
-    $tb-accent,
-    $dark-foreground
+    $mat-tb-primary,
+    $mat-tb-accent,
+    false
+);
+
+$tb-dark-foreground-theme: get-tb-dark-theme(
+    $mat-tb-primary,
+    $mat-tb-accent,
+    true
 );
 
 .tb-dark {
-  @include angular-material-theme($tb-theme);
+  @include mat.all-component-themes($tb-theme);
+  &.dark-foreground {
+    @include mat.all-component-themes($tb-dark-foreground-theme);
+  }
 }

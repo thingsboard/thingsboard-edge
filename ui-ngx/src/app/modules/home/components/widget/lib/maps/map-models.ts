@@ -72,6 +72,7 @@ export type MapSettings = {
     showCoverageOnHover: boolean,
     animate: boolean,
     maxClusterRadius: number,
+    spiderfyOnMaxZoom: boolean,
     chunkedLoading: boolean,
     removeOutsideVisibleBounds: boolean,
     useCustomProvider: boolean,

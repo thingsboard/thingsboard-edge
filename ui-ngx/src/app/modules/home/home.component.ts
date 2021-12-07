@@ -40,15 +40,13 @@ import { PageComponent } from '@shared/components/page.component';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthState, selectAuthUser, selectUserDetails } from '@core/auth/auth.selectors';
 import { MediaBreakpoints } from '@shared/models/constants';
-import * as _screenfull from 'screenfull';
+import screenfull from 'screenfull';
 import { MatSidenav } from '@angular/material/sidenav';
 import { AuthState } from '@core/auth/auth.models';
 import { WINDOW } from '@core/services/window.service';
 import { instanceOfSearchableComponent, ISearchableComponent } from '@home/models/searchable-component.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
-
-const screenfull = _screenfull as _screenfull.Screenfull;
 
 @Component({
   selector: 'tb-home',

@@ -180,6 +180,10 @@ import { SnmpDeviceProfileTransportModule } from '@home/components/profile/devic
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
 import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';
+import {
+  COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN,
+  DASHBOARD_PAGE_COMPONENT_TOKEN
+} from '@home/components/tokens';
 
 @NgModule({
   declarations:
@@ -459,7 +463,9 @@ import { SolutionInstallDialogComponent } from '@home/components/solution/soluti
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,
-    {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent}
+    {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
+    {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
+    {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent}
   ]
 })
 export class HomeComponentsModule {
