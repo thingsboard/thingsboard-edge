@@ -65,7 +65,7 @@ import {
   RuleChainMetaData,
   ruleChainNodeComponent, RuleChainType
 } from '@shared/models/rule-chain.models';
-import { FcItemInfo, FlowchartConstants, NgxFlowchartComponent, UserCallbacks } from 'ngx-flowchart/dist/ngx-flowchart';
+import { FcItemInfo, FlowchartConstants, NgxFlowchartComponent, UserCallbacks } from 'ngx-flowchart';
 import {
   FcRuleEdge,
   FcRuleNode,
