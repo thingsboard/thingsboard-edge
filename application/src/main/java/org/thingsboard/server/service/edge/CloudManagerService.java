@@ -133,6 +133,7 @@ import java.util.stream.Collectors;
 public class CloudManagerService extends BaseCloudEventService {
 
     private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
+    private static final ReentrantLock pendingMsgsMapLock = new ReentrantLock();
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
@@ -371,7 +372,12 @@ public class CloudManagerService extends BaseCloudEventService {
                 }
                 success = latch.await(10, TimeUnit.SECONDS);
                 if (!success || pendingMsgsMap.values().size() > 0) {
-                    log.warn("Failed to deliver the batch: {}", pendingMsgsMap.values());
+                    pendingMsgsMapLock.lock();
+                    try {
+                        log.warn("Failed to deliver the batch: {}", pendingMsgsMap.values());
+                    } finally {
+                        pendingMsgsMapLock.unlock();
+                    }
                 }
                 if (initialized && (!success || pendingMsgsMap.values().size() > 0)) {
                     try {
@@ -514,7 +520,12 @@ public class CloudManagerService extends BaseCloudEventService {
     private void onUplinkResponse(UplinkResponseMsg msg) {
         try {
             if (msg.getSuccess()) {
-                pendingMsgsMap.remove(msg.getUplinkMsgId());
+                pendingMsgsMapLock.lock();
+                try {
+                    pendingMsgsMap.remove(msg.getUplinkMsgId());
+                } finally {
+                    pendingMsgsMapLock.unlock();
+                }
                 log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
             } else {
                 log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());
