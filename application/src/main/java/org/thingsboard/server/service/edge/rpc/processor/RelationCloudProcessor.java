@@ -106,7 +106,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private boolean isEntityExists(TenantId tenantId, EntityId entityId) throws ThingsboardException {
+    private boolean isEntityExists(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
             case DEVICE:
                 return deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
@@ -125,7 +125,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
             case EDGE:
                 return edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId())) != null;
             default:
-                throw new ThingsboardException("Unsupported entity type " + entityId.getEntityType(), ThingsboardErrorCode.INVALID_ARGUMENTS);
+                return false;
         }
 
     }
