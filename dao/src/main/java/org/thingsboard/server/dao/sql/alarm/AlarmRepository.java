@@ -156,31 +156,15 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                                            @Param("affectedEntityType") String affectedEntityType,
                                            @Param("alarmStatuses") Set<AlarmStatus> alarmStatuses);
 
-    @Query("SELECT COUNT(a) + " + //alarms WITH relations only      PLUS
-            " (SELECT COUNT(a) FROM AlarmEntity a " + //alarms WITHOUT any relations
-            "    LEFT JOIN RelationEntity re ON a.id = re.toId " +
-            "    AND re.relationTypeGroup = 'ALARM' " +
-            "    AND re.toType = 'ALARM' " +
-            "    AND re.fromId = :affectedEntityId " +
-            "    AND re.fromType = :affectedEntityType " +
-            "    WHERE a.tenantId = :tenantId " +
-            "    AND a.originatorId = :affectedEntityId " +
-            "    AND re.fromId IS NULL " + //anti join
-            "    AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
-            "    AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
-            "    AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
-            "    AND ((:severityList) IS NULL OR a.severity in (:severityList)) " +
-            "    AND ((:statusList) IS NULL OR a.status in (:statusList))" +
-            " )" +
+    @Query("SELECT COUNT(a) " +
             "FROM AlarmEntity a " +
-            "INNER JOIN RelationEntity re ON a.id = re.toId " +
-            "AND re.relationTypeGroup = 'ALARM' " +
-            "AND re.toType = 'ALARM' " +
-            "AND re.fromId = :affectedEntityId " +
-            "AND re.fromType = :affectedEntityType " +
+            "LEFT JOIN EntityAlarmEntity ea ON a.id = ea.alarmId " +
             "WHERE a.tenantId = :tenantId " +
-            "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
-            "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
+            "AND ea.tenantId = :tenantId " +
+            "AND ea.entityId = :affectedEntityId " +
+            "AND ea.entityType = :affectedEntityType " +
+            "AND (:startTime IS NULL OR (a.createdTime >= :startTime AND ea.createdTime >= :startTime)) " +
+            "AND (:endTime IS NULL OR (a.createdTime <= :endTime AND ea.createdTime <= :endTime)) " +
             "AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
             "AND ((:severityList) IS NULL OR a.severity in (:severityList)) " +
             "AND ((:statusList) IS NULL OR a.status in (:statusList))")
