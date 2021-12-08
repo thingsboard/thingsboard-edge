@@ -28,16 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.relation;
+package org.thingsboard.server.dao.model.sql;
 
-public enum RelationTypeGroup {
-    COMMON,
-    DASHBOARD,
-    TO_ENTITY_GROUP,
-    FROM_ENTITY_GROUP,
-    RULE_CHAIN,
-    RULE_NODE,
-    EDGE,
-    EDGE_AUTO_ASSIGN_RULE_CHAIN
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.alarm.EntityAlarm;
 
+import javax.persistence.Transient;
+import java.io.Serializable;
+import java.util.UUID;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class EntityAlarmCompositeKey implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = -245388185894468450L;
+
+    private UUID entityId;
+    private UUID alarmId;
+
+    public EntityAlarmCompositeKey(EntityAlarm entityAlarm) {
+        this.entityId = entityAlarm.getEntityId().getId();
+        this.alarmId = entityAlarm.getAlarmId().getId();
+    }
 }

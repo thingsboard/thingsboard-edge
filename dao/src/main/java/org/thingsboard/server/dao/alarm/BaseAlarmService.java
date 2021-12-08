@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.alarm.EntityAlarm;
 import org.thingsboard.server.common.data.exception.ApiUsageLimitsExceededException;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -183,23 +184,24 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     private AlarmOperationResult createAlarm(Alarm alarm) throws InterruptedException, ExecutionException {
         log.debug("New Alarm : {}", alarm);
         Alarm saved = alarmDao.save(alarm.getTenantId(), alarm);
-        List<EntityId> propagatedEntitiesList = createAlarmRelations(saved);
+        List<EntityId> propagatedEntitiesList = createEntityAlarmRecords(saved);
         return new AlarmOperationResult(saved, true, true, propagatedEntitiesList);
     }
 
-    private List<EntityId> createAlarmRelations(Alarm alarm) throws InterruptedException, ExecutionException {
+    private List<EntityId> createEntityAlarmRecords(Alarm alarm) throws InterruptedException, ExecutionException {
         List<EntityId> propagatedEntitiesList;
         if (alarm.isPropagate()) {
             Set<EntityId> parentEntities = getParentEntities(alarm);
             propagatedEntitiesList = new ArrayList<>(parentEntities.size() + 1);
             for (EntityId parentId : parentEntities) {
                 propagatedEntitiesList.add(parentId);
-                createAlarmRelation(alarm.getTenantId(), parentId, alarm.getId());
+                createEntityAlarmRecord(alarm.getTenantId(), parentId, alarm);
             }
             propagatedEntitiesList.add(alarm.getOriginator());
         } else {
             propagatedEntitiesList = Collections.singletonList(alarm.getOriginator());
         }
+        createEntityAlarmRecord(alarm.getTenantId(), alarm.getOriginator(), alarm);
         return propagatedEntitiesList;
     }
 
@@ -242,7 +244,7 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         List<EntityId> propagatedEntitiesList;
         if (!oldPropagate && newPropagate) {
             try {
-                propagatedEntitiesList = createAlarmRelations(result);
+                propagatedEntitiesList = createEntityAlarmRecords(result);
             } catch (InterruptedException | ExecutionException e) {
                 log.warn("Failed to update alarm relations [{}]", result, e);
                 throw new RuntimeException(e);
@@ -411,19 +413,24 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         return existing;
     }
 
-    private Set<EntityId> getPropagationEntityIds(Alarm alarm) {
+    @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm) {
+        validateId(alarm.getId(), "Alarm id should be specified!");
         if (alarm.isPropagate()) {
-            List<EntityRelation> relations = relationService.findByTo(alarm.getTenantId(), alarm.getId(), RelationTypeGroup.ALARM);
-            Set<EntityId> propagationEntityIds = relations.stream().map(EntityRelation::getFrom).collect(Collectors.toSet());
-            propagationEntityIds.add(alarm.getOriginator());
-            return propagationEntityIds;
+            List<EntityAlarm> entityAlarms = alarmDao.findEntityAlarmRecords(alarm.getTenantId(), alarm.getId());
+            return entityAlarms.stream().map(EntityAlarm::getEntityId).collect(Collectors.toSet());
         } else {
             return Collections.singleton(alarm.getOriginator());
         }
     }
 
-    private void createAlarmRelation(TenantId tenantId, EntityId entityId, EntityId alarmId) {
-        createRelation(tenantId, new EntityRelation(entityId, alarmId, AlarmSearchStatus.ANY.name(), RelationTypeGroup.ALARM));
+    private void createEntityAlarmRecord(TenantId tenantId, EntityId entityId, Alarm alarm) {
+        EntityAlarm entityAlarm = new EntityAlarm(tenantId, entityId, alarm.getCreatedTime(), alarm.getType(), alarm.getCustomerId(), alarm.getId());
+        try {
+            alarmDao.createEntityAlarmRecord(entityAlarm);
+        } catch (Exception e) {
+            log.warn("[{}] Failed to create entity alarm record: {}", tenantId, entityAlarm, e);
+        }
     }
 
     private <T> ListenableFuture<T> getAndUpdate(TenantId tenantId, AlarmId alarmId, Function<Alarm, T> function) {
@@ -433,7 +440,7 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     private DataValidator<Alarm> alarmDataValidator =
-            new DataValidator<Alarm>() {
+            new DataValidator<>() {
 
                 @Override
                 protected void validateDataImpl(TenantId tenantId, Alarm alarm) {
