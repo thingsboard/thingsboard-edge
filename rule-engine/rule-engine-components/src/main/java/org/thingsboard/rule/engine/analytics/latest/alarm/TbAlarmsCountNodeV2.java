@@ -120,8 +120,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {
         if (config.isCountAlarmsForPropagationEntities() && alarm.isPropagate()) {
-            List<EntityRelation> relations = ctx.getRelationService().findByTo(alarm.getTenantId(), alarm.getId(), RelationTypeGroup.ALARM);
-            Set<EntityId> propagationEntityIds = relations.stream().map(EntityRelation::getFrom).collect(Collectors.toSet());
+            Set<EntityId> propagationEntityIds = ctx.getAlarmService().getPropagationEntityIds(alarm);
             propagationEntityIds.add(alarm.getOriginator());
             return propagationEntityIds;
         } else {

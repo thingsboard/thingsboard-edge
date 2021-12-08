@@ -244,8 +244,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 deviceProfileEntityDynamicConditionsUpdater.updateEntities(null);
                 updateOAuth2Params();
                 break;
-            case "3.3.2":
-                log.info("Updating data from version 3.3.2 to 3.3.2PE ...");
+            case "3.3.3":
+                log.info("Updating data from version 3.3.3 to 3.3.3PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);

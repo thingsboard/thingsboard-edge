@@ -28,16 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.relation;
+package org.thingsboard.server.common.data.alarm;
 
-public enum RelationTypeGroup {
-    COMMON,
-    DASHBOARD,
-    TO_ENTITY_GROUP,
-    FROM_ENTITY_GROUP,
-    RULE_CHAIN,
-    RULE_NODE,
-    EDGE,
-    EDGE_AUTO_ASSIGN_RULE_CHAIN
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class EntityAlarm implements HasTenantId {
+
+    private TenantId tenantId;
+    private EntityId entityId;
+    private long createdTime;
+    private String alarmType;
+
+    private CustomerId customerId;
+    private AlarmId alarmId;
 
 }

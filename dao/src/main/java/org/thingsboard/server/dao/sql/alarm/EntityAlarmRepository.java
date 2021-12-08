@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.relation;
+package org.thingsboard.server.dao.sql.alarm;
 
-public enum RelationTypeGroup {
-    COMMON,
-    DASHBOARD,
-    TO_ENTITY_GROUP,
-    FROM_ENTITY_GROUP,
-    RULE_CHAIN,
-    RULE_NODE,
-    EDGE,
-    EDGE_AUTO_ASSIGN_RULE_CHAIN
+import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.dao.model.sql.EntityAlarmCompositeKey;
+import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface EntityAlarmRepository extends CrudRepository<EntityAlarmEntity, EntityAlarmCompositeKey> {
+
+    List<EntityAlarmEntity> findAllByAlarmId(UUID alarmId);
 
 }

@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.alarm.AlarmOperationResult;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by ashvayka on 02.04.18.
@@ -82,4 +83,6 @@ public interface RuleEngineAlarmService {
     PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmDataQuery query, Collection<EntityId> orderedEntityIds);
 
     List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters);
+
+    Set<EntityId> getPropagationEntityIds(Alarm alarm);
 }

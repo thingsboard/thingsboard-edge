@@ -370,10 +370,6 @@ public class TbAlarmsCountNodeTest {
             alarm.setType(RandomStringUtils.randomAlphanumeric(15));
             alarm.setPropagate(true);
             alarms.add(alarm);
-            alarmRelations.add(createAlarmRelation(entityId, alarm.getId()));
-        }
-        for (int i=0;i<childAlarms.size();i++) {
-            alarmRelations.add(createAlarmRelation(entityId, childAlarms.get(i).getId()));
         }
         PageData<AlarmInfo> pageData = new PageData<>(alarms, 1, alarms.size(), false);
         when(alarmService.findAlarms(ArgumentMatchers.any(), argThat(query -> query != null && query.getAffectedEntityId().equals(entityId)))).thenReturn(Futures.immediateFuture(pageData));
@@ -420,15 +416,6 @@ public class TbAlarmsCountNodeTest {
         relation.setTo(to);
         relation.setType(EntityRelation.CONTAINS_TYPE);
         relation.setTypeGroup(RelationTypeGroup.COMMON);
-        return relation;
-    }
-
-    private static EntityRelation createAlarmRelation(EntityId from, EntityId to) {
-        EntityRelation relation = new EntityRelation();
-        relation.setFrom(from);
-        relation.setTo(to);
-        relation.setType(EntityRelation.CONTAINS_TYPE);
-        relation.setTypeGroup(RelationTypeGroup.ALARM);
         return relation;
     }
 
