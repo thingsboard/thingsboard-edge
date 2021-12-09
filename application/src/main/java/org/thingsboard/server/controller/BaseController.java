@@ -662,25 +662,15 @@ public abstract class BaseController {
                 sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
                         EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
                  */
+
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            if (entity.getId() != null) {
-                sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
-                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                        ActionType.UPDATED);
-            } else if (entityGroup != null) {
-                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
-                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                        ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
-            } else {
-                sendNotificationMsgToCloudService(getTenantId(), savedEntity.getId(),
-                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                        ActionType.ADDED);
-            }
 
             return savedEntity;
 
@@ -1352,7 +1342,7 @@ public abstract class BaseController {
 
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, ActionType cloudEventAction) {
         try {
-            sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
         }
@@ -1361,13 +1351,13 @@ public abstract class BaseController {
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, ActionType cloudEventAction) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
-            sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
         }
     }
 
     protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, Alarm alarm) {
         try {
-            sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, ActionType.DELETED, null);
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, ActionType.DELETED, null);
         } catch (Exception e) {
             log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
@@ -1375,37 +1365,14 @@ public abstract class BaseController {
 
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
                                                      ActionType cloudEventAction) {
-        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
     }
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
                                                   ActionType cloudEventAction, EntityGroupId entityGroupId) {
-        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
+        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
     }
 
-    private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
-                                                   CloudEventType cloudEventType, ActionType cloudEventAction,
-                                                   EntityGroupId entityGroupId) {
-        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
-        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
-        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
-        builder.setCloudEventType(cloudEventType.name());
-        builder.setCloudEventAction(cloudEventAction.name());
-        if (entityId != null) {
-            builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
-            builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
-            builder.setEntityType(entityId.getEntityType().name());
-        }
-        if (entityBody != null) {
-            builder.setEntityBody(entityBody);
-        }
-        if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
-            builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
-        }
-        TransportProtos.CloudNotificationMsgProto msg = builder.build();
-        tbClusterService.pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
-                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
-    }
+
 
 }

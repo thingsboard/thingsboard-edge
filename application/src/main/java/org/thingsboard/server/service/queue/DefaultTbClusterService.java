@@ -39,7 +39,10 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -459,8 +462,10 @@ public class DefaultTbClusterService implements TbClusterService {
             sendNotificationMsgToEdgeService(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED, null, null);
         }
          */
-    }
 
+        sendNotificationMsgToCloudService(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? ActionType.ADDED : ActionType.UPDATED);
+
+    }
 
     @Override
     public void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
@@ -513,5 +518,35 @@ public class DefaultTbClusterService implements TbClusterService {
          */
     }
 
+    private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                                     ActionType cloudEventAction) {
+        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+    }
+
+    @Override
+    public void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
+                                                   CloudEventType cloudEventType, ActionType cloudEventAction,
+                                                   EntityGroupId entityGroupId) {
+        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setCloudEventType(cloudEventType.name());
+        builder.setCloudEventAction(cloudEventAction.name());
+        if (entityId != null) {
+            builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
+            builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
+            builder.setEntityType(entityId.getEntityType().name());
+        }
+        if (entityBody != null) {
+            builder.setEntityBody(entityBody);
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        TransportProtos.CloudNotificationMsgProto msg = builder.build();
+        pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
+                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
+    }
 
 }

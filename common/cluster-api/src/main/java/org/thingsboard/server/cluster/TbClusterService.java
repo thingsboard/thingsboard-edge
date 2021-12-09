@@ -32,6 +32,8 @@ package org.thingsboard.server.cluster;
 
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -110,4 +112,8 @@ public interface TbClusterService {
     void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
                                           EdgeEventType type, EdgeEventActionType action,
                                           EntityType entityGroupType, EntityGroupId entityGroupId);
+
+    void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
+                                           CloudEventType cloudEventType, ActionType cloudEventAction,
+                                           EntityGroupId entityGroupId);
 }
