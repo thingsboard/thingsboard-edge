@@ -214,6 +214,7 @@ var EntityDetailsField;
     EntityDetailsField["TITLE"] = "TITLE";
     EntityDetailsField["COUNTRY"] = "COUNTRY";
     EntityDetailsField["STATE"] = "STATE";
+    EntityDetailsField["CITY"] = "CITY";
     EntityDetailsField["ZIP"] = "ZIP";
     EntityDetailsField["ADDRESS"] = "ADDRESS";
     EntityDetailsField["ADDRESS2"] = "ADDRESS2";
@@ -225,6 +226,7 @@ const entityDetailsTranslations = new Map([
     [EntityDetailsField.TITLE, 'tb.rulenode.entity-details-title'],
     [EntityDetailsField.COUNTRY, 'tb.rulenode.entity-details-country'],
     [EntityDetailsField.STATE, 'tb.rulenode.entity-details-state'],
+    [EntityDetailsField.CITY, 'tb.rulenode.entity-details-city'],
     [EntityDetailsField.ZIP, 'tb.rulenode.entity-details-zip'],
     [EntityDetailsField.ADDRESS, 'tb.rulenode.entity-details-address'],
     [EntityDetailsField.ADDRESS2, 'tb.rulenode.entity-details-address2'],
@@ -5209,6 +5211,89 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImpo
                 }]
         }] });
 
+class RuleChainInputComponent extends RuleNodeConfigurationComponent {
+    constructor(store, fb) {
+        super(store);
+        this.store = store;
+        this.fb = fb;
+        this.entityType = EntityType;
+    }
+    configForm() {
+        return this.ruleChainInputConfigForm;
+    }
+    onConfigurationSet(configuration) {
+        this.ruleChainInputConfigForm = this.fb.group({
+            ruleChainId: [configuration ? configuration.ruleChainId : null, [Validators.required]]
+        });
+    }
+}
+RuleChainInputComponent.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleChainInputComponent, deps: [{ token: i1.Store }, { token: i2.FormBuilder }], target: i0.ɵɵFactoryTarget.Component });
+RuleChainInputComponent.ɵcmp = i0.ɵɵngDeclareComponent({ minVersion: "12.0.0", version: "12.2.14", type: RuleChainInputComponent, selector: "tb-flow-node-rule-chain-input-config", usesInheritance: true, ngImport: i0, template: "<section [formGroup]=\"ruleChainInputConfigForm\" fxLayout=\"column\">\n  <tb-entity-autocomplete required\n                          [excludeEntityIds]=\"[ruleChainId]\"\n                          [entityType]=\"entityType.RULE_CHAIN\"\n                          [entitySubtype]=\"ruleChainType\"\n                          formControlName=\"ruleChainId\">\n  </tb-entity-autocomplete>\n</section>\n", components: [{ type: i3$4.EntityAutocompleteComponent, selector: "tb-entity-autocomplete", inputs: ["entityType", "entitySubtype", "excludeEntityIds", "labelText", "requiredText", "useFullEntityId", "required", "disabled"], outputs: ["entityChanged"] }], directives: [{ type: i7.DefaultLayoutDirective, selector: "  [fxLayout], [fxLayout.xs], [fxLayout.sm], [fxLayout.md],  [fxLayout.lg], [fxLayout.xl], [fxLayout.lt-sm], [fxLayout.lt-md],  [fxLayout.lt-lg], [fxLayout.lt-xl], [fxLayout.gt-xs], [fxLayout.gt-sm],  [fxLayout.gt-md], [fxLayout.gt-lg]", inputs: ["fxLayout", "fxLayout.xs", "fxLayout.sm", "fxLayout.md", "fxLayout.lg", "fxLayout.xl", "fxLayout.lt-sm", "fxLayout.lt-md", "fxLayout.lt-lg", "fxLayout.lt-xl", "fxLayout.gt-xs", "fxLayout.gt-sm", "fxLayout.gt-md", "fxLayout.gt-lg"] }, { type: i2.NgControlStatusGroup, selector: "[formGroupName],[formArrayName],[ngModelGroup],[formGroup],form:not([ngNoForm]),[ngForm]" }, { type: i2.FormGroupDirective, selector: "[formGroup]", inputs: ["formGroup"], outputs: ["ngSubmit"], exportAs: ["ngForm"] }, { type: i2.RequiredValidator, selector: ":not([type=checkbox])[required][formControlName],:not([type=checkbox])[required][formControl],:not([type=checkbox])[required][ngModel]", inputs: ["required"] }, { type: i2.NgControlStatus, selector: "[formControlName],[ngModel],[formControl]" }, { type: i2.FormControlName, selector: "[formControlName]", inputs: ["disabled", "formControlName", "ngModel"], outputs: ["ngModelChange"] }] });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleChainInputComponent, decorators: [{
+            type: Component,
+            args: [{
+                    selector: 'tb-flow-node-rule-chain-input-config',
+                    templateUrl: './rule-chain-input.component.html',
+                    styleUrls: []
+                }]
+        }], ctorParameters: function () { return [{ type: i1.Store }, { type: i2.FormBuilder }]; } });
+
+class RuleChainOutputComponent extends RuleNodeConfigurationComponent {
+    constructor(store, fb) {
+        super(store);
+        this.store = store;
+        this.fb = fb;
+    }
+    configForm() {
+        return this.ruleChainOutputConfigForm;
+    }
+    onConfigurationSet(configuration) {
+        this.ruleChainOutputConfigForm = this.fb.group({});
+    }
+}
+RuleChainOutputComponent.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleChainOutputComponent, deps: [{ token: i1.Store }, { token: i2.FormBuilder }], target: i0.ɵɵFactoryTarget.Component });
+RuleChainOutputComponent.ɵcmp = i0.ɵɵngDeclareComponent({ minVersion: "12.0.0", version: "12.2.14", type: RuleChainOutputComponent, selector: "tb-flow-node-rule-chain-output-config", usesInheritance: true, ngImport: i0, template: "<section [formGroup]=\"ruleChainOutputConfigForm\" fxLayout=\"column\">\n  <div innerHTML=\"{{ 'tb.rulenode.output-node-name-hint' | translate }}\"></div>\n</section>\n", directives: [{ type: i7.DefaultLayoutDirective, selector: "  [fxLayout], [fxLayout.xs], [fxLayout.sm], [fxLayout.md],  [fxLayout.lg], [fxLayout.xl], [fxLayout.lt-sm], [fxLayout.lt-md],  [fxLayout.lt-lg], [fxLayout.lt-xl], [fxLayout.gt-xs], [fxLayout.gt-sm],  [fxLayout.gt-md], [fxLayout.gt-lg]", inputs: ["fxLayout", "fxLayout.xs", "fxLayout.sm", "fxLayout.md", "fxLayout.lg", "fxLayout.xl", "fxLayout.lt-sm", "fxLayout.lt-md", "fxLayout.lt-lg", "fxLayout.lt-xl", "fxLayout.gt-xs", "fxLayout.gt-sm", "fxLayout.gt-md", "fxLayout.gt-lg"] }, { type: i2.NgControlStatusGroup, selector: "[formGroupName],[formArrayName],[ngModelGroup],[formGroup],form:not([ngNoForm]),[ngForm]" }, { type: i2.FormGroupDirective, selector: "[formGroup]", inputs: ["formGroup"], outputs: ["ngSubmit"], exportAs: ["ngForm"] }], pipes: { "translate": i4.TranslatePipe } });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleChainOutputComponent, decorators: [{
+            type: Component,
+            args: [{
+                    selector: 'tb-flow-node-rule-chain-output-config',
+                    templateUrl: './rule-chain-output.component.html',
+                    styleUrls: []
+                }]
+        }], ctorParameters: function () { return [{ type: i1.Store }, { type: i2.FormBuilder }]; } });
+
+class RuleNodeCoreConfigFlowModule {
+}
+RuleNodeCoreConfigFlowModule.ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleNodeCoreConfigFlowModule, deps: [], target: i0.ɵɵFactoryTarget.NgModule });
+RuleNodeCoreConfigFlowModule.ɵmod = i0.ɵɵngDeclareNgModule({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleNodeCoreConfigFlowModule, declarations: [RuleChainInputComponent,
+        RuleChainOutputComponent], imports: [CommonModule,
+        SharedModule,
+        RulenodeCoreConfigCommonModule], exports: [RuleChainInputComponent,
+        RuleChainOutputComponent] });
+RuleNodeCoreConfigFlowModule.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleNodeCoreConfigFlowModule, imports: [[
+            CommonModule,
+            SharedModule,
+            RulenodeCoreConfigCommonModule
+        ]] });
+i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleNodeCoreConfigFlowModule, decorators: [{
+            type: NgModule,
+            args: [{
+                    declarations: [
+                        RuleChainInputComponent,
+                        RuleChainOutputComponent
+                    ],
+                    imports: [
+                        CommonModule,
+                        SharedModule,
+                        RulenodeCoreConfigCommonModule
+                    ],
+                    exports: [
+                        RuleChainInputComponent,
+                        RuleChainOutputComponent
+                    ]
+                }]
+        }] });
+
 function addRuleNodeCoreLocaleEnglish(translate) {
     const enUS = {
         tb: {
@@ -5637,6 +5722,7 @@ function addRuleNodeCoreLocaleEnglish(translate) {
                 'entity-details-title': 'Title',
                 'entity-details-country': 'Country',
                 'entity-details-state': 'State',
+                'entity-details-city': 'City',
                 'entity-details-zip': 'Zip',
                 'entity-details-address': 'Address',
                 'entity-details-address2': 'Address2',
@@ -5725,7 +5811,8 @@ function addRuleNodeCoreLocaleEnglish(translate) {
                 'search-entity-group-for-tenant-only': 'Search entity group on Tenant level only',
                 'alarm-severity-pattern-hint': 'Hint: use <code><span style="color: #000;">$&#123;</span>metadataKey<span style="color: #000;">&#125;</span></code> ' +
                     'for value from metadata, <code><span style="color: #000;">$[</span>messageKey<span style="color: #000;">]</span></code> ' +
-                    'for value from message body. Alarm severity should be system (CRITICAL, MAJOR etc.)'
+                    'for value from message body. Alarm severity should be system (CRITICAL, MAJOR etc.)',
+                'output-node-name-hint': 'The <b>rule node name</b> corresponds to the <b>relation type</b> of the output message, and it is used to forward messages to other rule nodes in the caller rule chain.'
             },
             'key-val': {
                 key: 'Key',
@@ -5755,6 +5842,7 @@ RuleNodeCoreConfigModule.ɵmod = i0.ɵɵngDeclareNgModule({ minVersion: "12.0.0"
         RulenodeCoreConfigEnrichmentModule,
         RulenodeCoreConfigTransformModule,
         RulenodeCoreConfigAnalyticsModule,
+        RuleNodeCoreConfigFlowModule,
         EmptyConfigComponent] });
 RuleNodeCoreConfigModule.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleNodeCoreConfigModule, imports: [[
             CommonModule,
@@ -5763,7 +5851,8 @@ RuleNodeCoreConfigModule.ɵinj = i0.ɵɵngDeclareInjector({ minVersion: "12.0.0"
         RuleNodeCoreConfigFilterModule,
         RulenodeCoreConfigEnrichmentModule,
         RulenodeCoreConfigTransformModule,
-        RulenodeCoreConfigAnalyticsModule] });
+        RulenodeCoreConfigAnalyticsModule,
+        RuleNodeCoreConfigFlowModule] });
 i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImport: i0, type: RuleNodeCoreConfigModule, decorators: [{
             type: NgModule,
             args: [{
@@ -5780,6 +5869,7 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImpo
                         RulenodeCoreConfigEnrichmentModule,
                         RulenodeCoreConfigTransformModule,
                         RulenodeCoreConfigAnalyticsModule,
+                        RuleNodeCoreConfigFlowModule,
                         EmptyConfigComponent
                     ]
                 }]
@@ -5793,5 +5883,5 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "12.2.14", ngImpo
  * Generated bundle index. Do not edit.
  */
 
-export { AddToGroupConfigComponent, AggregateIncomingConfigComponent, AggregateLatestConfigComponent, AlarmsCountConfigComponent, AlarmsCountV2ConfigComponent, AssignCustomerConfigComponent, AttributesConfigComponent, AzureIotHubConfigComponent, CalculateDeltaConfigComponent, ChangeOriginatorConfigComponent, ChangeOwnerConfigComponent, CheckAlarmStatusComponent, CheckMessageConfigComponent, CheckPointConfigComponent, CheckRelationConfigComponent, ClearAlarmConfigComponent, CreateAlarmConfigComponent, CreateRelationConfigComponent, CredentialsConfigComponent, CustomerAttributesConfigComponent, DeleteRelationConfigComponent, DeviceAttributesConfigComponent, DeviceProfileConfigComponent, DeviceRelationsQueryConfigComponent, DuplicateToGroupByNameConfigComponent, DuplicateToGroupConfigComponent, DuplicateToRelatedConfigComponent, EmptyConfigComponent, EntityDetailsConfigComponent, GenerateReportConfigComponent, GeneratorConfigComponent, GetTelemetryFromDatabaseConfigComponent, GpsGeoActionConfigComponent, GpsGeoFilterConfigComponent, IntegrationDownlinkConfigComponent, KafkaConfigComponent, KvMapConfigComponent, LogConfigComponent, MessageTypeConfigComponent, MessageTypesConfigComponent, MqttConfigComponent, MsgCountConfigComponent, MsgDelayConfigComponent, OriginatorAttributesConfigComponent, OriginatorFieldsConfigComponent, OriginatorTypeConfigComponent, PubSubConfigComponent, PushToCloudConfigComponent, PushToEdgeConfigComponent, RabbitMqConfigComponent, RelatedAttributesConfigComponent, RelationsQueryConfigComponent, RemoveFromGroupConfigComponent, RestApiCallConfigComponent, RpcReplyConfigComponent, RpcRequestConfigComponent, RuleNodeCoreConfigActionModule, RuleNodeCoreConfigFilterModule, RuleNodeCoreConfigModule, RulenodeCoreConfigAnalyticsModule, RulenodeCoreConfigCommonModule, RulenodeCoreConfigEnrichmentModule, RulenodeCoreConfigTransformModule, SafeHtmlPipe, SaveToCustomTableConfigComponent, ScriptConfigComponent, SendEmailConfigComponent, SendRestApiCallReplyConfigComponent, SendSmsConfigComponent, SnsConfigComponent, SqsConfigComponent, SwitchConfigComponent, TenantAttributesConfigComponent, TimeseriesConfigComponent, ToEmailConfigComponent, TransformScriptConfigComponent, UnassignCustomerConfigComponent };
+export { AddToGroupConfigComponent, AggregateIncomingConfigComponent, AggregateLatestConfigComponent, AlarmsCountConfigComponent, AlarmsCountV2ConfigComponent, AssignCustomerConfigComponent, AttributesConfigComponent, AzureIotHubConfigComponent, CalculateDeltaConfigComponent, ChangeOriginatorConfigComponent, ChangeOwnerConfigComponent, CheckAlarmStatusComponent, CheckMessageConfigComponent, CheckPointConfigComponent, CheckRelationConfigComponent, ClearAlarmConfigComponent, CreateAlarmConfigComponent, CreateRelationConfigComponent, CredentialsConfigComponent, CustomerAttributesConfigComponent, DeleteRelationConfigComponent, DeviceAttributesConfigComponent, DeviceProfileConfigComponent, DeviceRelationsQueryConfigComponent, DuplicateToGroupByNameConfigComponent, DuplicateToGroupConfigComponent, DuplicateToRelatedConfigComponent, EmptyConfigComponent, EntityDetailsConfigComponent, GenerateReportConfigComponent, GeneratorConfigComponent, GetTelemetryFromDatabaseConfigComponent, GpsGeoActionConfigComponent, GpsGeoFilterConfigComponent, IntegrationDownlinkConfigComponent, KafkaConfigComponent, KvMapConfigComponent, LogConfigComponent, MessageTypeConfigComponent, MessageTypesConfigComponent, MqttConfigComponent, MsgCountConfigComponent, MsgDelayConfigComponent, OriginatorAttributesConfigComponent, OriginatorFieldsConfigComponent, OriginatorTypeConfigComponent, PubSubConfigComponent, PushToCloudConfigComponent, PushToEdgeConfigComponent, RabbitMqConfigComponent, RelatedAttributesConfigComponent, RelationsQueryConfigComponent, RemoveFromGroupConfigComponent, RestApiCallConfigComponent, RpcReplyConfigComponent, RpcRequestConfigComponent, RuleChainInputComponent, RuleChainOutputComponent, RuleNodeCoreConfigActionModule, RuleNodeCoreConfigFilterModule, RuleNodeCoreConfigFlowModule, RuleNodeCoreConfigModule, RulenodeCoreConfigAnalyticsModule, RulenodeCoreConfigCommonModule, RulenodeCoreConfigEnrichmentModule, RulenodeCoreConfigTransformModule, SafeHtmlPipe, SaveToCustomTableConfigComponent, ScriptConfigComponent, SendEmailConfigComponent, SendRestApiCallReplyConfigComponent, SendSmsConfigComponent, SnsConfigComponent, SqsConfigComponent, SwitchConfigComponent, TenantAttributesConfigComponent, TimeseriesConfigComponent, ToEmailConfigComponent, TransformScriptConfigComponent, UnassignCustomerConfigComponent };
 //# sourceMappingURL=rulenode-core-config.js.map
