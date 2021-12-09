@@ -381,6 +381,11 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         return alarmSeverities.stream().min(AlarmSeverity::compareTo).orElse(null);
     }
 
+    @Override
+    public void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId) {
+        alarmDao.deleteEntityAlarmRecords(tenantId, entityId);
+    }
+
     private Alarm merge(Alarm existing, Alarm alarm) {
         if (alarm.getStartTs() > existing.getEndTs()) {
             existing.setEndTs(alarm.getStartTs());

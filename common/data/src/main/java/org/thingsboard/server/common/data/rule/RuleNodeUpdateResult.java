@@ -28,53 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.common.data.rule;
 
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.RuleNodeId;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Map;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RuleNode {
+/**
+ * Created by igor on 3/13/18.
+ */
+@Data
+public class RuleNodeUpdateResult {
 
-    ComponentType type();
-
-    String name();
-
-    String nodeDescription();
-
-    String nodeDetails();
-
-    Class<? extends NodeConfiguration> configClazz();
-
-    boolean inEnabled() default true;
-
-    boolean outEnabled() default true;
-
-    ComponentScope scope() default ComponentScope.TENANT;
-
-    String[] relationTypes() default {"Success", "Failure"};
-
-    String[] uiResources() default {};
-
-    String configDirective() default "";
-
-    String icon() default "";
-
-    String iconUrl() default "";
-
-    String docUrl() default "";
-
-    boolean customRelations() default false;
-
-    boolean ruleChainNode() default false;
-
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
+    private final RuleNode oldRuleNode;
+    private final RuleNode newRuleNode;
 
 }

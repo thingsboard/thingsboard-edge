@@ -88,4 +88,5 @@ public interface AlarmService {
 
     Set<EntityId> getPropagationEntityIds(Alarm alarm);
 
+    void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 }

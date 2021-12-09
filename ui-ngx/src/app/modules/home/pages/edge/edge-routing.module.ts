@@ -47,7 +47,7 @@ import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { RuleChainType } from '@shared/models/rule-chain.models';
 import {
   importRuleChainBreadcumbLabelFunction,
-  ResolvedRuleChainMetaDataResolver,
+  RuleChainMetaDataResolver,
   ruleChainBreadcumbLabelFunction,
   RuleChainImportGuard,
   RuleChainResolver,
@@ -196,7 +196,7 @@ const routes: Routes = [
             },
             resolve: {
               ruleChain: RuleChainResolver,
-              ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+              ruleChainMetaData: RuleChainMetaDataResolver,
               ruleNodeComponents: RuleNodeComponentsResolver,
               tooltipster: TooltipsterResolver
             }
@@ -258,7 +258,7 @@ const routes: Routes = [
             },
             resolve: {
               ruleChain: RuleChainResolver,
-              ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+              ruleChainMetaData: RuleChainMetaDataResolver,
               ruleNodeComponents: RuleNodeComponentsResolver,
               tooltipster: TooltipsterResolver
             }

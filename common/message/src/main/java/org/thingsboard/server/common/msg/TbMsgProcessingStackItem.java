@@ -28,53 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.common.msg;
 
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.msg.gen.MsgProtos;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.UUID;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RuleNode {
+@Data
+public class TbMsgProcessingStackItem {
 
-    ComponentType type();
+    private final RuleChainId ruleChainId;
+    private final RuleNodeId ruleNodeId;
 
-    String name();
+    MsgProtos.TbMsgProcessingStackItemProto toProto() {
+        return MsgProtos.TbMsgProcessingStackItemProto.newBuilder()
+                .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
+                .setRuleChainIdLSB(ruleChainId.getId().getLeastSignificantBits())
+                .setRuleNodeIdMSB(ruleNodeId.getId().getMostSignificantBits())
+                .setRuleNodeIdLSB(ruleNodeId.getId().getLeastSignificantBits())
+                .build();
+    }
 
-    String nodeDescription();
-
-    String nodeDetails();
-
-    Class<? extends NodeConfiguration> configClazz();
-
-    boolean inEnabled() default true;
-
-    boolean outEnabled() default true;
-
-    ComponentScope scope() default ComponentScope.TENANT;
-
-    String[] relationTypes() default {"Success", "Failure"};
-
-    String[] uiResources() default {};
-
-    String configDirective() default "";
-
-    String icon() default "";
-
-    String iconUrl() default "";
-
-    String docUrl() default "";
-
-    boolean customRelations() default false;
-
-    boolean ruleChainNode() default false;
-
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
+    static TbMsgProcessingStackItem fromProto(MsgProtos.TbMsgProcessingStackItemProto item){
+        return new TbMsgProcessingStackItem(
+                new RuleChainId(new UUID(item.getRuleChainIdMSB(), item.getRuleChainIdLSB())),
+                new RuleNodeId(new UUID(item.getRuleNodeIdMSB(), item.getRuleNodeIdLSB()))
+        );
+    }
 
 }

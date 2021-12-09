@@ -28,53 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.flow;
 
-import org.thingsboard.server.common.data.plugin.ComponentScope;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
+import org.thingsboard.rule.engine.api.RuleNode;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+@Slf4j
+@RuleNode(
+        type = ComponentType.FLOW,
+        name = "output",
+        configClazz = EmptyNodeConfiguration.class,
+        nodeDescription = "transfers the message to the caller rule chain",
+        nodeDetails = "Produces output of the rule chain processing. " +
+                "The output is forwarded to the caller rule chain, as an output of the corresponding \"input\" rule node. " +
+                "The output rule node name corresponds to the relation type of the output message, and it is used to forward messages to other rule nodes in the caller rule chain. ",
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
+        configDirective = "tbFlowNodeRuleChainOutputConfig",
+        outEnabled = false
+)
+public class TbRuleChainOutputNode implements TbNode {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RuleNode {
+    @Override
+    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+    }
 
-    ComponentType type();
+    @Override
+    public void onMsg(TbContext ctx, TbMsg msg) {
+        ctx.output(msg, ctx.getSelf().getName());
+    }
 
-    String name();
-
-    String nodeDescription();
-
-    String nodeDetails();
-
-    Class<? extends NodeConfiguration> configClazz();
-
-    boolean inEnabled() default true;
-
-    boolean outEnabled() default true;
-
-    ComponentScope scope() default ComponentScope.TENANT;
-
-    String[] relationTypes() default {"Success", "Failure"};
-
-    String[] uiResources() default {};
-
-    String configDirective() default "";
-
-    String icon() default "";
-
-    String iconUrl() default "";
-
-    String docUrl() default "";
-
-    boolean customRelations() default false;
-
-    boolean ruleChainNode() default false;
-
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
-
+    @Override
+    public void destroy() {
+    }
 }

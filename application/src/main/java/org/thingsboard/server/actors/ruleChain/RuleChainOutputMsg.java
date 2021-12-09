@@ -28,53 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.actors.ruleChain;
 
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+/**
+ * Created by ashvayka on 19.03.18.
+ */
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public final class RuleChainOutputMsg extends TbToRuleChainActorMsg {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RuleNode {
+    @Getter
+    private final RuleNodeId targetRuleNodeId;
 
-    ComponentType type();
+    @Getter
+    private final String relationType;
 
-    String name();
+    public RuleChainOutputMsg(RuleChainId target, RuleNodeId targetRuleNodeId, String relationType, TbMsg tbMsg) {
+        super(tbMsg, target);
+        this.targetRuleNodeId = targetRuleNodeId;
+        this.relationType = relationType;
+    }
 
-    String nodeDescription();
-
-    String nodeDetails();
-
-    Class<? extends NodeConfiguration> configClazz();
-
-    boolean inEnabled() default true;
-
-    boolean outEnabled() default true;
-
-    ComponentScope scope() default ComponentScope.TENANT;
-
-    String[] relationTypes() default {"Success", "Failure"};
-
-    String[] uiResources() default {};
-
-    String configDirective() default "";
-
-    String icon() default "";
-
-    String iconUrl() default "";
-
-    String docUrl() default "";
-
-    boolean customRelations() default false;
-
-    boolean ruleChainNode() default false;
-
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
-
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.RULE_CHAIN_OUTPUT_MSG;
+    }
 }

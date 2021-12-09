@@ -232,6 +232,7 @@ public class ThingsboardInstallService {
                         case "3.3.2":
                             log.info("Upgrading ThingsBoard from version 3.3.2 to 3.3.3 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.2");
+                            dataUpdateService.updateData("3.3.2");
                         case "3.3.3": // to 3.3.3PE
                             log.info("Upgrading ThingsBoard from version 3.3.3 to 3.3.3PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");

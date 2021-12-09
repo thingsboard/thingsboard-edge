@@ -28,53 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.actors.ruleChain;
 
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.msg.TbActorStopReason;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbRuleEngineActorMsg;
+import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
+import org.thingsboard.server.common.msg.queue.RuleEngineException;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public abstract class TbToRuleChainActorMsg extends TbRuleEngineActorMsg implements RuleChainAwareMsg {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RuleNode {
+    @Getter
+    private final RuleChainId target;
 
-    ComponentType type();
+    public TbToRuleChainActorMsg(TbMsg msg, RuleChainId target) {
+        super(msg);
+        this.target = target;
+    }
 
-    String name();
+    @Override
+    public RuleChainId getRuleChainId() {
+        return target;
+    }
 
-    String nodeDescription();
-
-    String nodeDetails();
-
-    Class<? extends NodeConfiguration> configClazz();
-
-    boolean inEnabled() default true;
-
-    boolean outEnabled() default true;
-
-    ComponentScope scope() default ComponentScope.TENANT;
-
-    String[] relationTypes() default {"Success", "Failure"};
-
-    String[] uiResources() default {};
-
-    String configDirective() default "";
-
-    String icon() default "";
-
-    String iconUrl() default "";
-
-    String docUrl() default "";
-
-    boolean customRelations() default false;
-
-    boolean ruleChainNode() default false;
-
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
-
+    @Override
+    public void onTbActorStopped(TbActorStopReason reason) {
+        String message = reason == TbActorStopReason.STOPPED ? String.format("Rule chain [%s] stopped", target.getId()) : String.format("Failed to initialize rule chain [%s]!", target.getId());
+        msg.getCallback().onFailure(new RuleEngineException(message));
+    }
 }

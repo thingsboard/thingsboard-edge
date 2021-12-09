@@ -67,6 +67,7 @@ export interface RuleNodeDefinition {
   outEnabled: boolean;
   relationTypes: string[];
   customRelations: boolean;
+  ruleChainNode?: boolean;
   defaultConfiguration: RuleNodeConfiguration;
   icon?: string;
   iconUrl?: string;
@@ -82,6 +83,8 @@ export interface RuleNodeConfigurationDescriptor {
 
 export interface IRuleNodeConfigurationComponent {
   ruleNodeId: string;
+  ruleChainId: string;
+  ruleChainType: RuleChainType;
   configuration: RuleNodeConfiguration;
   configurationChanged: Observable<RuleNodeConfiguration>;
   validate();
@@ -89,10 +92,15 @@ export interface IRuleNodeConfigurationComponent {
 }
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class RuleNodeConfigurationComponent extends PageComponent implements
   IRuleNodeConfigurationComponent, OnInit, AfterViewInit {
 
   ruleNodeId: string;
+
+  ruleChainId: string;
+
+  ruleChainType: RuleChainType;
 
   configurationValue: RuleNodeConfiguration;
 
@@ -200,7 +208,7 @@ export enum RuleNodeType {
   ACTION = 'ACTION',
   ANALYTICS = 'ANALYTICS',
   EXTERNAL = 'EXTERNAL',
-  RULE_CHAIN = 'RULE_CHAIN',
+  FLOW = 'FLOW',
   UNKNOWN = 'UNKNOWN',
   INPUT = 'INPUT'
 }
@@ -212,7 +220,7 @@ export const ruleNodeTypesLibrary = [
   RuleNodeType.ACTION,
   RuleNodeType.ANALYTICS,
   RuleNodeType.EXTERNAL,
-  RuleNodeType.RULE_CHAIN,
+  RuleNodeType.FLOW,
 ];
 
 export interface RuleNodeTypeDescriptor {
@@ -287,12 +295,12 @@ export const ruleNodeTypeDescriptors = new Map<RuleNodeType, RuleNodeTypeDescrip
       }
     ],
     [
-      RuleNodeType.RULE_CHAIN,
+      RuleNodeType.FLOW,
       {
-        value: RuleNodeType.RULE_CHAIN,
-        name: 'rulenode.type-rule-chain',
-        details: 'rulenode.type-rule-chain-details',
-        nodeClass: 'tb-rule-chain-type',
+        value: RuleNodeType.FLOW,
+        name: 'rulenode.type-flow',
+        details: 'rulenode.type-flow-details',
+        nodeClass: 'tb-flow-type',
         icon: 'settings_ethernet'
       }
     ],
@@ -337,7 +345,6 @@ export interface FcRuleNode extends FcRuleNodeType {
   additionalInfo?: any;
   configuration?: RuleNodeConfiguration;
   debugMode?: boolean;
-  targetRuleChainId?: string;
   error?: string;
   highlighted?: boolean;
   componentClazz?: string;
