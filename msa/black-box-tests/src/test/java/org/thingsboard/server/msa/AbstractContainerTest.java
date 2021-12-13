@@ -80,10 +80,10 @@ public abstract class AbstractContainerTest {
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
     protected ObjectMapper mapper = new ObjectMapper();
-    protected static final String key = "temperature";
-    protected static final String value = "42";
-    protected static final int countWait = 50;
-    protected static final int timeWait = 500;
+    protected static final String TELEMETRY_KEY = "temperature";
+    protected static final String TELEMETRY_VALUE = "42";
+    protected static final int CONNECT_TRY_COUNT = 50;
+    protected static final int CONNECT_TIMEOUT_MS = 500;
 
     @BeforeClass
     public static void before() throws Exception {

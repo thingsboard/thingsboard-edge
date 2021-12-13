@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- * <p>
+ *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
- * <p>
+ *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- * <p>
+ *
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- * <p>
+ *
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- * <p>
+ *
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -32,7 +32,6 @@ package org.thingsboard.server.msa.connectivity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -56,11 +55,11 @@ import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 @Slf4j
 public class HttpIntegrationTest extends AbstractContainerTest {
 
-    private static final String routingKey = "routing-key-123456";
-    private static final String secretKey = "secret-key-123456";
-    private static final String login = "tenant@thingsboard.org";
-    private static final String password = "tenant";
-    private static final String config = " {\"baseUrl\":\"" + HTTPS_URL + "\"," +
+    private static final String ROUTING_KEY = "routing-key-123456";
+    private static final String SECRET_KEY = "secret-key-123456";
+    private static final String LOGIN = "tenant@thingsboard.org";
+    private static final String PASSWORD = "tenant";
+    private static final String CONFIG = " {\"baseUrl\":\"" + HTTPS_URL + "\"," +
             "\"replaceNoContentToOk\":true," +
             "\"enableSecurity\":false," +
             "\"downlinkUrl\":\"https://api.thingpark.com/thingpark/lrc/rest/downlink\"," +
@@ -81,7 +80,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
             "\"token\":\"\"," +
             "\"credentials\":{\"type\":\"basic\",\"email\":\"\",\"password\":\"\",\"token\":\"\"}," +
             "\"metadata\":{}}";
-    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = mapper
             .createObjectNode().put("decoder", "var data = decodeToJson(payload);\n" +
                     "var deviceName = data.deviceName;\n" +
                     "var deviceType = data.deviceType;\n" +
@@ -107,8 +106,8 @@ public class HttpIntegrationTest extends AbstractContainerTest {
                     "return result;");
 
     @Test
-    public void telemetryUploadWithIntegration() throws Exception {
-        restClient.login(login, password);
+    public void telemetryUploadWithLocalIntegration() throws Exception {
+        restClient.login(LOGIN, PASSWORD);
         Device device = createDevice("http_");
         boolean isRemote = false;
         Integration integration = createIntegration(isRemote);
@@ -122,26 +121,26 @@ public class HttpIntegrationTest extends AbstractContainerTest {
                         ResponseEntity.class);
         Assert.assertTrue(uplinkResponse.getStatusCode().is2xxSuccessful());
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
-        Assert.assertTrue(verify(actualLatestTelemetry, key, value));
+        Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
         wsClient.closeBlocking();
-        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(routingKey).get().getId());
+        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId());
     }
 
     @Test
     public void telemetryUploadWithRemoteIntegration() throws Exception {
-        restClient.login(login, password);
+        restClient.login(LOGIN, PASSWORD);
         Device device = createDevice("http_");
         boolean isRemote = true;
         Integration integration = createIntegration(isRemote);
         createUplink(CUSTOM_CONVERTER_CONFIGURATION);
         integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
         restClient.saveIntegration(integration);
-        IntegrationId integrationId = restClient.getIntegrationByRoutingKey(routingKey).get().getId();
+        IntegrationId integrationId = restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId();
 
         TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
         boolean isConnected = false;
-        for (int i = 0; i < countWait; i++) {
-            Thread.sleep(timeWait);
+        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
+            Thread.sleep(CONNECT_TIMEOUT_MS);
             PageData<Event> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             String event = events.getData().get(0).getBody().get("event").asText();
@@ -159,7 +158,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
                         ResponseEntity.class);
         Assert.assertTrue(uplinkResponse.getStatusCode().is2xxSuccessful());
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
-        Assert.assertTrue(verify(actualLatestTelemetry, key, value));
+        Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
         wsClient.closeBlocking();
         deleteAllObject(device, integration, integrationId);
     }
@@ -168,18 +167,18 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         JsonObject values = new JsonObject();
         values.addProperty("deviceName", name);
         values.addProperty("deviceType", type);
-        values.addProperty(key, value);
+        values.addProperty(TELEMETRY_KEY, TELEMETRY_VALUE);
         return mapper.readTree(values.toString());
     }
 
     private Integration createIntegration(boolean isRemote) throws JsonProcessingException {
         Integration integration = new Integration();
-        JsonNode conf = mapper.readTree(config);
+        JsonNode conf = mapper.readTree(CONFIG);
         integration.setConfiguration(conf);
         integration.setName("HTTP INTEGRATION" + RandomStringUtils.randomAlphanumeric(7));
         integration.setType(IntegrationType.HTTP);
-        integration.setRoutingKey(routingKey);
-        integration.setSecret(secretKey);
+        integration.setRoutingKey(ROUTING_KEY);
+        integration.setSecret(SECRET_KEY);
         integration.setEnabled(true);
         integration.setRemote(isRemote);
         integration.setDebugMode(true);
