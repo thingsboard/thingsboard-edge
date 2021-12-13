@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -166,6 +167,25 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public void input(TbMsg msg, RuleChainId ruleChainId) {
+        msg.pushToStack(nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
+        nodeCtx.getChainActor().tell(new RuleChainInputMsg(ruleChainId, msg));
+    }
+
+    @Override
+    public void output(TbMsg msg, String relationType) {
+        TbMsgProcessingStackItem item = msg.popFormStack();
+        if (item == null) {
+            ack(msg);
+        } else {
+            if (nodeCtx.getSelf().isDebugMode()) {
+                mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, relationType);
+            }
+            nodeCtx.getChainActor().tell(new RuleChainOutputMsg(item.getRuleChainId(), item.getRuleNodeId(), relationType, msg));
+        }
+    }
+
+    @Override
     public void enqueue(TbMsg tbMsg, Runnable onSuccess, Consumer<Throwable> onFailure) {
         TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getTenantId(), tbMsg.getOriginator());
         enqueue(tpi, tbMsg, onFailure, onSuccess);
@@ -221,13 +241,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void enqueueForTellNext(TbMsg tbMsg, String queueName, String relationType, Runnable onSuccess, Consumer<Throwable> onFailure) {
         TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);
-        enqueueForTellNext(tpi, tbMsg, Collections.singleton(relationType), null, onSuccess, onFailure);
+        enqueueForTellNext(tpi, queueName, tbMsg, Collections.singleton(relationType), null, onSuccess, onFailure);
     }
 
     @Override
     public void enqueueForTellNext(TbMsg tbMsg, String queueName, Set<String> relationTypes, Runnable onSuccess, Consumer<Throwable> onFailure) {
         TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);
-        enqueueForTellNext(tpi, tbMsg, relationTypes, null, onSuccess, onFailure);
+        enqueueForTellNext(tpi, queueName, tbMsg, relationTypes, null, onSuccess, onFailure);
     }
 
     private TopicPartitionInfo resolvePartition(TbMsg tbMsg, String queueName) {
@@ -242,9 +262,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
+        enqueueForTellNext(tpi, source.getQueueName(), source, relationTypes, failureMessage, onSuccess, onFailure);
+    }
+
+    private void enqueueForTellNext(TopicPartitionInfo tpi, String queueName, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
         RuleChainId ruleChainId = nodeCtx.getSelf().getRuleChainId();
         RuleNodeId ruleNodeId = nodeCtx.getSelf().getId();
-        TbMsg tbMsg = TbMsg.newMsg(source, ruleChainId, ruleNodeId);
+        TbMsg tbMsg = TbMsg.newMsg(source, queueName, ruleChainId, ruleNodeId);
         TransportProtos.ToRuleEngineMsg.Builder msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
@@ -709,8 +733,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public TbResultSetFuture submitCassandraTask(CassandraStatementTask task) {
-        return mainCtx.getCassandraBufferedRateExecutor().submit(task);
+    public TbResultSetFuture submitCassandraReadTask(CassandraStatementTask task) {
+        return mainCtx.getCassandraBufferedRateReadExecutor().submit(task);
+    }
+
+    @Override
+    public TbResultSetFuture submitCassandraWriteTask(CassandraStatementTask task) {
+        return mainCtx.getCassandraBufferedRateWriteExecutor().submit(task);
     }
 
     @Override

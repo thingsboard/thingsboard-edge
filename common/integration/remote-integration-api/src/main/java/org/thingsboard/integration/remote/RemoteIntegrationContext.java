@@ -152,6 +152,11 @@ public class RemoteIntegrationContext implements IntegrationContext {
         return false;
     }
 
+    @Override
+    public boolean isExceptionStackTraceEnabled() {
+        return true;
+    }
+
     private void saveEvent(TbEventSource tbEventSource, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         String eventData = "";
         try {
@@ -169,4 +174,5 @@ public class RemoteIntegrationContext implements IntegrationContext {
                         .build())
                 .build(), callback);
     }
+
 }

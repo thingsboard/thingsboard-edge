@@ -103,7 +103,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   buildForm(entity: Integration): FormGroup {
     const form = this.fb.group(
       {
-        name: [entity ? entity.name : '', [Validators.required]],
+        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
         type: [entity ? entity.type : null, [Validators.required]],
         enabled: [entity && isDefined(entity.enabled) ? entity.enabled : true],
         debugMode: [entity ? entity.debugMode : null],

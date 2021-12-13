@@ -30,15 +30,19 @@
  */
 package org.thingsboard.server.common.data.event;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.StringUtils;
 
 @Data
 public abstract class DebugEventFilter implements EventFilter {
 
+    @ApiModelProperty(position = 1, value = "String value representing the server name, identifier or ip address where the platform is running", example = "ip-172-31-24-152")
     private String server;
+    @ApiModelProperty(position = 2, value = "Boolean value to filter the errors", allowableValues = "false, true")
     private boolean isError;
-    private String error;
+    @ApiModelProperty(position = 3, value = "The case insensitive 'contains' filter based on error message", example = "not present in the DB")
+    private String errorStr;
 
     public void setIsError(boolean isError) {
         this.isError = isError;
@@ -46,7 +50,7 @@ public abstract class DebugEventFilter implements EventFilter {
 
     @Override
     public boolean hasFilterForJsonBody() {
-        return !StringUtils.isEmpty(server) || !StringUtils.isEmpty(error) || isError;
+        return !StringUtils.isEmpty(server) || !StringUtils.isEmpty(errorStr) || isError;
     }
 
 }

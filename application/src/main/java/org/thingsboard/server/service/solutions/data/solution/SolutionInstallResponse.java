@@ -30,11 +30,14 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+@ApiModel
 @Data
 public class SolutionInstallResponse extends TenantSolutionTemplateInstructions {
-
+    @ApiModelProperty(position = 4, value = "Indicates that template was installed successfully")
     private boolean success;
 
     public SolutionInstallResponse(TenantSolutionTemplateInstructions instructions, boolean success) {

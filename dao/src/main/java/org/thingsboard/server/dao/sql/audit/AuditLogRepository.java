@@ -49,11 +49,11 @@ public interface AuditLogRepository extends PagingAndSortingRepository<AuditLogE
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) " +
-            "AND (LOWER(a.entityType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.entityName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.userName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT(:textSearch, '%')))"
+            "AND (LOWER(a.entityType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.entityName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.userName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<AuditLogEntity> findByTenantId(
                                  @Param("tenantId") UUID tenantId,
@@ -69,10 +69,10 @@ public interface AuditLogRepository extends PagingAndSortingRepository<AuditLogE
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) " +
-            "AND (LOWER(a.entityName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.userName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT(:textSearch, '%')))"
+            "AND (LOWER(a.entityName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.userName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<AuditLogEntity> findAuditLogsByTenantIdAndEntityId(@Param("tenantId") UUID tenantId,
                                                             @Param("entityType") EntityType entityType,
@@ -89,11 +89,11 @@ public interface AuditLogRepository extends PagingAndSortingRepository<AuditLogE
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) " +
-            "AND (LOWER(a.entityType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.entityName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.userName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT(:textSearch, '%')))"
+            "AND (LOWER(a.entityType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.entityName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.userName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<AuditLogEntity> findAuditLogsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                               @Param("customerId") UUID customerId,
@@ -109,10 +109,10 @@ public interface AuditLogRepository extends PagingAndSortingRepository<AuditLogE
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:actionTypes) IS NULL OR a.actionType in (:actionTypes)) " +
-            "AND (LOWER(a.entityType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.entityName) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionType) LIKE LOWER(CONCAT(:textSearch, '%'))" +
-            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT(:textSearch, '%')))"
+            "AND (LOWER(a.entityType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.entityName) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionType) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(a.actionStatus) LIKE LOWER(CONCAT('%', :textSearch, '%')))"
     )
     Page<AuditLogEntity> findAuditLogsByTenantIdAndUserId(@Param("tenantId") UUID tenantId,
                                                           @Param("userId") UUID userId,

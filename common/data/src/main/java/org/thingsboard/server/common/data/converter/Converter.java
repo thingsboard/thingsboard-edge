@@ -32,6 +32,8 @@ package org.thingsboard.server.common.data.converter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
@@ -39,8 +41,10 @@ import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+@ApiModel
 @EqualsAndHashCode(callSuper = true)
 public class Converter extends SearchTextBased<ConverterId> implements HasName, TenantEntity {
 
@@ -48,6 +52,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
 
     private TenantId tenantId;
     @NoXss
+    @Length(fieldName = "name")
     private String name;
     private ConverterType type;
     private boolean debugMode;
@@ -72,6 +77,22 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.additionalInfo = converter.getAdditionalInfo();
     }
 
+    @ApiModelProperty(position = 1, value = "JSON object with the Converter Id. " +
+            "Specify this field to update the Converter. " +
+            "Referencing non-existing Converter Id will cause error. " +
+            "Omit this field to create new Converter.")
+    @Override
+    public ConverterId getId() {
+        return super.getId();
+    }
+
+    @ApiModelProperty(position = 2, value = "Timestamp of the converter creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @Override
+    public long getCreatedTime() {
+        return super.getCreatedTime();
+    }
+
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -80,6 +101,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.tenantId = tenantId;
     }
 
+    @ApiModelProperty(position = 4, required = true, value = "Unique Converter Name in scope of Tenant", example = "Http Converter")
     @Override
     public String getName() {
         return name;
@@ -89,6 +111,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.name = name;
     }
 
+    @ApiModelProperty(position = 5, required = true, value = "The type of the converter to process incoming or outgoing messages")
     public ConverterType getType() {
         return type;
     }
@@ -97,6 +120,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.type = type;
     }
 
+    @ApiModelProperty(position = 6, value = "Boolean flag to enable/disable saving received messages as debug events")
     public boolean isDebugMode() {
         return debugMode;
     }
@@ -105,6 +129,9 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.debugMode = debugMode;
     }
 
+    @ApiModelProperty(position = 7, value = "JSON object representing converter configuration. It should contain one of two possible fields: 'decoder' or 'encoder'. " +
+            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. " +
+            "It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'")
     public JsonNode getConfiguration() {
         return configuration;
     }
@@ -113,6 +140,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.configuration = configuration;
     }
 
+    @ApiModelProperty(position = 8, value = "Additional parameters of the converter", dataType = "com.fasterxml.jackson.databind.JsonNode")
     public JsonNode getAdditionalInfo() {
         return additionalInfo;
     }

@@ -69,6 +69,8 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
 
     private static final String PRIVACY_POLICY = "privacyPolicy";
 
+    private static final String TERMS_OF_USE = "termsOfUse";
+
     @Autowired
     private AttributesService attributesService;
 
@@ -118,6 +120,24 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
     @Override
     public String getTenantPrivacyPolicy(TenantId tenantId) {
         return getTenantPrivacyPolicy(tenantId, tenantId);
+    }
+
+    @Override
+    public String getTermsOfUse(TenantId sysTenantId, String domainName) {
+        String result = null;
+        EntityId entityId = getEntityIdByDomainName(sysTenantId, domainName);
+        if (entityId != null) {
+            result = getTenantTermsOfUse(sysTenantId, entityId);
+        }
+        if (result == null) {
+            result = "";
+        }
+        return result;
+    }
+
+    @Override
+    public String getTenantTermsOfUse(TenantId tenantId) {
+        return getTenantTermsOfUse(tenantId, tenantId);
     }
 
     @Override
@@ -175,22 +195,27 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
         selfRegistrationParams.setPrivacyPolicy(null);
         String selfRegistrationJson;
         String privacyPolicyJson;
+        String termsOfUse = selfRegistrationParams.getTermsOfUse();
+        selfRegistrationParams.setTermsOfUse(null);
+        String termsOfUseJson;
         try {
             selfRegistrationJson = OBJECT_MAPPER.writeValueAsString(selfRegistrationParams);
             privacyPolicyJson = OBJECT_MAPPER.writeValueAsString(OBJECT_MAPPER.createObjectNode().put(PRIVACY_POLICY, privacyPolicy));
+            termsOfUseJson = OBJECT_MAPPER.writeValueAsString(OBJECT_MAPPER.createObjectNode().put(TERMS_OF_USE, termsOfUse));
         } catch (JsonProcessingException e) {
             log.error("Unable to convert Self Registration Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert Self Registration Params to JSON!");
         }
-        List<AttributeKvEntry> attributes = getAttributeKvEntries(privacyPolicyJson, selfRegistrationJson);
+        List<AttributeKvEntry> attributes = getAttributeKvEntries(privacyPolicyJson, termsOfUseJson, selfRegistrationJson);
         saveEntityAttributes(tenantId, entityId, attributes);
     }
 
-    private List<AttributeKvEntry> getAttributeKvEntries(String privacyPolicy, String selfRegistrationValue) {
+    private List<AttributeKvEntry> getAttributeKvEntries(String privacyPolicy, String termsOfUse, String selfRegistrationValue) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(SELF_REGISTRATION_PARAMS, selfRegistrationValue), ts));
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(PRIVACY_POLICY, privacyPolicy), ts));
+        attributes.add(new BaseAttributeKvEntry(new StringDataEntry(TERMS_OF_USE, termsOfUse), ts));
         return attributes;
     }
 
@@ -216,6 +241,10 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
 
     private String getTenantPrivacyPolicy(TenantId tenantId, EntityId entityId) {
         return getEntityAttributeValue(tenantId, entityId, PRIVACY_POLICY);
+    }
+
+    private String getTenantTermsOfUse(TenantId tenantId, EntityId entityId) {
+        return getEntityAttributeValue(tenantId, entityId, TERMS_OF_USE);
     }
 
     private SelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId, EntityId entityId) {

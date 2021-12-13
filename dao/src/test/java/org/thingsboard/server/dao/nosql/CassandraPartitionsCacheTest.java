@@ -35,6 +35,7 @@ import com.datastax.oss.driver.api.core.cql.BoundStatement;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.Statement;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -74,9 +76,6 @@ public class CassandraPartitionsCacheTest {
     private Environment environment;
 
     @Mock
-    private CassandraBufferedRateExecutor rateLimiter;
-
-    @Mock
     private CassandraCluster cluster;
 
     @Mock
@@ -89,7 +88,6 @@ public class CassandraPartitionsCacheTest {
         ReflectionTestUtils.setField(cassandraBaseTimeseriesDao, "systemTtl", 0);
         ReflectionTestUtils.setField(cassandraBaseTimeseriesDao, "setNullValuesEnabled", false);
         ReflectionTestUtils.setField(cassandraBaseTimeseriesDao, "environment", environment);
-        ReflectionTestUtils.setField(cassandraBaseTimeseriesDao, "rateLimiter", rateLimiter);
         ReflectionTestUtils.setField(cassandraBaseTimeseriesDao, "cluster", cluster);
 
         when(cluster.getDefaultReadConsistencyLevel()).thenReturn(ConsistencyLevel.ONE);
@@ -103,7 +101,9 @@ public class CassandraPartitionsCacheTest {
         when(boundStatement.setUuid(anyInt(), any(UUID.class))).thenReturn(boundStatement);
         when(boundStatement.setLong(anyInt(), any(Long.class))).thenReturn(boundStatement);
 
-        doReturn(Futures.immediateFuture(0)).when(cassandraBaseTimeseriesDao).getFuture(any(TbResultSetFuture.class), any());
+        willReturn(new TbResultSetFuture(SettableFuture.create())).given(cassandraBaseTimeseriesDao).executeAsyncWrite(any(), any());
+
+        doReturn(Futures.immediateFuture(0)).when(cassandraBaseTimeseriesDao).getFuture(any(), any());
     }
 
     @Test
@@ -122,4 +122,5 @@ public class CassandraPartitionsCacheTest {
         }
         verify(cassandraBaseTimeseriesDao, times(60000)).executeAsyncWrite(any(TenantId.class), any(Statement.class));
     }
+
 }

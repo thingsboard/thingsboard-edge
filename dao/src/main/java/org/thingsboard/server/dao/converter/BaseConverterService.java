@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -54,7 +55,6 @@ import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -185,6 +185,19 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                         Tenant tenant = tenantDao.findById(tenantId, converter.getTenantId().getId());
                         if (tenant == null) {
                             throw new DataValidationException("Converter is referencing to non-existent tenant!");
+                        }
+                    }
+                    if (converter.getConfiguration() == null || converter.getConfiguration().isNull()) {
+                        throw new DataValidationException("Converter configuration should be specified!");
+                    } else {
+                        if (converter.getType() == ConverterType.UPLINK) {
+                            if (!converter.getConfiguration().has("decoder")) {
+                                throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
+                            }
+                        } else {
+                            if (!converter.getConfiguration().has("encoder")) {
+                                throw new DataValidationException("Converter 'encoder' field should be specified in configuration!");
+                            }
                         }
                     }
                 }

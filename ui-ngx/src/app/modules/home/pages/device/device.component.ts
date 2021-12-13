@@ -116,11 +116,11 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   buildForm(entity: Device): FormGroup {
     const form = this.fb.group(
       {
-        name: [entity ? entity.name : '', [Validators.required]],
+        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
         deviceProfileId: [entity ? entity.deviceProfileId : null, [Validators.required]],
         firmwareId: [entity ? entity.firmwareId : null],
         softwareId: [entity ? entity.softwareId : null],
-        label: [entity ? entity.label : ''],
+        label: [entity ? entity.label : '', [Validators.maxLength(255)]],
         deviceData: [entity ? entity.deviceData : null, [Validators.required]],
         additionalInfo: this.fb.group(
           {

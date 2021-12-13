@@ -35,6 +35,6 @@ package org.thingsboard.server.common.data.plugin;
  */
 public enum ComponentType {
 
-    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL
+    ENRICHMENT, FILTER, TRANSFORMATION, ACTION, ANALYTICS, EXTERNAL, FLOW
 
 }

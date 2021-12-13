@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { FcModel } from 'ngx-flowchart/dist/ngx-flowchart';
+import { FcModel } from 'ngx-flowchart';
 import { FcRuleEdge, FcRuleNode, FcRuleNodeType } from '@shared/models/rule-node.models';
 
 export interface FcRuleNodeTypeModel extends FcModel {

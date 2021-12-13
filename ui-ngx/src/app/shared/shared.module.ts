@@ -36,7 +36,7 @@ import { LogoComponent } from '@shared/components/logo.component';
 import { TbSnackBarComponent, ToastDirective } from '@shared/components/toast.directive';
 import { BreadcrumbComponent } from '@shared/components/breadcrumb.component';
 import { FlowInjectionToken, NgxFlowModule } from '@flowjs/ngx-flow';
-import { NgxFlowchartModule } from 'ngx-flowchart/dist/ngx-flowchart';
+import { NgxFlowchartModule } from 'ngx-flowchart';
 import Flow from '@flowjs/flow.js';
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -95,7 +95,7 @@ import { EnumToArrayPipe } from '@shared/pipe/enum-to-array.pipe';
 import { ClipboardModule } from 'ngx-clipboard';
 import { ValueInputComponent } from '@shared/components/value-input.component';
 import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
-import { MarkdownComponent } from '@shared/components/markdown.component';
+import { MarkdownEditorComponent } from '@shared/components/markdown-editor.component';
 import { FullscreenDirective } from '@shared/components/fullscreen.directive';
 import { HighlightPipe } from '@shared/pipe/highlight.pipe';
 import { DashboardAutocompleteComponent } from '@shared/components/dashboard-autocomplete.component';
@@ -154,7 +154,7 @@ import { NavTreeComponent } from '@shared/components/nav-tree.component';
 import { LedLightComponent } from '@shared/components/led-light.component';
 import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-to-string.directive';
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
-import { HistorySelectorComponent } from './components/time/history-selector/history-selector.component';
+import { HistorySelectorComponent } from '@shared/components/time/history-selector/history-selector.component';
 import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-gateway-select.component';
 import {
   HasGenericPermissionPipe,
@@ -180,11 +180,15 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CopyButtonComponent } from '@shared/components/button/copy-button.component';
 import { TogglePasswordComponent } from '@shared/components/button/toggle-password.component';
 import { HelpPopupComponent } from '@shared/components/help-popup.component';
-import { TbPopoverComponent, TbPopoverDirective, TbPopoverService } from '@shared/components/popover.component';
+import { TbPopoverComponent, TbPopoverDirective } from '@shared/components/popover.component';
 import { TbStringTemplateOutletDirective } from '@shared/components/directives/sring-template-outlet.directive';
 import { TbComponentOutletDirective} from '@shared/components/directives/component-outlet.directive';
 import { HelpMarkdownComponent } from '@shared/components/help-markdown.component';
 import { MarkedOptionsService } from '@shared/components/marked-options.service';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { HELP_MARKDOWN_COMPONENT_TOKEN, SHARED_MODULE_TOKEN } from '@shared/components/tokens';
+import { TbMarkdownComponent } from '@shared/components/markdown.component';
+import { ProtobufContentComponent } from '@shared/components/protobuf-content.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -214,6 +218,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
       provide: MAT_DATE_LOCALE,
       useValue: 'en-GB'
     },
+    { provide: HELP_MARKDOWN_COMPONENT_TOKEN, useValue: HelpMarkdownComponent },
+    { provide: SHARED_MODULE_TOKEN, useValue: SharedModule },
     TbPopoverService
   ],
   declarations: [
@@ -230,6 +236,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbStringTemplateOutletDirective,
     TbComponentOutletDirective,
     TbPopoverDirective,
+    TbMarkdownComponent,
     HelpComponent,
     HelpMarkdownComponent,
     HelpPopupComponent,
@@ -292,7 +299,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyValMapComponent,
     NavTreeComponent,
     LedLightComponent,
-    MarkdownComponent,
+    MarkdownEditorComponent,
     NospacePipe,
     MillisecondsToTimeStringPipe,
     EnumToArrayPipe,
@@ -317,7 +324,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
     CopyButtonComponent,
-    TogglePasswordComponent
+    TogglePasswordComponent,
+    ProtobufContentComponent
   ],
   imports: [
     CommonModule,
@@ -392,6 +400,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbStringTemplateOutletDirective,
     TbComponentOutletDirective,
     TbPopoverDirective,
+    TbMarkdownComponent,
     HelpComponent,
     HelpMarkdownComponent,
     HelpPopupComponent,
@@ -499,7 +508,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyValMapComponent,
     NavTreeComponent,
     LedLightComponent,
-    MarkdownComponent,
+    MarkdownEditorComponent,
     NospacePipe,
     MillisecondsToTimeStringPipe,
     EnumToArrayPipe,
@@ -524,7 +533,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
     CopyButtonComponent,
-    TogglePasswordComponent
+    TogglePasswordComponent,
+    ProtobufContentComponent
   ]
 })
 export class SharedModule { }

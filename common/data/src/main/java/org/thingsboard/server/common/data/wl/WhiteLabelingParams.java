@@ -30,27 +30,46 @@
  */
 package org.thingsboard.server.common.data.wl;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
+@ApiModel
 @Data
 @EqualsAndHashCode
 public class WhiteLabelingParams {
 
+    @ApiModelProperty(position = 1, value = "Logo image URL", example = "https://company.com/images/logo.png")
     protected String logoImageUrl;
+    @ApiModelProperty(position = 2, value = "Logo image checksum. Used to detect the changes of the logo image.", readOnly = true)
     protected String logoImageChecksum;
+    @ApiModelProperty(position = 3, value = "The height of a logo container. Logo image will be automatically scaled.")
     protected Integer logoImageHeight;
+    @ApiModelProperty(position = 4, value = "White-labeled name of the platform", example = "My Company IoT Platform")
     protected String appTitle;
+    @ApiModelProperty(position = 5, value = "JSON object that contains website icon url and type")
     protected Favicon favicon;
+    @ApiModelProperty(position = 6, value = "Favicon image checksum. Used to detect the changes of the website icon", readOnly = true)
     protected String faviconChecksum;
+    @ApiModelProperty(position = 7, value = "Complex JSON that describes structure of the Angular Material Palette. See [theming](https://material.angular.io/guide/theming) for more details")
     protected PaletteSettings paletteSettings;
+    @ApiModelProperty(position = 8, value = "Base URL for help link")
     protected String helpLinkBaseUrl;
+    @ApiModelProperty(position = 9, value = "Base URL for the repository with the UI help components (markdown)")
+    protected String uiHelpBaseUrl;
+    @ApiModelProperty(position = 10, value = "Enable or Disable help links")
     protected Boolean enableHelpLinks;
+    @ApiModelProperty(position = 11, value = "Enable white-labeling", readOnly = true)
     protected boolean whiteLabelingEnabled = true;
+    @ApiModelProperty(position = 12, value = "Show platform name and version on UI and login screen")
     protected Boolean showNameVersion;
+    @ApiModelProperty(position = 13, value = "White-labeled platform name")
     protected String platformName;
+    @ApiModelProperty(position = 14, value = "White-labeled platform version")
     protected String platformVersion;
+    @ApiModelProperty(position = 15, value = "Custom CSS content")
     protected String customCss;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
@@ -75,6 +94,9 @@ public class WhiteLabelingParams {
         }
         if (otherWlParams.helpLinkBaseUrl != null) {
             this.helpLinkBaseUrl = otherWlParams.helpLinkBaseUrl;
+        }
+        if (otherWlParams.uiHelpBaseUrl != null) {
+            this.uiHelpBaseUrl = otherWlParams.uiHelpBaseUrl;
         }
         if (otherWlParams.enableHelpLinks != null) {
             this.enableHelpLinks = otherWlParams.enableHelpLinks;

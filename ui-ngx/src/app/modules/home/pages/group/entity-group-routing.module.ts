@@ -56,7 +56,7 @@ import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-
 import { RuleChainPageComponent } from '@home/pages/rulechain/rulechain-page.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import {
-  ResolvedRuleChainMetaDataResolver,
+  RuleChainMetaDataResolver,
   ruleChainBreadcumbLabelFunction,
   RuleChainResolver,
   RuleNodeComponentsResolver,
@@ -393,7 +393,7 @@ const RULE_CHAINS_ROUTE: Route = {
       resolve: {
         entityGroup: EntityGroupResolver,
         ruleChain: RuleChainResolver,
-        ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+        ruleChainMetaData: RuleChainMetaDataResolver,
         ruleNodeComponents: RuleNodeComponentsResolver,
         tooltipster: TooltipsterResolver
       }

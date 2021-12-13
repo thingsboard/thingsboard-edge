@@ -37,7 +37,7 @@ import {
   Output, SimpleChanges
 } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { delay, share } from 'rxjs/operators';
+import { share } from 'rxjs/operators';
 import { HelpService } from '@core/services/help.service';
 
 @Component({
@@ -49,7 +49,11 @@ export class HelpMarkdownComponent implements OnDestroy, OnInit, OnChanges {
 
   @Input() helpId: string;
 
+  @Input() helpContent: string;
+
   @Input() visible: boolean;
+
+  @Input() style: { [klass: string]: any } = {};
 
   @Output() markdownReady = new EventEmitter<void>();
 
@@ -58,8 +62,6 @@ export class HelpMarkdownComponent implements OnDestroy, OnInit, OnChanges {
   markdownText$ = this.markdownText.pipe(
     share()
   );
-
-  isMarkdownReady = false;
 
   private loadHelpPending = false;
 
@@ -83,7 +85,7 @@ export class HelpMarkdownComponent implements OnDestroy, OnInit, OnChanges {
             this.loadHelp();
           }
         }
-        if (propName === 'helpId') {
+        if (propName === 'helpId' || propName === 'helpContent') {
           this.markdownText.next(null);
           this.loadHelpWhenVisible();
         }
@@ -104,16 +106,16 @@ export class HelpMarkdownComponent implements OnDestroy, OnInit, OnChanges {
       this.help.getHelpContent(this.helpId).subscribe((content) => {
         this.markdownText.next(content);
       });
+    } else if (this.helpContent) {
+      this.markdownText.next(this.helpContent);
     }
   }
 
   onMarkdownReady() {
-    this.isMarkdownReady = true;
     this.markdownReady.next();
   }
 
   markdownClick($event: MouseEvent) {
-
   }
 
 }

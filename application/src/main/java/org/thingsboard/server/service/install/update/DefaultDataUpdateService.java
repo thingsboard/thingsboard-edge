@@ -44,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
+import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -67,6 +69,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
@@ -91,8 +95,11 @@ import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
@@ -114,7 +121,9 @@ import org.thingsboard.server.dao.oauth2.OAuth2Utils;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
+import org.thingsboard.server.dao.model.sql.RelationEntity;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -134,6 +143,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -153,6 +163,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private TenantService tenantService;
+
+    @Autowired
+    private RelationService relationService;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -200,9 +213,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private AttributesService attributesService;
 
     @Autowired
-    private RelationService relationService;
-
-    @Autowired
     private TimeseriesService tsService;
 
     @Autowired
@@ -244,7 +254,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 updateOAuth2Params();
                 break;
             case "3.3.2":
-                log.info("Updating data from version 3.3.2 to 3.3.2PE ...");
+                log.info("Updating data from version 3.3.2 to 3.3.3 ...");
+                updateNestedRuleChains();
+                break;
+            case "3.3.3":
+                log.info("Updating data from version 3.3.3 to 3.3.3PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);
@@ -284,29 +298,38 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(DeviceProfileEntity deviceProfile) {
-                    if (deviceProfile.getProfileData().has("alarms") &&
-                            !deviceProfile.getProfileData().get("alarms").isNull()) {
-                        boolean isUpdated = false;
-                        JsonNode array = deviceProfile.getProfileData().get("alarms");
-                        for (JsonNode node : array) {
-                            if (node.has("createRules")) {
-                                JsonNode createRules = node.get("createRules");
-                                for (AlarmSeverity severity : AlarmSeverity.values()) {
-                                    if (createRules.has(severity.name())) {
-                                        isUpdated = isUpdated || convertDeviceProfileAlarmRulesForVersion330(createRules.get(severity.name()).get("condition").get("spec"));
-                                    }
-                                }
-                            }
-                            if (node.has("clearRule") && !node.get("clearRule").isNull()) {
-                                isUpdated = isUpdated || convertDeviceProfileAlarmRulesForVersion330(node.get("clearRule").get("condition").get("spec"));
-                            }
-                        }
-                        if (isUpdated) {
-                            deviceProfileRepository.save(deviceProfile);
-                        }
+                    if (convertDeviceProfileForVersion330(deviceProfile.getProfileData())) {
+                        deviceProfileRepository.save(deviceProfile);
                     }
                 }
             };
+
+    boolean convertDeviceProfileForVersion330(JsonNode profileData) {
+        boolean isUpdated = false;
+        if (profileData.has("alarms") && !profileData.get("alarms").isNull()) {
+            JsonNode alarms = profileData.get("alarms");
+            for (JsonNode alarm : alarms) {
+                if (alarm.has("createRules")) {
+                    JsonNode createRules = alarm.get("createRules");
+                    for (AlarmSeverity severity : AlarmSeverity.values()) {
+                        if (createRules.has(severity.name())) {
+                            JsonNode spec = createRules.get(severity.name()).get("condition").get("spec");
+                            if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
+                                isUpdated = true;
+                            }
+                        }
+                    }
+                }
+                if (alarm.has("clearRule") && !alarm.get("clearRule").isNull()) {
+                    JsonNode spec = alarm.get("clearRule").get("condition").get("spec");
+                    if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
+                        isUpdated = true;
+                    }
+                }
+            }
+        }
+        return isUpdated;
+    }
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultRuleChainUpdater =
             new PaginatedUpdater<>() {
@@ -338,6 +361,74 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     }
                 }
             };
+
+    private void updateNestedRuleChains() {
+        try {
+            var packSize = 1024;
+            var updated = 0;
+            boolean hasNext = true;
+            while (hasNext) {
+                List<EntityRelation> relations = relationService.findRuleNodeToRuleChainRelations(TenantId.SYS_TENANT_ID, RuleChainType.CORE, packSize);
+                hasNext = relations.size() == packSize;
+                for (EntityRelation relation : relations) {
+                    try {
+                        RuleNodeId sourceNodeId = new RuleNodeId(relation.getFrom().getId());
+                        RuleNode sourceNode = ruleChainService.findRuleNodeById(TenantId.SYS_TENANT_ID, sourceNodeId);
+                        if (sourceNode == null) {
+                            log.info("Skip processing of relation for non existing source rule node: [{}]", sourceNodeId);
+                            relationService.deleteRelation(TenantId.SYS_TENANT_ID, relation);
+                            continue;
+                        }
+                        RuleChainId sourceRuleChainId = sourceNode.getRuleChainId();
+                        RuleChainId targetRuleChainId = new RuleChainId(relation.getTo().getId());
+                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, targetRuleChainId);
+                        if (targetRuleChain == null) {
+                            log.info("Skip processing of relation for non existing target rule chain: [{}]", targetRuleChainId);
+                            relationService.deleteRelation(TenantId.SYS_TENANT_ID, relation);
+                            continue;
+                        }
+                        TenantId tenantId = targetRuleChain.getTenantId();
+                        RuleNode targetNode = new RuleNode();
+                        targetNode.setName(targetRuleChain.getName());
+                        targetNode.setRuleChainId(sourceRuleChainId);
+                        targetNode.setType(TbRuleChainInputNode.class.getName());
+                        TbRuleChainInputNodeConfiguration configuration = new TbRuleChainInputNodeConfiguration();
+                        configuration.setRuleChainId(targetRuleChain.getId().toString());
+                        targetNode.setConfiguration(JacksonUtil.valueToTree(configuration));
+                        targetNode.setAdditionalInfo(relation.getAdditionalInfo());
+                        targetNode.setDebugMode(false);
+                        targetNode = ruleChainService.saveRuleNode(tenantId, targetNode);
+
+                        EntityRelation sourceRuleChainToRuleNode = new EntityRelation();
+                        sourceRuleChainToRuleNode.setFrom(sourceRuleChainId);
+                        sourceRuleChainToRuleNode.setTo(targetNode.getId());
+                        sourceRuleChainToRuleNode.setType(EntityRelation.CONTAINS_TYPE);
+                        sourceRuleChainToRuleNode.setTypeGroup(RelationTypeGroup.RULE_CHAIN);
+                        relationService.saveRelation(tenantId, sourceRuleChainToRuleNode);
+
+                        EntityRelation sourceRuleNodeToTargetRuleNode = new EntityRelation();
+                        sourceRuleNodeToTargetRuleNode.setFrom(sourceNode.getId());
+                        sourceRuleNodeToTargetRuleNode.setTo(targetNode.getId());
+                        sourceRuleNodeToTargetRuleNode.setType(relation.getType());
+                        sourceRuleNodeToTargetRuleNode.setTypeGroup(RelationTypeGroup.RULE_NODE);
+                        sourceRuleNodeToTargetRuleNode.setAdditionalInfo(relation.getAdditionalInfo());
+                        relationService.saveRelation(tenantId, sourceRuleNodeToTargetRuleNode);
+
+                        //Delete old relation
+                        relationService.deleteRelation(tenantId, relation);
+                        updated++;
+                    } catch (Exception e) {
+                        log.info("Failed to update RuleNodeToRuleChainRelation: {}", relation, e);
+                    }
+                }
+                if (updated > 0) {
+                    log.info("RuleNodeToRuleChainRelations: {} entities updated so far...", updated);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Unable to update Tenant", e);
+        }
+    }
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
             new PaginatedUpdater<>() {
@@ -476,8 +567,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     try {
                         List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, tenant.getId()).get();
                         for (EntityGroup entityGroup : entityGroups) {
-                            entityGroup.setOwnerId(tenant.getId());
-                            entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
+                            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
+                                entityGroup.setOwnerId(tenant.getId());
+                                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
+                            }
                         }
                         EntityGroup entityGroup;
                         Optional<EntityGroup> customerGroupOptional =
@@ -680,8 +773,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
             try {
                 List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, customer.getId()).get();
                 for (EntityGroup entityGroup : entityGroups) {
-                    entityGroup.setOwnerId(customer.getId());
-                    entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
+                    if (!customer.getId().equals(entityGroup.getOwnerId())) {
+                        entityGroup.setOwnerId(customer.getId());
+                        entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
+                    }
                 }
                 EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                 for (EntityType groupType : entityGroupTypes) {
@@ -976,6 +1071,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private final PaginatedUpdater<String, Tenant> tenantsAlarmsCustomerUpdater =
             new PaginatedUpdater<>() {
 
+                final AtomicLong processed = new AtomicLong();
+
                 @Override
                 protected String getName() {
                     return "Tenants alarms customer updater";
@@ -993,12 +1090,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(Tenant tenant) {
-                    updateTenantAlarmsCustomer(tenant.getId());
+                    updateTenantAlarmsCustomer(tenant.getId(), getName(), processed);
                 }
             };
 
-    private void updateTenantAlarmsCustomer(TenantId tenantId) {
-        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024*4), null, null, false);
+    private void updateTenantAlarmsCustomer(TenantId tenantId, String name, AtomicLong processed) {
+        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, false);
         PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
         boolean hasNext = true;
         while (hasNext) {
@@ -1006,6 +1103,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 if (alarm.getCustomerId() == null && alarm.getOriginator() != null) {
                     alarm.setCustomerId(entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()));
                     alarmDao.save(tenantId, alarm);
+                }
+                if (processed.incrementAndGet() % 1000 == 0) {
+                    log.info("{}: {} alarms processed so far...", name, processed);
                 }
             }
             if (alarms.hasNext()) {
@@ -1093,6 +1193,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
             whiteLabelingParams.setHelpLinkBaseUrl(helpLinkBaseUrl);
+            String uiHelpBaseUrl = null;
+            if (storedWl != null && storedWl.has("uiHelpBaseUrl")) {
+                JsonNode uiHelpBaseUrlJson = storedWl.get("uiHelpBaseUrl");
+                if (uiHelpBaseUrlJson.isTextual()) {
+                    if (!StringUtils.isEmpty(uiHelpBaseUrlJson.asText())) {
+                        uiHelpBaseUrl = uiHelpBaseUrlJson.asText();
+                    }
+                }
+            }
+            whiteLabelingParams.setUiHelpBaseUrl(uiHelpBaseUrl);
             if (storedWl != null && storedWl.has("enableHelpLinks")) {
                 whiteLabelingParams.setEnableHelpLinks(storedWl.get("enableHelpLinks").asBoolean());
             } else {
@@ -1187,7 +1297,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
     }
 
-    private boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
+    boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
         if (spec != null) {
             if (spec.has("type") && spec.get("type").asText().equals("DURATION")) {
                 if (spec.has("value")) {

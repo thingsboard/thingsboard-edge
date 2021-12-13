@@ -224,7 +224,7 @@
         </table>
         <span [fxShow]="(dataSource.isEmpty() | async) && !dataSource.dataLoading"
               fxLayoutAlign="center center"
-              class="no-data-found" translate>{{ 'scheduler.no-scheduler-events' }}</span>
+              class="no-data-found">{{ noDataDisplayMessageText }}</span>
         <span [fxShow]="dataSource.dataLoading"
               fxLayoutAlign="center center"
               class="no-data-found">{{ 'common.loading' | translate }}</span>

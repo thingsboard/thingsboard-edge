@@ -31,21 +31,21 @@
 package org.thingsboard.integration.api.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.RequiredArgsConstructor;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
+@RequiredArgsConstructor
 public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
 
     private final JsInvokeService jsInvokeService;
+    private final LogSettingsComponent logSettings;
     private JSUplinkEvaluator evaluator;
-
-    public JSUplinkDataConverter(JsInvokeService jsInvokeService) {
-        this.jsInvokeService = jsInvokeService;
-    }
 
     @Override
     public void init(Converter configuration) {
@@ -70,6 +70,11 @@ public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
     @Override
     public ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         return evaluator.execute(data, metadata);
+    }
+
+    @Override
+    boolean isExceptionStackTraceEnabled() {
+        return logSettings.isExceptionStackTraceEnabled();
     }
 
 }

@@ -102,7 +102,7 @@
       <div #bottomPanel class="tb-split tb-split-vertical">
         <div #bottomLeftPanel class="tb-split tb-content">
           <div class="tb-resize-container">
-            <div class="tb-editor-area-title-panel tb-js-function">
+            <div class="tb-editor-area-title-panel tb-js-function" [ngClass]="{'tb-js-function-help': wl.isEnableHelpLinks()}">
               <label>{{ (isDecoder ? 'converter.decoder' : 'converter.encoder') | translate }}</label>
             </div>
             <tb-js-func
@@ -116,6 +116,7 @@
                                              converterTestFormGroup.get('payload').get('msgType').value,
                                              converterTestFormGroup.get('integrationMetadata').value]"
               resultType="object"
+              helpId="{{isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn'}}"
               [fillHeight]="true">
             </tb-js-func>
           </div>

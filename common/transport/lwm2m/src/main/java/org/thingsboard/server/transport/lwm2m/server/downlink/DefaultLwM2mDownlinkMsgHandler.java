@@ -201,6 +201,9 @@ public class DefaultLwM2mDownlinkMsgHandler extends LwM2MExecutorAwareService im
             }
             sendSimpleRequest(client, downlink, request.getTimeout(), callback);
         }
+        else {
+            callback.onValidationError(toString(request), "Tenant hasn't such the TbResources: " + request.getVersionedId() + "!");
+        }
     }
 
     @Override
@@ -260,7 +263,7 @@ public class DefaultLwM2mDownlinkMsgHandler extends LwM2MExecutorAwareService im
                 callback.onError(toString(request), e);
             }
         } else {
-            callback.onValidationError(toString(request), "Resource " + request.getVersionedId() + " is not configured in the device profile!");
+            callback.onValidationError(toString(request), "Tenant hasn't such the TbResources: " + request.getVersionedId() + "!");
         }
     }
 
@@ -286,10 +289,15 @@ public class DefaultLwM2mDownlinkMsgHandler extends LwM2MExecutorAwareService im
              **/
             Collection<LwM2mResource> resources = client.getNewResourceForInstance(request.getVersionedId(), request.getValue(), modelProvider, this.converter);
             ResourceModel resourceModelWrite = client.getResourceModel(request.getVersionedId(), modelProvider);
-            ContentFormat contentFormat = request.getObjectContentFormat() != null ? request.getObjectContentFormat() : convertResourceModelTypeToContentFormat(client, resourceModelWrite.type);
-            WriteRequest downlink = new WriteRequest(WriteRequest.Mode.UPDATE, contentFormat, resultIds.getObjectId(),
-                    resultIds.getObjectInstanceId(), resources);
-            sendSimpleRequest(client, downlink, request.getTimeout(), callback);
+            if (resourceModelWrite != null) {
+                ContentFormat contentFormat = request.getObjectContentFormat() != null ? request.getObjectContentFormat() : convertResourceModelTypeToContentFormat(client, resourceModelWrite.type);
+                WriteRequest downlink = new WriteRequest(WriteRequest.Mode.UPDATE, contentFormat, resultIds.getObjectId(),
+                        resultIds.getObjectInstanceId(), resources);
+                sendSimpleRequest(client, downlink, request.getTimeout(), callback);
+            }
+            else {
+                callback.onValidationError(toString(request), "Tenant hasn't such the TbResources: " + request.getVersionedId() + " !");
+            }
         } else if (resultIds.isObjectInstance()) {
             /*
              *  params = "{\"id\":0,\"resources\":[{\"id\":14,\"value\":\"+5\"},{\"id\":15,\"value\":\"+9\"}]}"
@@ -326,6 +334,10 @@ public class DefaultLwM2mDownlinkMsgHandler extends LwM2MExecutorAwareService im
         Registration registration = client.getRegistration();
         try {
             logService.log(client, String.format("[%s][%s] Sending request: %s to %s", registration.getId(), registration.getSocketAddress(), request.getClass().getSimpleName(), pathToStringFunction.apply(request)));
+            if (!callback.onSent(request)) {
+                return;
+            }
+
             context.getServer().send(registration, request, timeoutInMs, response -> {
                 executor.submit(() -> {
                     try {
@@ -337,7 +349,6 @@ public class DefaultLwM2mDownlinkMsgHandler extends LwM2MExecutorAwareService im
                     }
                 });
             }, e -> handleDownlinkError(client, request, callback, e));
-            callback.onSent(request);
         } catch (Exception e) {
             handleDownlinkError(client, request, callback, e);
         }
@@ -373,6 +384,7 @@ public class DefaultLwM2mDownlinkMsgHandler extends LwM2MExecutorAwareService im
 
     private <R extends DownlinkRequest<T>, T extends LwM2mResponse> void handleDownlinkError(LwM2mClient client, R request, DownlinkRequestCallback<R, T> callback, Exception e) {
         log.trace("[{}] Received downlink error: {}.", client.getEndpoint(), e);
+        client.updateLastUplinkTime();
         executor.submit(() -> {
             if (e instanceof TimeoutException || e instanceof ClientSleepingException) {
                 log.trace("[{}] Received {}, client is probably sleeping", client.getEndpoint(), e.getClass().getSimpleName());

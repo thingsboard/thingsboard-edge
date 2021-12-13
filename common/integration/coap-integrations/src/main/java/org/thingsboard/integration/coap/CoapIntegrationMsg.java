@@ -30,13 +30,11 @@
  */
 package org.thingsboard.integration.coap;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
-import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.data.UplinkContentType;
 
 @Data
 public class CoapIntegrationMsg {
@@ -45,18 +43,20 @@ public class CoapIntegrationMsg {
 
     private final CoapExchange exchange;
 
-    private String contentType = "JSON";
-
-    public String asString() {
-        Request request = exchange.advanced().getRequest();
-        try {
-            ObjectNode json = JacksonUtil.newObjectNode();
-            JsonNode payloadJson = JacksonUtil.fromBytes(request.getPayload());
-            json.set("payload", payloadJson);
-            return JacksonUtil.toString(payloadJson);
-        } catch (Exception e) {
-            setContentType("TEXT");
-            return request.getPayloadString();
+    public UplinkContentType getContentType() {
+        int code = exchange.getRequestOptions().getContentFormat();
+        switch (code) {
+            case MediaTypeRegistry.APPLICATION_JSON:
+            case MediaTypeRegistry.APPLICATION_SENML_JSON:
+            case MediaTypeRegistry.APPLICATION_VND_OMA_LWM2M_JSON:
+                return UplinkContentType.JSON;
+            case MediaTypeRegistry.APPLICATION_VND_OMA_LWM2M_TLV:
+            case MediaTypeRegistry.APPLICATION_XML:
+            case MediaTypeRegistry.APPLICATION_XMPP_XML:
+            case MediaTypeRegistry.TEXT_PLAIN:
+                return UplinkContentType.TEXT;
+            default:
+                return UplinkContentType.BINARY;
         }
     }
 

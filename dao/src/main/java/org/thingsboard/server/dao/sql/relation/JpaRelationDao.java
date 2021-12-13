@@ -34,12 +34,14 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RelationCompositeKey;
 import org.thingsboard.server.dao.model.sql.RelationEntity;
@@ -169,7 +171,11 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     private boolean deleteRelationIfExists(RelationCompositeKey key) {
         boolean relationExistsBeforeDelete = relationRepository.existsById(key);
         if (relationExistsBeforeDelete) {
-            relationRepository.deleteById(key);
+            try {
+                relationRepository.deleteById(key);
+            } catch (ConcurrencyFailureException e) {
+                log.debug("[{}] Concurrency exception while deleting relation", key, e);
+            }
         }
         return relationExistsBeforeDelete;
     }
@@ -202,5 +208,10 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
                     }
                     return relationExistsBeforeDelete;
                 });
+    }
+
+    @Override
+    public List<EntityRelation> findRuleNodeToRuleChainRelations(RuleChainType ruleChainType, int limit) {
+        return DaoUtil.convertDataList(relationRepository.findRuleNodeToRuleChainRelations(ruleChainType, PageRequest.of(0, limit)));
     }
 }

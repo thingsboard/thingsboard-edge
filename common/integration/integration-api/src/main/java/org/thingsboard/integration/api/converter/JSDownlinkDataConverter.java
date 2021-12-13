@@ -31,7 +31,9 @@
 package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.RequiredArgsConstructor;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -39,14 +41,13 @@ import org.thingsboard.server.common.msg.TbMsg;
 /**
  * Created by ashvayka on 02.12.17.
  */
+@RequiredArgsConstructor
 public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
     private final JsInvokeService jsInvokeService;
-    private JSDownlinkEvaluator evaluator;
+    private final LogSettingsComponent logSettings;
 
-    public JSDownlinkDataConverter(JsInvokeService jsInvokeService) {
-        this.jsInvokeService = jsInvokeService;
-    }
+    private JSDownlinkEvaluator evaluator;
 
     @Override
     public void init(Converter configuration) {
@@ -73,4 +74,8 @@ public class JSDownlinkDataConverter extends AbstractDownlinkDataConverter {
         return evaluator.execute(msg, metadata);
     }
 
+    @Override
+    boolean isExceptionStackTraceEnabled() {
+        return logSettings.isExceptionStackTraceEnabled();
+    }
 }

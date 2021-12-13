@@ -37,6 +37,7 @@ import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -64,6 +65,9 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Autowired
     private JsInvokeService jsSandbox;
+
+    @Autowired
+    private LogSettingsComponent logSettingsComponent;
 
     @Autowired
     private IntegrationRpcService rpcService;
@@ -130,11 +134,11 @@ public class DefaultDataConverterService implements DataConverterService {
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
             case UPLINK:
-                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsSandbox);
+                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsSandbox, logSettingsComponent);
                 uplink.init(converter);
                 return uplink;
             case DOWNLINK:
-                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsSandbox);
+                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsSandbox, logSettingsComponent);
                 downlink.init(converter);
                 return downlink;
             default:

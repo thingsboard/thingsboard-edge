@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-signup-content mat-app-background tb-dark" fxFlex fxLayoutAlign="center center"
+<div class="tb-signup-content mat-app-background tb-dark" [ngClass]="{'dark-foreground': wl.loginDarkForeground$ | async}" fxFlex fxLayoutAlign="center center"
      [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
   <mat-card style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
@@ -80,10 +80,19 @@
                 <re-captcha #recaptcha formControlName="recaptchaResponse" [siteKey]="signupParams.captchaSiteKey"></re-captcha>
               </div>
               <mat-checkbox class="tb-accept-privacy-policy"
+                            *ngIf="signupParams.showPrivacyPolicy"
                             [(ngModel)]="acceptPrivacyPolicy"
                             [ngModelOptions]="{standalone: true}">
                 <div>
                   {{ 'signup.accept' | translate}} <span class="privacy-policy" (click)="openPrivacyPolicy($event)" translate>signup.privacy-policy</span>
+                </div>
+              </mat-checkbox>
+              <mat-checkbox class="tb-accept-terms-of-use"
+                            *ngIf="signupParams.showTermsOfUse"
+                            [(ngModel)]="acceptTermsOfUse"
+                            [ngModelOptions]="{standalone: true}">
+                <div>
+                  {{ 'signup.accept' | translate}} <span class="terms-of-use" (click)="openTermsOfUse($event)" translate>signup.terms-of-use</span>
                 </div>
               </mat-checkbox>
               <div fxLayout="column" fxLayoutGap="12px" style="padding-top: 15px;">

@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -41,9 +43,12 @@ import org.thingsboard.server.common.data.id.HasId;
 import java.util.HashMap;
 import java.util.Map;
 
+@ApiModel
 public class ShortEntityView implements HasId<EntityId>, HasName {
 
+    @ApiModelProperty(position = 1, value = "Entity Id object", required = true, readOnly = true)
     private final EntityId id;
+    @ApiModelProperty(position = 2, value = "Map of entity fields that is configurable in the Entity Group", required = true, readOnly = true)
     private Map<String, String> properties = new HashMap<>();
 
     @JsonIgnore
@@ -69,6 +74,7 @@ public class ShortEntityView implements HasId<EntityId>, HasName {
         this.properties.put(name, value);
     }
 
+    @ApiModelProperty(position = 3, value = "Name of the entity", required = true, readOnly = true)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

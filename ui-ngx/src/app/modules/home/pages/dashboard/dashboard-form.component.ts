@@ -104,7 +104,7 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     this.updateFields(entity);
     return this.fb.group(
       {
-        title: [entity ? entity.title : '', [Validators.required]],
+        title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
         image: [entity ? entity.image : null],
         mobileHide: [entity ? entity.mobileHide : false],
         mobileOrder: [entity ? entity.mobileOrder : null, [Validators.pattern(/^-?[0-9]+$/)]],

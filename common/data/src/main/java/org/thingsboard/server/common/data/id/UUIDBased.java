@@ -30,9 +30,13 @@
  */
 package org.thingsboard.server.common.data.id;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.io.Serializable;
 import java.util.UUID;
 
+@ApiModel
 public abstract class UUIDBased implements HasUUID, Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -49,6 +53,7 @@ public abstract class UUIDBased implements HasUUID, Serializable {
     }
 
     @Override
+    @ApiModelProperty(position = 1, required = true, value = "string", example = "784f394c-42b6-435a-983c-b7beff2784f9")
     public UUID getId() {
         return id;
     }

@@ -70,7 +70,7 @@ export class ShareEntityGroupDialogComponent extends
 
     const shareGroupRequest: ShareGroupRequest = {
       ownerId: null,
-      isAllUserGroup: true,
+      allUserGroup: true,
       readElseWrite: true
     };
 

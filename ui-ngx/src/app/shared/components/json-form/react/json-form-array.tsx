@@ -159,7 +159,7 @@ class ThingsboardArray extends React.Component<JsonFormFieldProps, ThingsboardAr
                 const copy = this.copyWithIndex(form, i);
                 return this.props.builder(copy, this.props.model, index, this.props.onChange,
                   this.props.onColorClick, this.props.onIconClick, this.props.onToggleFullscreen,
-                  this.props.onHelpClick, this.props.mapper);
+                  this.props.onHelpClick, this.props.isHelpEnabled, this.props.mapper);
             });
             arrays.push(
             <li key={keys[i]} className='list-group-item'>

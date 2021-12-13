@@ -250,6 +250,7 @@ export class WidgetContext {
   $scope: IDynamicWidgetComponent;
   isEdit: boolean;
   isMobile: boolean;
+  toastTargetId: string;
 
   widgetNamespace?: string;
   subscriptionApi?: WidgetSubscriptionApi;

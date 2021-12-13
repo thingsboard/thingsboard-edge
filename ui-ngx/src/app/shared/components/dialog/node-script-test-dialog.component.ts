@@ -57,6 +57,7 @@ import { RuleChainService } from '@core/http/rule-chain.service';
 import { mergeMap } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { beautifyJs } from '@shared/models/beautify.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 export interface NodeScriptTestDialogData {
   script: string;
@@ -118,6 +119,7 @@ export class NodeScriptTestDialogComponent extends DialogComponent<NodeScriptTes
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<NodeScriptTestDialogComponent, string>,
               public fb: FormBuilder,
+              public wl: WhiteLabelingService,
               private ruleChainService: RuleChainService) {
     super(store, router, dialogRef);
     this.functionTitle = this.data.functionTitle;

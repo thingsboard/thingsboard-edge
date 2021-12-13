@@ -51,8 +51,9 @@ import { catchError, debounceTime, distinctUntilChanged, map, take, tap } from '
 import { TranslateService } from '@ngx-translate/core';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
-import { isDefined, isNumber } from '@core/utils';
+import { isDefined, isNotEmptyStr, isNumber } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-blob-entities',
@@ -97,11 +98,14 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
   timewindow: Timewindow;
   pageLink: TimePageLink;
 
+  noDataDisplayMessageText: string;
+
   textSearchMode = false;
 
   dataSource: BlobEntitiesDatasource;
 
   constructor(protected store: Store<AppState>,
+              private utils: UtilsService,
               public translate: TranslateService,
               private blobEntityService: BlobEntityService,
               private userPermissionsService: UserPermissionsService,
@@ -171,6 +175,14 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     const currentTime = Date.now();
     this.pageLink = new TimePageLink(this.defaultPageSize, 0, null, sortOrder,
       currentTime - this.timewindow.history.timewindowMs, currentTime);
+
+    const noDataDisplayMessage = this.settings.noDataDisplayMessage;
+    if (isNotEmptyStr(noDataDisplayMessage)) {
+      this.noDataDisplayMessageText = this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
+    } else {
+      this.noDataDisplayMessageText = this.translate.instant('blob-entity.no-blob-entities-prompt');
+    }
+
     if (this.settings.forceDefaultType && this.settings.forceDefaultType.length) {
       this.defaultType = this.settings.forceDefaultType;
     }
@@ -259,6 +271,9 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
   }
 
   onTimewindowChange() {
+    if (this.displayPagination) {
+      this.paginator.pageIndex = 0;
+    }
     this.updateData();
   }
 

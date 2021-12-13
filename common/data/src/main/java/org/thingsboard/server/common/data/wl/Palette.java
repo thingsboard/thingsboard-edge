@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.wl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -40,11 +41,14 @@ import java.util.Map;
 @EqualsAndHashCode
 public class Palette {
 
+    @ApiModelProperty(position = 1, value = "Name of the pre-defined palette, or 'custom'", example = "custom", required = true)
     private String type;
 
     @JsonProperty("extends")
+    @ApiModelProperty(position = 2, value = "Pre-defined palette name that the custom palette extends", example = "purple")
     private String extendsPalette;
 
+    @ApiModelProperty(position = 3, value = "Mapping of hue identifier number to the rgb(a) color code")
     private Map<String, String> colors;
 
 }

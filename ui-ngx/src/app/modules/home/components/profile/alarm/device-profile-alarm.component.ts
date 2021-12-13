@@ -108,7 +108,7 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
   ngOnInit() {
     this.alarmFormGroup = this.fb.group({
       id: [null, Validators.required],
-      alarmType: [null, Validators.required],
+      alarmType: [null, [Validators.required, Validators.maxLength(255)]],
       createRules: [null],
       clearRule: [null],
       propagate: [null],

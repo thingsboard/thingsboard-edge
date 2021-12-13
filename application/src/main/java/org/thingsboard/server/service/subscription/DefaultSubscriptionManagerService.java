@@ -237,7 +237,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         }
                     }
                     return subscriptionUpdate;
-                });
+                }, true);
         if (entityId.getEntityType() == EntityType.DEVICE) {
             updateDeviceInactivityTimeout(tenantId, entityId, ts);
         }
@@ -271,7 +271,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         }
                     }
                     return subscriptionUpdate;
-                });
+                }, true);
         if (entityId.getEntityType() == EntityType.DEVICE) {
             if (TbAttributeSubscriptionScope.SERVER_SCOPE.name().equalsIgnoreCase(scope)) {
                 updateDeviceInactivityTimeout(tenantId, entityId, attributes);
@@ -348,14 +348,15 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         }
                     }
                     return subscriptionUpdate;
-                });
+                }, false);
         callback.onSuccess();
     }
 
     private <T extends TbSubscription> void onLocalTelemetrySubUpdate(EntityId entityId,
                                                                       Function<TbSubscription, T> castFunction,
                                                                       Predicate<T> filterFunction,
-                                                                      Function<T, List<TsKvEntry>> processFunction) {
+                                                                      Function<T, List<TsKvEntry>> processFunction,
+                                                                      boolean ignoreEmptyUpdates) {
         Set<TbSubscription> entitySubscriptions = subscriptionsByEntityId.get(entityId);
         if (entitySubscriptions != null) {
             entitySubscriptions.stream().map(castFunction).filter(Objects::nonNull).filter(filterFunction).forEach(s -> {
@@ -366,7 +367,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         localSubscriptionService.onSubscriptionUpdate(s.getSessionId(), update, TbCallback.EMPTY);
                     } else {
                         TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, s.getServiceId());
-                        toCoreNotificationsProducer.send(tpi, toProto(s, subscriptionUpdate), null);
+                        toCoreNotificationsProducer.send(tpi, toProto(s, subscriptionUpdate, ignoreEmptyUpdates), null);
                     }
                 }
             });
@@ -482,6 +483,10 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     }
 
     private TbProtoQueueMsg<ToCoreNotificationMsg> toProto(TbSubscription subscription, List<TsKvEntry> updates) {
+        return toProto(subscription, updates, true);
+    }
+
+    private TbProtoQueueMsg<ToCoreNotificationMsg> toProto(TbSubscription subscription, List<TsKvEntry> updates, boolean ignoreEmptyUpdates) {
         TbSubscriptionUpdateProto.Builder builder = TbSubscriptionUpdateProto.newBuilder();
 
         builder.setSessionId(subscription.getSessionId());
@@ -502,14 +507,16 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
             boolean hasData = false;
             for (Object v : value) {
                 Object[] array = (Object[]) v;
-                dataBuilder.addTs((long) array[0]);
+                TbSubscriptionUpdateTsValue.Builder tsValueBuilder = TbSubscriptionUpdateTsValue.newBuilder();
+                tsValueBuilder.setTs((long) array[0]);
                 String strVal = (String) array[1];
                 if (strVal != null) {
                     hasData = true;
-                    dataBuilder.addValue(strVal);
+                    tsValueBuilder.setValue(strVal);
                 }
+                dataBuilder.addTsValue(tsValueBuilder.build());
             }
-            if (hasData) {
+            if (!ignoreEmptyUpdates || hasData) {
                 builder.addData(dataBuilder.build());
             }
         });

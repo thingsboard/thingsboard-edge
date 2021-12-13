@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,6 +56,12 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
+import static org.thingsboard.server.controller.ControllerConstants.ASSET_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api/solutions")
@@ -61,6 +70,9 @@ public class SolutionController extends BaseController {
     @Autowired
     private SolutionService solutionService;
 
+    @ApiOperation(value = "Get Solution templates (getSolutionTemplateInfos)",
+            notes = "Get a list of solution template descriptors" + "\n\n" + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/infos", method = RequestMethod.GET)
     @ResponseBody
@@ -73,10 +85,15 @@ public class SolutionController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Solution template details (getSolutionTemplateDetails)",
+            notes = "Get a solution template details based on the provided id" + "\n\n" + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/details/{solutionTemplateId}", method = RequestMethod.GET)
     @ResponseBody
-    public TenantSolutionTemplateDetails getSolutionTemplateDetails(@PathVariable("solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
+    public TenantSolutionTemplateDetails getSolutionTemplateDetails(
+            @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable("solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
         try {
             checkAllPermissions();
@@ -86,10 +103,15 @@ public class SolutionController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Solution Template Instructions (getSolutionTemplateInstructions)",
+            notes = "Get a solution template instructions based on the provided id" + "\n\n" + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/instructions/{solutionTemplateId}", method = RequestMethod.GET)
     @ResponseBody
-    public TenantSolutionTemplateInstructions getSolutionTemplateInstructions(@PathVariable("solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
+    public TenantSolutionTemplateInstructions getSolutionTemplateInstructions(
+            @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable("solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
         try {
             checkAllPermissions();
@@ -99,10 +121,15 @@ public class SolutionController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Install Solution Template (installSolutionTemplate)",
+            notes = "Install solution template based on the provided id" + "\n\n" + RBAC_WRITE_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/{solutionTemplateId}/install", method = RequestMethod.POST)
     @ResponseBody
-    public SolutionInstallResponse installSolutionTemplate(@PathVariable(name = "solutionTemplateId") String solutionTemplateId, HttpServletRequest request) throws ThingsboardException {
+    public SolutionInstallResponse installSolutionTemplate(
+            @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(name = "solutionTemplateId") String solutionTemplateId, HttpServletRequest request) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
         try {
             checkAllPermissions();
@@ -112,10 +139,15 @@ public class SolutionController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Uninstall Solution Template (uninstallSolutionTemplate)",
+            notes = "Uninstall solution template based on the provided id" + "\n\n" + RBAC_DELETE_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/{solutionTemplateId}/delete", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteSolutionTemplate(@PathVariable(name = "solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
+    public void uninstallSolutionTemplate(
+            @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(name = "solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
         try {
             checkAllPermissions();

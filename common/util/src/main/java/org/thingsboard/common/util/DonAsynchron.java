@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -68,4 +69,15 @@ public class DonAsynchron {
             Futures.addCallback(future, callback, MoreExecutors.directExecutor());
         }
     }
+
+    public static <T> ListenableFuture<T> submit(Callable<T> task, Consumer<T> onSuccess, Consumer<Throwable> onFailure, Executor executor) {
+        return submit(task, onSuccess, onFailure, executor, null);
+    }
+
+    public static <T> ListenableFuture<T> submit(Callable<T> task, Consumer<T> onSuccess, Consumer<Throwable> onFailure, Executor executor, Executor callbackExecutor) {
+        ListenableFuture<T> future = Futures.submit(task, executor);
+        withCallback(future, onSuccess, onFailure, callbackExecutor);
+        return future;
+    }
+
 }

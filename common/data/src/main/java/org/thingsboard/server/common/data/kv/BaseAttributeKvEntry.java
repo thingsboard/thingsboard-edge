@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.common.data.kv;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+import javax.validation.Valid;
 import java.util.Optional;
 
 /**
@@ -39,7 +38,10 @@ import java.util.Optional;
  */
 public class BaseAttributeKvEntry implements AttributeKvEntry {
 
+    private static final long serialVersionUID = -6460767583563159407L;
+
     private final long lastUpdateTs;
+    @Valid
     private final KvEntry kv;
 
     public BaseAttributeKvEntry(KvEntry kv, long lastUpdateTs) {

@@ -626,12 +626,12 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
 
     @Override
-    public Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName) {
+    public Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null) {
             entityCreationLock.lock();
             try {
-                return processGetOrCreateDevice(integration, deviceName, deviceType, customerName, groupName);
+                return processGetOrCreateDevice(integration, deviceName, deviceType, deviceLabel, customerName, groupName);
             } finally {
                 entityCreationLock.unlock();
             }
@@ -640,12 +640,12 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     @Override
-    public Asset getOrCreateAsset(Integration integration, String assetName, String assetType, String customerName, String groupName) {
+    public Asset getOrCreateAsset(Integration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null) {
             entityCreationLock.lock();
             try {
-                return processGetOrCreateAsset(integration, assetName, assetType, customerName, groupName);
+                return processGetOrCreateAsset(integration, assetName, assetType, assetLabel, customerName, groupName);
             } finally {
                 entityCreationLock.unlock();
             }
@@ -682,13 +682,16 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return entityView;
     }
 
-    private Device processGetOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName) {
+    private Device processGetOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
             device.setName(deviceName);
             device.setType(deviceType);
             device.setTenantId(integration.getTenantId());
+            if (!StringUtils.isEmpty(deviceLabel)){
+                device.setLabel(deviceLabel);
+            }
             if (!StringUtils.isEmpty(customerName)) {
                 Customer customer = getOrCreateCustomer(integration, customerName);
                 device.setCustomerId(customer.getId());
@@ -709,13 +712,16 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return device;
     }
 
-    private Asset processGetOrCreateAsset(Integration integration, String assetName, String assetType, String customerName, String groupName) {
+    private Asset processGetOrCreateAsset(Integration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null && integration.isAllowCreateDevicesOrAssets()) {
             asset = new Asset();
             asset.setName(assetName);
             asset.setType(assetType);
             asset.setTenantId(integration.getTenantId());
+            if (!StringUtils.isEmpty(assetLabel)){
+                asset.setLabel(assetLabel);
+            }
             if (!StringUtils.isEmpty(customerName)) {
                 Customer customer = getOrCreateCustomer(integration, customerName);
                 asset.setCustomerId(customer.getId());

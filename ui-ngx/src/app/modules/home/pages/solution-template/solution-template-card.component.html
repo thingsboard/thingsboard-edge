@@ -54,6 +54,6 @@
     <img (click)="openSolutionTemplateDetails()" [src]="solutionTemplate.previewImageUrl">
   </div>
   <mat-card-content>
-    <tb-markdown [readonly]="true" [ngModel]="solutionTemplate.shortDescription"></tb-markdown>
+    <tb-markdown [data]="solutionTemplate.shortDescription" lineNumbers fallbackToPlainMarkdown></tb-markdown>
   </mat-card-content>
 </mat-card>

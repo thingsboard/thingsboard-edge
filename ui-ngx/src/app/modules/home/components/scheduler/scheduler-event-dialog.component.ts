@@ -86,7 +86,7 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
 
   ngOnInit(): void {
     this.schedulerEventFormGroup = this.fb.group({
-      name: [this.schedulerEvent.name, [Validators.required]],
+      name: [this.schedulerEvent.name, [Validators.required, Validators.maxLength(255)]],
       type: [this.isAdd ? this.defaultEventType : this.schedulerEvent.type, [Validators.required]],
       configuration: [this.schedulerEvent.configuration, [Validators.required]],
       schedule: [this.schedulerEvent.schedule, [Validators.required]]

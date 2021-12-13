@@ -99,19 +99,21 @@
       <mat-checkbox formControlName="useCellStyleFunction" style="padding-bottom: 16px;">
         {{ 'entity-group.use-cell-style-function' | translate }}
       </mat-checkbox>
-      <tb-js-func
+      <tb-js-func [fxShow]="columnFormGroup.get('useCellStyleFunction').value"
         formControlName="cellStyleFunction"
         [functionArgs]="['value', 'entity']"
         [globalVariables]="functionScopeVariables"
+        helpId="entity_group/cell_style_fn"
         [validationArgs]="[]">
       </tb-js-func>
       <mat-checkbox formControlName="useCellContentFunction" style="padding-bottom: 16px;">
         {{ 'entity-group.use-cell-content-function' | translate }}
       </mat-checkbox>
-      <tb-js-func
+      <tb-js-func [fxShow]="columnFormGroup.get('useCellContentFunction').value"
         formControlName="cellContentFunction"
         [functionArgs]="['value', 'entity', 'datePipe']"
         [globalVariables]="functionScopeVariables"
+        helpId="entity_group/cell_content_fn"
         [validationArgs]="[]">
       </tb-js-func>
     </fieldset>

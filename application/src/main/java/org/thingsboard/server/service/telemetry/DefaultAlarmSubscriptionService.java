@@ -70,6 +70,7 @@ import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by ashvayka on 27.03.18.
@@ -181,6 +182,11 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     @Override
     public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters) {
         return alarmService.findAlarmCounts(tenantId, query, filters);
+    }
+
+    @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm) {
+        return alarmService.getPropagationEntityIds(alarm);
     }
 
     private void onAlarmUpdated(AlarmOperationResult result) {
