@@ -83,11 +83,19 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
         super.init(params);
         loriotConfiguration = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration()), LoriotConfiguration.class);
 
+        // Вынести в конфиги, чтобы пользователь мог в конфигах задавать свою урлу
         if (loriotConfiguration.isCreateLoriotOutput() || loriotConfiguration.isSendDownlink()) {
-            baseUrl = String.format("https://%s.loriot.io/", loriotConfiguration.getServer());
+            String domain = loriotConfiguration.getDomain();
+
+            if (domain == null || domain.equals("") || domain.equals("null")) {
+                domain = "loriot.io";
+            }
+
+            this.baseUrl = String.format("https://%s.%s/", loriotConfiguration.getServer(), domain);
+
             initRestClient();
             if (loriotConfiguration.isCreateLoriotOutput()) {
-                loriotConfiguration.getCredentials().setInterceptor(httpClient, baseUrl);
+                loriotConfiguration.getCredentials().setInterceptor(httpClient, this.baseUrl);
                 createApplicationOutputIfNotExist();
             }
             if (loriotConfiguration.isSendDownlink()) {
