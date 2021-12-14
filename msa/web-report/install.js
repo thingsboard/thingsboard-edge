@@ -46,13 +46,10 @@ let _projectRoot = null;
 (async() => {
     await downloadChromiumPlatform('linux');
     await downloadChromiumPlatform('windows');
-    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux-x64'),
+    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux'),
                    path.join(targetPackageDir('linux'), 'bin', 'tb-web-report'),
                    {overwrite: true});
-    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux-arm64'),
-                   path.join(targetPackageDir('linux'), 'bin-arm64', 'tb-web-report'),
-                   {overwrite: true});
-    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-win-x64.exe'),
+    await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-win.exe'),
                    path.join(targetPackageDir('windows'), 'bin', 'tb-web-report.exe'),
                    {overwrite: true});
 })();
