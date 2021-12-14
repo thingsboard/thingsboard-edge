@@ -73,6 +73,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         this.subToEntityIdMap = new ConcurrentHashMap<>();
     }
 
+    @Override
     public void fetchData() {
         this.data = findEntityData();
     }
@@ -87,6 +88,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         return result;
     }
 
+    @Override
     protected synchronized void update() {
         long start = System.currentTimeMillis();
         PageData<EntityData> newData = findEntityData();
