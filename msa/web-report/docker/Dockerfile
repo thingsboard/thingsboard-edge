@@ -67,6 +67,8 @@ RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-web-report.sh /usr/bin
 
 ENV NODE_ENV production
+ENV PUPPETEER_SKIP_DOWNLOAD true
+ENV DOCKER_MODE true
 
 WORKDIR ${pkg.installFolder}
 
