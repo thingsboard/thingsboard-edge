@@ -72,11 +72,6 @@ ospackage {
         into "web"
     }
 
-    // Copy chromium files
-    from("${buildDir}/package/linux/chromium") {
-        into "chromium"
-    }
-
 }
 
 // Configure our RPM build task
@@ -101,6 +96,11 @@ buildRpm {
     from("${buildDir}/package/linux/bin/${pkgName}") {
         fileMode 0500
         into "bin"
+    }
+
+    // Copy chromium files
+    from("${buildDir}/package/linux/chromium") {
+        into "chromium"
     }
 
     // Copy the system unit files
@@ -142,6 +142,11 @@ buildDeb {
     from("${buildDir}/package/linux/bin/${pkgName}") {
         fileMode 0500
         into "bin"
+    }
+
+    // Copy chromium files
+    from("${buildDir}/package/linux/chromium") {
+        into "chromium"
     }
 
     // Copy the system unit files

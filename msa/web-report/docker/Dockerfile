@@ -31,13 +31,20 @@
 
 FROM thingsboard/base
 
+ARG TARGETPLATFORM
+
 RUN apt-get update \
     && apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
                         libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
                         libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
                         libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 libgbm-dev \
-                        ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget unzip fonts-roboto \
-    && apt-get clean \
+                        ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget unzip fonts-roboto
+
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; \
+    then apt-get install -yq chromium; \
+    fi
+
+RUN apt-get clean \
     && rm -r /var/lib/apt/lists/*
 
 RUN mkdir /noto
@@ -56,13 +63,17 @@ RUN rm -rf /noto
 
 WORKDIR /
 
-COPY start-web-report.sh ${pkg.name}.deb /tmp/
+COPY start-web-report.sh ${pkg.name}.deb ${pkg.name}-arm64.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-web-report.sh /usr/bin
 
-RUN yes | dpkg -i /tmp/${pkg.name}.deb
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; \
+    then yes | dpkg -i /tmp/${pkg.name}-arm64.deb; \
+    else yes | dpkg -i /tmp/${pkg.name}.deb; \
+    fi
 RUN rm /tmp/${pkg.name}.deb
+RUN rm /tmp/${pkg.name}-arm64.deb
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
