@@ -2717,6 +2717,7 @@
         "send-downlink": "Send downlink",
         "server": "Server",
         "server-required": "Server is required",
+        "domain": "Domain",
         "app-id": "Application ID",
         "app-id-required": "Application ID is required",
         "app-token": "Application Access Token",
