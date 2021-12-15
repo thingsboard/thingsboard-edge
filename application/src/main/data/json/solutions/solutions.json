@@ -32,5 +32,15 @@
     "imageUrls": ["https://thingsboard.io/images/solutions/water_metering/water-metering-1.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-3.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-2.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-4.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-5.png"],
     "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
     "tenantAttributeKeys": []
+  },
+  {
+    "id": "smart_retail",
+    "title": "Smart Retail",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 10000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/water_metering/water-metering-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/water_metering/water-metering-1.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-3.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-2.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-4.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-5.png"],
+    "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
+    "tenantAttributeKeys": []
   }
 ]

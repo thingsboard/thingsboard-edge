@@ -1,0 +1,105 @@
+[
+  {
+    "name": "Smart Shelf 457321",
+    "label": "Vegetables",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.95,
+      "yPos": 0.5,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Shelf 557322",
+    "label": "Fruits",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.8,
+      "yPos": 0.5,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Chiller 3",
+    "label": "Milk",
+    "type": "Chiller",
+    "group": "Supermarket Devices",
+    "profile": "Chiller",
+    "attributes": {
+      "xPos": 0.15,
+      "yPos": 0.08,
+      "chillerHighTemperatureMajorThreshold": 10,
+      "chillerHighTemperatureCriticalThreshold": 15
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Freezer 1",
+    "type": "Freezer",
+    "label": "Meat",
+    "group": "Supermarket Devices",
+    "profile": "Freezer",
+    "attributes": {
+      "xPos": 0.7,
+      "yPos": 0.3,
+      "freezerHighTemperatureMajorThreshold": -10,
+      "freezerHighTemperatureCriticalThreshold": -3
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Waste Bin 1",
+    "label": "Waste bin near entrance",
+    "type": "Waste Bin",
+    "group": "Supermarket Devices",
+    "profile": "Waste Bin",
+    "attributes": {
+      "xPos": 0.7,
+      "yPos": 0.8
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  }
+]

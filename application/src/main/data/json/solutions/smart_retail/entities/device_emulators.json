@@ -1,0 +1,114 @@
+[
+  {
+    "name": "Smart Shelf",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "telemetryProfiles": [
+      {
+        "key": "weight",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 70,
+          "maxStartValue": 80,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 150,
+          "maxHighValue": 150,
+          "minIncrement": 20.0,
+          "maxIncrement": 50.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 2.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Chiller",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 10,
+          "maxStartValue": 12,
+          "minLowValue": 5,
+          "maxLowValue": 7,
+          "minHighValue": 20,
+          "maxHighValue": 23,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.7,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Freezer",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": -10,
+          "maxStartValue": -12,
+          "minLowValue": -20,
+          "maxLowValue": -18,
+          "minHighValue": -6,
+          "maxHighValue": -2,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.7,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Waste Bin",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "telemetryProfiles": [
+      {
+        "key": "level",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 10,
+          "maxStartValue": 20,
+          "minLowValue": 0,
+          "maxLowValue": 2,
+          "minHighValue": 90,
+          "maxHighValue": 95,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 50.0,
+          "maxDecrement": 100.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]
