@@ -42,7 +42,6 @@ public class LoriotConfiguration {
 
     private String httpEndpoint;
     private String server;
-    private String baseUrl;
     private String domain;
     private String appId;
     private LoriotCredentials credentials;
