@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM node:16.13.1-buster-slim
+FROM node:16.13.1-bullseye-slim
 
 COPY start-web-ui.sh /tmp/
 
