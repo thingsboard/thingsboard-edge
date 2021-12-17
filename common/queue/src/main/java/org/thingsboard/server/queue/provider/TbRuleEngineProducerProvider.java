@@ -98,4 +98,9 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     public TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> getTbUsageStatsMsgProducer() {
         return toUsageStats;
     }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
+        throw new RuntimeException("Not Implemented! Should not be used by Rule Engine!");
+    }
 }
