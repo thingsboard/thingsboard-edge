@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -65,15 +66,10 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     public void testSaveUser() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = "tenant2@thingsboard.org";
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName("Joe");
         user.setLastName("Downs");
@@ -115,24 +111,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         doDelete("/api/user/" + savedUser.getId().getId().toString())
                 .andExpect(status().isOk());
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testSaveUserWithViolationOfFiledValidation() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = "tenant2@thingsboard.org";
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName(RandomStringUtils.randomAlphabetic(300));
         user.setLastName("Downs");
@@ -145,14 +133,10 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     @Test
     public void testUpdateUserFromDifferentTenant() throws Exception {
         loginSysAdmin();
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
 
         User tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(savedTenant.getId());
+        tenantAdmin.setTenantId(tenantId);
         tenantAdmin.setEmail("tenant2@thingsboard.org");
         tenantAdmin.setFirstName("Joe");
         tenantAdmin.setLastName("Downs");
@@ -162,24 +146,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         doPost("/api/user", tenantAdmin, User.class, status().isForbidden());
         deleteDifferentTenant();
 
-        loginSysAdmin();
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testResetPassword() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = "tenant2@thingsboard.org";
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName("Joe");
         user.setLastName("Downs");
@@ -220,24 +196,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         doDelete("/api/user/" + savedUser.getId().getId().toString())
                 .andExpect(status().isOk());
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testFindUserById() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = "tenant2@thingsboard.org";
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName("Joe");
         user.setLastName("Downs");
@@ -246,24 +214,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         User foundUser = doGet("/api/user/" + savedUser.getId().getId().toString(), User.class);
         Assert.assertNotNull(foundUser);
         Assert.assertEquals(savedUser, foundUser);
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testSaveUserWithSameEmail() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = TENANT_ADMIN_EMAIL;
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName("Joe");
         user.setLastName("Downs");
@@ -271,24 +231,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         doPost("/api/user", user)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("User with email '" + email + "'  already present in database")));
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testSaveUserWithInvalidEmail() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = "tenant_thingsboard.org";
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName("Joe");
         user.setLastName("Downs");
@@ -296,32 +248,21 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         doPost("/api/user", user)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Invalid email address format '" + email + "'")));
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testSaveUserWithEmptyEmail() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setFirstName("Joe");
         user.setLastName("Downs");
 
         doPost("/api/user", user)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("User email should be specified")));
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -343,15 +284,10 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     public void testDeleteUser() throws Exception {
         loginSysAdmin();
 
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
         String email = "tenant2@thingsboard.org";
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setEmail(email);
         user.setFirstName("Joe");
         user.setLastName("Downs");
@@ -365,17 +301,15 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         doGet("/api/user/" + savedUser.getId().getId().toString())
                 .andExpect(status().isNotFound());
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testFindTenantAdmins() throws Exception {
         loginSysAdmin();
 
+        //here created a new tenant despite already created on AbstractWebTest and then delete the tenant properly on the last line
         Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
+        tenant.setTitle("My tenant with many admins");
         Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
         Assert.assertNotNull(savedTenant);
 
@@ -395,7 +329,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         PageData<User> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
-                    new TypeReference<PageData<User>>(){}, pageLink);
+                    new TypeReference<PageData<User>>() {
+                    }, pageLink);
             loadedTenantAdmins.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -405,14 +340,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         Collections.sort(tenantAdmins, idComparator);
         Collections.sort(loadedTenantAdmins, idComparator);
 
-        Assert.assertEquals(tenantAdmins, loadedTenantAdmins);
+        assertThat(tenantAdmins).as("admins list size").hasSameSizeAs(loadedTenantAdmins);
+        assertThat(tenantAdmins).as("admins list content").isEqualTo(loadedTenantAdmins);
 
-        doDelete("/api/tenant/"+savedTenant.getId().getId().toString())
-        .andExpect(status().isOk());
-        
+        doDelete("/api/tenant/" + tenantId.getId().toString())
+                .andExpect(status().isOk());
+
         pageLink = new PageLink(33);
-        pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?", 
-                new TypeReference<PageData<User>>(){}, pageLink);
+        pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
+                new TypeReference<PageData<User>>() {
+                }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
     }
@@ -421,13 +358,6 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     public void testFindTenantAdminsByEmail() throws Exception {
 
         loginSysAdmin();
-
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
-        TenantId tenantId = savedTenant.getId();
 
         String email1 = "testEmail1";
         List<User> tenantAdminsEmail1 = new ArrayList<>();
@@ -462,7 +392,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         PageData<User> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
-                    new TypeReference<PageData<User>>(){}, pageLink);
+                    new TypeReference<PageData<User>>() {
+                    }, pageLink);
             loadedTenantAdminsEmail1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -478,7 +409,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         pageLink = new PageLink(16, 0, email2);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
-                    new TypeReference<PageData<User>>(){}, pageLink);
+                    new TypeReference<PageData<User>>() {
+                    }, pageLink);
             loadedTenantAdminsEmail2.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -496,8 +428,9 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         }
 
         pageLink = new PageLink(4, 0, email1);
-        pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?", 
-                new TypeReference<PageData<User>>(){}, pageLink);
+        pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
+                new TypeReference<PageData<User>>() {
+                }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -507,25 +440,17 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         }
 
         pageLink = new PageLink(4, 0, email2);
-        pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?", 
-                new TypeReference<PageData<User>>(){}, pageLink);
+        pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
+                new TypeReference<PageData<User>>() {
+                }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testFindCustomerUsers() throws Exception {
-
         loginSysAdmin();
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
 
-        TenantId tenantId = savedTenant.getId();
         User tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         tenantAdmin.setTenantId(tenantId);
@@ -555,7 +480,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         PageData<User> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?",
-                    new TypeReference<PageData<User>>(){}, pageLink);
+                    new TypeReference<PageData<User>>() {
+                    }, pageLink);
             loadedCustomerUsers.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -569,23 +495,12 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         doDelete("/api/customer/" + customerId.getId().toString())
                 .andExpect(status().isOk());
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
     public void testFindCustomerUsersByEmail() throws Exception {
-
         loginSysAdmin();
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
 
-        TenantId tenantId = savedTenant.getId();
         User tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         tenantAdmin.setTenantId(tenantId);
@@ -634,7 +549,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         PageData<User> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?",
-                    new TypeReference<PageData<User>>(){}, pageLink);
+                    new TypeReference<PageData<User>>() {
+                    }, pageLink);
             loadedCustomerUsersEmail1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -650,7 +566,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         pageLink = new PageLink(16, 0, email2);
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?",
-                    new TypeReference<PageData<User>>(){}, pageLink);
+                    new TypeReference<PageData<User>>() {
+                    }, pageLink);
             loadedCustomerUsersEmail2.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -668,8 +585,9 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         }
 
         pageLink = new PageLink(4, 0, email1);
-        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?", 
-                new TypeReference<PageData<User>>(){}, pageLink);
+        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?",
+                new TypeReference<PageData<User>>() {
+                }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -679,17 +597,13 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         }
 
         pageLink = new PageLink(4, 0, email2);
-        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?", 
-                new TypeReference<PageData<User>>(){}, pageLink);
+        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/users?",
+                new TypeReference<PageData<User>>() {
+                }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
         doDelete("/api/customer/" + customerId.getId().toString())
-                .andExpect(status().isOk());
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
     }
 
