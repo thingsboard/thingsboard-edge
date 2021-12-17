@@ -28,25 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.system;
+package org.thingsboard.server.controller.sql;
 
-import org.junit.BeforeClass;
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.runner.RunWith;
-import org.thingsboard.server.queue.memory.InMemoryStorage;
+import org.thingsboard.server.controller.BaseRpcControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-/**
- * Created by Valerii Sosliuk on 6/27/2017.
- */
-@RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({
-        "org.thingsboard.server.system.sql.*SqlTest",
-})
-public class SystemSqlTestSuite {
-
-    @BeforeClass
-    public static void cleanupInMemStorage() {
-        InMemoryStorage.getInstance().cleanup();
-    }
-
+@DaoSqlTest
+public class RpcControllerTest extends BaseRpcControllerTest {
 }

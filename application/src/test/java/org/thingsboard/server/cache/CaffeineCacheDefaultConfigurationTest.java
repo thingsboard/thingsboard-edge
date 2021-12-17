@@ -28,35 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.insert;
+package org.thingsboard.server.cache;
 
+import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootContextLoader;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.regex.Pattern;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@Repository
-public abstract class AbstractInsertRepository {
-
-    private static final ThreadLocal<Pattern> PATTERN_THREAD_LOCAL = ThreadLocal.withInitial(() -> Pattern.compile(String.valueOf(Character.MIN_VALUE)));
-    private static final String EMPTY_STR = "";
-
-    @Value("${sql.remove_null_chars:true}")
-    private boolean removeNullChars;
-
-    @Autowired
-    protected JdbcTemplate jdbcTemplate;
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = CaffeineCacheDefaultConfigurationTest.class, loader = SpringBootContextLoader.class)
+@ComponentScan({"org.thingsboard.server.cache"})
+@EnableConfigurationProperties
+@Slf4j
+public class CaffeineCacheDefaultConfigurationTest {
 
     @Autowired
-    protected TransactionTemplate transactionTemplate;
+    CaffeineCacheConfiguration caffeineCacheConfiguration;
 
-    protected String replaceNullChars(String strValue) {
-        if (removeNullChars && strValue != null) {
-            return PATTERN_THREAD_LOCAL.get().matcher(strValue).replaceAll(EMPTY_STR);
-        }
-        return strValue;
+    @Test
+    public void verifyTransactionAwareCacheManagerProxy() {
+        assertThat(caffeineCacheConfiguration.getSpecs()).as("specs").isNotNull();
+        caffeineCacheConfiguration.getSpecs().forEach((name, cacheSpecs)->assertThat(cacheSpecs).as("cache %s specs", name).isNotNull());
+
+        SoftAssertions softly = new SoftAssertions();
+        caffeineCacheConfiguration.getSpecs().forEach((name, cacheSpecs)->{
+            softly.assertThat(name).as("cache name").isNotEmpty();
+            softly.assertThat(cacheSpecs.getTimeToLiveInMinutes()).as("cache %s time to live", name).isGreaterThan(0);
+            softly.assertThat(cacheSpecs.getMaxSize()).as("cache %s max size", name).isGreaterThan(0);
+        });
+        softly.assertAll();
     }
+
 }
