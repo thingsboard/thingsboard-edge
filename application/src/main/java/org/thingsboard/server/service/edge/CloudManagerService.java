@@ -695,6 +695,7 @@ public class CloudManagerService extends BaseCloudEventService {
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
+                log.trace("[{}] DownlinkMsg has been processed successfully! DownlinkMsgId {}", routingKey, downlinkMsg.getDownlinkMsgId());
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
                         .setSuccess(true).build();
@@ -703,6 +704,7 @@ public class CloudManagerService extends BaseCloudEventService {
 
             @Override
             public void onFailure(Throwable t) {
+                log.error("[{}] Failed to process DownlinkMsg! DownlinkMsgId {}", routingKey, downlinkMsg.getDownlinkMsgId());
                 String errorMsg = t.getMessage() != null ? t.getMessage() : "";
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())

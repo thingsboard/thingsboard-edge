@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -47,7 +46,6 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -60,7 +58,6 @@ import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -68,7 +65,6 @@ import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsCloudProcessor;
@@ -88,8 +84,8 @@ import org.thingsboard.server.service.edge.rpc.processor.SchedulerEventCloudProc
 import org.thingsboard.server.service.edge.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.UserCloudProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.WhiteLabelingCloudProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.WidgetTypeCloudProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.WidgetBundleCloudProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WidgetTypeCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
@@ -172,7 +168,8 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
     public ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId, DownlinkMsg downlinkMsg, EdgeSettings currentEdgeSettings) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         try {
-            log.debug("onDownlink {}", downlinkMsg);
+            log.debug("Starting process DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
+            log.trace("DownlinkMsg Body {}", downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, currentEdgeSettings));
             }
@@ -329,8 +326,10 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                     result.add(groupPermissionProcessor.processGroupPermissionMsgFromCloud(tenantId, groupPermissionProto));
                 }
             }
+            log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process downlink message", e));
         }
         return Futures.allAsList(result);
     }
