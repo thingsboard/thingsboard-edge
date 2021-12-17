@@ -876,8 +876,6 @@
         "public": "Public",
         "remove-alias": "Supprimer l'alias du dispositif",
         "remove-devices-from-group": "Êtes-vous sûr de vouloir supprimer { count, plural, 1 {1 device} other {# devices} } du groupe '{{entityGroup}}'?",
-        "rsa-key": "Clé publique RSA",
-        "rsa-key-required": "La clé publique RSA est requise.",
         "search": "Rechercher des dispositifs",
         "secret": "Secret",
         "secret-required": "Code secret est requis.",

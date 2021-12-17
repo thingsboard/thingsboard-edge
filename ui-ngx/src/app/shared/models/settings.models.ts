@@ -109,6 +109,7 @@ export interface UserPasswordPolicy {
   minimumDigits: number;
   minimumSpecialCharacters: number;
   passwordExpirationPeriodDays: number;
+  allowWhitespaces: boolean;
 }
 
 export interface SecuritySettings {

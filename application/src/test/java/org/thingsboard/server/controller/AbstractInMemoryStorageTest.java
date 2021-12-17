@@ -28,23 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.system;
+package org.thingsboard.server.controller;
 
-import org.junit.BeforeClass;
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.runner.RunWith;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 
-/**
- * Created by Valerii Sosliuk on 6/27/2017.
- */
-@RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({
-        "org.thingsboard.server.system.sql.*SqlTest",
-})
-public class SystemSqlTestSuite {
+@Slf4j
+public abstract class AbstractInMemoryStorageTest {
 
-    @BeforeClass
+    @Before
+    public void setUpInMemoryStorage() {
+        log.info("set up InMemoryStorage");
+        cleanupInMemStorage();
+    }
+
+    @After
+    public void tearDownInMemoryStorage() {
+        log.info("tear down InMemoryStorage");
+        cleanupInMemStorage();
+    }
+
     public static void cleanupInMemStorage() {
         InMemoryStorage.getInstance().cleanup();
     }
