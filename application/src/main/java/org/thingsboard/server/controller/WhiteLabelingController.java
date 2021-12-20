@@ -30,20 +30,12 @@
  */
 package org.thingsboard.server.controller;
 
-import com.google.common.base.Charsets;
-import io.bit3.jsass.Compiler;
-import io.bit3.jsass.Options;
-import io.bit3.jsass.Output;
-import io.bit3.jsass.OutputStyle;
-import io.bit3.jsass.importer.Import;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -58,77 +50,25 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.Palette;
-import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
 
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 
-    private static final String SCSS_EXTENSION = ".scss";
-    private static final String SCSS_CLASSPATH_PATTERN = "classpath:scss/*.scss";
-    private static final String APP_THEME_SCSS = "app-theme.scss";
-    private static final String LOGIN_THEME_SCSS = "login-theme.scss";
     private static final String LOGO_CHECKSUM_DESC = "Logo image checksum. Expects value from the browser cache to compare it with the value from settings. If value matches, the 'logoImageUrl' will be null.";
     private static final String FAVICON_CHECKSUM_DESC = "Favicon image checksum. Expects value from the browser cache to compare it with the value from settings. If value matches, the 'faviconImageUrl' will be null.";
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
-
-    private Map<String, Import> scssImportMap;
-    private String scssAppTheme;
-    private String scssLoginTheme;
-    private Options saasOptions;
-    private Compiler saasCompiler;
-
-    @PostConstruct
-    public void init() throws Exception {
-        this.initSaasCompiler();
-    }
-
-    private void initSaasCompiler() throws Exception {
-        this.scssImportMap = new HashMap<>();
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        org.springframework.core.io.Resource[] scssResources = resolver.getResources(SCSS_CLASSPATH_PATTERN);
-        for (org.springframework.core.io.Resource scssResource : scssResources) {
-            String scssContent = StreamUtils.copyToString(scssResource.getInputStream(), Charsets.UTF_8);
-            String fileName = scssResource.getFilename();
-            if (APP_THEME_SCSS.equals(fileName)) {
-                this.scssAppTheme = scssContent;
-            } else if (LOGIN_THEME_SCSS.equals(fileName)) {
-                this.scssLoginTheme = scssContent;
-            } else if (fileName != null) {
-                URI scssFileUri = scssResource.getURI();
-                final Import scssImport = new Import(scssFileUri, scssFileUri, scssContent);
-                String path = fileName.substring(0, fileName.length() - SCSS_EXTENSION.length());
-                scssImportMap.put(path, scssImport);
-            }
-        }
-        this.saasCompiler = new Compiler();
-        this.saasOptions = new Options();
-        this.saasOptions.setImporters(Collections.singleton(
-                (url, previous) -> Collections.singletonList(this.scssImportMap.get(url))
-        ));
-        this.saasOptions.setOutputStyle(OutputStyle.COMPRESSED);
-    }
-
 
     @ApiOperation(value = "Get White Labeling parameters",
             notes = "Returns white-labeling parameters for the current user.", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -345,83 +285,6 @@ public class WhiteLabelingController extends BaseController {
             return whiteLabelingService.isCustomerWhiteLabelingAllowed(getCurrentUser().getTenantId());
         } catch (Exception e) {
             throw handleException(e);
-        }
-    }
-
-    @ApiOperation(value = "Get Login Theme CSS",
-            notes = "Generates the login theme CSS based on the provided Palette Settings",
-            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    @RequestMapping(value = "/noauth/whiteLabel/loginThemeCss", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
-    @ResponseStatus(value = HttpStatus.OK)
-    public String getLoginThemeCss(
-            @ApiParam(value = "A JSON value representing the Palette settings")
-            @RequestBody PaletteSettings paletteSettings,
-            @ApiParam(value = "Dark foreground enabled flag")
-            @RequestParam(name = "darkForeground", required = false) boolean darkForeground) throws ThingsboardException {
-        try {
-            return this.generateThemeCss(paletteSettings, true, darkForeground);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @ApiOperation(value = "Get Application Theme CSS",
-            notes = "Generates the application theme CSS based on the provided Palette Settings",
-            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/whiteLabel/appThemeCss", method = RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
-    @ResponseStatus(value = HttpStatus.OK)
-    public String getAppThemeCss(
-            @ApiParam(value = "A JSON value representing the Palette settings")
-            @RequestBody PaletteSettings paletteSettings) throws ThingsboardException {
-        try {
-            return this.generateThemeCss(paletteSettings, false, false);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    private String generateThemeCss(PaletteSettings paletteSettings,
-                                    boolean loginTheme,
-                                    boolean darkForeground) throws Exception {
-        String primaryPaletteName = getPaletteName(paletteSettings.getPrimaryPalette(), true);
-        String primaryColors = getPaletteColors(paletteSettings.getPrimaryPalette());
-        String accentPaletteName = getPaletteName(paletteSettings.getAccentPalette(), false);
-        String accentColors = getPaletteColors(paletteSettings.getAccentPalette());
-        String targetTheme = loginTheme ? this.scssLoginTheme : this.scssAppTheme;
-
-        targetTheme = targetTheme.replaceAll("##primary-palette##", primaryPaletteName);
-        targetTheme = targetTheme.replaceAll("##primary-colors##", primaryColors);
-        targetTheme = targetTheme.replaceAll("##accent-palette##", accentPaletteName);
-        targetTheme = targetTheme.replaceAll("##accent-colors##", accentColors);
-
-        if (loginTheme) {
-            targetTheme = targetTheme.replaceAll("##dark-foreground##", darkForeground ? "true" : "false");
-        }
-        Output output = this.saasCompiler.compileString(targetTheme, this.saasOptions);
-        return output.getCss();
-    }
-
-    private String getPaletteName(Palette palette, boolean primary) {
-        if (palette == null) {
-            return primary ? "tb-primary" : "tb-accent";
-        }
-        if (palette.getType().equals("custom")) {
-            return palette.getExtendsPalette();
-        } else {
-            return palette.getType();
-        }
-    }
-
-    private String getPaletteColors(Palette palette) {
-        if (palette != null && palette.getColors() != null && !palette.getColors().isEmpty()) {
-            List<String> colorsList = new ArrayList<>();
-            palette.getColors().forEach(
-                    (hue, hex) -> colorsList.add(String.format("%s: %s", hue, hex))
-            );
-            return "\n" + String.join(",\n", colorsList) + "\n";
-        } else {
-            return "";
         }
     }
 

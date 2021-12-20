@@ -37,7 +37,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.JacksonUtils;
 
@@ -50,7 +50,7 @@ import java.util.Map;
 @ApiModel
 @Data
 @EqualsAndHashCode
-@Log4j
+@Slf4j
 public class CustomTranslation {
 
     @ApiModelProperty(value = "Map of locale IDs to stringified json object with custom translations", required = true)

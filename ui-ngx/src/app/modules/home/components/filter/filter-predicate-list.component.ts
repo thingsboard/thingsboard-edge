@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Inject, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -51,12 +51,11 @@ import {
   EntityKeyValueType,
   KeyFilterPredicateInfo
 } from '@shared/models/query/query.models';
-import {
-  ComplexFilterPredicateDialogComponent,
-  ComplexFilterPredicateDialogData
-} from '@home/components/filter/complex-filter-predicate-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { map } from 'rxjs/operators';
+import { ComponentType } from '@angular/cdk/portal';
+import { COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN } from '@home/components/tokens';
+import { ComplexFilterPredicateDialogData } from '@home/components/filter/filter-component.models';
 
 @Component({
   selector: 'tb-filter-predicate-list',
@@ -102,6 +101,7 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
   private valueChangeSubscription: Subscription = null;
 
   constructor(private fb: FormBuilder,
+              @Inject(COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN) private complexFilterPredicateDialogComponent: ComponentType<any>,
               private dialog: MatDialog) {
   }
 
@@ -179,8 +179,8 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
   }
 
   private openComplexFilterDialog(predicate: KeyFilterPredicateInfo): Observable<KeyFilterPredicateInfo> {
-    return this.dialog.open<ComplexFilterPredicateDialogComponent, ComplexFilterPredicateDialogData,
-      ComplexFilterPredicateInfo>(ComplexFilterPredicateDialogComponent, {
+    return this.dialog.open<any, ComplexFilterPredicateDialogData,
+      ComplexFilterPredicateInfo>(this.complexFilterPredicateDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

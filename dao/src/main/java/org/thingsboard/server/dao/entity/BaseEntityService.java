@@ -175,11 +175,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     private OtaPackageService otaPackageService;
 
     @Override
-    public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
-        super.deleteEntityRelations(tenantId, entityId);
-    }
-
-    @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
                                                                                     EntityType entityType, Operation operation, String type, PageLink pageLink) {

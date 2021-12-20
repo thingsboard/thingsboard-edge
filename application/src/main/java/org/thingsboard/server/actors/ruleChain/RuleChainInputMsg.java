@@ -28,16 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.kafka;
+package org.thingsboard.server.actors.ruleChain;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.common.msg.TbMsg;
 
 /**
- * Created by ashvayka on 25.09.18.
+ * Created by ashvayka on 19.03.18.
  */
-@Data
-public class TbKafkaProperty {
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public final class RuleChainInputMsg extends TbToRuleChainActorMsg {
 
-    private String key;
-    private String value;
+    public RuleChainInputMsg(RuleChainId target, TbMsg tbMsg) {
+        super(tbMsg, target);
+    }
+
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.RULE_CHAIN_INPUT_MSG;
+    }
 }

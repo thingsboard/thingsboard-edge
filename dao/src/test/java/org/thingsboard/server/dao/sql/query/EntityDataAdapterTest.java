@@ -28,43 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache;
+package org.thingsboard.server.dao.sql.query;
 
-import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootContextLoader;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = CaffeineCacheDefaultConfigurationTestSuite.class, loader = SpringBootContextLoader.class)
-@ComponentScan({"org.thingsboard.server.cache"})
-@EnableConfigurationProperties
-@Slf4j
-public class CaffeineCacheDefaultConfigurationTestSuite {
-
-    @Autowired
-    CaffeineCacheConfiguration caffeineCacheConfiguration;
+public class EntityDataAdapterTest {
 
     @Test
-    public void verifyTransactionAwareCacheManagerProxy() {
-        assertThat(caffeineCacheConfiguration.getSpecs()).as("specs").isNotNull();
-        caffeineCacheConfiguration.getSpecs().forEach((name, cacheSpecs)->assertThat(cacheSpecs).as("cache %s specs", name).isNotNull());
-
-        SoftAssertions softly = new SoftAssertions();
-        caffeineCacheConfiguration.getSpecs().forEach((name, cacheSpecs)->{
-            softly.assertThat(name).as("cache name").isNotEmpty();
-            softly.assertThat(cacheSpecs.getTimeToLiveInMinutes()).as("cache %s time to live", name).isGreaterThan(0);
-            softly.assertThat(cacheSpecs.getMaxSize()).as("cache %s max size", name).isGreaterThan(0);
-        });
-        softly.assertAll();
+    public void testConvertValue() {
+        assertThat(EntityDataAdapter.convertValue("500")).isEqualTo("500");
+        assertThat(EntityDataAdapter.convertValue("500D")).isEqualTo("500D"); //do not convert to Double !!!
     }
-
 }

@@ -31,7 +31,7 @@
 
 import indigo from '@material-ui/core/colors/indigo';
 import deeepOrange from '@material-ui/core/colors/deepOrange';
-import { ThemeOptions } from '@material-ui/core/styles/createMuiTheme';
+import { ThemeOptions } from '@material-ui/core/styles';
 import { PaletteOptions, SimplePaletteColorOptions } from '@material-ui/core/styles/createPalette';
 import { mergeDeep } from '@core/utils';
 import { ColorPalette } from '@shared/models/material.models';
