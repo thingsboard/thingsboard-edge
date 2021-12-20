@@ -436,30 +436,15 @@ caffeine:
     assets:
       timeToLiveInMinutes: "${CACHE_SPECS_ASSETS_TTL:1440}"
       maxSize: "${CACHE_SPECS_ASSETS_MAX_SIZE:10000}"
-    downlink:
-      timeToLiveInMinutes: 1440
-      maxSize: 100000
     entityViews:
       timeToLiveInMinutes: "${CACHE_SPECS_ENTITY_VIEWS_TTL:1440}"
       maxSize: "${CACHE_SPECS_ENTITY_VIEWS_MAX_SIZE:10000}"
-    roles:
-      timeToLiveInMinutes: 1440
-      maxSize: 10000
-    permissions:
-      timeToLiveInMinutes: 1440
-      maxSize: 10000
-    owners:
-      timeToLiveInMinutes: 1440
-      maxSize: 100000
     claimDevices:
       timeToLiveInMinutes: "${CACHE_SPECS_CLAIM_DEVICES_TTL:1440}"
       maxSize: "${CACHE_SPECS_CLAIM_DEVICES_MAX_SIZE:1000}"
     securitySettings:
       timeToLiveInMinutes: "${CACHE_SPECS_SECURITY_SETTINGS_TTL:1440}"
       maxSize: "${CACHE_SPECS_SECURITY_SETTINGS_MAX_SIZE:10000}"
-    remoteIntegrations:
-      timeToLiveInMinutes: 1440
-      maxSize: 10000
     tenantProfiles:
       timeToLiveInMinutes: "${CACHE_SPECS_TENANT_PROFILES_TTL:1440}"
       maxSize: "${CACHE_SPECS_TENANT_PROFILES_MAX_SIZE:10000}"
@@ -482,6 +467,22 @@ caffeine:
       timeToLiveInMinutes: "${CACHE_SPECS_EDGES_TTL:1440}"
       maxSize: "${CACHE_SPECS_EDGES_MAX_SIZE:10000}"
 
+    # PE cache specs
+    downlink:
+      timeToLiveInMinutes: "${CACHE_SPECS_DOWNLINK_TTL:1440}"
+      maxSize: "${CACHE_SPECS_DOWNLINK_MAX_SIZE:100000}"
+    roles:
+      timeToLiveInMinutes: "${CACHE_SPECS_ROLES_TTL:1440}"
+      maxSize: "${CACHE_SPECS_ROLES_MAX_SIZE:10000}"
+    permissions:
+      timeToLiveInMinutes: "${CACHE_SPECS_PERMISSIONS_TTL:1440}"
+      maxSize: "${CACHE_SPECS_PERMISSIONS_MAX_SIZE:10000}"
+    owners:
+      timeToLiveInMinutes: "${CACHE_SPECS_OWNERS_TTL:1440}"
+      maxSize: "${CACHE_SPECS_OWNERS_MAX_SIZE:100000}"
+    remoteIntegrations:
+      timeToLiveInMinutes: "${CACHE_SPECS_REMOTE_INTEGRATIONS_TTL:1440}"
+      maxSize: "${CACHE_SPECS_REMOTE_INTEGRATIONS_MAX_SIZE:10000}"
 redis:
   # standalone or cluster
   connection:
