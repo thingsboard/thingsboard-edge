@@ -53,9 +53,9 @@ public class TbSumIntervalState extends TbBaseIntervalState {
 
     @Override
     protected boolean doUpdate(JsonElement data) {
-        double value = data.getAsDouble();
-        if (value != 0.0) {
-            sum = sum.add(BigDecimal.valueOf(value));
+        BigDecimal value = data.getAsBigDecimal();
+        if (value.compareTo(BigDecimal.ZERO) != 0) {
+            sum = sum.add(value);
             return true;
         } else {
             return false;

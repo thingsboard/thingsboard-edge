@@ -36,6 +36,8 @@ import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 /**
  * Created by ashvayka on 13.06.18.
  */
@@ -43,16 +45,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TbMaxIntervalState extends TbBaseIntervalState {
 
-    private double max = -Double.MAX_VALUE;
+    private BigDecimal max = null;
 
     public TbMaxIntervalState(JsonElement stateJson) {
-        this.max = stateJson.getAsJsonObject().get("max").getAsDouble();
+        this.max = stateJson.getAsJsonObject().get("max").getAsBigDecimal();
     }
 
     @Override
     protected boolean doUpdate(JsonElement data) {
-        double value = data.getAsDouble();
-        if (value > max) {
+        BigDecimal value = data.getAsBigDecimal();
+        if (max == null || value.compareTo(max) > 0) {
             max = value;
             return true;
         } else {
