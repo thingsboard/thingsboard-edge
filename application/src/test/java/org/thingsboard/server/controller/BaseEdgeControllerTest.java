@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.ProfessionaEdition;
 import org.thingsboard.server.common.data.Customer;
@@ -211,6 +212,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString("Edge name should be specified")));
     }
 
+    @Ignore
     @Test
     public void testAssignUnassignEdgeToCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
@@ -245,6 +247,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Ignore
     @Test
     public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
         loginSysAdmin();
@@ -472,6 +475,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Ignore
     @Test
     public void testFindCustomerEdges() throws Exception {
         Customer customer = new Customer();
@@ -506,6 +510,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edges, loadedEdges);
     }
 
+    @Ignore
     @Test
     public void testFindCustomerEdgesByName() throws Exception {
         Customer customer = new Customer();
@@ -596,6 +601,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Ignore
     @Test
     public void testFindCustomerEdgesByType() throws Exception {
         Customer customer = new Customer();
@@ -688,6 +694,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Ignore
     @Test
     public void testSyncEdgeCE() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge CE", "test"), Edge.class);
