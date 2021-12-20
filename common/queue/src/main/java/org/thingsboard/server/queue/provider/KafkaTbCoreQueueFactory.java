@@ -125,12 +125,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
-        requestBuilder.settings(kafkaSettings);
-        requestBuilder.clientId("tb-core-rule-engine-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(coreSettings.getTopic());
-        requestBuilder.admin(coreAdmin);
-        return requestBuilder.build();
+        return createRuleEngineProducerTemplate("tb-core-rule-engine-");
     }
 
     @Override
@@ -289,6 +284,20 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         requestBuilder.clientId("tb-core-us-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(coreSettings.getUsageStatsTopic());
         requestBuilder.admin(coreAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createIntegrationRuleEngineMsgProducer() {
+        return createRuleEngineProducerTemplate("tb-core-integration-rule-engine-");
+    }
+
+    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineProducerTemplate(String clientIdPrefix) {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId(clientIdPrefix + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(ruleEngineSettings.getTopic());
+        requestBuilder.admin(ruleEngineAdmin);
         return requestBuilder.build();
     }
 

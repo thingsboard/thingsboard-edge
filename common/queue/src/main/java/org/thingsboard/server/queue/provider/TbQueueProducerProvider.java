@@ -85,4 +85,11 @@ public interface TbQueueProducerProvider {
      * @return
      */
     TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> getTbUsageStatsMsgProducer();
+
+    /**
+     * Used to push messages to instances of TB RuleEngine Service
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer();
 }
