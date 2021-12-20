@@ -38,6 +38,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.ProfessionaEdition;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -52,10 +53,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
@@ -64,8 +63,8 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
@@ -403,9 +402,10 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @ProfessionaEdition
     @Test
-    public void testSyncEdge() throws Exception {
-        Edge edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
+    public void testSyncEdgeEntityGroup() throws Exception {
+        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
         EntityGroup savedDeviceGroup = new EntityGroup();
         savedDeviceGroup.setType(EntityType.DEVICE);
@@ -413,7 +413,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         savedDeviceGroup = doPost("/api/entityGroup", savedDeviceGroup, EntityGroup.class);
 
         Device device = new Device();
-        device.setName("Edge Device 1");
+        device.setName("Sync Test EG Edge Device 1");
         device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
 
@@ -426,7 +426,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         savedAssetGroup = doPost("/api/entityGroup", savedAssetGroup, EntityGroup.class);
 
         Asset asset = new Asset();
-        asset.setName("Edge Asset 1");
+        asset.setName("Sync Test EG Edge Asset 1");
         asset.setType("test");
         Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
 
@@ -438,30 +438,31 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         edgeImitator.expectMessageAmount(14);
         edgeImitator.connect();
-        Assert.assertTrue(edgeImitator.waitForMessages());
+        assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size()); // one msg during sync process, another from edge creation
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size()); // one msg during sync process for 'default' device profile
-        Assert.assertEquals(6, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size()); // two msgs during sync process, four msgs from assign to edge
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size()); // two msgs during sync process
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size()); // one msg during sync process
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - two msgs during sync process, four msgs from assign to edge").hasSize(6);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - two msgs during sync process").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling params update").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
 
         edgeImitator.expectMessageAmount(11);
         doPost("/api/edge/sync/" + edge.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());
+        assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
-        Assert.assertEquals(4, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(4);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling param proto msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
 
         edgeImitator.allowIgnoredTypes();
         try {
             edgeImitator.disconnect();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         doDelete("/api/device/" + savedDevice.getId().getId().toString())
                 .andExpect(status().isOk());
