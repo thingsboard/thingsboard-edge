@@ -782,7 +782,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
 
-        EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
+        EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
         edgeImitator.expectMessageAmount(14);
