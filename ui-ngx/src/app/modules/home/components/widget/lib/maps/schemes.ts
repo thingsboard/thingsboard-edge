@@ -571,6 +571,25 @@ export const mapPolygonSchema =
               type: 'boolean',
               default: false
             },
+            showPolygonLabel: {
+              title: 'Show polygon label',
+              type: 'boolean',
+              default: false
+            },
+            polygonLabel: {
+              title: 'Polygon label (pattern examples: \'${entityName}\', \'${entityName}: (Text ${keyName} units.)\' )',
+              type: 'string',
+              default: '${entityName}'
+            },
+            usePolygonLabelFunction: {
+              title: 'Use polygon label function',
+              type: 'boolean',
+              default: false
+            },
+            polygonLabelFunction: {
+              title: 'Polygon label function: f(data, dsData, dsIndex)',
+              type: 'string'
+            },
             polygonColor: {
                 title: 'Polygon color',
                 type: 'string'
@@ -622,6 +641,15 @@ export const mapPolygonSchema =
                 title: 'Polygon Color function: f(data, dsData, dsIndex)',
                 type: 'string'
             },
+            usePolygonStrokeColorFunction: {
+              title: 'Use polygon stroke color function',
+              type: 'boolean',
+              default: false
+            },
+            polygonStrokeColorFunction: {
+              title: 'Polygon Stroke Color function: f(data, dsData, dsIndex)',
+              type: 'string'
+            }
         },
         required: []
     },
@@ -629,6 +657,21 @@ export const mapPolygonSchema =
         'showPolygon',
         'polygonKeyName',
         'editablePolygon',
+        'showPolygonLabel',
+        {
+          key: 'usePolygonLabelFunction',
+          condition: 'model.showPolygonLabel === true'
+        },
+        {
+          key: 'polygonLabel',
+          condition: 'model.showPolygonLabel === true && model.usePolygonLabelFunction !== true'
+        },
+        {
+          key: 'polygonLabelFunction',
+          type: 'javascript',
+          helpId: 'widget/lib/map/label_fn',
+          condition: 'model.showPolygonLabel === true && model.usePolygonLabelFunction === true'
+        },
         {
             key: 'polygonColor',
             type: 'color'
@@ -644,6 +687,13 @@ export const mapPolygonSchema =
         {
             key: 'polygonStrokeColor',
             type: 'color'
+        },
+        'usePolygonStrokeColorFunction',
+        {
+          key: 'polygonStrokeColorFunction',
+          helpId: 'widget/lib/map/polygon_color_fn',
+          type: 'javascript',
+          condition: 'model.usePolygonStrokeColorFunction === true'
         },
         'polygonStrokeOpacity',
         'polygonStrokeWeight',

@@ -71,3 +71,10 @@ export function bindPopupActions(popup: L.Popup, settings: MarkerSettings | Poly
       }
     });
 }
+
+export function isCutPolygon(data): boolean {
+  if (Array.isArray(data[0]) && Array.isArray(data[0][0])) {
+    return true;
+  }
+  return false;
+}
