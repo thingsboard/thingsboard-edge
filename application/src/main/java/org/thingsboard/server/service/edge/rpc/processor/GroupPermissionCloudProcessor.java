@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
@@ -111,8 +112,13 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                     return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + groupPermissionProto.getMsgType()));
             }
         } catch (Exception e) {
-            log.error("Can't process groupPermissionProto [{}]", groupPermissionProto, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process groupPermissionProto " + groupPermissionProto, e));
+            if (e instanceof DataValidationException
+                    && e.getMessage().contains("Group Permission is referencing to non-existent entity group!")) {
+                log.warn("Group Permission is referencing to non-existent entity group! This permission will be saved with an appropriate entity group on next messages [{}]", groupPermissionProto, e);
+            } else {
+                log.error("Can't process groupPermissionProto [{}]", groupPermissionProto, e);
+                return Futures.immediateFailedFuture(new RuntimeException("Can't process groupPermissionProto " + groupPermissionProto, e));
+            }
         }
         return Futures.immediateFuture(null);
     }
