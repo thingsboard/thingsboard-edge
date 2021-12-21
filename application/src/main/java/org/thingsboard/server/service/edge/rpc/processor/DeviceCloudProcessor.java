@@ -123,10 +123,12 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), new FutureCallback<>() {
             @Override
-            public void onSuccess(@Nullable Void unused) {
+            public void onSuccess(@Nullable Boolean requestForAdditionalData) {
                 if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
                         UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                    saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
+                    if (requestForAdditionalData != null && requestForAdditionalData) {
+                        saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
+                    }
                 } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
                     saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null);
                 }

@@ -209,7 +209,7 @@ public abstract class BaseCloudProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
+    protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
@@ -226,6 +226,7 @@ public abstract class BaseCloudProcessor {
 
             if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
                 log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);
+                return Futures.immediateFuture(false);
             } else {
                 log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
                 saveCloudEvent(tenantId, cloudEventType,
@@ -238,7 +239,7 @@ public abstract class BaseCloudProcessor {
                 }
             }
         }
-        return Futures.immediateFuture(null);
+        return Futures.immediateFuture(true);
     }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
