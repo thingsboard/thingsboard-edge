@@ -117,6 +117,25 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
+    public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
+            UUID tenantId,
+            UUID entityId,
+            String cloudEventType,
+            String cloudEventAction,
+            TimePageLink pageLink) {
+        return DaoUtil.toPageData(
+                cloudEventRepository
+                        .findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
+                                tenantId,
+                                entityId,
+                                cloudEventType,
+                                cloudEventAction,
+                                pageLink.getStartTime(),
+                                pageLink.getEndTime(),
+                                DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public void cleanupEvents(long eventsTtl) {
         log.info("Going to cleanup old cloud events using debug events ttl: {}s", eventsTtl);
         cloudEventCleanupRepository.cleanupEvents(eventsTtl);

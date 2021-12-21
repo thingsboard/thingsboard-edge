@@ -36,9 +36,17 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.util.UUID;
+
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ACTION_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TYPE_PROPERTY;
 
 public interface CloudEventRepository extends PagingAndSortingRepository<CloudEventEntity, UUID>, JpaSpecificationExecutor<CloudEventEntity> {
 
@@ -51,4 +59,21 @@ public interface CloudEventRepository extends PagingAndSortingRepository<CloudEv
                                                 @Param("startTime") Long startTime,
                                                 @Param("endTime") Long endTime,
                                                 Pageable pageable);
+
+    @Query("SELECT e FROM CloudEventEntity e WHERE " +
+            "e.tenantId = :tenantId " +
+            "AND e.entityId  = :entityId " +
+            "AND e.cloudEventType = :cloudEventType " +
+            "AND e.cloudEventAction = :cloudEventAction " +
+            "AND (:startTime IS NULL OR e.createdTime >= :startTime) " +
+            "AND (:endTime IS NULL OR e.createdTime <= :endTime) "
+    )
+    Page<CloudEventEntity> findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
+            @Param("tenantId") UUID tenantId,
+            @Param("entityId") UUID entityId,
+            @Param("cloudEventType") String cloudEventType,
+            @Param("cloudEventAction") String cloudEventAction,
+            @Param("startTime") Long startTime,
+            @Param("endTime") Long endTime,
+            Pageable pageable);
 }

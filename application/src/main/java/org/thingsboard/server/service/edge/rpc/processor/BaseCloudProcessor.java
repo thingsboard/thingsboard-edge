@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -208,17 +209,33 @@ public abstract class BaseCloudProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
-            saveCloudEvent(tenantId, cloudEventType,
-                    ActionType.ATTRIBUTES_REQUEST, entityId, null);
-            saveCloudEvent(tenantId, cloudEventType,
-                    ActionType.RELATION_REQUEST, entityId, null);
-            if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
+
+            TimePageLink timePageLink = new TimePageLink(1,
+                    0,
+                    null,
+                    new SortOrder("createdTime", SortOrder.Direction.DESC),
+                    queueStartTs,
+                    System.currentTimeMillis());
+
+            PageData<CloudEvent> cloudEventsByEntityIdAndCloudEventActionAndCloudEventType =
+                    cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(tenantId, entityId, cloudEventType, ActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
+
+            if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
+                log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);
+            } else {
+                log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
                 saveCloudEvent(tenantId, cloudEventType,
-                        ActionType.ENTITY_VIEW_REQUEST, entityId, null);
+                        ActionType.ATTRIBUTES_REQUEST, entityId, null);
+                saveCloudEvent(tenantId, cloudEventType,
+                        ActionType.RELATION_REQUEST, entityId, null);
+                if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
+                    saveCloudEvent(tenantId, cloudEventType,
+                            ActionType.ENTITY_VIEW_REQUEST, entityId, null);
+                }
             }
         }
         return Futures.immediateFuture(null);

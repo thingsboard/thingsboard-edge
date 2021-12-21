@@ -71,7 +71,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private UserService userService;
 
-    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType, Long queueStartTs) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -132,7 +132,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 log.error("Unsupported msg type");
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + userUpdateMsg.getMsgType()));
         }
-        ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId), future -> null, dbCallbackExecutor);
+        ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs), future -> null, dbCallbackExecutor);
 
         ListenableFuture<ListenableFuture<Void>> t = Futures.transform(aDRF, aDR -> {
             if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||

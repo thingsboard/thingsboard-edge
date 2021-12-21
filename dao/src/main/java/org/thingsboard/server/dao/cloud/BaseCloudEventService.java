@@ -38,7 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -83,6 +85,20 @@ public class BaseCloudEventService implements CloudEventService {
     @Override
     public PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
         return cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(TenantId tenantId,
+                                                                                              EntityId entityId,
+                                                                                              CloudEventType cloudEventType,
+                                                                                              String cloudEventAction,
+                                                                                              TimePageLink pageLink) {
+        return cloudEventDao.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
+                tenantId.getId(),
+                entityId.getId(),
+                cloudEventType.name(),
+                cloudEventAction,
+                pageLink);
     }
 
     @Override

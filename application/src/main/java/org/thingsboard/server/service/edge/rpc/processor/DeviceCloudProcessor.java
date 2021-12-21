@@ -67,7 +67,6 @@ import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -76,10 +75,11 @@ import java.util.UUID;
 @Slf4j
 public class DeviceCloudProcessor extends BaseCloudProcessor {
 
-    @Autowired
-    private DeviceStateService deviceStateService;
-
-    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
+                                                            CustomerId customerId,
+                                                            DeviceUpdateMsg deviceUpdateMsg,
+                                                            CloudType cloudType,
+                                                            Long queueStartTs) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -121,7 +121,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         }
 
         SettableFuture<Void> futureToSet = SettableFuture.create();
-        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), new FutureCallback<>() {
+        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Void unused) {
                 if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||

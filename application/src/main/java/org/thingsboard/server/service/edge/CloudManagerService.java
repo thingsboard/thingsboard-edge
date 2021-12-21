@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -259,6 +260,8 @@ public class CloudManagerService extends BaseCloudEventService {
     private EdgeId edgeId;
     private EdgeSettings currentEdgeSettings;
 
+    private Long queueStartTs;
+
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledFuture<?> scheduledFuture;
@@ -318,9 +321,12 @@ public class CloudManagerService extends BaseCloudEventService {
             while (!Thread.interrupted()) {
                 try {
                     if (initialized) {
-                        Long queueStartTs = getQueueStartTs().get();
+                        queueStartTs = getQueueStartTs().get();
                         TimePageLink pageLink =
-                                new TimePageLink(new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount()),
+                                new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                                        0,
+                                        null,
+                                        new SortOrder("createdTime", SortOrder.Direction.DESC),
                                         queueStartTs,
                                         System.currentTimeMillis());
                         PageData<CloudEvent> pageData;
@@ -691,7 +697,7 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings);
+        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {

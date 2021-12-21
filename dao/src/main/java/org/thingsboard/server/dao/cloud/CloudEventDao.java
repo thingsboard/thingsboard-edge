@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -61,6 +62,13 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      * @return the event list
      */
     PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink);
+
+    PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
+            UUID tenantId,
+            UUID entityId,
+            String cloudEventType,
+            String cloudEventAction,
+            TimePageLink pageLink);
 
     /**
      * Executes stored procedure to cleanup old cloud events.

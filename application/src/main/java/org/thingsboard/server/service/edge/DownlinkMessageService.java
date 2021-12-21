@@ -39,5 +39,8 @@ import java.util.List;
 
 public interface DownlinkMessageService {
 
-    ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId, DownlinkMsg downlinkMsg, EdgeSettings currentEdgeSettings);
+    ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
+                                                    DownlinkMsg downlinkMsg,
+                                                    EdgeSettings currentEdgeSettings,
+                                                    Long queueStartTs);
 }
