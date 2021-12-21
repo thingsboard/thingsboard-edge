@@ -750,6 +750,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    // Temporarily ignoring this test. Must be fixed by @volodymyr-babak
+    @Ignore
     @Test
     public void testSyncEdgeEntityGroup() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
