@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { FeatureGroup, Icon, LatLngBounds, LatLngTuple, Projection } from 'leaflet';
+import L, { FeatureGroup, LatLngBounds, LatLngTuple, Projection } from 'leaflet';
 import tinycolor from 'tinycolor2';
 import 'leaflet-providers';
 import { MarkerClusterGroup, MarkerClusterGroupOptions } from 'leaflet.markercluster/dist/leaflet.markercluster';
@@ -39,7 +39,7 @@ import {
   defaultSettings,
   FormattedData,
   MapSettings,
-  MarkerSettings,
+  MarkerSettings, MarkerIconInfo, MarkerImageInfo,
   PolygonSettings,
   PolylineSettings,
   ReplaceInfo,
@@ -79,7 +79,7 @@ export default abstract class LeafletMap {
     points: FeatureGroup;
     markersData: FormattedData[] = [];
     polygonsData: FormattedData[] = [];
-    defaultMarkerIconInfo: { size: number[], icon: Icon };
+    defaultMarkerIconInfo: MarkerIconInfo;
     loadingDiv: JQuery<HTMLElement>;
     loading = false;
     replaceInfoLabelMarker: Array<ReplaceInfo> = [];
@@ -551,16 +551,16 @@ export default abstract class LeafletMap {
       let m: Marker;
       rawMarkers.forEach(data => {
         if (data.rotationAngle || data.rotationAngle === 0) {
-          const currentImage = this.options.useMarkerImageFunction ?
+          const currentImage: MarkerImageInfo = this.options.useMarkerImageFunction ?
             safeExecute(this.options.markerImageFunction,
               [data, this.options.markerImages, markersData, data.dsIndex]) : this.options.currentImage;
           const style = currentImage ? 'background-image: url(' + currentImage.url + ');' : '';
-          this.options.icon = L.divIcon({
+          this.options.icon = { icon: L.divIcon({
             html: `<div class="arrow"
-                 style="transform: translate(-10px, -10px)
-                 rotate(${data.rotationAngle}deg);
-                 ${style}"><div>`
-          });
+               style="transform: translate(-10px, -10px)
+               rotate(${data.rotationAngle}deg);
+               ${style}"><div>`
+          }),  size: [30, 30]};
         } else {
           this.options.icon = null;
         }
