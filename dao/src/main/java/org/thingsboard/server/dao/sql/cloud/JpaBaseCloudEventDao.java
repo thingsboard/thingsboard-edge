@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.CloudEventId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -120,7 +121,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
             UUID tenantId,
             UUID entityId,
-            String cloudEventType,
+            CloudEventType cloudEventType,
             String cloudEventAction,
             TimePageLink pageLink) {
         return DaoUtil.toPageData(

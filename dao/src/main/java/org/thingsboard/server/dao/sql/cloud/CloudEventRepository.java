@@ -71,7 +71,7 @@ public interface CloudEventRepository extends PagingAndSortingRepository<CloudEv
     Page<CloudEventEntity> findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
             @Param("tenantId") UUID tenantId,
             @Param("entityId") UUID entityId,
-            @Param("cloudEventType") String cloudEventType,
+            @Param("cloudEventType") CloudEventType cloudEventType,
             @Param("cloudEventAction") String cloudEventAction,
             @Param("startTime") Long startTime,
             @Param("endTime") Long endTime,

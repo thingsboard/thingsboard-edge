@@ -96,7 +96,7 @@ public class BaseCloudEventService implements CloudEventService {
         return cloudEventDao.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
                 tenantId.getId(),
                 entityId.getId(),
-                cloudEventType.name(),
+                cloudEventType,
                 cloudEventAction,
                 pageLink);
     }

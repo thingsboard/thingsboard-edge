@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.cloud;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
@@ -66,7 +67,7 @@ public interface CloudEventDao extends Dao<CloudEvent> {
     PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
             UUID tenantId,
             UUID entityId,
-            String cloudEventType,
+            CloudEventType cloudEventType,
             String cloudEventAction,
             TimePageLink pageLink);
 
