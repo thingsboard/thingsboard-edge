@@ -6,8 +6,9 @@
     "group": "Supermarket Devices",
     "profile": "Smart Shelf",
     "attributes": {
-      "xPos": 0.95,
-      "yPos": 0.5,
+      "inactivityTimeout": "15768000000",
+      "xPos": 0.7241627311506073,
+      "yPos": 0.5483131839908542,
       "lowWeightMajorThreshold": 15,
       "lowWeightCriticalThreshold": 5
     },
@@ -27,8 +28,9 @@
     "group": "Supermarket Devices",
     "profile": "Smart Shelf",
     "attributes": {
-      "xPos": 0.8,
-      "yPos": 0.5,
+      "inactivityTimeout": "15768000000",
+      "xPos": 0.6895846593918546,
+      "yPos": 0.6990715532286214,
       "lowWeightMajorThreshold": 15,
       "lowWeightCriticalThreshold": 5
     },
@@ -48,8 +50,9 @@
     "group": "Supermarket Devices",
     "profile": "Chiller",
     "attributes": {
-      "xPos": 0.15,
-      "yPos": 0.08,
+      "inactivityTimeout": "15768000000",
+      "xPos": 0.5121248625980332,
+      "yPos": 0.13135823879258277,
       "chillerHighTemperatureMajorThreshold": 10,
       "chillerHighTemperatureCriticalThreshold": 15
     },
@@ -69,8 +72,9 @@
     "group": "Supermarket Devices",
     "profile": "Freezer",
     "attributes": {
-      "xPos": 0.7,
-      "yPos": 0.3,
+      "inactivityTimeout": "15768000000",
+      "xPos": 0.06905060096603549,
+      "yPos": 0.7218696071835972,
       "freezerHighTemperatureMajorThreshold": -10,
       "freezerHighTemperatureCriticalThreshold": -3
     },
@@ -90,8 +94,9 @@
     "group": "Supermarket Devices",
     "profile": "Waste Bin",
     "attributes": {
-      "xPos": 0.7,
-      "yPos": 0.8
+      "inactivityTimeout": "15768000000",
+      "xPos": 0.4598393861933647,
+      "yPos": 0.8291699184647086
     },
     "relations": [
       {

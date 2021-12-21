@@ -1,0 +1,1027 @@
+{
+  "title": "Smart Supermarket",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
+  "configuration": {
+    "description": "",
+    "widgets": {
+      "221c9ca0-6f0f-a17c-0d00-ace3ad1bb426": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "entities_table",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSearch": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "entityName",
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "enableSelectColumnDisplay": true,
+            "enableStickyHeader": true,
+            "enableStickyAction": true,
+            "reserveSpaceForHiddenAction": "true",
+            "entitiesTitle": "Supermarkets",
+            "entityNameColumnTitle": "Name"
+          },
+          "title": "New Entities table",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "783dd5f0-d34d-946d-a82f-95d3a6eaadd1",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "address",
+                  "type": "attribute",
+                  "label": "address",
+                  "color": "#2196f3",
+                  "settings": {
+                    "columnWidth": "70%",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.1345774127559587,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Go To Details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarket_details",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "5e50c296-0eac-8841-a69a-1cbbfe04d1c5"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "221c9ca0-6f0f-a17c-0d00-ace3ad1bb426"
+      },
+      "e37ba208-4472-d4ab-94ad-db72213ef0ef": {
+        "isSystemType": true,
+        "bundleAlias": "maps_v2",
+        "typeAlias": "openstreetmap",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "783dd5f0-d34d-946d-a82f-95d3a6eaadd1",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "latitude",
+                  "type": "attribute",
+                  "label": "latitude",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.862061599769905
+                },
+                {
+                  "name": "longitude",
+                  "type": "attribute",
+                  "label": "longitude",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.017864596400994026
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "fitMapBounds": true,
+            "latKeyName": "latitude",
+            "lngKeyName": "longitude",
+            "showLabel": true,
+            "label": "${entityName}",
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
+            "markerImageSize": 34,
+            "useColorFunction": false,
+            "markerImages": [],
+            "useMarkerImageFunction": false,
+            "color": "#fe7569",
+            "mapProvider": "OpenStreetMap.Mapnik",
+            "showTooltip": true,
+            "autocloseTooltip": true,
+            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
+            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "provider": "openstreet-map",
+            "defaultCenterPosition": "0,0",
+            "showTooltipAction": "click",
+            "mapPageSize": 16384,
+            "useTooltipFunction": false,
+            "useCustomProvider": false,
+            "useDefaultCenterPosition": false,
+            "draggableMarker": false,
+            "disableScrollZooming": false,
+            "useLabelFunction": false,
+            "tooltipOffsetX": 0,
+            "tooltipOffsetY": -1,
+            "markerOffsetX": 0.5,
+            "markerOffsetY": 1,
+            "showPolygon": false,
+            "useClusterMarkers": false
+          },
+          "title": "New OpenStreetMap",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "widgetStyle": {},
+          "actions": {
+            "markerClick": [
+              {
+                "name": "Go to Details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarket_details",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "4de7962b-a1de-5cb1-cd78-993dc7863614"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "e37ba208-4472-d4ab-94ad-db72213ef0ef"
+      },
+      "eb29a39f-46b9-02c5-d458-39e4f48cfdd7": {
+        "isSystemType": true,
+        "bundleAlias": "maps_v2",
+        "typeAlias": "image_map",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8.5,
+        "sizeY": 6.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "48419e4a-90d9-9863-29b2-3877821b7e45",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.07057010303477718
+                },
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "Name",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.8768256363159095
+                },
+                {
+                  "name": "label",
+                  "type": "entityField",
+                  "label": "Label",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.7481769686268884
+                },
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.1947251343876919
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.8911555639185675
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#8bc34a",
+                  "settings": {},
+                  "_hash": 0.8300505638957978
+                },
+                {
+                  "name": "weight",
+                  "type": "timeseries",
+                  "label": "weight",
+                  "color": "#3f51b5",
+                  "settings": {},
+                  "_hash": 0.9334528007194596
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#ffab00",
+                  "settings": {},
+                  "_hash": 0.6744560940971152,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "alarmSeverityStatus",
+                  "type": "attribute",
+                  "label": "alarmSeverityStatus",
+                  "color": "#304ffe",
+                  "settings": {},
+                  "_hash": 0.5511759468875548
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "4f533ad3-f478-db34-2083-a827bf1992d7",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#e91e63",
+                  "settings": {},
+                  "_hash": 0.18823677296060626,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#ffeb3b",
+                  "settings": {},
+                  "_hash": 0.6309039008437192,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#03a9f4",
+                  "settings": {},
+                  "_hash": 0.7876756601471564,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "temperature",
+                  "color": "#ff9800",
+                  "settings": {},
+                  "_hash": 0.8543549415494662
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#2962ff",
+                  "settings": {},
+                  "_hash": 0.3746151295694715,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#455a64",
+                  "settings": {},
+                  "_hash": 0.9171097578662253,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "alarmSeverityStatus",
+                  "type": "attribute",
+                  "label": "alarmSeverityStatus",
+                  "color": "#c51162",
+                  "settings": {},
+                  "_hash": 0.5042122301167742,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "412dae47-c5be-1531-0fc0-57a0fae0465d",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#673ab7",
+                  "settings": {},
+                  "_hash": 0.7504212646919071,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#cddc39",
+                  "settings": {},
+                  "_hash": 0.2621574819501622,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "temperature",
+                  "color": "#009688",
+                  "settings": {},
+                  "_hash": 0.37999700114665735,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#00c853",
+                  "settings": {},
+                  "_hash": 0.5701239542601997,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#aa00ff",
+                  "settings": {},
+                  "_hash": 0.3622518902743235,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "alarmSeverityStatus",
+                  "type": "attribute",
+                  "label": "alarmSeverityStatus",
+                  "color": "#ffd600",
+                  "settings": {},
+                  "_hash": 0.4284660078740532,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "27651437-21f6-19c4-b2ea-410b996acc3f",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "level",
+                  "type": "timeseries",
+                  "label": "level",
+                  "color": "#795548",
+                  "settings": {},
+                  "_hash": 0.8510839919236566
+                },
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#00bcd4",
+                  "settings": {},
+                  "_hash": 0.12001307593647748,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#ff5722",
+                  "settings": {},
+                  "_hash": 0.8059413475198269,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "Name",
+                  "color": "#9e9e9e",
+                  "settings": {},
+                  "_hash": 0.5651742519188161,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#d50000",
+                  "settings": {},
+                  "_hash": 0.2560013009284068,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#64dd17",
+                  "settings": {},
+                  "_hash": 0.99745503493309,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "alarmSeverityStatus",
+                  "type": "attribute",
+                  "label": "alarmSeverityStatus",
+                  "color": "#0091ea",
+                  "settings": {},
+                  "_hash": 0.8429992475817409,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "showLabel": false,
+            "label": "${entityName}",
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
+            "markerImageSize": 34,
+            "useColorFunction": false,
+            "markerImages": [],
+            "useMarkerImageFunction": true,
+            "colorFunction": "var type = dsData[dsIndex]['Type'];\nif (type == 'colorpin') {\n\tvar temperature = dsData[dsIndex]['temperature'];\n\tif (typeof temperature !== undefined) {\n\t    var percent = (temperature + 60)/120 * 100;\n\t    return tinycolor.mix('blue', 'red', amount = percent).toHexString();\n\t}\n\treturn 'blue';\n}\n",
+            "markerImageFunction": "var type = data['Type'];\n\nvar active = data['active'];\nvar alarmSeverityStatus = data['alarmSeverityStatus'];\n\nvar status = 'normal';\nif (active === 'false') {\n    status = 'disconnected';\n} else if (alarmSeverityStatus && alarmSeverityStatus !== 'cleared') {\n    status = alarmSeverityStatus;\n}\n \nvar text = getDeviceText(type, status);\n\nvar width = 30 + getTextWidth(text);\n\nvar svgStr = getDeviceSvg(type, status, width, text);\n\nvar encodedSvg = encodeURIComponent(svgStr);\n\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [15, 15],\n    tooltipOffset: [width * 0.5 - 15, -15]\n};\n\n\n\nfunction getDeviceSvg(type, status, width, text) {\n    var shape = getDeviceShape(type);\n    var color = getBackgroundColor(type, status);\n    var background = getDeviceBackground(type, color, width);\n    var deviceSvg = '<svg width=\"' + width + '\" height=\"30\" viewBox=\"0 0 ' + width + ' 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background +\n                    shape;\n    if (status === 'disconnected') {\n        deviceSvg += '<path d=\"M6.92896 21.728L21.0711 7.58589L22.4853 9.00011L8.34317 23.1422L6.92896 21.728Z\" fill=\"' + color + '\"/>' +\n                     '<path d=\"M7.10692 21.3171C6.81393 21.0241 6.81393 20.5491 7.10692 20.2561L20.1852 7.17788C20.4781 6.88489 20.9532 6.88489 21.2462 7.17788V7.17788C21.5392 7.47088 21.5392 7.94591 21.2462 8.2389L8.16794 21.3171C7.87495 21.6101 7.39991 21.6101 7.10692 21.3171V21.3171Z\" fill=\"white\"/>';\n    }\n    if (text !== '') {\n        deviceSvg += '<text transform=\"translate(30 6)\" fill=\"white\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"15.4\" font-weight=\"500\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    deviceSvg += '</svg>';\n    return deviceSvg;    \n}\n\nfunction getDeviceBackground(type, color, width) {\n     if (width === 30) {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 15) + '\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"15\" y=\"0\" width=\"' + (width - 30) + '\" height=\"30\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getBackgroundColor(type, status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'disconnected':\n            return '#CAC1D2';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    return '#4A8AEC';\n                default:\n                    return '#1F8B4D';\n            }\n            break;\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}\n\nfunction getDeviceText(type, status) {\n    switch(status) {\n        case 'disconnected':\n            return 'NO CONN';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    var temperature = data['temperature'];\n                    return temperature + ' °C';\n                default:\n                    return '';\n            }\n            break;        \n    }\n}\n\nfunction getDeviceShape(type) {\n    switch (type) {\n        case 'Waste Bin':\n            return '<path d=\"M11.7524 10.625L12.3106 9.6582C13.4852 7.6238 16.4364 7.66757 17.5501 9.73591L18.5 11.5M18.5 11.5L18.7 10.5M18.5 11.5L17.5 11\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M20.4125 14.375L20.9707 15.3418C22.1453 17.3762 20.6318 19.9101 18.2837 19.8405L16.281 19.7811M16.281 19.7811L17.047 20.4543M16.281 19.7811L17.214 19.165\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M12.8348 20L11.7184 20C9.36929 20 7.93158 17.4223 9.16596 15.4236L10.2188 13.7189M10.2188 13.7189L9.25274 14.0457M10.2188 13.7189L10.2858 14.835\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>';\n        case 'Freezer':\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n        case 'Chiller':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M18.0001 12.4999C18.0001 13.5371 17.2661 14.2516 16.4454 14.6433C16.2807 14.7219 16.1185 14.7506 15.9657 14.7387C15.9881 14.822 16.0001 14.9096 16.0001 14.9999C16.0001 15.0304 15.9988 15.0605 15.9961 15.0902C16.1511 15.0322 16.322 14.9999 16.5001 14.9999L17.5001 14.9999L18.5 14.9999C19.3285 14.9999 20.0003 15.6975 19.6435 16.4452C19.2517 17.2658 18.5373 17.9999 17.5001 17.9999C16.4629 17.9999 15.7484 17.2658 15.3567 16.4452C15.2781 16.2805 15.2494 16.1184 15.2613 15.9655C15.178 15.988 15.0905 15.9999 15.0001 15.9999C14.9697 15.9999 14.9395 15.9986 14.9097 15.9959C14.9678 16.1509 15 16.3218 15 16.5L15 17.4999L15 18.4999C15.0001 19.3284 14.3025 20.0002 13.5548 19.6433C12.7341 19.2516 12.0001 18.5371 12.0001 17.4999C12.0001 16.4627 12.7341 15.7483 13.5548 15.3566C13.7195 15.278 13.8817 15.2493 14.0346 15.2611C14.0121 15.1779 14.0001 15.0903 14.0001 14.9999C14.0001 14.9695 14.0015 14.9394 14.0042 14.9096C13.8492 14.9677 13.6784 14.9999 13.5003 14.9999L12.5003 14.9999L11.5003 14.9999C10.6719 14.9999 10.0001 14.3023 10.3569 13.5547C10.7486 12.734 11.4631 11.9999 12.5003 11.9999C13.5375 11.9999 14.252 12.734 14.6437 13.5547C14.7223 13.7193 14.751 13.8815 14.7391 14.0343C14.8223 14.0119 14.9098 13.9999 15.0001 13.9999C15.0306 13.9999 15.0607 14.0013 15.0905 14.004C15.0324 13.849 15.0002 13.6781 15.0002 13.4999L15.0002 12.4999L15.0002 11.5C15.0001 10.6715 15.6977 9.99969 16.4454 10.3566C17.2661 10.7483 18.0001 11.4627 18.0001 12.4999Z\" fill=\"white\"/>' +\n                    '<circle cx=\"15\" cy=\"15\" r=\"8\" stroke=\"white\" stroke-width=\"2\"/>';\n        default:\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n    }\n}\n",
+            "xPosKeyName": "xPos",
+            "yPosKeyName": "yPos",
+            "posFunction": "return {x: origXPos, y: origYPos};",
+            "markerOffsetX": 0,
+            "markerOffsetY": 0.5,
+            "showTooltip": true,
+            "autocloseTooltip": true,
+            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "tooltipFunction": "var deviceType = data['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"Smart Shelf\") {\r\n        return '<b>${entityName}</b><br/><b>Weight:</b> ${weight:2} Kg<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
+            "provider": "image-map",
+            "showTooltipAction": "click",
+            "mapPageSize": 16384,
+            "imageEntityAlias": "Selected Supermarket",
+            "imageUrlAttribute": "floorplan",
+            "useTooltipFunction": true,
+            "draggableMarker": false,
+            "disableScrollZooming": false,
+            "tooltipOffsetX": 0.5,
+            "showPolygon": false,
+            "tooltipOffsetY": -0.5,
+            "mapImageUrl": "data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg=="
+          },
+          "title": "Supermarket plan",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "widgetStyle": {},
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": true,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "eb29a39f-46b9-02c5-d458-39e4f48cfdd7"
+      },
+      "4b123e6e-aea8-0951-bdc9-0dd19b73edf4": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 10.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "enableSelectColumnDisplay": true,
+            "enableStickyAction": false,
+            "enableFilter": true,
+            "enableStickyHeader": true,
+            "reserveSpaceForHiddenAction": "true"
+          },
+          "title": "New Alarms table",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": null,
+            "entityAliasId": "129977b6-de2f-546b-7df8-2040f39f8732",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.021092237451093787
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Originator",
+                "color": "#4caf50",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.2780007688856758
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.7323586880398418
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": false
+                },
+                "_hash": 0.09927019860088193
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.6588418951443418
+              }
+            ]
+          },
+          "alarmSearchStatus": "ANY",
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleIcon": "more_horiz",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "widgetStyle": {},
+          "displayTimewindow": true,
+          "actions": {},
+          "alarmStatusList": [],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": false,
+          "datasources": []
+        },
+        "row": 0,
+        "col": 0,
+        "id": "4b123e6e-aea8-0951-bdc9-0dd19b73edf4"
+      }
+    },
+    "states": {
+      "default": {
+        "name": "Supermarket Administration",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "221c9ca0-6f0f-a17c-0d00-ace3ad1bb426": {
+                "sizeX": 10,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              },
+              "e37ba208-4472-d4ab-94ad-db72213ef0ef": {
+                "sizeX": 14,
+                "sizeY": 12,
+                "row": 0,
+                "col": 10
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "supermarket_details": {
+        "name": "Supermarket Details",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "eb29a39f-46b9-02c5-d458-39e4f48cfdd7": {
+                "sizeX": 19,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              },
+              "4b123e6e-aea8-0951-bdc9-0dd19b73edf4": {
+                "sizeX": 5,
+                "sizeY": 12,
+                "row": 0,
+                "col": 19
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      }
+    },
+    "entityAliases": {
+      "783dd5f0-d34d-946d-a82f-95d3a6eaadd1": {
+        "id": "783dd5f0-d34d-946d-a82f-95d3a6eaadd1",
+        "alias": "Supermarkets",
+        "filter": {
+          "type": "assetType",
+          "resolveMultiple": true,
+          "assetType": "supermarket",
+          "assetNameFilter": ""
+        }
+      },
+      "1d799daf-1882-7a76-938b-c97e8c08ff11": {
+        "id": "1d799daf-1882-7a76-938b-c97e8c08ff11",
+        "alias": "Selected Supermarket",
+        "filter": {
+          "type": "stateEntity",
+          "resolveMultiple": false,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null
+        }
+      },
+      "48419e4a-90d9-9863-29b2-3877821b7e45": {
+        "id": "48419e4a-90d9-9863-29b2-3877821b7e45",
+        "alias": "Smart Shelves",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Smart Shelf"
+          ]
+        }
+      },
+      "129977b6-de2f-546b-7df8-2040f39f8732": {
+        "id": "129977b6-de2f-546b-7df8-2040f39f8732",
+        "alias": "Supermarket Devices",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Chiller",
+            "Freezer",
+            "Smart Shelf",
+            "Waste Bin"
+          ]
+        }
+      },
+      "4f533ad3-f478-db34-2083-a827bf1992d7": {
+        "id": "4f533ad3-f478-db34-2083-a827bf1992d7",
+        "alias": "Chillers",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Chiller"
+          ]
+        }
+      },
+      "412dae47-c5be-1531-0fc0-57a0fae0465d": {
+        "id": "412dae47-c5be-1531-0fc0-57a0fae0465d",
+        "alias": "Freezers",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Freezer"
+          ]
+        }
+      },
+      "27651437-21f6-19c4-b2ea-410b996acc3f": {
+        "id": "27651437-21f6-19c4-b2ea-410b996acc3f",
+        "alias": "Waste Bins",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Waste Bin"
+          ]
+        }
+      }
+    },
+    "filters": {},
+    "timewindow": {
+      "displayValue": "",
+      "hideInterval": false,
+      "hideAggregation": false,
+      "hideAggInterval": false,
+      "hideTimezone": false,
+      "selectedTab": 0,
+      "realtime": {
+        "realtimeType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "quickInterval": "CURRENT_DAY"
+      },
+      "history": {
+        "historyType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "fixedTimewindow": {
+          "startTimeMs": 1639479720350,
+          "endTimeMs": 1639566120350
+        },
+        "quickInterval": "CURRENT_DAY"
+      },
+      "aggregation": {
+        "type": "AVG",
+        "limit": 25000
+      }
+    },
+    "settings": {
+      "stateControllerId": "entity",
+      "showTitle": false,
+      "showDashboardsSelect": true,
+      "showEntitiesSelect": true,
+      "showDashboardTimewindow": true,
+      "showDashboardExport": true,
+      "toolbarAlwaysOpen": true
+    }
+  },
+  "name": "Smart Supermarket"
+}

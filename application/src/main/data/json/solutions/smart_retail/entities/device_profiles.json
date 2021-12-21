@@ -6,7 +6,10 @@
     "type": "DEFAULT",
     "transportType": "DEFAULT",
     "provisionType": "DISABLED",
-    "defaultRuleChainId": null,
+    "defaultRuleChainId": {
+      "entityType": "RULE_CHAIN",
+      "id": "99be82a0-6239-11ec-ac93-e50d8a3a5be2"
+    },
     "defaultDashboardId": null,
     "defaultQueueName": "",
     "profileData": {
@@ -110,7 +113,7 @@
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_DEVICE",
-                        "sourceAttribute": "weightClearThreshold",
+                        "sourceAttribute": "lowWeightMajorThreshold",
                         "inherit": false
                       }
                     }
@@ -142,7 +145,10 @@
     "type": "DEFAULT",
     "transportType": "DEFAULT",
     "provisionType": "DISABLED",
-    "defaultRuleChainId": null,
+    "defaultRuleChainId": {
+      "entityType": "RULE_CHAIN",
+      "id": "99be82a0-6239-11ec-ac93-e50d8a3a5be2"
+    },
     "defaultDashboardId": null,
     "defaultQueueName": "",
     "profileData": {
@@ -278,7 +284,10 @@
     "type": "DEFAULT",
     "transportType": "DEFAULT",
     "provisionType": "DISABLED",
-    "defaultRuleChainId": null,
+    "defaultRuleChainId": {
+      "entityType": "RULE_CHAIN",
+      "id": "99be82a0-6239-11ec-ac93-e50d8a3a5be2"
+    },
     "defaultDashboardId": null,
     "defaultQueueName": "",
     "profileData": {
@@ -414,7 +423,10 @@
     "type": "DEFAULT",
     "transportType": "DEFAULT",
     "provisionType": "DISABLED",
-    "defaultRuleChainId": null,
+    "defaultRuleChainId": {
+      "entityType": "RULE_CHAIN",
+      "id": "99be82a0-6239-11ec-ac93-e50d8a3a5be2"
+    },
     "defaultDashboardId": null,
     "defaultQueueName": "",
     "profileData": {

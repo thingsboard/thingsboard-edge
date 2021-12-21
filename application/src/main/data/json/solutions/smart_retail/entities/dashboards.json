@@ -1,8 +1,13 @@
 [
   {
     "name": "Smart Supermarket",
-    "file": "admin.json",
+    "file": "smart-supermarket.json",
     "group": "Smart Supermarket",
     "main": true
+  },
+  {
+    "name": "Smart Supermarket Admin",
+    "file": "smart-supermarket-admin.json",
+    "group": "Smart Supermarket"
   }
 ]
