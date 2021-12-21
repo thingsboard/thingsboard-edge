@@ -134,6 +134,7 @@ import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateLe
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateDetails;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInfo;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
+import org.thingsboard.server.service.state.DeviceStateService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -196,6 +197,7 @@ public class DefaultSolutionService implements SolutionService {
     private final TbClusterService tbClusterService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final TbTenantProfileCache tenantProfileCache;
+    private final DeviceStateService deviceStateService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
@@ -674,6 +676,7 @@ public class DefaultSolutionService implements SolutionService {
                     .deviceProfile(deviceEmulators.get(entityDef.getProfile()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
+                    .deviceStateService(deviceStateService)
                     .build().launch();
 
             tbClusterService.onDeviceUpdated(entity, null);

@@ -43,6 +43,7 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -56,17 +57,20 @@ public class DeviceEmulatorLauncher {
     private final DeviceEmulatorDefinition deviceProfile;
     private final ExecutorService oldTelemetryExecutor;
     private final TbClusterService tbClusterService;
+    private final DeviceStateService deviceStateService;
     private final long publishFrequency;
 
     private final DeviceEmulator deviceEmulator;
     private ScheduledFuture<?> scheduledFuture;
 
     @Builder
-    public DeviceEmulatorLauncher(Device device, DeviceEmulatorDefinition deviceProfile, ExecutorService oldTelemetryExecutor, TbClusterService tbClusterService) throws Exception {
+    public DeviceEmulatorLauncher(Device device, DeviceEmulatorDefinition deviceProfile, ExecutorService oldTelemetryExecutor, TbClusterService tbClusterService,
+                                  DeviceStateService deviceStateService) throws Exception {
         this.device = device;
         this.deviceProfile = deviceProfile;
         this.oldTelemetryExecutor = oldTelemetryExecutor;
         this.tbClusterService = tbClusterService;
+        this.deviceStateService = deviceStateService;
         this.publishFrequency = TimeUnit.SECONDS.toMillis(deviceProfile.getPublishFrequencyInSeconds());
         if (StringUtils.isEmpty(deviceProfile.getClazz())) {
             deviceEmulator = new BasicDeviceEmulator();
@@ -83,6 +87,7 @@ public class DeviceEmulatorLauncher {
                 if (latestTs < (System.currentTimeMillis() - publishFrequency)) {
                     pushOldTelemetry(latestTs);
                 }
+                this.deviceStateService.onDeviceActivity(device.getTenantId(), device.getId(), System.currentTimeMillis());
             } catch (Exception e) {
                 log.warn("[{}] Failed to upload telemetry for device: ", device.getName(), e);
             }
