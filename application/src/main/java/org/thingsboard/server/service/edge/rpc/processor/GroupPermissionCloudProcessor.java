@@ -115,7 +115,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
             if (e instanceof DataValidationException
                     && e.getMessage().contains("Group Permission is referencing to non-existent entity group!")) {
                 log.warn("Group Permission is referencing to non-existent entity group! This permission will be saved with an appropriate entity group on next messages [{}]", groupPermissionProto, e);
-            } if (e instanceof DataValidationException
+            } else if (e instanceof DataValidationException
                     && e.getMessage().contains("Group Permission is referencing to non-existent role!")) {
                 log.warn("Group Permission is referencing to non-existent role! This role will be saved with an appropriate entity group on next messages [{}]", groupPermissionProto, e);
             } else {
