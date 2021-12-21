@@ -31,15 +31,15 @@
 
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation,
   OnChanges,
+  OnInit,
   SimpleChanges,
-  ChangeDetectorRef
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -58,7 +58,7 @@ import {
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject, Subscription } from 'rxjs';
+import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import {
   catchError,
@@ -133,6 +133,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   @ViewChild('calendarContainer') calendarContainer: ElementRef<HTMLElement>;
   @ViewChild('calendar') calendarComponent: FullCalendarComponent;
 
+  @ViewChild('schedulerEventMenuTrigger', {static: true}) schedulerEventMenuTrigger: MatMenuTrigger;
+
   @Input()
   widgetMode: boolean;
 
@@ -167,6 +169,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
+  hidePageSize = false;
   noDataDisplayMessageText: string;
 
   displayedColumns: string[];
@@ -189,17 +192,14 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   eventSources: EventSourceInput[] = [this.eventSourceFunction.bind(this)];
 
-  private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
-
   calendarApi: Calendar;
-
-  @ViewChild('schedulerEventMenuTrigger', {static: true}) schedulerEventMenuTrigger: MatMenuTrigger;
 
   schedulerEventMenuPosition = { x: '0px', y: '0px' };
 
   schedulerContextMenuEvent: MouseEvent;
 
-  public hidePageSize = false;
+  private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
+
   private widgetResize$: ResizeObserver;
 
   constructor(protected store: Store<AppState>,
@@ -254,7 +254,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         const showHidePageSize = this.schedulerEventWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
         if (showHidePageSize !== this.hidePageSize) {
           this.hidePageSize = showHidePageSize;
-          this.cd.detectChanges();
+          this.cd.markForCheck();
         }
       });
       this.widgetResize$.observe(this.schedulerEventWidgetContainerRef.nativeElement);

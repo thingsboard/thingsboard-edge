@@ -31,6 +31,7 @@
 
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -72,8 +73,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   CellContentInfo,
   CellStyleInfo,
-  columnExportOptions,
   checkHasActions,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,
@@ -172,7 +173,6 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   @Input()
   ctx: WidgetContext;
 
-  @ViewChild('alarmWidgetContainer', {static: true}) alarmWidgetContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -186,11 +186,11 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public pageLink: AlarmDataPageLink;
   public sortOrderProperty: string;
   public textSearchMode = false;
+  public hidePageSize = false;
   public columns: Array<EntityColumn> = [];
   public displayedColumns: string[] = [];
   public alarmsDatasource: AlarmsDatasource;
   public noDataDisplayMessageText: string;
-  public hidePageSize = false;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -262,7 +262,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
               private datePipe: DatePipe,
               private dialog: MatDialog,
               private dialogService: DialogService,
-              private alarmService: AlarmService) {
+              private alarmService: AlarmService,
+              private cd: ChangeDetectorRef) {
     super(store);
     this.pageLink = {
       page: 0,
@@ -285,13 +286,13 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         () => this.pageLink.page = 0
       );
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.alarmWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
         if (showHidePageSize !== this.hidePageSize) {
           this.hidePageSize = showHidePageSize;
-          this.ctx.detectChanges();
+          this.cd.markForCheck();
         }
       });
-      this.widgetResize$.observe(this.alarmWidgetContainerRef.nativeElement);
+      this.widgetResize$.observe(this.elementRef.nativeElement);
     }
   }
 

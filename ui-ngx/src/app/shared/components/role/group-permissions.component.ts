@@ -89,6 +89,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   pageLink: PageLink;
   textSearchMode = false;
+  hidePageSize = false;
   dataSource: GroupPermissionsDatasource;
 
   activeValue = false;
@@ -99,7 +100,6 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   viewsInited = false;
 
-  public hidePageSize = false;
   private widgetResize$: ResizeObserver;
 
   @Input()
@@ -164,7 +164,6 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   @Output()
   permissionsChanged = new EventEmitter();
 
-  @ViewChild('groupPermissionContainer', {static: true}) groupPermissionContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -176,7 +175,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
               public dialog: MatDialog,
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private elementRef: ElementRef) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'roleName', direction: Direction.ASC };
@@ -186,13 +186,13 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   ngOnInit() {
     this.widgetResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.groupPermissionContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
       if (showHidePageSize !== this.hidePageSize) {
         this.hidePageSize = showHidePageSize;
-        this.cd.detectChanges();
+        this.cd.markForCheck();
       }
     });
-    this.widgetResize$.observe(this.groupPermissionContainerRef.nativeElement);
+    this.widgetResize$.observe(this.elementRef.nativeElement);
   }
 
   ngOnDestroy(): void {

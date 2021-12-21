@@ -31,6 +31,7 @@
 
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Injector,
@@ -81,8 +82,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   CellContentInfo,
   CellStyleInfo,
-  columnExportOptions,
   checkHasActions,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,
@@ -154,7 +155,6 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   @Input()
   ctx: WidgetContext;
 
-  @ViewChild('entitiesWidgetContainer', {static: true}) entitiesWidgetContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -166,11 +166,11 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   public pageLink: EntityDataPageLink;
   public sortOrderProperty: string;
   public textSearchMode = false;
+  public hidePageSize = false;
   public columns: Array<EntityColumn> = [];
   public displayedColumns: string[] = [];
   public entityDatasource: EntityDatasource;
   public noDataDisplayMessageText: string;
-  public hidePageSize = false;
   private setCellButtonAction: boolean;
 
   private cellContentCache: Array<any> = [];
@@ -225,7 +225,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
               private utils: UtilsService,
               private datePipe: DatePipe,
               private translate: TranslateService,
-              private domSanitizer: DomSanitizer) {
+              private domSanitizer: DomSanitizer,
+              private cd: ChangeDetectorRef) {
     super(store);
     this.pageLink = {
       page: 0,
@@ -245,13 +246,13 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.ctx.updateWidgetParams();
     if (this.displayPagination) {
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.entitiesWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
         if (showHidePageSize !== this.hidePageSize) {
           this.hidePageSize = showHidePageSize;
-          this.ctx.detectChanges();
+          this.cd.markForCheck();
         }
       });
-      this.widgetResize$.observe(this.entitiesWidgetContainerRef.nativeElement);
+      this.widgetResize$.observe(this.elementRef.nativeElement);
     }
   }
 
