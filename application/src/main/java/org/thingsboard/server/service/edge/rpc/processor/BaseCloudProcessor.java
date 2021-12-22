@@ -217,7 +217,7 @@ public abstract class BaseCloudProcessor {
             TimePageLink timePageLink = new TimePageLink(1,
                     0,
                     null,
-                    new SortOrder("createdTime", SortOrder.Direction.DESC),
+                    new SortOrder("createdTime", SortOrder.Direction.ASC),
                     queueStartTs,
                     System.currentTimeMillis());
 

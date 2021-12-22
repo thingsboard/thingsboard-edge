@@ -326,7 +326,7 @@ public class CloudManagerService extends BaseCloudEventService {
                                 new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                                         0,
                                         null,
-                                        new SortOrder("createdTime", SortOrder.Direction.DESC),
+                                        new SortOrder("createdTime", SortOrder.Direction.ASC),
                                         queueStartTs,
                                         System.currentTimeMillis());
                         PageData<CloudEvent> pageData;
