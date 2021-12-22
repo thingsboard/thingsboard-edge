@@ -42,6 +42,7 @@ public class NodeDefinition {
     private boolean outEnabled;
     String[] relationTypes;
     boolean customRelations;
+    boolean ruleChainNode;
     JsonNode defaultConfiguration;
     String[] uiResources;
     String configDirective;

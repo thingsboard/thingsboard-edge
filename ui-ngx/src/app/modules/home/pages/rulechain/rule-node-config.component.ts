@@ -52,6 +52,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { TranslateService } from '@ngx-translate/core';
 import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { deepClone } from '@core/utils';
+import { RuleChainType } from '@shared/models/rule-chain.models';
 
 @Component({
   selector: 'tb-rule-node-config',
@@ -83,6 +84,12 @@ export class RuleNodeConfigComponent implements ControlValueAccessor, OnInit, On
 
   @Input()
   ruleNodeId: string;
+
+  @Input()
+  ruleChainId: string;
+
+  @Input()
+  ruleChainType: RuleChainType;
 
   nodeDefinitionValue: RuleNodeDefinition;
 
@@ -201,6 +208,8 @@ export class RuleNodeConfigComponent implements ControlValueAccessor, OnInit, On
       this.definedConfigComponentRef = this.definedConfigContainer.createComponent(factory);
       this.definedConfigComponent = this.definedConfigComponentRef.instance;
       this.definedConfigComponent.ruleNodeId = this.ruleNodeId;
+      this.definedConfigComponent.ruleChainId = this.ruleChainId;
+      this.definedConfigComponent.ruleChainType = this.ruleChainType;
       this.definedConfigComponent.configuration = this.configuration;
       this.changeSubscription = this.definedConfigComponent.configurationChanged.subscribe((configuration) => {
         this.updateModel(configuration);

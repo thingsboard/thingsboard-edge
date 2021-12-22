@@ -50,8 +50,6 @@ public interface EntityService {
 
     CustomerId fetchEntityCustomerId(TenantId tenantId, EntityId entityId);
 
-    void deleteEntityRelations(TenantId tenantId, EntityId entityId);
-
     long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query);
 
     PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query);

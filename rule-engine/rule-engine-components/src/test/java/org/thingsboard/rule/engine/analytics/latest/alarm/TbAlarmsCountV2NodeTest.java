@@ -105,9 +105,6 @@ public class TbAlarmsCountV2NodeTest {
     private TbContext ctx;
 
     @Mock
-    private RelationService relationService;
-
-    @Mock
     private RuleEngineAlarmService alarmService;
 
     private TbAlarmsCountNodeV2 node;
@@ -128,8 +125,6 @@ public class TbAlarmsCountV2NodeTest {
     public void init() {
         TbAlarmsCountNodeV2Configuration config = new TbAlarmsCountNodeV2Configuration();
         node = new TbAlarmsCountNodeV2();
-
-        when(ctx.getRelationService()).thenReturn(relationService);
 
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];

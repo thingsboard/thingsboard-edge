@@ -28,27 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '~@angular/material/theming';
-@import '~@mat-datetimepicker/core/datetimepicker/datetimepicker-theme.scss';
+@use '~@angular/material' as mat;
+@import 'datepicker-theme';
 @import 'theme-constants';
 
-$primary-extends: $mat-tb-primary; // extends
-$primary-color-map: (); // color map
+@include mat.core();
 
-$accent-extends: $mat-tb-accent; // extends
-$accent-color-map: (); // color map
+$tb-primary: mat.define-palette($mat-tb-primary);
+$tb-accent: mat.define-palette($mat-tb-accent);
 
-$tb-primary-colors: map_merge($primary-extends, $primary-color-map);
-$tb-accent-colors: map_merge($accent-extends, $accent-color-map);
+$background: (background: map_get(mat.$grey-palette, 200));
 
-$tb-primary: mat-palette($tb-primary-colors);
-$tb-accent: mat-palette($tb-accent-colors);
+$tb-theme-background: map_merge(mat.$light-theme-background-palette, $background);
 
-$background: (background: map_get($mat-grey, 200));
-
-$tb-theme-background: map_merge($mat-light-theme-background, $background);
-
-$tb-mat-theme: mat-light-theme(
+$tb-mat-theme: mat.define-light-theme(
     $tb-primary,
     $tb-accent
 );
@@ -56,13 +49,13 @@ $tb-mat-theme: mat-light-theme(
 $tb-theme: map_merge($tb-mat-theme, (background: $tb-theme-background));
 
 .tb-default {
-  @include angular-material-theme($tb-theme);
+  @include mat.all-component-themes($tb-theme);
   @include mat-datetimepicker-theme($tb-theme);
   @include tb-components-theme($tb-theme);
 }
 
 .tb-default, .tb-dark {
   .tb-primary-background {
-    background-color: mat-color($tb-primary);
+    background-color: mat.get-color-from-palette($tb-primary);
   }
 }

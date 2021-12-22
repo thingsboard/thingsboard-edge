@@ -29,18 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import * as L from 'leaflet';
-
-declare module 'leaflet' {
-
-    namespace Control {
-        class AddMarker extends L.Control { }
-        class AddPolygon extends L.Control { }
-    }
-
-    namespace control {
-        function addMarker(options): Control.AddMarker;
-        function addPolygon(options): Control.AddPolygon;
-    }
-
+export interface IModulesMap {
+  init(): void;
 }

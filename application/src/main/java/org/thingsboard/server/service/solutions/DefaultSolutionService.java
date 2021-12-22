@@ -550,7 +550,11 @@ public class DefaultSolutionService implements SolutionService {
             replaceIdsRecursively(ctx, ruleChainJson);
             RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             ruleChain.setTenantId(ctx.getTenantId());
-            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+            String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
+            for (var entry : ctx.getRealIds().entrySet()) {
+                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
+            }
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
             RuleChain savedRuleChain = ruleChainService.saveRuleChain(ruleChain);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
             ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);

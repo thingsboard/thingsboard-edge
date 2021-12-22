@@ -28,18 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.common.data.rule;
 
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
-import org.junit.runner.RunWith;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.RuleNodeId;
 
-@RunWith(ClasspathSuite.class)
-@ClassnameFilters({
-        "org.thingsboard.server.dao.service.psql.*SqlTest",
-        "org.thingsboard.server.dao.service.attributes.psql.*SqlTest",
-        "org.thingsboard.server.dao.service.event.psql.*SqlTest",
-        "org.thingsboard.server.dao.service.timeseries.psql.*SqlTest"
-})
-public class PostgreSqlDaoServiceTestSuite {
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by igor on 3/13/18.
+ */
+@Data
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class RuleChainUpdateResult {
+
+    private final boolean success;
+    private final List<RuleNodeUpdateResult> updatedRuleNodes;
+
+    public static RuleChainUpdateResult failed(){
+        return new RuleChainUpdateResult(false, null);
+    }
+
+    public static RuleChainUpdateResult successful(List<RuleNodeUpdateResult> updatedRuleNodes){
+        return new RuleChainUpdateResult(true, updatedRuleNodes);
+    }
+
 }

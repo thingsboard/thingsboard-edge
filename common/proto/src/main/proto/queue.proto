@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 syntax = "proto3";
+
 package transport;
 
 option java_package = "org.thingsboard.server.gen.transport";
@@ -648,8 +649,12 @@ message TbSubscriptionKetStateProto {
 
 message TbSubscriptionUpdateValueListProto {
   string key = 1;
-  repeated int64 ts = 2;
-  repeated string value = 3;
+  repeated TbSubscriptionUpdateTsValue tsValue = 2;
+}
+
+message TbSubscriptionUpdateTsValue {
+   int64 ts = 1;
+   optional string value = 2;
 }
 
 /**

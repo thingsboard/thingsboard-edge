@@ -58,6 +58,9 @@ import java.util.stream.Collectors;
 public abstract class DaoUtil {
     private static final int MAX_IN_VALUE = Short.MAX_VALUE / 2;
 
+    public static final String DEFAULT_SORT_PROPERTY = "id";
+    public static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.ASC, DEFAULT_SORT_PROPERTY);
+
     private DaoUtil() {
     }
 
@@ -92,7 +95,7 @@ public abstract class DaoUtil {
 
     public static Sort toSort(SortOrder sortOrder, Map<String,String> columnMap) {
         if (sortOrder == null) {
-            return Sort.unsorted();
+            return DEFAULT_SORT;
         } else {
             String property = sortOrder.getProperty();
             if (columnMap.containsKey(property)) {
