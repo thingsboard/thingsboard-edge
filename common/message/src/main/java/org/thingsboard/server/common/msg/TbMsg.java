@@ -121,7 +121,7 @@ public final class TbMsg implements Serializable {
     }
 
     public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
-        return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), type, originator, null, metaData.copy(), dataType, data, null, null, 0, TbMsgCallback.EMPTY);
+        return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), type, originator, null, metaData.copy(), dataType, data, null, null, null, TbMsgCallback.EMPTY);
     }
 
     // For Tests only
