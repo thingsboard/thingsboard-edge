@@ -258,21 +258,21 @@ public class TbSimpleAggMsgNode implements TbNode {
     }
 
     private void scheduleReportTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_REPORT_TICK_MSG, ctx.getSelfId(),
+        TbMsg tickMsg = ctx.newMsg(getQueueName(), TB_REPORT_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextReportTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
     }
 
     private void scheduleStatePersistTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_PERSIST_TICK_MSG, ctx.getSelfId(),
+        TbMsg tickMsg = ctx.newMsg(getQueueName(), TB_PERSIST_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextPersistTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, statePersistCheckPeriod);
     }
 
     private void scheduleEntitiesTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_ENTITIES_TICK_MSG, ctx.getSelfId(),
+        TbMsg tickMsg = ctx.newMsg(getQueueName(), TB_ENTITIES_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextEntitiesTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, entitiesCheckPeriod);

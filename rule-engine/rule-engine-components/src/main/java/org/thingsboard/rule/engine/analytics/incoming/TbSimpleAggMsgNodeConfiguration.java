@@ -64,8 +64,6 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
     private String statePersistenceTimeUnit;
     private int statePersistenceValue;
 
-    private String queueName;
-
     @Override
     public TbSimpleAggMsgNodeConfiguration defaultConfiguration() {
         TbSimpleAggMsgNodeConfiguration configuration = new TbSimpleAggMsgNodeConfiguration();
