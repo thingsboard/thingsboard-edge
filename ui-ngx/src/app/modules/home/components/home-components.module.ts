@@ -182,8 +182,10 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
 import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';
 import {
   COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN,
-  DASHBOARD_PAGE_COMPONENT_TOKEN
+  DASHBOARD_PAGE_COMPONENT_TOKEN,
+  HOME_COMPONENTS_MODULE_TOKEN
 } from '@home/components/tokens';
+import { DashboardStateComponent } from '@home/components/dashboard-page/dashboard-state.component';
 
 @NgModule({
   declarations:
@@ -308,6 +310,7 @@ import {
       EntityGroupWizardDialogComponent,
       DashboardToolbarComponent,
       DashboardPageComponent,
+      DashboardStateComponent,
       DashboardLayoutComponent,
       EditWidgetComponent,
       DashboardWidgetSelectComponent,
@@ -441,6 +444,7 @@ import {
     EntityGroupWizardDialogComponent,
     DashboardToolbarComponent,
     DashboardPageComponent,
+    DashboardStateComponent,
     DashboardLayoutComponent,
     EditWidgetComponent,
     DashboardWidgetSelectComponent,
@@ -465,7 +469,8 @@ import {
     EntityGroupConfigResolver,
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
-    {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent}
+    {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
+    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule }
   ]
 })
 export class HomeComponentsModule {
