@@ -28,50 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .fields-group {
-    padding: 0 8px 8px;
-    margin: 10px 0;
-    border: 1px groove rgba(0, 0, 0, .25);
-    border-radius: 4px;
-    legend {
-      color: rgba(0, 0, 0, .7);
-      width: fit-content;
-    }
-  }
-}
+.tb-css {
+  position: relative;
 
-:host ::ng-deep {
-  .mat-slide-toggle-content {
-    white-space: normal;
+  &.tb-disabled {
+    color: rgba(0, 0, 0, .38);
   }
-  .mat-expansion-panel {
-    &.tb-settings {
-      box-shadow: none;
-      .mat-content {
-        overflow: visible;
-      }
-      .mat-expansion-panel-header {
-        padding: 0;
-        &:hover {
-          background: none;
-        }
-        .mat-expansion-indicator {
-          padding: 2px;
-        }
-      }
-      .mat-expansion-panel-header-description {
-        align-items: center;
-      }
-      .mat-expansion-panel-body{
-        padding: 0;
-      }
-      .tb-css-content-panel {
-        margin: 0 0 8px;
+
+  &.fill-height {
+    height: 100%;
+  }
+
+  .tb-css-content-panel {
+    height: calc(100% - 80px);
+    margin-left: 15px;
+    border: 1px solid #c0c0c0;
+
+    #tb-css-input {
+      width: 100%;
+      min-width: 200px;
+      height: 100%;
+
+      &:not(.fill-height) {
+        min-height: 200px;
       }
     }
-    .mat-expansion-panel-content {
-      font: inherit;
+  }
+
+  .tb-css-toolbar {
+    & > * {
+      &:not(:last-child) {
+        margin-right: 4px;
+      }
+    }
+    button.mat-button, button.mat-icon-button, button.mat-icon-button.tb-mat-32 {
+      background: rgba(220, 220, 220, .35);
+      align-items: center;
+      vertical-align: middle;
+      min-width: 32px;
+      min-height: 15px;
+      padding: 4px;
+      font-size: .8rem;
+      line-height: 15px;
+      &:not(.tb-help-popup-button) {
+        color: #7b7b7b;
+      }
+    }
+    .tb-help-popup-button-loading {
+      background: #f3f3f3;
     }
   }
 }

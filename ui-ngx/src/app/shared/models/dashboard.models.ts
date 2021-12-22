@@ -114,6 +114,7 @@ export interface DashboardSettings {
   toolbarAlwaysOpen?: boolean;
   hideToolbar?: boolean;
   titleColor?: string;
+  dashboardCss?: string;
 }
 
 export interface DashboardConfiguration {

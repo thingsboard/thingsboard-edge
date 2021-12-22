@@ -225,6 +225,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
       padding: [null, []],
       margin: [null, []],
       widgetStyle: [null, []],
+      widgetCss: [null, []],
       titleStyle: [null, []],
       units: [null, []],
       decimals: [null, [Validators.min(0), Validators.max(15), Validators.pattern(/^\d*$/)]],
@@ -426,6 +427,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
             padding: config.padding,
             margin: config.margin,
             widgetStyle: isDefined(config.widgetStyle) ? config.widgetStyle : {},
+            widgetCss: isDefined(config.widgetCss) ? config.widgetCss : '',
             titleStyle: isDefined(config.titleStyle) ? config.titleStyle : {
               fontSize: '16px',
               fontWeight: 400

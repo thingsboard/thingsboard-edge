@@ -189,6 +189,7 @@ import { TbPopoverService } from '@shared/components/popover.service';
 import { HELP_MARKDOWN_COMPONENT_TOKEN, SHARED_MODULE_TOKEN } from '@shared/components/tokens';
 import { TbMarkdownComponent } from '@shared/components/markdown.component';
 import { ProtobufContentComponent } from '@shared/components/protobuf-content.component';
+import { CssComponent } from '@shared/components/css.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -279,6 +280,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsonObjectEditComponent,
     JsonContentComponent,
     JsFuncComponent,
+    CssComponent,
     FabTriggerDirective,
     FabActionsDirective,
     FabToolbarComponent,
@@ -440,6 +442,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsonObjectEditComponent,
     JsonContentComponent,
     JsFuncComponent,
+    CssComponent,
     FabTriggerDirective,
     FabActionsDirective,
     FabToolbarComponent,
