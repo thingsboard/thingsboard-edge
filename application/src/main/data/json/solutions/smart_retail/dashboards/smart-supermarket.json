@@ -239,7 +239,7 @@
               "type": "entity",
               "name": null,
               "entityAliasId": "48419e4a-90d9-9863-29b2-3877821b7e45",
-              "filterId": null,
+              "filterId": "fea3d87f-84a6-ca37-9df5-ba11a06d0c30",
               "dataKeys": [
                 {
                   "name": "active",
@@ -298,25 +298,20 @@
                   "_hash": 0.9334528007194596
                 },
                 {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#ffab00",
-                  "settings": {},
-                  "_hash": 0.6744560940971152,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
                   "name": "alarmSeverityStatus",
                   "type": "attribute",
                   "label": "alarmSeverityStatus",
                   "color": "#304ffe",
                   "settings": {},
                   "_hash": 0.5511759468875548
+                },
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "state",
+                  "color": "#0091ea",
+                  "settings": {},
+                  "_hash": 0.32082557959927205
                 }
               ]
             },
@@ -324,7 +319,7 @@
               "type": "entity",
               "name": null,
               "entityAliasId": "4f533ad3-f478-db34-2083-a827bf1992d7",
-              "filterId": null,
+              "filterId": "993bdcad-a71e-5cf2-1137-11e5e67e40bf",
               "dataKeys": [
                 {
                   "name": "xPos",
@@ -387,12 +382,12 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "active",
+                  "name": "alarmSeverityStatus",
                   "type": "attribute",
-                  "label": "active",
-                  "color": "#455a64",
+                  "label": "alarmSeverityStatus",
+                  "color": "#c51162",
                   "settings": {},
-                  "_hash": 0.9171097578662253,
+                  "_hash": 0.5042122301167742,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -400,12 +395,12 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "alarmSeverityStatus",
+                  "name": "state",
                   "type": "attribute",
-                  "label": "alarmSeverityStatus",
-                  "color": "#c51162",
+                  "label": "state",
+                  "color": "#ff6d00",
                   "settings": {},
-                  "_hash": 0.5042122301167742,
+                  "_hash": 0.023710096563531735,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -418,7 +413,7 @@
               "type": "entity",
               "name": null,
               "entityAliasId": "412dae47-c5be-1531-0fc0-57a0fae0465d",
-              "filterId": null,
+              "filterId": "be261a34-2834-a9b0-377e-1d45ccb85a39",
               "dataKeys": [
                 {
                   "name": "xPos",
@@ -473,12 +468,12 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "active",
+                  "name": "alarmSeverityStatus",
                   "type": "attribute",
-                  "label": "active",
-                  "color": "#aa00ff",
+                  "label": "alarmSeverityStatus",
+                  "color": "#ffd600",
                   "settings": {},
-                  "_hash": 0.3622518902743235,
+                  "_hash": 0.4284660078740532,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -486,12 +481,12 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "alarmSeverityStatus",
+                  "name": "state",
                   "type": "attribute",
-                  "label": "alarmSeverityStatus",
-                  "color": "#ffd600",
+                  "label": "state",
+                  "color": "#6200ea",
                   "settings": {},
-                  "_hash": 0.4284660078740532,
+                  "_hash": 0.7175632582556,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -504,7 +499,7 @@
               "type": "entity",
               "name": null,
               "entityAliasId": "27651437-21f6-19c4-b2ea-410b996acc3f",
-              "filterId": null,
+              "filterId": "ea5b491f-fbbf-1db2-b1cd-ec360472e6d6",
               "dataKeys": [
                 {
                   "name": "level",
@@ -567,12 +562,12 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "active",
+                  "name": "alarmSeverityStatus",
                   "type": "attribute",
-                  "label": "active",
-                  "color": "#64dd17",
+                  "label": "alarmSeverityStatus",
+                  "color": "#0091ea",
                   "settings": {},
-                  "_hash": 0.99745503493309,
+                  "_hash": 0.8429992475817409,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -580,12 +575,12 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "alarmSeverityStatus",
+                  "name": "state",
                   "type": "attribute",
-                  "label": "alarmSeverityStatus",
-                  "color": "#0091ea",
+                  "label": "state",
+                  "color": "#aeea00",
                   "settings": {},
-                  "_hash": 0.8429992475817409,
+                  "_hash": 0.9658987852282681,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -613,7 +608,7 @@
             "markerImages": [],
             "useMarkerImageFunction": true,
             "colorFunction": "var type = dsData[dsIndex]['Type'];\nif (type == 'colorpin') {\n\tvar temperature = dsData[dsIndex]['temperature'];\n\tif (typeof temperature !== undefined) {\n\t    var percent = (temperature + 60)/120 * 100;\n\t    return tinycolor.mix('blue', 'red', amount = percent).toHexString();\n\t}\n\treturn 'blue';\n}\n",
-            "markerImageFunction": "var type = data['Type'];\n\nvar active = data['active'];\nvar alarmSeverityStatus = data['alarmSeverityStatus'];\n\nvar status = 'normal';\nif (active === 'false') {\n    status = 'disconnected';\n} else if (alarmSeverityStatus && alarmSeverityStatus !== 'cleared') {\n    status = alarmSeverityStatus;\n}\n \nvar text = getDeviceText(type, status);\n\nvar width = 30 + getTextWidth(text);\n\nvar svgStr = getDeviceSvg(type, status, width, text);\n\nvar encodedSvg = encodeURIComponent(svgStr);\n\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [15, 15],\n    tooltipOffset: [width * 0.5 - 15, -15]\n};\n\n\n\nfunction getDeviceSvg(type, status, width, text) {\n    var shape = getDeviceShape(type);\n    var color = getBackgroundColor(type, status);\n    var background = getDeviceBackground(type, color, width);\n    var deviceSvg = '<svg width=\"' + width + '\" height=\"30\" viewBox=\"0 0 ' + width + ' 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background +\n                    shape;\n    if (status === 'disconnected') {\n        deviceSvg += '<path d=\"M6.92896 21.728L21.0711 7.58589L22.4853 9.00011L8.34317 23.1422L6.92896 21.728Z\" fill=\"' + color + '\"/>' +\n                     '<path d=\"M7.10692 21.3171C6.81393 21.0241 6.81393 20.5491 7.10692 20.2561L20.1852 7.17788C20.4781 6.88489 20.9532 6.88489 21.2462 7.17788V7.17788C21.5392 7.47088 21.5392 7.94591 21.2462 8.2389L8.16794 21.3171C7.87495 21.6101 7.39991 21.6101 7.10692 21.3171V21.3171Z\" fill=\"white\"/>';\n    }\n    if (text !== '') {\n        deviceSvg += '<text transform=\"translate(30 6)\" fill=\"white\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"15.4\" font-weight=\"500\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    deviceSvg += '</svg>';\n    return deviceSvg;    \n}\n\nfunction getDeviceBackground(type, color, width) {\n     if (width === 30) {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 15) + '\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"15\" y=\"0\" width=\"' + (width - 30) + '\" height=\"30\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getBackgroundColor(type, status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'disconnected':\n            return '#CAC1D2';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    return '#4A8AEC';\n                default:\n                    return '#1F8B4D';\n            }\n            break;\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}\n\nfunction getDeviceText(type, status) {\n    switch(status) {\n        case 'disconnected':\n            return 'NO CONN';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    var temperature = data['temperature'];\n                    return temperature + ' °C';\n                default:\n                    return '';\n            }\n            break;        \n    }\n}\n\nfunction getDeviceShape(type) {\n    switch (type) {\n        case 'Waste Bin':\n            return '<path d=\"M11.7524 10.625L12.3106 9.6582C13.4852 7.6238 16.4364 7.66757 17.5501 9.73591L18.5 11.5M18.5 11.5L18.7 10.5M18.5 11.5L17.5 11\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M20.4125 14.375L20.9707 15.3418C22.1453 17.3762 20.6318 19.9101 18.2837 19.8405L16.281 19.7811M16.281 19.7811L17.047 20.4543M16.281 19.7811L17.214 19.165\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M12.8348 20L11.7184 20C9.36929 20 7.93158 17.4223 9.16596 15.4236L10.2188 13.7189M10.2188 13.7189L9.25274 14.0457M10.2188 13.7189L10.2858 14.835\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>';\n        case 'Freezer':\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n        case 'Chiller':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M18.0001 12.4999C18.0001 13.5371 17.2661 14.2516 16.4454 14.6433C16.2807 14.7219 16.1185 14.7506 15.9657 14.7387C15.9881 14.822 16.0001 14.9096 16.0001 14.9999C16.0001 15.0304 15.9988 15.0605 15.9961 15.0902C16.1511 15.0322 16.322 14.9999 16.5001 14.9999L17.5001 14.9999L18.5 14.9999C19.3285 14.9999 20.0003 15.6975 19.6435 16.4452C19.2517 17.2658 18.5373 17.9999 17.5001 17.9999C16.4629 17.9999 15.7484 17.2658 15.3567 16.4452C15.2781 16.2805 15.2494 16.1184 15.2613 15.9655C15.178 15.988 15.0905 15.9999 15.0001 15.9999C14.9697 15.9999 14.9395 15.9986 14.9097 15.9959C14.9678 16.1509 15 16.3218 15 16.5L15 17.4999L15 18.4999C15.0001 19.3284 14.3025 20.0002 13.5548 19.6433C12.7341 19.2516 12.0001 18.5371 12.0001 17.4999C12.0001 16.4627 12.7341 15.7483 13.5548 15.3566C13.7195 15.278 13.8817 15.2493 14.0346 15.2611C14.0121 15.1779 14.0001 15.0903 14.0001 14.9999C14.0001 14.9695 14.0015 14.9394 14.0042 14.9096C13.8492 14.9677 13.6784 14.9999 13.5003 14.9999L12.5003 14.9999L11.5003 14.9999C10.6719 14.9999 10.0001 14.3023 10.3569 13.5547C10.7486 12.734 11.4631 11.9999 12.5003 11.9999C13.5375 11.9999 14.252 12.734 14.6437 13.5547C14.7223 13.7193 14.751 13.8815 14.7391 14.0343C14.8223 14.0119 14.9098 13.9999 15.0001 13.9999C15.0306 13.9999 15.0607 14.0013 15.0905 14.004C15.0324 13.849 15.0002 13.6781 15.0002 13.4999L15.0002 12.4999L15.0002 11.5C15.0001 10.6715 15.6977 9.99969 16.4454 10.3566C17.2661 10.7483 18.0001 11.4627 18.0001 12.4999Z\" fill=\"white\"/>' +\n                    '<circle cx=\"15\" cy=\"15\" r=\"8\" stroke=\"white\" stroke-width=\"2\"/>';\n        default:\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n    }\n}\n",
+            "markerImageFunction": "var type = data['Type'];\nvar status = data['state'];\nvar text = getDeviceText(type, status);\n\nvar width = 30 + getTextWidth(text);\n\nvar svgStr = getDeviceSvg(type, status, width, text);\n\nvar encodedSvg = encodeURIComponent(svgStr);\n\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [15, 15],\n    tooltipOffset: [width * 0.5 - 15, -15]\n};\n\n\n\nfunction getDeviceSvg(type, status, width, text) {\n    var shape = getDeviceShape(type);\n    var color = getBackgroundColor(type, status);\n    var background = getDeviceBackground(type, color, width);\n    var deviceSvg = '<svg width=\"' + width + '\" height=\"30\" viewBox=\"0 0 ' + width + ' 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background +\n                    shape;\n    if (status === 'disconnected') {\n        deviceSvg += '<path d=\"M6.92896 21.728L21.0711 7.58589L22.4853 9.00011L8.34317 23.1422L6.92896 21.728Z\" fill=\"' + color + '\"/>' +\n                     '<path d=\"M7.10692 21.3171C6.81393 21.0241 6.81393 20.5491 7.10692 20.2561L20.1852 7.17788C20.4781 6.88489 20.9532 6.88489 21.2462 7.17788V7.17788C21.5392 7.47088 21.5392 7.94591 21.2462 8.2389L8.16794 21.3171C7.87495 21.6101 7.39991 21.6101 7.10692 21.3171V21.3171Z\" fill=\"white\"/>';\n    }\n    if (text !== '') {\n        deviceSvg += '<text transform=\"translate(30 6)\" fill=\"white\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"15.4\" font-weight=\"500\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    deviceSvg += '</svg>';\n    return deviceSvg;    \n}\n\nfunction getDeviceBackground(type, color, width) {\n     if (width === 30) {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 15) + '\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"15\" y=\"0\" width=\"' + (width - 30) + '\" height=\"30\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getBackgroundColor(type, status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'disconnected':\n            return '#CAC1D2';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    return '#4A8AEC';\n                default:\n                    return '#1F8B4D';\n            }\n            break;\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}\n\nfunction getDeviceText(type, status) {\n    switch(status) {\n        case 'disconnected':\n            return 'NO CONN';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    var temperature = data['temperature'];\n                    return temperature + ' °C';\n                default:\n                    return '';\n            }\n            break;        \n    }\n}\n\nfunction getDeviceShape(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7.5 7C7.22386 7 7 7.22386 7 7.5V22.5C7 22.7761 7.22386 23 7.5 23C7.77614 23 8 22.7761 8 22.5V22H22V22.5C22 22.7761 22.2239 23 22.5 23C22.7761 23 23 22.7761 23 22.5V7.5C23 7.22386 22.7761 7 22.5 7C22.2239 7 22 7.22386 22 7.5V13H19C19.5523 13 20 12.5523 20 12V9C20 8.44772 19.5523 8 19 8H16C15.4477 8 15 8.44772 15 9V12C15 12.5523 15.4477 13 16 13H12C12.5523 13 13 12.5523 13 12V11C13 10.4477 12.5523 10 12 10H11C10.4477 10 10 10.4477 10 11V12C10 12.5523 10.4477 13 11 13H8V7.5C8 7.22386 7.77614 7 7.5 7ZM22 21V14H8V21H11C10.4477 21 10 20.5523 10 20V17C10 16.4477 10.4477 16 11 16H14C14.5523 16 15 16.4477 15 17V20C15 20.5523 14.5523 21 14 21H17C16.4477 21 16 20.5523 16 20V18C16 17.4477 16.4477 17 17 17H19C19.5523 17 20 17.4477 20 18V20C20 20.5523 19.5523 21 19 21H22Z\" fill=\"white\"/>';\n        case 'Waste Bin':\n            return '<path d=\"M11.6822 8H9C8.44772 8 8 8.44772 8 9C8 9.55228 8.44772 10 9 10H21C21.5523 10 22 9.55228 22 9C22 8.44772 21.5523 8 21 8H18.3178C17.3675 7.36815 16.2267 7 15 7C13.7733 7 12.6325 7.36815 11.6822 8Z\" fill=\"white\"/>' +\n                   '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M21 11H9V21C9 22.1046 9.89543 23 11 23H19C20.1046 23 21 22.1046 21 21V11ZM15 14C14.7239 14 14.5 14.2239 14.5 14.5V20.5C14.5 20.7761 14.7239 21 15 21C15.2761 21 15.5 20.7761 15.5 20.5V14.5C15.5 14.2239 15.2761 14 15 14ZM17 14.5C17 14.2239 17.2239 14 17.5 14C17.7761 14 18 14.2239 18 14.5V20.5C18 20.7761 17.7761 21 17.5 21C17.2239 21 17 20.7761 17 20.5V14.5ZM12.5 14C12.2239 14 12 14.2239 12 14.5V20.5C12 20.7761 12.2239 21 12.5 21C12.7761 21 13 20.7761 13 20.5V14.5C13 14.2239 12.7761 14 12.5 14Z\" fill=\"white\"/>';\n        case 'Freezer':\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n        case 'Chiller':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M18.0001 12.4999C18.0001 13.5371 17.2661 14.2516 16.4454 14.6433C16.2807 14.7219 16.1185 14.7506 15.9657 14.7387C15.9881 14.822 16.0001 14.9096 16.0001 14.9999C16.0001 15.0304 15.9988 15.0605 15.9961 15.0902C16.1511 15.0322 16.322 14.9999 16.5001 14.9999L17.5001 14.9999L18.5 14.9999C19.3285 14.9999 20.0003 15.6975 19.6435 16.4452C19.2517 17.2658 18.5373 17.9999 17.5001 17.9999C16.4629 17.9999 15.7484 17.2658 15.3567 16.4452C15.2781 16.2805 15.2494 16.1184 15.2613 15.9655C15.178 15.988 15.0905 15.9999 15.0001 15.9999C14.9697 15.9999 14.9395 15.9986 14.9097 15.9959C14.9678 16.1509 15 16.3218 15 16.5L15 17.4999L15 18.4999C15.0001 19.3284 14.3025 20.0002 13.5548 19.6433C12.7341 19.2516 12.0001 18.5371 12.0001 17.4999C12.0001 16.4627 12.7341 15.7483 13.5548 15.3566C13.7195 15.278 13.8817 15.2493 14.0346 15.2611C14.0121 15.1779 14.0001 15.0903 14.0001 14.9999C14.0001 14.9695 14.0015 14.9394 14.0042 14.9096C13.8492 14.9677 13.6784 14.9999 13.5003 14.9999L12.5003 14.9999L11.5003 14.9999C10.6719 14.9999 10.0001 14.3023 10.3569 13.5547C10.7486 12.734 11.4631 11.9999 12.5003 11.9999C13.5375 11.9999 14.252 12.734 14.6437 13.5547C14.7223 13.7193 14.751 13.8815 14.7391 14.0343C14.8223 14.0119 14.9098 13.9999 15.0001 13.9999C15.0306 13.9999 15.0607 14.0013 15.0905 14.004C15.0324 13.849 15.0002 13.6781 15.0002 13.4999L15.0002 12.4999L15.0002 11.5C15.0001 10.6715 15.6977 9.99969 16.4454 10.3566C17.2661 10.7483 18.0001 11.4627 18.0001 12.4999Z\" fill=\"white\"/>' +\n                    '<circle cx=\"15\" cy=\"15\" r=\"8\" stroke=\"white\" stroke-width=\"2\"/>';\n        default:\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n    }\n}\n",
             "xPosKeyName": "xPos",
             "yPosKeyName": "yPos",
             "posFunction": "return {x: origXPos, y: origYPos};",
@@ -649,7 +644,7 @@
           "actions": {},
           "showTitleIcon": false,
           "titleTooltip": "",
-          "enableDataExport": true,
+          "enableDataExport": false,
           "noDataDisplayMessage": ""
         },
         "row": 0,
@@ -796,6 +791,388 @@
         "row": 0,
         "col": 0,
         "id": "4b123e6e-aea8-0951-bdc9-0dd19b73edf4"
+      },
+      "50378143-cacd-f2ab-597f-9e7b43b2bf15": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_multiple_attributes",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7b659beb-1601-5b67-528e-0846d1a0efa6",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "displaySmartShelf",
+                  "type": "attribute",
+                  "label": "Smart Shelf",
+                  "color": "#2196f3",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'Smart Shelf';",
+                    "setValueFunctionBody": "return value ? 'Smart Shelf' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yLjUgMkMyLjIyMzg2IDIgMiAyLjIyMzg2IDIgMi41VjE3LjVDMiAxNy43NzYxIDIuMjIzODYgMTggMi41IDE4QzIuNzc2MTQgMTggMyAxNy43NzYxIDMgMTcuNVYxN0gxN1YxNy41QzE3IDE3Ljc3NjEgMTcuMjIzOSAxOCAxNy41IDE4QzE3Ljc3NjEgMTggMTggMTcuNzc2MSAxOCAxNy41VjIuNUMxOCAyLjIyMzg2IDE3Ljc3NjEgMiAxNy41IDJDMTcuMjIzOSAyIDE3IDIuMjIzODYgMTcgMi41VjhIMTRDMTQuNTUyMyA4IDE1IDcuNTUyMjggMTUgN1Y0QzE1IDMuNDQ3NzIgMTQuNTUyMyAzIDE0IDNIMTFDMTAuNDQ3NyAzIDEwIDMuNDQ3NzIgMTAgNFY3QzEwIDcuNTUyMjggMTAuNDQ3NyA4IDExIDhIN0M3LjU1MjI4IDggOCA3LjU1MjI4IDggN1Y2QzggNS40NDc3MiA3LjU1MjI4IDUgNyA1SDZDNS40NDc3MiA1IDUgNS40NDc3MiA1IDZWN0M1IDcuNTUyMjggNS40NDc3MiA4IDYgOEgzVjIuNUMzIDIuMjIzODYgMi43NzYxNCAyIDIuNSAyWk0xNyAxNlY5SDNWMTZINkM1LjQ0NzcyIDE2IDUgMTUuNTUyMyA1IDE1VjEyQzUgMTEuNDQ3NyA1LjQ0NzcyIDExIDYgMTFIOUM5LjU1MjI4IDExIDEwIDExLjQ0NzcgMTAgMTJWMTVDMTAgMTUuNTUyMyA5LjU1MjI4IDE2IDkgMTZIMTJDMTEuNDQ3NyAxNiAxMSAxNS41NTIzIDExIDE1VjEzQzExIDEyLjQ0NzcgMTEuNDQ3NyAxMiAxMiAxMkgxNEMxNC41NTIzIDEyIDE1IDEyLjQ0NzcgMTUgMTNWMTVDMTUgMTUuNTUyMyAxNC41NTIzIDE2IDE0IDE2SDE3WiIgZmlsbD0iIzAwMCIvPgo8L3N2Zz4K"
+                  },
+                  "_hash": 0.5184545311042434,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "displayChiller",
+                  "type": "attribute",
+                  "label": "Chiller",
+                  "color": "#4caf50",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'Chiller';",
+                    "setValueFunctionBody": "return value ? 'Chiller' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy4wMDAxIDcuNDk5OTRDMTMuMDAwMSA4LjUzNzE0IDEyLjI2NjEgOS4yNTE2IDExLjQ0NTQgOS42NDMzM0MxMS4yODA3IDkuNzIxOTEgMTEuMTE4NSA5Ljc1MDYxIDEwLjk2NTcgOS43Mzg3NEMxMC45ODgxIDkuODIyMDEgMTEuMDAwMSA5LjkwOTU3IDExLjAwMDEgOS45OTk5NEMxMS4wMDAxIDEwLjAzMDQgMTAuOTk4OCAxMC4wNjA1IDEwLjk5NjEgMTAuMDkwMkMxMS4xNTExIDEwLjAzMjIgMTEuMzIyIDkuOTk5OTMgMTEuNTAwMSA5Ljk5OTkzTDEyLjUwMDEgOS45OTk5NEwxMy41IDkuOTk5OTNDMTQuMzI4NSA5Ljk5OTkyIDE1LjAwMDMgMTAuNjk3NSAxNC42NDM1IDExLjQ0NTJDMTQuMjUxNyAxMi4yNjU4IDEzLjUzNzMgMTIuOTk5OSAxMi41MDAxIDEyLjk5OTlDMTEuNDYyOSAxMi45OTk5IDEwLjc0ODQgMTIuMjY1OCAxMC4zNTY3IDExLjQ0NTJDMTAuMjc4MSAxMS4yODA1IDEwLjI0OTQgMTEuMTE4NCAxMC4yNjEzIDEwLjk2NTVDMTAuMTc4IDEwLjk4OCAxMC4wOTA1IDEwLjk5OTkgMTAuMDAwMSAxMC45OTk5QzkuOTY5NjUgMTAuOTk5OSA5LjkzOTQ5IDEwLjk5ODYgOS45MDk3MSAxMC45OTU5QzkuOTY3NzkgMTEuMTUwOSAxMCAxMS4zMjE4IDEwIDExLjVMMTAgMTIuNDk5OUwxMCAxMy40OTk5QzEwLjAwMDEgMTQuMzI4NCA5LjMwMjQ2IDE1LjAwMDIgOC41NTQ4MiAxNC42NDMzQzcuNzM0MTMgMTQuMjUxNiA3LjAwMDA2IDEzLjUzNzEgNy4wMDAwNiAxMi40OTk5QzcuMDAwMDYgMTEuNDYyNyA3LjczNDEzIDEwLjc0ODMgOC41NTQ4MiAxMC4zNTY2QzguNzE5NDggMTAuMjc4IDguODgxNyAxMC4yNDkzIDkuMDM0NTkgMTAuMjYxMUM5LjAxMjEyIDEwLjE3NzkgOS4wMDAxMyAxMC4wOTAzIDkuMDAwMTMgOS45OTk5NEM5LjAwMDEzIDkuOTY5NSA5LjAwMTQ5IDkuOTM5MzggOS4wMDQxNiA5LjkwOTYzQzguODQ5MjEgOS45Njc2NiA4LjY3ODM3IDkuOTk5OSA4LjUwMDI5IDkuOTk5ODlMNy41MDAzMSA5Ljk5OTg4TDYuNTAwMzMgOS45OTk4OUM1LjY3MTg5IDkuOTk5OSA1LjAwMDA2IDkuMzAyMyA1LjM1NjkyIDguNTU0NjdDNS43NDg2NSA3LjczMzk3IDYuNDYzMTEgNi45OTk5MSA3LjUwMDMxIDYuOTk5OTFDOC41Mzc1IDYuOTk5OTEgOS4yNTE5NyA3LjczMzk3IDkuNjQzNyA4LjU1NDY3QzkuNzIyMjcgOC43MTkyOSA5Ljc1MDk4IDguODgxNDkgOS43MzkxMSA5LjAzNDM1QzkuODIyMzIgOS4wMTE5MSA5LjkwOTgzIDguOTk5OTQgMTAuMDAwMSA4Ljk5OTk0QzEwLjAzMDYgOC45OTk5NCAxMC4wNjA3IDkuMDAxMyAxMC4wOTA1IDkuMDAzOTdDMTAuMDMyNCA4Ljg0ODk4IDEwLjAwMDIgOC42NzgwNyAxMC4wMDAyIDguNDk5OTJMMTAuMDAwMiA3LjQ5OTk0TDEwLjAwMDIgNi40OTk5NkMxMC4wMDAxIDUuNjcxNTMgMTAuNjk3NyA0Ljk5OTY5IDExLjQ0NTQgNS4zNTY1NUMxMi4yNjYxIDUuNzQ4MjggMTMuMDAwMSA2LjQ2Mjc0IDEzLjAwMDEgNy40OTk5NFoiIGZpbGw9IiMwMDAiLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iOCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg=="
+                  },
+                  "_hash": 0.34454051580229117,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "displayFreezer",
+                  "type": "attribute",
+                  "label": "Freezer",
+                  "color": "#f44336",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'Freezer';",
+                    "setValueFunctionBody": "return value ? 'Freezer' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOSIgeT0iMiIgd2lkdGg9IjIiIGhlaWdodD0iMTYiIHJ4PSIxIiBmaWxsPSIjMDAwIi8+CjxwYXRoIGQ9Ik0xMi41IDMuNUwxMCA2TDcuNSAzLjVNMTIuNSAxNi41TDEwIDE0TDcuNSAxNi41IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYuODc5MiA4LjkxNTA5TDEzLjQ2NDEgOC4wMDAwMkwxNC4zNzkyIDQuNTg0OTZNNS42MjA4MiAxNS40MTUxTDYuNTM1ODggMTJMMy4xMjA4MiAxMS4wODUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik01LjYyMDg1IDQuNTg0OTFMNi41MzU5MSA3Ljk5OTk4TDMuMTIwODUgOC45MTUwNE0xNi44NzkyIDExLjA4NDlMMTMuNDY0MSAxMkwxNC4zNzkyIDE1LjQxNSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHJlY3QgeD0iMTYuNDI4MiIgeT0iNS4xMzM3OSIgd2lkdGg9IjIiIGhlaWdodD0iMTYiIHJ4PSIxIiB0cmFuc2Zvcm09InJvdGF0ZSg2MCAxNi40MjgyIDUuMTMzNzkpIiBmaWxsPSIjMDAwIi8+CjxyZWN0IHg9IjIuNTcxNzgiIHk9IjYuODY2MjEiIHdpZHRoPSIyIiBoZWlnaHQ9IjE2IiByeD0iMSIgdHJhbnNmb3JtPSJyb3RhdGUoLTYwIDIuNTcxNzggNi44NjYyMSkiIGZpbGw9IiMwMDAiLz4KPC9zdmc+Cg=="
+                  },
+                  "_hash": 0.39082762251115444,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "displayWasteBin",
+                  "type": "attribute",
+                  "label": "Waste Bin",
+                  "color": "#ffc107",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'Waste Bin';",
+                    "setValueFunctionBody": "return value ? 'Waste Bin' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTYuNjgyMTkgM0g0QzMuNDQ3NzIgMyAzIDMuNDQ3NzIgMyA0QzMgNC41NTIyOCAzLjQ0NzcyIDUgNCA1SDE2QzE2LjU1MjMgNSAxNyA0LjU1MjI4IDE3IDRDMTcgMy40NDc3MiAxNi41NTIzIDMgMTYgM0gxMy4zMTc4QzEyLjM2NzUgMi4zNjgxNSAxMS4yMjY3IDIgOS45OTk5OSAyQzguNzczMjUgMiA3LjYzMjUgMi4zNjgxNSA2LjY4MjE5IDNaIiBmaWxsPSIjMDAwIi8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTYgNkg0VjE2QzQgMTcuMTA0NiA0Ljg5NTQzIDE4IDYgMThIMTRDMTUuMTA0NiAxOCAxNiAxNy4xMDQ2IDE2IDE2VjZaTTEwIDlDOS43MjM4NiA5IDkuNSA5LjIyMzg2IDkuNSA5LjVWMTUuNUM5LjUgMTUuNzc2MSA5LjcyMzg2IDE2IDEwIDE2QzEwLjI3NjEgMTYgMTAuNSAxNS43NzYxIDEwLjUgMTUuNVY5LjVDMTAuNSA5LjIyMzg2IDEwLjI3NjEgOSAxMCA5Wk0xMiA5LjVDMTIgOS4yMjM4NiAxMi4yMjM5IDkgMTIuNSA5QzEyLjc3NjEgOSAxMyA5LjIyMzg2IDEzIDkuNVYxNS41QzEzIDE1Ljc3NjEgMTIuNzc2MSAxNiAxMi41IDE2QzEyLjIyMzkgMTYgMTIgMTUuNzc2MSAxMiAxNS41VjkuNVpNNy41IDlDNy4yMjM4NiA5IDcgOS4yMjM4NiA3IDkuNVYxNS41QzcgMTUuNzc2MSA3LjIyMzg2IDE2IDcuNSAxNkM3Ljc3NjE0IDE2IDggMTUuNzc2MSA4IDE1LjVWOS41QzggOS4yMjM4NiA3Ljc3NjE0IDkgNy41IDlaIiBmaWxsPSIjMDAwIi8+Cjwvc3ZnPgo="
+                  },
+                  "_hash": 0.49298504090043105,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "showActionButtons": false,
+            "showResultMessage": false,
+            "showGroupTitle": false,
+            "fieldsAlignment": "row",
+            "updateAllValues": false,
+            "groupTitle": "${entityName}",
+            "fieldsInRow": 1
+          },
+          "title": "Filter",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {
+            "fontWeight": "bold",
+            "fontSize": "14px"
+          },
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "paddingBottom": "30px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "50378143-cacd-f2ab-597f-9e7b43b2bf15"
+      },
+      "83cac6f2-5d2c-8738-4203-f9b930cf064a": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_multiple_attributes",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7b659beb-1601-5b67-528e-0846d1a0efa6",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "displayNormal",
+                  "type": "attribute",
+                  "label": "Normal",
+                  "color": "#f44336",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'normal';",
+                    "setValueFunctionBody": "return value ? 'normal' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiMxRjhCNEQiLz4KPC9zdmc+Cg=="
+                  },
+                  "_hash": 0.39082762251115444,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "displayMajor",
+                  "type": "attribute",
+                  "label": "Major",
+                  "color": "#4caf50",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'major';",
+                    "setValueFunctionBody": "return value ? 'major' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNENUMyMUIiLz4KPC9zdmc+Cg=="
+                  },
+                  "_hash": 0.34454051580229117,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "displayCritical",
+                  "type": "attribute",
+                  "label": "Critical",
+                  "color": "#2196f3",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'critical';",
+                    "setValueFunctionBody": "return value ? 'critical' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNiIgY3k9IjYiIHI9IjYiIGZpbGw9IiNFNjRBMTkiLz4KPC9zdmc+Cg=="
+                  },
+                  "_hash": 0.5184545311042434,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "displayDisconnected",
+                  "type": "attribute",
+                  "label": "Disconnected",
+                  "color": "#ffc107",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "booleanSwitch",
+                    "slideToggleLabelPosition": "before",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": false,
+                    "requiredErrorMessage": "",
+                    "minValueErrorMessage": "",
+                    "maxValueErrorMessage": "",
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "useCustomIcon": true,
+                    "useGetValueFunction": true,
+                    "useSetValueFunction": true,
+                    "getValueFunctionBody": "return !value || value === 'disconnected';",
+                    "setValueFunctionBody": "return value ? 'disconnected' : 'unset';",
+                    "customIcon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzI4MzlfNTI1NjQpIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0NBQzFEMiIvPgo8cGF0aCBkPSJNMS45Mjg5NiAxNi43MjhMMTYuMDcxMSAyLjU4NTg5TDE3LjQ4NTMgNC4wMDAxMUwzLjM0MzE3IDE4LjE0MjJMMS45Mjg5NiAxNi43MjhaIiBmaWxsPSIjQ0FDMUQyIi8+CjxwYXRoIGQ9Ik0yLjEwNjkyIDE2LjMxNzFDMS44MTM5MyAxNi4wMjQxIDEuODEzOTMgMTUuNTQ5MSAyLjEwNjkyIDE1LjI1NjFMMTUuMTg1MiAyLjE3Nzg4QzE1LjQ3ODEgMS44ODQ4OSAxNS45NTMyIDEuODg0ODkgMTYuMjQ2MiAyLjE3Nzg4QzE2LjUzOTIgMi40NzA4OCAxNi41MzkyIDIuOTQ1OTEgMTYuMjQ2MiAzLjIzODlMMy4xNjc5NCAxNi4zMTcxQzIuODc0OTUgMTYuNjEwMSAyLjM5OTkxIDE2LjYxMDEgMi4xMDY5MiAxNi4zMTcxWiIgZmlsbD0id2hpdGUiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8yODM5XzUyNTY0Ij4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo="
+                  },
+                  "_hash": 0.8262637732306279,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "showActionButtons": false,
+            "showResultMessage": false,
+            "showGroupTitle": false,
+            "fieldsAlignment": "row",
+            "updateAllValues": false,
+            "groupTitle": "${entityName}",
+            "fieldsInRow": 1
+          },
+          "title": "State Filter",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {
+            "fontWeight": "bold",
+            "fontSize": "14px"
+          },
+          "titleStyle": {
+            "fontSize": "20px",
+            "fontWeight": "bold",
+            "paddingBottom": "30px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "83cac6f2-5d2c-8738-4203-f9b930cf064a"
       }
     },
     "states": {
@@ -838,16 +1215,28 @@
           "main": {
             "widgets": {
               "eb29a39f-46b9-02c5-d458-39e4f48cfdd7": {
-                "sizeX": 19,
-                "sizeY": 12,
+                "sizeX": 20,
+                "sizeY": 11,
                 "row": 0,
                 "col": 0
               },
               "4b123e6e-aea8-0951-bdc9-0dd19b73edf4": {
                 "sizeX": 5,
-                "sizeY": 12,
+                "sizeY": 4,
+                "row": 7,
+                "col": 20
+              },
+              "50378143-cacd-f2ab-597f-9e7b43b2bf15": {
+                "sizeX": 5,
+                "sizeY": 4,
                 "row": 0,
-                "col": 19
+                "col": 20
+              },
+              "83cac6f2-5d2c-8738-4203-f9b930cf064a": {
+                "sizeX": 5,
+                "sizeY": 3,
+                "row": 4,
+                "col": 20
               }
             },
             "gridSettings": {
@@ -982,9 +1371,598 @@
             "Waste Bin"
           ]
         }
+      },
+      "7b659beb-1601-5b67-528e-0846d1a0efa6": {
+        "id": "7b659beb-1601-5b67-528e-0846d1a0efa6",
+        "alias": "Current user",
+        "filter": {
+          "type": "singleEntity",
+          "resolveMultiple": false,
+          "singleEntity": {
+            "entityType": "CURRENT_USER",
+            "id": "13814000-1dd2-11b2-8080-808080808080"
+          }
+        }
       }
     },
-    "filters": {},
+    "filters": {
+      "fea3d87f-84a6-ca37-9df5-ba11a06d0c30": {
+        "id": "fea3d87f-84a6-ca37-9df5-ba11a06d0c30",
+        "filter": "Display Smart Shelf",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ENTITY_FIELD",
+              "key": "type"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Smart Shelf",
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_USER",
+                      "sourceAttribute": "displaySmartShelf",
+                      "inherit": false
+                    }
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          },
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "OR",
+                  "predicates": [
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "major",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayMajor",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "critical",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayCritical",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "normal",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayNormal",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "disconnected",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayDisconnected",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    }
+                  ],
+                  "type": "COMPLEX"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "993bdcad-a71e-5cf2-1137-11e5e67e40bf": {
+        "id": "993bdcad-a71e-5cf2-1137-11e5e67e40bf",
+        "filter": "Display Chiller",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ENTITY_FIELD",
+              "key": "type"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Chiller",
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_USER",
+                      "sourceAttribute": "displayChiller",
+                      "inherit": false
+                    }
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          },
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "OR",
+                  "predicates": [
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "critical",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayCritical",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "major",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayMajor",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "normal",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayNormal",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "disconnected",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayDisconnected",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    }
+                  ],
+                  "type": "COMPLEX"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "be261a34-2834-a9b0-377e-1d45ccb85a39": {
+        "id": "be261a34-2834-a9b0-377e-1d45ccb85a39",
+        "filter": "Display Freezer",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ENTITY_FIELD",
+              "key": "type"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Freezer",
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_USER",
+                      "sourceAttribute": "displayFreezer",
+                      "inherit": false
+                    }
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          },
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "OR",
+                  "predicates": [
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "critical",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayCritical",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "major",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayMajor",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "normal",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayNormal",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "disconnected",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayDisconnected",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    }
+                  ],
+                  "type": "COMPLEX"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "ea5b491f-fbbf-1db2-b1cd-ec360472e6d6": {
+        "id": "ea5b491f-fbbf-1db2-b1cd-ec360472e6d6",
+        "filter": "Display Waste Bin",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ENTITY_FIELD",
+              "key": "type"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "Waste Bin",
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_USER",
+                      "sourceAttribute": "displayWasteBin",
+                      "inherit": false
+                    }
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          },
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "OR",
+                  "predicates": [
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "critical",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayCritical",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "major",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayMajor",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "normal",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayNormal",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "disconnected",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayDisconnected",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    }
+                  ],
+                  "type": "COMPLEX"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      }
+    },
     "timewindow": {
       "displayValue": "",
       "hideInterval": false,
