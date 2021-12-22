@@ -136,7 +136,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     return this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs']).pipe(
       map((attributes) => {
         const queueStartTs = attributes[0];
-        this.queueStartTs = queueStartTs ? queueStartTs.lastUpdateTs : 0;
+        this.queueStartTs = queueStartTs && queueStartTs.value ? queueStartTs.value : 0;
       }),
       mergeMap(() => this.edgeService.getCloudEvents(pageLink))
     );
