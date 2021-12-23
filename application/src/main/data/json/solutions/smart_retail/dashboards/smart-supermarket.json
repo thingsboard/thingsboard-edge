@@ -223,150 +223,6 @@
         "col": 0,
         "id": "e37ba208-4472-d4ab-94ad-db72213ef0ef"
       },
-      "4b123e6e-aea8-0951-bdc9-0dd19b73edf4": {
-        "isSystemType": true,
-        "bundleAlias": "alarm_widgets",
-        "typeAlias": "alarms_table",
-        "type": "alarm",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 10.5,
-        "sizeY": 6.5,
-        "config": {
-          "timewindow": {
-            "realtime": {
-              "interval": 1000,
-              "timewindowMs": 86400000
-            },
-            "aggregation": {
-              "type": "NONE",
-              "limit": 200
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "rgb(255, 255, 255)",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "4px",
-          "settings": {
-            "enableSelection": true,
-            "enableSearch": true,
-            "displayDetails": true,
-            "allowAcknowledgment": true,
-            "allowClear": true,
-            "displayPagination": true,
-            "defaultPageSize": 10,
-            "defaultSortOrder": "-createdTime",
-            "enableSelectColumnDisplay": true,
-            "enableStickyAction": false,
-            "enableFilter": true,
-            "enableStickyHeader": true,
-            "reserveSpaceForHiddenAction": "true",
-            "useRowStyleFunction": false
-          },
-          "title": "New Alarms table",
-          "dropShadow": true,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
-          },
-          "useDashboardTimewindow": false,
-          "showLegend": false,
-          "alarmSource": {
-            "type": "entity",
-            "name": null,
-            "entityAliasId": "129977b6-de2f-546b-7df8-2040f39f8732",
-            "filterId": "3a46fadd-6a79-1f15-1c39-f7f0a30ab5f8",
-            "dataKeys": [
-              {
-                "name": "createdTime",
-                "type": "alarm",
-                "label": "Created time",
-                "color": "#2196f3",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
-                },
-                "_hash": 0.021092237451093787
-              },
-              {
-                "name": "originator",
-                "type": "alarm",
-                "label": "Originator",
-                "color": "#4caf50",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
-                },
-                "_hash": 0.2780007688856758
-              },
-              {
-                "name": "type",
-                "type": "alarm",
-                "label": "Type",
-                "color": "#f44336",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
-                },
-                "_hash": 0.7323586880398418
-              },
-              {
-                "name": "severity",
-                "type": "alarm",
-                "label": "Severity",
-                "color": "#ffc107",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "useCellContentFunction": false
-                },
-                "_hash": 0.09927019860088193
-              },
-              {
-                "name": "status",
-                "type": "alarm",
-                "label": "Status",
-                "color": "#607d8b",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
-                },
-                "_hash": 0.6588418951443418
-              }
-            ]
-          },
-          "alarmSearchStatus": "ANY",
-          "alarmsPollingInterval": 5,
-          "showTitleIcon": false,
-          "titleIcon": "more_horiz",
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "widgetStyle": {},
-          "displayTimewindow": true,
-          "actions": {},
-          "alarmStatusList": [
-            "ACTIVE"
-          ],
-          "alarmSeverityList": [],
-          "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
-          "datasources": []
-        },
-        "row": 0,
-        "col": 0,
-        "id": "4b123e6e-aea8-0951-bdc9-0dd19b73edf4"
-      },
       "4d269bd2-0e40-1c62-0385-a1ab42115c6d": {
         "isSystemType": true,
         "bundleAlias": "input_widgets",
@@ -781,10 +637,10 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "16px",
           "settings": {
-            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n    <h5 class=\"market-title\">${entityName}</h5>\n    <tb-dashboard-state style=\"width: 100%; height: 90px;\" [ctx]=\"ctx\" stateId=\"alarm_badges\"></tb-dashboard-state>\n    <tb-dashboard-state fxFlex=\"75\" [ctx]=\"ctx\" stateId=\"plan\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n    <div fxFlex=\"25\" fxLayout=\"row\">\n     <div fxFlex=\"60\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">Filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"device-filter\"></tb-dashboard-state>\n     </div>\n     <mat-divider vertical style=\"margin-left: 20px; margin-right: 20px;\"></mat-divider>\n     <div fxFlex=\"40\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"state-filter\"></tb-dashboard-state>\n     </div>\n    </div>\n</div>",
+            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n    <h5 class=\"market-title\">${entityName}</h5>\n    <tb-dashboard-state style=\"width: 100%; height: 90px;\" [ctx]=\"ctx\" stateId=\"alarm_badges\"></tb-dashboard-state>\n    <tb-dashboard-state fxFlex=\"75\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"plan\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n    <div fxFlex=\"25\" fxLayout=\"row\">\n     <div fxFlex=\"60\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">Filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"device-filter\"></tb-dashboard-state>\n     </div>\n     <mat-divider vertical style=\"margin-left: 20px; margin-right: 20px;\"></mat-divider>\n     <div fxFlex=\"40\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"state-filter\"></tb-dashboard-state>\n     </div>\n    </div>\n</div>",
             "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownCss": ".market-layout {\n    position: relative;\n}\n\n.market-title {\n    position: absolute;\n    top: 10px;\n    left: 10px;\n    z-index: 2;\n}"
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    position: absolute;\n    top: 10px;\n    left: 10px;\n    z-index: 2;\n}"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -1151,6 +1007,27 @@
                   "postFuncBody": null
                 }
               ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "selectedDevice",
+                  "color": "#c51162",
+                  "settings": {},
+                  "_hash": 0.7145163667848988,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value === 'true' || value === 'false') {\n    return true;\n} else {\n    return false;\n}"
+                }
+              ]
             }
           ],
           "timewindow": {
@@ -1171,7 +1048,7 @@
             "markerImages": [],
             "useMarkerImageFunction": true,
             "colorFunction": "var type = dsData[dsIndex]['Type'];\nif (type == 'colorpin') {\n\tvar temperature = dsData[dsIndex]['temperature'];\n\tif (typeof temperature !== undefined) {\n\t    var percent = (temperature + 60)/120 * 100;\n\t    return tinycolor.mix('blue', 'red', amount = percent).toHexString();\n\t}\n\treturn 'blue';\n}\n",
-            "markerImageFunction": "var type = data['Type'];\nvar active = data['active'];\nvar state = data['state'];\n\nvar status = state;\nif (active === 'false') {\n    status = 'disconnected';\n}\n\nvar text = getDeviceText(type, status);\n\nvar width = 30 + getTextWidth(text);\n\nvar svgStr = getDeviceSvg(type, status, width, text);\n\nvar encodedSvg = encodeURIComponent(svgStr);\n\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [15, 15],\n    tooltipOffset: [width * 0.5 - 15, -15]\n};\n\n\n\nfunction getDeviceSvg(type, status, width, text) {\n    var shape = getDeviceShape(type);\n    var color = getBackgroundColor(type, status);\n    var background = getDeviceBackground(type, color, width);\n    var deviceSvg = '<svg width=\"' + width + '\" height=\"30\" viewBox=\"0 0 ' + width + ' 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background +\n                    shape;\n    if (status === 'disconnected') {\n        deviceSvg += '<path d=\"M6.92896 21.728L21.0711 7.58589L22.4853 9.00011L8.34317 23.1422L6.92896 21.728Z\" fill=\"' + color + '\"/>' +\n                     '<path d=\"M7.10692 21.3171C6.81393 21.0241 6.81393 20.5491 7.10692 20.2561L20.1852 7.17788C20.4781 6.88489 20.9532 6.88489 21.2462 7.17788V7.17788C21.5392 7.47088 21.5392 7.94591 21.2462 8.2389L8.16794 21.3171C7.87495 21.6101 7.39991 21.6101 7.10692 21.3171V21.3171Z\" fill=\"white\"/>';\n    }\n    if (text !== '') {\n        deviceSvg += '<text transform=\"translate(30 6)\" fill=\"white\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"15.4\" font-weight=\"500\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    deviceSvg += '</svg>';\n    return deviceSvg;    \n}\n\nfunction getDeviceBackground(type, color, width) {\n     if (width === 30) {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 15) + '\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"15\" y=\"0\" width=\"' + (width - 30) + '\" height=\"30\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getBackgroundColor(type, status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'disconnected':\n            return '#CAC1D2';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    return '#4A8AEC';\n                default:\n                    return '#1F8B4D';\n            }\n            break;\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}\n\nfunction getDeviceText(type, status) {\n    switch(status) {\n        case 'disconnected':\n            return 'NO CONN';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    var temperature = data['temperature'];\n                    return temperature + ' °C';\n                default:\n                    return '';\n            }\n            break;        \n    }\n}\n\nfunction getDeviceShape(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7.5 7C7.22386 7 7 7.22386 7 7.5V22.5C7 22.7761 7.22386 23 7.5 23C7.77614 23 8 22.7761 8 22.5V22H22V22.5C22 22.7761 22.2239 23 22.5 23C22.7761 23 23 22.7761 23 22.5V7.5C23 7.22386 22.7761 7 22.5 7C22.2239 7 22 7.22386 22 7.5V13H19C19.5523 13 20 12.5523 20 12V9C20 8.44772 19.5523 8 19 8H16C15.4477 8 15 8.44772 15 9V12C15 12.5523 15.4477 13 16 13H12C12.5523 13 13 12.5523 13 12V11C13 10.4477 12.5523 10 12 10H11C10.4477 10 10 10.4477 10 11V12C10 12.5523 10.4477 13 11 13H8V7.5C8 7.22386 7.77614 7 7.5 7ZM22 21V14H8V21H11C10.4477 21 10 20.5523 10 20V17C10 16.4477 10.4477 16 11 16H14C14.5523 16 15 16.4477 15 17V20C15 20.5523 14.5523 21 14 21H17C16.4477 21 16 20.5523 16 20V18C16 17.4477 16.4477 17 17 17H19C19.5523 17 20 17.4477 20 18V20C20 20.5523 19.5523 21 19 21H22Z\" fill=\"white\"/>';\n        case 'Waste Bin':\n            return '<path d=\"M11.6822 8H9C8.44772 8 8 8.44772 8 9C8 9.55228 8.44772 10 9 10H21C21.5523 10 22 9.55228 22 9C22 8.44772 21.5523 8 21 8H18.3178C17.3675 7.36815 16.2267 7 15 7C13.7733 7 12.6325 7.36815 11.6822 8Z\" fill=\"white\"/>' +\n                   '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M21 11H9V21C9 22.1046 9.89543 23 11 23H19C20.1046 23 21 22.1046 21 21V11ZM15 14C14.7239 14 14.5 14.2239 14.5 14.5V20.5C14.5 20.7761 14.7239 21 15 21C15.2761 21 15.5 20.7761 15.5 20.5V14.5C15.5 14.2239 15.2761 14 15 14ZM17 14.5C17 14.2239 17.2239 14 17.5 14C17.7761 14 18 14.2239 18 14.5V20.5C18 20.7761 17.7761 21 17.5 21C17.2239 21 17 20.7761 17 20.5V14.5ZM12.5 14C12.2239 14 12 14.2239 12 14.5V20.5C12 20.7761 12.2239 21 12.5 21C12.7761 21 13 20.7761 13 20.5V14.5C13 14.2239 12.7761 14 12.5 14Z\" fill=\"white\"/>';\n        case 'Freezer':\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n        case 'Chiller':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M18.0001 12.4999C18.0001 13.5371 17.2661 14.2516 16.4454 14.6433C16.2807 14.7219 16.1185 14.7506 15.9657 14.7387C15.9881 14.822 16.0001 14.9096 16.0001 14.9999C16.0001 15.0304 15.9988 15.0605 15.9961 15.0902C16.1511 15.0322 16.322 14.9999 16.5001 14.9999L17.5001 14.9999L18.5 14.9999C19.3285 14.9999 20.0003 15.6975 19.6435 16.4452C19.2517 17.2658 18.5373 17.9999 17.5001 17.9999C16.4629 17.9999 15.7484 17.2658 15.3567 16.4452C15.2781 16.2805 15.2494 16.1184 15.2613 15.9655C15.178 15.988 15.0905 15.9999 15.0001 15.9999C14.9697 15.9999 14.9395 15.9986 14.9097 15.9959C14.9678 16.1509 15 16.3218 15 16.5L15 17.4999L15 18.4999C15.0001 19.3284 14.3025 20.0002 13.5548 19.6433C12.7341 19.2516 12.0001 18.5371 12.0001 17.4999C12.0001 16.4627 12.7341 15.7483 13.5548 15.3566C13.7195 15.278 13.8817 15.2493 14.0346 15.2611C14.0121 15.1779 14.0001 15.0903 14.0001 14.9999C14.0001 14.9695 14.0015 14.9394 14.0042 14.9096C13.8492 14.9677 13.6784 14.9999 13.5003 14.9999L12.5003 14.9999L11.5003 14.9999C10.6719 14.9999 10.0001 14.3023 10.3569 13.5547C10.7486 12.734 11.4631 11.9999 12.5003 11.9999C13.5375 11.9999 14.252 12.734 14.6437 13.5547C14.7223 13.7193 14.751 13.8815 14.7391 14.0343C14.8223 14.0119 14.9098 13.9999 15.0001 13.9999C15.0306 13.9999 15.0607 14.0013 15.0905 14.004C15.0324 13.849 15.0002 13.6781 15.0002 13.4999L15.0002 12.4999L15.0002 11.5C15.0001 10.6715 15.6977 9.99969 16.4454 10.3566C17.2661 10.7483 18.0001 11.4627 18.0001 12.4999Z\" fill=\"white\"/>' +\n                    '<circle cx=\"15\" cy=\"15\" r=\"8\" stroke=\"white\" stroke-width=\"2\"/>';\n        default:\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n    }\n}\n",
+            "markerImageFunction": "var type = data['Type'];\nvar active = data['active'];\nvar state = data['state'];\nvar selectedDevice = data['selectedDevice'] === true;\n\nvar status = state;\nif (active === 'false') {\n    status = 'disconnected';\n}\n\nvar text = getDeviceText(type, status);\n\nvar width = 30 + getTextWidth(text);\n\nvar svgStr = getDeviceSvg(type, status, width, text, selectedDevice);\n\nvar encodedSvg = encodeURIComponent(svgStr);\n\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [15, 15],\n    tooltipOffset: [width * 0.5 - 15, -15]\n};\n\n\n\nfunction getDeviceSvg(type, status, width, text, isSelected) {\n    var shape = getDeviceShape(type);\n    var color = getBackgroundColor(type, status, isSelected);\n    var background = getDeviceBackground(type, color, width);\n    var deviceSvg = '<svg width=\"' + width + '\" height=\"30\" viewBox=\"0 0 ' + width + ' 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background +\n                    shape;\n    if (status === 'disconnected') {\n        deviceSvg += '<path d=\"M6.92896 21.728L21.0711 7.58589L22.4853 9.00011L8.34317 23.1422L6.92896 21.728Z\" fill=\"' + color + '\"/>' +\n                     '<path d=\"M7.10692 21.3171C6.81393 21.0241 6.81393 20.5491 7.10692 20.2561L20.1852 7.17788C20.4781 6.88489 20.9532 6.88489 21.2462 7.17788V7.17788C21.5392 7.47088 21.5392 7.94591 21.2462 8.2389L8.16794 21.3171C7.87495 21.6101 7.39991 21.6101 7.10692 21.3171V21.3171Z\" fill=\"white\"/>';\n    }\n    if (text !== '') {\n        deviceSvg += '<text transform=\"translate(30 6)\" fill=\"white\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"15.4\" font-weight=\"500\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    deviceSvg += '</svg>';\n    return deviceSvg;    \n}\n\nfunction getDeviceBackground(type, color, width) {\n     if (width === 30) {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 15) + '\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"15\" y=\"0\" width=\"' + (width - 30) + '\" height=\"30\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getBackgroundColor(type, status, isSelected) {\n    if (isSelected) {\n        return 'blue';\n    }\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'disconnected':\n            return '#CAC1D2';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    return '#4A8AEC';\n                default:\n                    return '#1F8B4D';\n            }\n            break;\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}\n\nfunction getDeviceText(type, status) {\n    switch(status) {\n        case 'disconnected':\n            return 'NO CONN';\n        case 'normal':\n        default:    \n            switch(type) {\n                case 'Freezer':\n                case 'Chiller':\n                    var temperature = data['temperature'];\n                    return temperature + ' °C';\n                default:\n                    return '';\n            }\n            break;        \n    }\n}\n\nfunction getDeviceShape(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7.5 7C7.22386 7 7 7.22386 7 7.5V22.5C7 22.7761 7.22386 23 7.5 23C7.77614 23 8 22.7761 8 22.5V22H22V22.5C22 22.7761 22.2239 23 22.5 23C22.7761 23 23 22.7761 23 22.5V7.5C23 7.22386 22.7761 7 22.5 7C22.2239 7 22 7.22386 22 7.5V13H19C19.5523 13 20 12.5523 20 12V9C20 8.44772 19.5523 8 19 8H16C15.4477 8 15 8.44772 15 9V12C15 12.5523 15.4477 13 16 13H12C12.5523 13 13 12.5523 13 12V11C13 10.4477 12.5523 10 12 10H11C10.4477 10 10 10.4477 10 11V12C10 12.5523 10.4477 13 11 13H8V7.5C8 7.22386 7.77614 7 7.5 7ZM22 21V14H8V21H11C10.4477 21 10 20.5523 10 20V17C10 16.4477 10.4477 16 11 16H14C14.5523 16 15 16.4477 15 17V20C15 20.5523 14.5523 21 14 21H17C16.4477 21 16 20.5523 16 20V18C16 17.4477 16.4477 17 17 17H19C19.5523 17 20 17.4477 20 18V20C20 20.5523 19.5523 21 19 21H22Z\" fill=\"white\"/>';\n        case 'Waste Bin':\n            return '<path d=\"M11.6822 8H9C8.44772 8 8 8.44772 8 9C8 9.55228 8.44772 10 9 10H21C21.5523 10 22 9.55228 22 9C22 8.44772 21.5523 8 21 8H18.3178C17.3675 7.36815 16.2267 7 15 7C13.7733 7 12.6325 7.36815 11.6822 8Z\" fill=\"white\"/>' +\n                   '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M21 11H9V21C9 22.1046 9.89543 23 11 23H19C20.1046 23 21 22.1046 21 21V11ZM15 14C14.7239 14 14.5 14.2239 14.5 14.5V20.5C14.5 20.7761 14.7239 21 15 21C15.2761 21 15.5 20.7761 15.5 20.5V14.5C15.5 14.2239 15.2761 14 15 14ZM17 14.5C17 14.2239 17.2239 14 17.5 14C17.7761 14 18 14.2239 18 14.5V20.5C18 20.7761 17.7761 21 17.5 21C17.2239 21 17 20.7761 17 20.5V14.5ZM12.5 14C12.2239 14 12 14.2239 12 14.5V20.5C12 20.7761 12.2239 21 12.5 21C12.7761 21 13 20.7761 13 20.5V14.5C13 14.2239 12.7761 14 12.5 14Z\" fill=\"white\"/>';\n        case 'Freezer':\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n        case 'Chiller':\n            return '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M18.0001 12.4999C18.0001 13.5371 17.2661 14.2516 16.4454 14.6433C16.2807 14.7219 16.1185 14.7506 15.9657 14.7387C15.9881 14.822 16.0001 14.9096 16.0001 14.9999C16.0001 15.0304 15.9988 15.0605 15.9961 15.0902C16.1511 15.0322 16.322 14.9999 16.5001 14.9999L17.5001 14.9999L18.5 14.9999C19.3285 14.9999 20.0003 15.6975 19.6435 16.4452C19.2517 17.2658 18.5373 17.9999 17.5001 17.9999C16.4629 17.9999 15.7484 17.2658 15.3567 16.4452C15.2781 16.2805 15.2494 16.1184 15.2613 15.9655C15.178 15.988 15.0905 15.9999 15.0001 15.9999C14.9697 15.9999 14.9395 15.9986 14.9097 15.9959C14.9678 16.1509 15 16.3218 15 16.5L15 17.4999L15 18.4999C15.0001 19.3284 14.3025 20.0002 13.5548 19.6433C12.7341 19.2516 12.0001 18.5371 12.0001 17.4999C12.0001 16.4627 12.7341 15.7483 13.5548 15.3566C13.7195 15.278 13.8817 15.2493 14.0346 15.2611C14.0121 15.1779 14.0001 15.0903 14.0001 14.9999C14.0001 14.9695 14.0015 14.9394 14.0042 14.9096C13.8492 14.9677 13.6784 14.9999 13.5003 14.9999L12.5003 14.9999L11.5003 14.9999C10.6719 14.9999 10.0001 14.3023 10.3569 13.5547C10.7486 12.734 11.4631 11.9999 12.5003 11.9999C13.5375 11.9999 14.252 12.734 14.6437 13.5547C14.7223 13.7193 14.751 13.8815 14.7391 14.0343C14.8223 14.0119 14.9098 13.9999 15.0001 13.9999C15.0306 13.9999 15.0607 14.0013 15.0905 14.004C15.0324 13.849 15.0002 13.6781 15.0002 13.4999L15.0002 12.4999L15.0002 11.5C15.0001 10.6715 15.6977 9.99969 16.4454 10.3566C17.2661 10.7483 18.0001 11.4627 18.0001 12.4999Z\" fill=\"white\"/>' +\n                    '<circle cx=\"15\" cy=\"15\" r=\"8\" stroke=\"white\" stroke-width=\"2\"/>';\n        default:\n            return '<rect x=\"14\" y=\"7\" width=\"2\" height=\"16\" rx=\"1\" fill=\"white\"/>' +\n                   '<path d=\"M17.5 8.5L15 11L12.5 8.5M17.5 21.5L15 19L12.5 21.5\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M21.8792 13.9151L18.4641 13L19.3792 9.58496M10.6208 20.4151L11.5359 17L8.12082 16.085\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<path d=\"M10.6208 9.58491L11.5359 13L8.12085 13.915M21.8792 16.0849L18.4641 17L19.3792 20.415\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                   '<rect x=\"21.4282\" y=\"10.1338\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 21.4282 10.1338)\" fill=\"white\"/>' +\n                   '<rect x=\"7.57178\" y=\"11.8662\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 7.57178 11.8662)\" fill=\"white\"/>';\n    }\n}\n",
             "xPosKeyName": "xPos",
             "yPosKeyName": "yPos",
             "posFunction": "return {x: origXPos, y: origYPos};",
@@ -1204,7 +1081,24 @@
           "useDashboardTimewindow": true,
           "showLegend": false,
           "widgetStyle": {},
-          "actions": {},
+          "actions": {
+            "markerClick": [
+              {
+                "name": "Select device",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "updateDashboardState",
+                "targetDashboardStateId": "",
+                "setEntityId": true,
+                "stateEntityParamName": "selectedDevice",
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "c33ff837-63f4-df99-87f2-f2f409b5c997"
+              }
+            ]
+          },
           "showTitleIcon": false,
           "titleTooltip": "",
           "enableDataExport": false,
@@ -1214,171 +1108,6 @@
         "row": 0,
         "col": 0,
         "id": "7a37cf70-51c1-aef6-ef15-27041e016bd5"
-      },
-      "815c076b-3de9-08e2-3d98-2b7f6a8178dc": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
-        "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 7.5,
-        "sizeY": 6.5,
-        "config": {
-          "timewindow": {
-            "realtime": {
-              "interval": 1000,
-              "timewindowMs": 86400000
-            },
-            "aggregation": {
-              "type": "NONE",
-              "limit": 200
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "rgb(255, 255, 255)",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "4px",
-          "settings": {
-            "enableSearch": true,
-            "displayPagination": true,
-            "defaultPageSize": 10,
-            "defaultSortOrder": "entityName",
-            "displayEntityName": false,
-            "displayEntityType": false,
-            "enableSelectColumnDisplay": true,
-            "enableStickyHeader": true,
-            "enableStickyAction": true,
-            "reserveSpaceForHiddenAction": "true",
-            "displayEntityLabel": false,
-            "useRowStyleFunction": false,
-            "entitiesTitle": "Devices"
-          },
-          "title": "New Entities table",
-          "dropShadow": true,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
-          },
-          "useDashboardTimewindow": false,
-          "showLegend": false,
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "129977b6-de2f-546b-7df8-2040f39f8732",
-              "filterId": "3a46fadd-6a79-1f15-1c39-f7f0a30ab5f8",
-              "dataKeys": [
-                {
-                  "name": "name",
-                  "type": "entityField",
-                  "label": "Name",
-                  "color": "#2196f3",
-                  "settings": {
-                    "columnWidth": "0px",
-                    "useCellStyleFunction": false,
-                    "cellStyleFunction": "",
-                    "useCellContentFunction": false,
-                    "cellContentFunction": "",
-                    "defaultColumnVisibility": "visible",
-                    "columnSelectionToDisplay": "enabled",
-                    "columnExportOption": "onlyVisible"
-                  },
-                  "_hash": 0.46096251592014714
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#4caf50",
-                  "settings": {
-                    "columnWidth": "0px",
-                    "useCellStyleFunction": false,
-                    "cellStyleFunction": "",
-                    "useCellContentFunction": true,
-                    "defaultColumnVisibility": "visible",
-                    "columnSelectionToDisplay": "enabled",
-                    "columnExportOption": "onlyVisible",
-                    "cellContentFunction": "var type = value;\n\nvar typeSvg = getTypeSvg(type);\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nreturn '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ typeSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ type +'</span>' +\n       '</span>';\n            \nfunction getTypeSvg(type) {\n    var typeSvg;\n    switch (type) {\n        case 'Smart Shelf':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M2.5 2C2.22386 2 2 2.22386 2 2.5V17.5C2 17.7761 2.22386 18 2.5 18C2.77614 18 3 17.7761 3 17.5V17H17V17.5C17 17.7761 17.2239 18 17.5 ' +\n                      '18C17.7761 18 18 17.7761 18 17.5V2.5C18 2.22386 17.7761 2 17.5 2C17.2239 2 17 2.22386 17 2.5V8H14C14.5523 8 15 7.55228 15 7V4C15 3.44772 14.5523 3 14 3H11C10.4477 3 10 3.44772 10 4V7C10 ' +\n                      '7.55228 10.4477 8 11 8H7C7.55228 8 8 7.55228 8 7V6C8 5.44772 7.55228 5 7 5H6C5.44772 5 5 5.44772 5 6V7C5 7.55228 5.44772 8 6 8H3V2.5C3 2.22386 2.77614 2 2.5 2ZM17 16V9H3V16H6C5.44772 16 ' +\n                      '5 15.5523 5 15V12C5 11.4477 5.44772 11 6 11H9C9.55228 11 10 11.4477 10 12V15C10 15.5523 9.55228 16 9 16H12C11.4477 16 11 15.5523 11 15V13C11 12.4477 11.4477 12 12 12H14C14.5523 12 15 ' +\n                      '12.4477 15 13V15C15 15.5523 14.5523 16 14 16H17Z\" fill=\"#000\"/>';\n            break;\n        case 'Freezer':            \n            typeSvg = '<rect x=\"9\" y=\"2\" width=\"2\" height=\"16\" rx=\"1\" fill=\"#000\"/>' +\n                      '<path d=\"M12.5 3.5L10 6L7.5 3.5M12.5 16.5L10 14L7.5 16.5\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M16.8792 8.91509L13.4641 8.00002L14.3792 4.58496M5.62082 15.4151L6.53588 12L3.12082 11.085\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M5.62085 4.58491L6.53591 7.99998L3.12085 8.91504M16.8792 11.0849L13.4641 12L14.3792 15.415\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<rect x=\"16.4282\" y=\"5.13379\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 16.4282 5.13379)\" fill=\"#000\"/>' +\n                      '<rect x=\"2.57178\" y=\"6.86621\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 2.57178 6.86621)\" fill=\"#000\"/>';\n            break;\n        case 'Chiller':            \n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M13.0001 7.49994C13.0001 8.53714 12.2661 9.2516 11.4454 9.64333C11.2807 9.72191 11.1185 9.75061 10.9657 9.73874C10.9881 9.82201 ' +\n                      '11.0001 9.90957 11.0001 9.99994C11.0001 10.0304 10.9988 10.0605 10.9961 10.0902C11.1511 10.0322 11.322 9.99993 11.5001 9.99993L12.5001 9.99994L13.5 9.99993C14.3285 9.99992 15.0003 ' +\n                      '10.6975 14.6435 11.4452C14.2517 12.2658 13.5373 12.9999 12.5001 12.9999C11.4629 12.9999 10.7484 12.2658 10.3567 11.4452C10.2781 11.2805 10.2494 11.1184 10.2613 10.9655C10.178 10.988 ' +\n                      '10.0905 10.9999 10.0001 10.9999C9.96965 10.9999 9.93949 10.9986 9.90971 10.9959C9.96779 11.1509 10 11.3218 10 11.5L10 12.4999L10 13.4999C10.0001 14.3284 9.30246 15.0002 8.55482 ' +\n                      '14.6433C7.73413 14.2516 7.00006 13.5371 7.00006 12.4999C7.00006 11.4627 7.73413 10.7483 8.55482 10.3566C8.71948 10.278 8.8817 10.2493 9.03459 10.2611C9.01212 10.1779 9.00013 10.0903 ' +\n                      '9.00013 9.99994C9.00013 9.9695 9.00149 9.93938 9.00416 9.90963C8.84921 9.96766 8.67837 9.9999 8.50029 9.99989L7.50031 9.99988L6.50033 9.99989C5.67189 9.9999 5.00006 9.3023 5.35692 ' +\n                      '8.55467C5.74865 7.73397 6.46311 6.99991 7.50031 6.99991C8.5375 6.99991 9.25197 7.73397 9.6437 8.55467C9.72227 8.71929 9.75098 8.88149 9.73911 9.03435C9.82232 9.01191 9.90983 8.99994 ' +\n                      '10.0001 8.99994C10.0306 8.99994 10.0607 9.0013 10.0905 9.00397C10.0324 8.84898 10.0002 8.67807 10.0002 8.49992L10.0002 7.49994L10.0002 6.49996C10.0001 5.67153 10.6977 4.99969 11.4454 ' +\n                      '5.35655C12.2661 5.74828 13.0001 6.46274 13.0001 7.49994Z\" fill=\"#000\"/>' +\n                      '<circle cx=\"10\" cy=\"10\" r=\"8\" stroke=\"#000\" stroke-width=\"2\"/>';\n            break;                      \n        case 'Waste Bin':\n            typeSvg = '<path d=\"M6.68219 3H4C3.44772 3 3 3.44772 3 4C3 4.55228 3.44772 5 4 5H16C16.5523 5 17 4.55228 17 4C17 3.44772 16.5523 3 16 3H13.3178C12.3675 2.36815 11.2267 2 9.99999 2C8.77325 ' +\n                      '2 7.6325 2.36815 6.68219 3Z\" fill=\"#000\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 6H4V16C4 17.1046 4.89543 18 6 18H14C15.1046 18 16 17.1046 16 16V6ZM10 9C9.72386 9 9.5 9.22386 9.5 9.5V15.5C9.5 15.7761 9.72386 ' +\n                      '16 10 16C10.2761 16 10.5 15.7761 10.5 15.5V9.5C10.5 9.22386 10.2761 9 10 9ZM12 9.5C12 9.22386 12.2239 9 12.5 9C12.7761 9 13 9.22386 13 9.5V15.5C13 15.7761 12.7761 16 12.5 16C12.2239 ' +\n                      '16 12 15.7761 12 15.5V9.5ZM7.5 9C7.22386 9 7 9.22386 7 9.5V15.5C7 15.7761 7.22386 16 7.5 16C7.77614 16 8 15.7761 8 15.5V9.5C8 9.22386 7.77614 9 7.5 9Z\" fill=\"#000\"/>';\n            break;          \n        default:\n            typeSvg = '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"#AAAAAA\"/>';\n    }\n    \n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' + \n           typeSvg +\n           '</svg>';\n} \n"
-                  },
-                  "_hash": 0.8077097060074172,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "label",
-                  "type": "entityField",
-                  "label": "Label",
-                  "color": "#f44336",
-                  "settings": {
-                    "columnWidth": "0px",
-                    "useCellStyleFunction": false,
-                    "cellStyleFunction": "",
-                    "useCellContentFunction": false,
-                    "cellContentFunction": "",
-                    "defaultColumnVisibility": "visible",
-                    "columnSelectionToDisplay": "enabled",
-                    "columnExportOption": "onlyVisible"
-                  },
-                  "_hash": 0.4057433451983201
-                },
-                {
-                  "name": "state",
-                  "type": "attribute",
-                  "label": "State",
-                  "color": "#ffc107",
-                  "settings": {
-                    "columnWidth": "0px",
-                    "useCellStyleFunction": false,
-                    "cellStyleFunction": "",
-                    "useCellContentFunction": true,
-                    "defaultColumnVisibility": "visible",
-                    "columnSelectionToDisplay": "enabled",
-                    "columnExportOption": "onlyVisible",
-                    "cellContentFunction": "var state = value;\nvar active = entity.active;\nif (active === 'false') {\n    state = 'disconnected';\n}\n\nvar stateSvg = getStateSvg(state);\nvar encodedStateSvg = encodeURIComponent(stateSvg);\nvar stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\nvar stateLabel = getStateLabel(state);\n\nreturn '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n       '</span>';\n            \nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        case 'disconnected':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<g clip-path=\"url(#clip0_2839_52564)\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M1.92896 16.728L16.0711 2.58589L17.4853 4.00011L3.34317 18.1422L1.92896 16.728Z\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M2.10692 16.3171C1.81393 16.0241 1.81393 15.5491 2.10692 15.2561L15.1852 2.17788C15.4781 1.88489 15.9532 1.88489 16.2462 2.17788C16.5392 2.47088 16.5392 2.94591 16.2462 3.2389L3.16794 16.3171C2.87495 16.6101 2.39991 16.6101 2.10692 16.3171Z\" fill=\"white\"/>' +\n                   '</g>' +\n                   '<defs>' +\n                   '<clipPath id=\"clip0_2839_52564\">' +\n                   '<rect width=\"20\" height=\"20\" fill=\"white\"/>' +\n                   '</clipPath>' +\n                   '</defs>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        case 'disconnected':\n            return 'Disconnected';\n        default:\n            return state;\n    }\n}\n"
-                  },
-                  "_hash": 0.2718881518921066,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "active",
-                  "type": "attribute",
-                  "label": "active",
-                  "color": "#607d8b",
-                  "settings": {
-                    "columnWidth": "0px",
-                    "useCellStyleFunction": false,
-                    "cellStyleFunction": "",
-                    "useCellContentFunction": false,
-                    "cellContentFunction": "",
-                    "defaultColumnVisibility": "hidden",
-                    "columnSelectionToDisplay": "disabled",
-                    "columnExportOption": "onlyVisible"
-                  },
-                  "_hash": 0.04680501891139488,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            }
-          ]
-        },
-        "row": 0,
-        "col": 0,
-        "id": "815c076b-3de9-08e2-3d98-2b7f6a8178dc"
       },
       "225675bf-745f-b2bc-b83c-52d751910205": {
         "isSystemType": true,
@@ -1818,6 +1547,662 @@
         "row": 0,
         "col": 0,
         "id": "11a094c6-1b7f-05de-bbb0-291627f990aa"
+      },
+      "29ae1d9f-af91-cd84-c524-f45fb890d0da": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "state",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.8057369620518648
+                },
+                {
+                  "name": "label",
+                  "type": "entityField",
+                  "label": "Label",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.49953012506084726
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.21088975870489435
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.5157976480659352
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "16px",
+          "settings": {
+            "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
+            "markdownTextFunction": "var name, label, type, state, active;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    label = data[0]['Label'];\n    type = data[0]['Type'];\n    state = data[0]['state'];\n    active = data[0]['active'];\n    if (active === 'false') {\n        state = 'disconnected';\n    }\n} else {\n    name = 'N/A';\n    label = 'N/A';\n    type = 'N/A';\n    state = 'N/A';\n    active = 'N/A';\n}\n\nreturn '<div style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          '<div fxFlex fxLayout=\"row\">' +\n              '<div class=\"param-title\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param\">Type: </div>' +\n                '<div class=\"param\">State: </div>' +\n              '</div>' +\n              '<div class=\"param-value\" fxFlex fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param\">' + getTypeHtml(type) + '</div>' +\n                '<div class=\"param\">' + getStateHtml(state) + '</div>' +\n              '</div>'\n          '</div>' +\n       '<div>';\n\nfunction getTypeHtml(type) {\n    var typeSvg = getTypeSvg(type);\n    var encodedTypeSvg = encodeURIComponent(typeSvg);\n    var typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ typeSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ type +'</span>' +\n       '</span>';\n}\n\nfunction getTypeSvg(type) {\n    var typeSvg;\n    switch (type) {\n        case 'Smart Shelf':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M2.5 2C2.22386 2 2 2.22386 2 2.5V17.5C2 17.7761 2.22386 18 2.5 18C2.77614 18 3 17.7761 3 17.5V17H17V17.5C17 17.7761 17.2239 18 17.5 ' +\n                      '18C17.7761 18 18 17.7761 18 17.5V2.5C18 2.22386 17.7761 2 17.5 2C17.2239 2 17 2.22386 17 2.5V8H14C14.5523 8 15 7.55228 15 7V4C15 3.44772 14.5523 3 14 3H11C10.4477 3 10 3.44772 10 4V7C10 ' +\n                      '7.55228 10.4477 8 11 8H7C7.55228 8 8 7.55228 8 7V6C8 5.44772 7.55228 5 7 5H6C5.44772 5 5 5.44772 5 6V7C5 7.55228 5.44772 8 6 8H3V2.5C3 2.22386 2.77614 2 2.5 2ZM17 16V9H3V16H6C5.44772 16 ' +\n                      '5 15.5523 5 15V12C5 11.4477 5.44772 11 6 11H9C9.55228 11 10 11.4477 10 12V15C10 15.5523 9.55228 16 9 16H12C11.4477 16 11 15.5523 11 15V13C11 12.4477 11.4477 12 12 12H14C14.5523 12 15 ' +\n                      '12.4477 15 13V15C15 15.5523 14.5523 16 14 16H17Z\" fill=\"#000\"/>';\n            break;\n        case 'Freezer':            \n            typeSvg = '<rect x=\"9\" y=\"2\" width=\"2\" height=\"16\" rx=\"1\" fill=\"#000\"/>' +\n                      '<path d=\"M12.5 3.5L10 6L7.5 3.5M12.5 16.5L10 14L7.5 16.5\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M16.8792 8.91509L13.4641 8.00002L14.3792 4.58496M5.62082 15.4151L6.53588 12L3.12082 11.085\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M5.62085 4.58491L6.53591 7.99998L3.12085 8.91504M16.8792 11.0849L13.4641 12L14.3792 15.415\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<rect x=\"16.4282\" y=\"5.13379\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 16.4282 5.13379)\" fill=\"#000\"/>' +\n                      '<rect x=\"2.57178\" y=\"6.86621\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 2.57178 6.86621)\" fill=\"#000\"/>';\n            break;\n        case 'Chiller':            \n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M13.0001 7.49994C13.0001 8.53714 12.2661 9.2516 11.4454 9.64333C11.2807 9.72191 11.1185 9.75061 10.9657 9.73874C10.9881 9.82201 ' +\n                      '11.0001 9.90957 11.0001 9.99994C11.0001 10.0304 10.9988 10.0605 10.9961 10.0902C11.1511 10.0322 11.322 9.99993 11.5001 9.99993L12.5001 9.99994L13.5 9.99993C14.3285 9.99992 15.0003 ' +\n                      '10.6975 14.6435 11.4452C14.2517 12.2658 13.5373 12.9999 12.5001 12.9999C11.4629 12.9999 10.7484 12.2658 10.3567 11.4452C10.2781 11.2805 10.2494 11.1184 10.2613 10.9655C10.178 10.988 ' +\n                      '10.0905 10.9999 10.0001 10.9999C9.96965 10.9999 9.93949 10.9986 9.90971 10.9959C9.96779 11.1509 10 11.3218 10 11.5L10 12.4999L10 13.4999C10.0001 14.3284 9.30246 15.0002 8.55482 ' +\n                      '14.6433C7.73413 14.2516 7.00006 13.5371 7.00006 12.4999C7.00006 11.4627 7.73413 10.7483 8.55482 10.3566C8.71948 10.278 8.8817 10.2493 9.03459 10.2611C9.01212 10.1779 9.00013 10.0903 ' +\n                      '9.00013 9.99994C9.00013 9.9695 9.00149 9.93938 9.00416 9.90963C8.84921 9.96766 8.67837 9.9999 8.50029 9.99989L7.50031 9.99988L6.50033 9.99989C5.67189 9.9999 5.00006 9.3023 5.35692 ' +\n                      '8.55467C5.74865 7.73397 6.46311 6.99991 7.50031 6.99991C8.5375 6.99991 9.25197 7.73397 9.6437 8.55467C9.72227 8.71929 9.75098 8.88149 9.73911 9.03435C9.82232 9.01191 9.90983 8.99994 ' +\n                      '10.0001 8.99994C10.0306 8.99994 10.0607 9.0013 10.0905 9.00397C10.0324 8.84898 10.0002 8.67807 10.0002 8.49992L10.0002 7.49994L10.0002 6.49996C10.0001 5.67153 10.6977 4.99969 11.4454 ' +\n                      '5.35655C12.2661 5.74828 13.0001 6.46274 13.0001 7.49994Z\" fill=\"#000\"/>' +\n                      '<circle cx=\"10\" cy=\"10\" r=\"8\" stroke=\"#000\" stroke-width=\"2\"/>';\n            break;                      \n        case 'Waste Bin':\n            typeSvg = '<path d=\"M6.68219 3H4C3.44772 3 3 3.44772 3 4C3 4.55228 3.44772 5 4 5H16C16.5523 5 17 4.55228 17 4C17 3.44772 16.5523 3 16 3H13.3178C12.3675 2.36815 11.2267 2 9.99999 2C8.77325 ' +\n                      '2 7.6325 2.36815 6.68219 3Z\" fill=\"#000\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 6H4V16C4 17.1046 4.89543 18 6 18H14C15.1046 18 16 17.1046 16 16V6ZM10 9C9.72386 9 9.5 9.22386 9.5 9.5V15.5C9.5 15.7761 9.72386 ' +\n                      '16 10 16C10.2761 16 10.5 15.7761 10.5 15.5V9.5C10.5 9.22386 10.2761 9 10 9ZM12 9.5C12 9.22386 12.2239 9 12.5 9C12.7761 9 13 9.22386 13 9.5V15.5C13 15.7761 12.7761 16 12.5 16C12.2239 ' +\n                      '16 12 15.7761 12 15.5V9.5ZM7.5 9C7.22386 9 7 9.22386 7 9.5V15.5C7 15.7761 7.22386 16 7.5 16C7.77614 16 8 15.7761 8 15.5V9.5C8 9.22386 7.77614 9 7.5 9Z\" fill=\"#000\"/>';\n            break;          \n        default:\n            typeSvg = '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"#AAAAAA\"/>';\n    }\n    \n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' + \n           typeSvg +\n           '</svg>';\n} \n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        case 'disconnected':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<g clip-path=\"url(#clip0_2839_52564)\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M1.92896 16.728L16.0711 2.58589L17.4853 4.00011L3.34317 18.1422L1.92896 16.728Z\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M2.10692 16.3171C1.81393 16.0241 1.81393 15.5491 2.10692 15.2561L15.1852 2.17788C15.4781 1.88489 15.9532 1.88489 16.2462 2.17788C16.5392 2.47088 16.5392 2.94591 16.2462 3.2389L3.16794 16.3171C2.87495 16.6101 2.39991 16.6101 2.10692 16.3171Z\" fill=\"white\"/>' +\n                   '</g>' +\n                   '<defs>' +\n                   '<clipPath id=\"clip0_2839_52564\">' +\n                   '<rect width=\"20\" height=\"20\" fill=\"white\"/>' +\n                   '</clipPath>' +\n                   '</defs>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        case 'disconnected':\n            return 'Disconnected';\n        default:\n            return state;\n    }\n}\n       ",
+            "useMarkdownTextFunction": true,
+            "markdownCss": ".tb-markdown-view .param {\n    height: 28px;\n    line-height: 28px;\n}\n\n.tb-markdown-view .param-title {\n    padding-right: 15px;\n    font-weight: 600;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": []
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "29ae1d9f-af91-cd84-c524-f45fb890d0da"
+      },
+      "592649d5-d648-e75f-0dc6-5c8ccd94b6d7": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "entities_table",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "enableSearch": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "entityName",
+            "displayEntityName": false,
+            "displayEntityType": false,
+            "enableSelectColumnDisplay": true,
+            "enableStickyHeader": true,
+            "enableStickyAction": true,
+            "reserveSpaceForHiddenAction": "true",
+            "displayEntityLabel": false,
+            "useRowStyleFunction": false,
+            "entitiesTitle": "Devices"
+          },
+          "title": "New Entities table",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "129977b6-de2f-546b-7df8-2040f39f8732",
+              "filterId": "3a46fadd-6a79-1f15-1c39-f7f0a30ab5f8",
+              "dataKeys": [
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "Name",
+                  "color": "#2196f3",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.46096251592014714
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#4caf50",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": true,
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible",
+                    "cellContentFunction": "var type = value;\n\nvar typeSvg = getTypeSvg(type);\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nreturn '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ typeSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ type +'</span>' +\n       '</span>';\n            \nfunction getTypeSvg(type) {\n    var typeSvg;\n    switch (type) {\n        case 'Smart Shelf':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M2.5 2C2.22386 2 2 2.22386 2 2.5V17.5C2 17.7761 2.22386 18 2.5 18C2.77614 18 3 17.7761 3 17.5V17H17V17.5C17 17.7761 17.2239 18 17.5 ' +\n                      '18C17.7761 18 18 17.7761 18 17.5V2.5C18 2.22386 17.7761 2 17.5 2C17.2239 2 17 2.22386 17 2.5V8H14C14.5523 8 15 7.55228 15 7V4C15 3.44772 14.5523 3 14 3H11C10.4477 3 10 3.44772 10 4V7C10 ' +\n                      '7.55228 10.4477 8 11 8H7C7.55228 8 8 7.55228 8 7V6C8 5.44772 7.55228 5 7 5H6C5.44772 5 5 5.44772 5 6V7C5 7.55228 5.44772 8 6 8H3V2.5C3 2.22386 2.77614 2 2.5 2ZM17 16V9H3V16H6C5.44772 16 ' +\n                      '5 15.5523 5 15V12C5 11.4477 5.44772 11 6 11H9C9.55228 11 10 11.4477 10 12V15C10 15.5523 9.55228 16 9 16H12C11.4477 16 11 15.5523 11 15V13C11 12.4477 11.4477 12 12 12H14C14.5523 12 15 ' +\n                      '12.4477 15 13V15C15 15.5523 14.5523 16 14 16H17Z\" fill=\"#000\"/>';\n            break;\n        case 'Freezer':            \n            typeSvg = '<rect x=\"9\" y=\"2\" width=\"2\" height=\"16\" rx=\"1\" fill=\"#000\"/>' +\n                      '<path d=\"M12.5 3.5L10 6L7.5 3.5M12.5 16.5L10 14L7.5 16.5\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M16.8792 8.91509L13.4641 8.00002L14.3792 4.58496M5.62082 15.4151L6.53588 12L3.12082 11.085\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M5.62085 4.58491L6.53591 7.99998L3.12085 8.91504M16.8792 11.0849L13.4641 12L14.3792 15.415\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<rect x=\"16.4282\" y=\"5.13379\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 16.4282 5.13379)\" fill=\"#000\"/>' +\n                      '<rect x=\"2.57178\" y=\"6.86621\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 2.57178 6.86621)\" fill=\"#000\"/>';\n            break;\n        case 'Chiller':            \n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M13.0001 7.49994C13.0001 8.53714 12.2661 9.2516 11.4454 9.64333C11.2807 9.72191 11.1185 9.75061 10.9657 9.73874C10.9881 9.82201 ' +\n                      '11.0001 9.90957 11.0001 9.99994C11.0001 10.0304 10.9988 10.0605 10.9961 10.0902C11.1511 10.0322 11.322 9.99993 11.5001 9.99993L12.5001 9.99994L13.5 9.99993C14.3285 9.99992 15.0003 ' +\n                      '10.6975 14.6435 11.4452C14.2517 12.2658 13.5373 12.9999 12.5001 12.9999C11.4629 12.9999 10.7484 12.2658 10.3567 11.4452C10.2781 11.2805 10.2494 11.1184 10.2613 10.9655C10.178 10.988 ' +\n                      '10.0905 10.9999 10.0001 10.9999C9.96965 10.9999 9.93949 10.9986 9.90971 10.9959C9.96779 11.1509 10 11.3218 10 11.5L10 12.4999L10 13.4999C10.0001 14.3284 9.30246 15.0002 8.55482 ' +\n                      '14.6433C7.73413 14.2516 7.00006 13.5371 7.00006 12.4999C7.00006 11.4627 7.73413 10.7483 8.55482 10.3566C8.71948 10.278 8.8817 10.2493 9.03459 10.2611C9.01212 10.1779 9.00013 10.0903 ' +\n                      '9.00013 9.99994C9.00013 9.9695 9.00149 9.93938 9.00416 9.90963C8.84921 9.96766 8.67837 9.9999 8.50029 9.99989L7.50031 9.99988L6.50033 9.99989C5.67189 9.9999 5.00006 9.3023 5.35692 ' +\n                      '8.55467C5.74865 7.73397 6.46311 6.99991 7.50031 6.99991C8.5375 6.99991 9.25197 7.73397 9.6437 8.55467C9.72227 8.71929 9.75098 8.88149 9.73911 9.03435C9.82232 9.01191 9.90983 8.99994 ' +\n                      '10.0001 8.99994C10.0306 8.99994 10.0607 9.0013 10.0905 9.00397C10.0324 8.84898 10.0002 8.67807 10.0002 8.49992L10.0002 7.49994L10.0002 6.49996C10.0001 5.67153 10.6977 4.99969 11.4454 ' +\n                      '5.35655C12.2661 5.74828 13.0001 6.46274 13.0001 7.49994Z\" fill=\"#000\"/>' +\n                      '<circle cx=\"10\" cy=\"10\" r=\"8\" stroke=\"#000\" stroke-width=\"2\"/>';\n            break;                      \n        case 'Waste Bin':\n            typeSvg = '<path d=\"M6.68219 3H4C3.44772 3 3 3.44772 3 4C3 4.55228 3.44772 5 4 5H16C16.5523 5 17 4.55228 17 4C17 3.44772 16.5523 3 16 3H13.3178C12.3675 2.36815 11.2267 2 9.99999 2C8.77325 ' +\n                      '2 7.6325 2.36815 6.68219 3Z\" fill=\"#000\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 6H4V16C4 17.1046 4.89543 18 6 18H14C15.1046 18 16 17.1046 16 16V6ZM10 9C9.72386 9 9.5 9.22386 9.5 9.5V15.5C9.5 15.7761 9.72386 ' +\n                      '16 10 16C10.2761 16 10.5 15.7761 10.5 15.5V9.5C10.5 9.22386 10.2761 9 10 9ZM12 9.5C12 9.22386 12.2239 9 12.5 9C12.7761 9 13 9.22386 13 9.5V15.5C13 15.7761 12.7761 16 12.5 16C12.2239 ' +\n                      '16 12 15.7761 12 15.5V9.5ZM7.5 9C7.22386 9 7 9.22386 7 9.5V15.5C7 15.7761 7.22386 16 7.5 16C7.77614 16 8 15.7761 8 15.5V9.5C8 9.22386 7.77614 9 7.5 9Z\" fill=\"#000\"/>';\n            break;          \n        default:\n            typeSvg = '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"#AAAAAA\"/>';\n    }\n    \n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' + \n           typeSvg +\n           '</svg>';\n} \n"
+                  },
+                  "_hash": 0.8077097060074172,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "label",
+                  "type": "entityField",
+                  "label": "Label",
+                  "color": "#f44336",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.4057433451983201
+                },
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "State",
+                  "color": "#ffc107",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": true,
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible",
+                    "cellContentFunction": "var state = value;\nvar active = entity.active;\nif (active === 'false') {\n    state = 'disconnected';\n}\n\nvar stateSvg = getStateSvg(state);\nvar encodedStateSvg = encodeURIComponent(stateSvg);\nvar stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\nvar stateLabel = getStateLabel(state);\n\nreturn '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n       '</span>';\n            \nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        case 'disconnected':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<g clip-path=\"url(#clip0_2839_52564)\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M1.92896 16.728L16.0711 2.58589L17.4853 4.00011L3.34317 18.1422L1.92896 16.728Z\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M2.10692 16.3171C1.81393 16.0241 1.81393 15.5491 2.10692 15.2561L15.1852 2.17788C15.4781 1.88489 15.9532 1.88489 16.2462 2.17788C16.5392 2.47088 16.5392 2.94591 16.2462 3.2389L3.16794 16.3171C2.87495 16.6101 2.39991 16.6101 2.10692 16.3171Z\" fill=\"white\"/>' +\n                   '</g>' +\n                   '<defs>' +\n                   '<clipPath id=\"clip0_2839_52564\">' +\n                   '<rect width=\"20\" height=\"20\" fill=\"white\"/>' +\n                   '</clipPath>' +\n                   '</defs>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        case 'disconnected':\n            return 'Disconnected';\n        default:\n            return state;\n    }\n}\n"
+                  },
+                  "_hash": 0.2718881518921066,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#607d8b",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "hidden",
+                    "columnSelectionToDisplay": "disabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.04680501891139488,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Select device",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "updateDashboardState",
+                "targetDashboardStateId": null,
+                "setEntityId": true,
+                "stateEntityParamName": "selectedDevice",
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "27b78a0c-3e2d-8d90-72dd-10f9f80351b5"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "592649d5-d648-e75f-0dc6-5c8ccd94b6d7"
+      },
+      "ffbfe096-2667-28d1-7142-e25b1de3fd5d": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "label",
+                  "type": "entityField",
+                  "label": "Label",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.5564582390693753
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
+            "markdownTextFunction": "var deviceState;\nvar deviceName;\nvar deviceLabel;\nif (data && data.length && data[0]['entityId']) {\n    deviceState = true;\n    deviceName = data[0]['entityName'];\n    deviceLabel = data[0]['Label'];\n} else {\n    deviceState = false;\n}\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start center\" fxLayoutGap=\"16px\">' +\n             (deviceState ? '<button id=\"go-back\" mat-raised-button color=\"primary\">Back</button>' : '') +\n             '<div>' +\n                '<div class=\"title\">' + (deviceState ? deviceName : 'All devices') + '</div>' +\n                (deviceState ? '<div class=\"subtitle\">' + deviceLabel + '</div>' : '') +\n             '</div>' +\n             '</div>';\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"'+ (deviceState ? 'device_card' : 'devices_card') +'\"></tb-dashboard-state>' +\n          '<mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>' +\n          '<div class=\"header\"><div class=\"title\">' + (deviceState ? (deviceName + ' - Alarms') : 'All alarms') + '</div></div>' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"'+ (deviceState ? 'device_alarms' : 'devices_alarms') +'\"></tb-dashboard-state>' +\n       '</div>';",
+            "useMarkdownTextFunction": true,
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.main-layout .header {\n    height: 60px;\n    padding: 10px;\n}\n\n.main-layout .header .title {\n    font-size: 24px;\n    font-weight: 700;\n}\n\n.main-layout .header .subtitle {\n    font-size: 16px;\n    font-weight: 500;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "go-back",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nparams['selectedDevice'] = null;\nwidgetContext.stateController.updateState(null, params);",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "116515c2-d9bd-80b6-7a34-97373a802806"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "ffbfe096-2667-28d1-7142-e25b1de3fd5d"
+      },
+      "8872005d-0adb-9db5-8395-06e89e2e81fd": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 10.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "enableSelectColumnDisplay": true,
+            "enableStickyAction": false,
+            "enableFilter": true,
+            "enableStickyHeader": true,
+            "reserveSpaceForHiddenAction": "true",
+            "useRowStyleFunction": false
+          },
+          "title": "New Alarms table",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": null,
+            "entityAliasId": "129977b6-de2f-546b-7df8-2040f39f8732",
+            "filterId": "3a46fadd-6a79-1f15-1c39-f7f0a30ab5f8",
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.021092237451093787
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Originator",
+                "color": "#4caf50",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.2780007688856758
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.7323586880398418
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": false
+                },
+                "_hash": 0.09927019860088193
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.6588418951443418
+              }
+            ]
+          },
+          "alarmSearchStatus": "ANY",
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleIcon": "more_horiz",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "widgetStyle": {},
+          "displayTimewindow": true,
+          "actions": {},
+          "alarmStatusList": [
+            "ACTIVE"
+          ],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": false,
+          "datasources": [],
+          "enableDataExport": true,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "8872005d-0adb-9db5-8395-06e89e2e81fd"
+      },
+      "4c8da7a1-659f-e2e5-220c-4128a217e872": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 10.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "displayDetails": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "enableSelectColumnDisplay": true,
+            "enableStickyAction": false,
+            "enableFilter": true,
+            "enableStickyHeader": true,
+            "reserveSpaceForHiddenAction": "true",
+            "useRowStyleFunction": false,
+            "alarmsTitle": "Alarms: ${entityName}"
+          },
+          "title": "New Alarms table",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": null,
+            "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.021092237451093787
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Originator",
+                "color": "#4caf50",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.2780007688856758
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.7323586880398418
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": false
+                },
+                "_hash": 0.09927019860088193
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.6588418951443418
+              }
+            ]
+          },
+          "alarmSearchStatus": "ANY",
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleIcon": "more_horiz",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "widgetStyle": {},
+          "displayTimewindow": true,
+          "actions": {},
+          "alarmStatusList": [
+            "ACTIVE"
+          ],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": false,
+          "datasources": [],
+          "enableDataExport": true,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "4c8da7a1-659f-e2e5-220c-4128a217e872"
       }
     },
     "states": {
@@ -1859,21 +2244,15 @@
         "layouts": {
           "main": {
             "widgets": {
-              "4b123e6e-aea8-0951-bdc9-0dd19b73edf4": {
-                "sizeX": 9,
-                "sizeY": 6,
-                "row": 5,
-                "col": 15
-              },
               "34bb2f8f-4bf0-dac4-a017-badfac3e31bb": {
                 "sizeX": 15,
                 "sizeY": 11,
                 "row": 0,
                 "col": 0
               },
-              "815c076b-3de9-08e2-3d98-2b7f6a8178dc": {
+              "ffbfe096-2667-28d1-7142-e25b1de3fd5d": {
                 "sizeX": 9,
-                "sizeY": 5,
+                "sizeY": 11,
                 "row": 0,
                 "col": 15
               }
@@ -2046,6 +2425,125 @@
             }
           }
         }
+      },
+      "device_card": {
+        "name": "Device card",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "29ae1d9f-af91-cd84-c524-f45fb890d0da": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "devices_card": {
+        "name": "Devices card",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "592649d5-d648-e75f-0dc6-5c8ccd94b6d7": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "devices_alarms": {
+        "name": "Devices alarms",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "8872005d-0adb-9db5-8395-06e89e2e81fd": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "device_alarms": {
+        "name": "Device alarms",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "4c8da7a1-659f-e2e5-220c-4128a217e872": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "smart_shelf_data": {
+        "name": "Smart Shelf Data",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {},
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%"
+            }
+          }
+        }
       }
     },
     "entityAliases": {
@@ -2177,6 +2675,16 @@
             "entityType": "CURRENT_USER",
             "id": "13814000-1dd2-11b2-8080-808080808080"
           }
+        }
+      },
+      "b755362a-b545-8ee6-a67b-df2c9e39d6e5": {
+        "id": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+        "alias": "Selected device",
+        "filter": {
+          "type": "stateEntity",
+          "resolveMultiple": false,
+          "stateEntityParamName": "selectedDevice",
+          "defaultStateEntity": null
         }
       }
     },
