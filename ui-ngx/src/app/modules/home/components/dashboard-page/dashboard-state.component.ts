@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -71,7 +71,8 @@ export class DashboardStateComponent extends PageComponent implements OnInit, On
 
   private stateSubscription: Subscription;
 
-  constructor(protected store: Store<AppState>) {
+  constructor(protected store: Store<AppState>,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -83,6 +84,7 @@ export class DashboardStateComponent extends PageComponent implements OnInit, On
     if (this.syncParentStateParams) {
       this.stateSubscription = this.ctx.stateController.stateChanged().subscribe(() => {
         this.updateCurrentState();
+        this.cd.markForCheck();
       });
     }
   }
