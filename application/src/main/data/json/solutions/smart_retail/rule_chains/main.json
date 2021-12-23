@@ -11,46 +11,93 @@
     "configuration": null
   },
   "metadata": {
-    "firstNodeIndex": 8,
+    "firstNodeIndex": 10,
     "nodes": [
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 855,
-          "layoutY": 60
+          "layoutX": 595,
+          "layoutY": 371
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
+        "name": "isDevice",
+        "debugMode": false,
+        "configuration": {
+          "originatorTypes": [
+            "DEVICE"
+          ]
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 774,
+          "layoutY": 156
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
+        "name": "Is device or asset",
+        "debugMode": false,
+        "configuration": {
+          "originatorTypes": [
+            "DEVICE",
+            "ASSET"
+          ]
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 802,
+          "layoutY": 266
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Update state attributes",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var active = metadata.ss_active;\nvar alarmSeverityStatus = metadata.ss_alarmSeverityStatus;\nvar state = 'normal';\n\nif (metadata.isNewAlarm || metadata.isExistingAlarm) {\n    var severity = msg.severity;\n    if (severity === 'CRITICAL') {\n        alarmSeverityStatus = 'critical';\n    } else {\n        alarmSeverityStatus = 'major';\n    }\n} else if (metadata.isClearedAlarm) {\n    alarmSeverityStatus = 'normal';\n}\n\nif (active === 'true') {\n    if (alarmSeverityStatus) {\n        state = alarmSeverityStatus;\n    }\n} else {\n    state = 'disconnected';\n}\n\nreturn {\n    msg: {\n        state: state,\n        alarmSeverityStatus: alarmSeverityStatus\n    },\n    metadata: {\n        scope: 'SERVER_SCOPE'\n    },\n    msgType: 'POST_ATTRIBUTES_REQUEST'\n};"
+          "jsScript": "var criticalAlarmsCount = msg.criticalAlarmsCount;\nvar majorAlarmsCount = msg.majorAlarmsCount;\n\nvar state = 'normal';\n\nif (criticalAlarmsCount && Number(criticalAlarmsCount) > 0) {\n    state = 'critical';\n} else if (majorAlarmsCount && Number(majorAlarmsCount) > 0) {\n    state = 'major';\n}\n\nreturn {\n    msg: {\n        state: state\n    },\n    metadata: {\n        scope: 'SERVER_SCOPE'\n    },\n    msgType: 'POST_ATTRIBUTES_REQUEST'\n};"
         }
       },
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 479,
-          "layoutY": 64
+          "layoutX": 398,
+          "layoutY": 157
         },
-        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
-        "name": "Get active attribute",
-        "debugMode": false,
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Alarms Count",
+        "debugMode": true,
         "configuration": {
-          "tellFailureIfAbsent": false,
-          "clientAttributeNames": [],
-          "sharedAttributeNames": [],
-          "serverAttributeNames": [
-            "active",
-            "alarmSeverityStatus"
+          "alarmsCountMappings": [
+            {
+              "target": "criticalAlarmsCount",
+              "typesList": [],
+              "severityList": [
+                "CRITICAL"
+              ],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            },
+            {
+              "target": "majorAlarmsCount",
+              "typesList": [],
+              "severityList": [
+                "MAJOR"
+              ],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
           ],
-          "latestTsKeyNames": [],
-          "getLatestValueWithTs": false
+          "countAlarmsForPropagationEntities": true
         }
       },
       {
         "additionalInfo": {
-          "layoutX": 1187,
-          "layoutY": 192
+          "layoutX": 1322,
+          "layoutY": 450
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -61,8 +108,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1189,
-          "layoutY": 119
+          "layoutX": 1023,
+          "layoutY": 374
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
@@ -73,20 +120,21 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 794,
-          "layoutY": 249
+          "description": null,
+          "layoutX": 296,
+          "layoutY": 580
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
-        "debugMode": false,
+        "debugMode": true,
         "configuration": {
           "version": 0
         }
       },
       {
         "additionalInfo": {
-          "layoutX": 1189,
-          "layoutY": 281
+          "layoutX": 1317,
+          "layoutY": 539
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
@@ -97,8 +145,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1188,
-          "layoutY": 342
+          "layoutX": 1317,
+          "layoutY": 625
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -109,8 +157,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1187,
-          "layoutY": 405
+          "layoutX": 1324,
+          "layoutY": 743
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
@@ -122,8 +170,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 248,
-          "layoutY": 381
+          "layoutX": 54,
+          "layoutY": 400
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
@@ -137,77 +185,82 @@
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 3,
-        "type": "Success"
+        "toIndex": 2,
+        "type": "True"
       },
       {
         "fromIndex": 1,
+        "toIndex": 4,
+        "type": "True"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 1,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 3,
         "toIndex": 0,
         "type": "Success"
       },
       {
-        "fromIndex": 4,
-        "toIndex": 6,
+        "fromIndex": 6,
+        "toIndex": 8,
         "type": "Other"
       },
       {
-        "fromIndex": 4,
-        "toIndex": 3,
+        "fromIndex": 6,
+        "toIndex": 5,
         "type": "Post attributes"
       },
       {
-        "fromIndex": 4,
-        "toIndex": 2,
+        "fromIndex": 6,
+        "toIndex": 4,
         "type": "Post telemetry"
       },
       {
-        "fromIndex": 4,
-        "toIndex": 5,
+        "fromIndex": 6,
+        "toIndex": 7,
         "type": "RPC Request from Device"
       },
       {
-        "fromIndex": 4,
-        "toIndex": 7,
+        "fromIndex": 6,
+        "toIndex": 9,
         "type": "RPC Request to Device"
       },
       {
-        "fromIndex": 4,
-        "toIndex": 1,
-        "type": "Activity Event"
-      },
-      {
-        "fromIndex": 4,
-        "toIndex": 1,
-        "type": "Inactivity Event"
-      },
-      {
-        "fromIndex": 4,
-        "toIndex": 1,
-        "type": "Attributes Updated"
-      },
-      {
-        "fromIndex": 8,
-        "toIndex": 1,
-        "type": "Alarm Created"
-      },
-      {
-        "fromIndex": 8,
-        "toIndex": 1,
-        "type": "Alarm Updated"
-      },
-      {
-        "fromIndex": 8,
-        "toIndex": 1,
-        "type": "Alarm Severity Updated"
-      },
-      {
-        "fromIndex": 8,
-        "toIndex": 1,
+        "fromIndex": 6,
+        "toIndex": 3,
         "type": "Alarm Cleared"
       },
       {
-        "fromIndex": 8,
-        "toIndex": 4,
+        "fromIndex": 6,
+        "toIndex": 0,
+        "type": "Entity Created"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 3,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 3,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 3,
+        "type": "Alarm Severity Updated"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 6,
         "type": "Success"
       }
     ],

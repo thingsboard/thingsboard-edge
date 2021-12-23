@@ -128,8 +128,10 @@
             "alarmDetails": null,
             "dashboardId": null
           },
-          "propagate": false,
-          "propagateRelationTypes": null
+          "propagate": true,
+          "propagateRelationTypes": [
+            "Contains"
+          ]
         }
       ]
     },
@@ -267,8 +269,10 @@
             "alarmDetails": null,
             "dashboardId": null
           },
-          "propagate": false,
-          "propagateRelationTypes": null
+          "propagate": true,
+          "propagateRelationTypes": [
+            "Contains"
+          ]
         }
       ]
     },
@@ -406,8 +410,10 @@
             "alarmDetails": null,
             "dashboardId": null
           },
-          "propagate": false,
-          "propagateRelationTypes": null
+          "propagate": true,
+          "propagateRelationTypes": [
+            "Contains"
+          ]
         }
       ]
     },

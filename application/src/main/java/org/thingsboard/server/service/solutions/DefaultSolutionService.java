@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -104,6 +105,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
@@ -200,6 +202,7 @@ public class DefaultSolutionService implements SolutionService {
     private final TbTenantProfileCache tenantProfileCache;
     private final DeviceStateService deviceStateService;
     private final TelemetrySubscriptionService tsSubService;
+    private final EntityActionService entityActionService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
@@ -304,7 +307,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     @Override
-    public SolutionInstallResponse installSolution(TenantId tenantId, String solutionId, HttpServletRequest request) throws ThingsboardException {
+    public SolutionInstallResponse installSolution(User user, TenantId tenantId, String solutionId, HttpServletRequest request) throws ThingsboardException {
         if (!solutionsMap.containsKey(solutionId)) {
             throw new ThingsboardException("Solution does not exist", ThingsboardErrorCode.ITEM_NOT_FOUND);
         }
@@ -313,7 +316,7 @@ public class DefaultSolutionService implements SolutionService {
         if (validateResult != null && !validateResult.isSuccess()) {
             return validateResult;
         } else {
-            return doInstallSolution(tenantId, solutionId, request);
+            return doInstallSolution(user, tenantId, solutionId, request);
         }
     }
 
@@ -413,7 +416,7 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private SolutionInstallResponse doInstallSolution(TenantId tenantId, String solutionId, HttpServletRequest request) {
+    private SolutionInstallResponse doInstallSolution(User user, TenantId tenantId, String solutionId, HttpServletRequest request) {
         SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, new TenantSolutionTemplateInstructions());
         try {
             provisionRoles(ctx);
@@ -428,7 +431,7 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionAssets(ctx);
 
-            provisionDevices(ctx);
+            provisionDevices(user, ctx);
 
             provisionRelations(ctx);
 
@@ -643,8 +646,8 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    protected void provisionDevices(SolutionInstallContext ctx) throws Exception {
-        List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<List<DeviceDefinition>>() {
+    protected void provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
+        List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
         Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
         }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
@@ -657,6 +660,9 @@ public class DefaultSolutionService implements SolutionService {
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
             entity = deviceService.saveDevice(entity);
+
+            entityActionService.logEntityAction(user, entity.getId(), entity, customerId, ActionType.ADDED, null);
+
             ctx.register(entityDef, entity);
             log.info("[{}] Saved device: {}", entity.getId(), entity);
             DeviceId entityId = entity.getId();
