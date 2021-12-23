@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeBulkImportService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -693,7 +694,7 @@ public class EdgeController extends BaseController {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-            return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
+            return checkNotNull(cloudEventService.findCloudEvents(tenantId, ModelConstants.NULL_UUID, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

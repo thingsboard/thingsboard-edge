@@ -36,11 +36,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface DownlinkMessageService {
 
     ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
                                                     DownlinkMsg downlinkMsg,
                                                     EdgeSettings currentEdgeSettings,
-                                                    Long queueStartTs);
+                                                    UUID queueStartId);
 }

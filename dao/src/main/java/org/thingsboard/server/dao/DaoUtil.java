@@ -92,7 +92,7 @@ public abstract class DaoUtil {
 
     public static Sort toSort(SortOrder sortOrder, Map<String,String> columnMap) {
         if (sortOrder == null) {
-            return Sort.unsorted();
+            return Sort.by(Sort.Direction.ASC, "id");
         } else {
             String property = sortOrder.getProperty();
             if (columnMap.containsKey(property)) {

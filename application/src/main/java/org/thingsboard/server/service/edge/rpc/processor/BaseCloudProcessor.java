@@ -209,20 +209,15 @@ public abstract class BaseCloudProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
+    protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, UUID queueStartId) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
 
-            TimePageLink timePageLink = new TimePageLink(1,
-                    0,
-                    null,
-                    new SortOrder("createdTime", SortOrder.Direction.ASC),
-                    queueStartTs,
-                    System.currentTimeMillis());
+            TimePageLink timePageLink = new TimePageLink(1);
 
             PageData<CloudEvent> cloudEventsByEntityIdAndCloudEventActionAndCloudEventType =
-                    cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(tenantId, entityId, cloudEventType, ActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
+                    cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(tenantId, entityId, queueStartId, cloudEventType, ActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
 
             if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
                 log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);

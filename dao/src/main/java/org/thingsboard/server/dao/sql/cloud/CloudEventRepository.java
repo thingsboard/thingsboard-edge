@@ -52,12 +52,10 @@ public interface CloudEventRepository extends PagingAndSortingRepository<CloudEv
 
     @Query("SELECT e FROM CloudEventEntity e WHERE " +
             "e.tenantId = :tenantId " +
-            "AND (:startTime IS NULL OR e.createdTime >= :startTime) " +
-            "AND (:endTime IS NULL OR e.createdTime <= :endTime) "
+            "AND e.id > :startId"
     )
     Page<CloudEventEntity> findEventsByTenantId(@Param("tenantId") UUID tenantId,
-                                                @Param("startTime") Long startTime,
-                                                @Param("endTime") Long endTime,
+                                                @Param("startId") UUID startId,
                                                 Pageable pageable);
 
     @Query("SELECT e FROM CloudEventEntity e WHERE " +
@@ -65,15 +63,13 @@ public interface CloudEventRepository extends PagingAndSortingRepository<CloudEv
             "AND e.entityId  = :entityId " +
             "AND e.cloudEventType = :cloudEventType " +
             "AND e.cloudEventAction = :cloudEventAction " +
-            "AND (:startTime IS NULL OR e.createdTime >= :startTime) " +
-            "AND (:endTime IS NULL OR e.createdTime <= :endTime) "
+            "AND e.id > :startId"
     )
     Page<CloudEventEntity> findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
             @Param("tenantId") UUID tenantId,
             @Param("entityId") UUID entityId,
             @Param("cloudEventType") CloudEventType cloudEventType,
             @Param("cloudEventAction") String cloudEventAction,
-            @Param("startTime") Long startTime,
-            @Param("endTime") Long endTime,
+            @Param("startId") UUID startId,
             Pageable pageable);
 }

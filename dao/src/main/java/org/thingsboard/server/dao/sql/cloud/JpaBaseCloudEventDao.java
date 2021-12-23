@@ -102,15 +102,14 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
+    public PageData<CloudEvent> findCloudEvents(UUID tenantId, UUID startId, TimePageLink pageLink) {
         readWriteLock.lock();
         try {
             return DaoUtil.toPageData(
                     cloudEventRepository
                             .findEventsByTenantId(
                                     tenantId,
-                                    pageLink.getStartTime(),
-                                    pageLink.getEndTime(),
+                                    startId,
                                     DaoUtil.toPageable(pageLink)));
         } finally {
             readWriteLock.unlock();
@@ -121,6 +120,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
             UUID tenantId,
             UUID entityId,
+            UUID startId,
             CloudEventType cloudEventType,
             String cloudEventAction,
             TimePageLink pageLink) {
@@ -131,8 +131,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                                 entityId,
                                 cloudEventType,
                                 cloudEventAction,
-                                pageLink.getStartTime(),
-                                pageLink.getEndTime(),
+                                startId,
                                 DaoUtil.toPageable(pageLink)));
     }
 

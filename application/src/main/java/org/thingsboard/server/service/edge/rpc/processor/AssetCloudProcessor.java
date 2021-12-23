@@ -56,7 +56,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
 
     private final Lock assetCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType, Long queueStartTs) {
+    public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType, UUID queueStartId) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -108,7 +108,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + assetUpdateMsg.getMsgType()));
         }
 
-        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);
+        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartId), future -> null, dbCallbackExecutor);
     }
 
     private void addToEntityGroup(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType, AssetId assetId, CustomerId assetCustomerId) {
