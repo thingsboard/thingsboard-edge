@@ -133,24 +133,14 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
       id: authUser.tenantId,
       entityType: EntityType.TENANT
     };
-    return this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartId']).pipe(
+    return this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs']).pipe(
       map((attributes) => {
-        const queueStartId = attributes[0];
-        this.queueStartTs = queueStartId && queueStartId.value ? this.getTimeInt(queueStartId.value) : 0;
+        const queueStartTs = attributes[0];
+        this.queueStartTs = queueStartTs && queueStartTs.value ? queueStartTs.value : 0;
       }),
       mergeMap(() => this.edgeService.getCloudEvents(pageLink))
     );
   }
-
-  getTimeInt(uuid_str: string): number {
-    let uuid_arr = uuid_str.split('-'),
-      time_str = [
-        uuid_arr[2].substring(1),
-        uuid_arr[1],
-        uuid_arr[0]
-      ].join('');
-    return parseInt(time_str, 16);
-  };
 
   prepareCloudEventContent(entity: CloudEvent): Observable<string> {
     return this.entityService.getCloudEventByType(entity).pipe(
