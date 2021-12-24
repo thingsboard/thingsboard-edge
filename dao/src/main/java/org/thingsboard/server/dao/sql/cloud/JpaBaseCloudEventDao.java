@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.CloudEventId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
@@ -47,6 +48,8 @@ import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.event.EventCleanupRepository;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -102,28 +105,37 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEvents(UUID tenantId, UUID startId, TimePageLink pageLink) {
+    public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
+        List<SortOrder> sortOrders = new ArrayList<>();
+        if (pageLink.getSortOrder() != null) {
+            sortOrders.add(pageLink.getSortOrder());
+        }
+        sortOrders.add(new SortOrder(DaoUtil.DEFAULT_SORT_PROPERTY, SortOrder.Direction.ASC));
         readWriteLock.lock();
         try {
             return DaoUtil.toPageData(
                     cloudEventRepository
                             .findEventsByTenantId(
                                     tenantId,
-                                    startId,
-                                    DaoUtil.toPageable(pageLink)));
+                                    pageLink.getStartTime(),
+                                    pageLink.getEndTime(),
+                                    DaoUtil.toPageable(pageLink, sortOrders)));
         } finally {
             readWriteLock.unlock();
         }
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
-            UUID tenantId,
-            UUID entityId,
-            UUID startId,
-            CloudEventType cloudEventType,
-            String cloudEventAction,
-            TimePageLink pageLink) {
+    public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(UUID tenantId,
+                                                                                              UUID entityId,
+                                                                                              CloudEventType cloudEventType,
+                                                                                              String cloudEventAction,
+                                                                                              TimePageLink pageLink) {
+        List<SortOrder> sortOrders = new ArrayList<>();
+        if (pageLink.getSortOrder() != null) {
+            sortOrders.add(pageLink.getSortOrder());
+        }
+        sortOrders.add(new SortOrder(DaoUtil.DEFAULT_SORT_PROPERTY, SortOrder.Direction.ASC));
         return DaoUtil.toPageData(
                 cloudEventRepository
                         .findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
@@ -131,8 +143,9 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                                 entityId,
                                 cloudEventType,
                                 cloudEventAction,
-                                startId,
-                                DaoUtil.toPageable(pageLink)));
+                                pageLink.getStartTime(),
+                                pageLink.getEndTime(),
+                                DaoUtil.toPageable(pageLink, sortOrders)));
     }
 
     @Override

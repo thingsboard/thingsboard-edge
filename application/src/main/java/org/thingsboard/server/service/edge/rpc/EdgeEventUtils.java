@@ -37,10 +37,21 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
 public final class EdgeEventUtils {
 
     private EdgeEventUtils() {
+    }
+
+    public static TimePageLink createCloudEventTimePageLink(int pageSize, Long startTs) {
+        return new TimePageLink(pageSize,
+                0,
+                null,
+                new SortOrder("createdTime", SortOrder.Direction.ASC),
+                startTs,
+                System.currentTimeMillis());
     }
 
     public static EdgeEvent constructEdgeEvent(TenantId tenantId,

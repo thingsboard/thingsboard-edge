@@ -79,7 +79,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                                                             CustomerId customerId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
                                                             CloudType cloudType,
-                                                            UUID queueStartId) {
+                                                            Long queueStartTs) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -121,7 +121,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         }
 
         SettableFuture<Void> futureToSet = SettableFuture.create();
-        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartId), new FutureCallback<>() {
+        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Boolean requestForAdditionalData) {
                 if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||

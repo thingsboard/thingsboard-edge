@@ -86,6 +86,7 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
@@ -209,15 +210,17 @@ public abstract class BaseCloudProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, UUID queueStartId) {
+    protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
 
-            TimePageLink timePageLink = new TimePageLink(1);
+            TimePageLink timePageLink =
+                    EdgeEventUtils.createCloudEventTimePageLink(1, queueStartTs);
 
             PageData<CloudEvent> cloudEventsByEntityIdAndCloudEventActionAndCloudEventType =
-                    cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(tenantId, entityId, queueStartId, cloudEventType, ActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
+                    cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
+                            tenantId, entityId, cloudEventType, ActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
 
             if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
                 log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);

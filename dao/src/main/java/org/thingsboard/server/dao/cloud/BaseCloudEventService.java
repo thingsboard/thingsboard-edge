@@ -49,13 +49,11 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -85,21 +83,19 @@ public class BaseCloudEventService implements CloudEventService {
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, UUID startId, TimePageLink pageLink) {
-        return cloudEventDao.findCloudEvents(tenantId.getId(), startId, pageLink);
+    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
+        return cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
     }
 
     @Override
     public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(TenantId tenantId,
                                                                                               EntityId entityId,
-                                                                                              UUID startId,
                                                                                               CloudEventType cloudEventType,
                                                                                               String cloudEventAction,
                                                                                               TimePageLink pageLink) {
         return cloudEventDao.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
                 tenantId.getId(),
                 entityId.getId(),
-                startId,
                 cloudEventType,
                 cloudEventAction,
                 pageLink);
@@ -129,7 +125,7 @@ public class BaseCloudEventService implements CloudEventService {
         TimePageLink pageLink = new TimePageLink(100);
         PageData<CloudEvent> pageData;
         do {
-            pageData = findCloudEvents(tenantId, ModelConstants.NULL_UUID, pageLink);
+            pageData = findCloudEvents(tenantId, pageLink);
             for (CloudEvent entity : pageData.getData()) {
                 cloudEventDao.removeById(tenantId, entity.getId().getId());
             }

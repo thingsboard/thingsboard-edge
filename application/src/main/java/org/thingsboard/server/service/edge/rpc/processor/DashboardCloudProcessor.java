@@ -61,7 +61,11 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private DashboardService dashboardService;
 
-    public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType, UUID queueStartId) {
+    public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
+                                                               CustomerId customerId,
+                                                               DashboardUpdateMsg dashboardUpdateMsg,
+                                                               CloudType cloudType,
+                                                               Long queueStartTs) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -109,7 +113,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + dashboardUpdateMsg.getMsgType()));
         }
 
-        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartId), future -> null, dbCallbackExecutor);
+        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
     private void addToEntityGroup(TenantId tenantId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType, DashboardId dashboardId, CustomerId dashboardCustomerId) {

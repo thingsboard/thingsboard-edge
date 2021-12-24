@@ -64,7 +64,11 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId, CustomerId customerId, EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, UUID queueStartId) {
+    public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
+                                                                CustomerId customerId,
+                                                                EntityViewUpdateMsg entityViewUpdateMsg,
+                                                                CloudType cloudType,
+                                                                Long queueStartTs) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -124,7 +128,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                 log.error("Unsupported msg type");
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + entityViewUpdateMsg.getMsgType()));
         }
-        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartId), future -> null, dbCallbackExecutor);
+        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
     private CustomerId safeSetCustomerId(EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, EntityView entityView) {

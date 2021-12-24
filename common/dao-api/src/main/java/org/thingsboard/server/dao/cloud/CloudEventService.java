@@ -40,17 +40,15 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface CloudEventService {
 
     CloudEvent save(CloudEvent cloudEvent);
 
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, UUID startId, TimePageLink pageLink);
+    PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
 
     PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(TenantId tenantId,
                                                                                        EntityId entityId,
-                                                                                       UUID startId,
                                                                                        CloudEventType cloudEventType,
                                                                                        String cloudEventAction,
                                                                                        TimePageLink pageLink);

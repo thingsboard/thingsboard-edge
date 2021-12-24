@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -61,7 +62,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -78,7 +79,6 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -93,6 +93,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceProfileCloudProcessor;
@@ -135,7 +136,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
     private static final ReentrantLock pendingMsgsMapLock = new ReentrantLock();
 
-    private static final String QUEUE_START_ID_ATTR_KEY = "queueStartId";
+    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -259,7 +260,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private EdgeId edgeId;
     private EdgeSettings currentEdgeSettings;
 
-    private UUID queueStartId;
+    private Long queueStartTs;
 
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
@@ -320,14 +321,14 @@ public class CloudManagerService extends BaseCloudEventService {
             while (!Thread.interrupted()) {
                 try {
                     if (initialized) {
-                        queueStartId = getQueueStartId().get();
+                        queueStartTs = getQueueStartTs().get();
                         TimePageLink pageLink =
-                                new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount());
+                                EdgeEventUtils.createCloudEventTimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(), queueStartTs);
                         PageData<CloudEvent> pageData;
                         UUID ifOffset = null;
                         boolean success = true;
                         do {
-                            pageData = cloudEventService.findCloudEvents(tenantId, queueStartId, pageLink);
+                            pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
                             if (initialized && !pageData.getData().isEmpty()) {
                                 log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                 List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
@@ -339,7 +340,8 @@ public class CloudManagerService extends BaseCloudEventService {
                             }
                         } while (initialized && (!success || pageData.hasNext()));
                         if (ifOffset != null) {
-                            updateQueueStartId(ifOffset);
+                            Long newStartTs = Uuids.unixTimestamp(ifOffset);
+                            updateQueueStartTs(newStartTs);
                         }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
@@ -497,21 +499,24 @@ public class CloudManagerService extends BaseCloudEventService {
         }
     }
 
-    private ListenableFuture<UUID> getQueueStartId() {
+    private ListenableFuture<Long> getQueueStartTs() {
         ListenableFuture<Optional<AttributeKvEntry>> future =
-                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, QUEUE_START_ID_ATTR_KEY);
+                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, QUEUE_START_TS_ATTR_KEY);
         return Futures.transform(future, attributeKvEntryOpt -> {
             if (attributeKvEntryOpt != null && attributeKvEntryOpt.isPresent()) {
                 AttributeKvEntry attributeKvEntry = attributeKvEntryOpt.get();
-                return attributeKvEntry.getStrValue().isPresent() ? UUID.fromString(attributeKvEntry.getStrValue().get()) : ModelConstants.NULL_UUID;
+                return attributeKvEntry.getLongValue().isPresent() ? attributeKvEntry.getLongValue().get() : 0L;
             } else {
-                return ModelConstants.NULL_UUID;
+                return 0L;
             }
         }, dbCallbackExecutorService);
     }
 
-    private void updateQueueStartId(UUID newStartTs) {
-        List<AttributeKvEntry> attributes = Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry(QUEUE_START_ID_ATTR_KEY, newStartTs.toString()), System.currentTimeMillis()));
+    private void updateQueueStartTs(Long newStartTs) {
+        List<AttributeKvEntry> attributes = Collections.singletonList(
+                new BaseAttributeKvEntry(
+                        new LongDataEntry(QUEUE_START_TS_ATTR_KEY, newStartTs),
+                        System.currentTimeMillis()));
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
     }
 
@@ -689,7 +694,7 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings, queueStartId);
+        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {

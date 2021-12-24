@@ -62,12 +62,11 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      * @param pageLink the pageLink
      * @return the event list
      */
-    PageData<CloudEvent> findCloudEvents(UUID tenantId, UUID startId, TimePageLink pageLink);
+    PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink);
 
     PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
             UUID tenantId,
             UUID entityId,
-            UUID startId,
             CloudEventType cloudEventType,
             String cloudEventAction,
             TimePageLink pageLink);
