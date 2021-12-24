@@ -1609,7 +1609,7 @@
           "padding": "8px",
           "settings": {
             "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
-            "markdownTextFunction": "var name, label, type, state, active;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    label = data[0]['Label'];\n    type = data[0]['Type'];\n    state = data[0]['state'];\n    active = data[0]['active'];\n    if (active === 'false') {\n        state = 'disconnected';\n    }\n} else {\n    name = 'N/A';\n    label = 'N/A';\n    type = 'N/A';\n    state = 'N/A';\n    active = 'N/A';\n}\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start center\" fxLayoutGap=\"16px\">' +\n                '<button id=\"go-back\" mat-raised-button color=\"primary\">Back</button>' +\n                '<div>' +\n                   '<div class=\"title\">' + name + '</div>' +\n                   '<div class=\"subtitle\">' + label + '</div>' +\n                '</div>' +\n             '</div>';\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<div fxFlex fxLayout=\"row\">' +\n              '<div class=\"param-title\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param\">Type: </div>' +\n                '<div class=\"param\">State: </div>' +\n              '</div>' +\n              '<div class=\"param-value\" fxFlex fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param\">' + getTypeHtml(type) + '</div>' +\n                '<div class=\"param\">' + getStateHtml(state) + '</div>' +\n              '</div>'\n          '</div>' +\n       '<div>';\n\nfunction getTypeHtml(type) {\n    var typeSvg = getTypeSvg(type);\n    var encodedTypeSvg = encodeURIComponent(typeSvg);\n    var typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ typeSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ type +'</span>' +\n       '</span>';\n}\n\nfunction getTypeSvg(type) {\n    var typeSvg;\n    switch (type) {\n        case 'Smart Shelf':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M2.5 2C2.22386 2 2 2.22386 2 2.5V17.5C2 17.7761 2.22386 18 2.5 18C2.77614 18 3 17.7761 3 17.5V17H17V17.5C17 17.7761 17.2239 18 17.5 ' +\n                      '18C17.7761 18 18 17.7761 18 17.5V2.5C18 2.22386 17.7761 2 17.5 2C17.2239 2 17 2.22386 17 2.5V8H14C14.5523 8 15 7.55228 15 7V4C15 3.44772 14.5523 3 14 3H11C10.4477 3 10 3.44772 10 4V7C10 ' +\n                      '7.55228 10.4477 8 11 8H7C7.55228 8 8 7.55228 8 7V6C8 5.44772 7.55228 5 7 5H6C5.44772 5 5 5.44772 5 6V7C5 7.55228 5.44772 8 6 8H3V2.5C3 2.22386 2.77614 2 2.5 2ZM17 16V9H3V16H6C5.44772 16 ' +\n                      '5 15.5523 5 15V12C5 11.4477 5.44772 11 6 11H9C9.55228 11 10 11.4477 10 12V15C10 15.5523 9.55228 16 9 16H12C11.4477 16 11 15.5523 11 15V13C11 12.4477 11.4477 12 12 12H14C14.5523 12 15 ' +\n                      '12.4477 15 13V15C15 15.5523 14.5523 16 14 16H17Z\" fill=\"#000\"/>';\n            break;\n        case 'Freezer':            \n            typeSvg = '<rect x=\"9\" y=\"2\" width=\"2\" height=\"16\" rx=\"1\" fill=\"#000\"/>' +\n                      '<path d=\"M12.5 3.5L10 6L7.5 3.5M12.5 16.5L10 14L7.5 16.5\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M16.8792 8.91509L13.4641 8.00002L14.3792 4.58496M5.62082 15.4151L6.53588 12L3.12082 11.085\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M5.62085 4.58491L6.53591 7.99998L3.12085 8.91504M16.8792 11.0849L13.4641 12L14.3792 15.415\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<rect x=\"16.4282\" y=\"5.13379\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 16.4282 5.13379)\" fill=\"#000\"/>' +\n                      '<rect x=\"2.57178\" y=\"6.86621\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 2.57178 6.86621)\" fill=\"#000\"/>';\n            break;\n        case 'Chiller':            \n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M13.0001 7.49994C13.0001 8.53714 12.2661 9.2516 11.4454 9.64333C11.2807 9.72191 11.1185 9.75061 10.9657 9.73874C10.9881 9.82201 ' +\n                      '11.0001 9.90957 11.0001 9.99994C11.0001 10.0304 10.9988 10.0605 10.9961 10.0902C11.1511 10.0322 11.322 9.99993 11.5001 9.99993L12.5001 9.99994L13.5 9.99993C14.3285 9.99992 15.0003 ' +\n                      '10.6975 14.6435 11.4452C14.2517 12.2658 13.5373 12.9999 12.5001 12.9999C11.4629 12.9999 10.7484 12.2658 10.3567 11.4452C10.2781 11.2805 10.2494 11.1184 10.2613 10.9655C10.178 10.988 ' +\n                      '10.0905 10.9999 10.0001 10.9999C9.96965 10.9999 9.93949 10.9986 9.90971 10.9959C9.96779 11.1509 10 11.3218 10 11.5L10 12.4999L10 13.4999C10.0001 14.3284 9.30246 15.0002 8.55482 ' +\n                      '14.6433C7.73413 14.2516 7.00006 13.5371 7.00006 12.4999C7.00006 11.4627 7.73413 10.7483 8.55482 10.3566C8.71948 10.278 8.8817 10.2493 9.03459 10.2611C9.01212 10.1779 9.00013 10.0903 ' +\n                      '9.00013 9.99994C9.00013 9.9695 9.00149 9.93938 9.00416 9.90963C8.84921 9.96766 8.67837 9.9999 8.50029 9.99989L7.50031 9.99988L6.50033 9.99989C5.67189 9.9999 5.00006 9.3023 5.35692 ' +\n                      '8.55467C5.74865 7.73397 6.46311 6.99991 7.50031 6.99991C8.5375 6.99991 9.25197 7.73397 9.6437 8.55467C9.72227 8.71929 9.75098 8.88149 9.73911 9.03435C9.82232 9.01191 9.90983 8.99994 ' +\n                      '10.0001 8.99994C10.0306 8.99994 10.0607 9.0013 10.0905 9.00397C10.0324 8.84898 10.0002 8.67807 10.0002 8.49992L10.0002 7.49994L10.0002 6.49996C10.0001 5.67153 10.6977 4.99969 11.4454 ' +\n                      '5.35655C12.2661 5.74828 13.0001 6.46274 13.0001 7.49994Z\" fill=\"#000\"/>' +\n                      '<circle cx=\"10\" cy=\"10\" r=\"8\" stroke=\"#000\" stroke-width=\"2\"/>';\n            break;                      \n        case 'Waste Bin':\n            typeSvg = '<path d=\"M6.68219 3H4C3.44772 3 3 3.44772 3 4C3 4.55228 3.44772 5 4 5H16C16.5523 5 17 4.55228 17 4C17 3.44772 16.5523 3 16 3H13.3178C12.3675 2.36815 11.2267 2 9.99999 2C8.77325 ' +\n                      '2 7.6325 2.36815 6.68219 3Z\" fill=\"#000\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 6H4V16C4 17.1046 4.89543 18 6 18H14C15.1046 18 16 17.1046 16 16V6ZM10 9C9.72386 9 9.5 9.22386 9.5 9.5V15.5C9.5 15.7761 9.72386 ' +\n                      '16 10 16C10.2761 16 10.5 15.7761 10.5 15.5V9.5C10.5 9.22386 10.2761 9 10 9ZM12 9.5C12 9.22386 12.2239 9 12.5 9C12.7761 9 13 9.22386 13 9.5V15.5C13 15.7761 12.7761 16 12.5 16C12.2239 ' +\n                      '16 12 15.7761 12 15.5V9.5ZM7.5 9C7.22386 9 7 9.22386 7 9.5V15.5C7 15.7761 7.22386 16 7.5 16C7.77614 16 8 15.7761 8 15.5V9.5C8 9.22386 7.77614 9 7.5 9Z\" fill=\"#000\"/>';\n            break;          \n        default:\n            typeSvg = '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"#AAAAAA\"/>';\n    }\n    \n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' + \n           typeSvg +\n           '</svg>';\n} \n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        case 'disconnected':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<g clip-path=\"url(#clip0_2839_52564)\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M1.92896 16.728L16.0711 2.58589L17.4853 4.00011L3.34317 18.1422L1.92896 16.728Z\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M2.10692 16.3171C1.81393 16.0241 1.81393 15.5491 2.10692 15.2561L15.1852 2.17788C15.4781 1.88489 15.9532 1.88489 16.2462 2.17788C16.5392 2.47088 16.5392 2.94591 16.2462 3.2389L3.16794 16.3171C2.87495 16.6101 2.39991 16.6101 2.10692 16.3171Z\" fill=\"white\"/>' +\n                   '</g>' +\n                   '<defs>' +\n                   '<clipPath id=\"clip0_2839_52564\">' +\n                   '<rect width=\"20\" height=\"20\" fill=\"white\"/>' +\n                   '</clipPath>' +\n                   '</defs>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        case 'disconnected':\n            return 'Disconnected';\n        default:\n            return state;\n    }\n}\n       ",
+            "markdownTextFunction": "var name, label, type, state, active;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    label = data[0]['Label'];\n    type = data[0]['Type'];\n    state = data[0]['state'];\n    active = data[0]['active'];\n    if (active === 'false') {\n        state = 'disconnected';\n    }\n} else {\n    name = 'N/A';\n    label = 'N/A';\n    type = 'N/A';\n    state = 'N/A';\n    active = 'N/A';\n}\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start center\" fxLayoutGap=\"16px\">' +\n                '<button id=\"go-back\" mat-raised-button color=\"primary\">Back</button>' +\n                '<div>' +\n                   '<div class=\"title\">' + name + '</div>' +\n                   '<div class=\"subtitle\">' + label + '</div>' +\n                '</div>' +\n             '</div>';\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<div fxFlex fxLayout=\"row\">' +\n              '<div class=\"param-title\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param\">Type: </div>' +\n                '<div class=\"param\">State: </div>' +\n              '</div>' +\n              '<div class=\"param-value\" fxFlex fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param\">' + getTypeHtml(type) + '</div>' +\n                '<div class=\"param\">' + getStateHtml(state) + '</div>' +\n              '</div>' +\n          '</div>' +\n          (type === 'Smart Shelf' ? '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"smart_shelf\"></tb-dashboard-state>' : '') +\n       '<div>';\n\nfunction getTypeHtml(type) {\n    var typeSvg = getTypeSvg(type);\n    var encodedTypeSvg = encodeURIComponent(typeSvg);\n    var typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ typeSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ type +'</span>' +\n       '</span>';\n}\n\nfunction getTypeSvg(type) {\n    var typeSvg;\n    switch (type) {\n        case 'Smart Shelf':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M2.5 2C2.22386 2 2 2.22386 2 2.5V17.5C2 17.7761 2.22386 18 2.5 18C2.77614 18 3 17.7761 3 17.5V17H17V17.5C17 17.7761 17.2239 18 17.5 ' +\n                      '18C17.7761 18 18 17.7761 18 17.5V2.5C18 2.22386 17.7761 2 17.5 2C17.2239 2 17 2.22386 17 2.5V8H14C14.5523 8 15 7.55228 15 7V4C15 3.44772 14.5523 3 14 3H11C10.4477 3 10 3.44772 10 4V7C10 ' +\n                      '7.55228 10.4477 8 11 8H7C7.55228 8 8 7.55228 8 7V6C8 5.44772 7.55228 5 7 5H6C5.44772 5 5 5.44772 5 6V7C5 7.55228 5.44772 8 6 8H3V2.5C3 2.22386 2.77614 2 2.5 2ZM17 16V9H3V16H6C5.44772 16 ' +\n                      '5 15.5523 5 15V12C5 11.4477 5.44772 11 6 11H9C9.55228 11 10 11.4477 10 12V15C10 15.5523 9.55228 16 9 16H12C11.4477 16 11 15.5523 11 15V13C11 12.4477 11.4477 12 12 12H14C14.5523 12 15 ' +\n                      '12.4477 15 13V15C15 15.5523 14.5523 16 14 16H17Z\" fill=\"#000\"/>';\n            break;\n        case 'Freezer':            \n            typeSvg = '<rect x=\"9\" y=\"2\" width=\"2\" height=\"16\" rx=\"1\" fill=\"#000\"/>' +\n                      '<path d=\"M12.5 3.5L10 6L7.5 3.5M12.5 16.5L10 14L7.5 16.5\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M16.8792 8.91509L13.4641 8.00002L14.3792 4.58496M5.62082 15.4151L6.53588 12L3.12082 11.085\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M5.62085 4.58491L6.53591 7.99998L3.12085 8.91504M16.8792 11.0849L13.4641 12L14.3792 15.415\" stroke=\"#000\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<rect x=\"16.4282\" y=\"5.13379\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 16.4282 5.13379)\" fill=\"#000\"/>' +\n                      '<rect x=\"2.57178\" y=\"6.86621\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 2.57178 6.86621)\" fill=\"#000\"/>';\n            break;\n        case 'Chiller':            \n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M13.0001 7.49994C13.0001 8.53714 12.2661 9.2516 11.4454 9.64333C11.2807 9.72191 11.1185 9.75061 10.9657 9.73874C10.9881 9.82201 ' +\n                      '11.0001 9.90957 11.0001 9.99994C11.0001 10.0304 10.9988 10.0605 10.9961 10.0902C11.1511 10.0322 11.322 9.99993 11.5001 9.99993L12.5001 9.99994L13.5 9.99993C14.3285 9.99992 15.0003 ' +\n                      '10.6975 14.6435 11.4452C14.2517 12.2658 13.5373 12.9999 12.5001 12.9999C11.4629 12.9999 10.7484 12.2658 10.3567 11.4452C10.2781 11.2805 10.2494 11.1184 10.2613 10.9655C10.178 10.988 ' +\n                      '10.0905 10.9999 10.0001 10.9999C9.96965 10.9999 9.93949 10.9986 9.90971 10.9959C9.96779 11.1509 10 11.3218 10 11.5L10 12.4999L10 13.4999C10.0001 14.3284 9.30246 15.0002 8.55482 ' +\n                      '14.6433C7.73413 14.2516 7.00006 13.5371 7.00006 12.4999C7.00006 11.4627 7.73413 10.7483 8.55482 10.3566C8.71948 10.278 8.8817 10.2493 9.03459 10.2611C9.01212 10.1779 9.00013 10.0903 ' +\n                      '9.00013 9.99994C9.00013 9.9695 9.00149 9.93938 9.00416 9.90963C8.84921 9.96766 8.67837 9.9999 8.50029 9.99989L7.50031 9.99988L6.50033 9.99989C5.67189 9.9999 5.00006 9.3023 5.35692 ' +\n                      '8.55467C5.74865 7.73397 6.46311 6.99991 7.50031 6.99991C8.5375 6.99991 9.25197 7.73397 9.6437 8.55467C9.72227 8.71929 9.75098 8.88149 9.73911 9.03435C9.82232 9.01191 9.90983 8.99994 ' +\n                      '10.0001 8.99994C10.0306 8.99994 10.0607 9.0013 10.0905 9.00397C10.0324 8.84898 10.0002 8.67807 10.0002 8.49992L10.0002 7.49994L10.0002 6.49996C10.0001 5.67153 10.6977 4.99969 11.4454 ' +\n                      '5.35655C12.2661 5.74828 13.0001 6.46274 13.0001 7.49994Z\" fill=\"#000\"/>' +\n                      '<circle cx=\"10\" cy=\"10\" r=\"8\" stroke=\"#000\" stroke-width=\"2\"/>';\n            break;                      \n        case 'Waste Bin':\n            typeSvg = '<path d=\"M6.68219 3H4C3.44772 3 3 3.44772 3 4C3 4.55228 3.44772 5 4 5H16C16.5523 5 17 4.55228 17 4C17 3.44772 16.5523 3 16 3H13.3178C12.3675 2.36815 11.2267 2 9.99999 2C8.77325 ' +\n                      '2 7.6325 2.36815 6.68219 3Z\" fill=\"#000\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 6H4V16C4 17.1046 4.89543 18 6 18H14C15.1046 18 16 17.1046 16 16V6ZM10 9C9.72386 9 9.5 9.22386 9.5 9.5V15.5C9.5 15.7761 9.72386 ' +\n                      '16 10 16C10.2761 16 10.5 15.7761 10.5 15.5V9.5C10.5 9.22386 10.2761 9 10 9ZM12 9.5C12 9.22386 12.2239 9 12.5 9C12.7761 9 13 9.22386 13 9.5V15.5C13 15.7761 12.7761 16 12.5 16C12.2239 ' +\n                      '16 12 15.7761 12 15.5V9.5ZM7.5 9C7.22386 9 7 9.22386 7 9.5V15.5C7 15.7761 7.22386 16 7.5 16C7.77614 16 8 15.7761 8 15.5V9.5C8 9.22386 7.77614 9 7.5 9Z\" fill=\"#000\"/>';\n            break;          \n        default:\n            typeSvg = '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"#AAAAAA\"/>';\n    }\n    \n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' + \n           typeSvg +\n           '</svg>';\n} \n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        case 'disconnected':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<g clip-path=\"url(#clip0_2839_52564)\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M1.92896 16.728L16.0711 2.58589L17.4853 4.00011L3.34317 18.1422L1.92896 16.728Z\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M2.10692 16.3171C1.81393 16.0241 1.81393 15.5491 2.10692 15.2561L15.1852 2.17788C15.4781 1.88489 15.9532 1.88489 16.2462 2.17788C16.5392 2.47088 16.5392 2.94591 16.2462 3.2389L3.16794 16.3171C2.87495 16.6101 2.39991 16.6101 2.10692 16.3171Z\" fill=\"white\"/>' +\n                   '</g>' +\n                   '<defs>' +\n                   '<clipPath id=\"clip0_2839_52564\">' +\n                   '<rect width=\"20\" height=\"20\" fill=\"white\"/>' +\n                   '</clipPath>' +\n                   '</defs>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"6\" cy=\"6\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        case 'disconnected':\n            return 'Disconnected';\n        default:\n            return state;\n    }\n}\n       ",
             "useMarkdownTextFunction": true,
             "markdownCss": ".main-layout .header {\n    height: 60px;\n}\n\n.main-layout .header .title {\n    font-size: 24px;\n    font-weight: 700;\n}\n\n.main-layout .header .subtitle {\n    font-size: 16px;\n    font-weight: 500;\n}\n\n.tb-markdown-view .param {\n    height: 28px;\n    line-height: 28px;\n}\n\n.tb-markdown-view .param-title {\n    padding-right: 15px;\n    font-weight: 600;\n}"
           },
@@ -2216,6 +2216,150 @@
         "row": 0,
         "col": 0,
         "id": "4c8da7a1-659f-e2e5-220c-4128a217e872"
+      },
+      "f169ca06-09fe-1454-5106-a97770df82c3": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "weight",
+                  "type": "timeseries",
+                  "label": "weight",
+                  "color": "#2196f3",
+                  "settings": {
+                    "excludeFromStacking": false,
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "showLines": true,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showPointShape": "circle",
+                    "pointShapeFormatter": "var size = radius * Math.sqrt(Math.PI) / 2;\nctx.moveTo(x - size, y - size);\nctx.lineTo(x + size, y + size);\nctx.moveTo(x - size, y + size);\nctx.lineTo(x + size, y - size);",
+                    "showPointsLineWidth": 5,
+                    "showPointsRadius": 3,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left",
+                    "thresholds": [
+                      {
+                        "thresholdValueSource": "predefinedValue",
+                        "thresholdEntityAlias": "Selected device",
+                        "thresholdAttribute": "lowWeightCriticalThreshold",
+                        "color": "#ff0000"
+                      }
+                    ],
+                    "comparisonSettings": {
+                      "showValuesForComparison": true
+                    }
+                  },
+                  "_hash": 0.890142518382879,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "tickDecimals": 0
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": true,
+              "horizontalLines": true,
+              "outlineWidth": 1
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "smoothLines": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "showTooltip": true,
+            "comparisonEnabled": false,
+            "timeForComparison": "previousInterval",
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "New Timeseries Line Chart",
+          "dropShadow": false,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": false,
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "showLegend": true,
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": true,
+            "showTotal": false
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "f169ca06-09fe-1454-5106-a97770df82c3"
       }
     },
     "states": {
@@ -2554,6 +2698,32 @@
               "columns": 24,
               "margin": 10,
               "backgroundSizeMode": "100%"
+            }
+          }
+        }
+      },
+      "smart_shelf": {
+        "name": "Smart Shelf",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "f169ca06-09fe-1454-5106-a97770df82c3": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
             }
           }
         }
