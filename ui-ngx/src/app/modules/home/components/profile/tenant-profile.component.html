@@ -34,6 +34,12 @@
   <button mat-raised-button color="primary"
           *ngIf="resource.TENANT_PROFILE | hasGenericPermission: operation.WRITE"
           [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'open')"
+          [fxShow]="!isEdit && !isDetailsPage">
+    {{'common.open-details-page' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'setDefault')"
           [fxShow]="!isEdit && !entity?.default">
     {{'tenant-profile.set-default' | translate }}

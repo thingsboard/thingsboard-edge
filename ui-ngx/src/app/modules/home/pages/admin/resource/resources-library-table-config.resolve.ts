@@ -37,7 +37,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import { Resource, ResourceInfo, ResourceTypeTranslationMap } from '@shared/models/resource.models';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
@@ -64,6 +64,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
               private resourceService: ResourceService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
+              private router: Router,
               private datePipe: DatePipe) {
 
     this.config.entityType = EntityType.TB_RESOURCE;
@@ -137,6 +138,13 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     return this.config;
   }
 
+  private openResource($event: Event, resourceInfo: ResourceInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`settings/resources-library/${resourceInfo.id.id}`);
+  }
+
   downloadResource($event: Event, resource: ResourceInfo) {
     if ($event) {
       $event.stopPropagation();
@@ -146,6 +154,9 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
 
   onResourceAction(action: EntityAction<ResourceInfo>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openResource(action.event, action.entity);
+        return true;
       case 'downloadResource':
         this.downloadResource(action.event, action.entity);
         return true;

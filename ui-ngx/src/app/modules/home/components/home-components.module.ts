@@ -186,6 +186,7 @@ import {
   HOME_COMPONENTS_MODULE_TOKEN
 } from '@home/components/tokens';
 import { DashboardStateComponent } from '@home/components/dashboard-page/dashboard-state.component';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 
 @NgModule({
   declarations:
@@ -194,6 +195,7 @@ import { DashboardStateComponent } from '@home/components/dashboard-page/dashboa
       AddEntityDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
+      EntityDetailsPageComponent,
       AuditLogTableComponent,
       AuditLogDetailsDialogComponent,
       EventContentDialogComponent,
@@ -343,6 +345,7 @@ import { DashboardStateComponent } from '@home/components/dashboard-page/dashboa
     AddEntityDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
+    EntityDetailsPageComponent,
     AuditLogTableComponent,
     EventTableComponent,
     EdgeDownlinkTableHeaderComponent,

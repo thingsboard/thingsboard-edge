@@ -31,6 +31,7 @@
 
 import { InjectionToken } from '@angular/core';
 import { IModulesMap } from '@modules/common/modules-map.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 
 export const Constants = {
   serverErrorCode: {
@@ -201,6 +202,20 @@ export const HelpLinks = {
     selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration'
   }
 };
+
+export const baseDetailsPageByEntityType = new Map<EntityType, string>([
+  [EntityType.TENANT, '/tenants'],
+  [EntityType.TENANT_PROFILE, '/tenantProfiles'],
+  [EntityType.CUSTOMER, '/customers'],
+  [EntityType.USER, '/users'],
+  [EntityType.ASSET, '/assets'],
+  [EntityType.DEVICE, '/devices'],
+  [EntityType.DEVICE_PROFILE, '/deviceProfiles'],
+  [EntityType.EDGE, '/edgeInstances'],
+  [EntityType.ENTITY_VIEW, '/entityViews'],
+  [EntityType.TB_RESOURCE, '/settings/resources-library'],
+  [EntityType.OTA_PACKAGE, '/otaUpdates']
+]);
 
 export interface ValueTypeData {
   name: string;

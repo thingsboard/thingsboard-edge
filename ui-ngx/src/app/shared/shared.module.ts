@@ -521,6 +521,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyboardShortcutPipe,
     FileSizePipe,
     SelectableColumnsPipe,
+    RouterModule,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
