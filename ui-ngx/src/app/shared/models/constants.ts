@@ -31,7 +31,7 @@
 
 import { InjectionToken } from '@angular/core';
 import { IModulesMap } from '@modules/common/modules-map.models';
-import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export const Constants = {
   serverErrorCode: {
@@ -212,9 +212,12 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.ASSET, '/assets'],
   [EntityType.DEVICE, '/devices'],
   [EntityType.DEVICE_PROFILE, '/deviceProfiles'],
+  [EntityType.CONVERTER, '/converters'],
+  [EntityType.INTEGRATION, '/integrations'],
   [EntityType.RULE_CHAIN, '/ruleChains'],
   [EntityType.EDGE, '/edgeInstances'],
   [EntityType.ENTITY_VIEW, '/entityViews'],
+  [EntityType.ROLE, '/roles'],
   [EntityType.TB_RESOURCE, '/settings/resources-library'],
   [EntityType.OTA_PACKAGE, '/otaUpdates']
 ]);
