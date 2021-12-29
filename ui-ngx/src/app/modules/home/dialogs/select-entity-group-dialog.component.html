@@ -71,6 +71,9 @@
               <mat-error *ngIf="selectEntityGroupFormGroup.get('newEntityGroupName').hasError('required')">
                 {{ 'entity-group.name-required' | translate }}
               </mat-error>
+              <mat-error *ngIf="selectEntityGroupFormGroup.get('newEntityGroupName').hasError('maxlength')">
+                {{ 'entity-group.name-max-length' | translate }}
+              </mat-error>
             </mat-form-field>
           </section>
         </mat-radio-button>

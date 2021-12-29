@@ -116,7 +116,7 @@ export class SelectEntityGroupDialogComponent extends
     this.selectEntityGroupFormGroup = this.fb.group({
       addToGroupType: [0],
       targetEntityGroupId: [null, [Validators.required]],
-      newEntityGroupName: [null, [Validators.required]]
+      newEntityGroupName: [null, [Validators.required, Validators.maxLength(255)]]
     });
     this.updateDisabledState();
     if (this.createEnabled) {
@@ -157,7 +157,7 @@ export class SelectEntityGroupDialogComponent extends
     this.submitted = true;
     const addToGroupType: number = this.selectEntityGroupFormGroup.get('addToGroupType').value;
     if (addToGroupType === 1) {
-      const newEntityGroupName: string = this.selectEntityGroupFormGroup.get('newEntityGroupName').value;
+      const newEntityGroupName: string = this.selectEntityGroupFormGroup.get('newEntityGroupName').value.trim();
       const newEntityGroup: EntityGroup = {
         name: newEntityGroupName,
         type: this.targetGroupType,
