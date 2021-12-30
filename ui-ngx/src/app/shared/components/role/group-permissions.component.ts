@@ -449,7 +449,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
       data: {
         role: groupPermission.role
       }
-    })
+    });
   }
 
 }
