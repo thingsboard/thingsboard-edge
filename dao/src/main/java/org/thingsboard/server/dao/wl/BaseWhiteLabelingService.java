@@ -531,13 +531,13 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private <T extends WhiteLabelingParams> T prepareChecksums(T whiteLabelingParams) {
-        String logoImageChecksum = "";
+        String logoImageChecksum = null;
         String logoImageUrl = whiteLabelingParams.getLogoImageUrl();
         if (!StringUtils.isEmpty(logoImageUrl)) {
             logoImageChecksum = calculateSha1Checksum(logoImageUrl);
         }
         whiteLabelingParams.setLogoImageChecksum(logoImageChecksum);
-        String faviconChecksum = "";
+        String faviconChecksum = null;
         if (whiteLabelingParams.getFavicon() != null && !StringUtils.isEmpty(whiteLabelingParams.getFavicon().getUrl())) {
             faviconChecksum = calculateSha1Checksum(whiteLabelingParams.getFavicon().getUrl());
         }

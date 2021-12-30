@@ -239,6 +239,14 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
+
+        revertSysAdminWhiteLabelingAndCustomTranslation();
+    }
+
+    private void revertSysAdminWhiteLabelingAndCustomTranslation() throws Exception {
+        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
     }
 
     @Test
