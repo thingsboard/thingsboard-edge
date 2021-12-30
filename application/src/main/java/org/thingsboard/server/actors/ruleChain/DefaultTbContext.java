@@ -693,6 +693,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
         boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
         UUID requestUUID;
+        String serviceId = msg.getMetaData().getValue("originServiceId");
         if (restApiCall) {
             String tmp = msg.getMetaData().getValue("requestUUID");
             requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUID.randomUUID();
@@ -715,13 +716,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 new SimpleTbQueueCallback(() -> {
                     if (restApiCall) {
                         FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
-                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
                     }
                     callback.onSuccess(null);
                 }, error -> {
                     if (restApiCall) {
                         FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
-                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
                     }
                     callback.onFailure(error);
                 }));
