@@ -1,0 +1,181 @@
+{
+  "name": "Smoke Sensor",
+  "description": "Smoke and Carbon Monoxide detector",
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "99be82a0-6239-11ec-ac93-e50d8a3a5be2"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": "",
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "2cc02556-b85b-2fd5-3237-1ad67f13761e",
+        "alarmType": "Fire Alarm",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "alarm"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": null,
+        "propagate": true,
+        "propagateRelationTypes": [
+          "Contains"
+        ]
+      },
+      {
+        "id": "b9d1abba-5419-7603-cbc6-9015841844c3",
+        "alarmType": "Low Battery",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "batteryLevel"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS",
+                    "value": {
+                      "defaultValue": 10,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_DEVICE",
+                        "sourceAttribute": "smokeAlarmLowBatteryCriticalThreshold",
+                        "inherit": true
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "batteryLevel"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS",
+                    "value": {
+                      "defaultValue": 30,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_DEVICE",
+                        "sourceAttribute": "smokeAlarmLowBatteryMajorThreshold",
+                        "inherit": true
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "batteryLevel"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 30,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_DEVICE",
+                      "sourceAttribute": "smokeAlarmLowBatteryMajorThreshold",
+                      "inherit": true
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": true,
+        "propagateRelationTypes": [
+          "Contains"
+        ]
+      }
+    ]
+  },
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "default": false
+}
