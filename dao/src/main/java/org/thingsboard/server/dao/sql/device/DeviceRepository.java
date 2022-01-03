@@ -34,7 +34,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
@@ -127,7 +126,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
             "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
     Page<DeviceEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                           @Param("customerId") UUID customerId,
                                                           @Param("type") String type,
@@ -143,7 +143,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
     Page<DeviceEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                            @Param("textSearch") String textSearch,
                                            Pageable pageable);
@@ -154,7 +155,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
     Page<DeviceEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                             @Param("textSearch") String textSearch,
                                             Pageable pageable);
@@ -166,7 +168,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
     Page<DeviceEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<UUID> groupIds,
                                                    @Param("type") String type,
                                                    @Param("textSearch") String textSearch,
