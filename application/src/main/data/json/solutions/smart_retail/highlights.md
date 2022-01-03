@@ -9,5 +9,5 @@ Press the "install" button, and you will have a ready-to-use generic application
 
 * "Smart Supermarket Tenant Dashboard" dashboard for tenant administrators to provision the supermarkets and the other users;
 * "Smart Supermarket Dashboard" dashboard for supermarket managers to browse state of the supermarkets they are responsible for;
-* Multiple "Smart Shelf", "Chiller", "Freezer", waste bin and other devices;
+* Multiple "Smart Shelf", "Chiller", "Freezer", "Smart Bin" and other devices;
 * Each device type generates specific alarm based on configurable thresholds.

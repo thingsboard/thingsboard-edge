@@ -208,7 +208,7 @@ public class DefaultSolutionService implements SolutionService {
     @PostConstruct
     public void init() {
         Path solutionsDescriptorsFile = resolve("solutions.json");
-        List<SolutionDescriptor> descriptors = JacksonUtil.readValue(solutionsDescriptorsFile.toFile(), new TypeReference<List<SolutionDescriptor>>() {
+        List<SolutionDescriptor> descriptors = JacksonUtil.readValue(solutionsDescriptorsFile.toFile(), new TypeReference<>() {
         });
         for (SolutionDescriptor descriptor : descriptors) {
             SolutionTemplateInfo templateInfo = new SolutionTemplateInfo();
@@ -366,7 +366,7 @@ public class DefaultSolutionService implements SolutionService {
         //TODO: check that enough entities in subscription plan.
         //TODO: check other entities.
 
-        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(solutionId, "rule_chains.json", new TypeReference<List<ReferenceableEntityDefinition>>() {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(solutionId, "rule_chains.json", new TypeReference<>() {
         });
         if (!ruleChains.isEmpty()) {
             for (ReferenceableEntityDefinition ruleChain : ruleChains) {
@@ -377,8 +377,9 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
-        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(solutionId, "device_profiles.json", new TypeReference<List<DeviceProfile>>() {
+        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(solutionId, "device_profiles.json", new TypeReference<>() {
         });
+        deviceProfiles.addAll(loadListOfEntitiesFromDirectory(solutionId, "device_profiles", DeviceProfile.class));
         // Validate that entities with such name does not exist entities
         if (!deviceProfiles.isEmpty()) {
             for (DeviceProfile deviceProfile : deviceProfiles) {
@@ -389,7 +390,7 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
-        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<List<DashboardDefinition>>() {
+        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<>() {
         });
         if (!dashboards.isEmpty()) {
             for (DashboardDefinition dashboard : dashboards) {
@@ -403,11 +404,9 @@ public class DefaultSolutionService implements SolutionService {
             SolutionInstallResponse solutionInstallResponse = new SolutionInstallResponse();
             StringBuilder detailsBuilder = new StringBuilder();
             detailsBuilder.append("## Validation failed").append(System.lineSeparator()).append(System.lineSeparator());
-            alreadyExistingEntities.forEach((type, list) -> {
-                detailsBuilder.append("The following **").append(getTypeLabel(type)).append("** entities already exist: ")
-                        .append(list.stream().map(HasName::getName).map(name -> "'" + name + "'").collect(Collectors.joining(","))).append(";")
-                        .append(System.lineSeparator()).append(System.lineSeparator());
-            });
+            alreadyExistingEntities.forEach((type, list) -> detailsBuilder.append("The following **").append(getTypeLabel(type)).append("** entities already exist: ")
+                    .append(list.stream().map(HasName::getName).map(name -> "'" + name + "'").collect(Collectors.joining(","))).append(";")
+                    .append(System.lineSeparator()).append(System.lineSeparator()));
             solutionInstallResponse.setSuccess(false);
             solutionInstallResponse.setDetails(detailsBuilder.toString());
             return solutionInstallResponse;
@@ -533,7 +532,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionRoles(SolutionInstallContext ctx) {
-        List<RoleDefinition> roleDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "roles.json", new TypeReference<List<RoleDefinition>>() {
+        List<RoleDefinition> roleDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "roles.json", new TypeReference<>() {
         });
         for (RoleDefinition roleDef : roleDefinitions) {
             Role role = new Role();
@@ -548,7 +547,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionRuleChains(SolutionInstallContext ctx) {
-        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<List<ReferenceableEntityDefinition>>() {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
         });
         for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
             // Rule chains should be ordered correctly to exclude dependencies.
@@ -574,8 +573,9 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionDeviceProfiles(SolutionInstallContext ctx) {
-        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_profiles.json", new TypeReference<List<DeviceProfile>>() {
+        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_profiles.json", new TypeReference<>() {
         });
+        deviceProfiles.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "device_profiles", DeviceProfile.class));
         deviceProfiles.forEach(deviceProfile -> {
             deviceProfile.setId(null);
             deviceProfile.setCreatedTime(0L);
@@ -596,7 +596,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<List<DashboardDefinition>>() {
+        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<>() {
         });
         for (DashboardDefinition entityDef : dashboards) {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
@@ -732,7 +732,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     protected void provisionAssets(SolutionInstallContext ctx) {
-        List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<List<AssetDefinition>>() {
+        List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
             Asset entity = new Asset();
@@ -752,8 +752,8 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void provisionCustomers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<List<CustomerDefinition>>() {
+    private void provisionCustomers(SolutionInstallContext ctx) {
+        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
         });
         for (CustomerDefinition entityDef : customers) {
             Customer entity = new Customer();
@@ -779,7 +779,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionCustomerUsers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<List<CustomerDefinition>>() {
+        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
         });
         for (CustomerDefinition entityDef : customers) {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
@@ -937,9 +937,28 @@ public class DefaultSolutionService implements SolutionService {
         if (Files.exists(filePath)) {
             return JacksonUtil.readValue(filePath.toFile(), typeReference);
         } else {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
     }
+
+    private <T> List<T> loadListOfEntitiesFromDirectory(String solutionId, String dirName, Class<T> clazz) {
+        Path dirPath = resolve(solutionId, dirName);
+        if (Files.exists(dirPath) && Files.isDirectory(dirPath)) {
+            List<T> result = new ArrayList<>();
+            try {
+                for (Path filePath : Files.list(dirPath).collect(Collectors.toList())) {
+                    result.add(JacksonUtil.readValue(filePath.toFile(), clazz));
+                }
+            } catch (IOException e) {
+                log.warn("[{}] Failed to read directory: {}", solutionId, dirName, e);
+                throw new RuntimeException(e);
+            }
+            return result;
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
 
     private void deleteEntity(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {

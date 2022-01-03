@@ -16,8 +16,8 @@ As a Supermarket Administrator you get a dashboard to browse the state of the su
 You may configure and browse alarms for various devices:
 
 * "Smart Shelf" devices generate alarm when shelf weight is below a defined threshold;
-* "Chiller" and "Freezer" devices generate alarm when temperature is above defined threshold;
-* "Waste bin" sensor generates alarm when waste level is above defined threshold;
+* "Chiller" and "Freezer" devices generate alarm when temperature is above the defined threshold;
+* "Smart bin" sensor generates alarm when the bin level is above the defined threshold;
 * "Reverse Vending Machines" inform if they are low on coins or overloaded with cans;
 * "Coffee Vending Machines" inform if they are low on milk or coffee beans;
 * "Light" and "Motion" sensors raise alerts if someone is in the store after working hours;
