@@ -109,8 +109,8 @@
     "group": "Supermarket Devices",
     "profile": "Smart Bin",
     "attributes": {
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.4593,
+      "yPos": 0.7494
     },
     "relations": [
       {
@@ -128,8 +128,8 @@
     "group": "Supermarket Devices",
     "profile": "Smart Bin",
     "attributes": {
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.4599,
+      "yPos": 0.7874
     },
     "relations": [
       {
@@ -147,8 +147,8 @@
     "group": "Supermarket Devices",
     "profile": "Smart Bin",
     "attributes": {
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.4593,
+      "yPos": 0.8667
     },
     "relations": [
       {
@@ -167,8 +167,8 @@
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 1.0,
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.3072,
+      "yPos": 0.2781
     },
     "relations": [
       {
@@ -187,8 +187,8 @@
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 1.0,
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.3072,
+      "yPos": 0.3138
     },
     "relations": [
       {
@@ -207,8 +207,8 @@
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 3.0,
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.4593,
+      "yPos": 0.9002
     },
     "relations": [
       {
@@ -227,8 +227,198 @@
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 3.0,
-      "xPos": 0.0,
-      "yPos": 0.0
+      "xPos": 0.5356,
+      "yPos": 0.8991
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 1",
+    "label": "Back Door",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.0557,
+      "yPos": 0.0636
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 2",
+    "label": "Restricted Area",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.3585,
+      "yPos": 0.1273
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 3",
+    "label": "Main Entrance",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.4996,
+      "yPos": 0.9303
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Occupancy Sensor",
+    "label": "WC",
+    "type": "Occupancy Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Occupancy Sensor",
+    "attributes": {
+      "xPos": 0.3290,
+      "yPos": 0.3361
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 1",
+    "label": "Smoke Sensor 1",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.4964,
+      "yPos": 0.7103
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 2",
+    "label": "Smoke Sensor 2",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.7646,
+      "yPos": 0.2278
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 3",
+    "label": "Smoke Sensor 3",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.4983,
+      "yPos": 0.2211
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 4",
+    "label": "Smoke Sensor 4",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.1345,
+      "yPos": 0.2590
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 5",
+    "label": "Smoke Sensor 5",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.7716,
+      "yPos": 0.6221
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 6",
+    "label": "Smoke Sensor 6",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.2276,
+      "yPos": 0.6221
     },
     "relations": [
       {

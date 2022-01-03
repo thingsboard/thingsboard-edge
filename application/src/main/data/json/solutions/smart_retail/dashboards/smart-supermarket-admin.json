@@ -394,6 +394,108 @@
                   "postFuncBody": null
                 }
               ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "c5de3e0f-e7fe-d559-1f60-43a368c8f9d2",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#d50000",
+                  "settings": {},
+                  "_hash": 0.9034047219224794,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#ffab00",
+                  "settings": {},
+                  "_hash": 0.10343929282636588,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "3bb4d017-edf2-5fb5-f78d-f02c10061869",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#455a64",
+                  "settings": {},
+                  "_hash": 0.6092982781141136,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#aa00ff",
+                  "settings": {},
+                  "_hash": 0.0844306276446154,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "5d5b24a7-8ad3-ef12-e6e6-1ea09886ff09",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#64dd17",
+                  "settings": {},
+                  "_hash": 0.9060572477297089,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#304ffe",
+                  "settings": {},
+                  "_hash": 0.7647666433844218,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
             }
           ],
           "timewindow": {
@@ -615,7 +717,7 @@
       },
       "0fd39e89-dcc2-fcea-2cba-745f4489eb82": {
         "id": "0fd39e89-dcc2-fcea-2cba-745f4489eb82",
-        "alias": "Dispancers",
+        "alias": "Dispensers",
         "filter": {
           "type": "deviceSearchQuery",
           "resolveMultiple": true,
@@ -629,6 +731,63 @@
           "relationType": "Contains",
           "deviceTypes": [
             "Liquid Level Sensor"
+          ]
+        }
+      },
+      "c5de3e0f-e7fe-d559-1f60-43a368c8f9d2": {
+        "id": "c5de3e0f-e7fe-d559-1f60-43a368c8f9d2",
+        "alias": "Door Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Door Sensor"
+          ]
+        }
+      },
+      "3bb4d017-edf2-5fb5-f78d-f02c10061869": {
+        "id": "3bb4d017-edf2-5fb5-f78d-f02c10061869",
+        "alias": "Occupancy Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Occupancy Sensor"
+          ]
+        }
+      },
+      "5d5b24a7-8ad3-ef12-e6e6-1ea09886ff09": {
+        "id": "5d5b24a7-8ad3-ef12-e6e6-1ea09886ff09",
+        "alias": "Smoke Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Smoke Sensor"
           ]
         }
       }

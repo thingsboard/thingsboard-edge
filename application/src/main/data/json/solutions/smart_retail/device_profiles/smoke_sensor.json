@@ -85,7 +85,7 @@
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_DEVICE",
-                        "sourceAttribute": "smokeAlarmLowBatteryCriticalThreshold",
+                        "sourceAttribute": "lowBatteryCriticalThreshold",
                         "inherit": true
                       }
                     }
@@ -118,7 +118,7 @@
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_DEVICE",
-                        "sourceAttribute": "smokeAlarmLowBatteryMajorThreshold",
+                        "sourceAttribute": "lowBatteryMajorThreshold",
                         "inherit": true
                       }
                     }
@@ -152,7 +152,7 @@
                     "userValue": null,
                     "dynamicValue": {
                       "sourceType": "CURRENT_DEVICE",
-                      "sourceAttribute": "smokeAlarmLowBatteryMajorThreshold",
+                      "sourceAttribute": "lowBatteryMajorThreshold",
                       "inherit": true
                     }
                   }

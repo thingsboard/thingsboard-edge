@@ -1114,6 +1114,288 @@
                   "postFuncBody": null
                 }
               ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "cdf692dd-915b-cdc8-7b51-fc8980c44135",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "Name",
+                  "color": "#5d4037",
+                  "settings": {},
+                  "_hash": 0.2754688217647647,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "state",
+                  "color": "#c0ca33",
+                  "settings": {},
+                  "_hash": 0.008540373081922015,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#00897b",
+                  "settings": {},
+                  "_hash": 0.1610821819597632,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "open",
+                  "type": "timeseries",
+                  "label": "open",
+                  "color": "#00b8d4",
+                  "settings": {},
+                  "_hash": 0.09218329982016393
+                },
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#dd2c00",
+                  "settings": {},
+                  "_hash": 0.8140957958329498,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#616161",
+                  "settings": {},
+                  "_hash": 0.24872552993085217,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#6d4c41",
+                  "settings": {},
+                  "_hash": 0.9469394504441699,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "15130463-060f-d497-b4ee-39cfc42d3096",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "Name",
+                  "color": "#1e88e5",
+                  "settings": {},
+                  "_hash": 0.6727561075188475,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "occupied",
+                  "type": "timeseries",
+                  "label": "occupied",
+                  "color": "#43a047",
+                  "settings": {},
+                  "_hash": 0.13289102239772843
+                },
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#e53935",
+                  "settings": {},
+                  "_hash": 0.8174254146835429,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#ffb300",
+                  "settings": {},
+                  "_hash": 0.9136715059320755,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "state",
+                  "color": "#039be5",
+                  "settings": {},
+                  "_hash": 0.3928189200164798,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#5e35b1",
+                  "settings": {},
+                  "_hash": 0.4245156874731,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#fb8c00",
+                  "settings": {},
+                  "_hash": 0.7227836361147448,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "88fa493d-e8a6-93b9-1d99-ee3d9cbe8487",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "Name",
+                  "color": "#546e7a",
+                  "settings": {},
+                  "_hash": 0.1269170161560056,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "alarm",
+                  "type": "timeseries",
+                  "label": "alarm",
+                  "color": "#8e24aa",
+                  "settings": {},
+                  "_hash": 0.9812431571361246
+                },
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#7cb342",
+                  "settings": {},
+                  "_hash": 0.7093748370363717,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#3949ab",
+                  "settings": {},
+                  "_hash": 0.11515120594774952,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "state",
+                  "color": "#d81b60",
+                  "settings": {},
+                  "_hash": 0.7570415032936839,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "Type",
+                  "color": "#fdd835",
+                  "settings": {},
+                  "_hash": 0.289531301083366,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#00acc1",
+                  "settings": {},
+                  "_hash": 0.23156116906065027,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
             }
           ],
           "timewindow": {
@@ -2972,6 +3254,63 @@
           "relationType": "Contains",
           "deviceTypes": [
             "Liquid Level Sensor"
+          ]
+        }
+      },
+      "cdf692dd-915b-cdc8-7b51-fc8980c44135": {
+        "id": "cdf692dd-915b-cdc8-7b51-fc8980c44135",
+        "alias": "Door Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Door Sensor"
+          ]
+        }
+      },
+      "15130463-060f-d497-b4ee-39cfc42d3096": {
+        "id": "15130463-060f-d497-b4ee-39cfc42d3096",
+        "alias": "Occupancy Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Occupancy Sensor"
+          ]
+        }
+      },
+      "88fa493d-e8a6-93b9-1d99-ee3d9cbe8487": {
+        "id": "88fa493d-e8a6-93b9-1d99-ee3d9cbe8487",
+        "alias": "Smoke Sensors",
+        "filter": {
+          "type": "deviceSearchQuery",
+          "resolveMultiple": true,
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": null,
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Contains",
+          "deviceTypes": [
+            "Smoke Sensor"
           ]
         }
       }

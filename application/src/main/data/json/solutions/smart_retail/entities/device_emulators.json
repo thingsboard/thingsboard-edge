@@ -135,11 +135,65 @@
           "maxHighValue": 100,
           "minIncrement": 100.0,
           "maxIncrement": 100.0,
-          "minDecrement": 1.0,
+          "minDecrement": 5.0,
           "maxDecrement": 10.0,
           "holidayMultiplier": 1.0,
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "open",
+        "valueStrategy": {
+          "type": "event",
+          "normalValue": false,
+          "anomalyValue": true,
+          "anomalyChance": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Occupancy Sensor",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "occupied",
+        "valueStrategy": {
+          "type": "event",
+          "normalValue": false,
+          "anomalyValue": true,
+          "anomalyChance": 3
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "alarm",
+        "valueStrategy": {
+          "type": "event",
+          "normalValue": false,
+          "anomalyValue": true,
+          "anomalyChance": 1000
         }
       }
     ]
