@@ -45,6 +45,7 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.stack.client.DiscoveryClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
@@ -99,6 +100,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.eclipse.milo.opcua.stack.core.StatusCodes.Bad_ConnectionRejected;
 
 /**
  * Created by Valerii Sosliuk on 3/17/2018.
@@ -507,6 +510,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     } else {
                         log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
                     }
+                }
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof UaException){
+                    connected = false;
+                    String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
+                    log.error(message, e);
+                    sendConnectionFailedMessageToRuleEngine();
+                    scheduleConnect();
                 }
             } catch (Exception e) {
                 if (connected) {
