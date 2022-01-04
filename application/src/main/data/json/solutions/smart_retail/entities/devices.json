@@ -428,5 +428,24 @@
         "type": "Contains"
       }
     ]
+  },
+  {
+    "name": "Motion Sensor 1",
+    "label": "Restricted Area Motion Sensor",
+    "type": "Motion Sensor",
+    "group": "Supermarket Devices",
+    "profile": "Motion Sensor",
+    "attributes": {
+      "xPos": 0.0255,
+      "yPos": 0.1551
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
   }
 ]

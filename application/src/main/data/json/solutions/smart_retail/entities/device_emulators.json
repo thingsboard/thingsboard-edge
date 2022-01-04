@@ -112,6 +112,26 @@
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 1.0
         }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
       }
     ]
   },
@@ -129,8 +149,8 @@
           "precision": 1,
           "minStartValue": 80,
           "maxStartValue": 100,
-          "minLowValue": 5,
-          "maxLowValue": 35,
+          "minLowValue": 27,
+          "maxLowValue": 45,
           "minHighValue": 98,
           "maxHighValue": 100,
           "minIncrement": 100.0,
@@ -154,10 +174,39 @@
       {
         "key": "open",
         "valueStrategy": {
-          "type": "event",
-          "normalValue": false,
-          "anomalyValue": true,
-          "anomalyChance": 10
+          "type": "composite",
+          "defaultHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 3
+          },
+          "nightHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 10000
+          }
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
         }
       }
     ]
@@ -172,10 +221,17 @@
       {
         "key": "occupied",
         "valueStrategy": {
-          "type": "event",
-          "normalValue": false,
-          "anomalyValue": true,
-          "anomalyChance": 3
+          "type": "composite",
+          "defaultHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 2
+          },
+          "nightHours": {
+            "type": "constant",
+            "value": false
+          }
         }
       }
     ]
@@ -193,7 +249,34 @@
           "type": "event",
           "normalValue": false,
           "anomalyValue": true,
-          "anomalyChance": 1000
+          "anomalyChance": 2000
+        }
+      }
+    ]
+  },
+  {
+    "name": "Motion Sensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "motion",
+        "valueStrategy": {
+          "type": "composite",
+          "defaultHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 3
+          },
+          "nightHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 10000
+          }
         }
       }
     ]

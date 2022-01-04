@@ -30,8 +30,21 @@
  */
 package org.thingsboard.server.service.solutions.data.values;
 
-public enum ValueStrategyDefinitionType {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
 
-    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE;
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CompositeValueStrategyDefinition implements ValueStrategyDefinition {
 
+    private ValueStrategyDefinition defaultHours;
+    private ValueStrategyDefinition workHours;
+    private ValueStrategyDefinition nightHours;
+    private ValueStrategyDefinition holidayHours;
+
+    @Override
+    public ValueStrategyDefinitionType getStrategyType() {
+        return ValueStrategyDefinitionType.COMPOSITE;
+    }
 }

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.solutions.data.values;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile;
 
+import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.getMultiplier;
 import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.randomLong;
 
 
@@ -50,11 +51,11 @@ public class EventTelemetryGenerator extends TelemetryGenerator {
 
     @Override
     public void addValue(long ts, ObjectNode values) {
+        boolean anomaly = false;
         if (randomLong(0, strategy.getAnomalyChance()) == currentAnomaly) {
-            this.value = strategy.isAnomalyValue();
-        } else {
-            this.value = strategy.isNormalValue();
+            anomaly = true;
         }
+        this.value = anomaly ? strategy.isAnomalyValue() : strategy.isNormalValue();
         values.put(key, value);
     }
 

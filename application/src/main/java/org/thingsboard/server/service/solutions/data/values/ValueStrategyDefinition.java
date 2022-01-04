@@ -42,7 +42,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = NaturalValueStrategyDefinition.class, name = "natural"),
         @JsonSubTypes.Type(value = EventValueStrategyDefinition.class, name = "event"),
         @JsonSubTypes.Type(value = SequenceValueStrategyDefinition.class, name = "sequence"),
-        @JsonSubTypes.Type(value = ConstantValueStrategyDefinition.class, name = "constant")})
+        @JsonSubTypes.Type(value = ConstantValueStrategyDefinition.class, name = "constant"),
+        @JsonSubTypes.Type(value = CompositeValueStrategyDefinition.class, name = "composite")})
 public interface ValueStrategyDefinition {
 
     ValueStrategyDefinitionType getStrategyType();

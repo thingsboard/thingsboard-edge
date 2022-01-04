@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.service.solutions.data.definition;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.thingsboard.server.service.solutions.data.values.ValueStrategyDefinition;
 
 @Data
+@AllArgsConstructor
 public class TelemetryProfile {
 
     private String key;

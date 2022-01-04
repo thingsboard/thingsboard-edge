@@ -189,8 +189,8 @@
           }
         },
         "clearRule": null,
-        "propagate": false,
-        "propagateRelationTypes": null
+        "propagate": true,
+        "propagateRelationTypes": ["Contains"]
       },
       {
         "id": "b9d1abba-5419-7603-cbc6-9015841845c3",

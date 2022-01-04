@@ -65,4 +65,30 @@ public class GeneratorTools {
         return multiplier;
     }
 
+    public static boolean isHoliday(long ts){
+        Date date = new Date(ts);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+        return dayOfWeek == 1 || dayOfWeek == 7;
+    }
+
+    public static boolean isWorkHour(long ts){
+        Date date = new Date(ts);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+
+        return hour > 8 && hour < 18;
+    }
+
+    public static boolean isNightHour(long ts){
+        Date date = new Date(ts);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+
+        return hour < 6 || hour >= 22;
+    }
+
 }
