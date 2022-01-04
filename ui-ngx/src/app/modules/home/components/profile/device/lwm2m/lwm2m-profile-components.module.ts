@@ -44,6 +44,8 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
 import { Lwm2mObserveAttrTelemetryInstancesComponent } from '@home/components/profile/device/lwm2m/lwm2m-observe-attr-telemetry-instances.component';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
+import { Lwm2mBootstrapConfigServersComponent } from '@home/components/profile/device/lwm2m/lwm2m-bootstrap-config-servers.component';
+import { Lwm2mBootstrapAddConfigServerDialogComponent } from '@home/components/profile/device/lwm2m/lwm2m-bootstrap-add-config-server-dialog.component';
 
 @NgModule({
   declarations:
@@ -55,7 +57,9 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
       Lwm2mAttributesDialogComponent,
       Lwm2mAttributesComponent,
       Lwm2mAttributesKeyListComponent,
+      Lwm2mBootstrapConfigServersComponent,
       Lwm2mDeviceConfigServerComponent,
+      Lwm2mBootstrapAddConfigServerDialogComponent,
       Lwm2mObjectAddInstancesDialogComponent,
       Lwm2mObjectAddInstancesListComponent,
       Lwm2mObserveAttrTelemetryInstancesComponent
@@ -73,7 +77,9 @@ import { DeviceProfileCommonModule } from '@home/components/profile/device/commo
     Lwm2mAttributesDialogComponent,
     Lwm2mAttributesComponent,
     Lwm2mAttributesKeyListComponent,
+    Lwm2mBootstrapConfigServersComponent,
     Lwm2mDeviceConfigServerComponent,
+    Lwm2mBootstrapAddConfigServerDialogComponent,
     Lwm2mObjectAddInstancesDialogComponent,
     Lwm2mObjectAddInstancesListComponent,
     Lwm2mObserveAttrTelemetryInstancesComponent

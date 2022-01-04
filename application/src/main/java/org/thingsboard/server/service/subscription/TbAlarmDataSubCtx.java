@@ -32,6 +32,7 @@ package org.thingsboard.server.service.subscription;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
@@ -72,6 +73,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
+@ToString(callSuper = true)
 public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
 
     private final AlarmService alarmService;
