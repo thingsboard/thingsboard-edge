@@ -58,8 +58,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute } from '@angular/router';
 import {
-  CellActionDescriptor,
-  CellActionDescriptorType,
+  CellActionDescriptor, CellActionDescriptorType,
   EntityActionTableColumn,
   EntityColumn,
   EntityTableColumn,
@@ -71,7 +70,11 @@ import { EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { DialogService } from '@core/services/dialog.service';
 import { AddEntityDialogComponent } from './add-entity-dialog.component';
 import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
-import { calculateIntervalStartEndTime, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
+import {
+  calculateIntervalStartEndTime,
+  HistoryWindowType,
+  Timewindow
+} from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { isDefined, isUndefined } from '@core/utils';

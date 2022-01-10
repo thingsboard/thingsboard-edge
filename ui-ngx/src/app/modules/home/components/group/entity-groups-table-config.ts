@@ -345,7 +345,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
     this.homeDialogs.shareEntityGroup($event, entityGroup).subscribe((res) => {
       if (res) {
-        this.onGroupUpdated();
+        this.onGroupUpdated(false);
       }
     });
   }
@@ -374,12 +374,12 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       });
   }
 
-  onGroupUpdated() {
+  onGroupUpdated(closeDetails = true) {
     this.notifyEntityGroupUpdated();
     if (this.componentsData.isGroupEntitiesView) {
       this.componentsData.reloadEntityGroup();
     } else {
-      this.table.updateData(false);
+      this.table.updateData(closeDetails);
     }
   }
 

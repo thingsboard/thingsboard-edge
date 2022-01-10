@@ -96,7 +96,7 @@ export class GroupPermissionDialogComponent
           type: RoleType.GROUP,
           name: null,
           permissions: null
-        };
+        }
         this.groupPermission.userGroupOwnerId = this.userPermissionsService.getUserOwnerId();
       }
     }
