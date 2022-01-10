@@ -345,7 +345,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
     this.homeDialogs.shareEntityGroup($event, entityGroup).subscribe((res) => {
       if (res) {
-        this.onGroupUpdated(false);
+        this.onGroupUpdated();
       }
     });
   }
