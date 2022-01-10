@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.transport.mqtt.adaptors;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -70,8 +69,6 @@ import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVIC
 public class JsonMqttAdaptor implements MqttTransportAdaptor {
 
     protected static final Charset UTF8 = StandardCharsets.UTF_8;
-
-    private static final Gson GSON = new Gson();
 
     @Override
     public TransportProtos.PostTelemetryMsg convertToPostTelemetry(MqttDeviceAwareSessionContext ctx, MqttPublishMessage inbound) throws AdaptorException {
@@ -261,7 +258,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
                 new MqttFixedHeader(MqttMessageType.PUBLISH, false, ctx.getQoSForTopic(topic), false, 0);
         MqttPublishVariableHeader header = new MqttPublishVariableHeader(topic, ctx.nextMsgId());
         ByteBuf payload = ALLOCATOR.buffer();
-        payload.writeBytes(GSON.toJson(json).getBytes(UTF8));
+        payload.writeBytes(json.toString().getBytes(UTF8));
         return new MqttPublishMessage(mqttFixedHeader, header, payload);
     }
 

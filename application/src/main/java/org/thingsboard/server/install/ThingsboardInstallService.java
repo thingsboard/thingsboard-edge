@@ -100,21 +100,27 @@ public class ThingsboardInstallService {
 
                 switch (upgradeFromVersion) {
                     case "3.3.0":
+                        log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.3 ...");
+                        databaseEntitiesUpgradeService.upgradeDatabase("3.3.2");
+                        dataUpdateService.updateData("3.3.2");
+                    case "3.3.3": // to 3.3.3PE
+                        log.info("Upgrading ThingsBoard Edge from version 3.3.3 to 3.3.3PE ...");
+                        databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");
+                        dataUpdateService.updateData("3.3.3");
                         log.info("Updating system data...");
                         systemDataLoaderService.updateSystemWidgets();
                         break;
 
                     //TODO update CacheCleanupService on the next version upgrade
+
                     default:
-                        throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
-
-
+                        throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
                 }
                 log.info("Upgrade finished successfully!");
 
             } else {
 
-                log.info("Starting ThingsBoard Installation...");
+                log.info("Starting ThingsBoard Edge Installation...");
 
                 log.info("Installing DataBase schema for entities...");
 
@@ -141,16 +147,16 @@ public class ThingsboardInstallService {
 //                systemDataLoaderService.loadSystemRules();
 
                 if (loadDemo) {
-                    log.info("Loading demo data...");
-                    systemDataLoaderService.loadDemoData();
+//                    log.info("Loading demo data...");
+//                    systemDataLoaderService.loadDemoData();
                 }
                 log.info("Installation finished successfully!");
             }
 
 
         } catch (Exception e) {
-            log.error("Unexpected error during ThingsBoard installation!", e);
-            throw new ThingsboardInstallException("Unexpected error during ThingsBoard installation!", e);
+            log.error("Unexpected error during ThingsBoard Edge installation!", e);
+            throw new ThingsboardInstallException("Unexpected error during ThingsBoard Edge installation!", e);
         } finally {
             SpringApplication.exit(context);
         }

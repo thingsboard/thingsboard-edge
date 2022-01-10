@@ -71,7 +71,7 @@ public class TbEdgeInstaller extends ExternalResource {
 
         env.put("EDGE_DOCKER_REPO", "thingsboard");
         env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
-        env.put("TB_EDGE_VERSION", "3.3.2EDGE-SNAPSHOT");
+        env.put("TB_EDGE_VERSION", "3.3.3EDGE-SNAPSHOT");
 
         dockerCompose.withEnv(env);
     }

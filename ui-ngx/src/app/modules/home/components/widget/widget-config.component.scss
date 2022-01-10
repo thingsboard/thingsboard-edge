@@ -148,7 +148,7 @@
         .mat-expansion-panel-body{
           padding: 0;
         }
-        .tb-json-object-panel {
+        .tb-json-object-panel, .tb-css-content-panel {
           margin: 0 0 8px;
         }
         .mat-checkbox-layout {
@@ -214,6 +214,15 @@
         .mat-input-element {
           min-height: 32px;
         }
+      }
+    }
+    .mat-slide {
+      margin: 8px 0;
+    }
+    .slide-block {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 8px;
       }
     }
     .mat-slide-toggle-content {

@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.2EDGE-SNAPSHOT</version>
+        <version>3.3.3EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>application</artifactId>
@@ -306,10 +306,6 @@
             <artifactId>grpc-stub</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.bit3</groupId>
-            <artifactId>jsass</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.thingsboard</groupId>
             <artifactId>springfox-boot-starter</artifactId>
         </dependency>
@@ -371,8 +367,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>jdbc</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

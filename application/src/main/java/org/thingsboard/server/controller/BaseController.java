@@ -165,7 +165,6 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -173,7 +172,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeLicenseService;
-import org.thingsboard.server.service.lwm2m.LwM2MServerSecurityInfoRepository;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
@@ -200,7 +198,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
 import static org.thingsboard.server.controller.ControllerConstants.INCORRECT_TENANT_ID;
 import static org.thingsboard.server.controller.UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -359,9 +356,6 @@ public abstract class BaseController {
 
     @Autowired
     protected TbDeviceProfileCache deviceProfileCache;
-
-    @Autowired
-    protected LwM2MServerSecurityInfoRepository lwM2MServerSecurityInfoRepository;
 
     @Autowired(required = false)
     protected EdgeService edgeService;

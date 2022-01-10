@@ -54,8 +54,8 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 /* voba - merge comment
-import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
+import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
  */
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -312,12 +312,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
-
+    protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> integrationRuleEngineMsgProducer;
 
     @PostConstruct
     public void init() {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
+        integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
         refreshExecutorService = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(4, "default-integration-refresh"));
         deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultPlatformIntegrationService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
@@ -693,7 +694,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             device.setName(deviceName);
             device.setType(deviceType);
             device.setTenantId(integration.getTenantId());
-            if (!StringUtils.isEmpty(deviceLabel)){
+            if (!StringUtils.isEmpty(deviceLabel)) {
                 device.setLabel(deviceLabel);
             }
             if (!StringUtils.isEmpty(customerName)) {
@@ -723,7 +724,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             asset.setName(assetName);
             asset.setType(assetType);
             asset.setTenantId(integration.getTenantId());
-            if (!StringUtils.isEmpty(assetLabel)){
+            if (!StringUtils.isEmpty(assetLabel)) {
                 asset.setLabel(assetLabel);
             }
             if (!StringUtils.isEmpty(customerName)) {
@@ -906,7 +907,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();
-        ruleEngineMsgProducer.send(tpi, new TbProtoQueueMsg<>(tbMsg.getId(), msg), callback);
+        integrationRuleEngineMsgProducer.send(tpi, new TbProtoQueueMsg<>(tbMsg.getId(), msg), callback);
     }
 
     protected UUID getRoutingKey(TransportProtos.SessionInfoProto sessionInfo) {

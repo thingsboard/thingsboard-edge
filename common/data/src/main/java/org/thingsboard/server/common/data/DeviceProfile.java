@@ -36,6 +36,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -54,6 +55,7 @@ import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalIn
 
 @ApiModel
 @Data
+@ToString(exclude = {"image", "profileDataBytes"})
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
 public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage {

@@ -7,6 +7,11 @@ To run the black box tests with using Docker, the local Docker images of Thingsb
 - Verify that the new local images were built: 
 
         docker image ls
+
+Also, for start test for MQTT integration, you need to have an **_eclipse-mosquitto_** image. For get this image, you need use:
+        
+        docker pull eclipse-mosquitto
+
 As result, in REPOSITORY column, next images should be present:
         
         thingsboard/tb-pe-coap-transport
@@ -18,6 +23,8 @@ As result, in REPOSITORY column, next images should be present:
         thingsboard/tb-pe-web-ui
         thingsboard/tb-pe-js-executor
         thingsboard/tb-pe-web-report
+        thingsboard/tb-pe-http-integration
+        thingsboard/tb-pe-mqtt-integration
 
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory:
 

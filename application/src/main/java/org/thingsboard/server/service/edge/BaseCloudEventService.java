@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.audit.ActionType;

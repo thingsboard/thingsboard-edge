@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.sql.cloud;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
@@ -40,16 +39,12 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.CloudEventId;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.sql.event.EventCleanupRepository;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -106,11 +101,6 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     @Override
     public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
-        List<SortOrder> sortOrders = new ArrayList<>();
-        if (pageLink.getSortOrder() != null) {
-            sortOrders.add(pageLink.getSortOrder());
-        }
-        sortOrders.add(new SortOrder(DaoUtil.DEFAULT_SORT_PROPERTY, SortOrder.Direction.ASC));
         readWriteLock.lock();
         try {
             return DaoUtil.toPageData(
@@ -119,7 +109,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                                     tenantId,
                                     pageLink.getStartTime(),
                                     pageLink.getEndTime(),
-                                    DaoUtil.toPageable(pageLink, sortOrders)));
+                                    DaoUtil.toPageable(pageLink)));
         } finally {
             readWriteLock.unlock();
         }
@@ -131,11 +121,6 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                                                                                               CloudEventType cloudEventType,
                                                                                               String cloudEventAction,
                                                                                               TimePageLink pageLink) {
-        List<SortOrder> sortOrders = new ArrayList<>();
-        if (pageLink.getSortOrder() != null) {
-            sortOrders.add(pageLink.getSortOrder());
-        }
-        sortOrders.add(new SortOrder(DaoUtil.DEFAULT_SORT_PROPERTY, SortOrder.Direction.ASC));
         return DaoUtil.toPageData(
                 cloudEventRepository
                         .findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
@@ -145,7 +130,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                                 cloudEventAction,
                                 pageLink.getStartTime(),
                                 pageLink.getEndTime(),
-                                DaoUtil.toPageable(pageLink, sortOrders)));
+                                DaoUtil.toPageable(pageLink)));
     }
 
     @Override

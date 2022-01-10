@@ -346,6 +346,32 @@
             "entityGroupId": null
           }
         }
+      },
+      {
+        "additionalInfo": {
+          "description": "Forwards message to the \"Water Metering Solution Customer Alarm Routing\" rule chain",
+          "layoutX": 907,
+          "layoutY": 290
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "Customer Alarm Routing",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "600cc4d0-831a-11eb-b965-d742151feed7"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "Forwards message to the \"Water Metering Solution Tenant Alarm Routing\" rule chain",
+          "layoutX": 905,
+          "layoutY": 231
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "Tenant Alarm Routing",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "f989af30-8304-11eb-9c0d-65c02c160424"
+        }
       }
     ],
     "connections": [
@@ -448,35 +474,15 @@
         "fromIndex": 13,
         "toIndex": 0,
         "type": "Success"
-      }
-    ],
-    "ruleChainConnections": [
+      },
       {
         "fromIndex": 0,
-        "targetRuleChainId": {
-          "entityType": "RULE_CHAIN",
-          "id": "600cc4d0-831a-11eb-b965-d742151feed7"
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 907,
-          "layoutY": 290,
-          "ruleChainNodeId": "rule-chain-node-17"
-        },
+        "toIndex": 14,
         "type": "Alarm Created"
       },
       {
         "fromIndex": 0,
-        "targetRuleChainId": {
-          "entityType": "RULE_CHAIN",
-          "id": "f989af30-8304-11eb-9c0d-65c02c160424"
-        },
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 905,
-          "layoutY": 231,
-          "ruleChainNodeId": "rule-chain-node-16"
-        },
+        "toIndex": 15,
         "type": "Alarm Created"
       }
     ]

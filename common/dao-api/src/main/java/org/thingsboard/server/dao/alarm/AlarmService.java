@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import java.util.Collection;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by ashvayka on 11.05.17.
@@ -84,4 +85,8 @@ public interface AlarmService {
 
     PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions,
                                                         AlarmDataQuery query, Collection<EntityId> orderedEntityIds);
+
+    Set<EntityId> getPropagationEntityIds(Alarm alarm);
+
+    void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 }

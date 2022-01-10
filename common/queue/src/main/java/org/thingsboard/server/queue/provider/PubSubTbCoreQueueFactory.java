@@ -61,7 +61,9 @@ import org.thingsboard.server.queue.pubsub.TbPubSubSettings;
 import org.thingsboard.server.queue.pubsub.TbPubSubSubscriptionSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
+import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
 
 import javax.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
@@ -76,11 +78,14 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
     private final PartitionService partitionService;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
+    private final TbQueueTransportNotificationSettings transportNotificationSettings;
+    private final TbQueueRuleEngineSettings ruleEngineSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin transportApiAdmin;
     private final TbQueueAdmin notificationAdmin;
+    private final TbQueueAdmin ruleEngineAdmin;
 
     public PubSubTbCoreQueueFactory(TbPubSubSettings pubSubSettings,
                                     TbQueueCoreSettings coreSettings,
@@ -88,6 +93,8 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
                                     PartitionService partitionService,
                                     TbServiceInfoProvider serviceInfoProvider,
                                     TbQueueRemoteJsInvokeSettings jsInvokeSettings,
+                                    TbQueueTransportNotificationSettings transportNotificationSettings,
+                                    TbQueueRuleEngineSettings ruleEngineSettings,
                                     TbPubSubSubscriptionSettings pubSubSubscriptionSettings) {
         this.pubSubSettings = pubSubSettings;
         this.coreSettings = coreSettings;
@@ -95,16 +102,19 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
         this.partitionService = partitionService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.jsInvokeSettings = jsInvokeSettings;
+        this.transportNotificationSettings = transportNotificationSettings;
+        this.ruleEngineSettings = ruleEngineSettings;
 
         this.coreAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getCoreSettings());
         this.jsExecutorAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getJsExecutorSettings());
         this.transportApiAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getTransportApiSettings());
         this.notificationAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getNotificationsSettings());
+        this.ruleEngineAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getRuleEngineSettings());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> createTransportNotificationsMsgProducer() {
-        return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getTopic());
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, transportNotificationSettings.getNotificationsTopic());
     }
 
     @Override
@@ -114,7 +124,7 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> createRuleEngineNotificationsMsgProducer() {
-        return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getTopic());
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, ruleEngineSettings.getTopic());
     }
 
     @Override
@@ -124,7 +134,7 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> createTbCoreNotificationsMsgProducer() {
-        return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getTopic());
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, coreSettings.getTopic());
     }
 
     @Override
@@ -148,7 +158,7 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportApiResponseMsg>> createTransportApiResponseProducer() {
-        return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getTopic());
+        return new TbPubSubProducerTemplate<>(transportApiAdmin, pubSubSettings, transportApiSettings.getResponsesTopic());
     }
 
     @Override
@@ -209,6 +219,9 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (ruleEngineAdmin != null) {
+            ruleEngineAdmin.destroy();
         }
     }
 }

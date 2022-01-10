@@ -132,12 +132,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
-        requestBuilder.settings(kafkaSettings);
-        requestBuilder.clientId("monolith-rule-engine-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(ruleEngineSettings.getTopic());
-        requestBuilder.admin(ruleEngineAdmin);
-        return requestBuilder.build();
+        return createRuleEngineProducerTemplate("monolith-rule-engine-");
     }
 
     @Override
@@ -146,7 +141,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("monolith-rule-engine-notifications-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(ruleEngineSettings.getTopic());
-        requestBuilder.admin(ruleEngineAdmin);
+        requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
 
@@ -166,7 +161,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("monolith-core-notifications-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(coreSettings.getTopic());
-        requestBuilder.admin(coreAdmin);
+        requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
 
@@ -326,6 +321,20 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         return requestBuilder.build();
     }
 
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createIntegrationRuleEngineMsgProducer() {
+        return createRuleEngineProducerTemplate("monolith-integration-rule-engine-");
+    }
+
+    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineProducerTemplate(String clientIdPrefix) {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId(clientIdPrefix + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(ruleEngineSettings.getTopic());
+        requestBuilder.admin(ruleEngineAdmin);
+        return requestBuilder.build();
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -342,6 +351,9 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (fwUpdatesAdmin != null) {
+            fwUpdatesAdmin.destroy();
         }
     }
 }

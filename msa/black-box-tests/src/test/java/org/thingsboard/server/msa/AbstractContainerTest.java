@@ -99,9 +99,18 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
+
+import javax.net.ssl.SSLContext;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -110,6 +119,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractContainerTest {
     protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
+    protected static String rpcURLHttp;
     protected static String TB_TOKEN;
     protected static RestClient restClient;
     protected static ObjectMapper mapper = new ObjectMapper();
@@ -385,6 +395,21 @@ public abstract class AbstractContainerTest {
         values.addProperty("longKey", 73L);
 
         return values;
+    }
+
+    protected Converter createUplink(JsonNode config) {
+        Converter converter = new Converter();
+        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(config);
+        return restClient.saveConverter(converter);
+    }
+
+    protected void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
+        restClient.deleteDevice(device.getId());
+        ConverterId idForDelete = integration.getDefaultConverterId();
+        restClient.deleteIntegration(integrationId);
+        restClient.deleteConverter(idForDelete);
     }
 
     protected enum CmdsType {

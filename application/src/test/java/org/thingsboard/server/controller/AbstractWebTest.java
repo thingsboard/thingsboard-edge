@@ -69,24 +69,26 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.service.mail.TestMailService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -97,6 +99,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -110,7 +113,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 @Slf4j
 @TestPropertySource(locations = {"classpath:application-test.properties", "classpath:sql-test.properties"})
-public abstract class AbstractWebTest {
+public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected ObjectMapper mapper = new ObjectMapper();
 
@@ -149,6 +152,9 @@ public abstract class AbstractWebTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private TenantProfileService tenantProfileService;
+
     @Rule
     public TestRule watcher = new TestWatcher() {
         protected void starting(Description description) {
@@ -178,8 +184,9 @@ public abstract class AbstractWebTest {
     }
 
     @Before
-    public void setup() throws Exception {
-        log.info("Executing setup");
+    public void setupWebTest() throws Exception {
+        log.info("Executing web test setup");
+
         if (this.mockMvc == null) {
             this.mockMvc = webAppContextSetup(webApplicationContext)
                     .apply(springSecurity()).build();
@@ -214,16 +221,38 @@ public abstract class AbstractWebTest {
 
         logout();
 
-        log.info("Executed setup");
+        log.info("Executed web test setup");
     }
 
     @After
-    public void teardown() throws Exception {
-        log.info("Executing teardown");
+    public void teardownWebTest() throws Exception {
+        log.info("Executing web test teardown");
+
         loginSysAdmin();
         doDelete("/api/tenant/" + tenantId.getId().toString())
                 .andExpect(status().isOk());
-        log.info("Executed teardown");
+
+        verifyNoTenantsLeft();
+
+        tenantProfileService.deleteTenantProfiles(TenantId.SYS_TENANT_ID);
+
+        log.info("Executed web test teardown");
+    }
+
+    void verifyNoTenantsLeft() throws Exception {
+        List<Tenant> loadedTenants = new ArrayList<>();
+        PageLink pageLink = new PageLink(10);
+        PageData<Tenant> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/tenants?", new TypeReference<PageData<Tenant>>() {
+            }, pageLink);
+            loadedTenants.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        assertThat(loadedTenants).as("All tenants expected to be deleted, but some tenants left in the database").isEmpty();
     }
 
     protected void loginSysAdmin() throws Exception {
@@ -595,6 +624,7 @@ public abstract class AbstractWebTest {
     protected Edge constructEdge(String name, String type) {
         return constructEdge(tenantId, name, type);
     }
+
     protected Edge constructEdge(TenantId tenantId, String name, String type) {
         Edge edge = new Edge();
         edge.setTenantId(tenantId);

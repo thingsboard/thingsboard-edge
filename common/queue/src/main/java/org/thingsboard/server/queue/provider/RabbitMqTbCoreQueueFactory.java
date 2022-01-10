@@ -63,6 +63,7 @@ import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
 
 import javax.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
@@ -78,6 +79,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
     private final PartitionService partitionService;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
+    private final TbQueueTransportNotificationSettings transportNotificationSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -92,6 +94,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
                                       PartitionService partitionService,
                                       TbServiceInfoProvider serviceInfoProvider,
                                       TbQueueRemoteJsInvokeSettings jsInvokeSettings,
+                                      TbQueueTransportNotificationSettings transportNotificationSettings,
                                       TbRabbitMqQueueArguments queueArguments) {
         this.rabbitMqSettings = rabbitMqSettings;
         this.coreSettings = coreSettings;
@@ -100,6 +103,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
         this.partitionService = partitionService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.jsInvokeSettings = jsInvokeSettings;
+        this.transportNotificationSettings = transportNotificationSettings;
 
         this.coreAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getCoreArgs());
         this.ruleEngineAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getRuleEngineArgs());
@@ -110,7 +114,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> createTransportNotificationsMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getTopic());
+        return new TbRabbitMqProducerTemplate<>(notificationAdmin, rabbitMqSettings, transportNotificationSettings.getNotificationsTopic());
     }
 
     @Override
@@ -120,7 +124,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> createRuleEngineNotificationsMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(ruleEngineAdmin, rabbitMqSettings, ruleEngineSettings.getTopic());
+        return new TbRabbitMqProducerTemplate<>(notificationAdmin, rabbitMqSettings, ruleEngineSettings.getTopic());
     }
 
     @Override
@@ -130,7 +134,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> createTbCoreNotificationsMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getTopic());
+        return new TbRabbitMqProducerTemplate<>(notificationAdmin, rabbitMqSettings, coreSettings.getTopic());
     }
 
     @Override
@@ -154,7 +158,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportApiResponseMsg>> createTransportApiResponseProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getTopic());
+        return new TbRabbitMqProducerTemplate<>(transportApiAdmin, rabbitMqSettings, transportApiSettings.getResponsesTopic());
     }
 
     @Override

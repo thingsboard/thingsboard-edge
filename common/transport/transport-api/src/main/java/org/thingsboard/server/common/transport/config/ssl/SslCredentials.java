@@ -64,4 +64,5 @@ public interface SslCredentials {
 
     KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException;
 
+    String getValueFromSubjectNameByKey(String subjectName, String key);
 }

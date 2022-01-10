@@ -38,6 +38,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.thingsboard.server.dao.sql.alarm.AlarmRepository;
+import org.thingsboard.server.dao.sql.asset.AssetRepository;
+import org.thingsboard.server.dao.sql.blob.BlobEntityRepository;
+import org.thingsboard.server.dao.sql.customer.CustomerRepository;
+import org.thingsboard.server.dao.sql.dashboard.DashboardRepository;
+import org.thingsboard.server.dao.sql.device.DeviceRepository;
+import org.thingsboard.server.dao.sql.edge.EdgeRepository;
+import org.thingsboard.server.dao.sql.entityview.EntityViewRepository;
+import org.thingsboard.server.dao.sql.group.EntityGroupRepository;
+import org.thingsboard.server.dao.sql.role.RoleRepository;
+import org.thingsboard.server.dao.sql.scheduler.SchedulerEventRepository;
+import org.thingsboard.server.dao.sql.user.UserRepository;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -52,6 +64,30 @@ public class DefaultEntityQueryRepositoryTest {
     TransactionTemplate transactionTemplate;
     @MockBean
     DefaultQueryLogComponent queryLog;
+    @MockBean
+    AssetRepository assetRepository;
+    @MockBean
+    CustomerRepository customerRepository;
+    @MockBean
+    DeviceRepository deviceRepository;
+    @MockBean
+    EntityViewRepository entityViewRepository;
+    @MockBean
+    EdgeRepository edgeRepository;
+    @MockBean
+    UserRepository userRepository;
+    @MockBean
+    DashboardRepository dashboardRepository;
+    @MockBean
+    EntityGroupRepository entityGroupRepository;
+    @MockBean
+    SchedulerEventRepository schedulerEventRepository;
+    @MockBean
+    RoleRepository roleRepository;
+    @MockBean
+    AlarmRepository alarmRepository;
+    @MockBean
+    BlobEntityRepository blobEntityRepository;
 
     @Autowired
     DefaultEntityQueryRepository repo;

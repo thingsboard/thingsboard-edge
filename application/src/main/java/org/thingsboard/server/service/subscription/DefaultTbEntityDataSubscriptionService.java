@@ -137,6 +137,8 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     private int maxEntitiesPerDataSubscription;
     @Value("${server.ws.max_entities_per_alarm_subscription:1000}")
     private int maxEntitiesPerAlarmSubscription;
+    @Value("${server.ws.max_alarm_queries_per_refresh_interval:3}")
+    private int maxAlarmQueriesPerRefreshInterval;
 
     private ExecutorService wsCallBackExecutor;
     private String serviceId;
@@ -284,7 +286,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
             if (adq.getPageLink().getTimeWindow() > 0) {
                 TbAlarmDataSubCtx finalCtx = ctx;
                 ScheduledFuture<?> task = scheduler.scheduleWithFixedDelay(
-                        finalCtx::cleanupOldAlarms, dynamicPageLinkRefreshInterval, dynamicPageLinkRefreshInterval, TimeUnit.SECONDS);
+                        finalCtx::checkAndResetInvocationCounter, dynamicPageLinkRefreshInterval, dynamicPageLinkRefreshInterval, TimeUnit.SECONDS);
                 finalCtx.setRefreshTask(task);
             }
         }
@@ -295,6 +297,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
             long start = System.currentTimeMillis();
             finalCtx.update();
             long end = System.currentTimeMillis();
+            log.trace("[{}][{}] Executing query: {}", finalCtx.getSessionId(), finalCtx.getCmdId(), finalCtx.getQuery());
             stats.getDynamicQueryInvocationCnt().incrementAndGet();
             stats.getDynamicQueryTimeSpent().addAndGet(end - start);
         } catch (Exception e) {
@@ -310,7 +313,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         long regularQueryInvocationTimeValue = stats.getRegularQueryTimeSpent().getAndSet(0);
         int dynamicQueryInvocationCntValue = stats.getDynamicQueryInvocationCnt().getAndSet(0);
         long dynamicQueryInvocationTimeValue = stats.getDynamicQueryTimeSpent().getAndSet(0);
-        long dynamicQueryCnt = subscriptionsBySessionId.values().stream().map(Map::values).count();
+        long dynamicQueryCnt = subscriptionsBySessionId.values().stream().mapToLong(m -> m.values().stream().filter(TbAbstractSubCtx::isDynamic).count()).sum();
         if (regularQueryInvocationCntValue > 0 || dynamicQueryInvocationCntValue > 0 || dynamicQueryCnt > 0 || alarmQueryInvocationCntValue > 0) {
             log.info("Stats: regularQueryInvocationCnt = [{}], regularQueryInvocationTime = [{}], " +
                             "dynamicQueryCnt = [{}] dynamicQueryInvocationCnt = [{}], dynamicQueryInvocationTime = [{}], " +
@@ -347,7 +350,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     private TbAlarmDataSubCtx createSubCtx(TelemetryWebSocketSessionRef sessionRef, AlarmDataCmd cmd) {
         Map<Integer, TbAbstractSubCtx> sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -> new HashMap<>());
         TbAlarmDataSubCtx ctx = new TbAlarmDataSubCtx(serviceId, wsService, entityService, localSubscriptionService, attributesService,
-                stats, alarmService, sessionRef, cmd.getCmdId(), maxEntitiesPerAlarmSubscription);
+                stats, alarmService, sessionRef, cmd.getCmdId(), maxEntitiesPerAlarmSubscription, maxAlarmQueriesPerRefreshInterval);
         ctx.setAndResolveQuery(cmd.getQuery());
         sessionSubs.put(cmd.getCmdId(), ctx);
         return ctx;
@@ -452,6 +455,12 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         if (ctx != null) {
             ctx.cancelTasks();
             ctx.clearSubscriptions();
+            if (ctx.getSessionId() != null) {
+                Map<Integer, TbAbstractSubCtx> sessionSubs = subscriptionsBySessionId.get(ctx.getSessionId());
+                if (sessionSubs != null) {
+                    sessionSubs.remove(ctx.getCmdId());
+                }
+            }
         }
     }
 

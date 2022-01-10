@@ -33,7 +33,7 @@ import { BaseData } from '@shared/models/base-data';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { RuleNodeId } from '@shared/models/id/rule-node-id';
 import { ComponentDescriptor } from '@shared/models/component-descriptor.models';
-import { FcEdge, FcNode } from 'ngx-flowchart/dist/ngx-flowchart';
+import { FcEdge, FcNode } from 'ngx-flowchart';
 import { Observable } from 'rxjs';
 import { PageComponent } from '@shared/components/page.component';
 import { AfterViewInit, EventEmitter, Inject, OnInit, Directive } from '@angular/core';
@@ -67,6 +67,7 @@ export interface RuleNodeDefinition {
   outEnabled: boolean;
   relationTypes: string[];
   customRelations: boolean;
+  ruleChainNode?: boolean;
   defaultConfiguration: RuleNodeConfiguration;
   icon?: string;
   iconUrl?: string;
@@ -82,6 +83,8 @@ export interface RuleNodeConfigurationDescriptor {
 
 export interface IRuleNodeConfigurationComponent {
   ruleNodeId: string;
+  ruleChainId: string;
+  ruleChainType: RuleChainType;
   configuration: RuleNodeConfiguration;
   configurationChanged: Observable<RuleNodeConfiguration>;
   validate();
@@ -89,10 +92,15 @@ export interface IRuleNodeConfigurationComponent {
 }
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class RuleNodeConfigurationComponent extends PageComponent implements
   IRuleNodeConfigurationComponent, OnInit, AfterViewInit {
 
   ruleNodeId: string;
+
+  ruleChainId: string;
+
+  ruleChainType: RuleChainType;
 
   configurationValue: RuleNodeConfiguration;
 
@@ -200,7 +208,7 @@ export enum RuleNodeType {
   ACTION = 'ACTION',
   ANALYTICS = 'ANALYTICS',
   EXTERNAL = 'EXTERNAL',
-  RULE_CHAIN = 'RULE_CHAIN',
+  FLOW = 'FLOW',
   UNKNOWN = 'UNKNOWN',
   INPUT = 'INPUT'
 }
@@ -212,7 +220,7 @@ export const ruleNodeTypesLibrary = [
   RuleNodeType.ACTION,
   RuleNodeType.ANALYTICS,
   RuleNodeType.EXTERNAL,
-  RuleNodeType.RULE_CHAIN,
+  RuleNodeType.FLOW,
 ];
 
 export interface RuleNodeTypeDescriptor {
@@ -287,12 +295,12 @@ export const ruleNodeTypeDescriptors = new Map<RuleNodeType, RuleNodeTypeDescrip
       }
     ],
     [
-      RuleNodeType.RULE_CHAIN,
+      RuleNodeType.FLOW,
       {
-        value: RuleNodeType.RULE_CHAIN,
-        name: 'rulenode.type-rule-chain',
-        details: 'rulenode.type-rule-chain-details',
-        nodeClass: 'tb-rule-chain-type',
+        value: RuleNodeType.FLOW,
+        name: 'rulenode.type-flow',
+        details: 'rulenode.type-flow-details',
+        nodeClass: 'tb-flow-type',
         icon: 'settings_ethernet'
       }
     ],
@@ -337,7 +345,6 @@ export interface FcRuleNode extends FcRuleNodeType {
   additionalInfo?: any;
   configuration?: RuleNodeConfiguration;
   debugMode?: boolean;
-  targetRuleChainId?: string;
   error?: string;
   highlighted?: boolean;
   componentClazz?: string;
@@ -426,6 +433,9 @@ export const messageTypeNames = new Map<MessageType, string>(
   ]
 );
 
+export const ruleChainNodeClazz = 'org.thingsboard.rule.engine.flow.TbRuleChainInputNode';
+export const outputNodeClazz = 'org.thingsboard.rule.engine.flow.TbRuleChainOutputNode';
+
 const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.filter.TbCheckRelationNode': 'ruleNodeCheckRelation',
   'org.thingsboard.rule.engine.filter.TbCheckMessageNode': 'ruleNodeCheckExistenceFields',
@@ -463,7 +473,6 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode': 'ruleNodeSaveAttributes',
   'org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode': 'ruleNodeSaveTimeseries',
   'org.thingsboard.rule.engine.action.TbSaveToCustomCassandraTableNode': 'ruleNodeSaveToCustomTable',
-  'tb.internal.RuleChain': 'ruleNodeRuleChain',
   'org.thingsboard.rule.engine.aws.sns.TbSnsNode': 'ruleNodeAwsSns',
   'org.thingsboard.rule.engine.aws.sqs.TbSqsNode': 'ruleNodeAwsSqs',
   'org.thingsboard.rule.engine.kafka.TbKafkaNode': 'ruleNodeKafka',
@@ -487,7 +496,9 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode': 'ruleNodeAggregateLatest',
   'org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode': 'ruleNodeAggregateStream',
   'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2': 'ruleNodeAlarmsCount',
-  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCountDeprecated'
+  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCountDeprecated',
+  'org.thingsboard.rule.engine.flow.TbRuleChainInputNode': 'ruleNodeRuleChain',
+  'org.thingsboard.rule.engine.flow.TbRuleChainOutputNode': 'ruleNodeOutputNode'
 };
 
 export function getRuleNodeHelpLink(component: RuleNodeComponentDescriptor): string {

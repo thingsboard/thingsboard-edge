@@ -54,6 +54,7 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineNotifications;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNotifications;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
+    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toIntegrationRuleEngine;
 
     public TbCoreQueueProducerProvider(TbCoreQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -67,6 +68,7 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
         this.toRuleEngineNotifications = tbQueueProvider.createRuleEngineNotificationsMsgProducer();
         this.toTbCoreNotifications = tbQueueProvider.createTbCoreNotificationsMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
+        this.toIntegrationRuleEngine = tbQueueProvider.createIntegrationRuleEngineMsgProducer();
     }
 
     @Override
@@ -97,5 +99,10 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> getTbUsageStatsMsgProducer() {
         return toUsageStats;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
+        return toIntegrationRuleEngine;
     }
 }
