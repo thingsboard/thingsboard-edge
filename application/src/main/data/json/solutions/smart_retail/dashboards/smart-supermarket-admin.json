@@ -509,7 +509,7 @@
           "padding": "8px",
           "settings": {
             "showLabel": true,
-            "label": "<span style=\"color: #fff;\">${entityLabel}</span>",
+            "label": "<span style=\"color: #000;\">${entityLabel}</span>",
             "tooltipPattern": "<b>${entityName}</b><br/><br/><b>X Pos:</b> ${xPos:2}<br/><b>Y Pos:</b> ${yPos:2}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
             "markerImageSize": 34,
             "useColorFunction": false,
