@@ -161,6 +161,26 @@
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 0.0
         }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
       }
     ]
   },
@@ -233,6 +253,26 @@
             "value": false
           }
         }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
       }
     ]
   },
@@ -250,6 +290,26 @@
           "normalValue": false,
           "anomalyValue": true,
           "anomalyChance": 2000
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
         }
       }
     ]
@@ -277,6 +337,26 @@
             "anomalyValue": true,
             "anomalyChance": 10000
           }
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
         }
       }
     ]

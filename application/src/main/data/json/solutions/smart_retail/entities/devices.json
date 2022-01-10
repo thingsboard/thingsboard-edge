@@ -91,7 +91,9 @@
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4598393861933647,
-      "yPos": 0.8291699184647086
+      "yPos": 0.8291699184647086,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -110,7 +112,9 @@
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4593,
-      "yPos": 0.7494
+      "yPos": 0.7494,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -129,7 +133,9 @@
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4599,
-      "yPos": 0.7874
+      "yPos": 0.7874,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -148,7 +154,9 @@
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4593,
-      "yPos": 0.8667
+      "yPos": 0.8667,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -168,7 +176,11 @@
     "attributes": {
       "totalCapacity": 1.0,
       "xPos": 0.3072,
-      "yPos": 0.2781
+      "yPos": 0.2781,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -188,7 +200,11 @@
     "attributes": {
       "totalCapacity": 1.0,
       "xPos": 0.3072,
-      "yPos": 0.3138
+      "yPos": 0.3138,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -208,7 +224,11 @@
     "attributes": {
       "totalCapacity": 3.0,
       "xPos": 0.4593,
-      "yPos": 0.9002
+      "yPos": 0.9002,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -228,7 +248,11 @@
     "attributes": {
       "totalCapacity": 3.0,
       "xPos": 0.5356,
-      "yPos": 0.8991
+      "yPos": 0.8991,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -247,7 +271,11 @@
     "profile": "Door Sensor",
     "attributes": {
       "xPos": 0.0557,
-      "yPos": 0.0636
+      "yPos": 0.0636,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
     },
     "relations": [
       {
@@ -266,7 +294,11 @@
     "profile": "Door Sensor",
     "attributes": {
       "xPos": 0.3585,
-      "yPos": 0.1273
+      "yPos": 0.1273,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
     },
     "relations": [
       {
@@ -285,7 +317,11 @@
     "profile": "Door Sensor",
     "attributes": {
       "xPos": 0.4996,
-      "yPos": 0.9303
+      "yPos": 0.9303,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
     },
     "relations": [
       {
@@ -304,7 +340,9 @@
     "profile": "Occupancy Sensor",
     "attributes": {
       "xPos": 0.3290,
-      "yPos": 0.3361
+      "yPos": 0.3361,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -323,7 +361,9 @@
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.4964,
-      "yPos": 0.7103
+      "yPos": 0.7103,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -342,7 +382,9 @@
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.7646,
-      "yPos": 0.2278
+      "yPos": 0.2278,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -361,7 +403,9 @@
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.4983,
-      "yPos": 0.2211
+      "yPos": 0.2211,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -380,7 +424,9 @@
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.1345,
-      "yPos": 0.2590
+      "yPos": 0.2590,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -399,7 +445,9 @@
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.7716,
-      "yPos": 0.6221
+      "yPos": 0.6221,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -418,7 +466,9 @@
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.2276,
-      "yPos": 0.6221
+      "yPos": 0.6221,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
@@ -437,7 +487,9 @@
     "profile": "Motion Sensor",
     "attributes": {
       "xPos": 0.0255,
-      "yPos": 0.1551
+      "yPos": 0.1551,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
     },
     "relations": [
       {
