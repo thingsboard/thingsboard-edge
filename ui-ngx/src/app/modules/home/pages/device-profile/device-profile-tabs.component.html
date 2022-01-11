@@ -50,6 +50,7 @@
     <div formGroupName="profileData">
       <tb-device-profile-transport-configuration
         formControlName="transportConfiguration"
+        [isAdd] = "isTransportTypeChanged"
         required>
       </tb-device-profile-transport-configuration>
     </div>

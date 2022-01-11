@@ -65,6 +65,9 @@ export class DeviceProfileTransportConfigurationComponent implements ControlValu
   @Input()
   disabled: boolean;
 
+  @Input()
+  isAdd: boolean;
+
   transportType: DeviceTransportType;
 
   private propagateChange = (v: any) => { };

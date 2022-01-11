@@ -212,6 +212,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testAssignUnassignEdgeToCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
@@ -247,6 +248,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
         loginSysAdmin();
@@ -475,6 +477,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testFindCustomerEdges() throws Exception {
         Customer customer = new Customer();
@@ -510,6 +513,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testFindCustomerEdgesByName() throws Exception {
         Customer customer = new Customer();
@@ -601,6 +605,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testFindCustomerEdgesByType() throws Exception {
         Customer customer = new Customer();
@@ -694,6 +699,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testSyncEdge() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
@@ -750,8 +756,6 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // Temporarily ignoring this test. Must be fixed by @volodymyr-babak
-    @Ignore
     @Test
     public void testSyncEdgeEntityGroup() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);

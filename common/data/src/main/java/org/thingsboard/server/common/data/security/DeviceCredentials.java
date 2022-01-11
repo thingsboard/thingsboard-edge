@@ -127,5 +127,4 @@ public class DeviceCredentials extends BaseData<DeviceCredentialsId> implements 
                 + credentialsId + ", credentialsValue=" + credentialsValue + ", createdTime=" + createdTime + ", id="
                 + id + "]";
     }
-
 }

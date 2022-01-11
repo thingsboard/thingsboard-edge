@@ -190,6 +190,8 @@ public abstract class TbAbstractSubCtx<T extends EntityCountQuery> {
         }
     }
 
+    public abstract boolean isDynamic();
+
     public abstract void fetchData();
 
     protected abstract void update();

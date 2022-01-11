@@ -351,6 +351,11 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.put("unassignedEdgeId", strEdgeId);
                 actionData.put("unassignedEdgeName", strEdgeName);
                 break;
+            case REST_API_RULE_ENGINE_CALL:
+                actionData.put("entityId", entityId.toString());
+                String msgBody = extractParameter(String.class, 0, additionalInfo);
+                actionData.set("body", JacksonUtil.toJsonNode(msgBody));
+                break;
         }
         return actionData;
     }
