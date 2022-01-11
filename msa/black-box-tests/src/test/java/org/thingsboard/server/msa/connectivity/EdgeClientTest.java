@@ -1020,9 +1020,9 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).size() == keys.size());
+                .until(() -> targetRestClient.getAttributesByScope(globalTestDevice.getId(), DataConstants.CLIENT_SCOPE, keys).size() == keys.size());
 
-        List<AttributeKvEntry> attributeKvEntries = targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys);
+        List<AttributeKvEntry> attributeKvEntries = targetRestClient.getAttributesByScope(globalTestDevice.getId(), DataConstants.CLIENT_SCOPE, keys);
 
         sourceRestClient.deleteEntityAttributes(globalTestDevice.getId(), DataConstants.CLIENT_SCOPE, keys);
 
@@ -1106,10 +1106,10 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).size() == keys.size());
+                .until(() -> targetRestClient.getAttributesByScope(globalTestDevice.getId(), scope, keys).size() == keys.size());
 
         List<AttributeKvEntry> attributeKvEntries =
-                targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys);
+                targetRestClient.getAttributesByScope(globalTestDevice.getId(), scope, keys);
 
         sourceRestClient.deleteEntityAttributes(globalTestDevice.getId(), scope, keys);
 
