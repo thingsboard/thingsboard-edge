@@ -45,6 +45,7 @@ import { AppState } from '@core/core.state';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { UtilsService } from '@core/services/utils.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'tb-audit-log-table',
@@ -121,7 +122,8 @@ export class AuditLogTableComponent implements OnInit {
               private utils: UtilsService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              private route: ActivatedRoute) {
   }
 
   ngOnInit() {
@@ -134,6 +136,7 @@ export class AuditLogTableComponent implements OnInit {
       }
       updateOnInit = true;
     }
+    const persistentPageLinkMode = !!this.route.snapshot.data.isPage;
     this.auditLogTableConfig = new AuditLogTableConfig(
       this.auditLogService,
       this.translate,
@@ -144,7 +147,8 @@ export class AuditLogTableComponent implements OnInit {
       this.entityIdValue,
       this.userIdValue,
       this.customerIdValue,
-      updateOnInit
+      updateOnInit,
+      persistentPageLinkMode
     );
   }
 
