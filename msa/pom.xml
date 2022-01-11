@@ -62,7 +62,6 @@
 <!--        <module>tb-node</module>-->
 <!--        <module>transport</module>-->
         <module>tb-edge</module>
-        <module>black-box-tests</module>
 <!--        <module>integration</module>-->
     </modules>
 
