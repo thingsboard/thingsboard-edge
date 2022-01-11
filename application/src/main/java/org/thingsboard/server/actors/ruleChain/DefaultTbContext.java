@@ -693,9 +693,10 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
         boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
         UUID requestUUID;
-        String serviceId = msg.getMetaData().getValue("originServiceId");
+        String serviceId;
         if (restApiCall) {
             String tmp = msg.getMetaData().getValue("requestUUID");
+            serviceId = msg.getMetaData().getValue("originServiceId");
             requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUID.randomUUID();
             tmp = msg.getMetaData().getValue("oneway");
             boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
@@ -704,6 +705,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
             }
         } else {
             requestUUID = null;
+            serviceId = null;
         }
 
         TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
