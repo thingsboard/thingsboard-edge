@@ -101,8 +101,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.eclipse.milo.opcua.stack.core.StatusCodes.Bad_ConnectionRejected;
-
 /**
  * Created by Valerii Sosliuk on 3/17/2018.
  */
@@ -394,7 +392,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void scheduleConnect() {
-        reconnectFuture = context.getScheduledExecutorService().schedule((Runnable) this::connect, delayBetweenReconnects.get(), TimeUnit.SECONDS);
+        reconnectFuture = context.getScheduledExecutorService().schedule(this::connect, delayBetweenReconnects.get(), TimeUnit.SECONDS);
     }
 
     private void scanForDevices() {
@@ -512,7 +510,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     }
                 }
             } catch (ExecutionException e) {
-                if (e.getCause() instanceof UaException){
+                if (e.getCause() instanceof UaException) {
                     connected = false;
                     String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
                     log.error(message, e);
