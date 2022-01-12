@@ -1551,7 +1551,7 @@
             "showTooltip": true,
             "autocloseTooltip": true,
             "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
-            "tooltipFunction": "var content = '<div style=\"font-family: Roboto;\">' +\r\n                 '<div style=\"font-size: 14px; font-weight: 500; padding-bottom: 8px;\">${entityLabel}</div>';\r\n                 \r\nvar deviceType = data['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    content += '<div style=\"font-size: 12px; font-weight: normal;\">' + getInfoByDeviceType(deviceType) + '</div>';\r\n}\r\ncontent += '</div>';\r\nreturn content;\r\n\r\nfunction getInfoByDeviceType(type) {\r\n    switch (type) {\r\n        case 'Smart Shelf':\r\n            return 'Weight: ${weight:1} Kg';\r\n        case 'Chiller':\r\n        case 'Freezer':    \r\n            return 'Temperature: ${temperature:1} °C';\r\n        case 'Smart Bin':\r\n            return 'Fullness: ${level:0}%';\r\n        case 'Liquid Level Sensor':\r\n            return 'Liquid level: ${level:0}%';\r\n        case 'Door Sensor':\r\n            var open = data['open'] === 'true';\r\n            return 'State: ' + (open ? 'Open' : 'Closed');\r\n        default:\r\n            return 'TODO';\r\n    }\r\n}\r\n",
+            "tooltipFunction": "var content = '<div style=\"font-family: Roboto;\">' +\r\n                 '<div style=\"font-size: 14px; font-weight: 500; padding-bottom: 8px;\">${entityLabel}</div>';\r\n                 \r\nvar deviceType = data['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    content += '<div style=\"font-size: 12px; font-weight: normal;\">' + getInfoByDeviceType(deviceType) + '</div>';\r\n}\r\ncontent += '</div>';\r\nreturn content;\r\n\r\nfunction getInfoByDeviceType(type) {\r\n    switch (type) {\r\n        case 'Smart Shelf':\r\n            return 'Weight: ${weight:1} Kg';\r\n        case 'Chiller':\r\n        case 'Freezer':    \r\n            return 'Temperature: ${temperature:1} °C';\r\n        case 'Smart Bin':\r\n            return 'Fullness: ${level:0}%';\r\n        case 'Liquid Level Sensor':\r\n            return 'Liquid level: ${level:0}%';\r\n        case 'Door Sensor':\r\n            var open = data['open'] === 'true';\r\n            return 'State: ' + (open ? 'Open' : 'Closed');\r\n        case 'Motion Sensor':\r\n            var movement = data['movement'] === 'true';\r\n            return 'Movement detection: ' + (movement ? 'Detected' : 'None');\r\n        case 'Occupancy Sensor':\r\n            var occupied = data['occupied'] === 'true';\r\n            return 'State: ' + (occupied ? 'Occupied' : 'Vacant');\r\n        case 'Smoke Sensor':\r\n            var alarm = data['alarm'] === 'true';\r\n            return 'Fire alarm: ' + (alarm ? 'Alarm' : 'None');\r\n        default:\r\n            return 'TODO';\r\n    }\r\n}\r\n",
             "provider": "image-map",
             "showTooltipAction": "hover",
             "mapPageSize": 16384,
@@ -1756,7 +1756,7 @@
           "settings": {
             "enableSelection": true,
             "enableSearch": true,
-            "displayDetails": true,
+            "displayDetails": false,
             "allowAcknowledgment": true,
             "allowClear": true,
             "displayPagination": false,
@@ -1917,7 +1917,7 @@
           "settings": {
             "enableSelection": true,
             "enableSearch": true,
-            "displayDetails": true,
+            "displayDetails": false,
             "allowAcknowledgment": true,
             "allowClear": true,
             "displayPagination": false,
@@ -2150,7 +2150,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "const targetElement = $($event.target).closest('#settings', widgetContext.$container[0]);\n\nvar type = decodeURIComponent($(targetElement).attr('data-device-type'));\n\nvar stateId = getSettingsState(type);\n\nvar params = {\n    selectedDevice: {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n    },\n    targetEntityParamName: 'selectedDevice'\n};\n\nwidgetContext.actionsApi.openDashboardStateInPopover($event, stateId, params, true, 'left', true, '400px', getSettingsHeight(type));\n\nfunction getSettingsState(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return 'smart_shelf_settings';\n        case 'Freezer':            \n            return 'freezer_settings';\n        case 'Chiller':            \n            return 'chiller_settings';                      \n        case 'Smart Bin':\n            return 'smart_bin_settings';          \n        case 'Door Sensor':\n            return 'door_settings';\n        case 'Liquid Level Sensor':\n            return 'liquid_sensor_settings';\n        case 'Motion Sensor':\n            return 'motion_sensor_settings';\n        case 'Occupancy Sensor':\n            return 'occupancy_sensor_settings';\n        case 'Smoke Sensor':\n            return 'smoke_sensor_settings';\n        default:\n            return 'unknown_settings';\n    }\n}\n\nfunction getSettingsHeight(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return '270px';\n        case 'Freezer':            \n            return '410px';\n        case 'Chiller':            \n            return '410px';                  \n        case 'Smart Bin':\n            return '410px';                  \n        case 'Door Sensor':\n            return '410px';\n        case 'Liquid Level Sensor':\n            return '410px';\n        case 'Motion Sensor':\n            return '35vh';\n        case 'Occupancy Sensor':\n            return '35vh';\n        case 'Smoke Sensor':\n            return '35vh';\n        default:\n            return '35vh';\n    }\n}\n",
+                "customFunction": "const targetElement = $($event.target).closest('#settings', widgetContext.$container[0]);\n\nvar type = decodeURIComponent($(targetElement).attr('data-device-type'));\n\nvar stateId = getSettingsState(type);\n\nvar params = {\n    selectedDevice: {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n    },\n    targetEntityParamName: 'selectedDevice'\n};\n\nwidgetContext.actionsApi.openDashboardStateInPopover($event, stateId, params, true, 'left', true, '400px', getSettingsHeight(type));\n\nfunction getSettingsState(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return 'smart_shelf_settings';\n        case 'Freezer':            \n            return 'freezer_settings';\n        case 'Chiller':            \n            return 'chiller_settings';                      \n        case 'Smart Bin':\n            return 'smart_bin_settings';          \n        case 'Door Sensor':\n            return 'door_settings';\n        case 'Liquid Level Sensor':\n            return 'liquid_sensor_settings';\n        case 'Motion Sensor':\n            return 'motion_sensor_settings';\n        case 'Occupancy Sensor':\n            return 'occupancy_sensor_settings';\n        case 'Smoke Sensor':\n            return 'smoke_sensor_settings';\n        default:\n            return 'unknown_settings';\n    }\n}\n\nfunction getSettingsHeight(type) {\n    switch (type) {\n        case 'Smart Shelf':\n            return '270px';\n        case 'Freezer':            \n            return '410px';\n        case 'Chiller':            \n            return '410px';                  \n        case 'Smart Bin':\n            return '410px';                  \n        case 'Door Sensor':\n            return '410px';\n        case 'Liquid Level Sensor':\n            return '410px';\n        case 'Motion Sensor':\n            return '270px';\n        case 'Occupancy Sensor':\n            return '410px';\n        case 'Smoke Sensor':\n            return '270px';\n        default:\n            return '35vh';\n    }\n}\n",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "076da598-f2dc-6fda-6744-db268a4c6df7"
@@ -2224,7 +2224,7 @@
           },
           "title": "New Entities table",
           "dropShadow": false,
-          "enableFullscreen": true,
+          "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "24px",
             "fontWeight": 700,
@@ -2417,7 +2417,7 @@
             "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
             "markdownTextFunction": "var deviceState;\nif (data && data.length && data[0]['entityId']) {\n    deviceState = true;\n} else {\n    deviceState = false;\n}\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"' + (deviceState ? 'true' : 'false') + '\" stateId=\"'+ (deviceState ? 'device_card' : 'devices_card') +'\"></tb-dashboard-state>' +\n          '<mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"' + (deviceState ? 'true' : 'false') + '\" stateId=\"'+ (deviceState ? 'device_alarms' : 'devices_alarms') +'\"></tb-dashboard-state>' +\n       '</div>';",
             "useMarkdownTextFunction": true,
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n"
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -2490,7 +2490,7 @@
           "settings": {
             "enableSelection": true,
             "enableSearch": true,
-            "displayDetails": true,
+            "displayDetails": false,
             "allowAcknowledgment": true,
             "allowClear": true,
             "displayPagination": false,
@@ -2498,7 +2498,7 @@
             "defaultSortOrder": "-startTime",
             "enableSelectColumnDisplay": true,
             "enableStickyAction": false,
-            "enableFilter": true,
+            "enableFilter": false,
             "enableStickyHeader": true,
             "reserveSpaceForHiddenAction": "true",
             "useRowStyleFunction": false,
@@ -2506,7 +2506,7 @@
           },
           "title": "New Alarms table",
           "dropShadow": false,
-          "enableFullscreen": true,
+          "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "24px",
             "fontWeight": 700,
@@ -2537,23 +2537,6 @@
                   "columnExportOption": "onlyVisible"
                 },
                 "_hash": 0.18228508234861218
-              },
-              {
-                "name": "endTime",
-                "type": "alarm",
-                "label": "End time",
-                "color": "#8bc34a",
-                "settings": {
-                  "columnWidth": "0px",
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": "",
-                  "defaultColumnVisibility": "visible",
-                  "columnSelectionToDisplay": "enabled",
-                  "columnExportOption": "onlyVisible"
-                },
-                "_hash": 0.3865790394779758
               },
               {
                 "name": "originator",
@@ -2667,7 +2650,7 @@
           "settings": {
             "enableSelection": true,
             "enableSearch": true,
-            "displayDetails": true,
+            "displayDetails": false,
             "allowAcknowledgment": true,
             "allowClear": true,
             "displayPagination": false,
@@ -2675,7 +2658,7 @@
             "defaultSortOrder": "-startTime",
             "enableSelectColumnDisplay": true,
             "enableStickyAction": false,
-            "enableFilter": true,
+            "enableFilter": false,
             "enableStickyHeader": true,
             "reserveSpaceForHiddenAction": "true",
             "useRowStyleFunction": false,
@@ -2683,7 +2666,7 @@
           },
           "title": "New Alarms table",
           "dropShadow": false,
-          "enableFullscreen": true,
+          "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "24px",
             "fontWeight": 700,
@@ -2714,23 +2697,6 @@
                   "columnExportOption": "onlyVisible"
                 },
                 "_hash": 0.9100433241266481
-              },
-              {
-                "name": "endTime",
-                "type": "alarm",
-                "label": "End time",
-                "color": "#9c27b0",
-                "settings": {
-                  "columnWidth": "0px",
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": "",
-                  "defaultColumnVisibility": "visible",
-                  "columnSelectionToDisplay": "enabled",
-                  "columnExportOption": "onlyVisible"
-                },
-                "_hash": 0.1968640724531434
               },
               {
                 "name": "originator",
@@ -2794,7 +2760,9 @@
           "widgetStyle": {},
           "displayTimewindow": true,
           "actions": {},
-          "alarmStatusList": [],
+          "alarmStatusList": [
+            "ACTIVE"
+          ],
           "alarmSeverityList": [],
           "alarmTypeList": [],
           "searchPropagatedAlarms": false,
@@ -3439,7 +3407,7 @@
                 {
                   "name": "alarm",
                   "type": "timeseries",
-                  "label": "state",
+                  "label": "Fire alarm",
                   "color": "#2196f3",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3447,7 +3415,7 @@
                     "disableDataHiding": false,
                     "removeFromLegend": false,
                     "showLines": true,
-                    "fillLines": false,
+                    "fillLines": true,
                     "showPoints": false,
                     "showPointShape": "circle",
                     "pointShapeFormatter": "var size = radius * Math.sqrt(Math.PI) / 2;\nctx.moveTo(x - size, y - size);\nctx.lineTo(x + size, y + size);\nctx.moveTo(x - size, y + size);\nctx.lineTo(x + size, y - size);",
@@ -3455,14 +3423,12 @@
                     "showPointsRadius": 3,
                     "showSeparateAxis": false,
                     "axisPosition": "left",
-                    "thresholds": [
-                      {
-                        "thresholdValueSource": "predefinedValue"
-                      }
-                    ],
+                    "thresholds": [],
                     "comparisonSettings": {
                       "showValuesForComparison": true
-                    }
+                    },
+                    "axisMax": 1,
+                    "axisTitle": "Fire alarm"
                   },
                   "_hash": 0.13062695385906475,
                   "units": null,
@@ -3482,7 +3448,7 @@
             "selectedTab": 0,
             "realtime": {
               "realtimeType": 0,
-              "timewindowMs": 2592000000,
+              "timewindowMs": 604800000,
               "quickInterval": "CURRENT_DAY",
               "interval": 7200000
             },
@@ -3491,7 +3457,7 @@
               "limit": 25000
             }
           },
-          "showTitle": true,
+          "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
@@ -3506,7 +3472,7 @@
             "yaxis": {
               "showLabels": true,
               "color": "#545454",
-              "ticksFormatter": "if (value > 0 && value <= 1) {\n    return 'Alarm';\n} else if (value === 0) {\n    return 'Normal';\n} else {\n    return '';\n}",
+              "ticksFormatter": "if (value > 0 && value <= 1) {\n    return 'Alarm';\n} else if (value === 0) {\n    return 'None';\n} else {\n    return '';\n}",
               "tickDecimals": 0,
               "title": "Fire alarm"
             },
@@ -3519,7 +3485,7 @@
             },
             "stack": false,
             "tooltipIndividual": false,
-            "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'Alarm';\n} else if (value === 0) {\n    return 'Normal';\n} else {\n    return '';\n}",
+            "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'Alarm';\n} else if (value === 0) {\n    return 'None';\n} else {\n    return '';\n}",
             "smoothLines": false,
             "tooltipCumulative": false,
             "hideZeros": false,
@@ -3533,8 +3499,8 @@
             "customLegendEnabled": false
           },
           "title": "Fire alarm state",
-          "dropShadow": true,
-          "enableFullscreen": true,
+          "dropShadow": false,
+          "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400
@@ -3543,48 +3509,7 @@
           "useDashboardTimewindow": false,
           "showLegend": false,
           "actions": {
-            "headerButton": [
-              {
-                "name": "Settings",
-                "icon": "settings",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "smoke_sensor_settings",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "popoverPreferredPlacement": "top",
-                "popoverHideOnClickOutside": true,
-                "popoverHideDashboardToolbar": true,
-                "popoverWidth": "25vw",
-                "popoverHeight": "25vh",
-                "popoverStyle": {},
-                "openInSeparateDialog": false,
-                "openInPopover": true,
-                "id": "38db90d8-8efa-5018-cf08-d17152857f2c"
-              },
-              {
-                "name": "Battery Level",
-                "icon": "battery_full",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "battery_level_details",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "popoverPreferredPlacement": "top",
-                "popoverHideOnClickOutside": true,
-                "popoverHideDashboardToolbar": true,
-                "popoverWidth": "25vw",
-                "popoverHeight": "25vh",
-                "popoverStyle": {},
-                "openInSeparateDialog": false,
-                "openInPopover": true,
-                "id": "907f744a-a61b-aff3-dfff-b611275aa82c"
-              }
-            ]
+            "headerButton": []
           },
           "legendConfig": {
             "direction": "column",
@@ -3597,121 +3522,13 @@
           "displayTimewindow": true,
           "showTitleIcon": false,
           "titleTooltip": "",
-          "enableDataExport": true,
+          "enableDataExport": false,
           "widgetCss": "",
           "noDataDisplayMessage": ""
         },
         "row": 0,
         "col": 0,
         "id": "815da885-0b87-8e96-99ed-d2823e545395"
-      },
-      "0988fa07-eda5-8935-69a4-15326b2ec13f": {
-        "isSystemType": true,
-        "bundleAlias": "input_widgets",
-        "typeAlias": "update_multiple_attributes",
-        "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 7.5,
-        "sizeY": 3,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "lowBatteryCriticalThreshold",
-                  "type": "attribute",
-                  "label": "Low battery threshold for critical alarm",
-                  "color": "#2196f3",
-                  "settings": {
-                    "dataKeyType": "server",
-                    "dataKeyValueType": "integer",
-                    "selectOptions": [],
-                    "step": 1,
-                    "required": true,
-                    "invalidDateErrorMessage": "",
-                    "isEditable": "editable",
-                    "dataKeyHidden": false,
-                    "minValue": 0,
-                    "maxValue": 100
-                  },
-                  "_hash": 0.5836022338529341,
-                  "units": "%",
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 10;\n}"
-                },
-                {
-                  "name": "lowBatteryMajorThreshold",
-                  "type": "attribute",
-                  "label": "Low battery threshold for major alarm",
-                  "color": "#4caf50",
-                  "settings": {
-                    "dataKeyType": "server",
-                    "dataKeyValueType": "integer",
-                    "selectOptions": [],
-                    "step": 1,
-                    "required": true,
-                    "invalidDateErrorMessage": "",
-                    "isEditable": "editable",
-                    "dataKeyHidden": false,
-                    "minValue": 0,
-                    "maxValue": 100
-                  },
-                  "_hash": 0.6680824700942749,
-                  "units": "%",
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 30;\n}"
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "realtime": {
-              "timewindowMs": 60000
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "showActionButtons": true,
-            "showResultMessage": true,
-            "showGroupTitle": false,
-            "fieldsAlignment": "column",
-            "updateAllValues": false,
-            "groupTitle": "${entityName}",
-            "fieldsInRow": 2
-          },
-          "title": "Settings",
-          "dropShadow": true,
-          "enableFullscreen": false,
-          "enableDataExport": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "actions": {},
-          "showTitleIcon": false,
-          "titleTooltip": "",
-          "widgetCss": "",
-          "noDataDisplayMessage": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "0988fa07-eda5-8935-69a4-15326b2ec13f"
       },
       "e0e9e6d4-b329-f60f-3e1c-fd2c8115389a": {
         "isSystemType": true,
@@ -5713,6 +5530,887 @@
         "row": 0,
         "col": 0,
         "id": "77d75f64-a030-0597-64fd-9ae65c5e4843"
+      },
+      "5364ac11-0129-8771-7bb1-67718bd3efda": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_multiple_attributes",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "lowBatteryCriticalThreshold",
+                  "type": "attribute",
+                  "label": "Low battery threshold for critical alarm",
+                  "color": "#f44336",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 0,
+                    "maxValue": 100
+                  },
+                  "_hash": 0.3977852589212394,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 10;\n}"
+                },
+                {
+                  "name": "lowBatteryMajorThreshold",
+                  "type": "attribute",
+                  "label": "Low battery threshold for major alarm",
+                  "color": "#ffc107",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 0,
+                    "maxValue": 100
+                  },
+                  "_hash": 0.9885317089867498,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 30;\n}"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "showActionButtons": true,
+            "showResultMessage": true,
+            "showGroupTitle": false,
+            "fieldsAlignment": "column",
+            "updateAllValues": false,
+            "groupTitle": "${entityName}",
+            "fieldsInRow": 2
+          },
+          "title": "Settings",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "padding-top": "8px",
+            "padding-bottom": "24px",
+            "fontSize": "18px",
+            "fontWeight": 500
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": ".tb-multiple-input > div {\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n}\n\n.tb-multiple-input > div > fieldset {\n    flex: 1;\n}\n\n.tb-multiple-input .mat-padding {\n    padding: 0;\n}\n\n.tb-multiple-input button[type=submit] {\n    margin-right: 0 !important;\n}\n\n",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "5364ac11-0129-8771-7bb1-67718bd3efda"
+      },
+      "49056eb9-3240-4315-84e8-73ea065e4652": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "motion",
+                  "type": "timeseries",
+                  "label": "motion",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.41421011215312653,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 'Detected' : 'None';"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextPattern": "**Movement detection** (${motion})",
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownCss": "p {\n    padding-left: 16px;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "49056eb9-3240-4315-84e8-73ea065e4652"
+      },
+      "bb3e4bc4-7f69-b8df-c554-dfdffd83a4dc": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "state_chart",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "motion",
+                  "type": "timeseries",
+                  "label": "Movement detection",
+                  "color": "#2196f3",
+                  "settings": {
+                    "excludeFromStacking": false,
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "showLines": true,
+                    "fillLines": true,
+                    "showPoints": false,
+                    "showPointShape": "circle",
+                    "pointShapeFormatter": "var size = radius * Math.sqrt(Math.PI) / 2;\nctx.moveTo(x - size, y - size);\nctx.lineTo(x + size, y + size);\nctx.moveTo(x - size, y + size);\nctx.lineTo(x + size, y - size);",
+                    "showPointsLineWidth": 5,
+                    "showPointsRadius": 3,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left",
+                    "thresholds": [],
+                    "comparisonSettings": {
+                      "showValuesForComparison": true
+                    },
+                    "axisTitle": "Movement detection",
+                    "axisMax": 1
+                  },
+                  "_hash": 0.774509473282736,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 1 : 0;"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 0,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "ticksFormatter": "if (value > 0 && value <= 1) {\n    return 'Detected';\n} else if (value === 0) {\n    return 'None';\n} else {\n    return '';\n}",
+              "tickDecimals": 0
+            },
+            "grid": {
+              "color": "#e0e0e0",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": false,
+              "outlineWidth": 1
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'Detected';\n} else if (value === 0) {\n    return 'None';\n} else {\n    return '';\n}",
+            "smoothLines": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "showTooltip": true,
+            "comparisonEnabled": false,
+            "timeForComparison": "previousInterval",
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Door state",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {},
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "actions": {
+            "headerButton": []
+          },
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "bb3e4bc4-7f69-b8df-c554-dfdffd83a4dc"
+      },
+      "9ab503a5-3c68-5dfb-d55a-8672bf48ada9": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_multiple_attributes",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "maxOccupancyTimeCriticalThreshold",
+                  "type": "attribute",
+                  "label": "Occupancy duration for critical alarm",
+                  "color": "#2196f3",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 2,
+                    "maxValue": 400,
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
+                  },
+                  "_hash": 0.3859130334588563,
+                  "units": "Minutes",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 60;\n}"
+                },
+                {
+                  "name": "maxOccupancyTimeMajorThreshold",
+                  "type": "attribute",
+                  "label": "Occupancy duration for major alarm",
+                  "color": "#4caf50",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 2,
+                    "maxValue": 600,
+                    "useCustomIcon": false,
+                    "useGetValueFunction": false,
+                    "useSetValueFunction": false
+                  },
+                  "_hash": 0.09378045215692454,
+                  "units": "Minutes",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 30;\n}"
+                },
+                {
+                  "name": "lowBatteryCriticalThreshold",
+                  "type": "attribute",
+                  "label": "Low battery threshold for critical alarm",
+                  "color": "#f44336",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 0,
+                    "maxValue": 100
+                  },
+                  "_hash": 0.3977852589212394,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 10;\n}"
+                },
+                {
+                  "name": "lowBatteryMajorThreshold",
+                  "type": "attribute",
+                  "label": "Low battery threshold for major alarm",
+                  "color": "#ffc107",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 0,
+                    "maxValue": 100
+                  },
+                  "_hash": 0.9885317089867498,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 30;\n}"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "showActionButtons": true,
+            "showResultMessage": true,
+            "showGroupTitle": false,
+            "fieldsAlignment": "column",
+            "updateAllValues": false,
+            "groupTitle": "${entityName}",
+            "fieldsInRow": 2
+          },
+          "title": "Settings",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "padding-top": "8px",
+            "padding-bottom": "24px",
+            "fontSize": "18px",
+            "fontWeight": 500
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": ".tb-multiple-input > div {\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n}\n\n.tb-multiple-input > div > fieldset {\n    flex: 1;\n}\n\n.tb-multiple-input .mat-padding {\n    padding: 0;\n}\n\n.tb-multiple-input button[type=submit] {\n    margin-right: 0 !important;\n}\n\n",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "9ab503a5-3c68-5dfb-d55a-8672bf48ada9"
+      },
+      "33b97c6e-ccca-4677-2ae1-6b8c6339f036": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "occupied",
+                  "type": "timeseries",
+                  "label": "occupied",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.41421011215312653,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 'Occupied' : 'Vacant';"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextPattern": "**State** (${occupied})",
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownCss": "p {\n    padding-left: 16px;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "33b97c6e-ccca-4677-2ae1-6b8c6339f036"
+      },
+      "96f25bbc-79bc-c367-440b-e4bb292f7656": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "state_chart",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "occupied",
+                  "type": "timeseries",
+                  "label": "State",
+                  "color": "#2196f3",
+                  "settings": {
+                    "excludeFromStacking": false,
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "showLines": true,
+                    "fillLines": true,
+                    "showPoints": false,
+                    "showPointShape": "circle",
+                    "pointShapeFormatter": "var size = radius * Math.sqrt(Math.PI) / 2;\nctx.moveTo(x - size, y - size);\nctx.lineTo(x + size, y + size);\nctx.moveTo(x - size, y + size);\nctx.lineTo(x + size, y - size);",
+                    "showPointsLineWidth": 5,
+                    "showPointsRadius": 3,
+                    "showSeparateAxis": false,
+                    "axisPosition": "left",
+                    "thresholds": [],
+                    "comparisonSettings": {
+                      "showValuesForComparison": true
+                    },
+                    "axisTitle": "State",
+                    "axisMax": 1
+                  },
+                  "_hash": 0.774509473282736,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 1 : 0;"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 0,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454",
+              "ticksFormatter": "if (value > 0 && value <= 1) {\n    return 'Occupied';\n} else if (value === 0) {\n    return 'Vacant';\n} else {\n    return '';\n}",
+              "tickDecimals": 0
+            },
+            "grid": {
+              "color": "#e0e0e0",
+              "tickColor": "#DDDDDD",
+              "verticalLines": false,
+              "horizontalLines": false,
+              "outlineWidth": 1
+            },
+            "stack": false,
+            "tooltipIndividual": false,
+            "tooltipValueFormatter": "if (value > 0 && value <= 1) {\n    return 'Occupied';\n} else if (value === 0) {\n    return 'Vacant';\n} else {\n    return '';\n}",
+            "smoothLines": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "showTooltip": true,
+            "comparisonEnabled": false,
+            "timeForComparison": "previousInterval",
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Door state",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {},
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "actions": {
+            "headerButton": []
+          },
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "96f25bbc-79bc-c367-440b-e4bb292f7656"
+      },
+      "e1162517-e90f-50f4-9cc3-71ec9b3fcbab": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_multiple_attributes",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "lowBatteryCriticalThreshold",
+                  "type": "attribute",
+                  "label": "Low battery threshold for critical alarm",
+                  "color": "#f44336",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 0,
+                    "maxValue": 100
+                  },
+                  "_hash": 0.3977852589212394,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 10;\n}"
+                },
+                {
+                  "name": "lowBatteryMajorThreshold",
+                  "type": "attribute",
+                  "label": "Low battery threshold for major alarm",
+                  "color": "#ffc107",
+                  "settings": {
+                    "dataKeyType": "server",
+                    "dataKeyValueType": "integer",
+                    "selectOptions": [],
+                    "step": 1,
+                    "required": true,
+                    "invalidDateErrorMessage": "",
+                    "isEditable": "editable",
+                    "dataKeyHidden": false,
+                    "minValue": 0,
+                    "maxValue": 100
+                  },
+                  "_hash": 0.9885317089867498,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value){\n    return value;\n} else {\n    return 30;\n}"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "showActionButtons": true,
+            "showResultMessage": true,
+            "showGroupTitle": false,
+            "fieldsAlignment": "column",
+            "updateAllValues": false,
+            "groupTitle": "${entityName}",
+            "fieldsInRow": 2
+          },
+          "title": "Settings",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "padding-top": "8px",
+            "padding-bottom": "24px",
+            "fontSize": "18px",
+            "fontWeight": 500
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": ".tb-multiple-input > div {\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n}\n\n.tb-multiple-input > div > fieldset {\n    flex: 1;\n}\n\n.tb-multiple-input .mat-padding {\n    padding: 0;\n}\n\n.tb-multiple-input button[type=submit] {\n    margin-right: 0 !important;\n}\n\n",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "e1162517-e90f-50f4-9cc3-71ec9b3fcbab"
+      },
+      "344f5c53-b6ef-3500-8ca0-1cf79cdbb44e": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b755362a-b545-8ee6-a67b-df2c9e39d6e5",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "alarm",
+                  "type": "timeseries",
+                  "label": "alarm",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.41421011215312653,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 'Alarm' : 'None';"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextPattern": "**Fire alarm** (${alarm})",
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownCss": "p {\n    padding-left: 16px;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "344f5c53-b6ef-3500-8ca0-1cf79cdbb44e"
       }
     },
     "states": {
@@ -6152,10 +6850,23 @@
         "root": false,
         "layouts": {
           "main": {
-            "widgets": {},
+            "widgets": {
+              "33b97c6e-ccca-4677-2ae1-6b8c6339f036": {
+                "sizeX": 80,
+                "sizeY": 3,
+                "row": 0,
+                "col": 0
+              },
+              "96f25bbc-79bc-c367-440b-e4bb292f7656": {
+                "sizeX": 80,
+                "sizeY": 37,
+                "row": 3,
+                "col": 0
+              }
+            },
             "gridSettings": {
               "backgroundColor": "#ffffff",
-              "columns": 24,
+              "columns": 80,
               "margin": 0,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
@@ -6171,7 +6882,14 @@
         "root": false,
         "layouts": {
           "main": {
-            "widgets": {},
+            "widgets": {
+              "9ab503a5-3c68-5dfb-d55a-8672bf48ada9": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
             "gridSettings": {
               "backgroundColor": "#ffffff",
               "columns": 24,
@@ -6190,10 +6908,23 @@
         "root": false,
         "layouts": {
           "main": {
-            "widgets": {},
+            "widgets": {
+              "49056eb9-3240-4315-84e8-73ea065e4652": {
+                "sizeX": 80,
+                "sizeY": 3,
+                "row": 0,
+                "col": 0
+              },
+              "bb3e4bc4-7f69-b8df-c554-dfdffd83a4dc": {
+                "sizeX": 80,
+                "sizeY": 37,
+                "row": 3,
+                "col": 0
+              }
+            },
             "gridSettings": {
               "backgroundColor": "#ffffff",
-              "columns": 24,
+              "columns": 80,
               "margin": 0,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
@@ -6209,7 +6940,14 @@
         "root": false,
         "layouts": {
           "main": {
-            "widgets": {},
+            "widgets": {
+              "5364ac11-0129-8771-7bb1-67718bd3efda": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
             "gridSettings": {
               "backgroundColor": "#ffffff",
               "columns": 24,
@@ -6462,15 +7200,21 @@
           "main": {
             "widgets": {
               "815da885-0b87-8e96-99ed-d2823e545395": {
-                "sizeX": 24,
-                "sizeY": 12,
+                "sizeX": 80,
+                "sizeY": 35,
+                "row": 3,
+                "col": 0
+              },
+              "344f5c53-b6ef-3500-8ca0-1cf79cdbb44e": {
+                "sizeX": 80,
+                "sizeY": 3,
                 "row": 0,
                 "col": 0
               }
             },
             "gridSettings": {
               "backgroundColor": "#ffffff",
-              "columns": 24,
+              "columns": 80,
               "margin": 0,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
@@ -6487,7 +7231,7 @@
         "layouts": {
           "main": {
             "widgets": {
-              "0988fa07-eda5-8935-69a4-15326b2ec13f": {
+              "e1162517-e90f-50f4-9cc3-71ec9b3fcbab": {
                 "sizeX": 24,
                 "sizeY": 12,
                 "row": 0,

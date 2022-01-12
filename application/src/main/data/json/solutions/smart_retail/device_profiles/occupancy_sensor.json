@@ -95,7 +95,7 @@
                   "userValue": null,
                   "dynamicValue": {
                     "sourceType": "CURRENT_DEVICE",
-                    "sourceAttribute": "smokeAlarmLowBatteryMajorThreshold",
+                    "sourceAttribute": "maxOccupancyTimeMajorThreshold",
                     "inherit": true
                   }
                 }
