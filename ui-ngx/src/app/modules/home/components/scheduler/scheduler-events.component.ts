@@ -71,10 +71,10 @@ import {
   take,
   tap
 } from 'rxjs/operators';
-import { PageLink } from '@shared/models/page/page-link';
+import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, SortDirection } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -222,7 +222,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       if (this.deleteEnabled) {
         this.displayedColumns.unshift('select');
       }
-      const routerQueryParams = this.route.snapshot.queryParams;
+      const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
       const sortOrder: SortOrder = {
         property: routerQueryParams?.property || this.defaultSortOrder,
         direction: routerQueryParams?.direction || Direction.ASC
@@ -389,7 +389,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
             if (this.widgetMode) {
               this.updateData();
             } else {
-              const queryParams: any = {
+              const queryParams: PageQueryParam = {
                 textSearch: encodeURI(this.pageLink.textSearch) || null,
                 page: null
               };
@@ -403,8 +403,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       const sortSubscription$: Observable<object> = this.sort.sortChange.asObservable().pipe(
         map((data) => {
           const direction = data.direction.toUpperCase();
-          const queryParams: any = {
-            direction: Direction.ASC === direction ? null : direction,
+          const queryParams: PageQueryParam = {
+            direction: Direction.ASC === direction ? null : direction as Direction,
             property: this.defaultSortOrder === data.active ? null : data.active,
             page: null
           };
@@ -428,7 +428,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       }
 
-      ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$) : sortSubscription$) as Observable<any>)
+      ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$) : sortSubscription$) as Observable<PageQueryParam>)
         .pipe(
           tap((queryParams) => {
             if (this.widgetMode) {
@@ -441,11 +441,11 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         .subscribe();
 
       if (!this.widgetMode) {
-        this.route.queryParams.pipe(skip(1)).subscribe((params) => {
+        this.route.queryParams.pipe(skip(1)).subscribe((params: PageQueryParam) => {
           this.paginator.pageIndex = Number(params.page) || 0;
           this.paginator.pageSize = Number(params.pageSize) || this.defaultPageSize;
           this.sort.active = params.property || this.defaultSortOrder;
-          this.sort.direction = (params.direction || Direction.ASC).toLowerCase();
+          this.sort.direction = (params.direction || Direction.ASC).toLowerCase() as SortDirection;
           if (params.hasOwnProperty('textSearch') && !isEmptyStr(params.textSearch)) {
             this.textSearchMode = true;
             this.pageLink.textSearch = decodeURI(params.textSearch);
@@ -511,7 +511,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.ctx.hideTitlePanel = false;
       this.ctx.detectChanges(true);
     } else {
-      const queryParams: any = {
+      const queryParams: PageQueryParam = {
         textSearch: null,
         page: null
       };
