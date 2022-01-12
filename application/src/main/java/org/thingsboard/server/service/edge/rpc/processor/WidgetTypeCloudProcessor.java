@@ -78,6 +78,12 @@ public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
                     if (widgetTypeUpdateMsg.hasDescriptorJson()) {
                         widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
                     }
+                    if (widgetTypeUpdateMsg.hasImage()) {
+                        widgetTypeDetails.setImage(widgetTypeUpdateMsg.getImage());
+                    }
+                    if (widgetTypeUpdateMsg.hasDescription()) {
+                        widgetTypeDetails.setDescription(widgetTypeUpdateMsg.getDescription());
+                    }
                     widgetTypeService.saveWidgetType(widgetTypeDetails);
                 } finally {
                     widgetCreationLock.unlock();
