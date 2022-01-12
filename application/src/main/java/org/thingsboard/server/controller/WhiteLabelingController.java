@@ -109,7 +109,9 @@ public class WhiteLabelingController extends BaseController {
             @RequestParam(required = false) String faviconChecksum,
             HttpServletRequest request) throws ThingsboardException {
         try {
-            return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, request.getServerName(), logoImageChecksum, faviconChecksum);
+            return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME, logoImageChecksum, faviconChecksum);
+            // TODO: @voba - on edge domain name hardcoded - using login white labeling of the edge owner and not by domain
+            // return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, request.getServerName(), logoImageChecksum, faviconChecksum);
         } catch (Exception e) {
             throw handleException(e);
         }

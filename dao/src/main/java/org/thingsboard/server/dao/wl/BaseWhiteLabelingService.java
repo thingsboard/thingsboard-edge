@@ -573,4 +573,14 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return loginWhiteLabelKey;
     }
 
+    @Override
+    public AdminSettings saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId) {
+        String loginWhiteLabelKey = constructLoginWhileLabelKey(EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
+        AdminSettings adminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+        if (adminSettingsByKey != null) {
+            adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+        }
+        return saveLoginWhiteLabelSettings(tenantId, currentEntityId, loginWhiteLabelKey);
+    }
+
 }

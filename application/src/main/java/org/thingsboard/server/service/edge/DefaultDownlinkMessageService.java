@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
@@ -102,6 +103,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
 
     @Autowired
     private CloudEventService cloudEventService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
@@ -245,7 +249,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                     sequenceDependencyLock.lock();
                     try {
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, currentEdgeSettings.getCloudType()));
-                        updateCustomerId(customerUpdateMsg);
+                        updateCustomerId(tenantId, customerUpdateMsg);
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -306,13 +310,16 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                 result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerWhiteLabelingParams(), customerId));
             }
             if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams(), new TenantId(EntityId.NULL_UUID)));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(
+                        tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams(), new TenantId(EntityId.NULL_UUID)));
             }
             if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams(), tenantId));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(
+                        tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams(), tenantId));
             }
             if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(
+                        tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams(), customerId));
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
@@ -357,7 +364,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
         }
     }
 
-    private void updateCustomerId(CustomerUpdateMsg customerUpdateMsg) {
+    private void updateCustomerId(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -367,6 +374,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                 customerId = null;
                 break;
         }
+
+        EntityId ownerId = customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
     }
 
     private ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {

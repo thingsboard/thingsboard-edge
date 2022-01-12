@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.wl;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -40,6 +41,8 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import java.util.concurrent.ExecutionException;
 
 public interface WhiteLabelingService {
+
+    String EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME = "edge.domain.name";
 
     WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId);
 
@@ -85,4 +88,6 @@ public interface WhiteLabelingService {
 
     boolean isCustomerWhiteLabelingAllowed(TenantId tenantId);
 
+    // TODO: @voba - methods added on edge for login whitelabeling
+    AdminSettings saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId);
 }

@@ -57,7 +57,9 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -257,7 +259,6 @@ public class CloudManagerService extends BaseCloudEventService {
 
     private CountDownLatch latch;
 
-    private EdgeId edgeId;
     private EdgeSettings currentEdgeSettings;
 
     private Long queueStartTs;
@@ -559,6 +560,11 @@ public class CloudManagerService extends BaseCloudEventService {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
 
+        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        CustomerId customerId = new CustomerId(customerUUID);
+
+        EntityId ownerId = !customerId.isNullUid() ? customerId : tenantId;
+
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
         EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
@@ -577,6 +583,8 @@ public class CloudManagerService extends BaseCloudEventService {
         // TODO: voba - verify storage of edge entity
         saveEdge(edgeConfiguration);
 
+        whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
+
         updateConnectivityStatus(true);
 
         AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
@@ -590,7 +598,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private void saveEdge(EdgeConfiguration edgeConfiguration) {
         Edge edge = new Edge();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
-        edgeId = new EdgeId(edgeUUID);
+        EdgeId edgeId = new EdgeId(edgeUUID);
         edge.setId(edgeId);
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         edge.setTenantId(new TenantId(tenantUUID));
