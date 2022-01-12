@@ -87,6 +87,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -466,10 +467,10 @@ public class EdgeClientTest extends AbstractContainerTest {
     private void assertWidgetTypes(List<EntityId> entityIds) {
         for (EntityId entityId : entityIds) {
             WidgetTypeId widgetTypeId = new WidgetTypeId(entityId.getId());
-            Optional<WidgetType> edgeWidgetsBundle = edgeRestClient.getWidgetTypeById(widgetTypeId);
-            Optional<WidgetType> cloudWidgetsBundle = restClient.getWidgetTypeById(widgetTypeId);
-            WidgetType expected = edgeWidgetsBundle.get();
-            WidgetType actual = cloudWidgetsBundle.get();
+            Optional<WidgetTypeDetails> edgeWidgetsBundle = edgeRestClient.getWidgetTypeById(widgetTypeId);
+            Optional<WidgetTypeDetails> cloudWidgetsBundle = restClient.getWidgetTypeById(widgetTypeId);
+            WidgetTypeDetails expected = edgeWidgetsBundle.get();
+            WidgetTypeDetails actual = cloudWidgetsBundle.get();
             Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
         }
     }
@@ -851,7 +852,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isPresent());
 
-        WidgetType widgetType = new WidgetType();
+        WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
         widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         ObjectNode descriptor = mapper.createObjectNode();
