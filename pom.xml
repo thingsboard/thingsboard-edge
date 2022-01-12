@@ -44,7 +44,7 @@
 
     <properties>
         <main.dir>${basedir}</main.dir>
-        <thingsboard-pe.version>3.3.1PE</thingsboard-pe.version>
+        <thingsboard-pe.version>3.3.3PE-SNAPSHOT</thingsboard-pe.version>
         <thingsboard-ce.version>3.3.1</thingsboard-ce.version>
         <pkg.disabled>true</pkg.disabled>
         <pkg.process-resources.phase>none</pkg.process-resources.phase>
