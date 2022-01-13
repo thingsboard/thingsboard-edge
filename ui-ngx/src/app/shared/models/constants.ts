@@ -146,7 +146,7 @@ export const HelpLinks = {
     users: helpBaseUrl + '/docs/pe/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/pe/user-guide/ui/devices',
     deviceProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/device-profiles',
-    edges: helpBaseUrl + '/docs/pe/user-guide/ui/edges',
+    edges: helpBaseUrl + '/docs/user-guide/ui/edges',
     assets: helpBaseUrl + '/docs/pe/user-guide/ui/assets',
     entityViews: helpBaseUrl + '/docs/pe/user-guide/ui/entity-views',
     entitiesImport: helpBaseUrl + '/docs/pe/user-guide/bulk-provisioning',
