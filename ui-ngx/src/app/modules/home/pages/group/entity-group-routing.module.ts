@@ -1130,7 +1130,8 @@ const routes: Routes = [
           userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ);
       },
       title: 'dashboard.dashboard',
-      widgetEditMode: false
+      widgetEditMode: false,
+      singlePageMode: true
     },
     resolve: {
       dashboard: DashboardResolver,
