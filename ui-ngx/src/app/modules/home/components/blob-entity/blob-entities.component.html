@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="mat-padding tb-blob-entities tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
+<div #blobEntitiesWidgetContainer class="mat-padding tb-blob-entities tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
   <div [fxShow]="showData"
        fxFlex fxLayout="column" class="tb-blob-entities-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
     <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
@@ -176,6 +176,7 @@
                      [pageIndex]="pageLink.page"
                      [pageSize]="pageLink.pageSize"
                      [pageSizeOptions]="pageSizeOptions"
+                     [hidePageSize]="hidePageSize"
                      showFirstLastButtons></mat-paginator>
     </div>
   </div>

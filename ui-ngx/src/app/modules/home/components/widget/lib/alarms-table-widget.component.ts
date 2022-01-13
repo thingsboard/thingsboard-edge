@@ -73,8 +73,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   CellContentInfo,
   CellStyleInfo,
-  columnExportOptions,
   checkHasActions,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,

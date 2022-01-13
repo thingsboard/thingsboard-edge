@@ -31,6 +31,7 @@
 
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
@@ -114,6 +115,8 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -123,6 +126,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 })
 export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit, OnChanges {
 
+  @ViewChild('schedulerEventWidgetContainer', {static: true}) schedulerEventWidgetContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -130,6 +134,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   @ViewChild('calendarContainer') calendarContainer: ElementRef<HTMLElement>;
   @ViewChild('calendar') calendarComponent: FullCalendarComponent;
+
+  @ViewChild('schedulerEventMenuTrigger', {static: true}) schedulerEventMenuTrigger: MatMenuTrigger;
 
   @Input()
   widgetMode: boolean;
@@ -165,6 +171,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
+  hidePageSize = false;
   noDataDisplayMessageText: string;
 
   displayedColumns: string[];
@@ -187,15 +194,15 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   eventSources: EventSourceInput[] = [this.eventSourceFunction.bind(this)];
 
-  private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
-
   calendarApi: Calendar;
-
-  @ViewChild('schedulerEventMenuTrigger', {static: true}) schedulerEventMenuTrigger: MatMenuTrigger;
 
   schedulerEventMenuPosition = { x: '0px', y: '0px' };
 
   schedulerContextMenuEvent: MouseEvent;
+
+  private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
+
+  private widgetResize$: ResizeObserver;
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
@@ -205,7 +212,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private dialogService: DialogService,
               private dialog: MatDialog,
               private router: Router,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -257,6 +265,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.addEnabled = false;
         this.editEnabled = false;
       }
+    }
+    if (this.displayPagination) {
+      this.widgetResize$ = new ResizeObserver(() => {
+        const showHidePageSize = this.schedulerEventWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
+      this.widgetResize$.observe(this.schedulerEventWidgetContainerRef.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 
