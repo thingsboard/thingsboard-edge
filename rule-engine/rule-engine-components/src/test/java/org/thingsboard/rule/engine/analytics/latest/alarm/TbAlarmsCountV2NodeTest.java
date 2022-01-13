@@ -33,12 +33,14 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +51,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -82,6 +85,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -114,9 +118,8 @@ public class TbAlarmsCountV2NodeTest {
 
     ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
 
-    public void init(TbAlarmsCountNodeV2Configuration configuration) throws TbNodeException {
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
-
+    @Before
+    public void before() {
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
             List<AlarmFilter> filters = (List<AlarmFilter>) (invocationOnMock.getArguments())[2];
@@ -124,9 +127,11 @@ public class TbAlarmsCountV2NodeTest {
         }).when(alarmService).findAlarmCounts(ArgumentMatchers.any(), ArgumentMatchers.any(AlarmQuery.class), ArgumentMatchers.any(List.class));
 
         when(ctx.getAlarmService()).thenReturn(alarmService);
+    }
 
+    public void init(TbAlarmsCountNodeV2Configuration configuration) throws TbNodeException {
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
         node = new TbAlarmsCountNodeV2();
-
         expectedAllAlarmsCountMap = new HashMap<>();
         expectedActiveAlarmsCountMap = new HashMap<>();
         expectedLastDayAlarmsCountMap = new HashMap<>();

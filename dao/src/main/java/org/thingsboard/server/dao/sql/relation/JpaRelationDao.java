@@ -49,7 +49,6 @@ import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Valerii Sosliuk on 5/29/2017.

@@ -186,6 +186,11 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     }
 
     @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm) {
+        return alarmService.getPropagationEntityIds(alarm, null);
+    }
+
+    @Override
     public Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types) {
         return alarmService.getPropagationEntityIds(alarm, types);
     }

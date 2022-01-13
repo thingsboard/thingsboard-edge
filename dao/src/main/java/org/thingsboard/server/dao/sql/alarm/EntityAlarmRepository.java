@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.sql.alarm;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.EntityAlarmCompositeKey;
 import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
 

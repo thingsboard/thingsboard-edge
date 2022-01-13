@@ -85,5 +85,7 @@ public interface RuleEngineAlarmService {
 
     List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters);
 
+    Set<EntityId> getPropagationEntityIds(Alarm alarm);
+
     Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types);
 }

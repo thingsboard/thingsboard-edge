@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -422,15 +421,15 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
 
     @Override
     public Set<EntityId> getPropagationEntityIds(Alarm alarm) {
-        return doGetPropagationEntityIds(alarm, null);
+        return processGetPropagationEntityIds(alarm, null);
     }
 
     @Override
     public Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types) {
-        return doGetPropagationEntityIds(alarm, types);
+        return processGetPropagationEntityIds(alarm, types);
     }
 
-    private Set<EntityId> doGetPropagationEntityIds(Alarm alarm, List<EntityType> types) {
+    private Set<EntityId> processGetPropagationEntityIds(Alarm alarm, List<EntityType> types) {
         validateId(alarm.getId(), "Alarm id should be specified!");
         if (alarm.isPropagate()) {
             List<EntityAlarm> entityAlarms = CollectionUtils.isEmpty(types) ?
