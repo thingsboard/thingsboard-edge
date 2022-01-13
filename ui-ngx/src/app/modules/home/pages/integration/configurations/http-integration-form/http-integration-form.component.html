@@ -147,6 +147,10 @@
             </mat-error>
           </mat-form-field>
           <mat-form-field class="mat-block">
+            <mat-label translate>integration.domain</mat-label>
+            <input matInput formControlName="domain">
+          </mat-form-field>
+          <mat-form-field class="mat-block">
             <mat-label translate>integration.app-id</mat-label>
             <input required matInput formControlName="appId">
             <mat-error translate *ngIf="form.get('appId').hasError('required')">

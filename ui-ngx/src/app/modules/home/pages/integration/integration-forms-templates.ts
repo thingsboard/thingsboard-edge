@@ -186,6 +186,7 @@ export const templates = {
     createLoriotOutput: false,
     sendDownlink: false,
     server: 'eu1',
+    domain: 'loriot.io',
     appId: '',
     enableSecurityNew: false,
     asId: '',
