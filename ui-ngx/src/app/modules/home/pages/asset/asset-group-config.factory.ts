@@ -52,6 +52,7 @@ import { Asset } from '@shared/models/asset.models';
 import { AssetService } from '@core/http/asset.service';
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { Operation } from '@shared/models/security.models';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<Asset> {
@@ -63,6 +64,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private assetService: AssetService,
+              private router: Router,
               private broadcast: BroadcastService) {
   }
 
@@ -118,7 +120,19 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     });
   }
 
+  private openAsset($event: Event, asset: Asset) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`${this.router.url}/${asset.id.id}`);
+  }
+
   onAssetAction(action: EntityAction<Asset>): boolean {
+    switch (action.action) {
+      case 'open':
+        this.openAsset(action.event, action.entity);
+        return true;
+    }
     return false;
   }
 

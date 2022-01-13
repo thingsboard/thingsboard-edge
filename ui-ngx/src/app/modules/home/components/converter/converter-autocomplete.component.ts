@@ -41,11 +41,12 @@ import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterService } from '@core/http/converter.service';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { PageLink } from '@shared/models/page/page-link';
+import { getEntityDetailsPageURL } from '@core/utils';
 
 @Component({
   selector: 'tb-converter-autocomplete',
   templateUrl: './converter-autocomplete.component.html',
-  styleUrls: [],
+  styleUrls: ['./converter-autocomplete.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => ConverterAutocompleteComponent),
@@ -94,6 +95,9 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   @Input()
   disabled: boolean;
 
+  @Input()
+  showDetailsPageLink = false;
+
   @ViewChild('converterInput', {static: true}) converterInput: ElementRef<HTMLElement>;
 
   entityText: string;
@@ -102,6 +106,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   filteredEntities: Observable<Array<Converter>>;
 
   searchText = '';
+  converterURL: string;
 
   private dirty = false;
 
@@ -192,6 +197,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
       this.converterService.getConverter(converterId, {ignoreLoading: true}).subscribe(
         (entity) => {
           this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
+          this.converterURL = getEntityDetailsPageURL(entity.id.id, entity.id.entityType);
           this.selectConverterFormGroup.get('entity').patchValue(entity, {emitEvent: false});
         }
       );

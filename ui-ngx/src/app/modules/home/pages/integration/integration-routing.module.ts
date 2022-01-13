@@ -35,22 +35,49 @@ import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { IntegrationsTableConfigResolver } from '@home/pages/integration/integrations-table-config.resolver';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@core/utils';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
 const routes: Routes = [
   {
     path: 'integrations',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN],
-      title: 'integration.integrations',
       breadcrumb: {
         label: 'integration.integrations',
         icon: 'input'
       }
     },
-    resolve: {
-      entitiesTableConfig: IntegrationsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'integration.integrations'
+        },
+        resolve: {
+          entitiesTableConfig: IntegrationsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityId',
+        component: EntityDetailsPageComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          breadcrumb: {
+            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+            icon: 'input'
+          } as BreadCrumbConfig<EntityDetailsPageComponent>,
+          auth: [Authority.TENANT_ADMIN],
+          title: 'integration.integrations'
+        },
+        resolve: {
+          entitiesTableConfig: IntegrationsTableConfigResolver
+        }
+      }
+    ]
   }
 ];
 

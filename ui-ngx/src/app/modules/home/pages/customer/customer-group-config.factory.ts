@@ -180,6 +180,13 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
+  private openCustomer($event: Event, customer: Customer) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`${this.router.url}/${customer.id.id}`);
+  }
+
   manageUsers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
               params: EntityGroupParams) {
     if ($event) {
@@ -241,7 +248,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
   }
 
   manageEdges($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
-                    params: EntityGroupParams) {
+              params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -266,6 +273,9 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
 
   onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {
     switch (action.action) {
+      case 'open':
+        this.openCustomer(action.event, action.entity);
+        return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);
         return true;

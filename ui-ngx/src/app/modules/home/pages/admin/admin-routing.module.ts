@@ -59,6 +59,9 @@ import { OAuth2Service } from '@core/http/oauth2.service';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/resources-library-table-config.resolve';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@core/utils';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -235,18 +238,41 @@ const routes: Routes = [
       },
       {
         path: 'resources-library',
-        component: EntitiesTableComponent,
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-          title: 'resource.resources-library',
           breadcrumb: {
             label: 'resource.resources-library',
             icon: 'folder'
           }
         },
-        resolve: {
-          entitiesTableConfig: ResourcesLibraryTableConfigResolver
-        }
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'resource.resources-library',
+            },
+            resolve: {
+              entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'folder'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'resource.resources-library'
+            },
+            resolve: {
+              entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          }
+        ]
       }
     ]
   },

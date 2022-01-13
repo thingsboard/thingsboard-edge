@@ -63,11 +63,12 @@ import { MatAutocomplete } from '@angular/material/autocomplete';
 import { Operation, Resource } from '@shared/models/security.models';
 import { AddDeviceProfileDialogComponent, AddDeviceProfileDialogData } from './add-device-profile-dialog.component';
 import { emptyPageData } from '@shared/models/page/page-data';
+import { getEntityDetailsPageURL } from '@core/utils';
 
 @Component({
   selector: 'tb-device-profile-autocomplete',
   templateUrl: './device-profile-autocomplete.component.html',
-  styleUrls: [],
+  styleUrls: ['./device-profile-autocomplete.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => DeviceProfileAutocompleteComponent),
@@ -100,6 +101,9 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   addNewProfile = true;
 
   @Input()
+  showDetailsPageLink = false;
+
+  @Input()
   transportType: DeviceTransportType = null;
 
   private requiredValue: boolean;
@@ -130,6 +134,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   filteredDeviceProfiles: Observable<Array<DeviceProfileInfo>>;
 
   searchText = '';
+  deviceProfileURL: string;
 
   private dirty = false;
 
@@ -260,6 +265,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
       this.deviceProfileService.getDeviceProfileInfo(value.id).subscribe(
         (profile) => {
           this.modelValue = new DeviceProfileId(profile.id.id);
+          this.deviceProfileURL = getEntityDetailsPageURL(this.modelValue.id, this.modelValue.entityType);
           this.selectDeviceProfileFormGroup.get('deviceProfile').patchValue(profile, {emitEvent: false});
           this.deviceProfileChanged.emit(profile);
         }
@@ -298,6 +304,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
     const idValue = deviceProfile && deviceProfile.id ? new DeviceProfileId(deviceProfile.id.id) : null;
     if (!entityIdEquals(this.modelValue, idValue)) {
       this.modelValue = idValue;
+      this.deviceProfileURL = getEntityDetailsPageURL(this.modelValue.id, this.modelValue.entityType);
       this.propagateChange(this.modelValue);
       this.deviceProfileChanged.emit(deviceProfile);
     }

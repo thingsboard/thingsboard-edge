@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import {
   DateEntityTableColumn,
   defaultEntityTablePermissions,
@@ -60,6 +60,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
               private translate: TranslateService,
               private importExport: ImportExportService,
               private datePipe: DatePipe,
+              private router: Router,
               private utils: UtilsService) {
 
     this.config.entityType = EntityType.CONVERTER;
@@ -81,7 +82,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
       new DateEntityTableColumn<Converter>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
-        return this.translate.instant(converterTypeTranslationMap.get(converter.type))
+        return this.translate.instant(converterTypeTranslationMap.get(converter.type));
       })
     );
 
@@ -128,6 +129,13 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     return this.config;
   }
 
+  openConverter($event: Event, converter: Converter) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`converters/${converter.id.id}`);
+  }
+
   exportConverter($event: Event, converter: Converter) {
     if ($event) {
       $event.stopPropagation();
@@ -146,6 +154,9 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
 
   onConverterAction(action: EntityAction<Converter>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openConverter(action.event, action.entity);
+        return true;
       case 'export':
         this.exportConverter(action.event, action.entity);
         return true;

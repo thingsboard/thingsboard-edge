@@ -28,81 +28,106 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+@import "../../../../../scss/constants";
 
 :host {
   width: 100%;
   height: 100%;
-  .tb-entity-table {
-    .tb-entity-table-content {
-      width: 100%;
-      height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .settings-card {
+    margin: 8px;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .details-toolbar {
+      height: 84px;
+      min-height: 84px;
+      border-radius: 4px 4px 0 0;
       background: #fff;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 
-      .mat-toolbar-tools{
-        min-height: auto;
+      .mat-toolbar-tools {
+        padding: 0 8px;
       }
 
-      .title-container{
-        overflow: hidden;
+      .tb-details-title-header {
+        min-width: 0;
+        width: auto;
       }
 
-      .tb-entity-table-title {
-        padding-right: 20px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+      .tb-details-title {
+        font-size: 1rem;
+        font-weight: 500;
 
-      .table-container {
-        overflow: auto;
-        .link {
-          border-bottom: none;
+        @media #{$mat-gt-sm} {
+          font-size: 1.2rem;
         }
       }
 
-      .tb-entity-table-info{
-        white-space: nowrap;
+      .tb-details-subtitle {
+        font-size: 0.9rem;
+        opacity: .8;
+      }
+
+      .tb-ellipsis {
+        width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
-  }
 
-  @media #{$mat-xs} {
-    .mat-toolbar {
-      height: auto;
-      min-height: 100px;
+    @media #{$mat-md} {
+      width: 80%;
+    }
 
-      .tb-entity-table-title{
-        padding-bottom: 5px;
-        width: 100%;
+    @media #{$mat-gt-md} {
+      width: 60%;
+    }
+
+    .tb-header-button {
+      .tb-btn-header {
+        position: relative !important;
+        display: inline-block !important;
+        animation: tbMoveFromTopFade .3s ease both;
+
+        &.tb-hide {
+          animation: tbMoveToTopFade .3s ease both;
+        }
       }
     }
   }
 }
 
 :host ::ng-deep {
-  .mat-sort-header-sorted .mat-sort-header-arrow {
-    opacity: 1 !important;
+  .tb-help {
+    .mat-icon-button.mat-primary {
+      color: rgba(0, 0, 0, 0.52);
+    }
   }
-  mat-form-field.tb-relation-direction {
-    font-size: 16px;
-    width: 200px;
 
-    .mat-form-field-wrapper {
-      padding-bottom: 0;
-    }
+  .mat-card-content {
+    position: relative;
+    overflow: hidden;
 
-    .mat-form-field-underline {
-      bottom: 0;
-    }
-
-    @media #{$mat-xs} {
-      width: 100%;
-
-      .mat-form-field-infix {
-        width: auto !important;
+    > .mat-tab-group {
+      > .mat-tab-body-wrapper {
+        position: absolute;
+        top: 49px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      > .mat-tab-header {
+        .mat-tab-label {
+          min-width: 40px;
+        }
       }
     }
   }

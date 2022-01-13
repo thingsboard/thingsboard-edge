@@ -49,10 +49,10 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Edge } from "@shared/models/edge.models";
-import { EdgeService } from "@core/http/edge.service";
-import { EdgeComponent } from "@home/pages/edge/edge.component";
-import { Router } from "@angular/router";
+import { Edge } from '@shared/models/edge.models';
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeComponent } from '@home/pages/edge/edge.component';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthUser } from '@shared/models/user.model';
@@ -190,7 +190,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) && authUser.authority === Authority.TENANT_ADMIN) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) &&
+      authUser.authority === Authority.TENANT_ADMIN) {
       config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-rule-chains'),
@@ -221,6 +222,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   onEdgeAction(action: EntityAction<Edge>, config: GroupEntityTableConfig<Edge>, params: EntityGroupParams): boolean {
     switch (action.action) {
+      case 'open':
+        this.openEdge(action.event, action.entity);
+        return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);
         return true;
@@ -249,8 +253,15 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     return false;
   }
 
+  private openEdge($event: Event, edge: Edge) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`${this.router.url}/${edge.id.id}`);
+  }
+
   manageUsers($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
-               params: EntityGroupParams) {
+              params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }

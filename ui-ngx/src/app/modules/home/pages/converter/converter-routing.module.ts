@@ -35,22 +35,49 @@ import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { ConvertersTableConfigResolver } from './converters-table-config.resolver';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@core/utils';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
 const routes: Routes = [
   {
     path: 'converters',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN],
-      title: 'converter.converters',
       breadcrumb: {
         label: 'converter.converters',
         icon: 'transform'
       }
     },
-    resolve: {
-      entitiesTableConfig: ConvertersTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'converter.converters'
+        },
+        resolve: {
+          entitiesTableConfig: ConvertersTableConfigResolver
+        }
+      },
+      {
+        path: ':entityId',
+        component: EntityDetailsPageComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          breadcrumb: {
+            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+            icon: 'transform'
+          } as BreadCrumbConfig<EntityDetailsPageComponent>,
+          auth: [Authority.TENANT_ADMIN],
+          title: 'converter.converters'
+        },
+        resolve: {
+          entitiesTableConfig: ConvertersTableConfigResolver
+        }
+      }
+    ]
   }
 ];
 
