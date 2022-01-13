@@ -31,11 +31,12 @@
 package org.thingsboard.server.dao.entity;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -50,6 +51,10 @@ public abstract class AbstractEntityService {
 
     @Autowired
     protected RelationService relationService;
+
+    @Lazy
+    @Autowired
+    protected AlarmService alarmService;
 
     @Autowired
     protected EntityGroupService entityGroupService;
@@ -70,6 +75,8 @@ public abstract class AbstractEntityService {
     protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
         relationService.deleteEntityRelations(tenantId, entityId);
+        log.trace("Executing deleteEntityAlarms [{}]", entityId);
+        alarmService.deleteEntityAlarmRelations(tenantId, entityId);
     }
 
     protected void deleteEntityGroups(TenantId tenantId, EntityId entityId) {

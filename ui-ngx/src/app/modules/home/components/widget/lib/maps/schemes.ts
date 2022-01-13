@@ -358,14 +358,24 @@ export const commonMapSettingsSchema =
                 default: 'return {x: origXPos, y: origYPos};'
             },
             markerOffsetX: {
-                title: 'Marker X offset relative to position',
+                title: 'Marker X offset relative to position multiplied by marker width',
                 type: 'number',
                 default: 0.5
             },
             markerOffsetY: {
-                title: 'Marker Y offset relative to position',
+                title: 'Marker Y offset relative to position multiplied by marker height',
                 type: 'number',
                 default: 1
+            },
+            tooltipOffsetX: {
+                title: 'Tooltip X offset relative to marker anchor multiplied by marker width',
+                type: 'number',
+                default: 0
+            },
+            tooltipOffsetY: {
+                title: 'Tooltip Y offset relative to marker anchor multiplied by marker height',
+                type: 'number',
+                default: -1
             },
             color: {
                 title: 'Color',
@@ -497,13 +507,15 @@ export const commonMapSettingsSchema =
             condition: 'model.showTooltip === true && model.useTooltipFunction === true'
         },
         {
-            key: 'markerOffsetX',
-            condition: 'model.provider === "image-map"'
+            key: 'tooltipOffsetX',
+            condition: 'model.showTooltip === true'
         },
         {
-            key: 'markerOffsetY',
-            condition: 'model.provider === "image-map"'
+            key: 'tooltipOffsetY',
+            condition: 'model.showTooltip === true'
         },
+        'markerOffsetX',
+        'markerOffsetY',
         {
             key: 'posFunction',
             type: 'javascript',
@@ -571,6 +583,25 @@ export const mapPolygonSchema =
               type: 'boolean',
               default: false
             },
+            showPolygonLabel: {
+              title: 'Show polygon label',
+              type: 'boolean',
+              default: false
+            },
+            polygonLabel: {
+              title: 'Polygon label (pattern examples: \'${entityName}\', \'${entityName}: (Text ${keyName} units.)\' )',
+              type: 'string',
+              default: '${entityName}'
+            },
+            usePolygonLabelFunction: {
+              title: 'Use polygon label function',
+              type: 'boolean',
+              default: false
+            },
+            polygonLabelFunction: {
+              title: 'Polygon label function: f(data, dsData, dsIndex)',
+              type: 'string'
+            },
             polygonColor: {
                 title: 'Polygon color',
                 type: 'string'
@@ -622,6 +653,15 @@ export const mapPolygonSchema =
                 title: 'Polygon Color function: f(data, dsData, dsIndex)',
                 type: 'string'
             },
+            usePolygonStrokeColorFunction: {
+              title: 'Use polygon stroke color function',
+              type: 'boolean',
+              default: false
+            },
+            polygonStrokeColorFunction: {
+              title: 'Polygon Stroke Color function: f(data, dsData, dsIndex)',
+              type: 'string'
+            }
         },
         required: []
     },
@@ -629,6 +669,21 @@ export const mapPolygonSchema =
         'showPolygon',
         'polygonKeyName',
         'editablePolygon',
+        'showPolygonLabel',
+        {
+          key: 'usePolygonLabelFunction',
+          condition: 'model.showPolygonLabel === true'
+        },
+        {
+          key: 'polygonLabel',
+          condition: 'model.showPolygonLabel === true && model.usePolygonLabelFunction !== true'
+        },
+        {
+          key: 'polygonLabelFunction',
+          type: 'javascript',
+          helpId: 'widget/lib/map/label_fn',
+          condition: 'model.showPolygonLabel === true && model.usePolygonLabelFunction === true'
+        },
         {
             key: 'polygonColor',
             type: 'color'
@@ -644,6 +699,13 @@ export const mapPolygonSchema =
         {
             key: 'polygonStrokeColor',
             type: 'color'
+        },
+        'usePolygonStrokeColorFunction',
+        {
+          key: 'polygonStrokeColorFunction',
+          helpId: 'widget/lib/map/polygon_color_fn',
+          type: 'javascript',
+          condition: 'model.usePolygonStrokeColorFunction === true'
         },
         'polygonStrokeOpacity',
         'polygonStrokeWeight',
@@ -743,6 +805,11 @@ export const markerClusteringSettingsSchemaLeaflet =
                 type: 'number',
                 default: 80
             },
+            spiderfyOnMaxZoom: {
+              title: 'Spiderfy at the max zoom level (to see all cluster markers)',
+              type: 'boolean',
+              default: false
+            },
             chunkedLoading: {
                 title: 'Use chunks for adding markers so that the page does not freeze',
                 type: 'boolean',
@@ -762,6 +829,7 @@ export const markerClusteringSettingsSchemaLeaflet =
         'showCoverageOnHover',
         'animate',
         'maxClusterRadius',
+        'spiderfyOnMaxZoom',
         'chunkedLoading',
         'removeOutsideVisibleBounds'
     ]
@@ -1258,3 +1326,61 @@ export const providerSets: { [key: string]: IProvider } = {
     name: 'image-map'
   }
 };
+
+export const editorSettingSchema =
+  {
+    schema: {
+      title: 'Editor settings',
+      type: 'object',
+      properties: {
+        snappable: {
+          title: 'Enable snapping to other vertices for precision drawing',
+          type: 'boolean',
+          default: false
+        },
+        initDragMode: {
+          title: 'Initialize map in draggable mode',
+          type: 'boolean',
+          default: false
+        },
+        hideAllControlButton: {
+          title: 'Hide all button',
+          type: 'boolean',
+          default: false
+        },
+        hideDrawControlButton: {
+          title: 'Hide draw buttons',
+          type: 'boolean',
+          default: false
+        },
+        hideEditControlButton: {
+          title: 'Hide edit buttons',
+          type: 'boolean',
+          default: false
+        },
+        hideRemoveControlButton: {
+          title: 'Hide remove button',
+          type: 'boolean',
+          default: false
+        },
+      },
+      required: []
+    },
+    form: [
+      'snappable',
+      'initDragMode',
+      'hideAllControlButton',
+      {
+        key: 'hideDrawControlButton',
+        condition: 'model.hideAllControlButton == false'
+      },
+      {
+        key: 'hideEditControlButton',
+        condition: 'model.hideAllControlButton == false'
+      },
+      {
+        key: 'hideRemoveControlButton',
+        condition: 'model.hideAllControlButton == false'
+      }
+    ]
+  };

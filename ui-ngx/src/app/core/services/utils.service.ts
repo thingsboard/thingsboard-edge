@@ -56,7 +56,7 @@ import { alarmFields, alarmSeverityTranslations, alarmStatusTranslations } from 
 import { materialColors } from '@app/shared/models/material.models';
 import { WidgetInfo } from '@home/models/widget-component.models';
 import jsonSchemaDefaults from 'json-schema-defaults';
-import materialIconsCodepoints from '!raw-loader!material-design-icons/iconfont/codepoints';
+import materialIconsCodepoints from '!raw-loader!./material-icons-codepoints.raw';
 import { Observable, of, ReplaySubject } from 'rxjs';
 import { DatePipe } from '@angular/common';
 

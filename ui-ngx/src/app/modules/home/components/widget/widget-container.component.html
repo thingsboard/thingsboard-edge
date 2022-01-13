@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div tb-fullscreen [fullscreen]="widget.isFullscreen"
+<div #tbWidgetElement tb-fullscreen [fullscreen]="widget.isFullscreen"
      [fullscreenBackgroundStyle]="dashboardStyle"
      [fullscreenBackgroundImage]="backgroundImage"
      (fullscreenChanged)="onFullscreenChanged($event)"

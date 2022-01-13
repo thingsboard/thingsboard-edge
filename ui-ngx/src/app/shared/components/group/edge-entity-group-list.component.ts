@@ -51,15 +51,15 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { EntityGroupInfo } from "@shared/models/entity-group.models";
-import { EntityGroupService } from "@core/http/entity-group.service";
-import { MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { AddEntityGroupsToEdgeDialogData } from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
-import { EntityId } from "@shared/models/id/entity-id";
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { EntityId } from '@shared/models/id/entity-id';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from "@shared/models/authority.enum";
+import { Authority } from '@shared/models/authority.enum';
 import { RequestConfig } from '@core/http/http-utils';
 import { AuthUser } from '@shared/models/user.model';
+import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
 
 @Component({
   selector: 'tb-edge-entity-group-list',

@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@use "sass:math";
+
 @mixin tb-mat-icon-size($size) {
   width: #{$size}px;
   min-width: #{$size}px;
@@ -66,7 +68,7 @@
   $x1: $x0;
 
   @for $i from 1 through 10 {
-    $x1: $x0 - ($x0 * $x0 - abs($r)) / (2 * $x0);
+    $x1: $x0 - math.div($x0 * $x0 - abs($r), 2 * $x0);
     $x0: $x1;
   }
 

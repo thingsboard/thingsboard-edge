@@ -30,4 +30,5 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<tb-markdown [data]="markdownText" lineNumbers fallbackToPlainMarkdown (click)="markdownClick($event)"></tb-markdown>
+<tb-markdown [data]="markdownText" [additionalCompileModules]="[ homeComponentsModule ]"
+             [context]="{ ctx: ctx }" lineNumbers fallbackToPlainMarkdown (click)="markdownClick($event)"></tb-markdown>

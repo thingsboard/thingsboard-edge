@@ -57,8 +57,6 @@ public class LwM2MServerBootstrap {
     public LwM2MServerBootstrap() {
     }
 
-    ;
-
     public LwM2MServerBootstrap(LwM2MServerBootstrap bootstrapFromCredential, LwM2MServerBootstrap profileServerBootstrap) {
         this.clientPublicKeyOrId = bootstrapFromCredential.getClientPublicKeyOrId();
         this.clientSecretKey = bootstrapFromCredential.getClientSecretKey();

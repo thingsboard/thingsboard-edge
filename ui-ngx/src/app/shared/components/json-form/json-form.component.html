@@ -30,8 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-json-form" style="background: #fff;" tb-fullscreen [fullscreenElement]="targetFullscreenElement"
+<div class="tb-json-form" style="background: #fff;" tb-fullscreen [fullscreenElement]="reactFullscreen"
      [fullscreen]="isFullscreen"
      (fullscreenChanged)="onFullscreenChanged($event)">
   <div #reactRoot></div>
+  <div class="tb-json-form" #reactFullscreen></div>
 </div>

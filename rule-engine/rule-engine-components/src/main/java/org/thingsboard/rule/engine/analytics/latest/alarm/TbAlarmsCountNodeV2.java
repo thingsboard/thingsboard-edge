@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.DonAsynchron;
@@ -54,10 +55,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
@@ -67,7 +67,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RuleNode(
@@ -107,52 +106,32 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     private void process(TbContext ctx, TbMsg msg) {
         Alarm alarm = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
-        ListenableFuture<Set<EntityId>> propagationEntityIdsFuture = getPropagationEntityIdsFuture(ctx, alarm);
-        ListenableFuture<Map<EntityId, ObjectNode>> alarmCountsMapFuture = getAlarmCountsMapFuture(ctx, propagationEntityIdsFuture);
-        DonAsynchron.withCallback(alarmCountsMapFuture, alarmCountsMap -> {
-            if (!CollectionUtils.isEmpty(alarmCountsMap)) {
-                String dataTs = Long.toString(System.currentTimeMillis());
-                alarmCountsMap.forEach((entityId, data) -> {
-                    TbMsgMetaData metaData = new TbMsgMetaData();
-                    metaData.putValue("ts", dataTs);
-                    TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                            entityId, msg.getCustomerId(), metaData, JacksonUtil.toString(data));
-                    ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
-                });
-            }
-            ctx.ack(msg);
-        }, throwable -> ctx.tellFailure(msg, throwable));
+        Map<EntityId, ObjectNode> result = new HashMap<>();
+        getPropagationEntityIds(ctx, alarm).forEach(entityId -> result.put(entityId, countAlarms(ctx, entityId)));
+
+        String dataTs = Long.toString(System.currentTimeMillis());
+
+        result.forEach((entityId, data) -> {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("ts", dataTs);
+            TbMsg newMsg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                    entityId, metaData, JacksonUtil.toString(data));
+            ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
+        });
+        ctx.ack(msg);
     }
 
-    private ListenableFuture<Map<EntityId, ObjectNode>> getAlarmCountsMapFuture(TbContext ctx, ListenableFuture<Set<EntityId>> propagationEntityIdsFuture) {
-        return Futures.transform(propagationEntityIdsFuture, propagationEntityIds -> {
-            if (!CollectionUtils.isEmpty(propagationEntityIds)) {
-                Map<EntityId, ObjectNode> entityIdToCountAlarmsMap = new HashMap<>();
-                propagationEntityIds.forEach(entityId -> entityIdToCountAlarmsMap.put(entityId, countAlarms(ctx, entityId)));
-                return entityIdToCountAlarmsMap;
-            } else {
-                return null;
-            }
-        }, ctx.getDbCallbackExecutor());
+    protected String getQueueName() {
+        return StringUtils.isEmpty(config.getQueueName()) ? ServiceQueue.MAIN : config.getQueueName();
     }
 
-    private ListenableFuture<Set<EntityId>> getPropagationEntityIdsFuture(TbContext ctx, Alarm alarm) {
+    private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {
         if (config.isCountAlarmsForPropagationEntities() && alarm.isPropagate()) {
-            List<EntityType> propagationEntityTypes = config.getPropagationEntityTypes();
-            ListenableFuture<List<EntityRelation>> relationsFuture = CollectionUtils.isEmpty(propagationEntityTypes) ?
-                    ctx.getRelationService().findByToAsync(alarm.getTenantId(), alarm.getId(), RelationTypeGroup.ALARM) :
-                    ctx.getRelationService().findByToAndFromTypesAsync(alarm.getTenantId(), alarm.getId(), propagationEntityTypes, RelationTypeGroup.ALARM
-                    );
-            return Futures.transform(relationsFuture, entityRelations -> {
-                Set<EntityId> propagationEntityIds = new HashSet<>();
-                if (!CollectionUtils.isEmpty(entityRelations)) {
-                    propagationEntityIds = entityRelations.stream().map(EntityRelation::getFrom).collect(Collectors.toSet());
-                }
-                propagationEntityIds.add(alarm.getOriginator());
-                return propagationEntityIds;
-            }, ctx.getDbCallbackExecutor());
+            Set<EntityId> propagationEntityIds = ctx.getAlarmService().getPropagationEntityIds(alarm, config.getPropagationEntityTypes());
+            propagationEntityIds.add(alarm.getOriginator());
+            return propagationEntityIds;
         } else {
-            return Futures.immediateFuture(Collections.singleton(alarm.getOriginator()));
+            return Collections.singleton(alarm.getOriginator());
         }
     }
 

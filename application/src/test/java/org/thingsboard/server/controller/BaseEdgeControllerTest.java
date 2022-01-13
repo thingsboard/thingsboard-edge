@@ -37,40 +37,48 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
+
+    public static final String EDGE_HOST = "localhost";
+    public static final int EDGE_PORT = 7070;
 
     private IdComparator<Edge> idComparator = new IdComparator<>();
 
@@ -83,7 +91,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         loginSysAdmin();
 
         Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
+        tenant.setTitle("My tenant for Edge");
         savedTenant = doPost("/api/tenant", tenant, Tenant.class);
         tenantId = savedTenant.getId();
         Assert.assertNotNull(savedTenant);
@@ -203,6 +211,32 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString("Edge name should be specified")));
     }
 
+    @Ignore
+    // keeping CE test for merge compatibility
+    @Test
+    public void testAssignUnassignEdgeToCustomer() throws Exception {
+        Edge edge = constructEdge("My edge", "default");
+        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+
+        Customer customer = new Customer();
+        customer.setTitle("My customer");
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Edge assignedEdge = doPost("/api/customer/" + savedCustomer.getId().getId().toString()
+                + "/edge/" + savedEdge.getId().getId().toString(), Edge.class);
+        Assert.assertEquals(savedCustomer.getId(), assignedEdge.getCustomerId());
+
+        Edge foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
+        Assert.assertEquals(savedCustomer.getId(), foundEdge.getCustomerId());
+
+        Edge unassignedEdge =
+                doDelete("/api/customer/edge/" + savedEdge.getId().getId().toString(), Edge.class);
+        Assert.assertEquals(ModelConstants.NULL_UUID, unassignedEdge.getCustomerId().getId());
+
+        foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
+        Assert.assertEquals(ModelConstants.NULL_UUID, foundEdge.getCustomerId().getId());
+    }
+
     @Test
     public void testAssignEdgeToNonExistentCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
@@ -211,6 +245,45 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         doPost("/api/customer/" + Uuids.timeBased().toString()
                 + "/edge/" + savedEdge.getId().getId().toString())
                 .andExpect(status().isNotFound());
+    }
+
+    @Ignore
+    // keeping CE test for merge compatibility
+    @Test
+    public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
+        loginSysAdmin();
+
+        Tenant tenant2 = new Tenant();
+        tenant2.setTitle("Different tenant");
+        Tenant savedTenant2 = doPost("/api/tenant", tenant2, Tenant.class);
+        Assert.assertNotNull(savedTenant2);
+
+        User tenantAdmin2 = new User();
+        tenantAdmin2.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdmin2.setTenantId(savedTenant2.getId());
+        tenantAdmin2.setEmail("tenant3@thingsboard.org");
+        tenantAdmin2.setFirstName("Joe");
+        tenantAdmin2.setLastName("Downs");
+
+        tenantAdmin2 = createUserAndLogin(tenantAdmin2, "testPassword1");
+
+        Customer customer = new Customer();
+        customer.setTitle("Different customer");
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        login(tenantAdmin.getEmail(), "testPassword1");
+
+        Edge edge = constructEdge("My edge", "default");
+        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+
+        doPost("/api/customer/" + savedCustomer.getId().getId().toString()
+                + "/edge/" + savedEdge.getId().getId().toString())
+                .andExpect(status().isForbidden());
+
+        loginSysAdmin();
+
+        doDelete("/api/tenant/" + savedTenant2.getId().getId().toString())
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -403,9 +476,289 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Ignore
+    // keeping CE test for merge compatibility
+    @Test
+    public void testFindCustomerEdges() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("Test customer");
+        customer = doPost("/api/customer", customer, Customer.class);
+        CustomerId customerId = customer.getId();
+
+        List<Edge> edges = new ArrayList<>();
+        for (int i = 0; i < 128; i++) {
+            Edge edge = constructEdge("Edge" + i, "default");
+            edge = doPost("/api/edge", edge, Edge.class);
+            edges.add(doPost("/api/customer/" + customerId.getId().toString()
+                    + "/edge/" + edge.getId().getId().toString(), Edge.class));
+        }
+
+        List<Edge> loadedEdges = new ArrayList<>();
+        PageLink pageLink = new PageLink(23);
+        PageData<Edge> pageData = null;
+        do {
+            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
+                    new TypeReference<PageData<Edge>>() {
+                    }, pageLink);
+            loadedEdges.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(edges, idComparator);
+        Collections.sort(loadedEdges, idComparator);
+
+        Assert.assertEquals(edges, loadedEdges);
+    }
+
+    @Ignore
+    // keeping CE test for merge compatibility
+    @Test
+    public void testFindCustomerEdgesByName() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("Test customer");
+        customer = doPost("/api/customer", customer, Customer.class);
+        CustomerId customerId = customer.getId();
+
+        String title1 = "Edge title 1";
+        List<Edge> edgesTitle1 = new ArrayList<>();
+        for (int i = 0; i < 125; i++) {
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String name = title1 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            Edge edge = constructEdge(name, "default");
+            edge = doPost("/api/edge", edge, Edge.class);
+            edgesTitle1.add(doPost("/api/customer/" + customerId.getId().toString()
+                    + "/edge/" + edge.getId().getId().toString(), Edge.class));
+        }
+        String title2 = "Edge title 2";
+        List<Edge> edgesTitle2 = new ArrayList<>();
+        for (int i = 0; i < 143; i++) {
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String name = title2 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            Edge edge = constructEdge(name, "default");
+            edge = doPost("/api/edge", edge, Edge.class);
+            edgesTitle2.add(doPost("/api/customer/" + customerId.getId().toString()
+                    + "/edge/" + edge.getId().getId().toString(), Edge.class));
+        }
+
+        List<Edge> loadedEdgesTitle1 = new ArrayList<>();
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Edge> pageData = null;
+        do {
+            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
+                    new TypeReference<PageData<Edge>>() {
+                    }, pageLink);
+            loadedEdgesTitle1.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(edgesTitle1, idComparator);
+        Collections.sort(loadedEdgesTitle1, idComparator);
+
+        Assert.assertEquals(edgesTitle1, loadedEdgesTitle1);
+
+        List<Edge> loadedEdgesTitle2 = new ArrayList<>();
+        pageLink = new PageLink(4, 0, title2);
+        do {
+            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
+                    new TypeReference<PageData<Edge>>() {
+                    }, pageLink);
+            loadedEdgesTitle2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(edgesTitle2, idComparator);
+        Collections.sort(loadedEdgesTitle2, idComparator);
+
+        Assert.assertEquals(edgesTitle2, loadedEdgesTitle2);
+
+        for (Edge edge : loadedEdgesTitle1) {
+            doDelete("/api/customer/edge/" + edge.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
+
+        pageLink = new PageLink(4, 0, title1);
+        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
+                new TypeReference<PageData<Edge>>() {
+                }, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+
+        for (Edge edge : loadedEdgesTitle2) {
+            doDelete("/api/customer/edge/" + edge.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
+
+        pageLink = new PageLink(4, 0, title2);
+        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
+                new TypeReference<PageData<Edge>>() {
+                }, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Ignore
+    // keeping CE test for merge compatibility
+    @Test
+    public void testFindCustomerEdgesByType() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("Test customer");
+        customer = doPost("/api/customer", customer, Customer.class);
+        CustomerId customerId = customer.getId();
+
+        String title1 = "Edge title 1";
+        String type1 = "typeC";
+        List<Edge> edgesType1 = new ArrayList<>();
+        for (int i = 0; i < 125; i++) {
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String name = title1 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            Edge edge = constructEdge(name, type1);
+            edge = doPost("/api/edge", edge, Edge.class);
+            edgesType1.add(doPost("/api/customer/" + customerId.getId().toString()
+                    + "/edge/" + edge.getId().getId().toString(), Edge.class));
+        }
+        String title2 = "Edge title 2";
+        String type2 = "typeD";
+        List<Edge> edgesType2 = new ArrayList<>();
+        for (int i = 0; i < 143; i++) {
+            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String name = title2 + suffix;
+            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
+            Edge edge = constructEdge(name, type2);
+            edge = doPost("/api/edge", edge, Edge.class);
+            edgesType2.add(doPost("/api/customer/" + customerId.getId().toString()
+                    + "/edge/" + edge.getId().getId().toString(), Edge.class));
+        }
+
+        List<Edge> loadedEdgesType1 = new ArrayList<>();
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Edge> pageData = null;
+        do {
+            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
+                    new TypeReference<PageData<Edge>>() {
+                    }, pageLink, type1);
+            loadedEdgesType1.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(edgesType1, idComparator);
+        Collections.sort(loadedEdgesType1, idComparator);
+
+        Assert.assertEquals(edgesType1, loadedEdgesType1);
+
+        List<Edge> loadedEdgesType2 = new ArrayList<>();
+        pageLink = new PageLink(4, 0, title2);
+        do {
+            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
+                    new TypeReference<PageData<Edge>>() {
+                    }, pageLink, type2);
+            loadedEdgesType2.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(edgesType2, idComparator);
+        Collections.sort(loadedEdgesType2, idComparator);
+
+        Assert.assertEquals(edgesType2, loadedEdgesType2);
+
+        for (Edge edge : loadedEdgesType1) {
+            doDelete("/api/customer/edge/" + edge.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
+
+        pageLink = new PageLink(4, 0, title1);
+        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
+                new TypeReference<PageData<Edge>>() {
+                }, pageLink, type1);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+
+        for (Edge edge : loadedEdgesType2) {
+            doDelete("/api/customer/edge/" + edge.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
+
+        pageLink = new PageLink(4, 0, title2);
+        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?type={type}&",
+                new TypeReference<PageData<Edge>>() {
+                }, pageLink, type2);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Ignore
+    // keeping CE test for merge compatibility
     @Test
     public void testSyncEdge() throws Exception {
-        Edge edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
+        Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
+
+        Device device = new Device();
+        device.setName("Test Sync Edge Device 1");
+        device.setType("default");
+        Device savedDevice = doPost("/api/device", device, Device.class);
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/device/" + savedDevice.getId().getId().toString(), Device.class);
+
+        Asset asset = new Asset();
+        asset.setName("Test Sync Edge Asset 1");
+        asset.setType("test");
+        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
+
+        EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
+        edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
+
+        edgeImitator.expectMessageAmount(11);
+        edgeImitator.connect();
+        assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
+
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class)).as("one msg once device assigned to edge").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AssetUpdateMsg.class)).as("two msgs - one during sync process, and one more once asset assigned to edge").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(UserUpdateMsg.class)).as("one msg during sync process for tenant admin user").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(4);
+
+        edgeImitator.expectMessageAmount(8);
+        doPost("/api/edge/sync/" + edge.getId());
+        assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
+
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AssetUpdateMsg.class)).as("asset update msg").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(UserUpdateMsg.class)).as("user update msg").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg").hasSize(4);
+
+        edgeImitator.allowIgnoredTypes();
+        try {
+            edgeImitator.disconnect();
+        } catch (Exception ignored) {
+        }
+
+        doDelete("/api/device/" + savedDevice.getId().getId().toString())
+                .andExpect(status().isOk());
+        doDelete("/api/asset/" + savedAsset.getId().getId().toString())
+                .andExpect(status().isOk());
+        doDelete("/api/edge/" + edge.getId().getId().toString())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testSyncEdgeEntityGroup() throws Exception {
+        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
         EntityGroup savedDeviceGroup = new EntityGroup();
         savedDeviceGroup.setType(EntityType.DEVICE);
@@ -413,7 +766,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         savedDeviceGroup = doPost("/api/entityGroup", savedDeviceGroup, EntityGroup.class);
 
         Device device = new Device();
-        device.setName("Edge Device 1");
+        device.setName("Sync Test EG Edge Device 1");
         device.setType("default");
         Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
 
@@ -426,42 +779,43 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         savedAssetGroup = doPost("/api/entityGroup", savedAssetGroup, EntityGroup.class);
 
         Asset asset = new Asset();
-        asset.setName("Edge Asset 1");
+        asset.setName("Sync Test EG Edge Asset 1");
         asset.setType("test");
         Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
 
         doPost("/api/edge/" + edge.getId().getId().toString()
                 + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
 
-        EdgeImitator edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
+        EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
         edgeImitator.expectMessageAmount(14);
         edgeImitator.connect();
-        Assert.assertTrue(edgeImitator.waitForMessages());
+        assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size()); // one msg during sync process, another from edge creation
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size()); // one msg during sync process for 'default' device profile
-        Assert.assertEquals(6, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size()); // two msgs during sync process, four msgs from assign to edge
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size()); // two msgs during sync process
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size()); // one msg during sync process
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size()); // one msg during sync process
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - two msgs during sync process, four msgs from assign to edge").hasSize(6);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - two msgs during sync process").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling params update").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
 
         edgeImitator.expectMessageAmount(11);
         doPost("/api/edge/sync/" + edge.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());
+        assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class).size());
-        Assert.assertEquals(4, edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class).size());
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(RoleProto.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class).size());
-        Assert.assertEquals(1, edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class).size());
-        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class).size());
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(4);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling param proto msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
 
         edgeImitator.allowIgnoredTypes();
         try {
             edgeImitator.disconnect();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         doDelete("/api/device/" + savedDevice.getId().getId().toString())
                 .andExpect(status().isOk());

@@ -35,6 +35,7 @@ import lombok.Data;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -89,6 +90,8 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         configuration.setStatePersistencePolicy(StatePersistPolicy.ON_EACH_CHANGE.name());
         configuration.setStatePersistenceTimeUnit(TimeUnit.MINUTES.name());
         configuration.setStatePersistenceValue(1);
+
+        configuration.setQueueName(ServiceQueue.MAIN);
 
         return configuration;
     }

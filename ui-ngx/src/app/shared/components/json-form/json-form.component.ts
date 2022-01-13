@@ -89,6 +89,9 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
   @ViewChild('reactRoot', {static: true})
   reactRootElmRef: ElementRef<HTMLElement>;
 
+  @ViewChild('reactFullscreen', {static: true})
+  reactFullscreenElmRef: ElementRef<HTMLElement>;
+
   private readonlyValue: boolean;
   get readonly(): boolean {
     return this.readonlyValue;
@@ -125,8 +128,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
   isModelValid = true;
 
   isFullscreen = false;
-  targetFullscreenElement: HTMLElement;
-  fullscreenFinishFn: () => void;
+  fullscreenFinishFn: (el: Element) => void;
 
   private propagateChange = null;
   private propagateChangePending = false;
@@ -237,7 +239,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
                        val: tinycolor.ColorFormats.RGBA,
                        colorSelectedFn: (color: tinycolor.ColorFormats.RGBA) => void) {
     this.dialogs.colorPicker(tinycolor(val).toRgbString()).subscribe((color) => {
-      if (colorSelectedFn) {
+      if (color && colorSelectedFn) {
         colorSelectedFn(tinycolor(color).toRgb());
       }
     });
@@ -253,8 +255,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     });
   }
 
-  private onToggleFullscreen(element: HTMLElement, fullscreenFinishFn?: () => void) {
-    this.targetFullscreenElement = element;
+  private onToggleFullscreen(fullscreenFinishFn?: (el: Element) => void) {
     this.isFullscreen = !this.isFullscreen;
     this.fullscreenFinishFn = fullscreenFinishFn;
     this.cd.markForCheck();
@@ -264,7 +265,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     this.formProps.isFullscreen = fullscreen;
     this.renderReactSchemaForm(false);
     if (this.fullscreenFinishFn) {
-      this.fullscreenFinishFn();
+      this.fullscreenFinishFn(this.reactFullscreenElmRef.nativeElement);
       this.fullscreenFinishFn = null;
     }
   }

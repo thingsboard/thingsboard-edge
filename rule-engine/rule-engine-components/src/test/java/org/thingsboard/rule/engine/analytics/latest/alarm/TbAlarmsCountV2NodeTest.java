@@ -33,14 +33,12 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -49,8 +47,8 @@ import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -75,7 +73,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,12 +82,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doAnswer;
@@ -107,12 +102,7 @@ public class TbAlarmsCountV2NodeTest {
     private TbContext ctx;
 
     @Mock
-    private RelationService relationService;
-
-    @Mock
     private RuleEngineAlarmService alarmService;
-
-    private ListeningExecutor dbExecutor;
 
     private TbAlarmsCountNodeV2 node;
     private TbNodeConfiguration nodeConfiguration;
@@ -124,33 +114,8 @@ public class TbAlarmsCountV2NodeTest {
 
     ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
 
-    @Before
-    public void before() {
-        dbExecutor = new ListeningExecutor() {
-            @Override
-            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
-                try {
-                    return Futures.immediateFuture(task.call());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public void execute(Runnable command) {
-                command.run();
-            }
-        };
-    }
-
     public void init(TbAlarmsCountNodeV2Configuration configuration) throws TbNodeException {
         nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
-
-        when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
-
-        if (configuration.isCountAlarmsForPropagationEntities()) {
-            when(ctx.getRelationService()).thenReturn(relationService);
-        }
 
         doAnswer((Answer<List<Long>>) invocationOnMock -> {
             AlarmQuery query = (AlarmQuery) (invocationOnMock.getArguments())[1];
@@ -234,7 +199,7 @@ public class TbAlarmsCountV2NodeTest {
 
         for (int i = 0; i < totalEntitiesCount; i++) {
             EntityId deviceId = new DeviceId(Uuids.timeBased());
-            alarms = generateAlarms(deviceId, Collections.emptyList());
+            alarms = generateAlarms(deviceId, null);
             expectedAllAlarmsCountMap.put(deviceId, alarms.size());
             expectedActiveAlarmsCountMap.put(deviceId, countActive(alarms));
             expectedLastDayAlarmsCountMap.put(deviceId, countLastDay(alarms));
@@ -265,26 +230,24 @@ public class TbAlarmsCountV2NodeTest {
 
         int totalChildCount = 0;
 
-        Map<EntityId, EntityId> childToParentRelationsMap = new HashMap<>();
+        Map<EntityId, EntityId> childToParentMap = new HashMap<>();
 
         for (int i = 0; i < parentCount; i++) {
             EntityId parentEntityId = new AssetId(Uuids.timeBased());
             List<AlarmInfo> childAlarms = new ArrayList<>();
-
             int childCount = 10 + (int) (Math.random() * 20);
 
             totalChildCount += childCount;
 
             for (int c = 0; c < childCount; c++) {
                 EntityId childEntityId = new DeviceId(Uuids.timeBased());
-                childToParentRelationsMap.put(childEntityId, parentEntityId);
-                List<AlarmInfo> alarms = generateAlarms(childEntityId, Collections.emptyList());
+                childToParentMap.put(childEntityId, parentEntityId);
+                List<AlarmInfo> alarms = generateAlarms(childEntityId, null);
                 expectedAllAlarmsCountMap.put(childEntityId, alarms.size());
                 expectedActiveAlarmsCountMap.put(childEntityId, countActive(alarms));
                 expectedLastDayAlarmsCountMap.put(childEntityId, countLastDay(alarms));
                 childAlarms.addAll(alarms);
             }
-
             List<AlarmInfo> alarms = generateAlarms(parentEntityId, childAlarms);
             parentEntityAlarms.addAll(alarms);
             expectedAllAlarmsCountMap.put(parentEntityId, alarms.size());
@@ -300,19 +263,15 @@ public class TbAlarmsCountV2NodeTest {
         node.init(ctx, nodeConfiguration);
 
         expectedAllAlarmsCountMap.keySet().forEach(entityId -> {
-            EntityId parentEntityId = childToParentRelationsMap.get(entityId);
+            EntityId parentEntityId = childToParentMap.get(entityId);
             if (parentEntityId != null) {
                 AlarmId alarmId = new AlarmId(Uuids.timeBased());
-                EntityRelation parentEntityToAlarmRelation = createEntityRelation(parentEntityId, alarmId);
-                EntityRelation rootEntityToAlarmRelation = createEntityRelation(rootEntityId, alarmId);
-                List<EntityRelation> alarmRelations = new ArrayList<>();
-                alarmRelations.add(parentEntityToAlarmRelation);
-                alarmRelations.add(rootEntityToAlarmRelation);
-                when(ctx.getRelationService().findByToAsync(any(), eq(alarmId), eq(RelationTypeGroup.ALARM))).thenReturn(Futures.immediateFuture(alarmRelations));
-                Alarm alarm = new Alarm();
-                alarm.setId(alarmId);
-                alarm.setOriginator(entityId);
-                alarm.setPropagate(true);
+                Alarm alarm = createAlarm(entityId);
+                Set<EntityId> parentEntityIds = new HashSet<>();
+                parentEntityIds.add(parentEntityId);
+                parentEntityIds.add(rootEntityId);
+                parentEntityIds.add(alarm.getOriginator());
+                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
                             TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
@@ -326,12 +285,20 @@ public class TbAlarmsCountV2NodeTest {
         verifyResult(totalChildCount * 3);
     }
 
+    private Alarm createAlarm(EntityId entityId) {
+        Alarm alarm = new Alarm();
+        alarm.setId(new AlarmId(Uuids.timeBased()));
+        alarm.setOriginator(entityId);
+        alarm.setPropagate(true);
+        return alarm;
+    }
+
     private void testWithCountAlarmsForPropagationEntitiesEnabledAndPropagationTypesSelected(List<EntityType> propagationEntityTypes) throws Exception {
         int parentCount = 10 + (int) (Math.random() * 20);
 
         int totalChildCount = 0;
 
-        Map<EntityId, EntityId> childToParentRelationsMap = new HashMap<>();
+        Map<EntityId, EntityId> childToParentMap = new HashMap<>();
 
         for (int i = 0; i < parentCount; i++) {
             EntityId parentEntityId = new AssetId(Uuids.timeBased());
@@ -343,7 +310,7 @@ public class TbAlarmsCountV2NodeTest {
 
             for (int c = 0; c < childCount; c++) {
                 EntityId childEntityId = new DeviceId(Uuids.timeBased());
-                childToParentRelationsMap.put(childEntityId, parentEntityId);
+                childToParentMap.put(childEntityId, parentEntityId);
                 List<AlarmInfo> alarms = generateAlarms(childEntityId, Collections.emptyList());
                 expectedAllAlarmsCountMap.put(childEntityId, alarms.size());
                 expectedActiveAlarmsCountMap.put(childEntityId, countActive(alarms));
@@ -360,15 +327,12 @@ public class TbAlarmsCountV2NodeTest {
         node.init(ctx, nodeConfiguration);
 
         expectedAllAlarmsCountMap.keySet().forEach(entityId -> {
-            EntityId parentEntityId = childToParentRelationsMap.get(entityId);
+            EntityId parentEntityId = childToParentMap.get(entityId);
             if (parentEntityId != null) {
-                AlarmId alarmId = new AlarmId(Uuids.timeBased());
-                List<EntityRelation> alarmRelations = Collections.singletonList(createEntityRelation(parentEntityId, alarmId));
-                when(ctx.getRelationService().findByToAndFromTypesAsync(any(), eq(alarmId), eq(propagationEntityTypes), eq(RelationTypeGroup.ALARM))).thenReturn(Futures.immediateFuture(alarmRelations));
-                Alarm alarm = new Alarm();
-                alarm.setId(alarmId);
-                alarm.setOriginator(entityId);
-                alarm.setPropagate(true);
+                Alarm alarm = createAlarm(entityId);
+                Set<EntityId> parentEntityIds = new HashSet<>();
+                parentEntityIds.add(parentEntityId);
+                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
                             TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
@@ -403,7 +367,13 @@ public class TbAlarmsCountV2NodeTest {
 
     private List<AlarmInfo> generateAlarms(EntityId entityId, List<AlarmInfo> childAlarms) {
         int alarmsCount = 10 + (int) (Math.random() * 20);
-        List<AlarmInfo> alarms = new ArrayList<>(alarmsCount + childAlarms.size());
+        List<AlarmInfo> alarms;
+        if (CollectionUtils.isEmpty(childAlarms)) {
+            alarms = new ArrayList<>(alarmsCount);
+        } else {
+            alarms = new ArrayList<>(childAlarms.size());
+            alarms.addAll(childAlarms);
+        }
         for (int i = 0; i < alarmsCount; i++) {
 
             AlarmInfo alarm = new AlarmInfo();
@@ -435,7 +405,6 @@ public class TbAlarmsCountV2NodeTest {
         when(alarmService.findAlarms(ArgumentMatchers.any(), argThat(query ->
                 query != null && query.getAffectedEntityId().equals(entityId)
         ))).thenReturn(Futures.immediateFuture(pageData));
-        alarms.addAll(childAlarms);
         return alarms;
     }
 
@@ -469,15 +438,6 @@ public class TbAlarmsCountV2NodeTest {
             int intVal = elem.getAsInt();
             Assert.assertEquals(expectedActiveAlarmsCountMap.get(entityId).intValue(), intVal);
         }
-    }
-
-    private static EntityRelation createEntityRelation(EntityId from, EntityId to) {
-        EntityRelation relation = new EntityRelation();
-        relation.setFrom(from);
-        relation.setTo(to);
-        relation.setType(EntityRelation.CONTAINS_TYPE);
-        relation.setTypeGroup(RelationTypeGroup.COMMON);
-        return relation;
     }
 
     private static List<Long> findAlarmCounts(RuleEngineAlarmService service, AlarmQuery query, List<AlarmFilter> filters) {

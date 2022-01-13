@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.group.SortOrder;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -686,7 +687,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
         } else {
             for (ColumnConfiguration column : columns) {
-                if (column.getSortOrder() != null) {
+                if (column.getSortOrder() != null && !column.getSortOrder().equals(SortOrder.NONE)) {
                     sortOrder = new EntityDataSortOrder(columnToEntityKey(column), EntityDataSortOrder.Direction.valueOf(column.getSortOrder().name()));
                     break;
                 }

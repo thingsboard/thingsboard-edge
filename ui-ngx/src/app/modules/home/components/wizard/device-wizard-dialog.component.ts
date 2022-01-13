@@ -270,6 +270,14 @@ export class DeviceWizardDialogComponent extends
   private deviceProfileTransportTypeChanged(deviceTransportType: DeviceTransportType): void {
     this.transportConfigFormGroup.patchValue(
       {transportConfiguration: createDeviceProfileTransportConfiguration(deviceTransportType)});
+    const setCredentialBox = this.credentialsFormGroup.get('setCredential');
+    if (deviceTransportType === DeviceTransportType.LWM2M) {
+      setCredentialBox.patchValue(true);
+      setCredentialBox.disable();
+    } else {
+      setCredentialBox.patchValue(false);
+      setCredentialBox.enable();
+    }
   }
 
   add(): void {

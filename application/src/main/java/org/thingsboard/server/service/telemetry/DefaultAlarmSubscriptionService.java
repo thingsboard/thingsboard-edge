@@ -39,6 +39,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -70,6 +71,7 @@ import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by ashvayka on 27.03.18.
@@ -181,6 +183,11 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     @Override
     public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters) {
         return alarmService.findAlarmCounts(tenantId, query, filters);
+    }
+
+    @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types) {
+        return alarmService.getPropagationEntityIds(alarm, types);
     }
 
     private void onAlarmUpdated(AlarmOperationResult result) {

@@ -136,7 +136,7 @@ async function generateDashboardReport(browser, url, type, timezone) {
 
         const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
         if (dashboardLoadResponse._status < 400) {
-            await page.waitFor(dashboardLoadWaitTime);
+            await page.waitForTimeout(dashboardLoadWaitTime);
         } else {
             throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse._status);
         }

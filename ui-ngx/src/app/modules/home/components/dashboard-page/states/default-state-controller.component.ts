@@ -72,7 +72,7 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
     super.ngOnDestroy();
   }
 
-  protected init() {
+  public init() {
     if (this.preservedState) {
       this.stateObject = this.preservedState;
       setTimeout(() => {

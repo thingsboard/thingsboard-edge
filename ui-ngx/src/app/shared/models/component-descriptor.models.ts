@@ -37,7 +37,8 @@ export enum ComponentType {
   TRANSFORMATION = 'TRANSFORMATION',
   ACTION = 'ACTION',
   ANALYTICS = 'ANALYTICS',
-  EXTERNAL = 'EXTERNAL'
+  EXTERNAL = 'EXTERNAL',
+  FLOW = 'FLOW'
 }
 
 export enum ComponentScope {

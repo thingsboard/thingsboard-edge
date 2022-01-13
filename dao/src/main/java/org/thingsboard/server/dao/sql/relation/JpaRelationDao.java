@@ -34,12 +34,14 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RelationCompositeKey;
 import org.thingsboard.server.dao.model.sql.RelationEntity;
@@ -111,16 +113,6 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<List<EntityRelation>> findAllByToAndFromTypes(TenantId tenantId, EntityId to, List<EntityType> fromTypes, RelationTypeGroup typeGroup) {
-        return service.submit(() -> DaoUtil.convertDataList(
-                relationRepository.findAllByToIdAndToTypeAndFromTypeInAndRelationTypeGroup(
-                        to.getId(),
-                        to.getEntityType().name(),
-                        fromTypes.stream().map(Enum::name).collect(Collectors.toList()),
-                        typeGroup.name())));
-    }
-
-    @Override
     public ListenableFuture<Boolean> checkRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
         return service.submit(() -> relationRepository.existsById(key));
@@ -182,7 +174,7 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
         if (relationExistsBeforeDelete) {
             try {
                 relationRepository.deleteById(key);
-            } catch (ConcurrencyFailureException e) {
+            } catch (DataAccessException e) {
                 log.debug("[{}] Concurrency exception while deleting relation", key, e);
             }
         }
@@ -217,5 +209,10 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
                     }
                     return relationExistsBeforeDelete;
                 });
+    }
+
+    @Override
+    public List<EntityRelation> findRuleNodeToRuleChainRelations(RuleChainType ruleChainType, int limit) {
+        return DaoUtil.convertDataList(relationRepository.findRuleNodeToRuleChainRelations(ruleChainType, PageRequest.of(0, limit)));
     }
 }

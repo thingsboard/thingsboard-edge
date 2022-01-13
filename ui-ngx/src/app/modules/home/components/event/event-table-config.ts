@@ -107,6 +107,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
     this.searchEnabled = false;
     this.addEnabled = false;
     this.entitiesDeleteEnabled = false;
+    this.pageMode = false;
 
     this.headerComponent = EventTableHeaderComponent;
 
@@ -150,6 +151,19 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
       onAction: ($event) => {
         this.editEventFilter($event);
       }
+    },
+    {
+      name: this.translate.instant('event.clean-events'),
+      icon: 'delete',
+      isEnabled: () => true,
+      onAction: ($event) => {
+        this.eventService.clearEvents(this.entityId, this.eventType, this.filterParams, this.tenantId, this.table.pageLink as TimePageLink).subscribe(
+          () => {
+            this.table.paginator.pageIndex = 0;
+            this.table.updateData();
+          }
+        );
+     }
     });
   }
 

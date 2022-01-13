@@ -36,7 +36,7 @@ import lombok.ToString;
 
 import java.util.List;
 
-@ToString
+@ToString(callSuper = true)
 public class EntityDataQuery extends AbstractDataQuery<EntityDataPageLink> {
 
     public EntityDataQuery() {

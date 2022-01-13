@@ -239,6 +239,14 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
+
+        revertSysAdminWhiteLabelingAndCustomTranslation();
+    }
+
+    private void revertSysAdminWhiteLabelingAndCustomTranslation() throws Exception {
+        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
     }
 
     @Test
@@ -872,7 +880,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/alarm/" + savedAlarm.getId().getId().toString())
                 .andExpect(status().isOk());
-        Assert.assertTrue(edgeImitator.waitForMessages(1));
+        Assert.assertTrue(edgeImitator.waitForMessages());
         latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof AlarmUpdateMsg);
         alarmUpdateMsg = (AlarmUpdateMsg) latestMessage;

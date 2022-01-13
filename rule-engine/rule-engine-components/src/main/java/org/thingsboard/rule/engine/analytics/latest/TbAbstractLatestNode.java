@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -76,7 +77,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (msg.getType().equals(tickMessageType()) && msg.getId().equals(nextTickId)) {
-            withCallback(aggregate(ctx, msg),
+            withCallback(aggregate(ctx),
                     m -> scheduleTickMsg(ctx),
                     t -> {
                         ctx.tellFailure(msg, t);
@@ -92,12 +93,16 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         }
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
-        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, tickMessageType(), ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(getQueueName(), tickMessageType(), ctx.getSelfId(), new TbMsgMetaData(), "");
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }
 
-    private ListenableFuture<List<TbMsg>> aggregate(TbContext ctx, TbMsg tbMsg) {
+    protected String getQueueName() {
+        return StringUtils.isEmpty(config.getQueueName()) ? ServiceQueue.MAIN : config.getQueueName();
+    }
+
+    private ListenableFuture<List<TbMsg>> aggregate(TbContext ctx) {
         ListenableFuture<List<EntityId>> parentEntityIdsFuture = this.config.getParentEntitiesQuery().getParentEntitiesAsync(ctx);
         return Futures.transformAsync(parentEntityIdsFuture, parentEntityIds -> {
             List<ListenableFuture<TbMsg>> msgFutures = new ArrayList<>();
@@ -107,8 +112,8 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                 aggregateFuturesMap.forEach((originatorId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
-                        TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                                originatorId, tbMsg.getCustomerId(), new TbMsgMetaData(), TbMsgDataType.JSON, "");
+                        TbMsg msg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                                originatorId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
                         ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
                     }, MoreExecutors.directExecutor());
@@ -117,8 +122,8 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             TbMsgMetaData metaData = new TbMsgMetaData();
                             metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
-                            TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                                    originatorId, tbMsg.getCustomerId(), metaData, gson.toJson(messageData));
+                            TbMsg msg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                                    originatorId, metaData, gson.toJson(messageData));
                             ctx.enqueueForTellNext(msg, SUCCESS);
                             return msg;
                         } else {

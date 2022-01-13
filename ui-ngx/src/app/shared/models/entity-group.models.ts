@@ -549,5 +549,5 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     edgeId: routeParams.edgeId,
     grandChildGroupType: routeData.grandChildGroupType,
     grandChildGroupId: routeData.grandChildGroupId
-  }
+  };
 }

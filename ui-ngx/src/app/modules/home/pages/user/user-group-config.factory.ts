@@ -59,6 +59,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthService } from '@core/auth/auth.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<User> {
@@ -71,6 +72,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
               private homeDialogs: HomeDialogsService,
               private userService: UserService,
               private authService: AuthService,
+              private router: Router,
               private store: Store<AppState>) {
   }
 
@@ -122,6 +124,13 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
         entitiesTableConfig: config
       }
     }).afterClosed();
+  }
+
+  private openUser($event: Event, user: User) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`${this.router.url}/${user.id.id}`);
   }
 
   loginAsUser($event: Event, user: User | ShortEntityView) {
@@ -181,6 +190,9 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
 
   onUserAction(action: EntityAction<User>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openUser(action.event, action.entity);
+        return true;
       case 'loginAsUser':
         this.loginAsUser(action.event, action.entity);
         return true;

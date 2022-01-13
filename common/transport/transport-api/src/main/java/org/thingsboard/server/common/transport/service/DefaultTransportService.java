@@ -928,7 +928,7 @@ public class DefaultTransportService implements TransportService {
                 String resourceId = msg.getResourceKey();
                 transportResourceCache.update(tenantId, resourceType, resourceId);
                 sessions.forEach((id, mdRez) -> {
-                    log.warn("ResourceUpdate - [{}] [{}]", id, mdRez);
+                    log.trace("ResourceUpdate - [{}] [{}]", id, mdRez);
                     transportCallbackExecutor.submit(() -> mdRez.getListener().onResourceUpdate(msg));
                 });
 
@@ -1205,7 +1205,7 @@ public class DefaultTransportService implements TransportService {
 
     @Scheduled(fixedDelayString = "${transport.stats.print-interval-ms:60000}")
     public void printStats() {
-        if (statsEnabled) {
+        if (statsEnabled && !statsMap.isEmpty()) {
             String values = statsMap.entrySet().stream()
                     .map(kv -> kv.getKey() + " [" + kv.getValue() + "]").collect(Collectors.joining(", "));
             log.info("Transport Stats: {}", values);
