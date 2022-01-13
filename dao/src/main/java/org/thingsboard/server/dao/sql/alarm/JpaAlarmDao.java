@@ -228,7 +228,8 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     @Override
     public List<EntityAlarm> findEntityAlarmRecordsByEntityTypes(TenantId tenantId, AlarmId id, List<EntityType> types) {
         log.trace("[{}] Try to find entity alarm records using [{}] [{}]", tenantId, id, types);
-        return DaoUtil.convertDataList(entityAlarmRepository.findAllByAlarmIdAndEntityTypeIn(id.getId(), types.stream().map(Enum::name).collect(Collectors.toList())));
+        List<String> propagationTypes = types.stream().distinct().map(Enum::name).collect(Collectors.toList());
+        return DaoUtil.convertDataList(entityAlarmRepository.findAllByAlarmIdAndEntityTypeIn(id.getId(), propagationTypes));
     }
 
     @Override
