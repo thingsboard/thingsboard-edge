@@ -469,7 +469,7 @@ export const templates = {
           type: 'basic',
           username: '',
           password: ''
-      },
+      }
     },
     topicFilters: [{
       filter: 'v3/+/devices/+/up',
