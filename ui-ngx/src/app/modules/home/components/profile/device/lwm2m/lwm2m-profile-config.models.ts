@@ -144,6 +144,7 @@ export interface ServerSecurityConfig {
   securityHost?: string;
   securityPort?: number;
   serverPublicKey?: string;
+  serverCertificate?: string;
   clientHoldOffTime?: number;
   shortServerId?: number;
   bootstrapServerAccountTimeout: number;

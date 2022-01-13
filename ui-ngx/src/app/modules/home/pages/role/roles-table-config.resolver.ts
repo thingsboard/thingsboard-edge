@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import {
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
@@ -47,6 +47,7 @@ import { RoleComponent } from '@home/pages/role/role.component';
 import { RoleTabsComponent } from '@home/pages/role/role-tabs.component';
 import { roleTypeTranslationMap } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Converter } from '@shared/models/converter.models';
 
 @Injectable()
 export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>> {
@@ -56,6 +57,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
   constructor(private roleService: RoleService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
+              private router: Router,
               private datePipe: DatePipe) {
 
     this.config.entityType = EntityType.ROLE;
@@ -72,7 +74,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
       new DateEntityTableColumn<Role>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Role>('name', 'role.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Role>('type', 'role.role-type', '25%', (role) => {
-        return this.translate.instant(roleTypeTranslationMap.get(role.type))
+        return this.translate.instant(roleTypeTranslationMap.get(role.type));
       }),
       new EntityTableColumn<Role>('description', 'role.description', '40%',
         (role) => role && role.additionalInfo ? role.additionalInfo.description : '', entity => ({}), false)
@@ -97,7 +99,19 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
     return this.config;
   }
 
+  openRoles($event: Event, role: Role) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`roles/${role.id.id}`);
+  }
+
   onRoleAction(action: EntityAction<Role>): boolean {
+    switch (action.action) {
+      case 'open':
+        this.openRoles(action.event, action.entity);
+        return true;
+    }
     return false;
   }
 

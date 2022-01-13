@@ -91,7 +91,7 @@ export class EntityGroupConfigResolver {
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
             entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(groupType));
-            let tasks = [];
+            const tasks = [];
             if (params.childEntityGroupId) {
               tasks.push(this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
                 map(parentEntityGroup => {
@@ -104,7 +104,8 @@ export class EntityGroupConfigResolver {
             }
             if (params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER && params.edgeId) {
               tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
-                map(edge => entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType)))
+                map(edge =>
+                  entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType)))
               ));
               tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId).pipe(
                 map(edgeGroup => entityGroup.edgeGroupName = edgeGroup.name)
@@ -117,7 +118,7 @@ export class EntityGroupConfigResolver {
         ));
     } else if (params.edgeId) {
       const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
-      let tasks = [];
+      const tasks = [];
       tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
           map(
           edge => entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(groupType))

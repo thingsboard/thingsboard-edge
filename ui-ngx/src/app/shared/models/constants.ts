@@ -146,14 +146,14 @@ export const HelpLinks = {
     users: helpBaseUrl + '/docs/pe/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/pe/user-guide/ui/devices',
     deviceProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/device-profiles',
-    edges: helpBaseUrl + '/docs/pe/user-guide/ui/edges',
+    edges: helpBaseUrl + '/docs/user-guide/ui/edges',
     assets: helpBaseUrl + '/docs/pe/user-guide/ui/assets',
     entityViews: helpBaseUrl + '/docs/pe/user-guide/ui/entity-views',
     entitiesImport: helpBaseUrl + '/docs/pe/user-guide/bulk-provisioning',
     rulechains: helpBaseUrl + '/docs/pe/user-guide/ui/rule-chains',
     dashboards: helpBaseUrl + '/docs/pe/user-guide/ui/dashboards',
     resources: helpBaseUrl + '/docs/pe/user-guide/ui/resources',
-    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ui/ota-updates',
+    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ota-updates',
     widgetsBundles: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library#bundles',
     widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#widget-configuration',
     widgetsConfigTimeseries:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#timeseries',
@@ -308,6 +308,7 @@ export const contentTypesMap = new Map<ContentType, ContentTypeData>(
   ]
 );
 
+export const hidePageSizePixelValue = 550;
 export const customTranslationsPrefix = 'custom.';
 export const i18nPrefix = 'i18n';
 

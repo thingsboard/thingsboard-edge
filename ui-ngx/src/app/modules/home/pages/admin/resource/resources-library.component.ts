@@ -79,7 +79,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
         this.entityForm.get('title').disable({emitEvent: false});
         this.entityForm.patchValue({title: ''}, {emitEvent: false});
       } else {
-        this.entityForm.get('title').enable({emitEvent: false})
+        this.entityForm.get('title').enable({emitEvent: false});
       }
       this.entityForm.patchValue({
         data: null,
@@ -105,7 +105,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   buildForm(entity: Resource): FormGroup {
     const form = this.fb.group(
       {
-        title: [entity ? entity.title : "", [Validators.required, Validators.maxLength(255)]],
+        title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
         resourceType: [entity?.resourceType ? entity.resourceType : ResourceType.LWM2M_MODEL, [Validators.required]],
         fileName: [entity ? entity.fileName : null, [Validators.required]],
       }
@@ -117,6 +117,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   }
 
   updateForm(entity: Resource) {
+    this.entity.name = entity.title;
     if (this.isEdit) {
       this.entityForm.get('resourceType').disable({emitEvent: false});
       this.entityForm.get('fileName').disable({emitEvent: false});

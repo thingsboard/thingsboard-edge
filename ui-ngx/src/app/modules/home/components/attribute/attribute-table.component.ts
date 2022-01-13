@@ -101,6 +101,8 @@ import { deepClone } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { Filters } from '@shared/models/query/query.models';
+import { hidePageSizePixelValue } from '@shared/models/constants';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 @Component({
   selector: 'tb-attribute-table',
@@ -125,6 +127,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   pageLink: PageLink;
   textSearchMode = false;
   dataSource: AttributeDatasource;
+  hidePageSize = false;
 
   activeValue = false;
   dirtyValue = false;
@@ -143,10 +146,14 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   aliasController: IAliasController;
   private widgetDatasource: Datasource;
 
+  private widgetResize$: ResizeObserver;
+
   private disableAttributeScopeSelectionValue: boolean;
+
   get disableAttributeScopeSelection(): boolean {
     return this.disableAttributeScopeSelectionValue;
   }
+
   @Input()
   set disableAttributeScopeSelection(value: boolean) {
     this.disableAttributeScopeSelectionValue = coerceBooleanProperty(value);
@@ -211,7 +218,8 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
               private widgetService: WidgetService,
               private userPermissionsService: UserPermissionsService,
               private zone: NgZone,
-              private cd: ChangeDetectorRef) {
+              private cd: ChangeDetectorRef,
+              private elementRef: ElementRef) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'key', direction: Direction.ASC };
@@ -224,6 +232,20 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
       this.userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE],
         Operation.READ)) {
       this.displayedColumns.unshift('select');
+    }
+    this.widgetResize$ = new ResizeObserver(() => {
+      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+      if (showHidePageSize !== this.hidePageSize) {
+        this.hidePageSize = showHidePageSize;
+        this.cd.markForCheck();
+      }
+    });
+    this.widgetResize$.observe(this.elementRef.nativeElement);
+  }
+
+  ngOnDestroy() {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 
@@ -295,6 +317,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
       this.attributeScopeSelectionReadonly = true;
     }
     this.mode = 'default';
+    this.selectedWidgetsBundleAlias = null;
     this.attributeScope = this.defaultAttributeScope;
     this.pageLink.textSearch = null;
     if (this.viewsInited) {

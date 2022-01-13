@@ -63,7 +63,7 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
   }
 
   onPermissionsChanged() {
-    this.entitiesTableConfig.onGroupUpdated();
+    this.entitiesTableConfig.onGroupUpdated(false);
   }
 
   private validate() {

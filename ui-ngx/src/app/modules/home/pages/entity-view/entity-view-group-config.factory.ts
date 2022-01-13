@@ -49,6 +49,7 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { EntityView } from '@shared/models/entity-view.models';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityView> {
@@ -60,6 +61,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private entityViewService: EntityViewService,
+              private router: Router,
               private broadcast: BroadcastService) {
   }
 
@@ -91,7 +93,19 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
+  private openEntityView($event: Event, entityView: EntityView) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
+  }
+
   onEntityViewAction(action: EntityAction<EntityView>): boolean {
+    switch (action.action) {
+      case 'open':
+        this.openEntityView(action.event, action.entity);
+        return true;
+    }
     return false;
   }
 
