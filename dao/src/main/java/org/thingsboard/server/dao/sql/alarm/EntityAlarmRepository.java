@@ -42,6 +42,8 @@ public interface EntityAlarmRepository extends CrudRepository<EntityAlarmEntity,
 
     List<EntityAlarmEntity> findAllByAlarmId(UUID alarmId);
 
+    List<EntityAlarmEntity> findAllByAlarmIdAndEntityTypeIn(UUID alarmId, List<String> entityTypes);
+
     @Transactional
     void deleteByEntityId(UUID id);
 }
