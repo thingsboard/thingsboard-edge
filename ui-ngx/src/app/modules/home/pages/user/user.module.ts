@@ -55,8 +55,7 @@ import { UserGroupConfigFactory } from '@home/pages/user/user-group-config.facto
   imports: [
     CommonModule,
     SharedModule,
-    HomeComponentsModule,
-    UserRoutingModule
+    HomeComponentsModule
   ],
   providers: [
     {

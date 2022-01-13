@@ -149,9 +149,11 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   private widgetResize$: ResizeObserver;
 
   private disableAttributeScopeSelectionValue: boolean;
+
   get disableAttributeScopeSelection(): boolean {
     return this.disableAttributeScopeSelectionValue;
   }
+
   @Input()
   set disableAttributeScopeSelection(value: boolean) {
     this.disableAttributeScopeSelectionValue = coerceBooleanProperty(value);
@@ -315,6 +317,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
       this.attributeScopeSelectionReadonly = true;
     }
     this.mode = 'default';
+    this.selectedWidgetsBundleAlias = null;
     this.attributeScope = this.defaultAttributeScope;
     this.pageLink.textSearch = null;
     if (this.viewsInited) {

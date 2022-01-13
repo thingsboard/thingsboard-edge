@@ -38,6 +38,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -572,4 +573,5 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         Assert.assertNull("Can't find device by name in cache if it was renamed", renamedDevice);
         deviceService.deleteDevice(tenantId, savedDevice.getId());
     }
+
 }

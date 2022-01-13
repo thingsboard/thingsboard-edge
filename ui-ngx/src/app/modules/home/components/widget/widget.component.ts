@@ -82,7 +82,7 @@ import {
   validateEntityId
 } from '@core/utils';
 import {
-  IDynamicWidgetComponent, ShowWidgetHeaderActionFunction,
+  IDynamicWidgetComponent, ShowWidgetHeaderActionFunction, updateEntityParams,
   WidgetContext,
   WidgetHeaderAction,
   WidgetInfo,
@@ -1094,7 +1094,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       case WidgetActionType.updateDashboardState:
         let targetDashboardStateId = descriptor.targetDashboardStateId;
         const params = deepClone(this.widgetContext.stateController.getStateParams());
-        this.updateEntityParams(params, targetEntityParamName, targetEntityId, entityName, entityLabel);
+        updateEntityParams(params, targetEntityParamName, targetEntityId, entityName, entityLabel);
         if (type === WidgetActionType.openDashboardState) {
           if (descriptor.openInPopover) {
             this.openDashboardStateInPopover($event, descriptor.targetDashboardStateId, params,
@@ -1115,7 +1115,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         targetDashboardStateId = descriptor.targetDashboardStateId;
         const stateObject: StateObject = {};
         stateObject.params = {};
-        this.updateEntityParams(stateObject.params, targetEntityParamName, targetEntityId, entityName, entityLabel);
+        updateEntityParams(stateObject.params, targetEntityParamName, targetEntityId, entityName, entityLabel);
         if (targetDashboardStateId) {
           stateObject.id = targetDashboardStateId;
         }
@@ -1384,7 +1384,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         this.widgetContentContainer, this.dashboardPageComponent, preferredPlacement, hideOnClickOutside,
         injector,
         {
-          embed: true,
+          embedded: true,
           syncStateWithQueryParam: false,
           hideToolbar: hideDashboardToolbar,
           currentState: objToBase64([stateObject]),
@@ -1463,30 +1463,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         const entityName = entityInfo ? entityInfo.entityName : null;
         const entityLabel = entityInfo && entityInfo.entityLabel ? entityInfo.entityLabel : null;
         this.handleWidgetAction($event, descriptor, entityId, entityName, null, entityLabel);
-      }
-    }
-  }
-
-  private updateEntityParams(params: StateParams, targetEntityParamName?: string, targetEntityId?: EntityId,
-                             entityName?: string, entityLabel?: string) {
-    if (targetEntityId) {
-      let targetEntityParams: StateParams;
-      if (targetEntityParamName && targetEntityParamName.length) {
-        targetEntityParams = params[targetEntityParamName];
-        if (!targetEntityParams) {
-          targetEntityParams = {};
-          params[targetEntityParamName] = targetEntityParams;
-          params.targetEntityParamName = targetEntityParamName;
-        }
-      } else {
-        targetEntityParams = params;
-      }
-      targetEntityParams.entityId = targetEntityId;
-      if (entityName) {
-        targetEntityParams.entityName = entityName;
-      }
-      if (entityLabel) {
-        targetEntityParams.entityLabel = entityLabel;
       }
     }
   }

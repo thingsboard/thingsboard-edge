@@ -59,6 +59,7 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
@@ -70,6 +71,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private deviceService: DeviceService,
+              private router: Router,
               private broadcast: BroadcastService) {
   }
 
@@ -166,6 +168,13 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
+  private openDevice($event: Event, device: Device) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
+  }
+
   manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean, config: GroupEntityTableConfig<Device>) {
     if ($event) {
       $event.stopPropagation();
@@ -188,6 +197,9 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
 
   onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openDevice(action.event, action.entity);
+        return true;
       case 'manageCredentials':
         this.manageCredentials(action.event, action.entity, false, config);
         return true;

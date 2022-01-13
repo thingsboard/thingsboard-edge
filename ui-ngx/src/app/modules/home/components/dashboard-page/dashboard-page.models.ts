@@ -35,6 +35,7 @@ import { Timewindow } from '@shared/models/time/time.models';
 import { IAliasController, IStateController } from '@core/api/widget-api.models';
 import { ILayoutController } from './layout/layout.models';
 import { DashboardContextMenuItem, WidgetContextMenuItem } from '@home/models/dashboard-component.models';
+import { Observable } from 'rxjs';
 
 export declare type DashboardPageScope = 'tenant' | 'customer';
 
@@ -45,6 +46,7 @@ export interface DashboardContext {
   dashboardTimewindow: Timewindow;
   aliasController: IAliasController;
   stateController: IStateController;
+  stateChanged: Observable<string>;
   runChangeDetection: () => void;
 }
 

@@ -153,7 +153,7 @@ export const HelpLinks = {
     rulechains: helpBaseUrl + '/docs/pe/user-guide/ui/rule-chains',
     dashboards: helpBaseUrl + '/docs/pe/user-guide/ui/dashboards',
     resources: helpBaseUrl + '/docs/pe/user-guide/ui/resources',
-    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ui/ota-updates',
+    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ota-updates',
     widgetsBundles: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library#bundles',
     widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#widget-configuration',
     widgetsConfigTimeseries:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#timeseries',

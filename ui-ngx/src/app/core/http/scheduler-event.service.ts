@@ -54,7 +54,7 @@ export class SchedulerEventService {
 
   public getSchedulerEvents(type: string = '', config?: RequestConfig): Observable<Array<SchedulerEventWithCustomerInfo>> {
     let url = '/api/schedulerEvents';
-    if (isDefinedAndNotNull(type)) {
+    if (isDefinedAndNotNull(type) && type !== '') {
       url += `?type=${type}`;
     }
     return this.http.get<Array<SchedulerEventWithCustomerInfo>>(url,

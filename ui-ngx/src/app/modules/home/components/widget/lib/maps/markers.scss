@@ -44,6 +44,15 @@
   box-shadow: none;
 }
 
+.tb-polygon-label {
+  border: none;
+  background: none;
+  box-shadow: none;
+  &:before {
+    content: none;
+  }
+}
+
 .leaflet-container {
   background-color: white;
 }

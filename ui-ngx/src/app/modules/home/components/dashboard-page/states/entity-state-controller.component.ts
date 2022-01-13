@@ -77,7 +77,7 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
     super.ngOnDestroy();
   }
 
-  protected init() {
+  public init() {
     if (this.preservedState) {
       this.stateObject = this.preservedState;
       this.selectedStateIndex = this.stateObject.length - 1;

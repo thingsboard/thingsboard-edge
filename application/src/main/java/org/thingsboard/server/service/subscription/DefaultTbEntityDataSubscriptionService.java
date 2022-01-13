@@ -304,6 +304,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
             long start = System.currentTimeMillis();
             finalCtx.update();
             long end = System.currentTimeMillis();
+            log.trace("[{}][{}] Executing query: {}", finalCtx.getSessionId(), finalCtx.getCmdId(), finalCtx.getQuery());
             stats.getDynamicQueryInvocationCnt().incrementAndGet();
             stats.getDynamicQueryTimeSpent().addAndGet(end - start);
         } catch (Exception e) {
@@ -319,7 +320,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         long regularQueryInvocationTimeValue = stats.getRegularQueryTimeSpent().getAndSet(0);
         int dynamicQueryInvocationCntValue = stats.getDynamicQueryInvocationCnt().getAndSet(0);
         long dynamicQueryInvocationTimeValue = stats.getDynamicQueryTimeSpent().getAndSet(0);
-        long dynamicQueryCnt = subscriptionsBySessionId.values().stream().map(Map::values).count();
+        long dynamicQueryCnt = subscriptionsBySessionId.values().stream().mapToLong(m -> m.values().stream().filter(TbAbstractSubCtx::isDynamic).count()).sum();
         if (regularQueryInvocationCntValue > 0 || dynamicQueryInvocationCntValue > 0 || dynamicQueryCnt > 0 || alarmQueryInvocationCntValue > 0) {
             log.info("Stats: regularQueryInvocationCnt = [{}], regularQueryInvocationTime = [{}], " +
                             "dynamicQueryCnt = [{}] dynamicQueryInvocationCnt = [{}], dynamicQueryInvocationTime = [{}], " +
@@ -512,6 +513,12 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         if (ctx != null) {
             ctx.cancelTasks();
             ctx.clearSubscriptions();
+            if (ctx.getSessionId() != null) {
+                Map<Integer, TbAbstractSubCtx> sessionSubs = subscriptionsBySessionId.get(ctx.getSessionId());
+                if (sessionSubs != null) {
+                    sessionSubs.remove(ctx.getCmdId());
+                }
+            }
         }
     }
 

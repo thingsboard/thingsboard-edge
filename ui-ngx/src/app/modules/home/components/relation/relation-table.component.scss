@@ -57,6 +57,9 @@
 
       .table-container {
         overflow: auto;
+        .link {
+          border-bottom: none;
+        }
       }
 
       .tb-entity-table-info{

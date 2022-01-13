@@ -136,7 +136,7 @@ public class DefaultTbRuleEngineRpcService implements TbRuleEngineDeviceRpcServi
     }
 
     @Override
-    public void sendRestApiCallReply(String serviceIdStr, UUID requestId, TbMsg tbMsg) {
+    public void sendRestApiCallReply(String serviceId, UUID requestId, TbMsg tbMsg) {
         TransportProtos.RestApiCallResponseMsgProto msg = TransportProtos.RestApiCallResponseMsgProto.newBuilder()
                 .setRequestIdMSB(requestId.getMostSignificantBits())
                 .setRequestIdLSB(requestId.getLeastSignificantBits())

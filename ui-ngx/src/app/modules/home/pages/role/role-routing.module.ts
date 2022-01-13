@@ -35,22 +35,49 @@ import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { RolesTableConfigResolver } from '@home/pages/role/roles-table-config.resolver';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
 const routes: Routes = [
   {
     path: 'roles',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'role.roles',
       breadcrumb: {
         label: 'role.roles',
         icon: 'security'
       }
     },
-    resolve: {
-      entitiesTableConfig: RolesTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'role.roles'
+        },
+        resolve: {
+          entitiesTableConfig: RolesTableConfigResolver
+        }
+      },
+      {
+        path: ':entityId',
+        component: EntityDetailsPageComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          breadcrumb: {
+            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+            icon: 'security'
+          } as BreadCrumbConfig<EntityDetailsPageComponent>,
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'role.roles'
+        },
+        resolve: {
+          entitiesTableConfig: RolesTableConfigResolver
+        }
+      }
+    ]
   }
 ];
 
