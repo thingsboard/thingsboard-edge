@@ -31,6 +31,7 @@
 
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
@@ -86,6 +87,8 @@ import { SubscriptionEntityInfo } from '@core/api/widget-api.models';
 import { DatePipe } from '@angular/common';
 import { parseData } from '@home/components/widget/lib/maps/common-maps-utils';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 
 export interface TimeseriesTableWidgetSettings extends TableWidgetSettings {
   showTimestamp: boolean;
@@ -103,6 +106,7 @@ interface TimeseriesRow {
 interface TimeseriesHeader {
   index: number;
   dataKey: DataKey;
+  sortable: boolean;
 }
 
 interface TimeseriesTableSource {
@@ -139,6 +143,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   public enableStickyAction = true;
   public pageSizeOptions;
   public textSearchMode = false;
+  public hidePageSize = false;
   public textSearch: string = null;
   public sources: TimeseriesTableSource[];
   public sourceIndex: number;
@@ -165,6 +170,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
 
   private subscriptions: Subscription[] = [];
   private widgetTimewindowChanged$: Subscription;
+  private widgetResize$: ResizeObserver;
 
   private searchAction: WidgetAction = {
     name: 'action.search',
@@ -182,7 +188,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               private utils: UtilsService,
               private translate: TranslateService,
               private domSanitizer: DomSanitizer,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -205,6 +212,14 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
           });
         }
       );
+      this.widgetResize$ = new ResizeObserver(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
+      this.widgetResize$.observe(this.elementRef.nativeElement);
     }
   }
 
@@ -212,6 +227,9 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     if (this.widgetTimewindowChanged$) {
       this.widgetTimewindowChanged$.unsubscribe();
       this.widgetTimewindowChanged$ = null;
+    }
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 
@@ -323,10 +341,12 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         for (let a = 0; a < datasource.dataKeys.length; a++ ) {
           const dataKey = datasource.dataKeys[a];
           const keySettings: TableWidgetDataKeySettings = dataKey.settings;
+          const sortable = !dataKey.usePostProcessing;
           const index = a + 1;
           source.header.push({
             index,
-            dataKey
+            dataKey,
+            sortable
           });
           source.displayedColumns.push(index + '');
           source.rowDataTemplate[dataKey.label] = null;

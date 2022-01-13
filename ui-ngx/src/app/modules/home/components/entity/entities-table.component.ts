@@ -76,6 +76,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { isDefined, isEmptyStr, isUndefined } from '@core/utils';
 import { HasUUID } from '@shared/models/id/has-uuid';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 
 @Component({
@@ -111,9 +113,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   defaultPageSize = 10;
   displayPagination = true;
+  hidePageSize = false;
   pageSizeOptions;
   pageLink: PageLink;
-  persistentPageLinkMode = true;
+  pageMode = true;
   textSearchMode = false;
   timewindow: Timewindow;
   dataSource: EntitiesDataSource<BaseData<HasId>>;
@@ -133,6 +136,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   private updateDataSubscription: Subscription;
   private viewInited = false;
 
+  private widgetResize$: ResizeObserver;
+
   constructor(protected store: Store<AppState>,
               public route: ActivatedRoute,
               public translate: TranslateService,
@@ -141,7 +146,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private domSanitizer: DomSanitizer,
               private cd: ChangeDetectorRef,
               private router: Router,
-              private componentFactoryResolver: ComponentFactoryResolver) {
+              private componentFactoryResolver: ComponentFactoryResolver,
+              private elementRef: ElementRef) {
     super(store);
   }
 
@@ -150,6 +156,20 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       this.init(this.entitiesTableConfig);
     } else {
       this.init(this.route.snapshot.data.entitiesTableConfig);
+    }
+    this.widgetResize$ = new ResizeObserver(() => {
+      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+      if (showHidePageSize !== this.hidePageSize) {
+        this.hidePageSize = showHidePageSize;
+        this.cd.markForCheck();
+      }
+    });
+    this.widgetResize$.observe(this.elementRef.nativeElement);
+  }
+
+  ngOnDestroy() {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 
@@ -221,7 +241,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
     this.displayPagination = this.entitiesTableConfig.displayPagination;
     this.defaultPageSize = this.entitiesTableConfig.defaultPageSize;
-    this.persistentPageLinkMode = this.entitiesTableConfig.persistentPageLinkMode;
+    this.pageMode = this.entitiesTableConfig.pageMode;
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
 
     if (this.entitiesTableConfig.useTimePageLink) {
@@ -655,7 +675,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   }
 
   protected updatedRouterParamsAndData(queryParams: object, queryParamsHandling: QueryParamsHandling = 'merge') {
-    if (this.persistentPageLinkMode) {
+    if (this.pageMode) {
       this.router.navigate([], {
         relativeTo: this.route,
         queryParams,

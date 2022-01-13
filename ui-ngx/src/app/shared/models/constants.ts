@@ -31,7 +31,6 @@
 
 import { InjectionToken } from '@angular/core';
 import { IModulesMap } from '@modules/common/modules-map.models';
-import { EntityType } from '@shared/models/entity-type.models';
 
 export const Constants = {
   serverErrorCode: {
@@ -154,7 +153,7 @@ export const HelpLinks = {
     rulechains: helpBaseUrl + '/docs/pe/user-guide/ui/rule-chains',
     dashboards: helpBaseUrl + '/docs/pe/user-guide/ui/dashboards',
     resources: helpBaseUrl + '/docs/pe/user-guide/ui/resources',
-    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ui/ota-updates',
+    otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ota-updates',
     widgetsBundles: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library#bundles',
     widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#widget-configuration',
     widgetsConfigTimeseries:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#timeseries',
@@ -202,25 +201,6 @@ export const HelpLinks = {
     selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration'
   }
 };
-
-export const baseDetailsPageByEntityType = new Map<EntityType, string>([
-  [EntityType.TENANT, '/tenants'],
-  [EntityType.TENANT_PROFILE, '/tenantProfiles'],
-  [EntityType.CUSTOMER, '/customers'],
-  [EntityType.USER, '/users'],
-  [EntityType.DASHBOARD, '/dashboards'],
-  [EntityType.ASSET, '/assets'],
-  [EntityType.DEVICE, '/devices'],
-  [EntityType.DEVICE_PROFILE, '/deviceProfiles'],
-  [EntityType.CONVERTER, '/converters'],
-  [EntityType.INTEGRATION, '/integrations'],
-  [EntityType.RULE_CHAIN, '/ruleChains'],
-  [EntityType.EDGE, '/edgeInstances'],
-  [EntityType.ENTITY_VIEW, '/entityViews'],
-  [EntityType.ROLE, '/roles'],
-  [EntityType.TB_RESOURCE, '/settings/resources-library'],
-  [EntityType.OTA_PACKAGE, '/otaUpdates']
-]);
 
 export interface ValueTypeData {
   name: string;
@@ -328,6 +308,7 @@ export const contentTypesMap = new Map<ContentType, ContentTypeData>(
   ]
 );
 
+export const hidePageSizePixelValue = 550;
 export const customTranslationsPrefix = 'custom.';
 export const i18nPrefix = 'i18n';
 

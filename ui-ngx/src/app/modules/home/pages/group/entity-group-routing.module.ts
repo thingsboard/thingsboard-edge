@@ -74,7 +74,8 @@ import {
 import { RuleChainType } from '@shared/models/rule-chain.models';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { UsersTableConfigResolver } from '@home/pages/user/users-table-config.resolver';
-import { entityDetailsPageBreadcrumbLabelFunction, isDefined } from '@core/utils';
+import { isDefined } from '@core/utils';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { AuthUser } from '@shared/models/user.model';

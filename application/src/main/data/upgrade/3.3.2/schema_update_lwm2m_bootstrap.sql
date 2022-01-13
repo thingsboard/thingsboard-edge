@@ -29,6 +29,7 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+
 CREATE OR REPLACE PROCEDURE update_profile_bootstrap()
   LANGUAGE plpgsql AS
 $$
@@ -40,9 +41,11 @@ BEGIN
     profile_data,
     '{transportConfiguration}',
     get_bootstrap(
-        profile_data::jsonb #> '{transportConfiguration}',
-        subquery.publickey_bs,
-        subquery.publickey_lw),
+      profile_data::jsonb #> '{transportConfiguration}',
+      subquery.publickey_bs,
+      subquery.publickey_lw,
+      profile_data::json #>> '{transportConfiguration, bootstrap, bootstrapServer, securityMode}',
+      profile_data::json #>> '{transportConfiguration, bootstrap, lwm2mServer, securityMode}'),
     true)
   FROM (
          SELECT id,
@@ -63,7 +66,8 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_bootstrap(transport_configuration_in jsonb, publickey_bs text,
-                                         publickey_lw text) RETURNS jsonb AS
+                                         publickey_lw text, security_mode_bs text,
+                                         security_mode_lw text) RETURNS jsonb AS
 $$
 
 DECLARE
@@ -71,10 +75,19 @@ DECLARE
   bootstrap_in  jsonb;
 
 BEGIN
+
+  IF security_mode_lw IS NULL THEN
+    security_mode_lw := 'NO_SEC';
+  END IF;
+
+  IF security_mode_bs IS NULL THEN
+    security_mode_bs := 'NO_SEC';
+  END IF;
+
   bootstrap_in := transport_configuration_in::jsonb #> '{bootstrap}';
   bootstrap_new := json_build_array(
     json_build_object('shortServerId', bootstrap_in::json #> '{bootstrapServer}' -> 'serverId',
-                      'securityMode', bootstrap_in::json #> '{bootstrapServer}' ->> 'securityMode',
+                      'securityMode', security_mode_bs,
                       'binding', bootstrap_in::json #> '{servers}' ->> 'binding',
                       'lifetime', bootstrap_in::json #> '{servers}' -> 'lifetime',
                       'notifIfDisabled', bootstrap_in::json #> '{servers}' -> 'notifIfDisabled',
@@ -88,7 +101,7 @@ BEGIN
                       bootstrap_in::json #> '{bootstrapServer}' -> 'bootstrapServerAccountTimeout'
       ),
     json_build_object('shortServerId', bootstrap_in::json #> '{lwm2mServer}' -> 'serverId',
-                      'securityMode', bootstrap_in::json #> '{lwm2mServer}' ->> 'securityMode',
+                      'securityMode', security_mode_lw,
                       'binding', bootstrap_in::json #> '{servers}' ->> 'binding',
                       'lifetime', bootstrap_in::json #> '{servers}' -> 'lifetime',
                       'notifIfDisabled', bootstrap_in::json #> '{servers}' -> 'notifIfDisabled',
@@ -108,7 +121,7 @@ BEGIN
            bootstrap_new,
            true) || '{"bootstrapServerUpdateEnable": true}';
 
-END ;
+END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE update_device_credentials_to_base64_and_bootstrap()
@@ -117,9 +130,9 @@ $$
 
 BEGIN
 
-UPDATE device_credentials
-SET credentials_value = get_device_and_bootstrap(credentials_value::text)
-WHERE credentials_type = 'LWM2M_CREDENTIALS';
+  UPDATE device_credentials
+  SET credentials_value = get_device_and_bootstrap(credentials_value::text)
+  WHERE credentials_type = 'LWM2M_CREDENTIALS';
 END;
 $$;
 
@@ -127,7 +140,7 @@ CREATE OR REPLACE FUNCTION get_device_and_bootstrap(IN credentials_value text, O
   LANGUAGE plpgsql AS
 $$
 DECLARE
-client_secret_key                    text;
+  client_secret_key                    text;
   client_public_key_or_id              text;
   client_key_value_object              jsonb;
   client_bootstrap_server_value_object jsonb;
@@ -145,7 +158,7 @@ BEGIN
       'key', client_public_key_or_id);
     credentials_value_new :=
         credentials_value_new::jsonb || json_build_object('client', client_key_value_object)::jsonb;
-END IF;
+  END IF;
   IF credentials_value::jsonb #> '{client}' ->> 'securityConfigClientMode' = 'X509' AND
      NULLIF((credentials_value::jsonb #> '{client}' ->> 'cert' ~ '^[0-9a-fA-F]+$')::text, 'false') = 'true' THEN
     client_public_key_or_id :=
@@ -156,8 +169,8 @@ END IF;
       'cert', client_public_key_or_id);
     credentials_value_new :=
         credentials_value_new::jsonb || json_build_object('client', client_key_value_object)::jsonb;
-END IF;
-  
+  END IF;
+
   IF credentials_value::jsonb #> '{bootstrap,lwm2mServer}' ->> 'securityMode' = 'RPK' OR
      credentials_value::jsonb #> '{bootstrap,lwm2mServer}' ->> 'securityMode' = 'X509' THEN
     IF NULLIF((credentials_value::jsonb #> '{bootstrap,lwm2mServer}' ->> 'clientSecretKey' ~ '^[0-9a-fA-F]+$')::text,
@@ -180,9 +193,9 @@ END IF;
       client_bootstrap_object := credentials_value_new::jsonb #> '{bootstrap}' || client_bootstrap_server_object::jsonb;
       credentials_value_new :=
         jsonb_set(credentials_value_new::jsonb, '{bootstrap}', client_bootstrap_object::jsonb, false)::jsonb;
-END IF;
-END IF;
-  
+    END IF;
+  END IF;
+
   IF credentials_value::jsonb #> '{bootstrap,bootstrapServer}' ->> 'securityMode' = 'RPK' OR
      credentials_value::jsonb #> '{bootstrap,bootstrapServer}' ->> 'securityMode' = 'X509' THEN
     IF NULLIF(
@@ -208,8 +221,8 @@ END IF;
       client_bootstrap_object := credentials_value_new::jsonb #> '{bootstrap}' || client_bootstrap_server_object::jsonb;
       credentials_value_new :=
         jsonb_set(credentials_value_new::jsonb, '{bootstrap}', client_bootstrap_object::jsonb, false)::jsonb;
-END IF;
-END IF;
+    END IF;
+  END IF;
 
 END;
 $$;

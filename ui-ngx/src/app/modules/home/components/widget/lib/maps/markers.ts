@@ -29,19 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { Icon, LeafletMouseEvent } from 'leaflet';
-import { FormattedData, MarkerIconInfo, MarkerIconReadyFunction, MarkerImageInfo, MarkerSettings } from './map-models';
+import L, { LeafletMouseEvent } from 'leaflet';
 import {
-  bindPopupActions,
-  createTooltip,
-} from './maps-utils';
-import {
-  aspectCache,
-  fillPattern,
-  parseWithTranslation,
-  processPattern,
-  safeExecute
-} from './common-maps-utils';
+  FormattedData,
+  MarkerIconInfo,
+  MarkerIconReadyFunction,
+  MarkerImageInfo,
+  MarkerSettings,
+  UnitedMapSettings
+} from './map-models';
+import { bindPopupActions, createTooltip, } from './maps-utils';
+import { aspectCache, fillPattern, parseWithTranslation, processPattern, safeExecute } from './common-maps-utils';
 import tinycolor from 'tinycolor2';
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import LeafletMap from './leaflet-map';
@@ -55,10 +53,13 @@ export class Marker {
     data: FormattedData;
     dataSources: FormattedData[];
 
-  constructor(private map: LeafletMap, private location: L.LatLng, public settings: MarkerSettings,
+  constructor(private map: LeafletMap, private location: L.LatLng, public settings: UnitedMapSettings,
               data?: FormattedData, dataSources?, onDragendListener?) {
         this.setDataSources(data, dataSources);
-        this.leafletMarker = L.marker(location, {pmIgnore: !settings.draggableMarker});
+        this.leafletMarker = L.marker(location, {
+          pmIgnore: !settings.draggableMarker,
+          snapIgnore: !settings.snappable
+        });
 
         this.markerOffset = [
           isDefined(settings.markerOffsetX) ? settings.markerOffsetX : 0.5,

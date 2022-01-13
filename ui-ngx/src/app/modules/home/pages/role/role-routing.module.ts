@@ -35,10 +35,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { RolesTableConfigResolver } from '@home/pages/role/roles-table-config.resolver';
-import { ConvertersTableConfigResolver } from '@home/pages/converter/converters-table-config.resolver';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
-import { entityDetailsPageBreadcrumbLabelFunction } from '@core/utils';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 
 const routes: Routes = [
