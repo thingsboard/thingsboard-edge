@@ -30,23 +30,19 @@
  */
 package org.thingsboard.server.dao;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
+import org.junit.extensions.cpsuite.ClasspathSuite;
+import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
+import org.junit.runner.RunWith;
 
-@Configuration
-@EnableAutoConfiguration
-@ComponentScan({"org.thingsboard.server.dao.sqlts.psql", "org.thingsboard.server.dao.sqlts.insert.psql"})
-@EnableJpaRepositories({"org.thingsboard.server.dao.sqlts.ts", "org.thingsboard.server.dao.sqlts.insert.psql"})
-@EntityScan({"org.thingsboard.server.dao.model.sqlts.ts"})
-@EnableTransactionManagement
-@PsqlDao
-@SqlTsDao
-public class PsqlTsDaoConfig {
+@RunWith(ClasspathSuite.class)
+@ClassnameFilters({
+        "org.thingsboard.server.dao.sql.tenant.*Test",
+        "org.thingsboard.server.dao.sql.component.*Test",
+        "org.thingsboard.server.dao.sql.customer.*Test",
+        "org.thingsboard.server.dao.sql.dashboard.*Test",
+        "org.thingsboard.server.dao.sql.query.*Test",
+        "org.thingsboard.server.dao.sql.*THIS_MUST_BE_FIXED_Test",
+})
+public class JpaDaoTestSuite {
 
 }
