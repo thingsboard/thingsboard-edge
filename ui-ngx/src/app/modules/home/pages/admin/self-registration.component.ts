@@ -37,16 +37,13 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
-import { selfRegistrationAttributes, SelfRegistrationParams } from '@shared/models/self-register.models';
+import { SelfRegistrationParams } from '@shared/models/self-register.models';
 import { deepClone, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { AttributeService } from '@core/http/attribute.service';
-import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { concatMap, map, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-self-registration',
@@ -169,18 +166,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   }
 
   delete(form: FormGroupDirective): void {
-    const authUser = getCurrentAuthUser(this.store);
-    const tenantId = new TenantId(authUser.tenantId);
-    const deletedAttributesObservable = this.attributeService.getEntityAttributes(tenantId, AttributeScope.SERVER_SCOPE).pipe(
-      map(attributes =>
-        attributes.filter(
-          attribute => selfRegistrationAttributes.indexOf(attribute.key) !== -1)
-      ),
-      concatMap(selfRegistrationAttributes =>
-        this.attributeService.deleteEntityAttributes(tenantId, AttributeScope.SERVER_SCOPE, selfRegistrationAttributes))
-    );
-    deletedAttributesObservable.pipe(
-      concatMap(() => this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName)),
+    this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName).pipe(
       tap(() => {
         this.onSelfRegistrationParamsLoaded({} as SelfRegistrationParams);
         this.deleteDisabled = true;

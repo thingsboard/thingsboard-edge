@@ -54,9 +54,3 @@ export interface SelfRegistrationParams extends SignUpSelfRegistrationParams {
   appScheme?: string;
   appHost?: string;
 }
-
-export const selfRegistrationAttributes = new Array<string>(
-  'selfRegistrationParams',
-  'termsOfUse',
-  'privacyPolicy'
-);

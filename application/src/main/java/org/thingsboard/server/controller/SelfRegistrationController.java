@@ -32,11 +32,17 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -54,6 +61,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -61,7 +69,9 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
 
@@ -84,6 +94,9 @@ public class SelfRegistrationController extends BaseController {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private AttributesService attributesService;
 
     @ApiOperation(value = "Create Or Update Self Registration parameters (saveSelfRegistrationParams)",
             notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as [time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address) " +
@@ -152,13 +165,35 @@ public class SelfRegistrationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams/{domainName}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteSelfRegistrationParams(@PathVariable(DOMAIN_NAME) String domainName) throws ThingsboardException {
+    public DeferredResult<ResponseEntity> deleteSelfRegistrationParams(@PathVariable(DOMAIN_NAME) String domainName) throws ThingsboardException {
+        checkParameter(DOMAIN_NAME, domainName);
         try {
+            DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
             SecurityUser securityUser = getCurrentUser();
             Authority authority = securityUser.getAuthority();
+            accessControlService.checkPermission(securityUser, Resource.TENANT, Operation.WRITE_ATTRIBUTES);
             if (Authority.TENANT_ADMIN.equals(authority)) {
-                adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);
+                ListenableFuture<List<Void>> future = attributesService.removeAll(
+                        securityUser.getTenantId(),
+                        securityUser.getTenantId(),
+                        DataConstants.SERVER_SCOPE,
+                        Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
+                Futures.addCallback(future, new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable List<Void> voids) {
+                        adminSettingsService.deleteAdminSettingsByKey(
+                                securityUser.getTenantId(),
+                                DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);
+                        responseWriter.setResult(new ResponseEntity<>(HttpStatus.OK));
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        responseWriter.setErrorResult(throwable);
+                    }
+                }, MoreExecutors.directExecutor());
             }
+            return responseWriter;
         } catch (Exception e) {
             throw handleException(e);
         }
