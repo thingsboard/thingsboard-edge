@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -81,6 +82,8 @@ import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.query.EntityFilterType;
+import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -691,6 +694,8 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             throw new IncorrectParameterException("Query entity filter must be specified.");
         } else if (query.getEntityFilter().getType() == null) {
             throw new IncorrectParameterException("Query entity filter type must be specified.");
+        } else if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+            validateRelationQuery((RelationsQueryFilter) query.getEntityFilter());
         }
     }
 
@@ -709,4 +714,15 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
     }
 
+    private static void validateRelationQuery(RelationsQueryFilter queryFilter) {
+        if (queryFilter.isMultiRoot() && queryFilter.getMultiRootEntitiesType() ==null){
+            throw new IncorrectParameterException("Multi-root relation query filter should contain 'multiRootEntitiesType'");
+        }
+        if (queryFilter.isMultiRoot() && CollectionUtils.isEmpty(queryFilter.getMultiRootEntityIds())) {
+            throw new IncorrectParameterException("Multi-root relation query filter should contain 'multiRootEntityIds' array that contains string representation of UUIDs");
+        }
+        if (!queryFilter.isMultiRoot() && queryFilter.getRootEntity() == null) {
+            throw new IncorrectParameterException("Relation query filter root entity should not be blank");
+        }
+    }
 }

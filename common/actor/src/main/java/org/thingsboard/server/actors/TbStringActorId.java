@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.actors;
 
+import org.thingsboard.server.common.data.EntityType;
+
 import java.util.Objects;
 
 public class TbStringActorId implements TbActorId {
@@ -56,5 +58,10 @@ public class TbStringActorId implements TbActorId {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return null;
     }
 }
