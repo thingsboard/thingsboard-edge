@@ -63,8 +63,6 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix";
-
     private static final String SELF_REGISTRATION_PARAMS = "selfRegistrationParams";
 
     private static final String PRIVACY_POLICY = "privacyPolicy";
@@ -285,6 +283,6 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
     }
 
     private String constructSelfRegistrationKey(String domainName) {
-        return SELF_REGISTRATION_DOMAIN_NAME_PREFIX + "_" + domainName;
+        return DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName;
     }
 }
