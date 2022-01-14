@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -51,6 +51,7 @@ import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
 import { Router, UrlTree } from '@angular/router';
 import { EntityType } from '@shared/models/entity-type.models';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityView> {
@@ -63,7 +64,8 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
               private homeDialogs: HomeDialogsService,
               private entityViewService: EntityViewService,
               private router: Router,
-              private broadcast: BroadcastService) {
+              private broadcast: BroadcastService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EntityView>): Observable<GroupEntityTableConfig<EntityView>> {
@@ -107,7 +109,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
       }
-      this.router.navigateByUrl(url);
+      this.window.open(window.location.origin + url, '_blank');
     } else {
       this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
     }

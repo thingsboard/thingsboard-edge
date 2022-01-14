@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -60,6 +60,7 @@ import { AppState } from '@core/core.state';
 import { AuthService } from '@core/auth/auth.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Router, UrlTree } from '@angular/router';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<User> {
@@ -73,7 +74,8 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
               private userService: UserService,
               private authService: AuthService,
               private router: Router,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<User>): Observable<GroupEntityTableConfig<User>> {
@@ -139,7 +141,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'userGroups', params.childEntityGroupId, user.id.id]);
       }
-      this.router.navigateByUrl(url);
+      this.window.open(window.location.origin + url, '_blank');
     } else {
       this.router.navigateByUrl(`${this.router.url}/${user.id.id}`);
     }

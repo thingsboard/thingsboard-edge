@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
@@ -53,6 +53,7 @@ import { AssetService } from '@core/http/asset.service';
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { Operation } from '@shared/models/security.models';
 import { Router, UrlTree } from '@angular/router';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<Asset> {
@@ -65,7 +66,8 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
               private homeDialogs: HomeDialogsService,
               private assetService: AssetService,
               private router: Router,
-              private broadcast: BroadcastService) {
+              private broadcast: BroadcastService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Asset>): Observable<GroupEntityTableConfig<Asset>> {
@@ -133,7 +135,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'assetGroups', params.childEntityGroupId, asset.id.id]);
       }
-      this.router.navigateByUrl(url);
+      this.window.open(window.location.origin + url, '_blank');
     } else {
       this.router.navigateByUrl(`${this.router.url}/${asset.id.id}`);
     }

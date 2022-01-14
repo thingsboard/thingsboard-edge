@@ -38,7 +38,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
 import { tap } from 'rxjs/operators';
@@ -60,6 +60,7 @@ import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wiza
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { Router, UrlTree } from '@angular/router';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
@@ -72,7 +73,8 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
               private homeDialogs: HomeDialogsService,
               private deviceService: DeviceService,
               private router: Router,
-              private broadcast: BroadcastService) {
+              private broadcast: BroadcastService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Device>): Observable<GroupEntityTableConfig<Device>> {
@@ -181,7 +183,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
       }
-      this.router.navigateByUrl(url);
+      this.window.open(window.location.origin + url, '_blank');
     } else {
       this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
     }
