@@ -672,10 +672,6 @@ transport:
   sessions:
     inactivity_timeout: "${TB_TRANSPORT_SESSIONS_INACTIVITY_TIMEOUT:300000}"
     report_timeout: "${TB_TRANSPORT_SESSIONS_REPORT_TIMEOUT:3000}"
-  rate_limits:
-    enabled: "${TB_TRANSPORT_RATE_LIMITS_ENABLED:false}"
-    tenant: "${TB_TRANSPORT_RATE_LIMITS_TENANT:1000:1,20000:60}"
-    device: "${TB_TRANSPORT_RATE_LIMITS_DEVICE:10:1,300:60}"
   json:
     # Cast String data types to Numeric if possible when processing Telemetry/Attributes JSON
     type_cast_enabled: "${JSON_TYPE_CAST_ENABLED:true}"
@@ -689,6 +685,9 @@ transport:
     enabled: "${TB_TRANSPORT_LOG_ENABLED:true}"
     max_length: "${TB_TRANSPORT_LOG_MAX_LENGTH:1024}"
   rate_limits:
+    enabled: "${TB_TRANSPORT_RATE_LIMITS_ENABLED:false}"
+    tenant: "${TB_TRANSPORT_RATE_LIMITS_TENANT:1000:1,20000:60}"
+    device: "${TB_TRANSPORT_RATE_LIMITS_DEVICE:10:1,300:60}"
     # Enable or disable generic rate limits. Device and Tenant specific rate limits are controlled in Tenant Profile.
     ip_limits_enabled: "${TB_TRANSPORT_IP_RATE_LIMITS_ENABLED:false}"
     # Maximum number of connect attempts with invalid credentials
