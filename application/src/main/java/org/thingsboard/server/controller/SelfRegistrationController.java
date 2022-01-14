@@ -32,12 +32,19 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,6 +52,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -52,13 +61,17 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
@@ -71,6 +84,7 @@ public class SelfRegistrationController extends BaseController {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String PRIVACY_POLICY = "privacyPolicy";
     private static final String TERMS_OF_USE = "termsOfUse";
+    private static final String DOMAIN_NAME = "domainName";
     private static final String SELF_REGISTRATION_DESC = "Self Registration allows users to signup for using the platform and automatically create a Customer account for them. " +
             "You may configure default dashboard and user roles that will be assigned for this Customer. " +
             "This allows you to build out-of-the-box solutions for customers. " +
@@ -78,6 +92,12 @@ public class SelfRegistrationController extends BaseController {
 
     @Autowired
     private SelfRegistrationService selfRegistrationService;
+
+    @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private AttributesService attributesService;
 
     @ApiOperation(value = "Create Or Update Self Registration parameters (saveSelfRegistrationParams)",
             notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as " + UUID_WIKI_LINK +
@@ -138,6 +158,43 @@ public class SelfRegistrationController extends BaseController {
                 }
             }
             return selfRegistrationParams;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/selfRegistration/selfRegistrationParams/{domainName}", method = RequestMethod.DELETE)
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> deleteSelfRegistrationParams(@PathVariable(DOMAIN_NAME) String domainName) throws ThingsboardException {
+        checkParameter(DOMAIN_NAME, domainName);
+        try {
+            DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
+            SecurityUser securityUser = getCurrentUser();
+            Authority authority = securityUser.getAuthority();
+            accessControlService.checkPermission(securityUser, Resource.TENANT, Operation.WRITE_ATTRIBUTES);
+            if (Authority.TENANT_ADMIN.equals(authority)) {
+                ListenableFuture<List<Void>> future = attributesService.removeAll(
+                        securityUser.getTenantId(),
+                        securityUser.getTenantId(),
+                        DataConstants.SERVER_SCOPE,
+                        Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
+                Futures.addCallback(future, new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable List<Void> voids) {
+                        adminSettingsService.deleteAdminSettingsByKey(
+                                securityUser.getTenantId(),
+                                DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);
+                        responseWriter.setResult(new ResponseEntity<>(HttpStatus.OK));
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        responseWriter.setErrorResult(throwable);
+                    }
+                }, MoreExecutors.directExecutor());
+            }
+            return responseWriter;
         } catch (Exception e) {
             throw handleException(e);
         }

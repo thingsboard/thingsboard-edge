@@ -315,8 +315,8 @@ export class MapWidgetController implements MapWidgetInterface {
     }
 
     resize() {
-        this.map?.invalidateSize();
-        this.map.onResize();
+      this.map.onResize();
+      this.map?.invalidateSize();
     }
 
     destroy() {

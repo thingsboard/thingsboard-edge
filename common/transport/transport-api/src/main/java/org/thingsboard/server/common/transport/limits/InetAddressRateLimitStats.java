@@ -28,22 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.alarm;
+package org.thingsboard.server.common.transport.limits;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.model.sql.EntityAlarmCompositeKey;
-import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
+import lombok.Data;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public interface EntityAlarmRepository extends CrudRepository<EntityAlarmEntity, EntityAlarmCompositeKey> {
+@Data
+public class InetAddressRateLimitStats {
 
-    List<EntityAlarmEntity> findAllByAlarmId(UUID alarmId);
+    private final Lock lock = new ReentrantLock();
 
-    List<EntityAlarmEntity> findAllByAlarmIdAndEntityTypeIn(UUID alarmId, List<String> entityTypes);
+    private boolean blocked;
+    private long lastActivityTs;
+    private int failureCount;
+    private int connectionsCount;
 
-    @Transactional
-    void deleteByEntityId(UUID id);
 }

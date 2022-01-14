@@ -28,22 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.alarm;
+package org.thingsboard.server.transport.mqtt.limits;
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.model.sql.EntityAlarmCompositeKey;
-import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.haproxy.HAProxyMessage;
+import io.netty.handler.ipfilter.AbstractRemoteAddressFilter;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.transport.mqtt.MqttTransportContext;
+import org.thingsboard.server.transport.mqtt.MqttTransportService;
 
-import java.util.List;
-import java.util.UUID;
+import java.net.InetSocketAddress;
 
-public interface EntityAlarmRepository extends CrudRepository<EntityAlarmEntity, EntityAlarmCompositeKey> {
+@Slf4j
+public class IpFilter extends AbstractRemoteAddressFilter<InetSocketAddress> {
 
-    List<EntityAlarmEntity> findAllByAlarmId(UUID alarmId);
+    private MqttTransportContext context;
 
-    List<EntityAlarmEntity> findAllByAlarmIdAndEntityTypeIn(UUID alarmId, List<String> entityTypes);
+    public IpFilter(MqttTransportContext context) {
+        this.context = context;
+    }
 
-    @Transactional
-    void deleteByEntityId(UUID id);
+    @Override
+    protected boolean accept(ChannelHandlerContext ctx, InetSocketAddress remoteAddress) throws Exception {
+        if(context.checkAddress(remoteAddress)){
+            ctx.channel().attr(MqttTransportService.ADDRESS).set(remoteAddress);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.alarm;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -83,6 +84,8 @@ public interface AlarmDao extends Dao<Alarm> {
     void createEntityAlarmRecord(EntityAlarm entityAlarm);
 
     List<EntityAlarm> findEntityAlarmRecords(TenantId tenantId, AlarmId id);
+
+    List<EntityAlarm> findEntityAlarmRecordsByEntityTypes(TenantId tenantId, AlarmId id, List<EntityType> types);
 
     void deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId);
 }

@@ -28,22 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.alarm;
-
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.model.sql.EntityAlarmCompositeKey;
-import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
-
-import java.util.List;
-import java.util.UUID;
-
-public interface EntityAlarmRepository extends CrudRepository<EntityAlarmEntity, EntityAlarmCompositeKey> {
-
-    List<EntityAlarmEntity> findAllByAlarmId(UUID alarmId);
-
-    List<EntityAlarmEntity> findAllByAlarmIdAndEntityTypeIn(UUID alarmId, List<String> entityTypes);
-
-    @Transactional
-    void deleteByEntityId(UUID id);
+:host {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
 }

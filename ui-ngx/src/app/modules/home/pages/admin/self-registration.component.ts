@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { SelfRegistrationParams } from '@shared/models/self-register.models';
@@ -42,6 +42,7 @@ import { deepClone, isNotEmptyStr, randomAlphanumeric } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
+import { AttributeService } from '@core/http/attribute.service';
 
 @Component({
   selector: 'tb-self-registration',
@@ -53,6 +54,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   selfRegistrationFormGroup: FormGroup;
   selfRegistrationParams: SelfRegistrationParams;
   registerLink: string;
+  deleteDisabled: boolean = true;
 
   entityTypes = EntityType;
 
@@ -73,6 +75,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   constructor(protected store: Store<AppState>,
               private router: Router,
               private selfRegistrationService: SelfRegistrationService,
+              private attributeService: AttributeService,
               private translate: TranslateService,
               public fb: FormBuilder) {
     super(store);
@@ -159,6 +162,15 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     );
   }
 
+  delete(form: FormGroupDirective): void {
+    this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName).subscribe(
+      () => {
+        this.onSelfRegistrationParamsLoaded(null);
+        form.resetForm();
+      }
+    );
+  }
+
   confirmForm(): FormGroup {
     return this.selfRegistrationFormGroup;
   }
@@ -195,6 +207,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     if (selfRegistrationFormValue.showTermsOfUse == null) {
       selfRegistrationFormValue.showTermsOfUse = false;
     }
+    this.deleteDisabled = !this.selfRegistrationParams.adminSettingsId;
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);
     this.updateDisabledState();

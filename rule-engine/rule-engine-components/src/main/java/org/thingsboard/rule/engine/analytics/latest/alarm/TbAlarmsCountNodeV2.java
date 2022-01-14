@@ -39,6 +39,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -61,8 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -112,7 +111,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
             metaData.putValue("ts", dataTs);
             TbMsg newMsg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                     entityId, metaData, JacksonUtil.toString(data));
-            ctx.enqueueForTellNext(newMsg, SUCCESS);
+            ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
         });
         ctx.ack(msg);
     }
@@ -123,7 +122,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {
         if (config.isCountAlarmsForPropagationEntities() && alarm.isPropagate()) {
-            Set<EntityId> propagationEntityIds = ctx.getAlarmService().getPropagationEntityIds(alarm);
+            Set<EntityId> propagationEntityIds = ctx.getAlarmService().getPropagationEntityIds(alarm, config.getPropagationEntityTypes());
             propagationEntityIds.add(alarm.getOriginator());
             return propagationEntityIds;
         } else {

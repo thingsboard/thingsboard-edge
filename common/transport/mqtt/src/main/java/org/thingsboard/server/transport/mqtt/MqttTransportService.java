@@ -36,6 +36,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.AttributeKey;
 import io.netty.util.ResourceLeakDetector;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,8 @@ import org.thingsboard.server.common.data.TbTransportService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 /**
  * @author Andrew Shvayka
@@ -55,6 +58,8 @@ import javax.annotation.PreDestroy;
 @ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true' && '${transport.mqtt.enabled}'=='true')")
 @Slf4j
 public class MqttTransportService implements TbTransportService {
+
+    public static AttributeKey<InetSocketAddress> ADDRESS = AttributeKey.newInstance("SRC_ADDRESS");
 
     @Value("${transport.mqtt.bind_address}")
     private String host;

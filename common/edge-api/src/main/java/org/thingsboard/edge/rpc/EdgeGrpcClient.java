@@ -48,6 +48,7 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EdgeRpcServiceGrpc;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.RequestMsg;
 import org.thingsboard.server.gen.edge.v1.RequestMsgType;
 import org.thingsboard.server.gen.edge.v1.ResponseMsg;
@@ -112,7 +113,11 @@ public class EdgeGrpcClient implements EdgeRpcClient {
         this.inputStream = stub.withCompression("gzip").handleMsgs(initOutputStream(edgeKey, onUplinkResponse, onEdgeUpdate, onDownlink, onError));
         this.inputStream.onNext(RequestMsg.newBuilder()
                 .setMsgType(RequestMsgType.CONNECT_RPC_MESSAGE)
-                .setConnectRequestMsg(ConnectRequestMsg.newBuilder().setEdgeRoutingKey(edgeKey).setEdgeSecret(edgeSecret).build())
+                .setConnectRequestMsg(ConnectRequestMsg.newBuilder()
+                        .setEdgeRoutingKey(edgeKey)
+                        .setEdgeSecret(edgeSecret)
+                        .setEdgeVersion(EdgeVersion.V_3_3_3)
+                        .build())
                 .build());
     }
 

@@ -284,6 +284,11 @@ export const commonMapSettingsSchema =
                 type: 'boolean',
                 default: false
             },
+            disableZoomControl: {
+                title: 'Disable zoom control buttons',
+                type: 'boolean',
+                default: false
+            },
             latKeyName: {
                 title: 'Latitude key name',
                 type: 'string',
@@ -439,6 +444,7 @@ export const commonMapSettingsSchema =
         'mapPageSize',
         'draggableMarker',
         'disableScrollZooming',
+        'disableZoomControl',
         {
             key: 'latKeyName',
             condition: 'model.provider !== "image-map"'
@@ -1344,7 +1350,7 @@ export const editorSettingSchema =
           default: false
         },
         hideAllControlButton: {
-          title: 'Hide all button',
+          title: 'Hide all edit control buttons',
           type: 'boolean',
           default: false
         },

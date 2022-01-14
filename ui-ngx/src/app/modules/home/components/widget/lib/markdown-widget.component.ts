@@ -103,7 +103,11 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
       textSearch: null,
       dynamic: true
     };
-    this.ctx.defaultSubscription.subscribeAllForPaginatedData(pageLink, null);
+    if (this.ctx.widgetConfig.datasources.length) {
+      this.ctx.defaultSubscription.subscribeAllForPaginatedData(pageLink, null);
+    } else {
+      this.onDataUpdated();
+    }
   }
 
   public onDataUpdated() {

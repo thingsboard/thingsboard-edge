@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -66,6 +67,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Created by Valerii Sosliuk on 5/19/2017.
@@ -221,6 +223,13 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     public List<EntityAlarm> findEntityAlarmRecords(TenantId tenantId, AlarmId id) {
         log.trace("[{}] Try to find entity alarm records using [{}]", tenantId, id);
         return DaoUtil.convertDataList(entityAlarmRepository.findAllByAlarmId(id.getId()));
+    }
+
+    @Override
+    public List<EntityAlarm> findEntityAlarmRecordsByEntityTypes(TenantId tenantId, AlarmId id, List<EntityType> types) {
+        log.trace("[{}] Try to find entity alarm records using [{}] [{}]", tenantId, id, types);
+        List<String> propagationTypes = types.stream().distinct().map(Enum::name).collect(Collectors.toList());
+        return DaoUtil.convertDataList(entityAlarmRepository.findAllByAlarmIdAndEntityTypeIn(id.getId(), propagationTypes));
     }
 
     @Override

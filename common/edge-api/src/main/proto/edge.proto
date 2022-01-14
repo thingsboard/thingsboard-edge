@@ -45,6 +45,11 @@ service EdgeRpcService {
 
 }
 
+enum EdgeVersion {
+  V_3_3_0 = 0;
+  V_3_3_3 = 1;
+}
+
 /**
  * Data Structures;
  */
@@ -76,6 +81,7 @@ message EdgeUpdateMsg {
 message ConnectRequestMsg {
   string edgeRoutingKey = 1;
   string edgeSecret = 2;
+  EdgeVersion edgeVersion = 3;
 }
 
 enum ConnectResponseCode {
@@ -352,6 +358,8 @@ message WidgetTypeUpdateMsg {
   optional string name = 6;
   optional string descriptorJson = 7;
   bool isSystem = 8;
+  optional string image = 9;
+  optional string description = 10;
 }
 
 message AdminSettingsUpdateMsg {

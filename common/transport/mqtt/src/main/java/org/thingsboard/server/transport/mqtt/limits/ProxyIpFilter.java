@@ -28,70 +28,48 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport;
+package org.thingsboard.server.transport.mqtt.limits;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
-import lombok.Getter;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.haproxy.HAProxyMessage;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.cache.ota.OtaPackageDataCache;
-import org.thingsboard.server.common.transport.limits.TransportRateLimitService;
-import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.scheduler.SchedulerComponent;
+import org.thingsboard.server.transport.mqtt.MqttTransportContext;
+import org.thingsboard.server.transport.mqtt.MqttTransportService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.ExecutorService;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
-/**
- * Created by ashvayka on 15.10.18.
- */
 @Slf4j
-@Data
-public abstract class TransportContext {
+public class ProxyIpFilter extends ChannelInboundHandlerAdapter {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
 
-    @Autowired
-    protected TransportService transportService;
+    private MqttTransportContext context;
 
-    @Autowired
-    private TbServiceInfoProvider serviceInfoProvider;
-
-    @Autowired
-    private SchedulerComponent scheduler;
-
-    @Getter
-    private ExecutorService executor;
-
-    @Getter
-    @Autowired
-    private OtaPackageDataCache otaPackageDataCache;
-
-    @Autowired
-    private TransportResourceCache transportResourceCache;
-
-    @Autowired
-    protected TransportRateLimitService rateLimitService;
-
-    @PostConstruct
-    public void init() {
-        executor = ThingsBoardExecutors.newWorkStealingPool(50, getClass());
+    public ProxyIpFilter(MqttTransportContext context) {
+        this.context = context;
     }
 
-    @PreDestroy
-    public void stop() {
-        if (executor != null) {
-            executor.shutdownNow();
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if(msg instanceof HAProxyMessage){
+            HAProxyMessage proxyMsg = (HAProxyMessage) msg;
+            if(proxyMsg.sourceAddress() != null && proxyMsg.sourcePort() > 0) {
+                InetSocketAddress address = new InetSocketAddress(proxyMsg.sourceAddress(), proxyMsg.sourcePort());
+                if(!context.checkAddress(address)){
+                    ctx.close();
+                } else {
+                    ctx.channel().attr(MqttTransportService.ADDRESS).set(address);
+                    // We no longer need this channel in the pipeline. Similar to HAProxyMessageDecoder
+                    ctx.pipeline().remove(this);
+                }
+            } else {
+                log.debug("Received local health-check connection message: {}", proxyMsg);
+                ctx.close();
+            }
+        } else {
+            super.channelRead(ctx, msg);
         }
     }
-
-    public String getNodeId() {
-        return serviceInfoProvider.getServiceId();
-    }
-
-
-
 }
