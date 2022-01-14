@@ -166,13 +166,13 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   }
 
   delete(form: FormGroupDirective): void {
-    this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName).pipe(
-      tap(() => {
+    this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName).subscribe(
+      () => {
         this.onSelfRegistrationParamsLoaded({} as SelfRegistrationParams);
         this.deleteDisabled = true;
         form.resetForm();
-      })
-    ).subscribe();
+      }
+    );
   }
 
   confirmForm(): FormGroup {
