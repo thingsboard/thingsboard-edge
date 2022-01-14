@@ -195,8 +195,8 @@
           <tb-registration-permissions
             formControlName="permissions">
           </tb-registration-permissions>
-          <div fxLayout="row" fxLayoutAlign="end center">
-            <button style="margin-right: 10px" mat-raised-button color="warn" [disabled]="(isLoading$ | async) || deleteDisabled"
+          <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="8px">
+            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async) || deleteDisabled"
                     (click)="delete(selfRegistrationForm)">
               {{ 'action.delete' | translate }}
             </button>

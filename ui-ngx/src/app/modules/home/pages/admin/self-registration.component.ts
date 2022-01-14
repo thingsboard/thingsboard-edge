@@ -85,7 +85,6 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     this.buildSelfRegistrationForm();
     this.selfRegistrationService.getSelfRegistrationParams().subscribe(
       (selfRegistrationParams) => {
-        this.enableDeleteSelfRegistration(selfRegistrationParams);
         this.onSelfRegistrationParamsLoaded(selfRegistrationParams);
       }
     );
@@ -158,7 +157,6 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       ...this.selfRegistrationParamsFromFormValue(this.selfRegistrationFormGroup.value)};
     this.selfRegistrationService.saveSelfRegistrationParams(this.selfRegistrationParams).subscribe(
       (selfRegistrationParams) => {
-        this.enableDeleteSelfRegistration(selfRegistrationParams);
         this.onSelfRegistrationParamsLoaded(selfRegistrationParams);
       }
     );
@@ -167,8 +165,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   delete(form: FormGroupDirective): void {
     this.selfRegistrationService.deleteSelfRegistrationParams(this.selfRegistrationParams.domainName).subscribe(
       () => {
-        this.onSelfRegistrationParamsLoaded({} as SelfRegistrationParams);
-        this.deleteDisabled = true;
+        this.onSelfRegistrationParamsLoaded(null);
         form.resetForm();
       }
     );
@@ -210,6 +207,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     if (selfRegistrationFormValue.showTermsOfUse == null) {
       selfRegistrationFormValue.showTermsOfUse = false;
     }
+    this.deleteDisabled = !this.selfRegistrationParams.adminSettingsId;
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);
     this.updateDisabledState();
@@ -236,10 +234,6 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   private convertHTMLToText(str: string): string {
     return str.replace(/<br\s*[/]?>/gi, '\n');
-  }
-
-  private enableDeleteSelfRegistration(selfRegistrationParams): void {
-    this.deleteDisabled = !selfRegistrationParams.adminSettingsId;
   }
 
 }
