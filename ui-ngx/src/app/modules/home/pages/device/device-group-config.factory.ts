@@ -59,7 +59,7 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { isDefinedAndNotNull } from '@core/utils';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
@@ -101,7 +101,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     };
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
 
-    config.onEntityAction = action => this.onDeviceAction(action, config);
+    config.onEntityAction = action => this.onDeviceAction(action, config, params);
     config.addEntity = () => this.deviceWizard(config);
 
     if (config.settings.enableCredentialsManagement) {
@@ -168,11 +168,23 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  private openDevice($event: Event, device: Device) {
+  private openDevice($event: Event, device: Device, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
+      }
+      this.router.navigateByUrl(url);
+    } else {
+      this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
+    }
   }
 
   manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean, config: GroupEntityTableConfig<Device>) {
@@ -195,10 +207,10 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>): boolean {
+  onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openDevice(action.event, action.entity);
+        this.openDevice(action.event, action.entity, params);
         return true;
       case 'manageCredentials':
         this.manageCredentials(action.event, action.entity, false, config);

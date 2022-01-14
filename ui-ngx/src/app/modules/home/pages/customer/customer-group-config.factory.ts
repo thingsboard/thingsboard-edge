@@ -47,7 +47,7 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { Customer } from '@shared/models/customer.model';
 import { CustomerService } from '@core/http/customer.service';
 import { CustomerComponent } from '@home/pages/customer/customer.component';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Store } from '@ngrx/store';
@@ -180,11 +180,22 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openCustomer($event: Event, customer: Customer) {
+  private openCustomer($event: Event, customer: Customer, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`${this.router.url}/${customer.id.id}`);
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.customerId !== null) {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'customerGroups', params.childEntityGroupId, customer.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, customer.id.id]);
+      }
+      this.router.navigateByUrl(url);
+    } else {
+      this.router.navigateByUrl(`${this.router.url}/${customer.id.id}`);
+    }
   }
 
   manageUsers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
@@ -274,7 +285,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
   onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openCustomer(action.event, action.entity);
+        this.openCustomer(action.event, action.entity, params);
         return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);

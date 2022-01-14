@@ -49,7 +49,8 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { EntityView } from '@shared/models/entity-view.models';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Injectable()
 export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityView> {
@@ -88,22 +89,34 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     };
     config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
 
-    config.onEntityAction = action => this.onEntityViewAction(action);
+    config.onEntityAction = action => this.onEntityViewAction(action, config, params);
 
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openEntityView($event: Event, entityView: EntityView) {
+  private openEntityView($event: Event, entityView: EntityView, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+      }
+      this.router.navigateByUrl(url);
+    } else {
+      this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
+    }
   }
 
-  onEntityViewAction(action: EntityAction<EntityView>): boolean {
+  onEntityViewAction(action: EntityAction<EntityView>, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openEntityView(action.event, action.entity);
+        this.openEntityView(action.event, action.entity, params);
         return true;
     }
     return false;

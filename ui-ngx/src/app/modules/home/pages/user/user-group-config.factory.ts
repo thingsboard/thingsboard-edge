@@ -59,7 +59,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthService } from '@core/auth/auth.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 
 @Injectable()
 export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<User> {
@@ -92,7 +92,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     config.saveEntity = user => this.userService.saveUser(user);
     config.deleteEntity = id => this.userService.deleteUser(id.id);
 
-    config.onEntityAction = action => this.onUserAction(action);
+    config.onEntityAction = action => this.onUserAction(action, config, params);
     config.addEntity = () => this.addUser(config);
 
     const auth = getCurrentAuthState(this.store);
@@ -126,11 +126,23 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     }).afterClosed();
   }
 
-  private openUser($event: Event, user: User) {
+  private openUser($event: Event, user: User, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`${this.router.url}/${user.id.id}`);
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'userGroups', params.childEntityGroupId, user.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'userGroups', params.childEntityGroupId, user.id.id]);
+      }
+      this.router.navigateByUrl(url);
+    } else {
+      this.router.navigateByUrl(`${this.router.url}/${user.id.id}`);
+    }
   }
 
   loginAsUser($event: Event, user: User | ShortEntityView) {
@@ -188,10 +200,10 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     });
   }
 
-  onUserAction(action: EntityAction<User>): boolean {
+  onUserAction(action: EntityAction<User>, config: GroupEntityTableConfig<User>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openUser(action.event, action.entity);
+        this.openUser(action.event, action.entity, params);
         return true;
       case 'loginAsUser':
         this.loginAsUser(action.event, action.entity);
