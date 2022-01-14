@@ -43,7 +43,6 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { AttributeService } from '@core/http/attribute.service';
-import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-self-registration',
