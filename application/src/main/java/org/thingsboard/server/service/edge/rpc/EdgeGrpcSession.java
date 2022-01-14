@@ -70,6 +70,7 @@ import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EdgeUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
@@ -103,14 +104,11 @@ import org.thingsboard.server.service.edge.rpc.fetch.WhiteLabelingEdgeEventFetch
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
@@ -138,6 +136,8 @@ public final class EdgeGrpcSession implements Closeable {
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
     private boolean syncCompleted;
+
+    private EdgeVersion edgeVersion;
 
     private ScheduledExecutorService sendDownlinkExecutorService;
 
@@ -569,7 +569,7 @@ public final class EdgeGrpcSession implements Closeable {
             case RULE_CHAIN:
                 return ctx.getRuleChainProcessor().processRuleChainToEdge(edge, edgeEvent, msgType, action);
             case RULE_CHAIN_METADATA:
-                return ctx.getRuleChainProcessor().processRuleChainMetadataToEdge(edgeEvent, msgType);
+                return ctx.getRuleChainProcessor().processRuleChainMetadataToEdge(edgeEvent, msgType, this.edgeVersion);
             case ALARM:
                 return ctx.getAlarmProcessor().processAlarmToEdge(edge, edgeEvent, msgType, action);
             case USER:
@@ -725,6 +725,7 @@ public final class EdgeGrpcSession implements Closeable {
             try {
                 if (edge.getSecret().equals(request.getEdgeSecret())) {
                     sessionOpenListener.accept(edge.getId(), this);
+                    this.edgeVersion = request.getEdgeVersion();
                     return ConnectResponseMsg.newBuilder()
                             .setResponseCode(ConnectResponseCode.ACCEPTED)
                             .setErrorMsg("")

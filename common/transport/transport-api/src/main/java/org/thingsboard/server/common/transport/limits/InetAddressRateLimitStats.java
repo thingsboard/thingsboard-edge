@@ -28,70 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport;
+package org.thingsboard.server.common.transport.limits;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.cache.ota.OtaPackageDataCache;
-import org.thingsboard.server.common.transport.limits.TransportRateLimitService;
-import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * Created by ashvayka on 15.10.18.
- */
-@Slf4j
 @Data
-public abstract class TransportContext {
+public class InetAddressRateLimitStats {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
+    private final Lock lock = new ReentrantLock();
 
-    @Autowired
-    protected TransportService transportService;
-
-    @Autowired
-    private TbServiceInfoProvider serviceInfoProvider;
-
-    @Autowired
-    private SchedulerComponent scheduler;
-
-    @Getter
-    private ExecutorService executor;
-
-    @Getter
-    @Autowired
-    private OtaPackageDataCache otaPackageDataCache;
-
-    @Autowired
-    private TransportResourceCache transportResourceCache;
-
-    @Autowired
-    protected TransportRateLimitService rateLimitService;
-
-    @PostConstruct
-    public void init() {
-        executor = ThingsBoardExecutors.newWorkStealingPool(50, getClass());
-    }
-
-    @PreDestroy
-    public void stop() {
-        if (executor != null) {
-            executor.shutdownNow();
-        }
-    }
-
-    public String getNodeId() {
-        return serviceInfoProvider.getServiceId();
-    }
-
-
+    private boolean blocked;
+    private long lastActivityTs;
+    private int failureCount;
+    private int connectionsCount;
 
 }

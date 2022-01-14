@@ -116,7 +116,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     }
 
     public void onRuleToSelfMsg(RuleNodeToSelfMsg msg) throws Exception {
-        checkActive(msg.getMsg());
+        checkComponentStateActive(msg.getMsg());
         TbMsg tbMsg = msg.getMsg();
         int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();
         int maxRuleNodeExecutionsPerMessage = getTenantProfileConfiguration().getMaxRuleNodeExecsPerMessage();
@@ -137,7 +137,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     void onRuleChainToRuleNodeMsg(RuleChainToRuleNodeMsg msg) throws Exception {
         msg.getMsg().getCallback().onProcessingStart(info);
-        checkActive(msg.getMsg());
+        checkComponentStateActive(msg.getMsg());
         TbMsg tbMsg = msg.getMsg();
         int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();
         int maxRuleNodeExecutionsPerMessage = getTenantProfileConfiguration().getMaxRuleNodeExecsPerMessage();

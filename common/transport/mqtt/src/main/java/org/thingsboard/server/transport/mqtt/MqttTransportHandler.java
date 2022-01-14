@@ -197,6 +197,9 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         log.trace("[{}] Processing msg: {}", sessionId, msg);
+        if (address == null) {
+            address = getAddress(ctx);
+        }
         try {
             if (msg instanceof MqttMessage) {
                 MqttMessage message = (MqttMessage) msg;
@@ -215,8 +218,11 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         }
     }
 
+    InetSocketAddress getAddress(ChannelHandlerContext ctx) {
+        return ctx.channel().attr(MqttTransportService.ADDRESS).get();
+    }
+
     void processMqttMsg(ChannelHandlerContext ctx, MqttMessage msg) {
-        address = getAddress(ctx);
         if (msg.fixedHeader() == null) {
             log.info("[{}:{}] Invalid message received", address.getHostName(), address.getPort());
             ctx.close();
@@ -230,10 +236,6 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         } else {
             enqueueRegularSessionMsg(ctx, msg);
         }
-    }
-
-    InetSocketAddress getAddress(ChannelHandlerContext ctx) {
-        return (InetSocketAddress) ctx.channel().remoteAddress();
     }
 
     private void processProvisionSessionMsg(ChannelHandlerContext ctx, MqttMessage msg) {
@@ -804,7 +806,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     private void processAuthTokenConnect(ChannelHandlerContext ctx, MqttConnectMessage connectMessage) {
         String userName = connectMessage.payload().userName();
-        log.debug("[{}] Processing connect msg for client with user name: {}!", sessionId, userName);
+        log.debug("[{}][{}] Processing connect msg for client with user name: {}!", address, sessionId, userName);
         ValidateBasicMqttCredRequestMsg.Builder request = ValidateBasicMqttCredRequestMsg.newBuilder()
                 .setClientId(connectMessage.payload().clientIdentifier());
         if (userName != null) {
@@ -853,6 +855,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                         }
                     });
         } catch (Exception e) {
+            context.onAuthFailure(address);
             ctx.writeAndFlush(createMqttConnAckMsg(CONNECTION_REFUSED_NOT_AUTHORIZED, connectMessage));
             log.trace("[{}] X509 auth failure: {}", sessionId, address, e);
             ctx.close();
@@ -964,9 +967,11 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     private void onValidateDeviceResponse(ValidateDeviceCredentialsResponse msg, ChannelHandlerContext ctx, MqttConnectMessage connectMessage) {
         if (!msg.hasDeviceInfo()) {
+            context.onAuthFailure(address);
             ctx.writeAndFlush(createMqttConnAckMsg(CONNECTION_REFUSED_NOT_AUTHORIZED, connectMessage));
             ctx.close();
         } else {
+            context.onAuthSuccess(address);
             deviceSessionCtx.setDeviceInfo(msg.getDeviceInfo());
             deviceSessionCtx.setDeviceProfile(msg.getDeviceProfile());
             deviceSessionCtx.setSessionInfo(SessionInfoCreator.create(msg, context, sessionId));
