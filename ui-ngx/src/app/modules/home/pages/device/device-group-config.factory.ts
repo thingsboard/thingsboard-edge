@@ -170,7 +170,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  private openDevice($event: Event, device: Device, params: EntityGroupParams) {
+  private openDevice($event: Event, device: Device, config: GroupEntityTableConfig<Device>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -185,7 +185,8 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
+      const url = this.router.createUrlTree([device.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
     }
   }
 
@@ -212,7 +213,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
   onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openDevice(action.event, action.entity, params);
+        this.openDevice(action.event, action.entity, config, params);
         return true;
       case 'manageCredentials':
         this.manageCredentials(action.event, action.entity, false, config);

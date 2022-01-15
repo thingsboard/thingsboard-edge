@@ -47,7 +47,6 @@ import { RoleComponent } from '@home/pages/role/role.component';
 import { RoleTabsComponent } from '@home/pages/role/role-tabs.component';
 import { roleTypeTranslationMap } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Converter } from '@shared/models/converter.models';
 
 @Injectable()
 export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>> {
@@ -103,7 +102,8 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`roles/${role.id.id}`);
+    const url = this.router.createUrlTree(['roles', role.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   onRoleAction(action: EntityAction<Role>): boolean {

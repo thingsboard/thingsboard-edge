@@ -128,7 +128,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     }).afterClosed();
   }
 
-  private openUser($event: Event, user: User, params: EntityGroupParams) {
+  private openUser($event: Event, user: User, config: GroupEntityTableConfig<User>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -143,7 +143,8 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      this.router.navigateByUrl(`${this.router.url}/${user.id.id}`);
+      const url = this.router.createUrlTree([user.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
     }
   }
 
@@ -205,7 +206,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
   onUserAction(action: EntityAction<User>, config: GroupEntityTableConfig<User>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openUser(action.event, action.entity, params);
+        this.openUser(action.event, action.entity, config, params);
         return true;
       case 'loginAsUser':
         this.loginAsUser(action.event, action.entity);

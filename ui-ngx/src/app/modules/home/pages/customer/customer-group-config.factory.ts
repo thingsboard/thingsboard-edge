@@ -182,7 +182,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openCustomer($event: Event, customer: Customer, params: EntityGroupParams) {
+  private openCustomer($event: Event, customer: Customer, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -196,7 +196,8 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      this.router.navigateByUrl(`${this.router.url}/${customer.id.id}`);
+      const url = this.router.createUrlTree([customer.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
     }
   }
 
@@ -287,7 +288,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
   onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openCustomer(action.event, action.entity, params);
+        this.openCustomer(action.event, action.entity, config, params);
         return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);

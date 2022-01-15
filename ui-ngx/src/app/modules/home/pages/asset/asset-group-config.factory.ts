@@ -122,7 +122,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     });
   }
 
-  private openAsset($event: Event, asset: Asset, params: EntityGroupParams) {
+  private openAsset($event: Event, asset: Asset, config: GroupEntityTableConfig<Asset>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -137,14 +137,15 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      this.router.navigateByUrl(`${this.router.url}/${asset.id.id}`);
+      const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
     }
   }
 
   onAssetAction(action: EntityAction<Asset>, config: GroupEntityTableConfig<Asset>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openAsset(action.event, action.entity, params);
+        this.openAsset(action.event, action.entity, config, params);
         return true;
     }
     return false;

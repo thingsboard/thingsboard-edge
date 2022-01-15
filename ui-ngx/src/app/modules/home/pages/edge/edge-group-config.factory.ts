@@ -225,7 +225,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
   onEdgeAction(action: EntityAction<Edge>, config: GroupEntityTableConfig<Edge>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openEdge(action.event, action.entity, params);
+        this.openEdge(action.event, action.entity, config, params);
         return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);
@@ -255,7 +255,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     return false;
   }
 
-  private openEdge($event: Event, edge: Edge, params: EntityGroupParams) {
+  private openEdge($event: Event, edge: Edge,  config: GroupEntityTableConfig<Edge>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -264,7 +264,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
           params.customerId, 'edgeGroups', params.childEntityGroupId, edge.id.id]);
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      this.router.navigateByUrl(`${this.router.url}/${edge.id.id}`);
+      const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
     }
   }
 

@@ -96,7 +96,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openEntityView($event: Event, entityView: EntityView, params: EntityGroupParams) {
+  private openEntityView($event: Event, entityView: EntityView, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -111,6 +111,8 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
+      const url = this.router.createUrlTree([entityView.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
       this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
     }
   }
@@ -118,7 +120,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
   onEntityViewAction(action: EntityAction<EntityView>, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openEntityView(action.event, action.entity, params);
+        this.openEntityView(action.event, action.entity, config, params);
         return true;
     }
     return false;

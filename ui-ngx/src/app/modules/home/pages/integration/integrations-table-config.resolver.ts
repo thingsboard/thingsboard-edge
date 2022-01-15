@@ -107,7 +107,8 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`integrations/${integration.id.id}`);
+    const url = this.router.createUrlTree(['integrations', integration.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   onIntegrationAction(action: EntityAction<Integration>): boolean {
