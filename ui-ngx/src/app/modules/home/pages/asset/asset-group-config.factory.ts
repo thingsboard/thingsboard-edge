@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
@@ -52,7 +52,8 @@ import { Asset } from '@shared/models/asset.models';
 import { AssetService } from '@core/http/asset.service';
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { Operation } from '@shared/models/security.models';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<Asset> {
@@ -65,7 +66,8 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
               private homeDialogs: HomeDialogsService,
               private assetService: AssetService,
               private router: Router,
-              private broadcast: BroadcastService) {
+              private broadcast: BroadcastService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Asset>): Observable<GroupEntityTableConfig<Asset>> {
@@ -90,7 +92,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     };
     config.deleteEntity = id => this.assetService.deleteAsset(id.id);
 
-    config.onEntityAction = action => this.onAssetAction(action);
+    config.onEntityAction = action => this.onAssetAction(action, config, params);
 
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(
@@ -120,17 +122,30 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     });
   }
 
-  private openAsset($event: Event, asset: Asset) {
+  private openAsset($event: Event, asset: Asset, config: GroupEntityTableConfig<Asset>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`${this.router.url}/${asset.id.id}`);
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'assetGroups', params.childEntityGroupId, asset.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'assetGroups', params.childEntityGroupId, asset.id.id]);
+      }
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+    }
   }
 
-  onAssetAction(action: EntityAction<Asset>): boolean {
+  onAssetAction(action: EntityAction<Asset>, config: GroupEntityTableConfig<Asset>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openAsset(action.event, action.entity);
+        this.openAsset(action.event, action.entity, config, params);
         return true;
     }
     return false;

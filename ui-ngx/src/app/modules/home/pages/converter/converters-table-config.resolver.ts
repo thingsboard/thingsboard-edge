@@ -133,7 +133,8 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`converters/${converter.id.id}`);
+    const url = this.router.createUrlTree(['converters', converter.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   exportConverter($event: Event, converter: Converter) {
