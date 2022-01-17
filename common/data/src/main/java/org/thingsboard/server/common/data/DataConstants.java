@@ -144,4 +144,6 @@ public class DataConstants {
     public static final String UPDATE_SOFTWARE = "updateSoftware";
 
     public static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix_";
+
+    public static final String LAST_CONNECTED_GATEWAY = "lastConnectedGateway";
 }
