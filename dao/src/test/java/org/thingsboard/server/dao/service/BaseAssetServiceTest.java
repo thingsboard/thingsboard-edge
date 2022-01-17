@@ -112,7 +112,7 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         Asset asset = new Asset();
         asset.setName("My asset");
         asset.setType("default");
-        asset.setTenantId(new TenantId(Uuids.timeBased()));
+        asset.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         assetService.saveAsset(asset);
     }
 

@@ -107,7 +107,7 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
     public void testSaveDashboardWithInvalidTenant() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
-        dashboard.setTenantId(new TenantId(Uuids.timeBased()));
+        dashboard.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         dashboardService.saveDashboard(dashboard);
     }
 

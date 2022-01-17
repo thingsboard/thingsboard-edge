@@ -143,7 +143,7 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
         dashboardInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
-            dashboardInfo.setTenantId(new TenantId(tenantId));
+            dashboardInfo.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
             dashboardInfo.setCustomerId(new CustomerId(customerId));

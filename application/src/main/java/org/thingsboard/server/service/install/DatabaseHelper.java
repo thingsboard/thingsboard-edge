@@ -114,7 +114,7 @@ public class DatabaseHelper {
                     }
                 }
                 for (CustomerId customerId : customerIds) {
-                    dashboardService.assignDashboardToCustomer(new TenantId(EntityId.NULL_UUID), dashboardId, customerId);
+                    dashboardService.assignDashboardToCustomer(TenantId.SYS_TENANT_ID, dashboardId, customerId);
                 }
             });
         }

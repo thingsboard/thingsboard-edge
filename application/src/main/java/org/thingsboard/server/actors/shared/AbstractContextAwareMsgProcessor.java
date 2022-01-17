@@ -41,8 +41,9 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 public abstract class AbstractContextAwareMsgProcessor {
 
+    protected final static ObjectMapper mapper = new ObjectMapper();
+
     protected final ActorSystemContext systemContext;
-    protected final ObjectMapper mapper = new ObjectMapper();
 
     protected AbstractContextAwareMsgProcessor(ActorSystemContext systemContext) {
         super();

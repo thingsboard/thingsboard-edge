@@ -151,7 +151,7 @@ public class EventController extends BaseController {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
         try {
-            TenantId tenantId = new TenantId(toUUID(strTenantId));
+            TenantId tenantId = TenantId.fromUUID(toUUID(strTenantId));
 
             EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
             checkEntityId(entityId, Operation.READ);
@@ -192,7 +192,7 @@ public class EventController extends BaseController {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
         try {
-            TenantId tenantId = new TenantId(toUUID(strTenantId));
+            TenantId tenantId = TenantId.fromUUID(toUUID(strTenantId));
 
             EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
             checkEntityId(entityId, Operation.READ);
@@ -239,7 +239,7 @@ public class EventController extends BaseController {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
         try {
-            TenantId tenantId = new TenantId(toUUID(strTenantId));
+            TenantId tenantId = TenantId.fromUUID(toUUID(strTenantId));
 
             EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
             checkEntityId(entityId, Operation.READ);

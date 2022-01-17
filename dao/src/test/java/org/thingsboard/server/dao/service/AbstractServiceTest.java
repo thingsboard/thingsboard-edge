@@ -109,7 +109,7 @@ public abstract class AbstractServiceTest {
 
     protected ObjectMapper mapper = new ObjectMapper();
 
-    public static final TenantId SYSTEM_TENANT_ID = new TenantId(EntityId.NULL_UUID);
+    public static final TenantId SYSTEM_TENANT_ID = TenantId.SYS_TENANT_ID;
 
     @SuppressWarnings("deprecation")
     @Rule
@@ -217,7 +217,7 @@ public abstract class AbstractServiceTest {
 
     protected Event generateEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid) throws IOException {
         if (tenantId == null) {
-            tenantId = new TenantId(Uuids.timeBased());
+            tenantId = TenantId.fromUUID(Uuids.timeBased());
         }
         Event event = new Event();
         event.setTenantId(tenantId);

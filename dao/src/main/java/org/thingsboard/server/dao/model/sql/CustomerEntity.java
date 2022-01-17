@@ -141,7 +141,7 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
     public Customer toData() {
         Customer customer = new Customer(new CustomerId(this.getUuid()));
         customer.setCreatedTime(createdTime);
-        customer.setTenantId(new TenantId(tenantId));
+        customer.setTenantId(TenantId.fromUUID(tenantId));
         if (parentCustomerId != null) {
             customer.setParentCustomerId(new CustomerId(parentCustomerId));
         }

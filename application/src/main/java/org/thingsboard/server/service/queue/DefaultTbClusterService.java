@@ -180,7 +180,7 @@ public class DefaultTbClusterService implements TbClusterService {
     public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, TbQueueCallback callback) {
         if (tenantId.isNullUid()) {
             if (entityId.getEntityType().equals(EntityType.TENANT)) {
-                tenantId = new TenantId(entityId.getId());
+                tenantId = TenantId.fromUUID(entityId.getId());
             } else {
                 log.warn("[{}][{}] Received invalid message: {}", tenantId, entityId, tbMsg);
                 return;

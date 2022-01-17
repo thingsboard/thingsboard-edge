@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.telemetry;
 
+import org.springframework.web.socket.CloseStatus;
 import org.thingsboard.server.service.telemetry.cmd.v2.CmdUpdate;
 import org.thingsboard.server.service.telemetry.cmd.v2.DataUpdate;
 import org.thingsboard.server.service.telemetry.sub.TelemetrySubscriptionUpdate;
@@ -47,4 +48,5 @@ public interface TelemetryWebSocketService {
 
     void sendWsMsg(String sessionId, CmdUpdate update);
 
+    void close(String sessionId, CloseStatus status);
 }
