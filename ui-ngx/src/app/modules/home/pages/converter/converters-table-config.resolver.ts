@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -133,7 +133,8 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`converters/${converter.id.id}`);
+    const url = this.router.createUrlTree(['converters', converter.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   exportConverter($event: Event, converter: Converter) {

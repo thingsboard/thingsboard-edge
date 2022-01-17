@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -463,7 +463,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                     }
                     TenantId tenantId = user.getTenantId();
                     if (tenantId == null) {
-                        tenantId = new TenantId(ModelConstants.NULL_UUID);
+                        tenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);
                         user.setTenantId(tenantId);
                     }
                     CustomerId customerId = user.getCustomerId();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -118,7 +118,7 @@ public class EventEntity extends BaseSqlEntity<Event> implements BaseEntity<Even
     public Event toData() {
         Event event = new Event(new EventId(this.getUuid()));
         event.setCreatedTime(createdTime);
-        event.setTenantId(new TenantId(tenantId));
+        event.setTenantId(TenantId.fromUUID(tenantId));
         event.setEntityId(EntityIdFactory.getByTypeAndUuid(entityType, entityId));
         event.setBody(body);
         event.setType(eventType);

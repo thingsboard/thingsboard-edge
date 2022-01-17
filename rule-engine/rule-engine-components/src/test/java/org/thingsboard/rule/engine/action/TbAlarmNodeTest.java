@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -113,7 +113,7 @@ public class TbAlarmNodeTest {
 
     private EntityId originator = new DeviceId(Uuids.timeBased());
     private EntityId alarmOriginator = new AlarmId(Uuids.timeBased());
-    private TenantId tenantId = new TenantId(Uuids.timeBased());
+    private TenantId tenantId = TenantId.fromUUID(Uuids.timeBased());
     private TbMsgMetaData metaData = new TbMsgMetaData();
     private String rawJson = "{\"name\": \"Vit\", \"passed\": 5}";
 

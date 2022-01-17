@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -114,7 +114,7 @@ public class TbDeviceProfileNodeTest {
     @Mock
     private AttributesService attributesService;
 
-    private final TenantId tenantId = new TenantId(UUID.randomUUID());
+    private final TenantId tenantId = TenantId.fromUUID(UUID.randomUUID());
     private final DeviceId deviceId = new DeviceId(UUID.randomUUID());
     private final CustomerId customerId = new CustomerId(UUID.randomUUID());
     private final DeviceProfileId deviceProfileId = new DeviceProfileId(UUID.randomUUID());

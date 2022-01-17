@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -142,7 +142,8 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`settings/resources-library/${resourceInfo.id.id}`);
+    const url = this.router.createUrlTree(['settings', 'resources-library', resourceInfo.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   downloadResource($event: Event, resource: ResourceInfo) {

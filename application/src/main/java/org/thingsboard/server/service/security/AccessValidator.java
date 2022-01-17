@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -548,7 +548,7 @@ public class AccessValidator {
         } else if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.ok(null));
         } else {
-            ListenableFuture<Tenant> tenantFuture = tenantService.findTenantByIdAsync(currentUser.getTenantId(), new TenantId(entityId.getId()));
+            ListenableFuture<Tenant> tenantFuture = tenantService.findTenantByIdAsync(currentUser.getTenantId(), TenantId.fromUUID(entityId.getId()));
             Futures.addCallback(tenantFuture, getCallback(callback, tenant -> {
                 if (tenant == null) {
                     return ValidationResult.entityNotFound("Tenant with requested id wasn't found!");

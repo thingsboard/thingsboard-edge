@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -116,7 +116,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
           this.broadcast.broadcast('deviceSaved');
         }));
     };
-    this.config.onEntityAction = action => this.onDeviceAction(action);
+    this.config.onEntityAction = action => this.onDeviceAction(action, this.config);
     this.config.detailsReadonly = () =>
       (this.config.componentsData.deviceScope === 'customer_user' || this.config.componentsData.deviceScope === 'edge_customer_user');
 
@@ -364,12 +364,13 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     return actions;
   }
 
-  /* private openDevice($event: Event, device: Device) {
-     if ($event) {
-       $event.stopPropagation();
-     }
-     this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
-   } */
+  /* private openDevice($event: Event, device: Device, config: EntityTableConfig<DeviceInfo>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree([device.id.id], {relativeTo: config.table.route});
+    this.router.navigateByUrl(url);
+  }
 
   importDevices($event: Event) {
     /*this.homeDialogs.importEntities(EntityType.DEVICE).subscribe((res) => {
@@ -377,8 +378,8 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         this.broadcast.broadcast('deviceSaved');
         this.config.table.updateData();
       }
-    });*/
-  }
+    });
+  }*/
 
 /*  deviceWizard($event: Event) {
     this.dialog.open<DeviceWizardDialogComponent, AddEntityDialogData<BaseData<HasId>>,
@@ -539,10 +540,10 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     });
   }
 
-  onDeviceAction(action: EntityAction<Device>): boolean {
+  onDeviceAction(action: EntityAction<Device>, config: EntityTableConfig<Device>): boolean {
     switch (action.action) {
       /*case 'open':
-        this.openDevice(action.event, action.entity);
+        this.openDevice(action.event, action.entity, config);
         return true;
       case 'makePublic':
         this.makePublic(action.event, action.entity);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -351,7 +351,7 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
     @Test
     public void testSaveFirmwareWithInvalidTenant() {
         OtaPackage firmware = new OtaPackage();
-        firmware.setTenantId(new TenantId(Uuids.timeBased()));
+        firmware.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         firmware.setDeviceProfileId(deviceProfileId);
         firmware.setType(FIRMWARE);
         firmware.setTitle(TITLE);

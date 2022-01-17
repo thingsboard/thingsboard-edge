@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -583,7 +583,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 hasName = entityViewService.findEntityViewByIdAsync(tenantId, new EntityViewId(entityId.getId()));
                 break;
             case TENANT:
-                hasName = tenantService.findTenantByIdAsync(tenantId, new TenantId(entityId.getId()));
+                hasName = tenantService.findTenantByIdAsync(tenantId, TenantId.fromUUID(entityId.getId()));
                 break;
             case CUSTOMER:
                 hasName = customerService.findCustomerByIdAsync(tenantId, new CustomerId(entityId.getId()));

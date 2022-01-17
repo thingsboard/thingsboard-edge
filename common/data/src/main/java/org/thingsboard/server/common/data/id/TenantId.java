@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.util.ConcurrentReferenceHashMap.ReferenceType;
 import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
@@ -41,12 +43,20 @@ import java.util.UUID;
 public final class TenantId extends UUIDBased implements EntityId {
 
     @JsonIgnore
-    public static final TenantId SYS_TENANT_ID = new TenantId(EntityId.NULL_UUID);
+    static final ConcurrentReferenceHashMap<UUID, TenantId> tenants = new ConcurrentReferenceHashMap<>(16, ReferenceType.SOFT);
+
+    @JsonIgnore
+    public static final TenantId SYS_TENANT_ID = TenantId.fromUUID(EntityId.NULL_UUID);
 
     private static final long serialVersionUID = 1L;
 
     @JsonCreator
-    public TenantId(@JsonProperty("id") UUID id) {
+    public static TenantId fromUUID(@JsonProperty("id") UUID id) {
+        return tenants.computeIfAbsent(id, TenantId::new);
+    }
+
+    //default constructor is still available due to possible usage in extensions
+    public TenantId(UUID id) {
         super(id);
     }
 

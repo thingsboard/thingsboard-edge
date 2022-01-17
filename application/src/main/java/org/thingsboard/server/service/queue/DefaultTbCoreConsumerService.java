@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -485,37 +485,37 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (msg.hasTsUpdate()) {
             TbTimeSeriesUpdateProto proto = msg.getTsUpdate();
             subscriptionManagerService.onTimeSeriesUpdate(
-                    new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                    TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     TbSubscriptionUtils.toTsKvEntityList(proto.getDataList()), callback);
         } else if (msg.hasAttrUpdate()) {
             TbAttributeUpdateProto proto = msg.getAttrUpdate();
             subscriptionManagerService.onAttributesUpdate(
-                    new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                    TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     proto.getScope(), TbSubscriptionUtils.toAttributeKvList(proto.getDataList()), callback);
         } else if (msg.hasAttrDelete()) {
             TbAttributeDeleteProto proto = msg.getAttrDelete();
             subscriptionManagerService.onAttributesDelete(
-                    new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                    TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     proto.getScope(), proto.getKeysList(), callback);
         } else if (msg.hasTsDelete()) {
             TbTimeSeriesDeleteProto proto = msg.getTsDelete();
             subscriptionManagerService.onTimeSeriesDelete(
-                    new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                    TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     proto.getKeysList(), callback);
         } else if (msg.hasAlarmUpdate()) {
             TbAlarmUpdateProto proto = msg.getAlarmUpdate();
             subscriptionManagerService.onAlarmUpdate(
-                    new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                    TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     JacksonUtil.fromString(proto.getAlarm(), Alarm.class), callback);
         } else if (msg.hasAlarmDelete()) {
             TbAlarmDeleteProto proto = msg.getAlarmDelete();
             subscriptionManagerService.onAlarmDeleted(
-                    new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
+                    TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     JacksonUtil.fromString(proto.getAlarm(), Alarm.class), callback);
         } else {

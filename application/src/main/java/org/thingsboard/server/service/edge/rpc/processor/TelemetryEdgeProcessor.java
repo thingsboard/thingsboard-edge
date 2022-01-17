@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -300,7 +300,7 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
             case DASHBOARD:
                 return new DashboardId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case TENANT:
-                return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+                return TenantId.fromUUID(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case CUSTOMER:
                 return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case USER:
@@ -329,7 +329,7 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
                 entityId = new DashboardId(edgeEvent.getEntityId());
                 break;
             case TENANT:
-                entityId = new TenantId(edgeEvent.getEntityId());
+                entityId = TenantId.fromUUID(edgeEvent.getEntityId());
                 break;
             case CUSTOMER:
                 entityId = new CustomerId(edgeEvent.getEntityId());

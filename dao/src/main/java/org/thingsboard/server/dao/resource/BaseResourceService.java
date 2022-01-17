@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -196,7 +196,7 @@ public class BaseResourceService implements ResourceService {
                 throw new DataValidationException("Resource key should be specified!");
             }
             if (resource.getTenantId() == null) {
-                resource.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+                resource.setTenantId(TenantId.fromUUID(ModelConstants.NULL_UUID));
             }
             if (!resource.getTenantId().getId().equals(ModelConstants.NULL_UUID)) {
                 Tenant tenant = tenantDao.findById(tenantId, resource.getTenantId().getId());

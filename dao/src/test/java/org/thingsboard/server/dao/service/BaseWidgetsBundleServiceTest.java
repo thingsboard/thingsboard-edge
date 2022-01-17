@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -99,7 +99,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
     public void testSaveWidgetsBundleWithInvalidTenant() {
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("My widgets bundle");
-        widgetsBundle.setTenantId(new TenantId(Uuids.timeBased()));
+        widgetsBundle.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         widgetsBundleService.saveWidgetsBundle(widgetsBundle);
     }
 
@@ -109,7 +109,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         widgetsBundle.setTitle("My widgets bundle");
         widgetsBundle.setTenantId(tenantId);
         WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
-        savedWidgetsBundle.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+        savedWidgetsBundle.setTenantId(TenantId.fromUUID(ModelConstants.NULL_UUID));
         try {
             widgetsBundleService.saveWidgetsBundle(savedWidgetsBundle);
         } finally {
@@ -171,7 +171,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
     @Test
     public void testFindSystemWidgetsBundlesByPageLink() {
 
-        TenantId tenantId = new TenantId(ModelConstants.NULL_UUID);
+        TenantId tenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);
 
         List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
         List<WidgetsBundle> createdWidgetsBundles = new ArrayList<>();
@@ -215,7 +215,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindSystemWidgetsBundles() {
-        TenantId tenantId = new TenantId(ModelConstants.NULL_UUID);
+        TenantId tenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);
 
         List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(tenantId);
 
@@ -301,7 +301,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         tenant = tenantService.saveTenant(tenant);
 
         TenantId tenantId = tenant.getId();
-        TenantId systemTenantId = new TenantId(ModelConstants.NULL_UUID);
+        TenantId systemTenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);
 
         List<WidgetsBundle> createdWidgetsBundles = new ArrayList<>();
         List<WidgetsBundle> createdSystemWidgetsBundles = new ArrayList<>();
@@ -387,7 +387,7 @@ public abstract class BaseWidgetsBundleServiceTest extends AbstractBeforeTest {
         tenant = tenantService.saveTenant(tenant);
 
         TenantId tenantId = tenant.getId();
-        TenantId systemTenantId = new TenantId(ModelConstants.NULL_UUID);
+        TenantId systemTenantId = TenantId.fromUUID(ModelConstants.NULL_UUID);
 
         List<WidgetsBundle> createdWidgetsBundles = new ArrayList<>();
         List<WidgetsBundle> createdSystemWidgetsBundles = new ArrayList<>();

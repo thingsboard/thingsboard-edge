@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,8 +91,8 @@ public class JpaCustomerDaoTest extends AbstractJpaDaoTest {
     private void createCustomer(UUID tenantId, int index) {
         Customer customer = new Customer();
         customer.setId(new CustomerId(Uuids.timeBased()));
-        customer.setTenantId(new TenantId(tenantId));
+        customer.setTenantId(TenantId.fromUUID(tenantId));
         customer.setTitle("CUSTOMER_" + index);
-        customerDao.save(new TenantId(tenantId), customer);
+        customerDao.save(TenantId.fromUUID(tenantId), customer);
     }
 }

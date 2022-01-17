@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -93,7 +93,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
     }
 
     private SecurityUser authenticateByUserId(UserId userId) {
-        TenantId systemId = new TenantId(EntityId.NULL_UUID);
+        TenantId systemId = TenantId.SYS_TENANT_ID;
         User user = userService.findUserById(systemId, userId);
         if (user == null) {
             throw new UsernameNotFoundException("User not found by refresh token");
@@ -126,7 +126,7 @@ public class RefreshTokenAuthenticationProvider implements AuthenticationProvide
     }
 
     private SecurityUser authenticateByPublicId(String publicId) {
-        TenantId systemId = new TenantId(EntityId.NULL_UUID);
+        TenantId systemId = TenantId.SYS_TENANT_ID;
         CustomerId customerId;
         try {
             customerId = new CustomerId(UUID.fromString(publicId));

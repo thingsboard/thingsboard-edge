@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -243,20 +243,20 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     public PageData<Tenant> findTenants(PageLink pageLink) {
         log.trace("Executing findTenants pageLink [{}]", pageLink);
         Validator.validatePageLink(pageLink);
-        return tenantDao.findTenantsByRegion(new TenantId(EntityId.NULL_UUID), DEFAULT_TENANT_REGION, pageLink);
+        return tenantDao.findTenantsByRegion(TenantId.SYS_TENANT_ID, DEFAULT_TENANT_REGION, pageLink);
     }
 
     @Override
     public PageData<TenantInfo> findTenantInfos(PageLink pageLink) {
         log.trace("Executing findTenantInfos pageLink [{}]", pageLink);
         Validator.validatePageLink(pageLink);
-        return tenantDao.findTenantInfosByRegion(new TenantId(EntityId.NULL_UUID), DEFAULT_TENANT_REGION, pageLink);
+        return tenantDao.findTenantInfosByRegion(TenantId.SYS_TENANT_ID, DEFAULT_TENANT_REGION, pageLink);
     }
 
     @Override
     public void deleteTenants() {
         log.trace("Executing deleteTenants");
-        tenantsRemover.removeEntities(new TenantId(EntityId.NULL_UUID), DEFAULT_TENANT_REGION);
+        tenantsRemover.removeEntities(TenantId.SYS_TENANT_ID, DEFAULT_TENANT_REGION);
     }
 
     private DataValidator<Tenant> tenantValidator =
@@ -299,7 +299,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
                 @Override
                 protected void removeEntity(TenantId tenantId, Tenant entity) {
-                    deleteTenant(new TenantId(entity.getUuidId()));
+                    deleteTenant(TenantId.fromUUID(entity.getUuidId()));
                 }
             };
 }

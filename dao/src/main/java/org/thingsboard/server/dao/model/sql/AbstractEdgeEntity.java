@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -167,7 +167,7 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
         Edge edge = new Edge(new EdgeId(getUuid()));
         edge.setCreatedTime(createdTime);
         if (tenantId != null) {
-            edge.setTenantId(new TenantId(tenantId));
+            edge.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
             edge.setCustomerId(new CustomerId(customerId));

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -153,7 +153,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
-        widgetType.setTenantId(new TenantId(Uuids.timeBased()));
+        widgetType.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(new ObjectMapper().readValue("{ \"someKey\": \"someValue\" }", JsonNode.class));
@@ -187,7 +187,7 @@ public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
         widgetType.setName("Widget Type");
         widgetType.setDescriptor(new ObjectMapper().readValue("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = widgetTypeService.saveWidgetType(widgetType);
-        savedWidgetType.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+        savedWidgetType.setTenantId(TenantId.fromUUID(ModelConstants.NULL_UUID));
         try {
             widgetTypeService.saveWidgetType(savedWidgetType);
         } finally {

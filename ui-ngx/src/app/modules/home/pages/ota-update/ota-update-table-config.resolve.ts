@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -151,7 +151,8 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`otaUpdates/${otaPackage.id.id}`);
+    const url = this.router.createUrlTree(['otaUpdates', otaPackage.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   exportPackage($event: Event, otaPackageInfo: OtaPackageInfo) {

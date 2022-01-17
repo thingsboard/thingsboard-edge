@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -109,7 +109,7 @@ public class JpaTenantDaoTest extends AbstractJpaDaoTest {
 
     void createTenant(String region, String title, int index) {
         Tenant tenant = new Tenant();
-        tenant.setId(new TenantId(Uuids.timeBased()));
+        tenant.setId(TenantId.fromUUID(Uuids.timeBased()));
         tenant.setRegion(region);
         tenant.setTitle(title + "_" + index);
         tenant.setTenantProfileId(tenantProfile.getId());

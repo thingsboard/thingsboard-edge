@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -185,7 +185,7 @@ public class OtaPackageInfoEntity extends BaseSqlEntity<OtaPackageInfo> implemen
     public OtaPackageInfo toData() {
         OtaPackageInfo otaPackageInfo = new OtaPackageInfo(new OtaPackageId(id));
         otaPackageInfo.setCreatedTime(createdTime);
-        otaPackageInfo.setTenantId(new TenantId(tenantId));
+        otaPackageInfo.setTenantId(TenantId.fromUUID(tenantId));
         if (deviceProfileId != null) {
             otaPackageInfo.setDeviceProfileId(new DeviceProfileId(deviceProfileId));
         }

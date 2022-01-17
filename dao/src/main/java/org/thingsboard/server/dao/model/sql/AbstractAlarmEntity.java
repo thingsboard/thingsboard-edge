@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -181,7 +181,7 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         Alarm alarm = new Alarm(new AlarmId(id));
         alarm.setCreatedTime(createdTime);
         if (tenantId != null) {
-            alarm.setTenantId(new TenantId(tenantId));
+            alarm.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
             alarm.setCustomerId(new CustomerId(customerId));

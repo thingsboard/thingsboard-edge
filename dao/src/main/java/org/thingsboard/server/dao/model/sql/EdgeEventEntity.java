@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -133,7 +133,7 @@ public class EdgeEventEntity extends BaseSqlEntity<EdgeEvent> implements BaseEnt
     public EdgeEvent toData() {
         EdgeEvent edgeEvent = new EdgeEvent(new EdgeEventId(this.getUuid()));
         edgeEvent.setCreatedTime(createdTime);
-        edgeEvent.setTenantId(new TenantId(tenantId));
+        edgeEvent.setTenantId(TenantId.fromUUID(tenantId));
         edgeEvent.setEdgeId(new EdgeId(edgeId));
         if (entityId != null) {
             edgeEvent.setEntityId(entityId);

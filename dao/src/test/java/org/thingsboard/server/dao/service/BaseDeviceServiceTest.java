@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -280,7 +280,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         Device device = new Device();
         device.setName("My device");
         device.setType("default");
-        device.setTenantId(new TenantId(Uuids.timeBased()));
+        device.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         deviceService.saveDevice(device);
     }
 

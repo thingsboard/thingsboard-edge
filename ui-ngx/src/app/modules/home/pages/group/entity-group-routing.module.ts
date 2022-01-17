@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -710,19 +710,43 @@ const routes: Routes = [
               },
               {
                 path: ':entityGroupId',
-                component: GroupEntitiesTableComponent,
                 data: {
-                  auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-                  title: 'entity-group.customer-group',
-                  groupType: EntityType.CUSTOMER,
                   breadcrumb: {
                     icon: 'supervisor_account',
                     labelFunction: groupEntitiesLabelFunction
                   } as BreadCrumbConfig<GroupEntitiesTableComponent>
                 },
-                resolve: {
-                  entityGroup: EntityGroupResolver
-                }
+                children: [
+                  {
+                    path: '',
+                    component: GroupEntitiesTableComponent,
+                    data: {
+                      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                      title: 'entity-group.customer-group',
+                      groupType: EntityType.CUSTOMER
+                    },
+                    resolve: {
+                      entityGroup: EntityGroupResolver
+                    }
+                  },
+                  {
+                    path: ':entityId',
+                    component: EntityDetailsPageComponent,
+                    canDeactivate: [ConfirmOnExitGuard],
+                    data: {
+                      breadcrumb: {
+                        labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                        icon: 'supervisor_account'
+                      } as BreadCrumbConfig<EntityDetailsPageComponent>,
+                      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                      title: 'entity-group.customer-group',
+                      groupType: EntityType.CUSTOMER
+                    },
+                    resolve: {
+                      entityGroup: EntityGroupResolver
+                    }
+                  }
+                ]
               }
             ]
           },
@@ -832,6 +856,23 @@ const routes: Routes = [
                     },
                     resolve: {
                       entityGroup: EntityGroupResolver,
+                    }
+                  },
+                  {
+                    path: ':entityId',
+                    component: EntityDetailsPageComponent,
+                    canDeactivate: [ConfirmOnExitGuard],
+                    data: {
+                      breadcrumb: {
+                        labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                        icon: 'router'
+                      } as BreadCrumbConfig<EntityDetailsPageComponent>,
+                      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                      title: 'entity-group.edge-group',
+                      groupType: EntityType.EDGE
+                    },
+                    resolve: {
+                      entityGroup: EntityGroupResolver
                     }
                   },
                   {...USER_GROUPS_ROUTE, ...{

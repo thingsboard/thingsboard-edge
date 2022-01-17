@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -143,7 +143,7 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
         dashboardInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
-            dashboardInfo.setTenantId(new TenantId(tenantId));
+            dashboardInfo.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
             dashboardInfo.setCustomerId(new CustomerId(customerId));

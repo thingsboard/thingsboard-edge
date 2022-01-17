@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -83,7 +83,7 @@ import static org.thingsboard.server.common.data.DataConstants.SERVER_SCOPE;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class AbstractAttributeNodeTest {
     final CustomerId customerId = new CustomerId(Uuids.timeBased());
-    final TenantId tenantId = new TenantId(Uuids.timeBased());
+    final TenantId tenantId = TenantId.fromUUID(Uuids.timeBased());
     final RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
     final RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
     final String keyAttrConf = "${word}";

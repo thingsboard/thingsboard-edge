@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
 import { tap } from 'rxjs/operators';
@@ -59,7 +59,8 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { isDefinedAndNotNull } from '@core/utils';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
@@ -72,7 +73,8 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
               private homeDialogs: HomeDialogsService,
               private deviceService: DeviceService,
               private router: Router,
-              private broadcast: BroadcastService) {
+              private broadcast: BroadcastService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Device>): Observable<GroupEntityTableConfig<Device>> {
@@ -101,7 +103,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     };
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
 
-    config.onEntityAction = action => this.onDeviceAction(action, config);
+    config.onEntityAction = action => this.onDeviceAction(action, config, params);
     config.addEntity = () => this.deviceWizard(config);
 
     if (config.settings.enableCredentialsManagement) {
@@ -168,11 +170,24 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  private openDevice($event: Event, device: Device) {
+  private openDevice($event: Event, device: Device, config: GroupEntityTableConfig<Device>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`${this.router.url}/${device.id.id}`);
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
+      }
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([device.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+    }
   }
 
   manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean, config: GroupEntityTableConfig<Device>) {
@@ -195,10 +210,10 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>): boolean {
+  onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openDevice(action.event, action.entity);
+        this.openDevice(action.event, action.entity, config, params);
         return true;
       case 'manageCredentials':
         this.manageCredentials(action.event, action.entity, false, config);

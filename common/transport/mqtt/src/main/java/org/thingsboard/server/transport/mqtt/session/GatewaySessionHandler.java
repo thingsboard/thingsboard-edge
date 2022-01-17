@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -93,6 +93,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType;
+import static org.thingsboard.server.common.transport.service.DefaultTransportService.SESSION_EVENT_MSG_CLOSED;
+import static org.thingsboard.server.common.transport.service.DefaultTransportService.SESSION_EVENT_MSG_OPEN;
+import static org.thingsboard.server.common.transport.service.DefaultTransportService.SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG;
+import static org.thingsboard.server.common.transport.service.DefaultTransportService.SUBSCRIBE_TO_RPC_ASYNC_MSG;
 
 /**
  * Created by ashvayka on 19.01.17.
@@ -292,11 +296,9 @@ public class GatewaySessionHandler {
                                     transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
                                     transportService.process(TransportToDeviceActorMsg.newBuilder()
                                             .setSessionInfo(deviceSessionInfo)
-                                            .setSessionEvent(DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN))
-                                            .setSubscribeToAttributes(SubscribeToAttributeUpdatesMsg.newBuilder()
-                                                    .setSessionType(SessionType.ASYNC).build())
-                                            .setSubscribeToRPC(SubscribeToRPCMsg.newBuilder()
-                                                    .setSessionType(SessionType.ASYNC).build())
+                                            .setSessionEvent(SESSION_EVENT_MSG_OPEN)
+                                            .setSubscribeToAttributes(SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG)
+                                            .setSubscribeToRPC(SUBSCRIBE_TO_RPC_ASYNC_MSG)
                                             .build(), null);
                                 }
                                 futureToSet.set(devices.get(deviceName));
@@ -745,7 +747,7 @@ public class GatewaySessionHandler {
 
     private void deregisterSession(String deviceName, GatewayDeviceSessionCtx deviceSessionCtx) {
         transportService.deregisterSession(deviceSessionCtx.getSessionInfo());
-        transportService.process(deviceSessionCtx.getSessionInfo(), DefaultTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
+        transportService.process(deviceSessionCtx.getSessionInfo(), SESSION_EVENT_MSG_CLOSED, null);
         log.debug("[{}] Removed device [{}] from the gateway session", sessionId, deviceName);
     }
 

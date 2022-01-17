@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -107,7 +107,8 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`integrations/${integration.id.id}`);
+    const url = this.router.createUrlTree(['integrations', integration.id.id]);
+    this.router.navigateByUrl(url);
   }
 
   onIntegrationAction(action: EntityAction<Integration>): boolean {
