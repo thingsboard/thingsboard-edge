@@ -697,6 +697,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (restApiCall) {
             String tmp = msg.getMetaData().getValue("requestUUID");
             serviceId = msg.getMetaData().getValue("originServiceId");
+
+            if (serviceId == null) {
+                throw new RuntimeException("Origin Service Id is not present in the message metadata!");
+            }
+
             requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUID.randomUUID();
             tmp = msg.getMetaData().getValue("oneway");
             boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
