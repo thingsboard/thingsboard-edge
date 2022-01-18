@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.controller.AbstractWebsocketTest;
 import org.thingsboard.server.controller.TbTestWebSocketClient;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.telemetry.cmd.TelemetryPluginCmdsWrapper;
 import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataCmd;
 import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUpdate;
@@ -80,6 +81,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DaoSqlTest
 public abstract class AbstractLwM2MIntegrationTest extends AbstractWebsocketTest {
 
     protected final String TRANSPORT_CONFIGURATION = "{\n" +

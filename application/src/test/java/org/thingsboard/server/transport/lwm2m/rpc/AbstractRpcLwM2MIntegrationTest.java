@@ -61,6 +61,7 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID_9;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.resources;
 
+@DaoSqlTest
 public abstract class AbstractRpcLwM2MIntegrationTest extends AbstractLwM2MIntegrationTest {
 
     protected String RPC_TRANSPORT_CONFIGURATION;

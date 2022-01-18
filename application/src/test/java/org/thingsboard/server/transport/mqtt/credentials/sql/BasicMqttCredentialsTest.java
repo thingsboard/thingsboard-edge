@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
 
 import java.util.Arrays;
@@ -63,6 +64,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DaoSqlTest
 public class BasicMqttCredentialsTest extends AbstractMqttIntegrationTest {
 
     public static final String CLIENT_ID = "ClientId";

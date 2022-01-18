@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.transport.coap.attributes.updates.sql;
 
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.coap.attributes.updates.AbstractCoapAttributesUpdatesIntegrationTest;
 
+@DaoSqlTest
 public class CoapAttributesUpdatesSqlIntegrationTest extends AbstractCoapAttributesUpdatesIntegrationTest {
 }

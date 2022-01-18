@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.transport.mqtt.rpc.sql;
 
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.rpc.AbstractMqttServerSideRpcProtoIntegrationTest;
 
+@DaoSqlTest
 public class MqttServerSideRpcProtoIntegrationTest extends AbstractMqttServerSideRpcProtoIntegrationTest {
 }

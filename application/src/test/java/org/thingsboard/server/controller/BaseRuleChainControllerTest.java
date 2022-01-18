@@ -147,7 +147,7 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
         for (int i = 0; i < 28; i++) {
             RuleChain ruleChain = new RuleChain();
             ruleChain.setName("RuleChain " + i);
-            ruleChain.setType(RuleChainType.CORE);
+            ruleChain.setType(RuleChainType.EDGE);
             RuleChain savedRuleChain = doPost("/api/ruleChain", ruleChain, RuleChain.class);
             doPost("/api/edge/" + savedEdge.getId().getId().toString()
                     + "/ruleChain/" + savedRuleChain.getId().getId().toString(), RuleChain.class);

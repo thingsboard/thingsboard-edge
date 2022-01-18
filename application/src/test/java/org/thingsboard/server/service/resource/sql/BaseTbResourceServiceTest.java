@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.resource.TbResourceService;
 
 import java.util.ArrayList;
@@ -63,6 +64,7 @@ import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DaoSqlTest
 public class BaseTbResourceServiceTest extends AbstractControllerTest {
 
     private static final String LWM2M_TEST_MODEL = "<LWM2M xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://www.openmobilealliance.org/tech/profiles/LWM2M-v1_1.xsd\">\n" +

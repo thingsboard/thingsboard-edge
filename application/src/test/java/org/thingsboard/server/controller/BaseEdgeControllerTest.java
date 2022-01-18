@@ -40,20 +40,37 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.edge.imitator.EdgeImitator;
+import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.RoleProto;
+import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
@@ -459,7 +476,6 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    /* merge comment
     @Ignore
     // keeping CE test for merge compatibility
     @Test
@@ -808,6 +824,5 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         doDelete("/api/edge/" + edge.getId().getId().toString())
                 .andExpect(status().isOk());
     }
-     */
 
 }

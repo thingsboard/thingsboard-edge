@@ -32,6 +32,7 @@ package org.thingsboard.server.transport.lwm2m.security;
 
 import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MBootstrapClientCredentials;
 import org.thingsboard.server.common.data.device.credentials.lwm2m.NoSecBootstrapClientCredential;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.lwm2m.AbstractLwM2MIntegrationTest;
 import org.thingsboard.server.transport.lwm2m.client.LwM2MTestClient;
 
@@ -43,6 +44,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
+@DaoSqlTest
 public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2MIntegrationTest {
 
     protected final String CREDENTIALS_PATH = "lwm2m/credentials/";             // client public key or id used for PSK

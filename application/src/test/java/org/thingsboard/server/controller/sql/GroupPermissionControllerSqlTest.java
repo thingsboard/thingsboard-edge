@@ -31,6 +31,8 @@
 package org.thingsboard.server.controller.sql;
 
 import org.thingsboard.server.controller.BaseGroupPermissionControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
+@DaoSqlTest
 public class GroupPermissionControllerSqlTest extends BaseGroupPermissionControllerTest {
 }

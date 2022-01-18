@@ -31,9 +31,11 @@
 package org.thingsboard.server.controller.sql;
 
 import org.thingsboard.server.controller.BaseEntityViewControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 /**
  * Created by Victor Basanets on 8/27/2017.
  */
+@DaoSqlTest
 public class EntityViewControllerSqlTest extends BaseEntityViewControllerTest {
 }

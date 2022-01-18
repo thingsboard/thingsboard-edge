@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.transport.coap.claim.sql;
 
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.coap.claim.AbstractCoapClaimDeviceTest;
 
+@DaoSqlTest
 public class CoapClaimDeviceSqlTest extends AbstractCoapClaimDeviceTest {
 }

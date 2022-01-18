@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -63,6 +64,8 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -78,6 +81,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
@@ -272,6 +276,9 @@ public class ActorSystemContextTest {
     private EdgeEventService edgeEventService;
 
     @MockBean
+    private EdgeRpcService edgeRpcService;
+
+    @MockBean
     private ResourceService resourceService;
 
     @MockBean
@@ -279,6 +286,15 @@ public class ActorSystemContextTest {
 
     @MockBean
     private TbRpcService tbRpcService;
+
+    @MockBean
+    private CassandraCluster cassandraCluster;
+
+    @MockBean
+    private CassandraBufferedRateReadExecutor cassandraBufferedRateReadExecutor;
+
+    @MockBean
+    private CassandraBufferedRateWriteExecutor cassandraBufferedRateWriteExecutor;
 
     @MockBean
     private RedisTemplate<String, Object> redisTemplate;

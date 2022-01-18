@@ -34,12 +34,14 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.lwm2m.AbstractLwM2MIntegrationTest;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
+@DaoSqlTest
 public abstract class AbstractOtaLwM2MIntegrationTest extends AbstractLwM2MIntegrationTest {
 
     private final  String[] RESOURCES_OTA = new String[]{"3.xml", "5.xml", "9.xml"};

@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.transport.mqtt.telemetry.attributes.sql;
 
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.telemetry.attributes.AbstractMqttAttributesProtoIntegrationTest;
 
+@DaoSqlTest
 public class MqttAttributesProtoIntegrationTest extends AbstractMqttAttributesProtoIntegrationTest {
 }

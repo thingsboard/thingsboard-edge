@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.transport.mqtt.claim.sql;
 
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.claim.AbstractMqttClaimBackwardCompatibilityDeviceTest;
 import org.thingsboard.server.transport.mqtt.claim.AbstractMqttClaimDeviceTest;
 
+@DaoSqlTest
 public class MqttClaimDeviceBackwardCompatibilityTest extends AbstractMqttClaimBackwardCompatibilityDeviceTest {
 }
