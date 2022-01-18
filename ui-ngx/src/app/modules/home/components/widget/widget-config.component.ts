@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -177,6 +177,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
 
   modelValue: WidgetConfigComponentData;
 
+  showLegendFieldset = true;
+
   private propagateChange = null;
 
   public dataSettings: FormGroup;
@@ -342,6 +344,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
         this.datasourceTypes.push(DatasourceType.entityCount);
       }
     }
+
     this.dataSettings = this.fb.group({});
     this.targetDeviceSettings = this.fb.group({});
     this.alarmSourceSettings = this.fb.group({});
@@ -405,6 +408,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
     if (this.modelValue) {
       if (this.widgetType !== this.modelValue.widgetType) {
         this.widgetType = this.modelValue.widgetType;
+        this.showLegendFieldset = (this.widgetType === widgetType.timeseries || this.widgetType === widgetType.latest);
         this.buildForms();
       }
       const config = this.modelValue.config;

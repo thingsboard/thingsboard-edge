@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -100,14 +100,21 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
       mergeMap((savedTenant) => this.tenantService.getTenantInfo(savedTenant.id.id))
     );
     this.config.deleteEntity = id => this.tenantService.deleteTenant(id.id);
-
-    this.config.onEntityAction = action => this.onTenantAction(action);
+    this.config.onEntityAction = action => this.onTenantAction(action, this.config);
   }
 
   resolve(): EntityTableConfig<TenantInfo> {
     this.config.tableTitle = this.translate.instant('tenant.tenants');
     defaultEntityTablePermissions(this.userPermissionService, this.config);
     return this.config;
+  }
+
+  private openTenant($event: Event, tenant: TenantInfo, config: EntityTableConfig<TenantInfo>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree([tenant.id.id], {relativeTo: config.table.route});
+    this.router.navigateByUrl(url);
   }
 
   manageTenantAdmins($event: Event, tenant: TenantInfo) {
@@ -117,8 +124,11 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
     this.router.navigateByUrl(`tenants/${tenant.id.id}/users`);
   }
 
-  onTenantAction(action: EntityAction<TenantInfo>): boolean {
+  onTenantAction(action: EntityAction<TenantInfo>, config: EntityTableConfig<TenantInfo>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openTenant(action.event, action.entity, config);
+        return true;
       case 'manageTenantAdmins':
         this.manageTenantAdmins(action.event, action.entity);
         return true;

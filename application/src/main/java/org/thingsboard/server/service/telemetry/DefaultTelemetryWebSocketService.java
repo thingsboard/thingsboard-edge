@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -320,6 +320,18 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         WsSessionMetaData md = wsSessionsMap.get(sessionId);
         if (md != null) {
             sendWsMsg(md.getSessionRef(), cmdId, update);
+        }
+    }
+
+    @Override
+    public void close(String sessionId, CloseStatus status) {
+        WsSessionMetaData md = wsSessionsMap.get(sessionId);
+        if (md != null) {
+            try {
+                msgEndpoint.close(md.getSessionRef(), status);
+            } catch (IOException e) {
+                log.warn("[{}] Failed to send session close: {}", sessionId, e);
+            }
         }
     }
 

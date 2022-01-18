@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -108,7 +108,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         mergeMap((savedEdge) => this.edgeService.getEdgeInfo(savedEdge.id.id)
         ));
     };
-    this.config.onEntityAction = action => this.onEdgeAction(action);
+    this.config.onEntityAction = action => this.onEdgeAction(action, this.config);
     this.config.detailsReadonly = () => this.config.componentsData.edgeScope === 'customer_user';
     this.config.headerComponent = EdgeTableHeaderComponent;*/
   }
@@ -382,6 +382,14 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
       });
   }
 
+  private openEdge($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.table.route});
+    this.router.navigateByUrl(url);
+  }
+
   makePublic($event: Event, edge: Edge) {
     if ($event) {
       $event.stopPropagation();
@@ -530,8 +538,11 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  onEdgeAction(action: EntityAction<EdgeInfo>): boolean {
+  onEdgeAction(action: EntityAction<EdgeInfo>, config: EntityTableConfig<EdgeInfo>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openEdge(action.event, action.entity, config);
+        return true;
       case 'makePublic':
         this.makePublic(action.event, action.entity);
         return true;

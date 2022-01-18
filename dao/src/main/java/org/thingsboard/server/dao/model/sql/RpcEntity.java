@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -112,7 +112,7 @@ public class RpcEntity extends BaseSqlEntity<Rpc> implements BaseEntity<Rpc> {
     public Rpc toData() {
         Rpc rpc = new Rpc(new RpcId(id));
         rpc.setCreatedTime(createdTime);
-        rpc.setTenantId(new TenantId(tenantId));
+        rpc.setTenantId(TenantId.fromUUID(tenantId));
         rpc.setDeviceId(new DeviceId(deviceId));
         rpc.setExpirationTime(expirationTime);
         rpc.setRequest(request);

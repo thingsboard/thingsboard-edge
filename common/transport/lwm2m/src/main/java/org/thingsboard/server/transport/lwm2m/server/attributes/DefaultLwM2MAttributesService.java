@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -213,7 +213,7 @@ public class DefaultLwM2MAttributesService implements LwM2MAttributesService {
                 if (pathIdVer != null) {
                     // #1.1
                     if (lwM2MClient.getSharedAttributes().containsKey(pathIdVer)) {
-                        if (tsKvProto.getTs() >= lwM2MClient.getSharedAttributes().get(pathIdVer).getTs()) {
+                        if (tsKvProto.getTs() > lwM2MClient.getSharedAttributes().get(pathIdVer).getTs()) {
                             lwM2MClient.getSharedAttributes().put(pathIdVer, tsKvProto);
                             attributesUpdate.put(pathIdVer, tsKvProto);
                         }

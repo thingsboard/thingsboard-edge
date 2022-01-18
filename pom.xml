@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -430,39 +430,9 @@
                                                 </includes>
                                                 <filtering>false</filtering>
                                             </resource>
-                                            <resource>
-                                                <directory>../common/transport/lwm2m/src/main/resources</directory>
-                                                <includes>
-                                                    <include>**/*.xml</include>
-                                                    <include>**/*.jks</include>
-                                                </includes>
-                                                <filtering>false</filtering>
-                                            </resource>
                                         </resources>
                                     </configuration>
                                 </execution>
-                                <execution>
-                                    <id>copy-lwm2m-resources</id>
-                                    <phase>${pkg.process-resources.phase}</phase>
-                                    <goals>
-                                        <goal>copy-resources</goal>
-                                    </goals>
-                                    <configuration>
-                                        <outputDirectory>../transport/lwm2m/src/main/data</outputDirectory>
-                                        <resources>
-                                            <resource>
-                                                <directory>../common/transport/lwm2m/src/main/resources</directory>
-                                                <includes>
-                                                    <include>**/*.xml</include>
-                                                    <include>**/*.jks</include>
-                                                </includes>
-                                                <filtering>false</filtering>
-                                            </resource>
-                                        </resources>
-
-                                    </configuration>
-                                </execution>
-
                                 <execution>
                                     <id>copy-docker-config</id>
                                     <phase>${pkg.process-resources.phase}</phase>
@@ -542,6 +512,7 @@
                                 <execution>
                                     <goals>
                                         <goal>repackage</goal>
+                                        <goal>build-info</goal>
                                     </goals>
                                 </execution>
                             </executions>
@@ -858,11 +829,6 @@
                             <exclude>**/*.proto.js</exclude>
                             <exclude>docker/haproxy/**</exclude>
                             <exclude>docker/tb-node/**</exclude>
-                            <exclude>src/browserslist</exclude>
-                            <exclude>src/main/resources/models/*.xml</exclude>
-                            <exclude>src/main/resources/credentials/*.jks</exclude>
-                            <exclude>src/main/resources/credentials/shell/*.jks</exclude>
-                            <exclude>src/main/resources/credentials/shell/*.jks.old</exclude>
                             <exclude>ui/**</exclude>
                             <exclude>src/.browserslistrc</exclude>
                             <exclude>**/yarn.lock</exclude>
@@ -1091,7 +1057,7 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>edge-api</artifactId>
-                <version>${thingsboard-pe.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard</groupId>
@@ -1740,6 +1706,26 @@
                     <exclusion>
                         <groupId>junit</groupId>
                         <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.cassandraunit</groupId>
+                <artifactId>cassandra-unit</artifactId>
+                <version>${cassandra-unit.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.hamcrest</groupId>
+                        <artifactId>hamcrest-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.hamcrest</groupId>
+                        <artifactId>hamcrest-library</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

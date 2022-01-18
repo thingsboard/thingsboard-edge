@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -75,7 +75,7 @@ public class JpaAssetDaoTest extends AbstractJpaDaoTest {
             UUID customerId = i % 2 == 0 ? customerId1 : customerId2;
             saveAsset(assetId, tenantId, customerId, "ASSET_" + i, "TYPE_1");
         }
-        assertEquals(60, assetDao.find(new TenantId(tenantId1)).size());
+        assertEquals(60, assetDao.find(TenantId.fromUUID(tenantId1)).size());
 
         PageLink pageLink = new PageLink(20, 0, "ASSET_");
         PageData<Asset> assets1 = assetDao.findAssetsByTenantId(tenantId1, pageLink);
@@ -228,10 +228,10 @@ public class JpaAssetDaoTest extends AbstractJpaDaoTest {
     private void saveAsset(UUID id, UUID tenantId, UUID customerId, String name, String type) {
         Asset asset = new Asset();
         asset.setId(new AssetId(id));
-        asset.setTenantId(new TenantId(tenantId));
+        asset.setTenantId(TenantId.fromUUID(tenantId));
         asset.setCustomerId(new CustomerId(customerId));
         asset.setName(name);
         asset.setType(type);
-        assetDao.save(new TenantId(tenantId), asset);
+        assetDao.save(TenantId.fromUUID(tenantId), asset);
     }
 }

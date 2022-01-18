@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn, defaultEntityTablePermissions,
@@ -73,6 +73,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
               private datePipe: DatePipe,
               private dialogService: DialogService,
               private utils: UtilsService,
+              private router: Router,
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.DEVICE_PROFILE;
@@ -204,6 +205,14 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     );
   }
 
+  private openDeviceProfile($event: Event, deviceProfile: DeviceProfile) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree(['deviceProfiles', deviceProfile.id.id]);
+    this.router.navigateByUrl(url);
+  }
+
   importDeviceProfile($event: Event) {
     this.importExport.importDeviceProfile().subscribe(
       (deviceProfile) => {
@@ -223,6 +232,9 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
 
   onDeviceProfileAction(action: EntityAction<DeviceProfile>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openDeviceProfile(action.event, action.entity);
+        return true;
       case 'setDefault':
         this.setDefaultDeviceProfile(action.event, action.entity);
         return true;

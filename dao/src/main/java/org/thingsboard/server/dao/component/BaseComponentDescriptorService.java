@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,7 +66,7 @@ public class BaseComponentDescriptorService implements ComponentDescriptorServic
 
     @Override
     public ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component) {
-        componentValidator.validate(component, data -> new TenantId(EntityId.NULL_UUID));
+        componentValidator.validate(component, data -> TenantId.SYS_TENANT_ID);
         Optional<ComponentDescriptor> result = componentDescriptorDao.saveIfNotExist(tenantId, component);
         return result.orElseGet(() -> componentDescriptorDao.findByClazz(tenantId, component.getClazz()));
     }

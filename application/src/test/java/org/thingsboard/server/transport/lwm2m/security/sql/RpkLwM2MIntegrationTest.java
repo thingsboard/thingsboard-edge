@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,13 +47,13 @@ public class RpkLwM2MIntegrationTest extends AbstractSecurityLwM2MIntegrationTes
     @Test
     public void testConnectWithRPKAndObserveTelemetry() throws Exception {
         RPKClientCredential rpkClientCredentials = new RPKClientCredential();
-        rpkClientCredentials.setEndpoint(ENDPOINT);
-        rpkClientCredentials.setKey(new String(Base64.encodeBase64(clientPublicKey.getEncoded())));
+        rpkClientCredentials.setEndpoint(CLIENT_ENDPOINT_RPK);
+        rpkClientCredentials.setKey(new String(Base64.encodeBase64(clientPublicKeyFromCertTrust.getEncoded())));
         Security security = rpk(SECURE_URI,
                 SHORT_SERVER_ID,
-                clientPublicKey.getEncoded(),
-                clientPrivateKey.getEncoded(),
-                serverX509Cert.getPublicKey().getEncoded());
-        super.basicTestConnectionObserveTelemetry(security, rpkClientCredentials, SECURE_COAP_CONFIG, ENDPOINT);
+                clientPublicKeyFromCertTrust.getEncoded(),
+                clientPrivateKeyFromCertTrust.getEncoded(),
+                serverPublicKeyFromCert.getEncoded());
+        super.basicTestConnectionObserveTelemetry(security, rpkClientCredentials, SECURE_COAP_CONFIG, CLIENT_ENDPOINT_RPK);
     }
 }

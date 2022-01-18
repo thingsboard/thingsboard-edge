@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -69,8 +69,11 @@ public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
             throws IOException, ServletException {
         String baseUrl;
         String errorPrefix;
+        String callbackUrlScheme = null;
         OAuth2AuthorizationRequest authorizationRequest = httpCookieOAuth2AuthorizationRequestRepository.loadAuthorizationRequest(request);
-        String callbackUrlScheme = authorizationRequest.getAttribute(TbOAuth2ParameterNames.CALLBACK_URL_SCHEME);
+        if (authorizationRequest != null) {
+            callbackUrlScheme = authorizationRequest.getAttribute(TbOAuth2ParameterNames.CALLBACK_URL_SCHEME);
+        }
         if (!StringUtils.isEmpty(callbackUrlScheme)) {
             baseUrl = callbackUrlScheme + ":";
             errorPrefix = "/?error=";

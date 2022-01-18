@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -59,6 +59,8 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthService } from '@core/auth/auth.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { Router, UrlTree } from '@angular/router';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<User> {
@@ -71,7 +73,9 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
               private homeDialogs: HomeDialogsService,
               private userService: UserService,
               private authService: AuthService,
-              private store: Store<AppState>) {
+              private router: Router,
+              private store: Store<AppState>,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<User>): Observable<GroupEntityTableConfig<User>> {
@@ -90,7 +94,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     config.saveEntity = user => this.userService.saveUser(user);
     config.deleteEntity = id => this.userService.deleteUser(id.id);
 
-    config.onEntityAction = action => this.onUserAction(action);
+    config.onEntityAction = action => this.onUserAction(action, config, params);
     config.addEntity = () => this.addUser(config);
 
     const auth = getCurrentAuthState(this.store);
@@ -122,6 +126,26 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
         entitiesTableConfig: config
       }
     }).afterClosed();
+  }
+
+  private openUser($event: Event, user: User, config: GroupEntityTableConfig<User>, params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'userGroups', params.childEntityGroupId, user.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'userGroups', params.childEntityGroupId, user.id.id]);
+      }
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([user.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+    }
   }
 
   loginAsUser($event: Event, user: User | ShortEntityView) {
@@ -179,8 +203,11 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     });
   }
 
-  onUserAction(action: EntityAction<User>): boolean {
+  onUserAction(action: EntityAction<User>, config: GroupEntityTableConfig<User>, params: EntityGroupParams): boolean {
     switch (action.action) {
+      case 'open':
+        this.openUser(action.event, action.entity, config, params);
+        return true;
       case 'loginAsUser':
         this.loginAsUser(action.event, action.entity);
         return true;

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -290,7 +290,7 @@ public class BaseTbResourceServiceTest extends AbstractControllerTest {
     @Test(expected = DataValidationException.class)
     public void testSaveTbResourceWithInvalidTenant() throws Exception {
         TbResource resource = new TbResource();
-        resource.setTenantId(new TenantId(Uuids.timeBased()));
+        resource.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         resource.setResourceType(ResourceType.JKS);
         resource.setTitle("My resource");
         resource.setFileName(DEFAULT_FILE_NAME);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import {
   DateEntityTableColumn,
   defaultEntityTablePermissions,
@@ -58,6 +58,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
+              private router: Router,
               private utils: UtilsService) {
 
     this.config.entityType = EntityType.INTEGRATION;
@@ -79,7 +80,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
       new DateEntityTableColumn<Integration>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Integration>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Integration>('type', 'converter.type', '33%', (integration) => {
-        return this.translate.instant(integrationTypeInfoMap.get(integration.type).name)
+        return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
       })
     );
 
@@ -102,7 +103,20 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
     return this.config;
   }
 
+  openIntegration($event: Event, integration: Integration) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree(['integrations', integration.id.id]);
+    this.router.navigateByUrl(url);
+  }
+
   onIntegrationAction(action: EntityAction<Integration>): boolean {
+    switch (action.action) {
+      case 'open':
+        this.openIntegration(action.event, action.entity);
+        return true;
+    }
     return false;
   }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -116,19 +116,15 @@ public class LwM2mLocation extends BaseInstanceEnabler implements Destroyable {
         switch (nextMove.charAt(0)) {
             case 'w':
                 moveLatitude(1.0f);
-//                log.info("Move to North [{}]/[{}]", getLatitude(), getLongitude());
                 break;
             case 'a':
                 moveLongitude(-1.0f);
-//                log.info("Move to East [{}]/[{}]", getLatitude(), getLongitude());
                 break;
             case 's':
                 moveLatitude(-1.0f);
-//                log.info("Move to South [{}]/[{}]", getLatitude(), getLongitude());
                 break;
             case 'd':
                 moveLongitude(1.0f);
-//                log.info("Move to West [{}]/[{}]", getLatitude(), getLongitude());
                 break;
         }
     }

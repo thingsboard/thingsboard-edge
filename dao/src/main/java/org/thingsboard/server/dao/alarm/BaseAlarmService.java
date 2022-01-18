@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
@@ -420,9 +421,20 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
 
     @Override
     public Set<EntityId> getPropagationEntityIds(Alarm alarm) {
+        return processGetPropagationEntityIds(alarm, null);
+    }
+
+    @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types) {
+        return processGetPropagationEntityIds(alarm, types);
+    }
+
+    private Set<EntityId> processGetPropagationEntityIds(Alarm alarm, List<EntityType> types) {
         validateId(alarm.getId(), "Alarm id should be specified!");
         if (alarm.isPropagate()) {
-            List<EntityAlarm> entityAlarms = alarmDao.findEntityAlarmRecords(alarm.getTenantId(), alarm.getId());
+            List<EntityAlarm> entityAlarms = CollectionUtils.isEmpty(types) ?
+                    alarmDao.findEntityAlarmRecords(alarm.getTenantId(), alarm.getId()) :
+                    alarmDao.findEntityAlarmRecordsByEntityTypes(alarm.getTenantId(), alarm.getId(), types);
             return entityAlarms.stream().map(EntityAlarm::getEntityId).collect(Collectors.toSet());
         } else {
             return Collections.singleton(alarm.getOriginator());

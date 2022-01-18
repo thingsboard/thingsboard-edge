@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,7 @@ export class SchedulerEventService {
 
   public getSchedulerEvents(type: string = '', config?: RequestConfig): Observable<Array<SchedulerEventWithCustomerInfo>> {
     let url = '/api/schedulerEvents';
-    if (isDefinedAndNotNull(type)) {
+    if (isDefinedAndNotNull(type) && type !== '') {
       url += `?type=${type}`;
     }
     return this.http.get<Array<SchedulerEventWithCustomerInfo>>(url,

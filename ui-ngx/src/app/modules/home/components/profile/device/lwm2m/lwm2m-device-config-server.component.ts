@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -127,6 +127,9 @@ export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAcc
         this.changeSecurityHostPortFields(serverSecurityConfig);
       }
       this.serverFormGroup.patchValue(serverSecurityConfig, {emitEvent: false});
+      if (this.currentSecurityMode === Lwm2mSecurityType.X509) {
+        this.serverFormGroup.get('serverPublicKey').patchValue(serverSecurityConfig.serverCertificate, {emitEvent: false});
+      }
     });
     this.serverFormGroup.valueChanges.pipe(
       takeUntil(this.destroy$)

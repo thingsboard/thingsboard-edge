@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,8 +62,6 @@ import java.util.UUID;
 public class BaseSelfRegistrationService implements SelfRegistrationService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-    private static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix";
 
     private static final String SELF_REGISTRATION_PARAMS = "selfRegistrationParams";
 
@@ -285,6 +283,6 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
     }
 
     private String constructSelfRegistrationKey(String domainName) {
-        return SELF_REGISTRATION_DOMAIN_NAME_PREFIX + "_" + domainName;
+        return DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -82,7 +82,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public abstract class AbstractLwM2MIntegrationTest extends AbstractWebsocketTest {
 
-    protected String transportConfiguration = "{\n" +
+    protected final String TRANSPORT_CONFIGURATION = "{\n" +
             "  \"type\": \"LWM2M\",\n" +
             "  \"observeAttr\": {\n" +
             "    \"keyName\": {\n" +
@@ -146,7 +146,6 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractWebsocketTest
     protected LwM2MTestClient client;
     private final LwM2MBootstrapClientCredentials defaultBootstrapCredentials;
     private String[] resources;
-    protected String endpoint;
 
     public AbstractLwM2MIntegrationTest() {
         this.defaultBootstrapCredentials = new LwM2MBootstrapClientCredentials();
@@ -190,7 +189,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractWebsocketTest
                                                     LwM2MClientCredential credentials,
                                                     NetworkConfig coapConfig,
                                                     String endpoint) throws Exception {
-        createDeviceProfile(transportConfiguration);
+        createDeviceProfile(TRANSPORT_CONFIGURATION);
         Device device = createDevice(credentials);
 
         SingleEntityFilter sef = new SingleEntityFilter();
@@ -208,8 +207,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractWebsocketTest
         wsClient.waitForReply();
 
         wsClient.registerWaitForUpdate();
-        this.endpoint = endpoint;
-        createNewClient(security, coapConfig, false);
+        createNewClient(security, coapConfig, false, endpoint);
         String msg = wsClient.waitForUpdate();
 
         EntityDataUpdate update = mapper.readValue(msg, EntityDataUpdate.class);
@@ -274,13 +272,9 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractWebsocketTest
         this.resources = resources;
     }
 
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public void createNewClient(Security security, NetworkConfig coapConfig, boolean isRpc) throws Exception {
+    public void createNewClient(Security security, NetworkConfig coapConfig, boolean isRpc, String endpoint) throws Exception {
         clientDestroy();
-        client = new LwM2MTestClient(this.executor, this.endpoint);
+        client = new LwM2MTestClient(this.executor, endpoint);
         int clientPort = SocketUtils.findAvailableTcpPort();
         client.init(security, coapConfig, clientPort, isRpc);
     }

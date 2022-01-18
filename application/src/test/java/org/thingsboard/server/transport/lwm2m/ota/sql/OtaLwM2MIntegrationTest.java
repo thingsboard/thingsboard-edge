@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -153,12 +153,10 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
 
     @Test
     public void testFirmwareUpdateWithClientWithoutFirmwareOtaInfoFromProfile() throws Exception {
-        String endpoint = "WithoutFirmwareInfoDevice";
-        setEndpoint(endpoint);
-        createDeviceProfile(transportConfiguration);
-        NoSecClientCredential credentials = createNoSecClientCredentials(endpoint);
+        createDeviceProfile(TRANSPORT_CONFIGURATION);
+        NoSecClientCredential credentials = createNoSecClientCredentials(this.CLIENT_ENDPOINT_WITHOUT_FW_INFO);
         final Device device = createDevice(credentials);
-        createNewClient(SECURITY, COAP_CONFIG, false);
+        createNewClient(SECURITY, COAP_CONFIG, false, this.CLIENT_ENDPOINT_WITHOUT_FW_INFO);
 
         Thread.sleep(1000);
 
@@ -180,12 +178,10 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
 
     @Test
     public void testFirmwareUpdateByObject5() throws Exception {
-        String endpoint = "Ota5_Device";
-        setEndpoint(endpoint);
         createDeviceProfile(OTA_TRANSPORT_CONFIGURATION);
-        NoSecClientCredential credentials = createNoSecClientCredentials(endpoint);
+        NoSecClientCredential credentials = createNoSecClientCredentials(this.CLIENT_ENDPOINT_OTA5);
         final Device device = createDevice(credentials);
-        createNewClient(SECURITY, COAP_CONFIG, false);
+        createNewClient(SECURITY, COAP_CONFIG, false, this.CLIENT_ENDPOINT_OTA5);
 
         Thread.sleep(1000);
 
@@ -219,12 +215,10 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
      * */
     @Test
     public void testSoftwareUpdateByObject9() throws Exception {
-        String endpoint = "Ota9_Device";
-        setEndpoint(endpoint);
         createDeviceProfile(OTA_TRANSPORT_CONFIGURATION);
-        NoSecClientCredential credentials = createNoSecClientCredentials(endpoint);
+        NoSecClientCredential credentials = createNoSecClientCredentials(this.CLIENT_ENDPOINT_OTA9);
         final Device device = createDevice(credentials);
-        createNewClient(SECURITY, COAP_CONFIG, false);
+        createNewClient(SECURITY, COAP_CONFIG, false, this.CLIENT_ENDPOINT_OTA9);
 
         Thread.sleep(1000);
 

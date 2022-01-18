@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,10 @@ public interface Dao<T> {
     T findById(TenantId tenantId, UUID id);
 
     ListenableFuture<T> findByIdAsync(TenantId tenantId, UUID id);
+
+    boolean existsById(TenantId tenantId, UUID id);
+
+    ListenableFuture<Boolean> existsByIdAsync(TenantId tenantId, UUID id);
 
     T save(TenantId tenantId, T t);
 

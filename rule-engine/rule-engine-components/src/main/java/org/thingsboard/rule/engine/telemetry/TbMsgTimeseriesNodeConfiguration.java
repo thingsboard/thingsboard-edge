@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,12 +38,14 @@ public class TbMsgTimeseriesNodeConfiguration implements NodeConfiguration<TbMsg
 
     private long defaultTTL;
     private boolean skipLatestPersistence;
+    private boolean useServerTs;
 
     @Override
     public TbMsgTimeseriesNodeConfiguration defaultConfiguration() {
         TbMsgTimeseriesNodeConfiguration configuration = new TbMsgTimeseriesNodeConfiguration();
         configuration.setDefaultTTL(0L);
         configuration.setSkipLatestPersistence(false);
+        configuration.setUseServerTs(false);
         return configuration;
     }
 }

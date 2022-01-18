@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -116,7 +116,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     }
 
     public void onRuleToSelfMsg(RuleNodeToSelfMsg msg) throws Exception {
-        checkActive(msg.getMsg());
+        checkComponentStateActive(msg.getMsg());
         TbMsg tbMsg = msg.getMsg();
         int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();
         int maxRuleNodeExecutionsPerMessage = getTenantProfileConfiguration().getMaxRuleNodeExecsPerMessage();
@@ -137,7 +137,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     void onRuleChainToRuleNodeMsg(RuleChainToRuleNodeMsg msg) throws Exception {
         msg.getMsg().getCallback().onProcessingStart(info);
-        checkActive(msg.getMsg());
+        checkComponentStateActive(msg.getMsg());
         TbMsg tbMsg = msg.getMsg();
         int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();
         int maxRuleNodeExecutionsPerMessage = getTenantProfileConfiguration().getMaxRuleNodeExecsPerMessage();

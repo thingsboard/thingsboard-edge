@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,9 @@ import {
   defaultSettings,
   FormattedData,
   MapSettings,
-  MarkerSettings, MarkerIconInfo, MarkerImageInfo,
+  MarkerIconInfo,
+  MarkerImageInfo,
+  MarkerSettings,
   PolygonSettings,
   PolylineSettings,
   ReplaceInfo,
@@ -197,7 +199,7 @@ export default abstract class LeafletMap {
 
     addEditControl() {
       // Customize edit marker
-      if (this.options.draggableMarker) {
+      if (this.options.draggableMarker && !this.options.hideDrawControlButton) {
         const actions = [{
           text: L.PM.Utils.getTranslation('actions.cancel'),
           onClick: () => this.toggleDrawMode('tbMarker')
@@ -212,7 +214,7 @@ export default abstract class LeafletMap {
       }
 
       // Customize edit polygon
-      if (this.editPolygons) {
+      if (this.editPolygons && !this.options.hideDrawControlButton) {
         const rectangleActions = [
           {
             text: L.PM.Utils.getTranslation('actions.cancel'),
@@ -246,18 +248,27 @@ export default abstract class LeafletMap {
 
       const translateService = this.ctx.$injector.get(TranslateService);
       this.map.pm.setLang('en', translateService.instant('widgets.maps'), 'en');
-      this.map.pm.addControls({
-        position: 'topleft',
-        drawMarker: false,
-        drawCircle: false,
-        drawCircleMarker: false,
-        drawRectangle: false,
-        drawPolyline: false,
-        drawPolygon: false,
-        editMode: this.editPolygons,
-        cutPolygon: this.editPolygons,
-        rotateMode: this.editPolygons
-      });
+      if (!this.options.hideAllControlButton) {
+        this.map.pm.addControls({
+          position: 'topleft',
+          drawControls: !this.options.hideDrawControlButton,
+          drawMarker: false,
+          drawCircle: false,
+          drawCircleMarker: false,
+          drawRectangle: false,
+          drawPolyline: false,
+          drawPolygon: false,
+          dragMode: !this.options.hideEditControlButton,
+          editMode: this.editPolygons && !this.options.hideEditControlButton,
+          cutPolygon: this.editPolygons && !this.options.hideEditControlButton,
+          removalMode: !this.options.hideRemoveControlButton,
+          rotateMode: this.editPolygons && !this.options.hideEditControlButton
+        });
+      }
+
+      if (this.options.initDragMode) {
+        this.map.pm.enableGlobalDragMode();
+      }
 
       this.map.on('pm:create', (e) => {
         if (e.shape === 'tbMarker') {
@@ -359,6 +370,7 @@ export default abstract class LeafletMap {
         }
         if (this.options.draggableMarker || this.editPolygons) {
           map.pm.setGlobalOptions({ snappable: false } as L.PM.GlobalOptions);
+          map.pm.applyGlobalOptions();
           this.addEditControl();
         } else {
           this.map.pm.disableDraw();
@@ -497,12 +509,12 @@ export default abstract class LeafletMap {
         }
         this.updateMarkers(formattedData, false);
         this.updateBoundsInternal();
-        if (this.options.draggableMarker) {
+        if (this.options.draggableMarker && !this.options.hideDrawControlButton) {
           const foundEntityWithoutLocation = formattedData.some(mData => !this.convertPosition(mData));
           this.map.pm.Toolbar.setButtonDisabled('tbMarker', !foundEntityWithoutLocation);
           this.datasources = formattedData;
         }
-        if (this.editPolygons) {
+        if (this.editPolygons && !this.options.hideDrawControlButton) {
           const foundEntityWithoutPolygon = formattedData.some(pData => !this.isValidPolygonPosition(pData));
           this.map.pm.Toolbar.setButtonDisabled('tbPolygon', !foundEntityWithoutPolygon);
           this.map.pm.Toolbar.setButtonDisabled('tbRectangle', !foundEntityWithoutPolygon);
@@ -570,7 +582,7 @@ export default abstract class LeafletMap {
             updatedMarkers.push(m);
           }
         } else {
-          m = this.createMarker(data.entityName, data, markersData, this.options as MarkerSettings, updateBounds, callback);
+          m = this.createMarker(data.entityName, data, markersData, this.options, updateBounds, callback);
           if (m) {
             createdMarkers.push(m);
           }
@@ -584,7 +596,7 @@ export default abstract class LeafletMap {
         }
       });
       this.markersData = markersData;
-      if ((this.options as MarkerSettings).useClusterMarkers) {
+      if (this.options.useClusterMarkers) {
         if (createdMarkers.length) {
           this.markersCluster.addLayers(createdMarkers.map(marker => marker.leafletMarker));
         }
@@ -604,7 +616,7 @@ export default abstract class LeafletMap {
         this.saveLocation(data, this.convertToCustomFormat(e.target._latlng)).subscribe();
     }
 
-    private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: MarkerSettings,
+    private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: UnitedMapSettings,
                          updateBounds = true, callback?): Marker {
       const newMarker = new Marker(this, this.convertPosition(data), settings, data, dataSources, this.dragMarker);
       if (callback) {
@@ -612,7 +624,7 @@ export default abstract class LeafletMap {
           callback(data, true);
         });
       }
-      if (this.bounds && updateBounds && !(this.options as MarkerSettings).useClusterMarkers) {
+      if (this.bounds && updateBounds && !this.options.useClusterMarkers) {
         this.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()));
       }
       this.markers.set(key, newMarker);
@@ -801,7 +813,7 @@ export default abstract class LeafletMap {
     this.saveLocation(data, this.convertPolygonToCustomFormat(coordinates)).subscribe(() => {});
   }
 
-    createPolygon(polyData: FormattedData, dataSources: FormattedData[], settings: PolygonSettings, updateBounds = true) {
+    createPolygon(polyData: FormattedData, dataSources: FormattedData[], settings: UnitedMapSettings, updateBounds = true) {
       const polygon = new Polygon(this.map, polyData, dataSources, settings, this.dragPolygonVertex);
       if (updateBounds) {
         const bounds = polygon.leafletPoly.getBounds();

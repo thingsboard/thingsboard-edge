@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -217,16 +217,18 @@ export class WidgetContext {
   };
 
   controlApi: RpcApi = {
-    sendOneWayCommand: (method, params, timeout, persistent, requestUUID) => {
+    sendOneWayCommand: (method, params, timeout, persistent,
+                        retries, additionalInfo, requestUUID) => {
       if (this.defaultSubscription) {
-        return this.defaultSubscription.sendOneWayCommand(method, params, timeout, persistent, requestUUID);
+        return this.defaultSubscription.sendOneWayCommand(method, params, timeout, persistent, retries, additionalInfo, requestUUID);
       } else {
         return of(null);
       }
     },
-    sendTwoWayCommand: (method, params, timeout, persistent, requestUUID) => {
+    sendTwoWayCommand: (method, params, timeout, persistent,
+                        retries, additionalInfo, requestUUID) => {
       if (this.defaultSubscription) {
-        return this.defaultSubscription.sendTwoWayCommand(method, params, timeout, persistent, requestUUID);
+        return this.defaultSubscription.sendTwoWayCommand(method, params, timeout, persistent, retries, additionalInfo, requestUUID);
       } else {
         return of(null);
       }

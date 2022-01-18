@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -557,6 +557,25 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
     ]
   ]
 );
+
+export const baseDetailsPageByEntityType = new Map<EntityType, string>([
+  [EntityType.TENANT, '/tenants'],
+  [EntityType.TENANT_PROFILE, '/tenantProfiles'],
+  [EntityType.CUSTOMER, '/customers'],
+  [EntityType.USER, '/users'],
+  [EntityType.DASHBOARD, '/dashboards'],
+  [EntityType.ASSET, '/assets'],
+  [EntityType.DEVICE, '/devices'],
+  [EntityType.DEVICE_PROFILE, '/deviceProfiles'],
+  [EntityType.CONVERTER, '/converters'],
+  [EntityType.INTEGRATION, '/integrations'],
+  [EntityType.RULE_CHAIN, '/ruleChains'],
+  [EntityType.EDGE, '/edgeInstances'],
+  [EntityType.ENTITY_VIEW, '/entityViews'],
+  [EntityType.ROLE, '/roles'],
+  [EntityType.TB_RESOURCE, '/settings/resources-library'],
+  [EntityType.OTA_PACKAGE, '/otaUpdates']
+]);
 
 export interface EntitySubtype {
   tenantId: TenantId;

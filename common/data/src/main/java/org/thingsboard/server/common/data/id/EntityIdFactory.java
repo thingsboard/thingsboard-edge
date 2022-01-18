@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.id;
 
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 
 import java.util.UUID;
@@ -59,7 +60,7 @@ public class EntityIdFactory {
     public static EntityId getByTypeAndUuid(EntityType type, UUID uuid) {
         switch (type) {
             case TENANT:
-                return new TenantId(uuid);
+                return TenantId.fromUUID(uuid);
             case CUSTOMER:
                 return new CustomerId(uuid);
             case USER:
@@ -112,6 +113,44 @@ public class EntityIdFactory {
                 return new RpcId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
+    }
+
+    public static EntityId getByEdgeEventTypeAndUuid(EdgeEventType edgeEventType, UUID uuid) {
+        switch (edgeEventType) {
+            case CUSTOMER:
+                return new CustomerId(uuid);
+            case USER:
+                return new UserId(uuid);
+            case DASHBOARD:
+                return new DashboardId(uuid);
+            case DEVICE:
+                return new DeviceId(uuid);
+            case DEVICE_PROFILE:
+                return new DeviceProfileId(uuid);
+            case ASSET:
+                return new AssetId(uuid);
+            case ALARM:
+                return new AlarmId(uuid);
+            case RULE_CHAIN:
+                return new RuleChainId(uuid);
+            case ENTITY_VIEW:
+                return new EntityViewId(uuid);
+            case WIDGETS_BUNDLE:
+                return new WidgetsBundleId(uuid);
+            case WIDGET_TYPE:
+                return new WidgetTypeId(uuid);
+            case EDGE:
+                return new EdgeId(uuid);
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(uuid);
+            case ENTITY_GROUP:
+                return new EntityGroupId(uuid);
+            case ROLE:
+                return new RoleId(uuid);
+            case GROUP_PERMISSION:
+                return new GroupPermissionId(uuid);
+        }
+        throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }
 
     public static EntityId getByCloudEventTypeAndUuid(CloudEventType cloudEventType, UUID uuid) {

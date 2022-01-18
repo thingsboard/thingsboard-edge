@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,8 @@ export class HEREMap extends LeafletMap {
     constructor(ctx: WidgetContext, $container, options: UnitedMapSettings) {
         super(ctx, $container, options);
         const map = L.map($container, {
-          tap: L.Browser.safari && L.Browser.mobile
+          tap: L.Browser.safari && L.Browser.mobile,
+          zoomControl: !this.options.disableZoomControl
         }).setView(options?.defaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
         const tileLayer = (L.tileLayer as any).provider(options.mapProviderHere || 'HERE.normalDay', options.credentials);
         tileLayer.addTo(map);

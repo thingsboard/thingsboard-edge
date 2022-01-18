@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,11 +45,14 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.group.SortOrder;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -701,7 +704,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
         } else {
             for (ColumnConfiguration column : columns) {
-                if (column.getSortOrder() != null) {
+                if (column.getSortOrder() != null && !column.getSortOrder().equals(SortOrder.NONE)) {
                     sortOrder = new EntityDataSortOrder(columnToEntityKey(column), EntityDataSortOrder.Direction.valueOf(column.getSortOrder().name()));
                     break;
                 }
@@ -799,7 +802,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }, MoreExecutors.directExecutor());
     }
 
-    /* merge comment
     @Override
     public EntityGroup assignEntityGroupToEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EntityType groupType) {
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
@@ -887,7 +889,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }, MoreExecutors.directExecutor());
     }
 
-    */
     private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId) {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(entityGroupName);

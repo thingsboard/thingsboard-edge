@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -160,7 +160,7 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
         Device device = new Device(new DeviceId(getUuid()));
         device.setCreatedTime(createdTime);
         if (tenantId != null) {
-            device.setTenantId(new TenantId(tenantId));
+            device.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
             device.setCustomerId(new CustomerId(customerId));

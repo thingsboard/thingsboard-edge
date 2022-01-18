@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -47,12 +47,13 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { Customer } from '@shared/models/customer.model';
 import { CustomerService } from '@core/http/customer.service';
 import { CustomerComponent } from '@home/pages/customer/customer.component';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<Customer> {
@@ -65,7 +66,8 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
               private homeDialogs: HomeDialogsService,
               private customerService: CustomerService,
               private router: Router,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Customer>): Observable<GroupEntityTableConfig<Customer>> {
@@ -180,6 +182,25 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
+  private openCustomer($event: Event, customer: Customer, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.customerId !== null) {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'customerGroups', params.childEntityGroupId, customer.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, customer.id.id]);
+      }
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([customer.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+    }
+  }
+
   manageUsers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
               params: EntityGroupParams) {
     if ($event) {
@@ -241,7 +262,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
   }
 
   manageEdges($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
-                    params: EntityGroupParams) {
+              params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -266,6 +287,9 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
 
   onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {
     switch (action.action) {
+      case 'open':
+        this.openCustomer(action.event, action.entity, config, params);
+        return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);
         return true;

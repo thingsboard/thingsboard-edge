@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -438,7 +438,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
               }
               break;
             case 'select':
-              value = keyValue.toString();
+              value = keyValue !== null ? keyValue.toString() : null;
               break;
             default:
               value = keyValue;
@@ -580,21 +580,23 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   }
 
   public inputChanged(source: MultipleInputWidgetSource, key: MultipleInputWidgetDataKey) {
-    if (!this.settings.showActionButtons && !this.isSavingInProgress) {
+    if (!this.settings.showActionButtons && !this.isSavingInProgress && this.multipleInputFormGroup.get(key.formId).valid) {
       this.isSavingInProgress = true;
-      const currentValue = this.multipleInputFormGroup.get(key.formId).value;
-      if (!key.settings.required ||
-        (key.settings.required && isDefinedAndNotNull(currentValue) && isNotEmptyStr(currentValue.toString()))) {
-        const dataToSave: MultipleInputWidgetSource = {
-          datasource: source.datasource,
-          keys: [key]
-        };
-        this.save(dataToSave);
-      }
+      const dataToSave: MultipleInputWidgetSource = {
+        datasource: source.datasource,
+        keys: [key]
+      };
+      this.save(dataToSave);
     }
   }
 
-  public save(dataToSave?: MultipleInputWidgetSource) {
+  public saveForm() {
+    if (this.settings.showActionButtons) {
+      this.save();
+    }
+  }
+
+  private save(dataToSave?: MultipleInputWidgetSource) {
     if (document?.activeElement && !this.isSavingInProgress) {
       this.isSavingInProgress = true;
       (document.activeElement as HTMLElement).blur();

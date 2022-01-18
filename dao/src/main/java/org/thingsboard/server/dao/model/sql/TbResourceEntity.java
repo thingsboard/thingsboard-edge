@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -103,7 +103,7 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
     public TbResource toData() {
         TbResource resource = new TbResource(new TbResourceId(id));
         resource.setCreatedTime(createdTime);
-        resource.setTenantId(new TenantId(tenantId));
+        resource.setTenantId(TenantId.fromUUID(tenantId));
         resource.setTitle(title);
         resource.setResourceType(ResourceType.valueOf(resourceType));
         resource.setResourceKey(resourceKey);

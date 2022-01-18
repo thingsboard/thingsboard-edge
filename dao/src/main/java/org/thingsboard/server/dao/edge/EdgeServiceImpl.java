@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,11 @@
  */
 package org.thingsboard.server.dao.edge;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -42,6 +46,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -49,15 +54,21 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -76,6 +87,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
@@ -95,11 +107,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
 
-    /* voba - merge comment
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final int DEFAULT_PAGE_SIZE = 1000;
-     */
 
     @Autowired
     private EdgeDao edgeDao;
@@ -297,7 +307,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 }, MoreExecutors.directExecutor());
     }
 
-    /* merge comment
     @Override
     public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
         log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
@@ -363,7 +372,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
         return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
     }
-     */
 
     private DataValidator<Edge> edgeValidator =
             new DataValidator<Edge>() {
@@ -436,7 +444,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 }
             };
 
-    /* merge comment
     @Override
     public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
         return findRelatedEdgeIdsByEntityId(tenantId, entityId, null, pageLink);
@@ -489,7 +496,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             }
         }
     }
-     */
 
     @Override
     public PageData<Edge> findEdgesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
@@ -516,7 +522,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findEdgesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
-    /* voba - merge comment
     private PageData<EdgeId> createEmptyEdgeIdPageData() {
         return new PageData<>(new ArrayList<>(), 0, 0, false);
     }
@@ -577,5 +582,4 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         } while (pageData != null && pageData.hasNext());
         return result;
     }
-     */
 }

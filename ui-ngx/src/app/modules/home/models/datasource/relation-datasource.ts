@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,8 @@ import { PageLink } from '@shared/models/page/page-link';
 import { catchError, map, publishReplay, refCount, take, tap } from 'rxjs/operators';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import { TranslateService } from '@ngx-translate/core';
-import { entityTypeTranslations } from '@shared/models/entity-type.models';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { getEntityDetailsPageURL } from '@core/utils';
 
 export class RelationsDatasource implements DataSource<EntityRelationInfo> {
 
@@ -107,8 +108,10 @@ export class RelationsDatasource implements DataSource<EntityRelationInfo> {
           relations.forEach(relation => {
             if (direction === EntitySearchDirection.FROM) {
               relation.toEntityTypeName = this.translate.instant(entityTypeTranslations.get(relation.to.entityType).type);
+              relation.entityURL = getEntityDetailsPageURL(relation.to.id, relation.to.entityType as EntityType);
             } else {
               relation.fromEntityTypeName = this.translate.instant(entityTypeTranslations.get(relation.from.entityType).type);
+              relation.entityURL = getEntityDetailsPageURL(relation.from.id, relation.from.entityType as EntityType);
             }
           });
           return relations;

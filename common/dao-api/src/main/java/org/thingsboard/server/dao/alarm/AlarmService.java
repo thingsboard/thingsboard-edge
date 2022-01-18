@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.alarm;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -87,6 +88,8 @@ public interface AlarmService {
                                                         AlarmDataQuery query, Collection<EntityId> orderedEntityIds);
 
     Set<EntityId> getPropagationEntityIds(Alarm alarm);
+
+    Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types);
 
     void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 }

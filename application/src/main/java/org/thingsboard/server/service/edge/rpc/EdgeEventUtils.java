@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,15 +43,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 public final class EdgeEventUtils {
 
     private EdgeEventUtils() {
-    }
-
-    public static TimePageLink createCloudEventTimePageLink(int pageSize, Long startTs) {
-        return new TimePageLink(pageSize,
-                0,
-                null,
-                new SortOrder("createdTime", SortOrder.Direction.ASC),
-                startTs,
-                System.currentTimeMillis());
     }
 
     public static EdgeEvent constructEdgeEvent(TenantId tenantId,

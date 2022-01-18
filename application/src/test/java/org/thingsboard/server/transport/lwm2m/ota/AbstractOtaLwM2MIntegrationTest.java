@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,10 +42,13 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 public abstract class AbstractOtaLwM2MIntegrationTest extends AbstractLwM2MIntegrationTest {
 
-    private final  String[] resources = new String[]{"3.xml", "5.xml", "9.xml"};
+    private final  String[] RESOURCES_OTA = new String[]{"3.xml", "5.xml", "9.xml"};
+    protected static final String CLIENT_ENDPOINT_WITHOUT_FW_INFO = "WithoutFirmwareInfoDevice";
+    protected static final String CLIENT_ENDPOINT_OTA5 = "Ota5_Device";
+    protected static final String CLIENT_ENDPOINT_OTA9 = "Ota9_Device";
 
     public AbstractOtaLwM2MIntegrationTest() {
-        setResources(this.resources);
+        setResources(this.RESOURCES_OTA);
     }
 
     protected OtaPackageInfo createFirmware() throws Exception {

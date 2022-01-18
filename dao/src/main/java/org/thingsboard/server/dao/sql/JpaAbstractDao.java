@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -93,6 +93,18 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     public ListenableFuture<D> findByIdAsync(TenantId tenantId, UUID key) {
         log.debug("Get entity by key async {}", key);
         return service.submit(() -> DaoUtil.getData(getCrudRepository().findById(key)));
+    }
+
+    @Override
+    public boolean existsById(TenantId tenantId, UUID key) {
+        log.debug("Exists by key {}", key);
+        return getCrudRepository().existsById(key);
+    }
+
+    @Override
+    public ListenableFuture<Boolean> existsByIdAsync(TenantId tenantId, UUID key) {
+        log.debug("Exists by key async {}", key);
+        return service.submit(() -> getCrudRepository().existsById(key));
     }
 
     @Override

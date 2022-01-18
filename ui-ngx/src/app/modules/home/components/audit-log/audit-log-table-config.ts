@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -69,11 +69,13 @@ export class AuditLogTableConfig extends EntityTableConfig<AuditLog, TimePageLin
               public entityId: EntityId = null,
               public userId: UserId = null,
               public customerId: CustomerId = null,
-              updateOnInit = true) {
+              updateOnInit = true,
+              pageMode = false) {
     super();
     this.loadDataOnInit = updateOnInit;
     this.tableTitle = '';
     this.useTimePageLink = true;
+    this.pageMode = pageMode;
     this.detailsPanelEnabled = false;
     this.selectionEnabled = false;
     this.searchEnabled = true;

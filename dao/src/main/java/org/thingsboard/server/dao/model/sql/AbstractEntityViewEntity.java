@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -169,7 +169,7 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
             entityView.setEntityId(EntityIdFactory.getByTypeAndUuid(entityType.name(), entityId));
         }
         if (tenantId != null) {
-            entityView.setTenantId(new TenantId(tenantId));
+            entityView.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
             entityView.setCustomerId(new CustomerId(customerId));

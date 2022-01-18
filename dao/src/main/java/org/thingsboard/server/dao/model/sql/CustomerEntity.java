@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -141,7 +141,7 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
     public Customer toData() {
         Customer customer = new Customer(new CustomerId(this.getUuid()));
         customer.setCreatedTime(createdTime);
-        customer.setTenantId(new TenantId(tenantId));
+        customer.setTenantId(TenantId.fromUUID(tenantId));
         if (parentCustomerId != null) {
             customer.setParentCustomerId(new CustomerId(parentCustomerId));
         }

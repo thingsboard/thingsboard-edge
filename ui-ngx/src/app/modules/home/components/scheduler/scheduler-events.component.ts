@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -56,17 +67,19 @@ import {
   map,
   publishReplay,
   refCount,
+  share,
+  skip,
   take,
   tap
 } from 'rxjs/operators';
-import { PageLink } from '@shared/models/page/page-link';
+import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, SortDirection } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isNotEmptyStr, isNumber } from '@core/utils';
+import { deepClone, isDefined, isEmptyStr, isNotEmptyStr, isNumber } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -96,12 +109,14 @@ import * as _moment from 'moment';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
 import { getUserZone } from '@shared/models/time/time.models';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, QueryParamsHandling, Router } from '@angular/router';
 import {
   AddEntitiesToEdgeDialogComponent,
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -111,6 +126,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 })
 export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit, OnChanges {
 
+  @ViewChild('schedulerEventWidgetContainer', {static: true}) schedulerEventWidgetContainerRef: ElementRef;
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -118,6 +134,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   @ViewChild('calendarContainer') calendarContainer: ElementRef<HTMLElement>;
   @ViewChild('calendar') calendarComponent: FullCalendarComponent;
+
+  @ViewChild('schedulerEventMenuTrigger', {static: true}) schedulerEventMenuTrigger: MatMenuTrigger;
 
   @Input()
   widgetMode: boolean;
@@ -153,6 +171,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
+  hidePageSize = false;
   noDataDisplayMessageText: string;
 
   displayedColumns: string[];
@@ -175,15 +194,15 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   eventSources: EventSourceInput[] = [this.eventSourceFunction.bind(this)];
 
-  private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
-
   calendarApi: Calendar;
-
-  @ViewChild('schedulerEventMenuTrigger', {static: true}) schedulerEventMenuTrigger: MatMenuTrigger;
 
   schedulerEventMenuPosition = { x: '0px', y: '0px' };
 
   schedulerContextMenuEvent: MouseEvent;
+
+  private schedulerEvents: Array<SchedulerEventWithCustomerInfo> = [];
+
+  private widgetResize$: ResizeObserver;
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
@@ -192,7 +211,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
               private dialog: MatDialog,
-              private route: ActivatedRoute) {
+              private router: Router,
+              private route: ActivatedRoute,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -209,9 +230,23 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       if (this.deleteEnabled) {
         this.displayedColumns.unshift('select');
       }
-      const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
+      const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
+      const sortOrder: SortOrder = {
+        property: routerQueryParams?.property || this.defaultSortOrder,
+        direction: routerQueryParams?.direction || Direction.ASC
+      };
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
+      if (routerQueryParams.hasOwnProperty('page')) {
+        this.pageLink.page = Number(routerQueryParams.page);
+      }
+      if (routerQueryParams.hasOwnProperty('pageSize')) {
+        this.pageLink.pageSize = Number(routerQueryParams.pageSize);
+      }
+      if (routerQueryParams.hasOwnProperty('textSearch') && !isEmptyStr(routerQueryParams.textSearch)) {
+        this.textSearchMode = true;
+        this.pageLink.textSearch = decodeURI(routerQueryParams.textSearch);
+      }
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
       if (this.edgeId) {
@@ -230,6 +265,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.addEnabled = false;
         this.editEnabled = false;
       }
+    }
+    if (this.displayPagination) {
+      this.widgetResize$ = new ResizeObserver(() => {
+        const showHidePageSize = this.schedulerEventWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
+      this.widgetResize$.observe(this.schedulerEventWidgetContainerRef.nativeElement);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
     }
   }
 
@@ -359,20 +410,76 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
             if (this.displayPagination) {
               this.paginator.pageIndex = 0;
             }
-            this.updateData();
+            if (this.widgetMode) {
+              this.updateData();
+            } else {
+              const queryParams: PageQueryParam = {
+                textSearch: encodeURI(this.pageLink.textSearch) || null,
+                page: null
+              };
+              this.updatedRouterQueryParams(queryParams);
+            }
           })
         )
         .subscribe();
 
+      let paginatorSubscription$: Observable<object>;
+      const sortSubscription$: Observable<object> = this.sort.sortChange.asObservable().pipe(
+        map((data) => {
+          const direction = data.direction.toUpperCase();
+          const queryParams: PageQueryParam = {
+            direction: Direction.ASC === direction ? null : direction as Direction,
+            property: this.defaultSortOrder === data.active ? null : data.active,
+            page: null
+          };
+          if (this.displayPagination) {
+            this.paginator.pageIndex = 0;
+          }
+          return queryParams;
+        })
+      );
+
       if (this.displayPagination) {
-        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+        if (this.displayPagination) {
+          paginatorSubscription$ = this.paginator.page.asObservable().pipe(
+            map((data) => {
+              return {
+                page: data.pageIndex === 0 ? null : data.pageIndex,
+                pageSize: data.pageSize === this.defaultPageSize ? null : data.pageSize
+              };
+            })
+          );
+        }
       }
 
-      ((this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange) as Observable<any>)
+      ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$) : sortSubscription$) as Observable<PageQueryParam>)
         .pipe(
-          tap(() => this.updateData())
+          tap((queryParams) => {
+            if (this.widgetMode) {
+              this.updateData();
+            } else {
+              this.updatedRouterQueryParams(queryParams);
+            }
+          })
         )
         .subscribe();
+
+      if (!this.widgetMode) {
+        this.route.queryParams.pipe(skip(1)).subscribe((params: PageQueryParam) => {
+          this.paginator.pageIndex = Number(params.page) || 0;
+          this.paginator.pageSize = Number(params.pageSize) || this.defaultPageSize;
+          this.sort.active = params.property || this.defaultSortOrder;
+          this.sort.direction = (params.direction || Direction.ASC).toLowerCase() as SortDirection;
+          if (params.hasOwnProperty('textSearch') && !isEmptyStr(params.textSearch)) {
+            this.textSearchMode = true;
+            this.pageLink.textSearch = decodeURI(params.textSearch);
+          } else {
+            this.textSearchMode = false;
+            this.pageLink.textSearch = null;
+          }
+          this.updateData();
+        });
+      }
 
       this.updateData(true);
     }
@@ -423,10 +530,16 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     if (this.displayPagination) {
       this.paginator.pageIndex = 0;
     }
-    this.updateData();
     if (this.widgetMode) {
+      this.updateData();
       this.ctx.hideTitlePanel = false;
       this.ctx.detectChanges(true);
+    } else {
+      const queryParams: PageQueryParam = {
+        textSearch: null,
+        page: null
+      };
+      this.updatedRouterQueryParams(queryParams);
     }
   }
 
@@ -907,6 +1020,14 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     }
   }
 
+
+  private updatedRouterQueryParams(queryParams: object, queryParamsHandling: QueryParamsHandling = 'merge') {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling
+    });
+  }
 }
 
 class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomerInfo> {
@@ -1009,19 +1130,22 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
   isAllSelected(): Observable<boolean> {
     const numSelected = this.selection.selected.length;
     return this.entitiesSubject.pipe(
-      map((entities) => numSelected === entities.length)
+      map((entities) => numSelected === entities.length),
+      share()
     );
   }
 
   isEmpty(): Observable<boolean> {
     return this.entitiesSubject.pipe(
-      map((entities) => !entities.length)
+      map((entities) => !entities.length),
+      share()
     );
   }
 
   total(): Observable<number> {
     return this.pageDataSubject.pipe(
-      map((pageData) => pageData.totalElements)
+      map((pageData) => pageData.totalElements),
+      share()
     );
   }
 

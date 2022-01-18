@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,8 @@ import java.util.UUID;
 public interface EntityAlarmRepository extends CrudRepository<EntityAlarmEntity, EntityAlarmCompositeKey> {
 
     List<EntityAlarmEntity> findAllByAlarmId(UUID alarmId);
+
+    List<EntityAlarmEntity> findAllByAlarmIdAndEntityTypeIn(UUID alarmId, List<String> entityTypes);
 
     @Transactional
     void deleteByEntityId(UUID id);

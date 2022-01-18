@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -149,6 +149,10 @@ export class KeyFilterDialogComponent extends
             }
           );
         }
+        if (valueType === EntityKeyValueType.BOOLEAN && this.isConstantKeyType) {
+          this.keyFilterFormGroup.get('value').clearValidators();
+          this.keyFilterFormGroup.get('value').updateValueAndValidity();
+        }
       });
 
       this.keyFilterFormGroup.get('key.type').valueChanges.pipe(
@@ -163,7 +167,7 @@ export class KeyFilterDialogComponent extends
           this.showAutocomplete = false;
         }
         if (this.data.telemetryKeysOnly) {
-          if (type === EntityKeyType.CONSTANT) {
+          if (type === EntityKeyType.CONSTANT && (this.keyFilterFormGroup.get('valueType').value !== EntityKeyValueType.BOOLEAN)) {
             this.keyFilterFormGroup.get('value').setValidators(Validators.required);
             this.keyFilterFormGroup.get('value').updateValueAndValidity();
           } else {

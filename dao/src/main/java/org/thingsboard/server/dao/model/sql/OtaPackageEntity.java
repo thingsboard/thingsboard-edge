@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -166,7 +166,7 @@ public class OtaPackageEntity extends BaseSqlEntity<OtaPackage> implements Searc
     public OtaPackage toData() {
         OtaPackage otaPackage = new OtaPackage(new OtaPackageId(id));
         otaPackage.setCreatedTime(createdTime);
-        otaPackage.setTenantId(new TenantId(tenantId));
+        otaPackage.setTenantId(TenantId.fromUUID(tenantId));
         if (deviceProfileId != null) {
             otaPackage.setDeviceProfileId(new DeviceProfileId(deviceProfileId));
         }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,12 @@ import { SortDirection } from '@angular/material/sort';
 export const MAX_SAFE_PAGE_SIZE = 2147483647;
 
 export type PageLinkSearchFunction<T> = (entity: T, textSearch: string, searchProperty?: string) => boolean;
+
+export interface PageQueryParam extends Partial<SortOrder>{
+  textSearch?: string;
+  pageSize?: number;
+  page?: number;
+}
 
 export function defaultPageLinkSearchFunction(searchProperty?: string): PageLinkSearchFunction<any> {
   return (entity, textSearch) => defaultPageLinkSearch(entity, textSearch, searchProperty);

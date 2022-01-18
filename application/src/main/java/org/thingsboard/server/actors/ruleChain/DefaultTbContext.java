@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -87,17 +87,21 @@ import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.nosql.CassandraStatementTask;
+import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -197,6 +201,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     private void enqueue(TopicPartitionInfo tpi, TbMsg tbMsg, Consumer<Throwable> onFailure, Runnable onSuccess) {
+        if (!tbMsg.isValid()) {
+            log.trace("[{}] Skip invalid message: {}", getTenantId(), tbMsg);
+            onFailure.accept(new IllegalArgumentException("Source message is no longer valid!"));
+            return;
+        }
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
@@ -265,6 +274,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     private void enqueueForTellNext(TopicPartitionInfo tpi, String queueName, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
+        if (!source.isValid()) {
+            log.trace("[{}] Skip invalid message: {}", getTenantId(), source);
+            onFailure.accept(new IllegalArgumentException("Source message is no longer valid!"));
+            return;
+        }
         RuleChainId ruleChainId = nodeCtx.getSelf().getRuleChainId();
         RuleNodeId ruleNodeId = nodeCtx.getSelf().getId();
         TbMsg tbMsg = TbMsg.newMsg(source, queueName, ruleChainId, ruleNodeId);
@@ -570,6 +584,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public EdgeEventService getEdgeEventService() {
+        return mainCtx.getEdgeEventService();
+    }
+
+    @Override
     public CloudEventService getCloudEventService() {
         return mainCtx.getCloudEventService();
     }
@@ -734,6 +753,21 @@ class DefaultTbContext implements TbContext, TbPeContext {
                     }
                     callback.onFailure(error);
                 }));
+    }
+
+    @Override
+    public CassandraCluster getCassandraCluster() {
+        return mainCtx.getCassandraCluster();
+    }
+
+    @Override
+    public TbResultSetFuture submitCassandraReadTask(CassandraStatementTask task) {
+        return mainCtx.getCassandraBufferedRateReadExecutor().submit(task);
+    }
+
+    @Override
+    public TbResultSetFuture submitCassandraWriteTask(CassandraStatementTask task) {
+        return mainCtx.getCassandraBufferedRateWriteExecutor().submit(task);
     }
 
     @Override

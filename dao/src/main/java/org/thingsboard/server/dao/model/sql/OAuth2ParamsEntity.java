@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -73,7 +73,7 @@ public class OAuth2ParamsEntity extends BaseSqlEntity<OAuth2Params> {
         OAuth2Params oauth2Params = new OAuth2Params();
         oauth2Params.setId(new OAuth2ParamsId(id));
         oauth2Params.setCreatedTime(createdTime);
-        oauth2Params.setTenantId(new TenantId(tenantId));
+        oauth2Params.setTenantId(TenantId.fromUUID(tenantId));
         oauth2Params.setEnabled(enabled);
         return oauth2Params;
     }

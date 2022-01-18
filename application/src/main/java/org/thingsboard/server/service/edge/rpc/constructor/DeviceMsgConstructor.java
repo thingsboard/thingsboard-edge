@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,6 @@ import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
-import org.thingsboard.server.gen.edge.v1.RpcResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -51,10 +50,6 @@ import java.util.UUID;
 @Component
 @TbCoreComponent
 public class DeviceMsgConstructor {
-
-    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device) {
-        return constructDeviceUpdatedMsg(msgType, device, null, null);
-    }
 
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
                                                      String conflictName) {
@@ -139,26 +134,6 @@ public class DeviceMsgConstructor {
                 .setExpirationTime(expirationTime)
                 .setOneway(oneway)
                 .setRequestMsg(requestBuilder.build());
-        return builder.build();
-    }
-
-    public DeviceRpcCallMsg constructDeviceRpcResponseMsg(DeviceId deviceId, JsonNode body) {
-        RpcResponseMsg.Builder responseBuilder = RpcResponseMsg.newBuilder();
-        if (body.has("error")) {
-            responseBuilder.setError(body.get("error").asText());
-        } else {
-            responseBuilder.setResponse(body.get("response").asText());
-        }
-        UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
-        DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
-                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
-                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
-                .setRequestUuidMSB(requestUUID.getMostSignificantBits())
-                .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
-                .setExpirationTime(body.get("expirationTime").asLong())
-                .setRequestId(body.get("requestId").asInt())
-                .setOneway(body.get("oneway").asBoolean())
-                .setResponseMsg(responseBuilder.build());
         return builder.build();
     }
 }

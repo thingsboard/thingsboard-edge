@@ -1,0 +1,134 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../scss/constants";
+
+:host {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .settings-card {
+    margin: 8px;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .details-toolbar {
+      height: 84px;
+      min-height: 84px;
+      border-radius: 4px 4px 0 0;
+      background: #fff;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+
+      .mat-toolbar-tools {
+        padding: 0 8px;
+      }
+
+      .tb-details-title-header {
+        min-width: 0;
+        width: auto;
+      }
+
+      .tb-details-title {
+        font-size: 1rem;
+        font-weight: 500;
+
+        @media #{$mat-gt-sm} {
+          font-size: 1.2rem;
+        }
+      }
+
+      .tb-details-subtitle {
+        font-size: 0.9rem;
+        opacity: .8;
+      }
+
+      .tb-ellipsis {
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    @media #{$mat-md} {
+      width: 80%;
+    }
+
+    @media #{$mat-gt-md} {
+      width: 60%;
+    }
+
+    .tb-header-button {
+      .tb-btn-header {
+        position: relative !important;
+        display: inline-block !important;
+        animation: tbMoveFromTopFade .3s ease both;
+
+        &.tb-hide {
+          animation: tbMoveToTopFade .3s ease both;
+        }
+      }
+    }
+  }
+}
+
+:host ::ng-deep {
+  .tb-help {
+    .mat-icon-button.mat-primary {
+      color: rgba(0, 0, 0, 0.52);
+    }
+  }
+
+  .mat-card-content {
+    position: relative;
+    overflow: hidden;
+
+    > .mat-tab-group {
+      > .mat-tab-body-wrapper {
+        position: absolute;
+        top: 49px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      > .mat-tab-header {
+        .mat-tab-label {
+          min-width: 40px;
+        }
+      }
+    }
+  }
+}

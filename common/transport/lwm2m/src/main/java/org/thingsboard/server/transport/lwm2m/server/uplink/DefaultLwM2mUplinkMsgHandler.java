@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -443,7 +443,7 @@ public class DefaultLwM2mUplinkMsgHandler extends LwM2MExecutorAwareService impl
     @Override
     public void onResourceUpdate(TransportProtos.ResourceUpdateMsg resourceUpdateMsgOpt) {
         String idVer = resourceUpdateMsgOpt.getResourceKey();
-        TenantId tenantId = new TenantId(new UUID(resourceUpdateMsgOpt.getTenantIdMSB(), resourceUpdateMsgOpt.getTenantIdLSB()));
+        TenantId tenantId = TenantId.fromUUID(new UUID(resourceUpdateMsgOpt.getTenantIdMSB(), resourceUpdateMsgOpt.getTenantIdLSB()));
         modelProvider.evict(tenantId, idVer);
         clientContext.getLwM2mClients().forEach(e -> e.updateResourceModel(idVer, modelProvider));
     }
@@ -451,7 +451,7 @@ public class DefaultLwM2mUplinkMsgHandler extends LwM2MExecutorAwareService impl
     @Override
     public void onResourceDelete(TransportProtos.ResourceDeleteMsg resourceDeleteMsgOpt) {
         String pathIdVer = resourceDeleteMsgOpt.getResourceKey();
-        TenantId tenantId = new TenantId(new UUID(resourceDeleteMsgOpt.getTenantIdMSB(), resourceDeleteMsgOpt.getTenantIdLSB()));
+        TenantId tenantId = TenantId.fromUUID(new UUID(resourceDeleteMsgOpt.getTenantIdMSB(), resourceDeleteMsgOpt.getTenantIdLSB()));
         modelProvider.evict(tenantId, pathIdVer);
         clientContext.getLwM2mClients().forEach(e -> e.deleteResources(pathIdVer, modelProvider));
     }

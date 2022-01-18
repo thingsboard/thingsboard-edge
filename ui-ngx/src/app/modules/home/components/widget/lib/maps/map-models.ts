@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ export type MapSettings = {
     posFunction: PosFuncton;
     defaultZoomLevel?: number;
     disableScrollZooming?: boolean;
+    disableZoomControl?: boolean;
     minZoomLevel?: number;
     useClusterMarkers: boolean;
     latKeyName?: string;
@@ -207,6 +208,15 @@ export type PolylineSettings = {
     strokeWeightFunction: GenericFunction;
 };
 
+export interface EditorSettings {
+    snappable: boolean;
+    initDragMode: boolean;
+    hideAllControlButton: boolean;
+    hideDrawControlButton: boolean;
+    hideEditControlButton: boolean;
+    hideRemoveControlButton: boolean;
+}
+
 export interface HistorySelectSettings {
     buttonColor: string;
 }
@@ -246,7 +256,7 @@ export interface TripAnimationSettings extends PolygonSettings {
 
 export type actionsHandler = ($event: Event, datasource: Datasource) => void;
 
-export type UnitedMapSettings = MapSettings & PolygonSettings & MarkerSettings & PolylineSettings & TripAnimationSettings;
+export type UnitedMapSettings = MapSettings & PolygonSettings & MarkerSettings & PolylineSettings & TripAnimationSettings & EditorSettings;
 
 export const defaultSettings: any = {
     xPosKeyName: 'xPos',
@@ -286,7 +296,13 @@ export const defaultSettings: any = {
     draggableMarker: false,
     editablePolygon: false,
     fitMapBounds: true,
-    mapPageSize: DEFAULT_MAP_PAGE_SIZE
+    mapPageSize: DEFAULT_MAP_PAGE_SIZE,
+    snappable: false,
+    initDragMode: false,
+    hideAllControlButton: false,
+    hideDrawControlButton: false,
+    hideEditControlButton: false,
+    hideRemoveControlButton: false
 };
 
 export const hereProviders = [

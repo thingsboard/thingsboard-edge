@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,23 +35,51 @@ import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { AssetsTableConfigResolver } from './assets-table-config.resolver';
+import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
+import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 
 const routes: Routes = [
   {
     path: 'assets',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'asset.assets',
-      assetsType: 'tenant',
       breadcrumb: {
         label: 'asset.assets',
         icon: 'domain'
       }
     },
-    resolve: {
-      entitiesTableConfig: AssetsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'asset.assets',
+          assetsType: 'tenant'
+        },
+        resolve: {
+          entitiesTableConfig: AssetsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityId',
+        component: EntityDetailsPageComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          breadcrumb: {
+            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+            icon: 'domain'
+          } as BreadCrumbConfig<EntityDetailsPageComponent>,
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'asset.assets',
+          assetsType: 'tenant'
+        },
+        resolve: {
+          entitiesTableConfig: AssetsTableConfigResolver
+        }
+      }
+    ]
   }
 ];
 

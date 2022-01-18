@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,13 +45,13 @@ public class X509_TrustLwM2MIntegrationTest extends AbstractSecurityLwM2MIntegra
     @Test
     public void testConnectAndObserveTelemetry() throws Exception {
         X509ClientCredential credentials = new X509ClientCredential();
-        credentials.setEndpoint(ENDPOINT);
+        credentials.setEndpoint(CLIENT_ENDPOINT_X509_TRUST);
         Security security = x509(SECURE_URI,
                 SHORT_SERVER_ID,
-                clientX509Cert.getEncoded(),
-                clientPrivateKeyFromCert.getEncoded(),
+                clientX509CertTrust.getEncoded(),
+                clientPrivateKeyFromCertTrust.getEncoded(),
                 serverX509Cert.getEncoded());
-        super.basicTestConnectionObserveTelemetry(security, credentials, SECURE_COAP_CONFIG, ENDPOINT);
+        super.basicTestConnectionObserveTelemetry(security, credentials, SECURE_COAP_CONFIG, CLIENT_ENDPOINT_X509_TRUST);
     }
 
 }

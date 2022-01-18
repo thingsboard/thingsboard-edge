@@ -1,0 +1,625 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+syntax = "proto3";
+
+option java_package = "org.thingsboard.server.gen.edge.v1";
+option java_multiple_files = true;
+option java_outer_classname = "EdgeProtos";
+
+import "queue.proto";
+
+package edge;
+
+// Interface exported by the ThingsBoard Edge Transport.
+service EdgeRpcService {
+
+  rpc handleMsgs(stream RequestMsg) returns (stream ResponseMsg) {}
+
+}
+
+enum EdgeVersion {
+  V_3_3_0 = 0;
+  V_3_3_3 = 1;
+}
+
+/**
+ * Data Structures;
+ */
+message RequestMsg {
+  RequestMsgType msgType = 1;
+  ConnectRequestMsg connectRequestMsg = 2;
+  UplinkMsg uplinkMsg = 3;
+  DownlinkResponseMsg downlinkResponseMsg = 4;
+  SyncRequestMsg syncRequestMsg = 5;
+}
+
+message ResponseMsg {
+  ConnectResponseMsg connectResponseMsg = 1;
+  UplinkResponseMsg uplinkResponseMsg = 2;
+  DownlinkMsg downlinkMsg = 3;
+  EdgeUpdateMsg edgeUpdateMsg = 4;
+}
+
+enum RequestMsgType {
+  CONNECT_RPC_MESSAGE = 0;
+  UPLINK_RPC_MESSAGE = 1;
+  SYNC_REQUEST_RPC_MESSAGE = 2;
+}
+
+message EdgeUpdateMsg {
+  EdgeConfiguration configuration = 1;
+}
+
+message ConnectRequestMsg {
+  string edgeRoutingKey = 1;
+  string edgeSecret = 2;
+  EdgeVersion edgeVersion = 3;
+}
+
+enum ConnectResponseCode {
+  ACCEPTED = 0;
+  BAD_CREDENTIALS = 1;
+  SERVER_UNAVAILABLE = 2;
+}
+
+message ConnectResponseMsg {
+  ConnectResponseCode responseCode = 1;
+  string errorMsg = 2;
+  EdgeConfiguration configuration = 3;
+}
+
+message SyncRequestMsg {
+  bool syncRequired = 1;
+}
+
+message SyncCompletedMsg {
+}
+
+message EdgeConfiguration {
+  int64 edgeIdMSB = 1;
+  int64 edgeIdLSB = 2;
+  int64 tenantIdMSB = 3;
+  int64 tenantIdLSB = 4;
+  int64 customerIdMSB = 5;
+  int64 customerIdLSB = 6;
+  string name = 7;
+  string type = 8;
+  string routingKey = 9;
+  string secret = 10;
+  string edgeLicenseKey = 11;
+  string cloudEndpoint = 12;
+  string additionalInfo = 13;
+  string cloudType = 14;
+}
+
+enum UpdateMsgType {
+  ENTITY_CREATED_RPC_MESSAGE = 0;
+  ENTITY_UPDATED_RPC_MESSAGE = 1;
+  ENTITY_DELETED_RPC_MESSAGE = 2;
+  ALARM_ACK_RPC_MESSAGE = 3;
+  ALARM_CLEAR_RPC_MESSAGE = 4;
+  ENTITY_MERGE_RPC_MESSAGE = 5;
+}
+
+message EntityDataProto {
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+  transport.PostTelemetryMsg postTelemetryMsg = 4;
+  transport.PostAttributeMsg postAttributesMsg = 5;
+  transport.PostAttributeMsg attributesUpdatedMsg = 6;
+  string postAttributeScope = 7;
+  AttributeDeleteMsg attributeDeleteMsg = 8;
+}
+
+message AttributeDeleteMsg {
+  string scope = 1;
+  repeated string attributeNames = 2;
+}
+
+message RuleChainUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  optional int64 firstRuleNodeIdMSB = 5;
+  optional int64 firstRuleNodeIdLSB = 6;
+  bool root = 7;
+  bool debugMode = 8;
+  string configuration = 9;
+}
+
+message RuleChainMetadataUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 ruleChainIdMSB = 2;
+  int64 ruleChainIdLSB = 3;
+  int32 firstNodeIndex = 4;
+  repeated RuleNodeProto nodes = 5;
+  repeated NodeConnectionInfoProto connections = 6;
+  repeated RuleChainConnectionInfoProto ruleChainConnections = 7;
+}
+
+message RuleNodeProto {
+  int64 idMSB = 1;
+  int64 idLSB = 2;
+  string type = 3;
+  string name = 4;
+  bool debugMode = 5;
+  string configuration = 6;
+  string additionalInfo = 7;
+}
+
+message NodeConnectionInfoProto {
+  int32 fromIndex = 1;
+  int32 toIndex = 2;
+  string type = 3;
+}
+
+message RuleChainConnectionInfoProto {
+  int32 fromIndex = 1;
+  int64 targetRuleChainIdMSB = 2;
+  int64 targetRuleChainIdLSB = 3;
+  string type = 4;
+  string additionalInfo = 5;
+}
+
+message DashboardUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional int64 customerIdMSB = 4;
+  optional int64 customerIdLSB = 5;
+  string title = 6;
+  string configuration = 7;
+  optional int64 entityGroupIdMSB = 8;
+  optional int64 entityGroupIdLSB = 9;
+}
+
+message DeviceUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional int64 customerIdMSB = 4;
+  optional int64 customerIdLSB = 5;
+  optional int64 deviceProfileIdMSB = 6;
+  optional int64 deviceProfileIdLSB = 7;
+  string name = 8;
+  string type = 9;
+  optional string label = 10;
+  optional string additionalInfo = 11;
+  optional string conflictName = 12;
+  optional int64 entityGroupIdMSB = 13;
+  optional int64 entityGroupIdLSB = 14;
+}
+
+message DeviceProfileUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  optional string description = 5;
+  bool default = 6;
+  string type = 7;
+  optional string transportType = 8;
+  optional string provisionType = 9;
+  int64 defaultRuleChainIdMSB = 10;
+  int64 defaultRuleChainIdLSB = 11;
+  string defaultQueueName = 12;
+  bytes profileDataBytes = 13;
+  optional string provisionDeviceKey = 14;
+  optional bytes image = 15;
+}
+
+message DeviceCredentialsUpdateMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+  string credentialsType = 3;
+  string credentialsId = 4;
+  optional string credentialsValue = 5;
+}
+
+message AssetUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional int64 customerIdMSB = 4;
+  optional int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  optional string label = 8;
+  optional string additionalInfo = 9;
+  optional int64 entityGroupIdMSB = 10;
+  optional int64 entityGroupIdLSB = 11;
+}
+
+message EntityViewUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional int64 customerIdMSB = 4;
+  optional int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  int64 entityIdMSB = 8;
+  int64 entityIdLSB = 9;
+  EdgeEntityType entityType = 10;
+  optional string additionalInfo = 11;
+  optional int64 entityGroupIdMSB = 12;
+  optional int64 entityGroupIdLSB = 13;
+}
+
+message AlarmUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  string originatorType = 6;
+  string originatorName = 7;
+  string severity = 8;
+  string status = 9;
+  int64 startTs = 10;
+  int64 endTs = 11;
+  int64 ackTs = 12;
+  int64 clearTs = 13;
+  string details = 14;
+  bool propagate = 15;
+}
+
+message CustomerUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string title = 4;
+  optional string country = 5;
+  optional string state = 6;
+  optional string city = 7;
+  optional string address = 8;
+  optional string address2 = 9;
+  optional string zip = 10;
+  optional string phone = 11;
+  optional string email = 12;
+  optional string additionalInfo = 13;
+}
+
+message RelationUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 fromIdMSB = 2;
+  int64 fromIdLSB = 3;
+  string fromEntityType = 4;
+  int64 toIdMSB = 5;
+  int64 toIdLSB = 6;
+  string toEntityType = 7;
+  string type = 8;
+  optional string typeGroup = 9;
+  string additionalInfo = 10;
+}
+
+message UserUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional int64 customerIdMSB = 4;
+  optional int64 customerIdLSB = 5;
+  string email = 6;
+  string authority = 7;
+  optional string firstName = 8;
+  optional string lastName = 9;
+  optional string additionalInfo = 10;
+  optional int64 entityGroupIdMSB = 11;
+  optional int64 entityGroupIdLSB = 12;
+}
+
+message WidgetsBundleUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string title = 4;
+  string alias = 5;
+  optional bytes image = 6;
+  bool isSystem = 7;
+  optional string description = 8;
+}
+
+message WidgetTypeUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional string bundleAlias = 4;
+  optional string alias = 5;
+  optional string name = 6;
+  optional string descriptorJson = 7;
+  bool isSystem = 8;
+  optional string image = 9;
+  optional string description = 10;
+}
+
+message AdminSettingsUpdateMsg {
+  bool isSystem = 1;
+  string key = 2;
+  string jsonValue = 3;
+}
+
+message UserCredentialsUpdateMsg {
+  int64 userIdMSB = 1;
+  int64 userIdLSB = 2;
+  bool enabled = 3;
+  string password = 4;
+}
+
+message RuleChainMetadataRequestMsg {
+  int64 ruleChainIdMSB = 1;
+  int64 ruleChainIdLSB = 2;
+}
+
+message AttributesRequestMsg {
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+  string scope = 4;
+}
+
+message RelationRequestMsg {
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+}
+
+message UserCredentialsRequestMsg {
+  int64 userIdMSB = 1;
+  int64 userIdLSB = 2;
+}
+
+message DeviceCredentialsRequestMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+}
+
+message DeviceProfileDevicesRequestMsg {
+  int64 deviceProfileIdMSB = 1;
+  int64 deviceProfileIdLSB = 2;
+}
+
+message WidgetBundleTypesRequestMsg {
+  int64 widgetBundleIdMSB = 1;
+  int64 widgetBundleIdLSB = 2;
+}
+
+message EntityViewsRequestMsg {
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+}
+
+message DeviceRpcCallMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+  int64 requestUuidMSB = 3;
+  int64 requestUuidLSB = 4;
+  int32 requestId = 5;
+  int64 expirationTime = 6;
+  bool oneway = 7;
+  RpcRequestMsg requestMsg = 8;
+  RpcResponseMsg responseMsg = 9;
+}
+
+message RpcRequestMsg {
+  string method = 1;
+  string params = 2;
+}
+
+message RpcResponseMsg {
+  string response = 1;
+  string error = 2;
+}
+
+message EntityGroupRequestMsg {
+  int64 entityGroupIdMSB = 1;
+  int64 entityGroupIdLSB = 2;
+  string type = 3;
+}
+
+message SchedulerEventUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  optional int64 customerIdMSB = 4;
+  optional int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  string schedule = 8;
+  string configuration = 9;
+}
+
+message EntityGroupUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  int64 ownerIdMSB = 6;
+  int64 ownerIdLSB = 7;
+  string ownerEntityType = 8;
+  optional string additionalInfo = 9;
+  string configuration = 10;
+}
+
+enum EdgeEntityType {
+  DEVICE = 0;
+  ASSET = 1;
+}
+
+message LoginWhiteLabelingParamsProto {
+  WhiteLabelingParamsProto whiteLabelingParams = 1;
+  optional string pageBackgroundColor = 2;
+  bool darkForeground = 3;
+  optional string domainName = 4;
+  optional string adminSettingsId = 5;
+  optional bool showNameBottom = 6;
+}
+
+message WhiteLabelingParamsProto {
+  optional string logoImageUrl = 1;
+  optional string logoImageChecksum = 2;
+  optional int64 logoImageHeight = 3;
+  optional string appTitle = 4;
+  FaviconProto favicon = 5;
+  optional string faviconChecksum = 6;
+  PaletteSettingsProto paletteSettings = 7;
+  optional string helpLinkBaseUrl = 8;
+  optional string uiHelpBaseUrl = 13;
+  optional bool enableHelpLinks = 9;
+  optional bool showNameVersion = 10;
+  optional string platformName = 11;
+  optional string platformVersion = 12;
+}
+
+message FaviconProto {
+  optional string url = 1;
+  optional string type = 2;
+}
+
+message PaletteSettingsProto {
+  PaletteProto primaryPalette = 1;
+  PaletteProto accentPalette = 2;
+}
+
+message PaletteProto {
+  optional string type = 1;
+  optional string extendsPalette = 2;
+  map<string, string> colors = 3;
+}
+
+message CustomTranslationProto {
+  map<string, string> translationMap = 1;
+}
+
+message RoleProto {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  optional int64 customerIdMSB = 6;
+  optional int64 customerIdLSB = 7;
+  string name = 8;
+  string type = 9;
+  string additionalInfo = 10;
+  string permissions = 11;
+}
+
+message GroupPermissionProto {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  int64 userGroupIdMSB = 4;
+  int64 userGroupIdLSB = 5;
+  int64 roleIdMSB = 6;
+  int64 roleIdLSB = 7;
+  optional int64 entityGroupIdMSB = 8;
+  optional int64 entityGroupIdLSB = 9;
+  optional string entityGroupType = 10;
+  bool isPublic = 11;
+}
+
+/**
+ * Main Messages;
+ */
+
+message UplinkMsg {
+  int32 uplinkMsgId = 1;
+  repeated EntityDataProto entityData = 2;
+  repeated DeviceUpdateMsg deviceUpdateMsg = 3;
+  repeated DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = 4;
+  repeated AlarmUpdateMsg alarmUpdateMsg = 5;
+  repeated RelationUpdateMsg relationUpdateMsg = 6;
+  repeated RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = 7;
+  repeated AttributesRequestMsg attributesRequestMsg = 8;
+  repeated RelationRequestMsg relationRequestMsg = 9;
+  repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 10;
+  repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 11;
+  repeated DeviceRpcCallMsg deviceRpcCallMsg = 12;
+  repeated DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = 13;
+  repeated WidgetBundleTypesRequestMsg widgetBundleTypesRequestMsg = 14;
+  repeated EntityViewsRequestMsg entityViewsRequestMsg = 15;
+  repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 16;
+  repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 17;
+}
+
+message UplinkResponseMsg {
+  bool success = 1;
+  string errorMsg = 2;
+  int32 uplinkMsgId = 3;
+}
+
+message DownlinkResponseMsg {
+  bool success = 1;
+  string errorMsg = 2;
+  int32 downlinkMsgId = 3;
+}
+
+message DownlinkMsg {
+  int32 downlinkMsgId = 1;
+  SyncCompletedMsg syncCompletedMsg = 2;
+  repeated EntityDataProto entityData = 3;
+  repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 4;
+  repeated DeviceUpdateMsg deviceUpdateMsg = 5;
+  repeated DeviceProfileUpdateMsg deviceProfileUpdateMsg = 6;
+  repeated DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = 7;
+  repeated RuleChainUpdateMsg ruleChainUpdateMsg = 8;
+  repeated RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = 9;
+  repeated DashboardUpdateMsg dashboardUpdateMsg = 10;
+  repeated AssetUpdateMsg assetUpdateMsg = 11;
+  repeated EntityViewUpdateMsg entityViewUpdateMsg = 12;
+  repeated AlarmUpdateMsg alarmUpdateMsg = 13;
+  repeated UserUpdateMsg userUpdateMsg = 14;
+  repeated UserCredentialsUpdateMsg userCredentialsUpdateMsg = 15;
+  repeated CustomerUpdateMsg customerUpdateMsg = 16;
+  repeated RelationUpdateMsg relationUpdateMsg = 17;
+  repeated WidgetsBundleUpdateMsg widgetsBundleUpdateMsg = 18;
+  repeated WidgetTypeUpdateMsg widgetTypeUpdateMsg = 19;
+  repeated AdminSettingsUpdateMsg adminSettingsUpdateMsg = 20;
+  repeated DeviceRpcCallMsg deviceRpcCallMsg = 21;
+  WhiteLabelingParamsProto systemWhiteLabelingParams = 22;
+  WhiteLabelingParamsProto tenantWhiteLabelingParams = 23;
+  WhiteLabelingParamsProto customerWhiteLabelingParams = 24;
+  LoginWhiteLabelingParamsProto systemLoginWhiteLabelingParams = 25;
+  LoginWhiteLabelingParamsProto tenantLoginWhiteLabelingParams = 26;
+  LoginWhiteLabelingParamsProto customerLoginWhiteLabelingParams = 27;
+  CustomTranslationProto systemCustomTranslationMsg = 28;
+  CustomTranslationProto tenantCustomTranslationMsg = 29;
+  CustomTranslationProto customerCustomTranslationMsg = 30;
+  repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 31;
+  repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 32;
+  repeated RoleProto roleMsg = 33;
+  repeated GroupPermissionProto groupPermissionMsg = 34;
+
+}

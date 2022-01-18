@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -102,8 +102,9 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           this.broadcast.broadcast('assetSaved');
         }));
     };
-    this.config.onEntityAction = action => this.onAssetAction(action);
-    this.config.detailsReadonly = () => (this.config.componentsData.assetScope === 'customer_user' || this.config.componentsData.assetScope === 'edge_customer_user');
+    this.config.onEntityAction = action => this.onAssetAction(action, this.config);
+    this.config.detailsReadonly = () => (this.config.componentsData.assetScope === 'customer_user'
+      || this.config.componentsData.assetScope === 'edge_customer_user');
 
     this.config.headerComponent = AssetTableHeaderComponent;
 
@@ -325,7 +326,15 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     });*/
   }
 
-/* addAssetsToCustomer($event: Event) {
+/*  private openAsset($event: Event, asset: Asset, config: EntityTableConfig<AssetInfo>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.table.route});
+    this.router.navigateByUrl(url);
+  }
+
+  addAssetsToCustomer($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -447,9 +456,12 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     );
   }*/
 
-  onAssetAction(action: EntityAction<Asset>): boolean {
+  onAssetAction(action: EntityAction<Asset>, config: EntityTableConfig<Asset>): boolean {
     switch (action.action) {
-     /* case 'makePublic':
+      /*case 'open':
+        this.openAsset(action.event, action.entity, config);
+        return true;
+      case 'makePublic':
         this.makePublic(action.event, action.entity);
         return true;
       case 'assignToCustomer':

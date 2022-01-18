@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import {
   processPattern,
   safeExecute
 } from './common-maps-utils';
-import { FormattedData, MarkerSettings, PolygonSettings } from './map-models';
+import { FormattedData, PolygonSettings, UnitedMapSettings } from './map-models';
 
 export class Polygon {
 
@@ -47,7 +47,7 @@ export class Polygon {
     data: FormattedData;
     dataSources: FormattedData[];
 
-    constructor(public map, data: FormattedData, dataSources: FormattedData[], private settings: PolygonSettings,
+    constructor(public map, data: FormattedData, dataSources: FormattedData[], private settings: UnitedMapSettings,
                 private onDragendListener?) {
         this.dataSources = dataSources;
         this.data = data;
@@ -62,7 +62,8 @@ export class Polygon {
           weight: settings.polygonStrokeWeight,
           fillOpacity: settings.polygonOpacity,
           opacity: settings.polygonStrokeOpacity,
-          pmIgnore: !settings.editablePolygon
+          pmIgnore: !settings.editablePolygon,
+          snapIgnore: !settings.snappable
         }).addTo(this.map);
 
         this.updateLabel(settings);

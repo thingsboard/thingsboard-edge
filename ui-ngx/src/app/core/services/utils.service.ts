@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,7 @@ import { alarmFields, alarmSeverityTranslations, alarmStatusTranslations } from 
 import { materialColors } from '@app/shared/models/material.models';
 import { WidgetInfo } from '@home/models/widget-component.models';
 import jsonSchemaDefaults from 'json-schema-defaults';
-import materialIconsCodepoints from '!raw-loader!material-design-icons/iconfont/codepoints';
+import materialIconsCodepoints from '!raw-loader!./material-icons-codepoints.raw';
 import { Observable, of, ReplaySubject } from 'rxjs';
 import { DatePipe } from '@angular/common';
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -125,7 +125,7 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
     public RuleChain toData() {
         RuleChain ruleChain = new RuleChain(new RuleChainId(this.getUuid()));
         ruleChain.setCreatedTime(createdTime);
-        ruleChain.setTenantId(new TenantId(tenantId));
+        ruleChain.setTenantId(TenantId.fromUUID(tenantId));
         ruleChain.setName(name);
         ruleChain.setType(type);
         if (firstRuleNodeId != null) {

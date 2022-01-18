@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,12 @@
 
 -->
 <div class="tb-details-buttons" fxLayout.xs="column">
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'open')"
+          [fxShow]="!isEdit && !isDetailsPage">
+    {{'common.open-details-page' | translate }}
+  </button>
   <button mat-raised-button color="primary" [disabled]="(isLoading$ | async)" (click)="onEntityAction($event, 'delete')"
     [fxShow]="!hideDelete() && !isEdit">
     {{'integration.delete' | translate }}
@@ -78,12 +84,17 @@
           {{ 'integration.allow-create-devices-or-assets' | translate }}
         </mat-checkbox>
       </div>
-      <tb-converter-autocomplete formControlName="defaultConverterId" required [converterType]="converterType.UPLINK"
+      <tb-converter-autocomplete formControlName="defaultConverterId" required
         labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
+        [converterType]="converterType.UPLINK"
+        [showDetailsPageLink]="true"
         [useFullEntityId]="true">
       </tb-converter-autocomplete>
-      <tb-converter-autocomplete formControlName="downlinkConverterId" [converterType]="converterType.DOWNLINK"
-        labelText="integration.downlink-converter" [useFullEntityId]="true">
+      <tb-converter-autocomplete formControlName="downlinkConverterId"
+        labelText="integration.downlink-converter"
+        [converterType]="converterType.DOWNLINK"
+        [showDetailsPageLink]="true"
+        [useFullEntityId]="true">
       </tb-converter-autocomplete>
       <mat-slide-toggle formControlName="remote" style="padding-bottom: 48px;">
         {{'integration.execute-remotely' | translate}}

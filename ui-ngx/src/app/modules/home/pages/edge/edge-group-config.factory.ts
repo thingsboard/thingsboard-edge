@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
@@ -49,16 +49,17 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Edge } from "@shared/models/edge.models";
-import { EdgeService } from "@core/http/edge.service";
-import { EdgeComponent } from "@home/pages/edge/edge.component";
-import { Router } from "@angular/router";
+import { Edge } from '@shared/models/edge.models';
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeComponent } from '@home/pages/edge/edge.component';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
@@ -72,7 +73,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
               private homeDialogs: HomeDialogsService,
               private edgeService: EdgeService,
               private broadcast: BroadcastService,
-              private router: Router) {
+              private router: Router,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
@@ -190,7 +192,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) && authUser.authority === Authority.TENANT_ADMIN) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) &&
+      authUser.authority === Authority.TENANT_ADMIN) {
       config.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.manage-edge-rule-chains'),
@@ -221,6 +224,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   onEdgeAction(action: EntityAction<Edge>, config: GroupEntityTableConfig<Edge>, params: EntityGroupParams): boolean {
     switch (action.action) {
+      case 'open':
+        this.openEdge(action.event, action.entity, config, params);
+        return true;
       case 'manageUsers':
         this.manageUsers(action.event, action.entity, config, params);
         return true;
@@ -249,8 +255,22 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     return false;
   }
 
+  private openEdge($event: Event, edge: Edge,  config: GroupEntityTableConfig<Edge>, params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      const url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'edgeGroups', params.childEntityGroupId, edge.id.id]);
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+    }
+  }
+
   manageUsers($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
-               params: EntityGroupParams) {
+              params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }

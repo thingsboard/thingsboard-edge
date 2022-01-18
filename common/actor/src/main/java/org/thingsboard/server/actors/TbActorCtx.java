@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.actors;
 
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 
 import java.util.List;
@@ -49,6 +50,8 @@ public interface TbActorCtx extends TbActorRef {
     TbActorRef getOrCreateChildActor(TbActorId actorId, Supplier<String> dispatcher, Supplier<TbActorCreator> creator);
 
     void broadcastToChildren(TbActorMsg msg);
+
+    void broadcastToChildrenByType(TbActorMsg msg, EntityType entityType);
 
     void broadcastToChildren(TbActorMsg msg, Predicate<TbActorId> childFilter);
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { BreadCrumb, BreadCrumbConfig } from './breadcrumb';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
@@ -39,6 +39,7 @@ import { MenuSection } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
 import { guid } from '@core/utils';
+import { BroadcastService } from '@core/services/broadcast.service';
 
 @Component({
   selector: 'tb-breadcrumb',
@@ -69,12 +70,17 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
+              private broadcast: BroadcastService,
+              private cd: ChangeDetectorRef,
               private translate: TranslateService,
               private menuService: MenuService,
               public utils: UtilsService) {
   }
 
   ngOnInit(): void {
+    this.broadcast.on('updateBreadcrumb', () => {
+      this.cd.markForCheck();
+    });
   }
 
   ngOnDestroy(): void {

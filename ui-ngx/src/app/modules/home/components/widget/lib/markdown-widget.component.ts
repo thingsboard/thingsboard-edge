@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -103,7 +103,11 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
       textSearch: null,
       dynamic: true
     };
-    this.ctx.defaultSubscription.subscribeAllForPaginatedData(pageLink, null);
+    if (this.ctx.widgetConfig.datasources.length) {
+      this.ctx.defaultSubscription.subscribeAllForPaginatedData(pageLink, null);
+    } else {
+      this.onDataUpdated();
+    }
   }
 
   public onDataUpdated() {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -174,7 +174,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
                         throw new DataValidationException("Widgets bundle title should be specified!");
                     }
                     if (widgetsBundle.getTenantId() == null) {
-                        widgetsBundle.setTenantId(new TenantId(ModelConstants.NULL_UUID));
+                        widgetsBundle.setTenantId(TenantId.fromUUID(ModelConstants.NULL_UUID));
                     }
                     if (!widgetsBundle.getTenantId().getId().equals(ModelConstants.NULL_UUID)) {
                         Tenant tenant = tenantDao.findById(tenantId, widgetsBundle.getTenantId().getId());

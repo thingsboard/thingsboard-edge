@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,13 @@
 package org.thingsboard.server.common.data.query;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class RelationsQueryFilter implements EntityFilter {
@@ -46,6 +48,9 @@ public class RelationsQueryFilter implements EntityFilter {
     }
 
     private EntityId rootEntity;
+    private boolean isMultiRoot;
+    private EntityType multiRootEntitiesType;
+    private Set<String> multiRootEntityIds;
     private EntitySearchDirection direction;
     private List<RelationEntityTypeFilter> filters;
     private int maxLevel;

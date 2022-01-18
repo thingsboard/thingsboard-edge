@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,14 +32,19 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Data
 public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAlarmsCountNodeV2Configuration> {
     private List<AlarmsCountMapping> alarmsCountMappings;
     private boolean countAlarmsForPropagationEntities;
+    private List<EntityType> propagationEntityTypes;
+    private String queueName;
 
     @Override
     public TbAlarmsCountNodeV2Configuration defaultConfiguration() {
@@ -50,7 +55,10 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
         alarmsCountMappings.add(alarmsCountMapping);
 
         configuration.setCountAlarmsForPropagationEntities(true);
+        configuration.setPropagationEntityTypes(Collections.emptyList());
         configuration.setAlarmsCountMappings(alarmsCountMappings);
+
+        configuration.setQueueName(ServiceQueue.MAIN);
         return configuration;
     }
 }

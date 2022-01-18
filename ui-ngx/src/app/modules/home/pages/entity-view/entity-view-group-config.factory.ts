@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -49,6 +49,9 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { EntityView } from '@shared/models/entity-view.models';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
+import { Router, UrlTree } from '@angular/router';
+import { EntityType } from '@shared/models/entity-type.models';
+import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
 export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityView> {
@@ -60,7 +63,9 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private entityViewService: EntityViewService,
-              private broadcast: BroadcastService) {
+              private router: Router,
+              private broadcast: BroadcastService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EntityView>): Observable<GroupEntityTableConfig<EntityView>> {
@@ -86,12 +91,38 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     };
     config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
 
-    config.onEntityAction = action => this.onEntityViewAction(action);
+    config.onEntityAction = action => this.onEntityViewAction(action, config, params);
 
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  onEntityViewAction(action: EntityAction<EntityView>): boolean {
+  private openEntityView($event: Event, entityView: EntityView, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      let url: UrlTree;
+      if (params.groupType === EntityType.EDGE) {
+        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
+          'edgeGroups', params.entityGroupId, params.edgeId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+      } else {
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+          params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+      }
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([entityView.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+      this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
+    }
+  }
+
+  onEntityViewAction(action: EntityAction<EntityView>, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams): boolean {
+    switch (action.action) {
+      case 'open':
+        this.openEntityView(action.event, action.entity, config, params);
+        return true;
+    }
     return false;
   }
 

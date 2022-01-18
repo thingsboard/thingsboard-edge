@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -75,7 +75,7 @@ public class JpaDashboardInfoDaoTest extends AbstractJpaDaoTest {
     private void createDashboard(UUID tenantId, int index) {
         DashboardInfo dashboardInfo = new DashboardInfo();
         dashboardInfo.setId(new DashboardId(Uuids.timeBased()));
-        dashboardInfo.setTenantId(new TenantId(tenantId));
+        dashboardInfo.setTenantId(TenantId.fromUUID(tenantId));
         dashboardInfo.setTitle("DASHBOARD_" + index);
         dashboardInfoDao.save(AbstractServiceTest.SYSTEM_TENANT_ID, dashboardInfo);
     }

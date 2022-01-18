@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,12 @@
 
 -->
 <div class="tb-details-buttons" fxLayout.xs="column" *ngIf="!standalone">
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'open')"
+          [fxShow]="!isEdit && !isDetailsPage">
+    {{'common.open-details-page' | translate }}
+  </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'export')"
@@ -89,12 +95,14 @@
       </tb-queue-type-list>
       <tb-ota-package-autocomplete
         [useFullEntityId]="true"
+        [showDetailsPageLink]="true"
         [type]="otaUpdateType.FIRMWARE"
         [deviceProfileId]="deviceProfileId?.id"
         formControlName="firmwareId">
       </tb-ota-package-autocomplete>
       <tb-ota-package-autocomplete
         [useFullEntityId]="true"
+        [showDetailsPageLink]="true"
         [type]="otaUpdateType.SOFTWARE"
         [deviceProfileId]="deviceProfileId?.id"
         formControlName="softwareId">

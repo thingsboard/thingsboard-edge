@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,13 +55,17 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.nosql.CassandraStatementTask;
+import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -247,6 +251,8 @@ public interface TbContext {
 
     EdgeService getEdgeService();
 
+    EdgeEventService getEdgeEventService();
+
     CloudEventService getCloudEventService();
 
     ListeningExecutor getMailExecutor();
@@ -280,6 +286,12 @@ public interface TbContext {
     String getServiceId();
 
     EventLoopGroup getSharedEventLoop();
+
+    CassandraCluster getCassandraCluster();
+
+    TbResultSetFuture submitCassandraReadTask(CassandraStatementTask task);
+
+    TbResultSetFuture submitCassandraWriteTask(CassandraStatementTask task);
 
     PageData<RuleNodeState> findRuleNodeStates(PageLink pageLink);
 

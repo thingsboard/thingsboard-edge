@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -90,7 +90,7 @@ public abstract class AbstractWidgetTypeEntity<T extends BaseWidgetType> extends
         BaseWidgetType widgetType = new BaseWidgetType(new WidgetTypeId(getUuid()));
         widgetType.setCreatedTime(createdTime);
         if (tenantId != null) {
-            widgetType.setTenantId(new TenantId(tenantId));
+            widgetType.setTenantId(TenantId.fromUUID(tenantId));
         }
         widgetType.setBundleAlias(bundleAlias);
         widgetType.setAlias(alias);

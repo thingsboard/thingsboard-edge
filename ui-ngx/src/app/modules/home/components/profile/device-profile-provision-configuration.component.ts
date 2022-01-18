@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -145,7 +145,7 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
   setDisabledState(isDisabled: boolean){
     this.disabled = isDisabled;
     if (this.disabled){
-      this.provisionConfigurationFormGroup.disable();
+      this.provisionConfigurationFormGroup.disable({emitEvent: false});
     } else {
       if (this.provisionConfigurationFormGroup.get('type').value !== DeviceProvisionType.DISABLED) {
         this.provisionConfigurationFormGroup.enable({emitEvent: false});

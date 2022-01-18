@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -364,7 +364,7 @@ export class TelemetryWebsocketService implements TelemetryService {
   }
 
   private onClose(closeEvent: CloseEvent) {
-    if (closeEvent && closeEvent.code > 1001 && closeEvent.code !== 1006) {
+    if (closeEvent && closeEvent.code > 1001 && closeEvent.code !== 1006 && closeEvent.code !== 1012) {
       this.showWsError(closeEvent.code, closeEvent.reason);
     }
     this.isOpening = false;

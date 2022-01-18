@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -58,9 +58,7 @@ import {
   EntityGroupWizardDialogComponent,
   EntityGroupWizardDialogResult
 } from '@home/components/wizard/entity-group-wizard-dialog.component';
-import {
-  AddEntityGroupsToEdgeDialogComponent
-} from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
+import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
@@ -378,12 +376,12 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       });
   }
 
-  onGroupUpdated() {
+  onGroupUpdated(closeDetails = true) {
     this.notifyEntityGroupUpdated();
     if (this.componentsData.isGroupEntitiesView) {
       this.componentsData.reloadEntityGroup();
     } else {
-      this.table.updateData();
+      this.table.updateData(closeDetails);
     }
   }
 

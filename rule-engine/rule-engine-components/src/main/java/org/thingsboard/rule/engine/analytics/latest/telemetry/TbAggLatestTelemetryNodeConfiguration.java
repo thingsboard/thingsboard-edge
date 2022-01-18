@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,10 @@
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
 import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +64,8 @@ public class TbAggLatestTelemetryNodeConfiguration extends TbAbstractLatestNodeC
 
         configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
         configuration.setPeriodValue(5);
+
+        configuration.setQueueName(ServiceQueue.MAIN);
 
         return configuration;
     }

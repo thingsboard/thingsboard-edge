@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -84,6 +85,8 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -101,6 +104,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
@@ -386,6 +390,11 @@ public class ActorSystemContext {
     @Lazy
     @Autowired(required = false)
     @Getter
+    private EdgeRpcService edgeRpcService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
     private ResourceService resourceService;
 
     @Lazy
@@ -495,6 +504,18 @@ public class ActorSystemContext {
     @Getter
     @Setter
     private TbActorRef statsActor;
+
+    @Autowired(required = false)
+    @Getter
+    private CassandraCluster cassandraCluster;
+
+    @Autowired(required = false)
+    @Getter
+    private CassandraBufferedRateReadExecutor cassandraBufferedRateReadExecutor;
+
+    @Autowired(required = false)
+    @Getter
+    private CassandraBufferedRateWriteExecutor cassandraBufferedRateWriteExecutor;
 
     @Autowired(required = false)
     @Getter

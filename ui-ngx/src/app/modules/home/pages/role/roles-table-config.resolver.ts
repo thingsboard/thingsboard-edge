@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import {
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
@@ -56,6 +56,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
   constructor(private roleService: RoleService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
+              private router: Router,
               private datePipe: DatePipe) {
 
     this.config.entityType = EntityType.ROLE;
@@ -72,7 +73,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
       new DateEntityTableColumn<Role>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Role>('name', 'role.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Role>('type', 'role.role-type', '25%', (role) => {
-        return this.translate.instant(roleTypeTranslationMap.get(role.type))
+        return this.translate.instant(roleTypeTranslationMap.get(role.type));
       }),
       new EntityTableColumn<Role>('description', 'role.description', '40%',
         (role) => role && role.additionalInfo ? role.additionalInfo.description : '', entity => ({}), false)
@@ -97,7 +98,20 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
     return this.config;
   }
 
+  openRoles($event: Event, role: Role) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree(['roles', role.id.id]);
+    this.router.navigateByUrl(url);
+  }
+
   onRoleAction(action: EntityAction<Role>): boolean {
+    switch (action.action) {
+      case 'open':
+        this.openRoles(action.event, action.entity);
+        return true;
+    }
     return false;
   }
 

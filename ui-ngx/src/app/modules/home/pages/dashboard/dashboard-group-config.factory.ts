@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -92,7 +92,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard);
     config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
 
-    config.onEntityAction = action => this.onDashboardAction(action, config,params);
+    config.onEntityAction = action => this.onDashboardAction(action, config, params);
 
     if (config.entityGroup.additionalInfo && config.entityGroup.additionalInfo.isPublic) {
       config.cellActionDescriptors.push(
@@ -151,7 +151,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      var url: UrlTree;
+      let url: UrlTree;
       if (params.groupType === EntityType.EDGE) {
         url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
           'edgeGroups', params.entityGroupId, params.edgeId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
@@ -199,7 +199,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
         dashboard,
         entityGroup: config.entityGroup
       }
-    })
+    });
   }
 
   onDashboardAction(action: EntityAction<Dashboard>, config: GroupEntityTableConfig<Dashboard>, params: EntityGroupParams): boolean {

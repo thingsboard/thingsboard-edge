@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -84,7 +84,7 @@ public class TbMsgPackProcessingContextTest {
         TbRuleEngineSubmitStrategy strategyMock = mock(TbRuleEngineSubmitStrategy.class);
         when(strategyMock.getPendingMap()).thenReturn(messages);
 
-        TbMsgPackProcessingContext context = new TbMsgPackProcessingContext("Main", strategyMock);
+        TbMsgPackProcessingContext context = new TbMsgPackProcessingContext("Main", strategyMock, false);
         for (UUID uuid : messages.keySet()) {
             final CountDownLatch readyLatch = new CountDownLatch(parallelCount);
             final CountDownLatch startLatch = new CountDownLatch(1);

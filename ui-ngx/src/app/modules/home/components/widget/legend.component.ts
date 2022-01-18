@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -79,11 +79,13 @@ export class LegendComponent implements OnInit {
   }
 
   legendKeys(): LegendKey[] {
-    let keys = this.legendData.keys;
-    if (this.legendConfig.sortDataKeys) {
-      keys = this.legendData.keys.sort((key1, key2) => key1.dataKey.label.localeCompare(key2.dataKey.label));
-    }
-    return keys.filter(legendKey => this.legendData.keys[legendKey.dataIndex].dataKey.inLegend);
+    try {
+      let keys = this.legendData.keys;
+      if (this.legendConfig.sortDataKeys) {
+        keys = this.legendData.keys.sort((key1, key2) => key1.dataKey.label.localeCompare(key2.dataKey.label));
+      }
+      return keys.filter(legendKey => this.legendData.keys[legendKey.dataIndex].dataKey.inLegend);
+    } catch (e) {}
   }
 
   getDataKeyLabel(label: string): string {

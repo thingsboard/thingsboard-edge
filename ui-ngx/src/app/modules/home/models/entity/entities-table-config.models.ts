@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,7 @@ import { EntityComponent } from '@home/components/entity/entity.component';
 import { Type } from '@angular/core';
 import { EntityAction } from './entity-component.models';
 import { HasUUID } from '@shared/models/id/has-uuid';
-import { PageLink, TimePageLink } from '@shared/models/page/page-link';
-import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
+import { PageLink } from '@shared/models/page/page-link';
 import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
 import { ActivatedRoute } from '@angular/router';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
@@ -177,6 +176,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   addDialogStyle = {};
   defaultSortOrder: SortOrder = {property: 'createdTime', direction: Direction.DESC};
   displayPagination = true;
+  pageMode = true;
   defaultPageSize = 10;
   columns: Array<EntityColumn<L>> = [];
   cellActionDescriptors: Array<CellActionDescriptor<L>> = [];

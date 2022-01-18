@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -155,6 +155,7 @@ import * as QueueTypeListComponent from '@shared/components/queue/queue-type-lis
 import * as RelationTypeAutocompleteComponent from '@shared/components/relation/relation-type-autocomplete.component';
 import * as SocialSharePanelComponent from '@shared/components/socialshare-panel.component';
 import * as JsonObjectEditComponent from '@shared/components/json-object-edit.component';
+import * as JsonObjectViewComponent from '@shared/components/json-object-view.component';
 import * as JsonContentComponent from '@shared/components/json-content.component';
 import * as JsFuncComponent from '@shared/components/js-func.component';
 import * as FabToolbarComponent from '@shared/components/fab-toolbar.component';
@@ -478,6 +479,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/relation/relation-type-autocomplete.component': RelationTypeAutocompleteComponent,
     '@shared/components/socialshare-panel.component': SocialSharePanelComponent,
     '@shared/components/json-object-edit.component': JsonObjectEditComponent,
+    '@shared/components/json-object-view.component': JsonObjectViewComponent,
     '@shared/components/json-content.component': JsonContentComponent,
     '@shared/components/js-func.component': JsFuncComponent,
     '@shared/components/fab-toolbar.component': FabToolbarComponent,

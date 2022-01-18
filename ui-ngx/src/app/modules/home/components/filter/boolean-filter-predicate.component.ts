@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -124,8 +124,11 @@ export class BooleanFilterPredicateComponent implements ControlValueAccessor, Va
   }
 
   private updateModel() {
-    const predicate: BooleanFilterPredicate = this.booleanFilterPredicateFormGroup.getRawValue();
-    predicate.type = FilterPredicateType.BOOLEAN;
+    let predicate: BooleanFilterPredicate = null;
+    if (this.booleanFilterPredicateFormGroup.valid) {
+      predicate = this.booleanFilterPredicateFormGroup.getRawValue();
+      predicate.type = FilterPredicateType.BOOLEAN;
+    }
     this.propagateChange(predicate);
   }
 

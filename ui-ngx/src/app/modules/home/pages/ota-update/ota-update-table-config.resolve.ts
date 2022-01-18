@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve } from '@angular/router';
+import { Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptorType,
   DateEntityTableColumn,
@@ -67,6 +67,7 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
               private store: Store<AppState>,
               private otaPackageService: OtaPackageService,
               private userPermissionsService: UserPermissionsService,
+              private router: Router,
               private fileSize: FileSizePipe) {
     this.config.entityType = EntityType.OTA_PACKAGE;
     this.config.entityComponent = OtaUpdateComponent;
@@ -146,6 +147,14 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
     return this.config;
   }
 
+  private openOtaPackage($event: Event, otaPackage: OtaPackageInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const url = this.router.createUrlTree(['otaUpdates', otaPackage.id.id]);
+    this.router.navigateByUrl(url);
+  }
+
   exportPackage($event: Event, otaPackageInfo: OtaPackageInfo) {
     if ($event) {
       $event.stopPropagation();
@@ -167,6 +176,9 @@ export class OtaUpdateTableConfigResolve implements Resolve<EntityTableConfig<Ot
 
   onPackageAction(action: EntityAction<OtaPackageInfo>): boolean {
     switch (action.action) {
+      case 'open':
+        this.openOtaPackage(action.event, action.entity);
+        return true;
       case 'uploadPackage':
         this.exportPackage(action.event, action.entity);
         return true;

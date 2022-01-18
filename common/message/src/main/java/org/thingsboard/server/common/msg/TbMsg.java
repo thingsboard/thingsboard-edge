@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -118,6 +118,10 @@ public final class TbMsg implements Serializable {
 
     public static TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
         return newMsg(type, originator, null, metaData, dataType, data);
+    }
+
+    public static TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, TbMsgDataType dataType, String data) {
+        return new TbMsg(queueName, UUID.randomUUID(), System.currentTimeMillis(), type, originator, null, metaData.copy(), dataType, data, null, null, null, TbMsgCallback.EMPTY);
     }
 
     // For Tests only
@@ -284,7 +288,7 @@ public final class TbMsg implements Serializable {
     }
 
     public TbMsgCallback getCallback() {
-        //May be null in case of deserialization;
+        // May be null in case of deserialization;
         if (callback != null) {
             return callback;
         } else {
@@ -302,5 +306,13 @@ public final class TbMsg implements Serializable {
 
     public TbMsgProcessingStackItem popFormStack() {
         return ctx.pop();
+    }
+
+    /**
+     * Checks if the message is still valid for processing. May be invalid if the message pack is timed-out or canceled.
+     * @return 'true' if message is valid for processing, 'false' otherwise.
+     */
+    public boolean isValid() {
+        return getCallback().isMsgValid();
     }
 }

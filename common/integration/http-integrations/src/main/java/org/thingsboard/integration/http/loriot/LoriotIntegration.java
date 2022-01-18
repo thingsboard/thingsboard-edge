@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -84,7 +84,14 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
         loriotConfiguration = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration()), LoriotConfiguration.class);
 
         if (loriotConfiguration.isCreateLoriotOutput() || loriotConfiguration.isSendDownlink()) {
-            baseUrl = String.format("https://%s.loriot.io/", loriotConfiguration.getServer());
+            String domain = loriotConfiguration.getDomain();
+
+            if (domain == null) {
+                domain = "loriot.io";
+            }
+
+            baseUrl = String.format("https://%s.%s/", loriotConfiguration.getServer(), domain);
+
             initRestClient();
             if (loriotConfiguration.isCreateLoriotOutput()) {
                 loriotConfiguration.getCredentials().setInterceptor(httpClient, baseUrl);

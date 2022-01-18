@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -101,9 +101,10 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     } else if (this.integrationTypeLoriot) {
       if (this.isAdd || !this.form.get('sendDownlink').value) {
         this.form.get('server').valueChanges.subscribe((val) => {
-          if (this.form.get('loriotDownlinkUrl').pristine) {
-            this.form.get('loriotDownlinkUrl').setValue(`https://${val}.loriot.io/1/rest`);
-          }
+          this.generateLoriotDownlinkUrl(val, this.form.get('domain').value);
+        });
+        this.form.get('domain').valueChanges.subscribe((val) => {
+          this.generateLoriotDownlinkUrl(this.form.get('server').value, val);
         });
       }
       merge(this.form.get('sendDownlink').valueChanges, this.form.get('createLoriotOutput').valueChanges).subscribe(() => {
@@ -115,6 +116,12 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       this.loriotCredentialsTypeChanged(this.form.get('credentials.type').value);
     }
     this.resetFields();
+  }
+
+  generateLoriotDownlinkUrl(server: string, domain: string) {
+    if (this.form.get('loriotDownlinkUrl').pristine) {
+      this.form.get('loriotDownlinkUrl').setValue(`https://${server}.${domain}/1/rest`);
+    }
   }
 
   resetFields() {

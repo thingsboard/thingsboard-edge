@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
+<div #schedulerEventWidgetContainer class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
   <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
     <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
@@ -234,7 +234,8 @@
                      [length]="dataSource.total() | async"
                      [pageIndex]="pageLink.page"
                      [pageSize]="pageLink.pageSize"
-                     [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+                     [pageSizeOptions]="pageSizeOptions"
+                     [hidePageSize]="hidePageSize"></mat-paginator>
     </div>
     <div fxFlex class="mat-padding" [fxShow]="mode === 'calendar'" fxLayout="column">
       <div fxLayout="row">

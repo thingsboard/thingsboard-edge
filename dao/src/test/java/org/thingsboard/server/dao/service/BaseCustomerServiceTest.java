@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -116,7 +116,7 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
     public void testSaveCustomerWithInvalidTenant() {
         Customer customer = new Customer();
         customer.setTitle("My customer");
-        customer.setTenantId(new TenantId(Uuids.timeBased()));
+        customer.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
         customerService.saveCustomer(customer);
     }
 

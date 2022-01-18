@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { MatPaginator } from '@angular/material/paginator';
@@ -56,6 +66,8 @@ import {
   GroupPermissionDialogData
 } from '@shared/components/role/group-permission-dialog.component';
 import { ViewRoleDialogComponent, ViewRoleDialogData } from '@home/components/role/view-role-dialog.component';
+import { ResizeObserver } from '@juggle/resize-observer';
+import { hidePageSizePixelValue } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-group-permissions',
@@ -77,6 +89,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   pageLink: PageLink;
   textSearchMode = false;
+  hidePageSize = false;
   dataSource: GroupPermissionsDatasource;
 
   activeValue = false;
@@ -86,6 +99,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   registrationPermissionsValue: Array<GroupPermission>;
 
   viewsInited = false;
+
+  private widgetResize$: ResizeObserver;
 
   @Input()
   set active(active: boolean) {
@@ -159,7 +174,9 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
               public translate: TranslateService,
               public dialog: MatDialog,
               private userPermissionsService: UserPermissionsService,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              private cd: ChangeDetectorRef,
+              private elementRef: ElementRef) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'roleName', direction: Direction.ASC };
@@ -168,6 +185,20 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   }
 
   ngOnInit() {
+    this.widgetResize$ = new ResizeObserver(() => {
+      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+      if (showHidePageSize !== this.hidePageSize) {
+        this.hidePageSize = showHidePageSize;
+        this.cd.markForCheck();
+      }
+    });
+    this.widgetResize$.observe(this.elementRef.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    if (this.widgetResize$) {
+      this.widgetResize$.disconnect();
+    }
   }
 
   private entityGroupUpdated(entityGroup: EntityGroupInfo) {
@@ -449,7 +480,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
       data: {
         role: groupPermission.role
       }
-    })
+    });
   }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -111,7 +111,7 @@ public abstract class AbstractServiceTest {
 
     protected ObjectMapper mapper = new ObjectMapper();
 
-    public static final TenantId SYSTEM_TENANT_ID = new TenantId(EntityId.NULL_UUID);
+    public static final TenantId SYSTEM_TENANT_ID = TenantId.SYS_TENANT_ID;
 
     @SuppressWarnings("deprecation")
     @Rule
@@ -219,7 +219,7 @@ public abstract class AbstractServiceTest {
 
     protected Event generateEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid) throws IOException {
         if (tenantId == null) {
-            tenantId = new TenantId(Uuids.timeBased());
+            tenantId = TenantId.fromUUID(Uuids.timeBased());
         }
         Event event = new Event();
         event.setTenantId(tenantId);
