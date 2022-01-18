@@ -99,7 +99,6 @@
     "screenfull": "^6.0.0",
     "split.js": "^1.6.4",
     "systemjs": "6.11.0",
-    "systemjs-babel": "^0.3.1",
     "tinycolor2": "^1.4.2",
     "tinymce": "^5.5.1",
     "tooltipster": "^4.2.8",
