@@ -141,6 +141,9 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
     @Override
     public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions,
                                                                AlarmDataQuery query, Collection<EntityId> orderedEntityIds) {
+        if (!mergedUserPermissions.hasGenericPermission(Resource.ALARM, Operation.READ)) {
+            return PageData.emptyPageData();
+        }
         return transactionTemplate.execute(status -> {
             AlarmDataPageLink pageLink = query.getPageLink();
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
