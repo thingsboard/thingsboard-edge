@@ -40,15 +40,19 @@
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
-    <artifactId>black-box-tests</artifactId>
+    <artifactId>edge-black-box-tests</artifactId>
 
-    <name>ThingsBoard Black Box Tests</name>
+    <name>ThingsBoard Edge Black Box Tests</name>
     <url>https://thingsboard.io</url>
     <description>Project for ThingsBoard black box testing with using Docker</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
+        <testcontainers.version>1.15.3</testcontainers.version>
+        <zeroturnaround.version>1.10</zeroturnaround.version>
+        <httpclient.version>4.5.13</httpclient.version>
+        <dotenv-java.version>2.2.0</dotenv-java.version>
     </properties>
 
     <dependencies>

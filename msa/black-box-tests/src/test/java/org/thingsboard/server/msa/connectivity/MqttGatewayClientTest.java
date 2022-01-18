@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,8 +94,8 @@ public class MqttGatewayClientTest extends AbstractContainerTest {
 
     @After
     public void removeGateway() throws Exception {
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + this.gatewayDevice.getId());
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + this.createdDevice.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + this.gatewayDevice.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + this.createdDevice.getId());
         this.listener = null;
         this.mqttClient = null;
         this.createdDevice = null;
@@ -197,7 +197,7 @@ public class MqttGatewayClientTest extends AbstractContainerTest {
         mqttClient.on("v1/gateway/attributes", listener, MqttQoS.AT_LEAST_ONCE).get();
 
         ResponseEntity sharedAttributesResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
                         mapper.readTree(sharedAttributes.toString()), ResponseEntity.class,
                         createdDevice.getId());
         Assert.assertTrue(sharedAttributesResponse.getStatusCode().is2xxSuccessful());
@@ -234,7 +234,7 @@ public class MqttGatewayClientTest extends AbstractContainerTest {
         gatewaySharedAttributeValue.add("data", sharedAttributes);
 
         ResponseEntity sharedAttributesResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
                         mapper.readTree(sharedAttributes.toString()), ResponseEntity.class,
                         createdDevice.getId());
         Assert.assertTrue(sharedAttributesResponse.getStatusCode().is2xxSuccessful());
@@ -253,7 +253,7 @@ public class MqttGatewayClientTest extends AbstractContainerTest {
         gatewayUpdatedSharedAttributeValue.add("data", updatedSharedAttributes);
 
         ResponseEntity updatedSharedAttributesResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
                         mapper.readTree(updatedSharedAttributes.toString()), ResponseEntity.class,
                         createdDevice.getId());
         Assert.assertTrue(updatedSharedAttributesResponse.getStatusCode().is2xxSuccessful());
@@ -279,7 +279,7 @@ public class MqttGatewayClientTest extends AbstractContainerTest {
         ListenableFuture<ResponseEntity> future = service.submit(() -> {
             try {
                 return restClient.getRestTemplate()
-                        .postForEntity(CLOUD_HTTPS_URL + "/api/rpc/twoway/{deviceId}",
+                        .postForEntity(HTTPS_URL + "/api/rpc/twoway/{deviceId}",
                                 mapper.readTree(serverRpcPayload.toString()), String.class,
                                 createdDevice.getId());
             } catch (IOException e) {

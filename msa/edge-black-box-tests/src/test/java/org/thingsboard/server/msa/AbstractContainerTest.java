@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.awaitility.Awaitility;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -56,7 +58,47 @@ import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
+import org.thingsboard.server.common.data.DeviceProfileType;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.device.profile.AlarmCondition;
+import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
+import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
+import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
+import org.thingsboard.server.common.data.device.profile.AlarmRule;
+import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.query.EntityKeyValueType;
+import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
+
+import javax.net.ssl.SSLContext;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -69,31 +111,114 @@ import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractContainerTest {
-    protected static final String HTTPS_URL = "https://localhost";
+    protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
     protected static String rpcURLHttp;
     protected static String TB_TOKEN;
     protected static RestClient restClient;
-    protected static RestClient rpcHTTPRestClient;
-    protected ObjectMapper mapper = new ObjectMapper();
-    protected static final String TELEMETRY_KEY = "temperature";
-    protected static final String TELEMETRY_VALUE = "42";
-    protected static final int CONNECT_TRY_COUNT = 50;
-    protected static final int CONNECT_TIMEOUT_MS = 500;
+    protected static ObjectMapper mapper = new ObjectMapper();
+
+    protected static RestClient edgeRestClient;
+
+    protected static Edge edge;
+    protected static String edgeUrl;
 
     @BeforeClass
     public static void before() throws Exception {
-        String  rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
-        Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
-        rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
-        rpcHTTPRestClient = new RestClient(rpcURLHttp);
-
-        restClient = new RestClient(HTTPS_URL);
+        restClient = new RestClient(CLOUD_HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+
+        String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
+        Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
+        edgeUrl = "http://" + edgeHost + ":" + edgePort;
+        edgeRestClient = new RestClient(edgeUrl);
+
+        setWhiteLabelingAndCustomTranslation();
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                            Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
+                            return cloudLoginWhiteLabelParams.isPresent() &&
+                                    cloudLoginWhiteLabelParams.get().getDomainName().equals("tenant.org");
+                        });
+
+        edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    boolean loginSuccessful = false;
+                    try {
+                        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+                        loginSuccessful = true;
+                    } catch (Exception ignored1) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ignored2) {}
+                    }
+                    return loginSuccessful;
+                });
+
+        Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
+        Assert.assertTrue(tenant.isPresent());
+        Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+    }
+
+    protected void updateRootRuleChain() throws IOException {
+        PageData<RuleChain> ruleChains = restClient.getRuleChains(new PageLink(100));
+        RuleChainId rootRuleChainId = null;
+        for (RuleChain datum : ruleChains.getData()) {
+            if (datum.isRoot()) {
+                rootRuleChainId = datum.getId();
+                break;
+            }
+        }
+        Assert.assertNotNull(rootRuleChainId);
+        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("PushToEdgeRootRuleChainMetadata.json"));
+        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
+        ruleChainMetaData.setRuleChainId(rootRuleChainId);
+        ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
+        ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+        restClient.saveRuleChainMetaData(ruleChainMetaData);
+    }
+
+    private static void setWhiteLabelingAndCustomTranslation() {
+        restClient.login("sysadmin@thingsboard.org", "sysadmin");
+
+        CustomTranslation content = new CustomTranslation();
+        content.getTranslationMap().put("key", "sys_admin_value");
+        restClient.saveCustomTranslation(content);
+
+        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setAppTitle("Sys Admin TB");
+        restClient.saveWhiteLabelParams(whiteLabelingParams);
+
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        loginWhiteLabelingParams.setDomainName("sysadmin.org");
+        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
+
+        restClient.login("tenant@thingsboard.org", "tenant");
+
+        content = new CustomTranslation();
+        content.getTranslationMap().put("key", "tenant_value");
+        restClient.saveCustomTranslation(content);
+
+        whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setAppTitle("Tenant TB");
+        restClient.saveWhiteLabelParams(whiteLabelingParams);
+
+        loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        loginWhiteLabelingParams.setDomainName("tenant.org");
+        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
     }
 
     @Rule
@@ -139,6 +264,58 @@ public abstract class AbstractContainerTest {
         device.setName(name + RandomStringUtils.randomAlphanumeric(7));
         device.setType("DEFAULT");
         return restClient.saveDevice(device);
+    }
+
+    protected DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+        DeviceProfile deviceProfile = new DeviceProfile();
+        deviceProfile.setName(name);
+        deviceProfile.setType(DeviceProfileType.DEFAULT);
+        deviceProfile.setImage("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEABA");
+        deviceProfile.setTransportType(DeviceTransportType.DEFAULT);
+        deviceProfile.setDescription(null);
+        deviceProfile.setProvisionType(DeviceProfileProvisionType.DISABLED);
+        DeviceProfileData deviceProfileData = new DeviceProfileData();
+        DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
+        deviceProfileData.setConfiguration(configuration);
+        if (deviceProfileTransportConfiguration != null) {
+            deviceProfileData.setTransportConfiguration(deviceProfileTransportConfiguration);
+        } else {
+            deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
+        }
+        deviceProfile.setProfileData(deviceProfileData);
+        deviceProfile.setDefault(false);
+        deviceProfile.setDefaultRuleChainId(null);
+        extendDeviceProfileData(deviceProfile);
+        return restClient.saveDeviceProfile(deviceProfile);
+    }
+
+    protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
+        DeviceProfileData profileData = deviceProfile.getProfileData();
+        List<DeviceProfileAlarm> alarms = new ArrayList<>();
+        DeviceProfileAlarm deviceProfileAlarm = new DeviceProfileAlarm();
+        deviceProfileAlarm.setAlarmType("High Temperature");
+        AlarmRule alarmRule = new AlarmRule();
+        alarmRule.setAlarmDetails("Alarm Details");
+        AlarmCondition alarmCondition = new AlarmCondition();
+        alarmCondition.setSpec(new SimpleAlarmConditionSpec());
+        List<AlarmConditionFilter> condition = new ArrayList<>();
+        AlarmConditionFilter alarmConditionFilter = new AlarmConditionFilter();
+        alarmConditionFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, "temperature"));
+        NumericFilterPredicate predicate = new NumericFilterPredicate();
+        predicate.setOperation(NumericFilterPredicate.NumericOperation.GREATER);
+        predicate.setValue(new FilterPredicateValue<>(55.0));
+        alarmConditionFilter.setPredicate(predicate);
+        alarmConditionFilter.setValueType(EntityKeyValueType.NUMERIC);
+        condition.add(alarmConditionFilter);
+        alarmCondition.setCondition(condition);
+        alarmRule.setCondition(alarmCondition);
+        deviceProfileAlarm.setClearRule(alarmRule);
+        TreeMap<AlarmSeverity, AlarmRule> createRules = new TreeMap<>();
+        createRules.put(AlarmSeverity.CRITICAL, alarmRule);
+        deviceProfileAlarm.setCreateRules(createRules);
+        alarms.add(deviceProfileAlarm);
+        profileData.setAlarms(alarms);
+        profileData.setProvisionConfiguration(new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("123"));
     }
 
     protected WsClient subscribeToWebSocket(DeviceId deviceId, String scope, CmdsType property) throws Exception {
@@ -267,6 +444,17 @@ public abstract class AbstractContainerTest {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
         return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+    protected static Edge createEdge(String name, String routingKey, String secret) {
+        Edge edge = new Edge();
+        edge.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        edge.setType("DEFAULT");
+        edge.setRoutingKey(routingKey);
+        edge.setSecret(secret);
+        edge.setEdgeLicenseKey("123");
+        edge.setCloudEndpoint("tb-monolith");
+        return restClient.saveEdge(edge);
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,7 +63,7 @@ public class HttpClientTest extends AbstractContainerTest {
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity deviceTelemetryResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/v1/{credentialsId}/telemetry",
+                .postForEntity(HTTPS_URL + "/api/v1/{credentialsId}/telemetry",
                         mapper.readTree(createPayload().toString()),
                         ResponseEntity.class,
                         deviceCredentials.getCredentialsId());
@@ -92,14 +92,14 @@ public class HttpClientTest extends AbstractContainerTest {
         assertNotNull(accessToken);
 
         ResponseEntity deviceSharedAttributes = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/" + DEVICE + "/" + device.getId().toString() + "/attributes/" + SHARED_SCOPE, mapper.readTree(createPayload().toString()),
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/" + DEVICE + "/" + device.getId().toString() + "/attributes/" + SHARED_SCOPE, mapper.readTree(createPayload().toString()),
                         ResponseEntity.class,
                         accessToken);
 
         Assert.assertTrue(deviceSharedAttributes.getStatusCode().is2xxSuccessful());
 
         ResponseEntity deviceClientsAttributes = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(createPayload().toString()),
+                .postForEntity(HTTPS_URL + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(createPayload().toString()),
                         ResponseEntity.class,
                         accessToken);
 

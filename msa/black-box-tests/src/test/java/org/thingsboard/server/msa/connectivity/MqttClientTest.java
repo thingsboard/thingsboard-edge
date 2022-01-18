@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.*;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -93,7 +96,7 @@ public class MqttClientTest extends AbstractContainerTest {
         Assert.assertTrue(verify(actualLatestTelemetry, "doubleKey", Double.toString(42.0)));
         Assert.assertTrue(verify(actualLatestTelemetry, "longKey", Long.toString(73)));
 
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     @Test
@@ -119,7 +122,7 @@ public class MqttClientTest extends AbstractContainerTest {
         Assert.assertTrue(verify(actualLatestTelemetry, "doubleKey", ts, Double.toString(42.0)));
         Assert.assertTrue(verify(actualLatestTelemetry, "longKey", ts, Long.toString(73)));
 
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     @Test
@@ -150,7 +153,7 @@ public class MqttClientTest extends AbstractContainerTest {
         Assert.assertTrue(verify(actualLatestTelemetry, "attr3", Double.toString(42.0)));
         Assert.assertTrue(verify(actualLatestTelemetry, "attr4", Long.toString(73)));
 
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     @Test
@@ -184,7 +187,7 @@ public class MqttClientTest extends AbstractContainerTest {
         String sharedAttributeValue = RandomStringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty("sharedAttr", sharedAttributeValue);
         ResponseEntity sharedAttributesResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
                         mapper.readTree(sharedAttributes.toString()), ResponseEntity.class,
                         device.getId());
         Assert.assertTrue(sharedAttributesResponse.getStatusCode().is2xxSuccessful());
@@ -210,7 +213,7 @@ public class MqttClientTest extends AbstractContainerTest {
         Assert.assertEquals(1, attributes.getShared().size());
         Assert.assertEquals(sharedAttributeValue, attributes.getShared().get("sharedAttr"));
 
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     @Test
@@ -233,7 +236,7 @@ public class MqttClientTest extends AbstractContainerTest {
         String sharedAttributeValue = RandomStringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty(sharedAttributeName, sharedAttributeValue);
         ResponseEntity sharedAttributesResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
                         mapper.readTree(sharedAttributes.toString()), ResponseEntity.class,
                         device.getId());
         Assert.assertTrue(sharedAttributesResponse.getStatusCode().is2xxSuccessful());
@@ -247,7 +250,7 @@ public class MqttClientTest extends AbstractContainerTest {
         String updatedSharedAttributeValue = RandomStringUtils.randomAlphanumeric(8);
         updatedSharedAttributes.addProperty(sharedAttributeName, updatedSharedAttributeValue);
         ResponseEntity updatedSharedAttributesResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
+                .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
                         mapper.readTree(updatedSharedAttributes.toString()), ResponseEntity.class,
                         device.getId());
         Assert.assertTrue(updatedSharedAttributesResponse.getStatusCode().is2xxSuccessful());
@@ -256,7 +259,7 @@ public class MqttClientTest extends AbstractContainerTest {
         Assert.assertEquals(updatedSharedAttributeValue,
                 mapper.readValue(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText());
 
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     @Test
@@ -280,7 +283,7 @@ public class MqttClientTest extends AbstractContainerTest {
         ListenableFuture<ResponseEntity> future = service.submit(() -> {
             try {
                 return restClient.getRestTemplate()
-                        .postForEntity(CLOUD_HTTPS_URL + "/api/rpc/twoway/{deviceId}",
+                        .postForEntity(HTTPS_URL + "/api/rpc/twoway/{deviceId}",
                                 mapper.readTree(serverRpcPayload.toString()), String.class,
                                 device.getId());
             } catch (IOException e) {
@@ -304,7 +307,7 @@ public class MqttClientTest extends AbstractContainerTest {
         Assert.assertTrue(serverResponse.getStatusCode().is2xxSuccessful());
         Assert.assertEquals(clientResponse.toString(), serverResponse.getBody());
 
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     @Test
@@ -340,22 +343,22 @@ public class MqttClientTest extends AbstractContainerTest {
 
         // Make the default rule chain a root again
         ResponseEntity<RuleChain> rootRuleChainResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/ruleChain/{ruleChainId}/root",
+                .postForEntity(HTTPS_URL + "/api/ruleChain/{ruleChainId}/root",
                         null,
                         RuleChain.class,
                         defaultRuleChainId);
         Assert.assertTrue(rootRuleChainResponse.getStatusCode().is2xxSuccessful());
 
         // Delete the created rule chain
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/ruleChain/{ruleChainId}", ruleChainId);
-        restClient.getRestTemplate().delete(CLOUD_HTTPS_URL + "/api/device/" + device.getId());
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/ruleChain/{ruleChainId}", ruleChainId);
+        restClient.getRestTemplate().delete(HTTPS_URL + "/api/device/" + device.getId());
     }
 
     private RuleChainId createRootRuleChainForRpcResponse() throws Exception {
         RuleChain newRuleChain = new RuleChain();
         newRuleChain.setName("testRuleChain");
         ResponseEntity<RuleChain> ruleChainResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/ruleChain",
+                .postForEntity(HTTPS_URL + "/api/ruleChain",
                         newRuleChain,
                         RuleChain.class);
         Assert.assertTrue(ruleChainResponse.getStatusCode().is2xxSuccessful());
@@ -369,14 +372,14 @@ public class MqttClientTest extends AbstractContainerTest {
         ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
 
         ResponseEntity<RuleChainMetaData> ruleChainMetadataResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/ruleChain/metadata",
+                .postForEntity(HTTPS_URL + "/api/ruleChain/metadata",
                         ruleChainMetaData,
                         RuleChainMetaData.class);
         Assert.assertTrue(ruleChainMetadataResponse.getStatusCode().is2xxSuccessful());
 
         // Set a new rule chain as root
         ResponseEntity<RuleChain> rootRuleChainResponse = restClient.getRestTemplate()
-                .postForEntity(CLOUD_HTTPS_URL + "/api/ruleChain/{ruleChainId}/root",
+                .postForEntity(HTTPS_URL + "/api/ruleChain/{ruleChainId}/root",
                         null,
                         RuleChain.class,
                         ruleChain.getId());
@@ -387,7 +390,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
     private RuleChainId getDefaultRuleChainId() {
         ResponseEntity<PageData<RuleChain>> ruleChains = restClient.getRestTemplate().exchange(
-                CLOUD_HTTPS_URL + "/api/ruleChains?pageSize=40&page=0&textSearch=",
+                HTTPS_URL + "/api/ruleChains?pageSize=40&page=0&textSearch=",
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<PageData<RuleChain>>() {

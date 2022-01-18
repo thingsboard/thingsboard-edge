@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.msa;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -51,29 +53,36 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.*Test"})
+@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.connectivity.EdgeClientTest"})
 @Slf4j
 public class ContainerTestSuite {
 
-    private static final String SOURCE_DIR = "./../../docker/";
-    private static final String TB_CORE_LOG_REGEXP = ".*Starting polling for events.*";
-    private static final String TRANSPORTS_LOG_REGEXP = ".*Going to recalculate partitions.*";
-    private static final String INTEGRATION_LOG_REGEXP = ".*Sending a connect request to the TB!.*";
+    public static DockerComposeContainer<?> testContainer;
 
-    private static DockerComposeContainer<?> testContainer;
+    private static final String SOURCE_DIR = "./../../docker/";
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
 
+//    @ClassRule
+//    public static TbEdgeInstaller installEdge = new TbEdgeInstaller();
+
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
+        HashMap<String, String> env = new HashMap<>();
+        env.put("EDGE_DOCKER_REPO", "thingsboard");
+        env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
+        env.put("TB_EDGE_VERSION", "3.3.3EDGE-SNAPSHOT");
+        env.put("CLOUD_ROUTING_KEY", "280629c7-f853-ee3d-01c0-fffbb6f2ef38");
+        env.put("CLOUD_ROUTING_SECRET", "g9ta4soeylw6smqkky8g");
+        env.put("CLOUD_RPC_HOST", "tb-monolith");
+
         if (testContainer == null) {
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
             try {
                 final String targetDir = FileUtils.getTempDirectoryPath() + "/" + "ContainerTestSuite-" + UUID.randomUUID() + "/";
                 log.info("targetDir {}", targetDir);
                 FileUtils.copyDirectory(new File(SOURCE_DIR), new File(targetDir));
-                replaceInFile(targetDir + "advanced/docker-compose.yml", "    container_name: \"${LOAD_BALANCER_NAME}\"", "", "container_name");
 
                 final String httpIntegrationDir = "src/test/resources";
                 FileUtils.copyDirectory(new File(httpIntegrationDir), new File(targetDir));
@@ -91,32 +100,20 @@ public class ContainerTestSuite {
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
-                        new File(targetDir + "advanced/docker-compose.yml"),
-                        new File(targetDir + "advanced/docker-compose.postgres.yml"),
-                        new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
-                        new File(targetDir + "docker-compose.integration.yml"),
-                        new File(targetDir + "docker-compose.mosquitto.yml"),
-                        new File(targetDir + "advanced/docker-compose.kafka.yml"))
+                        new File("./../../docker/docker-compose.yml"),
+                        new File("./../../docker/docker-compose.postgres.yml"),
+                        new File("./../../docker/docker-compose.postgres.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
                         .withEnv(installTb.getEnv())
+                        .withEnv(env)
                         .withEnv("LOAD_BALANCER_NAME", "")
-                        .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(400)))
-                        .withExposedService("tb-pe-http-integration", 8082)
-                        .withExposedService("tb-pe-mqtt-integration", 8082)
-                        .withExposedService("broker", 1883)
-                        .waitingFor("tb-core1", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-core2", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-http-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-http-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-mqtt-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-pe-mqtt-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)))
-                        .waitingFor("tb-pe-http-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(Duration.ofSeconds(400)));
+                        .withExposedService("tb-edge", 8082)
+                        .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
-                fail("Failed to create test container");
+                Assert.fail("Failed to create test container");
             }
         }
         return testContainer;
@@ -128,30 +125,6 @@ public class ContainerTestSuite {
             FileUtils.deleteDirectory(new File(targetDir));
         } catch (IOException e) {
             log.error("Can't delete temp directory " + targetDir, e);
-        }
-    }
-
-    /**
-     * This workaround is actual until issue will be resolved:
-     * Support container_name in docker-compose file #2472 https://github.com/testcontainers/testcontainers-java/issues/2472
-     * docker-compose files which contain container_name are not supported and the creation of DockerComposeContainer fails due to IllegalStateException.
-     * This has been introduced in #1151 as a quick fix for unintuitive feedback. https://github.com/testcontainers/testcontainers-java/issues/1151
-     * Using the latest testcontainers and waiting for the fix...
-     * */
-    private static void replaceInFile(String sourceFilename, String target, String replacement, String verifyPhrase) {
-        try {
-            File file = new File(sourceFilename);
-            String sourceContent = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-
-            String outputContent = sourceContent.replace(target, replacement);
-            assertThat(outputContent, (not(containsString(target))));
-            assertThat(outputContent, (not(containsString(verifyPhrase))));
-
-            FileUtils.writeStringToFile(file, outputContent, StandardCharsets.UTF_8);
-            assertThat(FileUtils.readFileToString(file, StandardCharsets.UTF_8), is(outputContent));
-        } catch (IOException e) {
-            log.error("failed to update file " + sourceFilename, e);
-            fail("failed to update file");
         }
     }
 }
