@@ -211,6 +211,9 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
     this.entityGroup = entityGroup;
     this.groupParams = groupParams || resolveGroupParams(this.route.snapshot);
     this.entityGroupConfig = entityGroup.entityGroupConfig;
+    if (groupParams.hierarchyView) {
+      this.entityGroupConfig.pageMode = false;
+    }
     this.entityGroupConfig.onToggleEntityGroupDetails = this.onToggleEntityGroupDetails.bind(this);
     this.entityGroupConfig.onToggleEntityDetails = this.onToggleEntityDetails.bind(this);
     this.entitiesTable.detailsPanelOpened.subscribe((isDetailsOpened: boolean) => {

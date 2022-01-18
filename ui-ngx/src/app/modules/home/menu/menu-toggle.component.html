@@ -31,7 +31,7 @@
 
 -->
 <a mat-button class="tb-button-toggle"
-        routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: true}"
+        routerLinkActive="tb-active" [routerLinkActiveOptions]="{paths: 'exact', queryParams: section.isCustom ? 'subset' : 'ignored', matrixParams: 'ignored', fragment: 'ignored'}"
         [queryParams]="section.queryParams"
         [routerLink]="section.path">
   <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>

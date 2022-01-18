@@ -66,3 +66,7 @@ export interface GroupPermissionFullInfo extends GroupPermissionInfo {
   userGroupOwnerFullName?: string;
   sourceGroupPermission?: GroupPermission;
 }
+
+export function isGroupPermissionsEqual(gp1: GroupPermission, gp2: GroupPermission): boolean {
+  return gp1?.roleId?.id === gp2?.roleId?.id && gp1.entityGroupId?.id === gp2.entityGroupId?.id;
+}
