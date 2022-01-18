@@ -422,7 +422,6 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
-        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -667,7 +666,6 @@ export class MenuService {
           type: 'link',
           path: '/usage',
           icon: 'insert_chart',
-          notExact: true,
           disabled: disabledItems.indexOf('api_usage') > -1
         }
       );
@@ -1128,7 +1126,6 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
-        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -1505,7 +1502,6 @@ export class MenuService {
         name: customMenuItem.name,
         icon: customMenuItem.materialIcon,
         iconUrl: customMenuItem.iconUrl,
-        notExact: true,
         path: '/iframeView'
       } as MenuSection;
       customMenuSection.queryParams = {
@@ -1529,7 +1525,6 @@ export class MenuService {
             type: 'link',
             icon: customMenuChildItem.materialIcon,
             iconUrl: customMenuChildItem.iconUrl,
-            notExact: true,
             path: '/iframeView/child'
           };
           customMenuChildSection.queryParams = {
