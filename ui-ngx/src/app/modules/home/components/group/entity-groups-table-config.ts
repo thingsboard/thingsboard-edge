@@ -81,6 +81,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
               private params: EntityGroupParams) {
     super();
 
+    if (params.hierarchyView) {
+      this.pageMode = false;
+    }
     this.customerId = params.customerId;
     this.edgeId = params.edgeId;
     if ((this.customerId || this.edgeId) && params.childGroupType) {
