@@ -79,11 +79,13 @@ import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { AuthUser } from '@shared/models/user.model';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
 import _ from 'lodash';
+import { EntityService } from '@core/http/entity.service';
+import { entityIdEquals } from '@shared/models/id/entity-id';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -116,30 +118,44 @@ export class DashboardResolver implements Resolve<Dashboard> {
 export class RedirectToEntityGroup implements CanActivate {
   constructor(private router: Router,
               private entityGroupService: EntityGroupService,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              private entityService: EntityService) {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     const groupType: EntityType = route.data.groupType;
     const entityId: string = route.params.entityId;
     if (isDefined(groupType) && isDefined(entityId)) {
-      const currentUser: AuthUser = getCurrentAuthUser(this.store);
-      if (groupType === EntityType.USER && currentUser.authority === Authority.SYS_ADMIN) {
+      const authState = getCurrentAuthState(this.store);
+      if (groupType === EntityType.USER && authState.authUser.authority === Authority.SYS_ADMIN) {
         return true;
       }
-      return this.entityGroupService.getEntityGroupIdsForEntityId(groupType, entityId).pipe(
-        switchMap((groups) => {
-          if (groups.length === 1) {
-            return of(groups[0]);
-          }
-          const groupIds = groups.map(group => group.id);
-          return this.entityGroupService.getEntityGroupsByIds(groupIds).pipe(
-            map(groupId => groupId.find(group => group.groupAll).id)
+      const userOwnerId = authState.userDetails.ownerId;
+      return this.entityService.getEntity(groupType, entityId).pipe(
+        switchMap((entity) => {
+          const ownerId = entity.ownerId;
+          return this.entityGroupService.getEntityGroupAllByOwnerId(ownerId.entityType as EntityType, ownerId.id, groupType).pipe(
+            switchMap((groupAll) => {
+              const entityGroupUrl = _.camelCase(groupType) + 'Groups';
+              if (entityIdEquals(ownerId, userOwnerId)) {
+                return of(`${entityGroupUrl}/${groupAll.id.id}/${entityId}`);
+              } else {
+               return this.entityService.getEntity(ownerId.entityType as EntityType, ownerId.id).pipe(
+                  switchMap((ownerEntity) => {
+                    return this.entityGroupService.getEntityGroupAllByOwnerId(ownerEntity.ownerId.entityType as EntityType,
+                      ownerEntity.ownerId.id, EntityType.CUSTOMER).pipe(
+                      map((customersGroupAll) => {
+                        return `customerGroups/${customersGroupAll.id.id}/${ownerId.id}/${entityGroupUrl}/${groupAll.id.id}/${entityId}`;
+                      })
+                    );
+                  })
+                );
+              }
+            })
           );
         }),
-        map((group: EntityGroupId) => {
-          const groupUrl = _.camelCase(groupType) + 'Groups';
-          return this.router.parseUrl(`${groupUrl}/${group.id}/${entityId}`);
+        map((url) => {
+          return this.router.parseUrl(url);
         })
       );
     }
