@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -70,7 +70,10 @@ CREATE TABLE IF NOT EXISTS alarm (
     tenant_id uuid,
     customer_id uuid,
     propagate_relation_types varchar,
-    type varchar(255)
+    type varchar(255),
+    propagate_to_owner boolean,
+    propagate_to_owner_hierarchy boolean,
+    propagate_to_tenant boolean
 );
 
 CREATE TABLE IF NOT EXISTS entity_alarm (

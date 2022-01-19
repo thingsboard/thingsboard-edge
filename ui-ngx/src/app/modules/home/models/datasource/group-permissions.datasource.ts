@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,11 @@ import { PageLink } from '@shared/models/page/page-link';
 import { catchError, map, publishReplay, refCount, take, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { GroupPermission, GroupPermissionFullInfo } from '@shared/models/group-permission.models';
+import {
+  GroupPermission,
+  GroupPermissionFullInfo,
+  isGroupPermissionsEqual
+} from '@shared/models/group-permission.models';
 import { RoleService } from '@core/http/role.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
@@ -115,10 +119,9 @@ export class GroupPermissionsDatasource implements DataSource<GroupPermissionFul
       }
       this.allGroupPermissions = groupPermissionsObservable.pipe(
         map(groupPermissions => {
-          for (let i = 0; i < groupPermissions.length; i++) {
-            const groupPermission = groupPermissions[i];
+          for (const groupPermission of  groupPermissions) {
             if (registrationPermissions) {
-              groupPermission.sourceGroupPermission = registrationPermissions[i];
+              groupPermission.sourceGroupPermission = registrationPermissions.find(rp => isGroupPermissionsEqual(groupPermission, rp));
             }
             groupPermission.roleName = groupPermission.role.name;
             if (isUserGroup) {

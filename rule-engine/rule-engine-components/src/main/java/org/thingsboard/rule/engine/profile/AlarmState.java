@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -273,6 +273,9 @@ class AlarmState {
             currentAlarm.setOriginator(originator);
             currentAlarm.setTenantId(ctx.getTenantId());
             currentAlarm.setPropagate(alarmDefinition.isPropagate());
+            currentAlarm.setPropagateToOwner(alarmDefinition.isPropagateToOwner());
+            currentAlarm.setPropagateToOwnerHierarchy(alarmDefinition.isPropagateToOwnerHierarchy());
+            currentAlarm.setPropagateToTenant(alarmDefinition.isPropagateToTenant());
             if (alarmDefinition.getPropagateRelationTypes() != null) {
                 currentAlarm.setPropagateRelationTypes(alarmDefinition.getPropagateRelationTypes());
             }

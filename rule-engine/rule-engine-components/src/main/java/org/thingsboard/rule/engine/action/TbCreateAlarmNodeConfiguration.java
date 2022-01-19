@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,9 @@ public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfigura
 
     private String severity;
     private boolean propagate;
+    private boolean propagateToOwner;
+    private boolean propagateToOwnerHierarchy;
+    private boolean propagateToTenant;
     private boolean useMessageAlarmData;
     private boolean dynamicSeverity;
 
@@ -54,6 +57,9 @@ public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfigura
         configuration.setAlarmType("General Alarm");
         configuration.setSeverity(AlarmSeverity.CRITICAL.name());
         configuration.setPropagate(false);
+        configuration.setPropagateToOwner(false);
+        configuration.setPropagateToOwnerHierarchy(false);
+        configuration.setPropagateToTenant(false);
         configuration.setUseMessageAlarmData(false);
         configuration.setRelationTypes(Collections.emptyList());
         configuration.setDynamicSeverity(false);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -154,9 +154,9 @@ export class TenantProfileAutocompleteComponent implements ControlValueAccessor,
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (this.disabled) {
-      this.selectTenantProfileFormGroup.disable();
+      this.selectTenantProfileFormGroup.disable({emitEvent: false});
     } else {
-      this.selectTenantProfileFormGroup.enable();
+      this.selectTenantProfileFormGroup.enable({emitEvent: false});
     }
   }
 

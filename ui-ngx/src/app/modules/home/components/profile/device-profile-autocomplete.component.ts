@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -253,9 +253,9 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (this.disabled) {
-      this.selectDeviceProfileFormGroup.disable();
+      this.selectDeviceProfileFormGroup.disable({emitEvent: false});
     } else {
-      this.selectDeviceProfileFormGroup.enable();
+      this.selectDeviceProfileFormGroup.enable({emitEvent: false});
     }
   }
 

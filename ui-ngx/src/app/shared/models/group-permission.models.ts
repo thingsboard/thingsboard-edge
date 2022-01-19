@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -65,4 +65,8 @@ export interface GroupPermissionFullInfo extends GroupPermissionInfo {
   entityGroupOwnerFullName?: string;
   userGroupOwnerFullName?: string;
   sourceGroupPermission?: GroupPermission;
+}
+
+export function isGroupPermissionsEqual(gp1: GroupPermission, gp2: GroupPermission): boolean {
+  return gp1?.roleId?.id === gp2?.roleId?.id && gp1.entityGroupId?.id === gp2.entityGroupId?.id;
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AuthService } from '@core/auth/auth.service';
 import { of, Subscription } from 'rxjs';
-import { HomeDashboard } from '@shared/models/dashboard.models';
+import { Dashboard, HomeDashboard } from '@shared/models/dashboard.models';
 import { Observable } from 'rxjs/internal/Observable';
 import { isDefinedAndNotNull } from '@core/utils';
 import { map } from 'rxjs/operators';
@@ -63,14 +63,14 @@ export class IFrameViewComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.sub = this.route.queryParams.subscribe((queryParams) => {
       this.safeIframeUrl = null;
-      this.dashboard = null;
-      this.loading = true;
       if (this.isDashboard(queryParams)) {
-        this.resolveDashboard(queryParams).subscribe((dashboard) => {
+        this.loading = true;
+        this.resolveDashboard(queryParams, this.dashboard).subscribe((dashboard) => {
           this.dashboard = dashboard;
           this.loading = false;
         });
       } else {
+        this.dashboard = null;
         let iframeUrl: string;
         let setAccessToken: string;
         if (queryParams.childIframeUrl) {
@@ -106,7 +106,7 @@ export class IFrameViewComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  private resolveDashboard(queryParams: Params): Observable<HomeDashboard> {
+  private resolveDashboard(queryParams: Params, prevDashboard: HomeDashboard): Observable<HomeDashboard> {
     let dashboardId;
     let hideDashboardToolbar;
     if (queryParams.childDashboardId) {
@@ -118,11 +118,15 @@ export class IFrameViewComponent implements OnInit, OnDestroy {
       hideDashboardToolbar = isDefinedAndNotNull(queryParams.hideDashboardToolbar) ? queryParams.hideDashboardToolbar === 'true' : true;
     }
     if (dashboardId) {
-      return this.dashboardService.getDashboard(dashboardId).pipe(
-        map((dashboard) => {
-          return {...dashboard, hideDashboardToolbar};
-        })
-      );
+      if (prevDashboard?.id?.id === dashboardId) {
+        return of(prevDashboard);
+      } else {
+        return this.dashboardService.getDashboard(dashboardId).pipe(
+          map((dashboard) => {
+            return {...dashboard, hideDashboardToolbar};
+          })
+        );
+      }
     } else {
       return of(null);
     }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,44 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.service.gateway_device;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.HsqlDao;
+import org.thingsboard.server.common.data.Device;
 
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
+public interface GatewayNotificationsService {
 
-@Service
-@Slf4j
-@HsqlDao
-@Profile("install")
-public class HsqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
-        implements EntityDatabaseSchemaService {
-    protected HsqlEntityDatabaseSchemaService() {
-        super("schema-entities-hsql.sql", "schema-entities-idx.sql");
-    }
+    void onDeviceUpdated(Device device, Device oldDevice);
 
-    private final String schemaTypesSql = "schema-types-hsql.sql";
-
-    @Override
-    public void createDatabaseSchema(boolean createIndexes) throws Exception {
-
-        log.info("Installing SQL DataBase types part: " + schemaTypesSql);
-
-        Path schemaFile = Paths.get(installScripts.getDataDir(), SQL_DIR, schemaTypesSql);
-        try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-            String sql = new String(Files.readAllBytes(schemaFile), Charset.forName("UTF-8"));
-            conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to load initial thingsboard database schema
-        }
-
-        super.createDatabaseSchema(createIndexes);
-    }
+    void onDeviceDeleted(Device device);
 }
-

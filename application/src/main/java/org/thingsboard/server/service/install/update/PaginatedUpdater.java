@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,7 +43,6 @@ public abstract class PaginatedUpdater<I, D> {
     private int updated = 0;
 
     public void updateEntities(I id) {
-        log.info("{}: started...", getName());
         updated = 0;
         PageLink pageLink = new PageLink(DEFAULT_LIMIT);
         boolean hasNext = true;

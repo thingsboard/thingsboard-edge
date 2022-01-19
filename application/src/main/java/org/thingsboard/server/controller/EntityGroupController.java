@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -227,7 +227,7 @@ public class EntityGroupController extends BaseController {
                 if (parentEntityId == null || parentEntityId.isNullUid()) {
                     parentEntityId = getCurrentUser().getOwnerId();
                 } else {
-                    if (!ownersCacheService.fetchOwners(getTenantId(), parentEntityId).contains(getCurrentUser().getOwnerId())) {
+                    if (!ownersCacheService.fetchOwnersHierarchy(getTenantId(), parentEntityId).contains(getCurrentUser().getOwnerId())) {
                         throw new ThingsboardException("Unable to create entity group: " +
                                 "Invalid entity group ownerId!", ThingsboardErrorCode.PERMISSION_DENIED);
                     }
@@ -923,7 +923,7 @@ public class EntityGroupController extends BaseController {
             if (userGroup == null) {
                 throw new ThingsboardException("User group with requested id: " + userGroupId + " wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
             }
-            Set<EntityId> userGroupOwnerIds = ownersCacheService.fetchOwners(getTenantId(), userGroup.getOwnerId());
+            Set<EntityId> userGroupOwnerIds = ownersCacheService.fetchOwnersHierarchy(getTenantId(), userGroup.getOwnerId());
             EntityId currentUserOwnerId = getCurrentUser().getOwnerId();
             if (!CollectionUtils.isEmpty(userGroupOwnerIds) && userGroupOwnerIds.contains(currentUserOwnerId)) {
                 EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -931,7 +931,7 @@ public class EntityGroupController extends BaseController {
                 if (entityGroup == null) {
                     throw new ThingsboardException("Entity group with requested id: " + entityGroupId + " wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
                 }
-                Set<EntityId> groupToShareOwnerIds = ownersCacheService.fetchOwners(getTenantId(), entityGroup.getOwnerId());
+                Set<EntityId> groupToShareOwnerIds = ownersCacheService.fetchOwnersHierarchy(getTenantId(), entityGroup.getOwnerId());
                 Set<Operation> mergedOperations = new HashSet<>();
                 MergedUserPermissions userPermissions = getCurrentUser().getUserPermissions();
                 if (groupToShareOwnerIds.contains(currentUserOwnerId)) {
@@ -954,7 +954,7 @@ public class EntityGroupController extends BaseController {
                 if (role == null) {
                     throw new ThingsboardException("Role with requested id: " + roleId + " wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
                 }
-                Set<EntityId> roleOwnerIds = ownersCacheService.fetchOwners(getTenantId(), role.getOwnerId());
+                Set<EntityId> roleOwnerIds = ownersCacheService.fetchOwnersHierarchy(getTenantId(), role.getOwnerId());
                 if (roleOwnerIds.contains(currentUserOwnerId) || userGroupOwnerIds.containsAll(roleOwnerIds)) {
                     shareGroup(role, userGroup, entityGroup, mergedOperations);
                 } else {

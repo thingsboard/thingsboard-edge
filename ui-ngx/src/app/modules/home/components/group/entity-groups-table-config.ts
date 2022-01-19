@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -81,6 +81,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
               private params: EntityGroupParams) {
     super();
 
+    if (params.hierarchyView) {
+      this.pageMode = false;
+    }
     this.customerId = params.customerId;
     this.edgeId = params.edgeId;
     if ((this.customerId || this.edgeId) && params.childGroupType) {

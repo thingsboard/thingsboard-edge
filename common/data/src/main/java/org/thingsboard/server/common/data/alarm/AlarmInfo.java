@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ public class AlarmInfo extends Alarm {
 
     private static final long serialVersionUID = 2807343093519543363L;
 
-    @ApiModelProperty(position = 17, value = "Alarm originator name", example = "Thermostat")
+    @ApiModelProperty(position = 20, value = "Alarm originator name", example = "Thermostat")
     private String originatorName;
 
     public AlarmInfo() {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -187,6 +187,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   private init(entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {
     this.isDetailsOpen = false;
     this.entitiesTableConfig = entitiesTableConfig;
+    this.pageMode = this.entitiesTableConfig.pageMode;
     if (this.entitiesTableConfig.headerComponent) {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.entitiesTableConfig.headerComponent);
       const viewContainerRef = this.entityTableHeaderAnchor.viewContainerRef;
@@ -232,16 +233,22 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
 
     let sortOrder: SortOrder = null;
-    if (this.entitiesTableConfig.defaultSortOrder || routerQueryParams.hasOwnProperty('direction') || routerQueryParams.hasOwnProperty('property')) {
+    if (this.pageMode) {
+      if (this.entitiesTableConfig.defaultSortOrder || routerQueryParams.hasOwnProperty('direction') || routerQueryParams.hasOwnProperty('property')) {
+        sortOrder = {
+          property: routerQueryParams?.property || this.entitiesTableConfig.defaultSortOrder.property,
+          direction: routerQueryParams?.direction || this.entitiesTableConfig.defaultSortOrder.direction
+        };
+      }
+    } else if (this.entitiesTableConfig.defaultSortOrder){
       sortOrder = {
-        property: routerQueryParams?.property || this.entitiesTableConfig.defaultSortOrder.property,
-        direction: routerQueryParams?.direction || this.entitiesTableConfig.defaultSortOrder.direction
+        property: this.entitiesTableConfig.defaultSortOrder.property,
+        direction: this.entitiesTableConfig.defaultSortOrder.direction
       };
     }
 
     this.displayPagination = this.entitiesTableConfig.displayPagination;
     this.defaultPageSize = this.entitiesTableConfig.defaultPageSize;
-    this.pageMode = this.entitiesTableConfig.pageMode;
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
 
     if (this.entitiesTableConfig.useTimePageLink) {
@@ -253,15 +260,17 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       this.pageLink = new PageLink(10, 0, null, sortOrder);
     }
     this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : MAX_SAFE_PAGE_SIZE;
-    if (routerQueryParams.hasOwnProperty('page')) {
-      this.pageLink.page = Number(routerQueryParams.page);
-    }
-    if (routerQueryParams.hasOwnProperty('pageSize')) {
-      this.pageLink.pageSize = Number(routerQueryParams.pageSize);
-    }
-    if (routerQueryParams.hasOwnProperty('textSearch') && !isEmptyStr(routerQueryParams.textSearch)) {
-      this.textSearchMode = true;
-      this.pageLink.textSearch = decodeURI(routerQueryParams.textSearch);
+    if (this.pageMode) {
+      if (routerQueryParams.hasOwnProperty('page')) {
+        this.pageLink.page = Number(routerQueryParams.page);
+      }
+      if (routerQueryParams.hasOwnProperty('pageSize')) {
+        this.pageLink.pageSize = Number(routerQueryParams.pageSize);
+      }
+      if (routerQueryParams.hasOwnProperty('textSearch') && !isEmptyStr(routerQueryParams.textSearch)) {
+        this.textSearchMode = true;
+        this.pageLink.textSearch = decodeURI(routerQueryParams.textSearch);
+      }
     }
     this.dataSource = this.entitiesTableConfig.dataSource(this.dataLoaded.bind(this));
     if (this.entitiesTableConfig.onLoadAction) {

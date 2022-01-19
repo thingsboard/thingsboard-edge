@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -79,6 +79,7 @@ import org.thingsboard.server.queue.common.MultipleTbQueueCallbackWrapper;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
@@ -109,6 +110,7 @@ public class DefaultTbClusterService implements TbClusterService {
     private final DataDecodingEncodingService encodingService;
     private final TbDeviceProfileCache deviceProfileCache;
     private final OtaPackageStateService otaPackageStateService;
+    private final GatewayNotificationsService gatewayNotificationsService;
 
     @Override
     public void pushMsgToCore(TenantId tenantId, EntityId entityId, ToCoreMsg msg, TbQueueCallback callback) {
@@ -447,10 +449,16 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void onDeviceUpdated(Device device, Device old, boolean notifyEdge) {
         var created = old == null;
-        if (old != null && (!device.getName().equals(old.getName()) || !device.getType().equals(old.getType()))) {
-            pushMsgToCore(new DeviceNameOrTypeUpdateMsg(device.getTenantId(), device.getId(), device.getName(), device.getType()), null);
-        }
         broadcastEntityChangeToTransport(device.getTenantId(), device.getId(), device, null);
+        if (old != null) {
+            boolean deviceNameChanged = !device.getName().equals(old.getName());
+            if (deviceNameChanged) {
+                gatewayNotificationsService.onDeviceUpdated(device, old);
+            }
+            if (deviceNameChanged || !device.getType().equals(old.getType())) {
+                pushMsgToCore(new DeviceNameOrTypeUpdateMsg(device.getTenantId(), device.getId(), device.getName(), device.getType()), null);
+            }
+        }
         broadcastEntityStateChangeEvent(device.getTenantId(), device.getId(), created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
         sendDeviceStateServiceEvent(device.getTenantId(), device.getId(), created, !created, false);
         otaPackageStateService.update(device);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,6 @@ export interface MenuSection extends HasUUID{
   path: string;
   queryParams?: {[k: string]: any};
   icon: string;
-  notExact?: boolean;
   iconUrl?: string;
   isMdiIcon?: boolean;
   asyncPages?: Observable<Array<MenuSection>>;

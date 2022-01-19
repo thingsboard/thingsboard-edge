@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,6 +66,9 @@ import static org.thingsboard.server.dao.model.ModelConstants.ALARM_ORIGINATOR_I
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_ORIGINATOR_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_RELATION_TYPES;
+import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_TO_OWNER_HIERARCHY_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_TO_OWNER_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_TO_TENANT_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_SEVERITY_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_START_TS_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_STATUS_PROPERTY;
@@ -120,6 +123,15 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
     @Column(name = ALARM_PROPAGATE_PROPERTY)
     private Boolean propagate;
 
+    @Column(name = ALARM_PROPAGATE_TO_OWNER_PROPERTY)
+    private Boolean propagateToOwner;
+
+    @Column(name = ALARM_PROPAGATE_TO_OWNER_HIERARCHY_PROPERTY)
+    private Boolean propagateToOwnerHierarchy;
+
+    @Column(name = ALARM_PROPAGATE_TO_TENANT_PROPERTY)
+    private Boolean propagateToTenant;
+
     @Column(name = ALARM_PROPAGATE_RELATION_TYPES)
     private String propagateRelationTypes;
 
@@ -145,6 +157,9 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         this.severity = alarm.getSeverity();
         this.status = alarm.getStatus();
         this.propagate = alarm.isPropagate();
+        this.propagateToOwner = alarm.isPropagateToOwner();
+        this.propagateToOwnerHierarchy = alarm.isPropagateToOwnerHierarchy();
+        this.propagateToTenant = alarm.isPropagateToTenant();
         this.startTs = alarm.getStartTs();
         this.endTs = alarm.getEndTs();
         this.ackTs = alarm.getAckTs();
@@ -169,6 +184,9 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         this.severity = alarmEntity.getSeverity();
         this.status = alarmEntity.getStatus();
         this.propagate = alarmEntity.getPropagate();
+        this.propagateToOwner = alarmEntity.getPropagateToOwner();
+        this.propagateToOwnerHierarchy = alarmEntity.getPropagateToOwnerHierarchy();
+        this.propagateToTenant = alarmEntity.getPropagateToTenant();
         this.startTs = alarmEntity.getStartTs();
         this.endTs = alarmEntity.getEndTs();
         this.ackTs = alarmEntity.getAckTs();
@@ -191,6 +209,9 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         alarm.setSeverity(severity);
         alarm.setStatus(status);
         alarm.setPropagate(propagate);
+        alarm.setPropagateToOwner(propagateToOwner);
+        alarm.setPropagateToOwnerHierarchy(propagateToOwnerHierarchy);
+        alarm.setPropagateToTenant(propagateToTenant);
         alarm.setStartTs(startTs);
         alarm.setEndTs(endTs);
         alarm.setAckTs(ackTs);

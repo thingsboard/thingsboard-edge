@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -77,6 +77,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
@@ -106,10 +107,10 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private TbClusterService clusterService;
 
     @Autowired
-    private CacheManager cacheManager;
+    private EntityGroupService entityGroupService;
 
     @Autowired
-    private EntityGroupService entityGroupService;
+    private OwnerService ownerService;
 
     @Autowired
     private CustomerService customerService;
@@ -133,57 +134,31 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private UserService userService;
 
     @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private SchedulerEventService schedulerEventService;
-
-    @Autowired
     protected UserPermissionsService userPermissionsService;
 
-
     @Override
-    public Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId) {
-        Set<EntityId> result = new HashSet<>();
-        fetchOwners(tenantId, ownerId, result);
-        return result;
+    public Set<EntityId> fetchOwnersHierarchy(TenantId tenantId, EntityId entityId) {
+        return ownerService.fetchOwnersHierarchy(tenantId, entityId);
     }
 
     @Override
     public Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId) {
-        return getOwners(tenantId, entityId, id -> hasOwnerId);
+        return ownerService.getOwners(tenantId, entityId, hasOwnerId);
     }
 
     @Override
     public Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId) {
-        return getOwners(tenantId, entityGroupId, id -> entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(id.getId())));
+        return ownerService.getOwners(tenantId, entityGroupId);
     }
 
     @Override
     public EntityId getOwner(TenantId tenantId, EntityId entityId) {
-        Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        String cacheKey = getOwnerCacheKey(entityId);
-        byte[] data = cache.get(cacheKey, byte[].class);
-        EntityId ownerId = null;
-        if (data != null && data.length > 0) {
-            try {
-                ownerId = bytesToOwner(data);
-            } catch (InvalidProtocolBufferException e) {
-                log.warn("[{}][{}] Failed to decode owner id from cache: {}", tenantId, entityId, Arrays.toString(data));
-            }
-        }
-        if (ownerId == null) {
-            ownerId = fetchOwnerId(tenantId, entityId);
-            cache.put(getOwnerCacheKey(entityId), toBytes(ownerId));
-        }
-        return ownerId;
+        return ownerService.getOwner(tenantId, entityId);
     }
 
     @Override
     public void clearOwners(EntityId entityId) {
-        Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        cache.evict(getOwnersCacheKey(entityId));
-        cache.evict(getOwnerCacheKey(entityId));
+        ownerService.clearOwners(entityId);
     }
 
     @Override
@@ -356,34 +331,6 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         }
     }
 
-    private EntityId fetchOwnerId(TenantId tenantId, EntityId entityId) {
-        switch (entityId.getEntityType()) {
-            case DEVICE:
-                return getOwnerId(getDeviceById(tenantId, entityId));
-            case ASSET:
-                return getOwnerId(getAssetById(tenantId, entityId));
-            case CUSTOMER:
-                return getOwnerId(getCustomerById(tenantId, entityId));
-            case ENTITY_VIEW:
-                return getOwnerId(getEntityViewById(tenantId, entityId));
-            case EDGE:
-                return getOwnerId(getEdgeById(tenantId, entityId));
-            case DASHBOARD:
-                return getOwnerId(getDashboardById(tenantId, entityId));
-            case USER:
-                return getOwnerId(getUserById(tenantId, entityId));
-            case ENTITY_GROUP:
-                return getOwnerId(entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
-            case ROLE:
-                return getOwnerId(roleService.findRoleById(tenantId, new RoleId(entityId.getId())));
-            case SCHEDULER_EVENT:
-                return getOwnerId(schedulerEventService.findSchedulerEventById(tenantId, new SchedulerEventId(entityId.getId())));
-            default:
-                // Maybe return tenantId here?
-                throw new RuntimeException("EntityType does not support ownership: " + entityId.getEntityType());
-        }
-    }
-
     private Device getDeviceById(TenantId tenantId, EntityId entityId) {
         return deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
     }
@@ -410,77 +357,6 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     private Edge getEdgeById(TenantId tenantId, EntityId entityId) {
         return edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
-    }
-
-    private EntityId getOwnerId(HasOwnerId entity) {
-        return entity != null ? entity.getOwnerId() : null;
-    }
-
-    private Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, Function<EntityId, HasOwnerId> fetchHasOwnerId) {
-        Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
-        String cacheKey = getOwnersCacheKey(entityId);
-        byte[] data = cache.get(cacheKey, byte[].class);
-        Set<EntityId> result = null;
-        if (data != null && data.length > 0) {
-            try {
-                result = bytesToOwners(data);
-            } catch (InvalidProtocolBufferException e) {
-                log.warn("[{}][{}] Failed to decode owners list from cache: {}", tenantId, entityId, Arrays.toString(data));
-            }
-        }
-        if (result == null) {
-            HasOwnerId hasOwnerId = fetchHasOwnerId.apply(entityId);
-            result = new HashSet<>();
-            fetchOwners(tenantId, hasOwnerId.getOwnerId(), result);
-            cache.put(getOwnerCacheKey(entityId), toBytes(hasOwnerId.getOwnerId()));
-            cache.put(cacheKey, toBytes(result));
-        }
-        return result;
-    }
-
-    private String getOwnersCacheKey(EntityId entityId) {
-        return ENTITY_OWNERS_CACHE + "_" + entityId.getId().toString();
-    }
-
-    private String getOwnerCacheKey(EntityId entityId) {
-        return ENTITY_OWNERS_CACHE + "_owner_" + entityId.getId().toString();
-    }
-
-    private void fetchOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) {
-        result.add(entityId);
-        if (entityId.getEntityType() == EntityType.CUSTOMER) {
-            Customer customer = getCustomerById(tenantId, entityId);
-            fetchOwners(tenantId, customer.getOwnerId(), result);
-        }
-    }
-
-    private EntityId bytesToOwner(byte[] data) throws InvalidProtocolBufferException {
-        TransportProtos.EntityIdProto proto = TransportProtos.EntityIdProto.parseFrom(data);
-        return EntityIdFactory.getByTypeAndUuid(proto.getEntityType(), new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB()));
-    }
-
-    private Set<EntityId> bytesToOwners(byte[] data) throws InvalidProtocolBufferException {
-        TransportProtos.OwnersListProto proto = TransportProtos.OwnersListProto.parseFrom(data);
-        return proto.getEntityIdsList().stream().map(entityIdProto ->
-                EntityIdFactory.getByTypeAndUuid(entityIdProto.getEntityType(),
-                        new UUID(entityIdProto.getEntityIdMSB(), entityIdProto.getEntityIdLSB()))).collect(Collectors.toSet());
-    }
-
-    private byte[] toBytes(EntityId entityId) {
-        return TransportProtos.EntityIdProto.newBuilder()
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build().toByteArray();
-    }
-
-    private byte[] toBytes(Set<EntityId> result) {
-        TransportProtos.OwnersListProto.Builder builder = TransportProtos.OwnersListProto.newBuilder();
-        builder.addAllEntityIds(result.stream().map(entityId ->
-                TransportProtos.EntityIdProto.newBuilder()
-                        .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                        .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                        .setEntityType(entityId.getEntityType().name()).build()).collect(Collectors.toList()));
-        return builder.build().toByteArray();
     }
 
     private void fetchChildOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) throws Exception {

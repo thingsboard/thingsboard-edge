@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -292,6 +292,9 @@ message AlarmUpdateMsg {
   int64 clearTs = 13;
   string details = 14;
   bool propagate = 15;
+  bool propagateToOwner = 16;
+  bool propagateToTenant = 17;
+  bool propagateToOwnerHierarchy = 18;
 }
 
 message CustomerUpdateMsg {

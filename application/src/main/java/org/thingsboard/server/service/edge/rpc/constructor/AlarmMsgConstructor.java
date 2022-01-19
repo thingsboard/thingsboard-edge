@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -86,7 +86,10 @@ public class AlarmMsgConstructor {
                 .setAckTs(alarm.getAckTs())
                 .setClearTs(alarm.getClearTs())
                 .setDetails(JacksonUtil.toString(alarm.getDetails()))
-                .setPropagate(alarm.isPropagate());
+                .setPropagate(alarm.isPropagate())
+                .setPropagateToOwner(alarm.isPropagateToOwner())
+                .setPropagateToOwnerHierarchy(alarm.isPropagateToOwnerHierarchy())
+                .setPropagateToTenant(alarm.isPropagateToTenant());
         return builder.build();
     }
 
