@@ -377,7 +377,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       });
   }
 
-  onGroupUpdated(closeDetails = true) {
+  onGroupUpdated(closeDetails = false) {
     this.notifyEntityGroupUpdated();
     if (this.componentsData.isGroupEntitiesView) {
       this.componentsData.reloadEntityGroup();
@@ -414,7 +414,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.homeDialogs.unassignEntityGroupFromEdge($event, entityGroup, this.edgeId).subscribe(
       (res) => {
         if (res) {
-          this.onGroupUpdated();
+          this.onGroupUpdated(true);
         }
       }
     );
