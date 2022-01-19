@@ -84,5 +84,4 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       params
     );
   }
-
 }

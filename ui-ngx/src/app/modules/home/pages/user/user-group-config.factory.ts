@@ -143,7 +143,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      const url = this.router.createUrlTree([user.id.id], {relativeTo: config.table.route});
+      const url = this.router.createUrlTree([user.id.id], {relativeTo: config.getActivatedRoute()});
       this.router.navigateByUrl(url);
     }
   }

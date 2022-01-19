@@ -111,7 +111,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      const url = this.router.createUrlTree([entityView.id.id], {relativeTo: config.table.route});
+      const url = this.router.createUrlTree([entityView.id.id], {relativeTo: config.getActivatedRoute()});
       this.router.navigateByUrl(url);
       this.router.navigateByUrl(`${this.router.url}/${entityView.id.id}`);
     }

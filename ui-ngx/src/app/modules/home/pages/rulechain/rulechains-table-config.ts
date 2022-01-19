@@ -35,34 +35,34 @@ import {
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityColumn, EntityTableColumn,
   EntityTableConfig, GroupActionDescriptor, HeaderActionDescriptor
-} from "@home/models/entity/entities-table-config.models";
-import { RuleChain, RuleChainParams, RuleChainType } from "@shared/models/rule-chain.models";
-import { RuleChainService } from "@core/http/rule-chain.service";
-import { DialogService } from "@core/services/dialog.service";
-import { MatDialog } from "@angular/material/dialog";
-import { ImportExportService } from "@home/components/import-export/import-export.service";
-import { ItemBufferService } from "@core/services/item-buffer.service";
-import { EdgeService } from "@core/http/edge.service";
-import { TranslateService } from "@ngx-translate/core";
-import { DatePipe } from "@angular/common";
-import { ActivatedRouteSnapshot, Router, UrlTree } from "@angular/router";
-import { UtilsService } from "@core/services/utils.service";
-import { UserPermissionsService } from "@core/http/user-permissions.service";
-import { EntityType, entityTypeResources, entityTypeTranslations } from "@shared/models/entity-type.models";
-import { RuleChainComponent } from "@home/pages/rulechain/rulechain.component";
-import { RuleChainTabsComponent } from "@home/pages/rulechain/rulechain-tabs.component";
-import { forkJoin, Observable } from "rxjs";
-import { PageData } from "@shared/models/page/page-data";
-import { Edge } from "@shared/models/edge.models";
-import { Operation, Resource } from "@shared/models/security.models";
-import { isUndefined } from "@core/utils";
-import { EntityAction } from "@home/models/entity/entity-component.models";
+} from '@home/models/entity/entities-table-config.models';
+import { RuleChain, RuleChainParams, RuleChainType } from '@shared/models/rule-chain.models';
+import { RuleChainService } from '@core/http/rule-chain.service';
+import { DialogService } from '@core/services/dialog.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ItemBufferService } from '@core/services/item-buffer.service';
+import { EdgeService } from '@core/http/edge.service';
+import { TranslateService } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
+import { UtilsService } from '@core/services/utils.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { RuleChainComponent } from '@home/pages/rulechain/rulechain.component';
+import { RuleChainTabsComponent } from '@home/pages/rulechain/rulechain-tabs.component';
+import { forkJoin, Observable } from 'rxjs';
+import { PageData } from '@shared/models/page/page-data';
+import { Edge } from '@shared/models/edge.models';
+import { Operation, Resource } from '@shared/models/security.models';
+import { isUndefined } from '@core/utils';
+import { EntityAction } from '@home/models/entity/entity-component.models';
 import {
   AddEntitiesToEdgeDialogComponent,
   AddEntitiesToEdgeDialogData
-} from "@home/dialogs/add-entities-to-edge-dialog.component";
-import { PageLink } from "@shared/models/page/page-link";
-import { mergeMap } from "rxjs/operators";
+} from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { PageLink } from '@shared/models/page/page-link';
+import { mergeMap } from 'rxjs/operators';
 
 export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
@@ -93,7 +93,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.cellActionDescriptors = this.configureCellActions(this.componentsData);
     this.entitiesFetchFunction = this.configureEntityFunctions(this.componentsData.ruleChainScope, this.componentsData.edgeId);
 
-    this.deleteEntityTitle = ruleChain => this.translate.instant('rulechain.delete-rulechain-title',{ruleChainName: ruleChain.name});
+    this.deleteEntityTitle = ruleChain => this.translate.instant('rulechain.delete-rulechain-title', {ruleChainName: ruleChain.name});
     this.deleteEntityContent = () => this.translate.instant('rulechain.delete-rulechain-text');
     this.deleteEntitiesTitle = count => this.translate.instant('rulechain.delete-rulechains-title', {count});
     this.deleteEntitiesContent = () => this.translate.instant('rulechain.delete-rulechains-text');
@@ -197,7 +197,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.table.updateData();
+              this.updateData();
             }
           );
         }
@@ -213,7 +213,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
           name: this.translate.instant('rulechain.create-new-rulechain'),
           icon: 'insert_drive_file',
           isEnabled: () => true,
-          onAction: ($event) => this.table.addEntity($event)
+          onAction: ($event) => this.getTable().addEntity($event)
         },
         {
           name: this.translate.instant('rulechain.import'),
@@ -282,11 +282,11 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
                   this.dialogService.alert(this.translate.instant('edge.missing-related-rule-chains-title'),
                     message, this.translate.instant('action.close'), true).subscribe(
                     () => {
-                      this.table.updateData();
+                      this.updateData();
                     }
                   );
                 } else {
-                  this.table.updateData();
+                  this.updateData();
                 }
               }
             );
@@ -441,13 +441,13 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       $event.stopPropagation();
     }
     if (this.componentsData.ruleChainScope === 'edge') {
-      var url: UrlTree;
+      let url: UrlTree;
       if (params && params.hierarchyView) {
         url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
           'edgeGroups', params.entityGroupId, params.edgeId, 'ruleChains', ruleChain.id.id]);
         window.open(window.location.origin + url, '_blank');
       } else {
-        url = this.router.createUrlTree([ruleChain.id.id], { relativeTo: this.table.route });
+        url = this.router.createUrlTree([ruleChain.id.id], { relativeTo: this.getActivatedRoute() });
         this.router.navigateByUrl(url);
       }
     } else if (this.componentsData.ruleChainScope === 'edges') {
@@ -478,7 +478,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.setRootRuleChain(ruleChain.id.id).subscribe(
             () => {
-              this.table.updateData();
+              this.updateData();
             }
           );
         }
@@ -501,7 +501,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
           this.ruleChainService.setEdgeRootRuleChain(this.componentsData.edgeId, ruleChain.id.id).subscribe(
             (edge) => {
               this.componentsData.edge = edge;
-              this.table.updateData();
+              this.updateData();
             }
           );
         }
@@ -523,7 +523,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.setEdgeTemplateRootRuleChain(ruleChain.id.id).subscribe(
             () => {
-              this.table.updateData();
+              this.updateData();
             }
           );
         }
@@ -545,7 +545,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.unassignRuleChainFromEdge(this.componentsData.edgeId, ruleChain.id.id).subscribe(
             () => {
-              this.table.updateData();
+              this.updateData(this.componentsData.ruleChainScope !== 'tenant');
             }
           );
         }
@@ -567,7 +567,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.setAutoAssignToEdgeRuleChain(ruleChain.id.id).subscribe(
             () => {
-              this.table.updateData();
+              this.updateData();
             }
           );
         }
@@ -589,7 +589,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.unsetAutoAssignToEdgeRuleChain(ruleChain.id.id).subscribe(
             () => {
-              this.table.updateData();
+              this.updateData();
             }
           );
         }

@@ -336,7 +336,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       (result) => {
           if (result) {
             this.notifyEntityGroupUpdated();
-            this.table.updateData();
+            this.updateData();
           }
         }
     );
@@ -382,7 +382,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (this.componentsData.isGroupEntitiesView) {
       this.componentsData.reloadEntityGroup();
     } else {
-      this.table.updateData(closeDetails);
+      this.updateData(closeDetails);
     }
   }
 
@@ -402,7 +402,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (this.params.hierarchyView) {
       this.params.hierarchyCallbacks.groupSelected(this.params.nodeId, entityGroup.id.id);
     } else {
-      const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.table.route});
+      const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.getActivatedRoute()});
       this.router.navigateByUrl(url);
     }
   }

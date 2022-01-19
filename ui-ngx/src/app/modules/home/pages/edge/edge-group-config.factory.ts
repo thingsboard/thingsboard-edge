@@ -217,7 +217,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     this.homeDialogs.importEntities(customerId, EntityType.EDGE, entityGroupId).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('edgeSaved');
-        config.table.updateData();
+        config.updateData();
       }
     });
   }
@@ -264,7 +264,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
           params.customerId, 'edgeGroups', params.childEntityGroupId, edge.id.id]);
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.table.route});
+      const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.getActivatedRoute()});
       this.router.navigateByUrl(url);
     }
   }

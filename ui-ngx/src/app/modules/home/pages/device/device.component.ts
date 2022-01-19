@@ -174,7 +174,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   }
 
   onDeviceProfileUpdated() {
-    this.entitiesTableConfig.table.updateData(false);
+    this.entitiesTableConfig.updateData(false);
   }
 
   onDeviceProfileChanged(deviceProfile: DeviceProfileInfo) {

@@ -96,7 +96,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
         name: this.translate.instant('widgets-bundle.create-new-widgets-bundle'),
         icon: 'insert_drive_file',
         isEnabled: () => true,
-        onAction: ($event) => this.config.table.addEntity($event)
+        onAction: ($event) => this.config.getTable().addEntity($event)
       },
       {
         name: this.translate.instant('widgets-bundle.import'),
@@ -160,7 +160,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.importExport.importWidgetsBundle().subscribe(
       (widgetsBundle) => {
         if (widgetsBundle) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       }
     );
