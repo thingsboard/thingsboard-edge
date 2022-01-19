@@ -86,7 +86,10 @@ public class AlarmMsgConstructor {
                 .setAckTs(alarm.getAckTs())
                 .setClearTs(alarm.getClearTs())
                 .setDetails(JacksonUtil.toString(alarm.getDetails()))
-                .setPropagate(alarm.isPropagate());
+                .setPropagate(alarm.isPropagate())
+                .setPropagateToOwner(alarm.isPropagateToOwner())
+                .setPropagateToOwnerHierarchy(alarm.isPropagateToOwnerHierarchy())
+                .setPropagateToTenant(alarm.isPropagateToTenant());
         return builder.build();
     }
 

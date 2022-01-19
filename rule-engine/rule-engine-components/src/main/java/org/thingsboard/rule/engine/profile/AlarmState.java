@@ -273,6 +273,9 @@ class AlarmState {
             currentAlarm.setOriginator(originator);
             currentAlarm.setTenantId(ctx.getTenantId());
             currentAlarm.setPropagate(alarmDefinition.isPropagate());
+            currentAlarm.setPropagateToOwner(alarmDefinition.isPropagateToOwner());
+            currentAlarm.setPropagateToOwnerHierarchy(alarmDefinition.isPropagateToOwnerHierarchy());
+            currentAlarm.setPropagateToTenant(alarmDefinition.isPropagateToTenant());
             if (alarmDefinition.getPropagateRelationTypes() != null) {
                 currentAlarm.setPropagateRelationTypes(alarmDefinition.getPropagateRelationTypes());
             }

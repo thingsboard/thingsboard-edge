@@ -87,7 +87,13 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
     private transient JsonNode details;
     @ApiModelProperty(position = 15, value = "Propagation flag to specify if alarm should be propagated to parent entities of alarm originator", example = "true")
     private boolean propagate;
-    @ApiModelProperty(position = 16, value = "JSON array of relation types that should be used for propagation. " +
+    @ApiModelProperty(position = 16, value = "Propagation flag to specify if alarm should be propagated to the owner (tenant or customer) of alarm originator", example = "true")
+    private boolean propagateToOwner;
+    @ApiModelProperty(position = 17, value = "Propagation flag to specify if alarm should be propagated to the owner (tenant or customer) and all parent owners in the customer hierarchy", example = "true")
+    private boolean propagateToOwnerHierarchy;
+    @ApiModelProperty(position = 18, value = "Propagation flag to specify if alarm should be propagated to the tenant entity", example = "true")
+    private boolean propagateToTenant;
+    @ApiModelProperty(position = 19, value = "JSON array of relation types that should be used for propagation. " +
             "By default, 'propagateRelationTypes' array is empty which means that the alarm will be propagated based on any relation type to parent entities. " +
             "This parameter should be used only in case when 'propagate' parameter is set to true, otherwise, 'propagateRelationTypes' array will be ignored.")
     private List<String> propagateRelationTypes;
@@ -115,6 +121,9 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
         this.clearTs = alarm.getClearTs();
         this.details = alarm.getDetails();
         this.propagate = alarm.isPropagate();
+        this.propagateToOwner = alarm.isPropagateToOwner();
+        this.propagateToOwnerHierarchy = alarm.isPropagateToOwnerHierarchy();
+        this.propagateToTenant = alarm.isPropagateToTenant();
         this.propagateRelationTypes = alarm.getPropagateRelationTypes();
     }
 
