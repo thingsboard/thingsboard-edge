@@ -309,6 +309,8 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                     return (PageData<E>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
                 case ENTITY_VIEW:
                     return (PageData<E>) entityViewService.findEntityViewByTenantId(tenantId, pageLink);
+                case EDGE:
+                    return (PageData<E>) edgeService.findEdgesByTenantId(tenantId, pageLink);
                 default:
                     throw new RuntimeException("EntityType does not supported: " + entityType);
             }
