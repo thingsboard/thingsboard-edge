@@ -170,9 +170,9 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     }
 
     @Override
-    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions,
+    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, MergedUserPermissions mergedUserPermissions,
                                                                AlarmDataQuery query, Collection<EntityId> orderedEntityIds) {
-        return alarmService.findAlarmDataByQueryForEntities(tenantId, customerId, mergedUserPermissions, query, orderedEntityIds);
+        return alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, query, orderedEntityIds);
     }
 
     @Override
