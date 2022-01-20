@@ -703,8 +703,15 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
         boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
         UUID requestUUID;
+        String serviceId;
         if (restApiCall) {
             String tmp = msg.getMetaData().getValue("requestUUID");
+            serviceId = msg.getMetaData().getValue("originServiceId");
+
+            if (serviceId == null) {
+                throw new RuntimeException("Origin Service Id is not present in the message metadata!");
+            }
+
             requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUID.randomUUID();
             tmp = msg.getMetaData().getValue("oneway");
             boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
@@ -713,6 +720,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
             }
         } else {
             requestUUID = null;
+            serviceId = null;
         }
 
         TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
@@ -725,13 +733,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 new SimpleTbQueueCallback(() -> {
                     if (restApiCall) {
                         FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
-                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
                     }
                     callback.onSuccess(null);
                 }, error -> {
                     if (restApiCall) {
                         FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
-                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
                     }
                     callback.onFailure(error);
                 }));
