@@ -532,6 +532,9 @@ export interface DeviceProfileAlarm {
   createRules: {[severity: string]: AlarmRule};
   clearRule?: AlarmRule;
   propagate?: boolean;
+  propagateToOwner?: boolean;
+  propagateToOwnerHierarchy?: boolean;
+  propagateToTenant?: boolean;
   propagateRelationTypes?: Array<string>;
 }
 
