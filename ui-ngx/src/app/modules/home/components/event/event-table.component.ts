@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,13 +40,14 @@ import { EventService } from '@core/http/event.service';
 import { DialogService } from '@core/services/dialog.service';
 import { DebugEventType, EventType } from '@shared/models/event.models';
 import { Overlay } from '@angular/cdk/overlay';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-event-table',
   templateUrl: './event-table.component.html',
   styleUrls: ['./event-table.component.scss']
 })
-export class EventTableComponent implements OnInit {
+export class EventTableComponent implements OnInit, AfterViewInit {
 
   @Input()
   tenantId: string;
@@ -92,6 +93,8 @@ export class EventTableComponent implements OnInit {
 
   eventTableConfig: EventTableConfig;
 
+  private isEmptyData$: Subscription;
+
   constructor(private eventService: EventService,
               private dialogService: DialogService,
               private translate: TranslateService,
@@ -119,6 +122,16 @@ export class EventTableComponent implements OnInit {
       this.viewContainerRef,
       this.cd
     );
+  }
+
+  ngAfterViewInit() {
+    this.isEmptyData$ = this.entitiesTable.dataSource.isEmpty().subscribe(value => this.eventTableConfig.hideClearEventAction = value);
+  }
+
+  ngOnDestroy() {
+    if (this.isEmptyData$) {
+      this.isEmptyData$.unsubscribe();
+    }
   }
 
 }
