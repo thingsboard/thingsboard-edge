@@ -330,7 +330,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
           name: this.translate.instant('edge.add-edge-text'),
           icon: 'insert_drive_file',
           isEnabled: () => true,
-          onAction: ($event) => this.config.table.addEntity($event)
+          onAction: ($event) => this.config.getTable().addEntity($event)
         },
         {
           name: this.translate.instant('edge.import'),
@@ -357,7 +357,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     /*this.homeDialogs.importEntities(EntityType.EDGE).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('edgeSaved');
-        this.config.table.updateData();
+        this.config.updateData();
       }
     });*/
   }
@@ -377,7 +377,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -386,7 +386,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.table.route});
+    const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.getActivatedRoute()});
     this.router.navigateByUrl(url);
   }
 
@@ -404,7 +404,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         if (res) {
           this.edgeService.makeEdgePublic(edge.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -455,7 +455,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -484,7 +484,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         if (res) {
           this.edgeService.unassignEdgeFromCustomer(edge.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData(this.config.componentsData.edgeScope !== 'tenant');
             }
           );
         }
@@ -512,7 +512,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }

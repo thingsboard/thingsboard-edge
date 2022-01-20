@@ -58,7 +58,7 @@ import java.util.function.Function;
 
 public interface OwnersCacheService {
 
-    Set<EntityId> fetchOwners(TenantId tenantId, EntityId ownerId);
+    Set<EntityId> fetchOwnersHierarchy(TenantId tenantId, EntityId entityId);
 
     Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId);
 

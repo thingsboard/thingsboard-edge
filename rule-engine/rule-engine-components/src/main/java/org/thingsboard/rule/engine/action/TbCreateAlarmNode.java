@@ -160,10 +160,16 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
             if (msgAlarm != null) {
                 existingAlarm.setSeverity(msgAlarm.getSeverity());
                 existingAlarm.setPropagate(msgAlarm.isPropagate());
+                existingAlarm.setPropagateToOwner(msgAlarm.isPropagateToOwner());
+                existingAlarm.setPropagateToOwnerHierarchy(msgAlarm.isPropagateToOwnerHierarchy());
+                existingAlarm.setPropagateToTenant(msgAlarm.isPropagateToTenant());
                 existingAlarm.setPropagateRelationTypes(msgAlarm.getPropagateRelationTypes());
             } else {
                 existingAlarm.setSeverity(processAlarmSeverity(msg));
                 existingAlarm.setPropagate(config.isPropagate());
+                existingAlarm.setPropagateToOwner(config.isPropagateToOwner());
+                existingAlarm.setPropagateToOwnerHierarchy(config.isPropagateToOwnerHierarchy());
+                existingAlarm.setPropagateToTenant(config.isPropagateToTenant());
                 existingAlarm.setPropagateRelationTypes(relationTypes);
             }
             existingAlarm.setDetails(details);
@@ -175,6 +181,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
     }
 
     private Alarm buildAlarm(TbMsg msg, JsonNode details, TenantId tenantId) {
+        long ts = msg.getMetaDataTs();
         return Alarm.builder()
                 .tenantId(tenantId)
                 .originator(msg.getOriginator())
@@ -183,9 +190,8 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 .propagate(config.isPropagate())
                 .type(TbNodeUtils.processPattern(this.config.getAlarmType(), msg))
                 .propagateRelationTypes(relationTypes)
-                //todo-vp: alarm date should be taken from Message or current Time should be used?
-//                .startTs(System.currentTimeMillis())
-//                .endTs(System.currentTimeMillis())
+                .startTs(ts)
+                .endTs(ts)
                 .details(details)
                 .build();
     }

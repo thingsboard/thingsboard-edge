@@ -103,8 +103,8 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }));
     };
     this.config.onEntityAction = action => this.onAssetAction(action, this.config);
-    this.config.detailsReadonly = () => (this.config.componentsData.assetScope === 'customer_user'
-      || this.config.componentsData.assetScope === 'edge_customer_user');
+    this.config.detailsReadonly = () => (this.config.componentsData.assetScope === 'customer_user' ||
+      this.config.componentsData.assetScope === 'edge_customer_user');
 
     this.config.headerComponent = AssetTableHeaderComponent;
 
@@ -294,7 +294,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           name: this.translate.instant('asset.add-asset-text'),
           icon: 'insert_drive_file',
           isEnabled: () => true,
-          onAction: ($event) => this.config.table.addEntity($event)
+          onAction: ($event) => this.config.getTable().addEntity($event)
         },
         {
           name: this.translate.instant('asset.import'),
@@ -321,7 +321,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     /*this.homeDialogs.importEntities(EntityType.ASSET).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('assetSaved');
-        this.config.table.updateData();
+        this.config.updateData();
       }
     });*/
   }
@@ -330,7 +330,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.table.route});
+    const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.getActivatedRoute()});
     this.router.navigateByUrl(url);
   }
 
@@ -349,7 +349,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -368,7 +368,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         if (res) {
           this.assetService.makeAssetPublic(asset.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -391,7 +391,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -420,7 +420,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         if (res) {
           this.assetService.unassignAssetFromCustomer(asset.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData(this.config.componentsData.assetScope !== 'tenant');
             }
           );
         }
@@ -448,7 +448,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -476,5 +476,4 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     }
     return false;
   }
-
 }

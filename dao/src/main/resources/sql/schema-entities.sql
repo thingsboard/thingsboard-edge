@@ -70,7 +70,10 @@ CREATE TABLE IF NOT EXISTS alarm (
     tenant_id uuid,
     customer_id uuid,
     propagate_relation_types varchar,
-    type varchar(255)
+    type varchar(255),
+    propagate_to_owner boolean,
+    propagate_to_owner_hierarchy boolean,
+    propagate_to_tenant boolean
 );
 
 CREATE TABLE IF NOT EXISTS entity_alarm (
@@ -726,7 +729,6 @@ CREATE TABLE IF NOT EXISTS edge (
     CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
 );
 
--- TODO: voba add entity_group_id to upgrade script
 CREATE TABLE IF NOT EXISTS edge_event (
     id uuid NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,
     created_time bigint NOT NULL,

@@ -51,7 +51,7 @@ export class EdgeTableHeaderComponent extends EntityTableHeaderComponent<Edge> {
 
   edgeTypeChanged(edgeType: string) {
     this.entitiesTableConfig.componentsData.edgeType = edgeType;
-    this.entitiesTableConfig.table.resetSortAndFilter(true);
+    this.entitiesTableConfig.getTable().resetSortAndFilter(true);
   }
 
 }

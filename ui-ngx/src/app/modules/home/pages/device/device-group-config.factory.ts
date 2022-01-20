@@ -165,7 +165,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     this.homeDialogs.importEntities(customerId, EntityType.DEVICE, entityGroupId).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('deviceSaved');
-        config.table.updateData();
+        config.updateData();
       }
     });
   }
@@ -185,7 +185,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      const url = this.router.createUrlTree([device.id.id], {relativeTo: config.table.route});
+      const url = this.router.createUrlTree([device.id.id], {relativeTo: config.getActivatedRoute()});
       this.router.navigateByUrl(url);
     }
   }

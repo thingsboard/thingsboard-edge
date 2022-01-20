@@ -117,7 +117,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     this.homeDialogs.importEntities(customerId, EntityType.ASSET, entityGroupId).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('assetSaved');
-        config.table.updateData();
+        config.updateData();
       }
     });
   }
@@ -137,7 +137,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.table.route});
+      const url = this.router.createUrlTree([asset.id.id], {relativeTo: config.getActivatedRoute()});
       this.router.navigateByUrl(url);
     }
   }

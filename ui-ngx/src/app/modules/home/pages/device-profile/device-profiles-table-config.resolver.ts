@@ -177,7 +177,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     }).afterClosed().subscribe(
       (res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       }
     );
@@ -197,7 +197,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
         if (res) {
           this.deviceProfileService.setDefaultDeviceProfile(deviceProfile.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -217,7 +217,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.importExport.importDeviceProfile().subscribe(
       (deviceProfile) => {
         if (deviceProfile) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       }
     );

@@ -497,6 +497,12 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.2", SCHEMA_UPDATE_SQL);
                     loadSql(schemaUpdateFile, conn);
                     try {
+                        conn.createStatement().execute("ALTER TABLE alarm ADD COLUMN propagate_to_owner boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        conn.createStatement().execute("ALTER TABLE alarm ADD COLUMN propagate_to_tenant boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {
+                    }
+
+                    try {
                         conn.createStatement().execute("insert into entity_alarm(tenant_id, entity_id, created_time, alarm_type, customer_id, alarm_id)" +
                                 " select tenant_id, originator_id, created_time, type, customer_id, id from alarm ON CONFLICT DO NOTHING;");
                         conn.createStatement().execute("insert into entity_alarm(tenant_id, entity_id, created_time, alarm_type, customer_id, alarm_id)" +
@@ -577,6 +583,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     } catch (Exception e) {}
                     try {
                         conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE alarm ADD COLUMN propagate_to_owner_hierarchy boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
 
                     integrationRepository.findAll().forEach(integration -> {

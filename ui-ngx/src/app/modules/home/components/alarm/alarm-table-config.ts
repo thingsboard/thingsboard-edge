@@ -148,7 +148,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       }).afterClosed().subscribe(
       (res) => {
         if (res) {
-          this.table.updateData();
+          this.updateData();
         }
       }
     );

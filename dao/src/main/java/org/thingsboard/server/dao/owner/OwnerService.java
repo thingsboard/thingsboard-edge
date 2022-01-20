@@ -28,20 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.dao.owner;
 
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.HsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
+import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Service
-@SqlTsDao
-@HsqlDao
-@Profile("install")
-public class HsqlTsDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
-        implements TsDatabaseSchemaService {
-    public HsqlTsDatabaseSchemaService() {
-        super("schema-ts-hsql.sql", null);
-    }
+import java.util.Set;
+
+public interface OwnerService {
+
+    Set<EntityId> fetchOwnersHierarchy(TenantId tenantId, EntityId ownerId);
+
+    EntityId getOwner(TenantId tenantId, EntityId entityId);
+
+    Set<EntityId> getOwners(TenantId tenantId, EntityId entityId);
+
+    Set<EntityId> getOwners(TenantId tenantId, EntityId entityId, HasOwnerId hasOwnerId);
+
+    Set<EntityId> getOwners(TenantId tenantId, EntityGroupId entityGroupId);
+
+    void clearOwners(EntityId entityId);
+
 }

@@ -45,6 +45,11 @@ public class TbCoapMessageObserver implements MessageObserver {
     private final Consumer<Integer> onTimeout;
 
     @Override
+    public boolean isInternal() {
+        return false;
+    }
+
+    @Override
     public void onRetransmission() {
 
     }
@@ -102,12 +107,17 @@ public class TbCoapMessageObserver implements MessageObserver {
     }
 
     @Override
+    public void onResponseHandlingError(Throwable cause) {
+
+    }
+
+    @Override
     public void onContextEstablished(EndpointContext endpointContext) {
 
     }
 
     @Override
-    public void onComplete() {
+    public void onTransferComplete() {
 
     }
 }

@@ -329,7 +329,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -338,7 +338,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([entityView.id.id], {relativeTo: config.table.route});
+    const url = this.router.createUrlTree([entityView.id.id], {relativeTo: config.getActivatedRoute()});
     this.router.navigateByUrl(url);
   }
 
@@ -356,7 +356,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         if (res) {
           this.entityViewService.makeEntityViewPublic(entityView.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -379,7 +379,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -408,7 +408,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         if (res) {
           this.entityViewService.unassignEntityViewFromCustomer(entityView.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData(this.config.componentsData.entityViewScope !== 'tenant');
             }
           );
         }
@@ -436,7 +436,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
