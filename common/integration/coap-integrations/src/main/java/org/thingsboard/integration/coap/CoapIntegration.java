@@ -57,10 +57,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.eclipse.californium.elements.DtlsEndpointContext.KEY_SESSION_ID;
+
 @Slf4j
 public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
-
-    private static final String DTLS_SESSION_ID_KEY = "DTLS_SESSION_ID";
 
     private CoapServerService coapServerService;
 
@@ -98,8 +98,8 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
     public void process(CoapIntegrationMsg msg) {
         CoapExchange exchange = msg.getExchange();
         Request request = exchange.advanced().getRequest();
-        String dtlsSessionIdStr = request.getSourceContext().get(DTLS_SESSION_ID_KEY);
-        if (integrationResource == null && dtlsSessionIdStr == null) {
+        var dtlsSessionId = request.getSourceContext().get(KEY_SESSION_ID);
+        if (integrationResource == null && dtlsSessionId != null && !dtlsSessionId.isEmpty()) {
             exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "No secure connection is not allowed");
             return;
         }
