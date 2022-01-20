@@ -43,7 +43,7 @@ integration:
   statistics:
     # Enable/disable integration statistics
     enabled: "${INTEGRATION_STATISTICS_ENABLED:true}"
-    # Send statistics interval. Default value is once per hour
+    # Send statistics interval. The default value is once per hour
     persist_frequency: "${INTEGRATION_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
 # fix "Cannot get Jedis connection" exception, because we don't use redis in this integration,
