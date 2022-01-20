@@ -89,6 +89,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.ALARM), Collections.singleton(Operation.ALL));
         mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
