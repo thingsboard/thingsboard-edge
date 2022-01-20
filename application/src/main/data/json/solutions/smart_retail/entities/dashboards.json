@@ -2,7 +2,7 @@
   {
     "name": "Smart Supermarket",
     "file": "smart-supermarket.json",
-    "group": "Smart Supermarket",
+    "group": "Smart Supermarket Shared",
     "main": true
   },
   {

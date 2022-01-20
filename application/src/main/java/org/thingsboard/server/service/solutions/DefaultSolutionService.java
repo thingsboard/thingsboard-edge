@@ -699,7 +699,7 @@ public class DefaultSolutionService implements SolutionService {
             ctx.put(ctx.getTenantId(), tenant.getRelations());
 
             for (UserGroupDefinition ugDef : tenant.getUserGroups()) {
-                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), ctx.getTenantId(), ugDef.getName());
+                EntityGroup ugEntity = getUserGroupInfo(ctx, ctx.getTenantId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
 
                 for (String genericRoleName : ugDef.getGenericRoles()) {
@@ -785,7 +785,7 @@ public class DefaultSolutionService implements SolutionService {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
 
             for (UserGroupDefinition ugDef : entityDef.getUserGroups()) {
-                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), ugDef.getName());
+                EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
                 for (String genericRoleName : ugDef.getGenericRoles()) {
                     RoleId roleId = ctx.getIdFromMap(EntityType.ROLE, genericRoleName);
@@ -815,7 +815,7 @@ public class DefaultSolutionService implements SolutionService {
             }
 
             for (UserDefinition uDef : entityDef.getUsers()) {
-                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), uDef.getGroup());
+                EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), uDef.getGroup());
                 User user = new User();
                 if (!StringUtils.isEmpty(uDef.getFirstname())) {
                     user.setFirstName(uDef.getFirstname());
@@ -867,13 +867,17 @@ public class DefaultSolutionService implements SolutionService {
                 src.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase()) : null;
     }
 
-    private EntityGroup getUserGroupInfo(TenantId tenantId, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
-        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.USER, ugName).get();
+    private EntityGroup getUserGroupInfo(SolutionInstallContext ctx, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
+        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entityId, EntityType.USER, ugName).get();
         EntityGroup ugEntity;
         if (ugEntityOpt.isPresent()) {
             ugEntity = ugEntityOpt.get();
         } else {
-            throw new RuntimeException("Creation of user groups from JSON is not supported yet!");
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName(ugName);
+            entityGroup.setType(EntityType.USER);
+            ugEntity = entityGroupService.saveEntityGroup(ctx.getTenantId(), entityId, entityGroup);
+            ctx.register(ugEntity.getId());
         }
         return ugEntity;
     }

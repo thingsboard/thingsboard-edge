@@ -11,7 +11,7 @@
     "configuration": null
   },
   "metadata": {
-    "firstNodeIndex": 10,
+    "firstNodeIndex": 9,
     "nodes": [
       {
         "additionalInfo": {
@@ -20,22 +20,7 @@
           "layoutY": 371
         },
         "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
-        "name": "isDevice",
-        "debugMode": false,
-        "configuration": {
-          "originatorTypes": [
-            "DEVICE"
-          ]
-        }
-      },
-      {
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 774,
-          "layoutY": 156
-        },
-        "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
-        "name": "Is device or asset",
+        "name": "isDeviceOrAsset",
         "debugMode": false,
         "configuration": {
           "originatorTypes": [
@@ -47,8 +32,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 802,
-          "layoutY": 266
+          "layoutX": 814,
+          "layoutY": 244
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Update state attributes",
@@ -60,8 +45,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 398,
-          "layoutY": 157
+          "layoutX": 515,
+          "layoutY": 168
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Alarms Count",
@@ -91,7 +76,9 @@
               ]
             }
           ],
-          "countAlarmsForPropagationEntities": true
+          "countAlarmsForPropagationEntities": true,
+          "propagationEntityTypes": null,
+          "queueName": "Main"
         }
       },
       {
@@ -185,82 +172,77 @@
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 2,
+        "toIndex": 1,
         "type": "True"
       },
       {
         "fromIndex": 1,
         "toIndex": 4,
-        "type": "True"
+        "type": "Success"
       },
       {
         "fromIndex": 2,
-        "toIndex": 5,
+        "toIndex": 3,
         "type": "Success"
       },
       {
-        "fromIndex": 3,
-        "toIndex": 1,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 3,
+        "fromIndex": 2,
         "toIndex": 0,
         "type": "Success"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 8,
+        "fromIndex": 5,
+        "toIndex": 7,
         "type": "Other"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 5,
+        "fromIndex": 5,
+        "toIndex": 4,
         "type": "Post attributes"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 4,
+        "fromIndex": 5,
+        "toIndex": 3,
         "type": "Post telemetry"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 7,
+        "fromIndex": 5,
+        "toIndex": 6,
         "type": "RPC Request from Device"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 9,
+        "fromIndex": 5,
+        "toIndex": 8,
         "type": "RPC Request to Device"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 3,
+        "fromIndex": 5,
+        "toIndex": 2,
         "type": "Alarm Cleared"
       },
       {
-        "fromIndex": 6,
+        "fromIndex": 5,
         "toIndex": 0,
         "type": "Entity Created"
       },
       {
-        "fromIndex": 10,
-        "toIndex": 3,
+        "fromIndex": 9,
+        "toIndex": 2,
         "type": "Alarm Cleared"
       },
       {
-        "fromIndex": 10,
-        "toIndex": 3,
+        "fromIndex": 9,
+        "toIndex": 2,
         "type": "Alarm Created"
       },
       {
-        "fromIndex": 10,
-        "toIndex": 3,
+        "fromIndex": 9,
+        "toIndex": 2,
         "type": "Alarm Severity Updated"
       },
       {
-        "fromIndex": 10,
-        "toIndex": 6,
+        "fromIndex": 9,
+        "toIndex": 5,
         "type": "Success"
       }
     ],

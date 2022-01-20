@@ -135,7 +135,7 @@
           "alarmDetails": null,
           "dashboardId": null
         },
-        "propagate": true,
+        "propagate": true, "propagateToOwnerHierarchy": true,
         "propagateRelationTypes": [
           "Contains"
         ]
@@ -189,7 +189,7 @@
           }
         },
         "clearRule": null,
-        "propagate": true,
+        "propagate": true, "propagateToOwnerHierarchy": true,
         "propagateRelationTypes": ["Contains"]
       },
       {
@@ -296,7 +296,7 @@
           "alarmDetails": null,
           "dashboardId": null
         },
-        "propagate": true,
+        "propagate": true, "propagateToOwnerHierarchy": true,
         "propagateRelationTypes": [
           "Contains"
         ]

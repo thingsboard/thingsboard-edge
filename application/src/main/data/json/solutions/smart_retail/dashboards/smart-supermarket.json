@@ -7111,7 +7111,7 @@
           ],
           "alarmSeverityList": [],
           "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
+          "searchPropagatedAlarms": true,
           "datasources": [],
           "enableDataExport": true,
           "widgetCss": "div.tb-widget .tb-widget-title {\n    max-height: 100px !important;\n}\n",
@@ -7507,7 +7507,7 @@
           ],
           "alarmSeverityList": [],
           "alarmTypeList": [],
-          "searchPropagatedAlarms": false,
+          "searchPropagatedAlarms": true,
           "datasources": [],
           "enableDataExport": true,
           "widgetCss": "div.tb-widget .tb-widget-title {\n    max-height: 100px !important;\n}\n",
@@ -9414,7 +9414,7 @@
                     },
                     {
                       "keyFilterPredicate": {
-                        "operation": "STARTS_WITH",
+                        "operation": "EQUAL",
                         "value": {
                           "defaultValue": "major",
                           "dynamicValue": {
