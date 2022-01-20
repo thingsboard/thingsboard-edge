@@ -4,6 +4,7 @@
     "label": "Vegetables",
     "type": "Smart Shelf",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smart Shelf",
     "attributes": {
       "xPos": 0.7241627311506073,
@@ -25,6 +26,7 @@
     "label": "Fruits",
     "type": "Smart Shelf",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smart Shelf",
     "attributes": {
       "xPos": 0.6895846593918546,
@@ -46,6 +48,7 @@
     "label": "Milk",
     "type": "Chiller",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Chiller",
     "attributes": {
       "xPos": 0.5121248625980332,
@@ -67,6 +70,7 @@
     "type": "Freezer",
     "label": "Meat",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Freezer",
     "attributes": {
       "xPos": 0.06905060096603549,
@@ -88,6 +92,7 @@
     "label": "Organic",
     "type": "Smart Bin",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4598393861933647,
@@ -109,6 +114,7 @@
     "label": "Plastic",
     "type": "Smart Bin",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4593,
@@ -130,6 +136,7 @@
     "label": "Paper",
     "type": "Smart Bin",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4599,
@@ -151,6 +158,7 @@
     "label": "Glass",
     "type": "Smart Bin",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smart Bin",
     "attributes": {
       "xPos": 0.4593,
@@ -172,6 +180,7 @@
     "label": "WC Soap",
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 1.0,
@@ -196,6 +205,7 @@
     "label": "WC Sanitizer",
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 1.0,
@@ -220,6 +230,7 @@
     "label": "Entrance Sanitizer Left",
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 3.0,
@@ -244,6 +255,7 @@
     "label": "Entrance Sanitizer Right",
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 3.0,
@@ -268,6 +280,7 @@
     "label": "Back Door",
     "type": "Door Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Door Sensor",
     "attributes": {
       "xPos": 0.0557,
@@ -291,6 +304,7 @@
     "label": "Restricted Area",
     "type": "Door Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Door Sensor",
     "attributes": {
       "xPos": 0.3585,
@@ -314,6 +328,7 @@
     "label": "Main Entrance",
     "type": "Door Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Door Sensor",
     "attributes": {
       "xPos": 0.4996,
@@ -337,6 +352,7 @@
     "label": "WC",
     "type": "Occupancy Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Occupancy Sensor",
     "attributes": {
       "xPos": 0.3290,
@@ -358,6 +374,7 @@
     "label": "Smoke Sensor 1",
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.4964,
@@ -379,6 +396,7 @@
     "label": "Smoke Sensor 2",
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.7646,
@@ -400,6 +418,7 @@
     "label": "Smoke Sensor 3",
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.4983,
@@ -421,6 +440,7 @@
     "label": "Smoke Sensor 4",
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.1345,
@@ -442,6 +462,7 @@
     "label": "Smoke Sensor 5",
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.7716,
@@ -463,6 +484,7 @@
     "label": "Smoke Sensor 6",
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Smoke Sensor",
     "attributes": {
       "xPos": 0.2276,
@@ -484,6 +506,7 @@
     "label": "Restricted Area Motion Sensor",
     "type": "Motion Sensor",
     "group": "Supermarket Devices",
+    "customer": "Retail Company A",
     "profile": "Motion Sensor",
     "attributes": {
       "xPos": 0.0255,
