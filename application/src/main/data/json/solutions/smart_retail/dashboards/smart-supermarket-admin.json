@@ -71,372 +71,14 @@
                   "color": "#3f51b5",
                   "settings": {},
                   "_hash": 0.9334528007194596
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "9bc5f38d-2105-e11a-6f2f-acf3c5cac438",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#e91e63",
-                  "settings": {},
-                  "_hash": 0.18823677296060626,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#ffeb3b",
-                  "settings": {},
-                  "_hash": 0.6309039008437192,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
                 },
                 {
                   "name": "temperature",
                   "type": "timeseries",
                   "label": "temperature",
-                  "color": "#ff9800",
+                  "color": "#6200ea",
                   "settings": {},
-                  "_hash": 0.8543549415494662
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#2962ff",
-                  "settings": {},
-                  "_hash": 0.3746151295694715,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "0baa7397-3d52-a373-5db8-fad12d60c069",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#673ab7",
-                  "settings": {},
-                  "_hash": 0.7504212646919071,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#cddc39",
-                  "settings": {},
-                  "_hash": 0.2621574819501622,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "temperature",
-                  "type": "timeseries",
-                  "label": "temperature",
-                  "color": "#009688",
-                  "settings": {},
-                  "_hash": 0.37999700114665735,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#00c853",
-                  "settings": {},
-                  "_hash": 0.5701239542601997,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "3b33387d-99cf-9fc7-970e-35fca3e4e7bc",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "level",
-                  "type": "timeseries",
-                  "label": "level",
-                  "color": "#795548",
-                  "settings": {},
-                  "_hash": 0.8510839919236566
-                },
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#00bcd4",
-                  "settings": {},
-                  "_hash": 0.12001307593647748,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#ff5722",
-                  "settings": {},
-                  "_hash": 0.8059413475198269,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "name",
-                  "type": "entityField",
-                  "label": "Name",
-                  "color": "#9e9e9e",
-                  "settings": {},
-                  "_hash": 0.5651742519188161,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#d50000",
-                  "settings": {},
-                  "_hash": 0.2560013009284068,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "0fd39e89-dcc2-fcea-2cba-745f4489eb82",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#2962ff",
-                  "settings": {},
-                  "_hash": 0.6326700113705959,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#00c853",
-                  "settings": {},
-                  "_hash": 0.9378051751701286,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#c51162",
-                  "settings": {},
-                  "_hash": 0.22243495335871288,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "c5de3e0f-e7fe-d559-1f60-43a368c8f9d2",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#d50000",
-                  "settings": {},
-                  "_hash": 0.9034047219224794,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#ffab00",
-                  "settings": {},
-                  "_hash": 0.10343929282636588,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#ffd600",
-                  "settings": {},
-                  "_hash": 0.678372584589314,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "3bb4d017-edf2-5fb5-f78d-f02c10061869",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#455a64",
-                  "settings": {},
-                  "_hash": 0.6092982781141136,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#aa00ff",
-                  "settings": {},
-                  "_hash": 0.0844306276446154,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#0091ea",
-                  "settings": {},
-                  "_hash": 0.7093254480546198,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "5d5b24a7-8ad3-ef12-e6e6-1ea09886ff09",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "xPos",
-                  "type": "attribute",
-                  "label": "xPos",
-                  "color": "#64dd17",
-                  "settings": {},
-                  "_hash": 0.9060572477297089,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "yPos",
-                  "type": "attribute",
-                  "label": "yPos",
-                  "color": "#304ffe",
-                  "settings": {},
-                  "_hash": 0.7647666433844218,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                },
-                {
-                  "name": "type",
-                  "type": "entityField",
-                  "label": "Type",
-                  "color": "#ff6d00",
-                  "settings": {},
-                  "_hash": 0.15354171369295533,
+                  "_hash": 0.314068102635481,
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
@@ -503,14 +145,17 @@
             "hideAllControlButton": true,
             "hideDrawControlButton": false,
             "hideEditControlButton": false,
-            "hideRemoveControlButton": false
+            "hideRemoveControlButton": false,
+            "disableZoomControl": false
           },
           "title": "Supermarket plan",
           "dropShadow": true,
-          "enableFullscreen": true,
+          "enableFullscreen": false,
           "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
           },
           "useDashboardTimewindow": true,
           "showLegend": false,
@@ -518,7 +163,7 @@
           "actions": {},
           "showTitleIcon": false,
           "titleTooltip": "",
-          "enableDataExport": true,
+          "enableDataExport": false,
           "noDataDisplayMessage": "",
           "widgetCss": ""
         },
@@ -571,9 +216,10 @@
           "dropShadow": false,
           "enableFullscreen": false,
           "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -587,7 +233,7 @@
                 {
                   "name": "address",
                   "type": "attribute",
-                  "label": "address",
+                  "label": "Address",
                   "color": "#2196f3",
                   "settings": {
                     "columnWidth": "70%",
@@ -638,7 +284,287 @@
         "col": 0,
         "id": "777ded27-e3b8-d901-ca42-3079a23f7a12"
       },
-      "00d4948f-755c-8c2a-c8cf-756b411e53e9": {
+      "c2559a58-e82d-3250-7e35-f520ced0d916": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div style=\"width: 100%; height: 100%; padding: 0;\">\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'TENANT_ADMIN'\" [ctx]=\"ctx\" stateId=\"retail_companies\" defaultMargin=\"0\" defaultBackgroundColor=\"#ffffff\"></tb-dashboard-state>\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'CUSTOMER_USER'\" [ctx]=\"ctx\" stateId=\"supermarkets\" defaultMargin=\"0\" defaultBackgroundColor=\"#ffffff\"></tb-dashboard-state>\n</div>"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "c2559a58-e82d-3250-7e35-f520ced0d916"
+      },
+      "fd9c60ce-666e-c091-362b-1fea85d94f96": {
+        "isSystemType": true,
+        "bundleAlias": "maps_v2",
+        "typeAlias": "openstreetmap",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "1c348dad-e738-a4db-5e7e-4c0271790ab7",
+              "filterId": "460595a7-fcfd-4938-90b1-e66a5e7da88b",
+              "dataKeys": [
+                {
+                  "name": "latitude",
+                  "type": "attribute",
+                  "label": "latitude",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.862061599769905
+                },
+                {
+                  "name": "longitude",
+                  "type": "attribute",
+                  "label": "longitude",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.017864596400994026
+                },
+                {
+                  "name": "state",
+                  "type": "attribute",
+                  "label": "state",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.652632058135977
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "latitude",
+                  "type": "attribute",
+                  "label": "selectedSupermarket",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.5292772206260663,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value) {\n    return true;\n} else {\n    return false;\n}"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "fitMapBounds": false,
+            "latKeyName": "latitude",
+            "lngKeyName": "longitude",
+            "showLabel": true,
+            "label": "${entityName}",
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-details'>Details</link-act>",
+            "markerImageSize": 34,
+            "useColorFunction": false,
+            "markerImages": [],
+            "useMarkerImageFunction": true,
+            "color": "#fe7569",
+            "mapProvider": "CartoDB.Positron",
+            "showTooltip": true,
+            "autocloseTooltip": true,
+            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
+            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "provider": "openstreet-map",
+            "defaultCenterPosition": "0,0",
+            "showTooltipAction": "click",
+            "mapPageSize": 16384,
+            "useTooltipFunction": false,
+            "useCustomProvider": false,
+            "useDefaultCenterPosition": false,
+            "draggableMarker": false,
+            "disableScrollZooming": false,
+            "useLabelFunction": false,
+            "tooltipOffsetX": 0,
+            "tooltipOffsetY": -1,
+            "markerOffsetX": 0.5,
+            "markerOffsetY": 1,
+            "showPolygon": false,
+            "useClusterMarkers": false,
+            "disableZoomControl": false,
+            "markerImageFunction": "var state = data['state'];\nvar selectedSupermarket = data['selectedSupermarket'] === true;\nvar selectedMode = dsData.filter(function (data) { return data['selectedSupermarket'] === true; }).length > 0;\n\nvar status = state;\nvar width = 30;\nvar svgStr = getSupermarketSvg(status, width, selectedSupermarket);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nif (selectedSupermarket) {\n    width += 8;\n}\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(status, width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = getBackgroundColor(status);\n    var background = getBackground(color);\n    var svgWidth = isSelected ? (width + 8) : width;\n    var svgHeight = isSelected ? 38 : 30;\n    \n    var opacity = selectedMode && !isSelected ? 0.4 : 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    wrapIfSelected(background + shape, isSelected);\n    if (isSelected) {\n        supermarketSvg += getSupermarketSelectionStroke();\n    }\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction wrapIfSelected(svg, isSelected) {\n    if (isSelected) {\n        return '<g transform=\"translate(4 4)\">' + svg + '</g>';\n    } else {\n        return svg;\n    }\n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n\nfunction getSupermarketSelectionStroke() {\n     return '<circle cx=\"19\" cy=\"19\" r=\"18\" stroke=\"#D5C21B\" stroke-width=\"2\"/>';\n}\n\nfunction getBackgroundColor(status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'normal':\n        default:    \n            return '#1F8B4D';\n    }\n}\n",
+            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
+            "gmDefaultMapType": "roadmap",
+            "mapProviderHere": "HERE.normalDay",
+            "credentials": {
+              "app_id": "AhM6TzD9ThyK78CT3ptx",
+              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
+            },
+            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
+            "tmDefaultMapType": "roadmap",
+            "defaultZoomLevel": 14,
+            "snappable": false,
+            "initDragMode": true,
+            "hideAllControlButton": true,
+            "hideDrawControlButton": false,
+            "hideEditControlButton": false,
+            "hideRemoveControlButton": false
+          },
+          "title": "Supermarkets Map",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "widgetStyle": {},
+          "actions": {
+            "markerClick": [
+              {
+                "name": "Select supermarket",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nvar selectedSupermarket = params['selectedSupermarket'];\nif (selectedSupermarket && selectedSupermarket.entityId.id === entityId.id) {\n    params['selectedSupermarket'] = null;\n} else {\n    params['selectedSupermarket'] = { entityId: entityId, entityName: entityName, entityLabel: entityLabel };\n}\nwidgetContext.stateController.updateState(null, params);\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "4de7962b-a1de-5cb1-cd78-993dc7863614"
+              }
+            ],
+            "tooltipAction": [
+              {
+                "name": "supermarket-details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_details', params);\t",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "1ca54350-817a-27b3-26a7-3572544d8523"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "titleTooltip": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "fd9c60ce-666e-c091-362b-1fea85d94f96"
+      },
+      "28303a0b-d427-6d9e-0ee1-ae2c3f344769": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": []
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div class=\"title\">Title: ${entityName}</div>\n</div>",
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.main-layout .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "28303a0b-d427-6d9e-0ee1-ae2c3f344769"
+      },
+      "4a524a3c-2b87-903c-6256-47a5df398ba5": {
         "isSystemType": true,
         "bundleAlias": "cards",
         "typeAlias": "entities_table",
@@ -680,12 +606,13 @@
             "useRowStyleFunction": false
           },
           "title": "Supermarkets",
-          "dropShadow": false,
+          "dropShadow": true,
           "enableFullscreen": false,
           "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
           },
           "useDashboardTimewindow": false,
           "showLegend": false,
@@ -699,7 +626,7 @@
                 {
                   "name": "address",
                   "type": "attribute",
-                  "label": "address",
+                  "label": "Address",
                   "color": "#2196f3",
                   "settings": {
                     "columnWidth": "70%",
@@ -728,14 +655,30 @@
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "supermarket_details",
+                "type": "updateDashboardState",
+                "targetDashboardStateId": null,
                 "setEntityId": true,
-                "stateEntityParamName": null,
+                "stateEntityParamName": "selectedSupermarket",
                 "openRightLayout": false,
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "5e50c296-0eac-8841-a69a-1cbbfe04d1c5"
+              }
+            ],
+            "actionCellButton": [
+              {
+                "name": "Open details",
+                "icon": "shopping_cart_checkout",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarket_details",
+                "setEntityId": true,
+                "stateEntityParamName": "selectedSupermarket",
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "71c478b6-a4b1-e569-e99a-85d5562cc721"
               }
             ]
           },
@@ -748,9 +691,9 @@
         },
         "row": 0,
         "col": 0,
-        "id": "00d4948f-755c-8c2a-c8cf-756b411e53e9"
+        "id": "4a524a3c-2b87-903c-6256-47a5df398ba5"
       },
-      "c2559a58-e82d-3250-7e35-f520ced0d916": {
+      "ab845ee8-ff10-b684-3652-cb49e2d9acbe": {
         "isSystemType": true,
         "bundleAlias": "cards",
         "typeAlias": "markdown_card",
@@ -761,7 +704,15 @@
         "sizeX": 5,
         "sizeY": 3.5,
         "config": {
-          "datasources": [],
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": []
+            }
+          ],
           "timewindow": {
             "realtime": {
               "timewindowMs": 60000
@@ -770,18 +721,19 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
+          "padding": "4px",
           "settings": {
-            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
-            "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div style=\"width: 100%; height: 100%; padding: 0;\">\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'TENANT_ADMIN'\" [ctx]=\"ctx\" stateId=\"retail_companies\"></tb-dashboard-state>\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'CUSTOMER_USER'\" [ctx]=\"ctx\" stateId=\"supermarkets\"></tb-dashboard-state>\n</div>"
+            "markdownTextFunction": "var supermarketState;\nif (data && data.length && data[0]['entityId']) {\n    supermarketState = true;\n} else {\n    supermarketState = false;\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">Edit Supermarket: {{ ctx.stateController.getStateParams().selectedSupermarket?.entityName }}</div>' +\n                '</div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (supermarketState \n            ? (header +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"edit_supermarket_card\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>') +\n       '</div>';       ",
+            "useMarkdownTextFunction": true,
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n.main-layout .header {\n    height: 60px;\n    margin: 4px;\n} \n\n.main-layout .header .mat-icon.title-icon {\n    width: 40px;\n    height: 40px;\n}\n\n.main-layout .header .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n\n.main-layout .header .subtitle {\n    font-size: 13px;\n    font-weight: normal;\n    color: #757575;\n}\n",
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <section *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" fxFlex fxLayout=\"column\">\n\t<h5 class=\"market-title\">{{ ctx.stateController.getStateParams().selectedSupermarket.entityName }}</h5>\n\t<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"devices_card\"></tb-dashboard-state>\n    </section>\n    <tb-dashboard-state *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>\n    <tb-dashboard-state *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_alarms\"></tb-dashboard-state>\n    <tb-dashboard-state *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"false\" stateId=\"supermarkets_alarms\"></tb-dashboard-state>\n</div>"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
           "titleTooltip": "",
-          "dropShadow": false,
+          "dropShadow": true,
           "enableFullscreen": false,
           "widgetStyle": {},
           "titleStyle": {
@@ -790,12 +742,27 @@
           },
           "showLegend": false,
           "enableDataExport": false,
-          "widgetCss": "",
-          "noDataDisplayMessage": ""
+          "widgetCss": ".tb-widget-title {\n    align-items: stretch !important;\n    flex: 1;\n}\n\n.tb-widget-actions {\n    position: absolute;\n    top: 0;\n    right: 0;\n}\n\n.tb-widget-title tb-timewindow .tb-timewindow {\n    border: 1px solid rgba(0, 0, 0, 0.12);\n    border-radius: 4px;\n    padding: 8px 8px;\n    position: relative;\n}\n\n.tb-widget-title tb-timewindow .tb-timewindow span {\n    flex: 1;\n    line-height: 32px;\n}\n\n.tb-widget-title tb-timewindow .tb-timewindow::after {\n    font-family: \"Material Icons\";\n    content: 'expand_more';\n    position: absolute;\n    font-size: 24px;\n    top: 12px;\n    right: 12px;\n    z-index: -1;\n}",
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "go-back",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nparams['selectedSupermarket'] = null;\nwidgetContext.stateController.updateState(null, params);",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "116515c2-d9bd-80b6-7a34-97373a802806"
+              }
+            ]
+          }
         },
         "row": 0,
         "col": 0,
-        "id": "c2559a58-e82d-3250-7e35-f520ced0d916"
+        "id": "ab845ee8-ff10-b684-3652-cb49e2d9acbe"
       }
     },
     "states": {
@@ -813,13 +780,13 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#eeeeee",
               "columns": 24,
-              "margin": 0,
+              "margin": 10,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
               "backgroundImageUrl": null,
-              "mobileAutoFillHeight": true,
+              "mobileAutoFillHeight": false,
               "mobileRowHeight": 70
             }
           }
@@ -832,7 +799,7 @@
           "main": {
             "widgets": {
               "60ac86e0-83f1-5875-dd24-3e39657e8ace": {
-                "sizeX": 17,
+                "sizeX": 14,
                 "sizeY": 10,
                 "row": 0,
                 "col": 0
@@ -842,7 +809,11 @@
               "backgroundColor": "#eeeeee",
               "columns": 24,
               "margin": 10,
-              "backgroundSizeMode": "100%"
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
             }
           }
         }
@@ -879,7 +850,65 @@
         "layouts": {
           "main": {
             "widgets": {
-              "00d4948f-755c-8c2a-c8cf-756b411e53e9": {
+              "fd9c60ce-666e-c091-362b-1fea85d94f96": {
+                "sizeX": 11,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              },
+              "ab845ee8-ff10-b684-3652-cb49e2d9acbe": {
+                "sizeX": 13,
+                "sizeY": 12,
+                "row": 0,
+                "col": 11
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "edit_supermarket_card": {
+        "name": "Edit supermarket card",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "28303a0b-d427-6d9e-0ee1-ae2c3f344769": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "supermarkets_card": {
+        "name": "Supermarkets card",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "4a524a3c-2b87-903c-6256-47a5df398ba5": {
                 "sizeX": 24,
                 "sizeY": 12,
                 "row": 0,
@@ -923,24 +952,14 @@
           ]
         }
       },
-      "714e9019-038d-f9f2-9cb5-f717feeb2b68": {
-        "id": "714e9019-038d-f9f2-9cb5-f717feeb2b68",
-        "alias": "Selected Supermarket",
-        "filter": {
-          "type": "stateEntity",
-          "resolveMultiple": false,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null
-        }
-      },
       "d13f6078-0d81-ec59-529c-64acbbcaf470": {
         "id": "d13f6078-0d81-ec59-529c-64acbbcaf470",
-        "alias": "Smart Shelves",
+        "alias": "Supermarket Devices",
         "filter": {
           "type": "deviceSearchQuery",
           "resolveMultiple": true,
           "rootStateEntity": true,
-          "stateEntityParamName": null,
+          "stateEntityParamName": "selectedSupermarket",
           "defaultStateEntity": null,
           "rootEntity": null,
           "direction": "FROM",
@@ -948,139 +967,14 @@
           "fetchLastLevelOnly": false,
           "relationType": "Contains",
           "deviceTypes": [
-            "Smart Shelf"
-          ]
-        }
-      },
-      "9bc5f38d-2105-e11a-6f2f-acf3c5cac438": {
-        "id": "9bc5f38d-2105-e11a-6f2f-acf3c5cac438",
-        "alias": "Chillers",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
-            "Chiller"
-          ]
-        }
-      },
-      "0baa7397-3d52-a373-5db8-fad12d60c069": {
-        "id": "0baa7397-3d52-a373-5db8-fad12d60c069",
-        "alias": "Freezers",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
-            "Freezer"
-          ]
-        }
-      },
-      "3b33387d-99cf-9fc7-970e-35fca3e4e7bc": {
-        "id": "3b33387d-99cf-9fc7-970e-35fca3e4e7bc",
-        "alias": "Smart Bins",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
-            "Smart Bin"
-          ]
-        }
-      },
-      "0fd39e89-dcc2-fcea-2cba-745f4489eb82": {
-        "id": "0fd39e89-dcc2-fcea-2cba-745f4489eb82",
-        "alias": "Dispensers",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
-            "Liquid Level Sensor"
-          ]
-        }
-      },
-      "c5de3e0f-e7fe-d559-1f60-43a368c8f9d2": {
-        "id": "c5de3e0f-e7fe-d559-1f60-43a368c8f9d2",
-        "alias": "Door Sensors",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
-            "Door Sensor"
-          ]
-        }
-      },
-      "3bb4d017-edf2-5fb5-f78d-f02c10061869": {
-        "id": "3bb4d017-edf2-5fb5-f78d-f02c10061869",
-        "alias": "Occupancy Sensors",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
-            "Occupancy Sensor"
-          ]
-        }
-      },
-      "5d5b24a7-8ad3-ef12-e6e6-1ea09886ff09": {
-        "id": "5d5b24a7-8ad3-ef12-e6e6-1ea09886ff09",
-        "alias": "Smoke Sensors",
-        "filter": {
-          "type": "deviceSearchQuery",
-          "resolveMultiple": true,
-          "rootStateEntity": true,
-          "stateEntityParamName": null,
-          "defaultStateEntity": null,
-          "rootEntity": null,
-          "direction": "FROM",
-          "maxLevel": 1,
-          "fetchLastLevelOnly": false,
-          "relationType": "Contains",
-          "deviceTypes": [
+            "Smart Shelf",
+            "Chiller",
+            "Door Sensor",
+            "Freezer",
+            "Liquid Level Sensor",
+            "Motion Sensor",
+            "Occupancy Sensor",
+            "Smart Bin",
             "Smoke Sensor"
           ]
         }
@@ -1092,6 +986,16 @@
           "type": "entityType",
           "resolveMultiple": true,
           "entityType": "CUSTOMER"
+        }
+      },
+      "7add11d8-cbf7-fd15-6b12-d5df058f11fa": {
+        "id": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+        "alias": "Selected Supermarket",
+        "filter": {
+          "type": "stateEntity",
+          "resolveMultiple": false,
+          "stateEntityParamName": "selectedSupermarket",
+          "defaultStateEntity": null
         }
       }
     },
@@ -1116,6 +1020,99 @@
                   },
                   "ignoreCase": false,
                   "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      },
+      "460595a7-fcfd-4938-90b1-e66a5e7da88b": {
+        "id": "460595a7-fcfd-4938-90b1-e66a5e7da88b",
+        "filter": "Supermarket filter",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "state"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "OR",
+                  "predicates": [
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "normal",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayNormalSupermarket",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "critical",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayCriticalSupermarket",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    },
+                    {
+                      "keyFilterPredicate": {
+                        "operation": "EQUAL",
+                        "value": {
+                          "defaultValue": "major",
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_USER",
+                            "sourceAttribute": "displayMajorSupermarket",
+                            "inherit": false
+                          }
+                        },
+                        "ignoreCase": false,
+                        "type": "STRING"
+                      },
+                      "userInfo": {
+                        "editable": true,
+                        "label": "",
+                        "autogeneratedLabel": true,
+                        "order": 0
+                      }
+                    }
+                  ],
+                  "type": "COMPLEX"
                 },
                 "userInfo": {
                   "editable": true,
@@ -1162,16 +1159,16 @@
       "stateControllerId": "entity",
       "showTitle": false,
       "showDashboardsSelect": true,
-      "showEntitiesSelect": true,
-      "showDashboardTimewindow": true,
+      "showEntitiesSelect": false,
+      "showDashboardTimewindow": false,
       "showDashboardExport": true,
       "toolbarAlwaysOpen": true,
       "titleColor": "rgba(0,0,0,0.870588)",
       "showDashboardLogo": false,
       "dashboardLogoUrl": null,
       "hideToolbar": false,
-      "showFilters": true,
-      "showUpdateDashboardImage": true,
+      "showFilters": false,
+      "showUpdateDashboardImage": false,
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },

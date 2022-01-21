@@ -6370,7 +6370,7 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "0px",
           "settings": {
-            "fitMapBounds": true,
+            "fitMapBounds": false,
             "latKeyName": "latitude",
             "lngKeyName": "longitude",
             "showLabel": true,
@@ -6381,7 +6381,7 @@
             "markerImages": [],
             "useMarkerImageFunction": true,
             "color": "#fe7569",
-            "mapProvider": "OpenStreetMap.Mapnik",
+            "mapProvider": "CartoDB.Positron",
             "showTooltip": true,
             "autocloseTooltip": true,
             "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
@@ -6403,7 +6403,17 @@
             "showPolygon": false,
             "useClusterMarkers": false,
             "disableZoomControl": false,
-            "markerImageFunction": "var state = data['state'];\nvar selectedSupermarket = data['selectedSupermarket'] === true;\nvar selectedMode = dsData.filter(function (data) { return data['selectedSupermarket'] === true; }).length > 0;\n\nvar status = state;\nvar width = 30;\nvar svgStr = getSupermarketSvg(status, width, selectedSupermarket);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nif (selectedSupermarket) {\n    width += 8;\n}\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(status, width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = getBackgroundColor(status);\n    var background = getBackground(color);\n    var svgWidth = isSelected ? (width + 8) : width;\n    var svgHeight = isSelected ? 38 : 30;\n    \n    var opacity = selectedMode && !isSelected ? 0.4 : 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    wrapIfSelected(background + shape, isSelected);\n    if (isSelected) {\n        supermarketSvg += getSupermarketSelectionStroke();\n    }\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction wrapIfSelected(svg, isSelected) {\n    if (isSelected) {\n        return '<g transform=\"translate(4 4)\">' + svg + '</g>';\n    } else {\n        return svg;\n    }\n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n\nfunction getSupermarketSelectionStroke() {\n     return '<circle cx=\"19\" cy=\"19\" r=\"18\" stroke=\"#D5C21B\" stroke-width=\"2\"/>';\n}\n\nfunction getBackgroundColor(status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'normal':\n        default:    \n            return '#1F8B4D';\n    }\n}\n"
+            "markerImageFunction": "var state = data['state'];\nvar selectedSupermarket = data['selectedSupermarket'] === true;\nvar selectedMode = dsData.filter(function (data) { return data['selectedSupermarket'] === true; }).length > 0;\n\nvar status = state;\nvar width = 30;\nvar svgStr = getSupermarketSvg(status, width, selectedSupermarket);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nif (selectedSupermarket) {\n    width += 8;\n}\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(status, width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = getBackgroundColor(status);\n    var background = getBackground(color);\n    var svgWidth = isSelected ? (width + 8) : width;\n    var svgHeight = isSelected ? 38 : 30;\n    \n    var opacity = selectedMode && !isSelected ? 0.4 : 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    wrapIfSelected(background + shape, isSelected);\n    if (isSelected) {\n        supermarketSvg += getSupermarketSelectionStroke();\n    }\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction wrapIfSelected(svg, isSelected) {\n    if (isSelected) {\n        return '<g transform=\"translate(4 4)\">' + svg + '</g>';\n    } else {\n        return svg;\n    }\n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n\nfunction getSupermarketSelectionStroke() {\n     return '<circle cx=\"19\" cy=\"19\" r=\"18\" stroke=\"#D5C21B\" stroke-width=\"2\"/>';\n}\n\nfunction getBackgroundColor(status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'normal':\n        default:    \n            return '#1F8B4D';\n    }\n}\n",
+            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
+            "gmDefaultMapType": "roadmap",
+            "mapProviderHere": "HERE.normalDay",
+            "credentials": {
+              "app_id": "AhM6TzD9ThyK78CT3ptx",
+              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
+            },
+            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
+            "tmDefaultMapType": "roadmap",
+            "defaultZoomLevel": 14
           },
           "title": "New OpenStreetMap",
           "dropShadow": false,
