@@ -7917,7 +7917,7 @@
         }
       },
       "supermarket_details": {
-        "name": "Supermarket Details",
+        "name": "${selectedSupermarket:entityName}",
         "root": false,
         "layouts": {
           "main": {

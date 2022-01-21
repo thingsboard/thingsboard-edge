@@ -6,110 +6,6 @@
   "configuration": {
     "description": "",
     "widgets": {
-      "52997d9c-84c4-2647-d72a-5095c08c1a94": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "entities_table",
-        "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 7.5,
-        "sizeY": 6.5,
-        "config": {
-          "timewindow": {
-            "realtime": {
-              "interval": 1000,
-              "timewindowMs": 86400000
-            },
-            "aggregation": {
-              "type": "NONE",
-              "limit": 200
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "rgb(255, 255, 255)",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "4px",
-          "settings": {
-            "enableSearch": true,
-            "displayPagination": true,
-            "defaultPageSize": 10,
-            "defaultSortOrder": "entityName",
-            "displayEntityName": true,
-            "displayEntityType": false,
-            "enableSelectColumnDisplay": true,
-            "enableStickyHeader": true,
-            "enableStickyAction": true,
-            "reserveSpaceForHiddenAction": "true",
-            "entitiesTitle": "Supermarkets",
-            "entityNameColumnTitle": "Name"
-          },
-          "title": "New Entities table",
-          "dropShadow": true,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400,
-            "padding": "5px 10px 5px 10px"
-          },
-          "useDashboardTimewindow": false,
-          "showLegend": false,
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "1c348dad-e738-a4db-5e7e-4c0271790ab7",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "address",
-                  "type": "attribute",
-                  "label": "address",
-                  "color": "#2196f3",
-                  "settings": {
-                    "columnWidth": "70%",
-                    "useCellStyleFunction": false,
-                    "cellStyleFunction": "",
-                    "useCellContentFunction": false,
-                    "cellContentFunction": "",
-                    "defaultColumnVisibility": "visible",
-                    "columnSelectionToDisplay": "enabled",
-                    "columnExportOption": "onlyVisible"
-                  },
-                  "_hash": 0.1345774127559587,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
-                }
-              ]
-            }
-          ],
-          "actions": {
-            "rowClick": [
-              {
-                "name": "Go To Details",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "supermarket_details",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "5e50c296-0eac-8841-a69a-1cbbfe04d1c5"
-              }
-            ]
-          }
-        },
-        "row": 0,
-        "col": 0,
-        "id": "52997d9c-84c4-2647-d72a-5095c08c1a94"
-      },
       "60ac86e0-83f1-5875-dd24-3e39657e8ace": {
         "isSystemType": true,
         "bundleAlias": "maps_v2",
@@ -629,6 +525,277 @@
         "row": 0,
         "col": 0,
         "id": "60ac86e0-83f1-5875-dd24-3e39657e8ace"
+      },
+      "777ded27-e3b8-d901-ca42-3079a23f7a12": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "entities_table",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSearch": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "entityName",
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "enableSelectColumnDisplay": true,
+            "enableStickyHeader": true,
+            "enableStickyAction": true,
+            "reserveSpaceForHiddenAction": "true",
+            "entitiesTitle": "Retail companies",
+            "entityNameColumnTitle": "Name",
+            "displayEntityLabel": false,
+            "useRowStyleFunction": false
+          },
+          "title": "Retail companies",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "04917190-aea7-e407-e308-4598f1671a71",
+              "filterId": "678131d4-767c-6e4f-f24c-caa245f926f9",
+              "dataKeys": [
+                {
+                  "name": "address",
+                  "type": "attribute",
+                  "label": "address",
+                  "color": "#2196f3",
+                  "settings": {
+                    "columnWidth": "70%",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.1345774127559587,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Go to supermarkets",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarkets",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "5e50c296-0eac-8841-a69a-1cbbfe04d1c5"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "777ded27-e3b8-d901-ca42-3079a23f7a12"
+      },
+      "00d4948f-755c-8c2a-c8cf-756b411e53e9": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "entities_table",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSearch": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "entityName",
+            "displayEntityName": true,
+            "displayEntityType": false,
+            "enableSelectColumnDisplay": true,
+            "enableStickyHeader": true,
+            "enableStickyAction": true,
+            "reserveSpaceForHiddenAction": "true",
+            "entitiesTitle": "Supermarkets",
+            "entityNameColumnTitle": "Name",
+            "displayEntityLabel": false,
+            "useRowStyleFunction": false
+          },
+          "title": "Supermarkets",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "1c348dad-e738-a4db-5e7e-4c0271790ab7",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "address",
+                  "type": "attribute",
+                  "label": "address",
+                  "color": "#2196f3",
+                  "settings": {
+                    "columnWidth": "70%",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.1345774127559587,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Go To Details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarket_details",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "5e50c296-0eac-8841-a69a-1cbbfe04d1c5"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "00d4948f-755c-8c2a-c8cf-756b411e53e9"
+      },
+      "c2559a58-e82d-3250-7e35-f520ced0d916": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div style=\"width: 100%; height: 100%; padding: 0;\">\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'TENANT_ADMIN'\" [ctx]=\"ctx\" stateId=\"retail_companies\"></tb-dashboard-state>\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'CUSTOMER_USER'\" [ctx]=\"ctx\" stateId=\"supermarkets\"></tb-dashboard-state>\n</div>"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "c2559a58-e82d-3250-7e35-f520ced0d916"
       }
     },
     "states": {
@@ -638,18 +805,22 @@
         "layouts": {
           "main": {
             "widgets": {
-              "52997d9c-84c4-2647-d72a-5095c08c1a94": {
-                "sizeX": 10,
-                "sizeY": 12,
+              "c2559a58-e82d-3250-7e35-f520ced0d916": {
+                "sizeX": 24,
+                "sizeY": 11,
                 "row": 0,
                 "col": 0
               }
             },
             "gridSettings": {
-              "backgroundColor": "#eeeeee",
+              "backgroundColor": "#ffffff",
               "columns": 24,
-              "margin": 10,
-              "backgroundSizeMode": "100%"
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
             }
           }
         }
@@ -675,6 +846,58 @@
             }
           }
         }
+      },
+      "retail_companies": {
+        "name": "Retail companies",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "777ded27-e3b8-d901-ca42-3079a23f7a12": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "supermarkets": {
+        "name": "${entityName}: Supermarkets",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "00d4948f-755c-8c2a-c8cf-756b411e53e9": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
       }
     },
     "entityAliases": {
@@ -682,10 +905,22 @@
         "id": "1c348dad-e738-a4db-5e7e-4c0271790ab7",
         "alias": "Supermarkets",
         "filter": {
-          "type": "assetType",
+          "type": "assetSearchQuery",
           "resolveMultiple": true,
-          "assetType": "supermarket",
-          "assetNameFilter": ""
+          "rootStateEntity": true,
+          "stateEntityParamName": null,
+          "defaultStateEntity": {
+            "entityType": "CURRENT_USER_OWNER",
+            "id": "13814000-1dd2-11b2-8080-808080808080"
+          },
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "relationType": "Owns",
+          "assetTypes": [
+            "supermarket"
+          ]
         }
       },
       "714e9019-038d-f9f2-9cb5-f717feeb2b68": {
@@ -849,9 +1084,52 @@
             "Smoke Sensor"
           ]
         }
+      },
+      "04917190-aea7-e407-e308-4598f1671a71": {
+        "id": "04917190-aea7-e407-e308-4598f1671a71",
+        "alias": "Retail companies",
+        "filter": {
+          "type": "entityType",
+          "resolveMultiple": true,
+          "entityType": "CUSTOMER"
+        }
       }
     },
-    "filters": {},
+    "filters": {
+      "678131d4-767c-6e4f-f24c-caa245f926f9": {
+        "id": "678131d4-767c-6e4f-f24c-caa245f926f9",
+        "filter": "Retail company",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "type"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "retail",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      }
+    },
     "timewindow": {
       "displayValue": "",
       "hideInterval": false,
@@ -887,7 +1165,14 @@
       "showEntitiesSelect": true,
       "showDashboardTimewindow": true,
       "showDashboardExport": true,
-      "toolbarAlwaysOpen": true
+      "toolbarAlwaysOpen": true,
+      "titleColor": "rgba(0,0,0,0.870588)",
+      "showDashboardLogo": false,
+      "dashboardLogoUrl": null,
+      "hideToolbar": false,
+      "showFilters": true,
+      "showUpdateDashboardImage": true,
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },
   "name": "Smart Supermarket Admin"

@@ -522,5 +522,185 @@
         "type": "Contains"
       }
     ]
+  },
+  {
+    "name": "Smart Shelf 765765",
+    "label": "Fruits",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.6895846593918546,
+      "yPos": 0.6990715532286214,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Chiller 65644",
+    "label": "Milk",
+    "type": "Chiller",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Chiller",
+    "attributes": {
+      "xPos": 0.5121248625980332,
+      "yPos": 0.13135823879258277,
+      "chillerHighTemperatureMajorThreshold": 10,
+      "chillerHighTemperatureCriticalThreshold": 15
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Freezer 43545",
+    "type": "Freezer",
+    "label": "Meat",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Freezer",
+    "attributes": {
+      "xPos": 0.06905060096603549,
+      "yPos": 0.7218696071835972,
+      "freezerHighTemperatureMajorThreshold": -10,
+      "freezerHighTemperatureCriticalThreshold": -3
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 4534",
+    "label": "Back Door",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.0557,
+      "yPos": 0.0636,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Shelf 89546",
+    "label": "Vegetables",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.6895846593918546,
+      "yPos": 0.6990715532286214,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Chiller 378876",
+    "label": "Milk",
+    "type": "Chiller",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Chiller",
+    "attributes": {
+      "xPos": 0.5121248625980332,
+      "yPos": 0.13135823879258277,
+      "chillerHighTemperatureMajorThreshold": 10,
+      "chillerHighTemperatureCriticalThreshold": 15
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Freezer 67478",
+    "type": "Freezer",
+    "label": "Meat",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Freezer",
+    "attributes": {
+      "xPos": 0.06905060096603549,
+      "yPos": 0.7218696071835972,
+      "freezerHighTemperatureMajorThreshold": -10,
+      "freezerHighTemperatureCriticalThreshold": -3
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 3456",
+    "label": "Back Door",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.0557,
+      "yPos": 0.0636,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
   }
 ]
