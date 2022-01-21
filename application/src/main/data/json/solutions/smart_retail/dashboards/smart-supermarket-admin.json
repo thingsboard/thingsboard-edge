@@ -148,7 +148,7 @@
             "hideRemoveControlButton": false,
             "disableZoomControl": false
           },
-          "title": "Supermarket plan",
+          "title": "Devices",
           "dropShadow": true,
           "enableFullscreen": false,
           "titleStyle": {
@@ -213,7 +213,7 @@
             "useRowStyleFunction": false
           },
           "title": "Retail companies",
-          "dropShadow": false,
+          "dropShadow": true,
           "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "24px",
@@ -308,7 +308,7 @@
           "settings": {
             "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div style=\"width: 100%; height: 100%; padding: 0;\">\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'TENANT_ADMIN'\" [ctx]=\"ctx\" stateId=\"retail_companies\" defaultMargin=\"0\" defaultBackgroundColor=\"#ffffff\"></tb-dashboard-state>\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'CUSTOMER_USER'\" [ctx]=\"ctx\" stateId=\"supermarkets\" defaultMargin=\"0\" defaultBackgroundColor=\"#ffffff\"></tb-dashboard-state>\n</div>"
+            "markdownTextPattern": "<div style=\"width: 100%; height: 100%; padding: 0;\">\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'TENANT_ADMIN'\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"retail_companies\"></tb-dashboard-state>\n   <tb-dashboard-state *ngIf=\"ctx.currentUser.authority === 'CUSTOMER_USER'\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets\"></tb-dashboard-state>\n</div>"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -412,7 +412,7 @@
             "lngKeyName": "longitude",
             "showLabel": true,
             "label": "${entityName}",
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-details'>Details</link-act>",
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-devices'>Supermarket devices</link-act>",
             "markerImageSize": 34,
             "useColorFunction": false,
             "markerImages": [],
@@ -458,7 +458,7 @@
             "hideEditControlButton": false,
             "hideRemoveControlButton": false
           },
-          "title": "Supermarkets Map",
+          "title": "Supermarkets map",
           "dropShadow": true,
           "enableFullscreen": false,
           "titleStyle": {
@@ -486,12 +486,12 @@
             ],
             "tooltipAction": [
               {
-                "name": "supermarket-details",
+                "name": "supermarket-devices",
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_details', params);\t",
+                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_devices', params);\t",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "1ca54350-817a-27b3-26a7-3572544d8523"
@@ -651,7 +651,7 @@
           "actions": {
             "rowClick": [
               {
-                "name": "Go To Details",
+                "name": "Select supermarket",
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
@@ -667,12 +667,12 @@
             ],
             "actionCellButton": [
               {
-                "name": "Open details",
+                "name": "Open supermarket devices",
                 "icon": "shopping_cart_checkout",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "openDashboardState",
-                "targetDashboardStateId": "supermarket_details",
+                "targetDashboardStateId": "supermarket_devices",
                 "setEntityId": true,
                 "stateEntityParamName": "selectedSupermarket",
                 "openRightLayout": false,
@@ -780,39 +780,13 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#eeeeee",
+              "backgroundColor": "#ffffff",
               "columns": 24,
-              "margin": 10,
+              "margin": 0,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
               "backgroundImageUrl": null,
-              "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
-            }
-          }
-        }
-      },
-      "supermarket_details": {
-        "name": "${entityName}",
-        "root": false,
-        "layouts": {
-          "main": {
-            "widgets": {
-              "60ac86e0-83f1-5875-dd24-3e39657e8ace": {
-                "sizeX": 14,
-                "sizeY": 10,
-                "row": 0,
-                "col": 0
-              }
-            },
-            "gridSettings": {
-              "backgroundColor": "#eeeeee",
-              "columns": 24,
-              "margin": 10,
-              "backgroundSizeMode": "100%",
-              "autoFillHeight": true,
-              "backgroundImageUrl": null,
-              "mobileAutoFillHeight": false,
+              "mobileAutoFillHeight": true,
               "mobileRowHeight": 70
             }
           }
@@ -832,9 +806,9 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "#eeeeee",
               "columns": 24,
-              "margin": 0,
+              "margin": 10,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
               "backgroundImageUrl": null,
@@ -923,6 +897,32 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "supermarket_devices": {
+        "name": "${selectedSupermarket:entityName}: Devices",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "60ac86e0-83f1-5875-dd24-3e39657e8ace": {
+                "sizeX": 14,
+                "sizeY": 10,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
               "mobileRowHeight": 70
             }
           }
