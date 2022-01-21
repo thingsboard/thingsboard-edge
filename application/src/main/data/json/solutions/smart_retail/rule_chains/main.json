@@ -37,7 +37,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Update state attributes",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "jsScript": "var criticalAlarmsCount = msg.criticalAlarmsCount;\nvar majorAlarmsCount = msg.majorAlarmsCount;\n\nvar state = 'normal';\n\nif (criticalAlarmsCount && Number(criticalAlarmsCount) > 0) {\n    state = 'critical';\n} else if (majorAlarmsCount && Number(majorAlarmsCount) > 0) {\n    state = 'major';\n}\n\nreturn {\n    msg: {\n        state: state\n    },\n    metadata: {\n        scope: 'SERVER_SCOPE'\n    },\n    msgType: 'POST_ATTRIBUTES_REQUEST'\n};"
         }
@@ -50,12 +50,24 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Alarms Count",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "alarmsCountMappings": [
             {
               "target": "criticalAlarmsCount",
-              "typesList": [],
+              "typesList": [
+                "High Temperature Alarm",
+                "Low Temperature Alarm",
+                "Door left open",
+                "Door was broken",
+                "Low Battery",
+                "Low Liquid Level",
+                "Motion Detected",
+                "Prolonged occupation",
+                "Bin is full",
+                "Low on items",
+                "Fire Alarm"
+              ],
               "severityList": [
                 "CRITICAL"
               ],
@@ -66,7 +78,19 @@
             },
             {
               "target": "majorAlarmsCount",
-              "typesList": [],
+              "typesList": [
+                "High Temperature Alarm",
+                "Low Temperature Alarm",
+                "Door left open",
+                "Door was broken",
+                "Low Battery",
+                "Low Liquid Level",
+                "Motion Detected",
+                "Prolonged occupation",
+                "Bin is full",
+                "Low on items",
+                "Fire Alarm"
+              ],
               "severityList": [
                 "MAJOR"
               ],
@@ -113,7 +137,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "version": 0
         }
@@ -162,7 +186,7 @@
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false

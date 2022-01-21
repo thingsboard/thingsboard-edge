@@ -1863,7 +1863,7 @@
             "useRowStyleFunction": false,
             "entitiesTitle": "Devices"
           },
-          "title": "New Entities table",
+          "title": "Devices",
           "dropShadow": false,
           "enableFullscreen": false,
           "titleStyle": {
@@ -1997,11 +1997,8 @@
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
-                "type": "updateDashboardState",
-                "targetDashboardStateId": null,
-                "setEntityId": true,
-                "stateEntityParamName": "selectedDevice",
-                "openRightLayout": false,
+                "type": "custom",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nparams['selectedDevice'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedDevice';\n\nvar currentStateId = widgetContext.stateController.getStateId();\nif (currentStateId === 'default') {\n   widgetContext.stateController.openState('supermarket_details', params);\t\n} else {\n   widgetContext.stateController.updateState(null, params);\n}",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "27b78a0c-3e2d-8d90-72dd-10f9f80351b5"
@@ -6425,11 +6422,8 @@
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
-                "type": "updateDashboardState",
-                "targetDashboardStateId": null,
-                "setEntityId": true,
-                "stateEntityParamName": "selectedSupermarket",
-                "openRightLayout": false,
+                "type": "custom",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nvar selectedSupermarket = params['selectedSupermarket'];\nif (selectedSupermarket && selectedSupermarket.entityId.id === entityId.id) {\n    params['selectedSupermarket'] = null;\n} else {\n    params['selectedSupermarket'] = { entityId: entityId, entityName: entityName, entityLabel: entityLabel };\n}\nwidgetContext.stateController.updateState(null, params);\n",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "4de7962b-a1de-5cb1-cd78-993dc7863614"
@@ -6441,11 +6435,8 @@
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "supermarket_details",
-                "setEntityId": true,
-                "stateEntityParamName": "selectedSupermarket",
-                "openRightLayout": false,
+                "type": "custom",
+                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_details', params);\t",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "1ca54350-817a-27b3-26a7-3572544d8523"
@@ -6758,12 +6749,12 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "16px",
+          "padding": "8px",
           "settings": {
-            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n     <div fxLayout=\"column\" style=\"width: 100%; height: 90px;\">\n        <h5 style=\"padding-bottom: 15px;\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarket-state-filter\"></tb-dashboard-state>\n     </div>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n    <div fxFlex fxLayout=\"column\" style=\"position: relative;\">\n        <h5 class=\"market-title\">Supermarkets</h5>\n        <tb-dashboard-state style=\"width: 100%; height: 90px;\" [ctx]=\"ctx\" stateId=\"all_alarm_badges\"></tb-dashboard-state>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets_map\"></tb-dashboard-state>\n    </div>\n</div>",
             "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    position: absolute;\n    top: 10px;\n    z-index: 2;\n}"
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    font-size: 26px;\n    padding-bottom: 16px;\n    padding-left: 10px;\n    padding-top: 5px;\n}\n\n.state-filter-title {\n    padding-bottom: 15px;\n    padding-left: 10px;\n}\n\n.market-layout .alarm-badges-layout {\n    position: absolute;\n    height: 50px;\n    top: 0;\n    left: 0;\n    right: 0;\n    z-index: 2;\n    display: flex;\n    justify-content: center;\n    pointer-events: none;\n}\n\n.market-layout .alarm-badges-layout .alarm-badges {\n    height: 50px;\n    width: 350px;\n    pointer-events: all;\n}",
+            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n     <div class=\"alarm-badges-layout\">\n         <tb-dashboard-state class=\"alarm-badges\" *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" [ctx]=\"ctx\" stateId=\"all_alarm_badges\"></tb-dashboard-state>\n         <tb-dashboard-state class=\"alarm-badges\" *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"alarm_badges\"></tb-dashboard-state>\n     </div>\n     <div *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxLayout=\"column\" style=\"width: 100%; height: 170px;\">\n        <h5 class=\"market-title\">Supermarkets</h5>\n        <h5 class=\"state-filter-title\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarket-state-filter\"></tb-dashboard-state>\n        <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n     </div>\n     <tb-dashboard-state *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" style=\"height: 170px;\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_card_header\"></tb-dashboard-state>\n    <div fxFlex fxLayout=\"column\" style=\"position: relative;\">\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets_map\"></tb-dashboard-state>\n    </div>\n</div>"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -6826,7 +6817,7 @@
             "useRowStyleFunction": false,
             "entitiesTitle": "Supermarkets"
           },
-          "title": "New Entities table",
+          "title": "Supermarkets",
           "dropShadow": false,
           "enableFullscreen": false,
           "titleStyle": {
@@ -7010,7 +7001,7 @@
             "useRowStyleFunction": false,
             "alarmsTitle": "Alarms"
           },
-          "title": "New Alarms table",
+          "title": "Alarms",
           "dropShadow": false,
           "enableFullscreen": false,
           "titleStyle": {
@@ -7174,7 +7165,7 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
+          "padding": "0px",
           "settings": {
             "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
             "markdownTextFunction": "var name, address, state;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    address = data[0]['address'];\n    state = data[0]['state'];\n} else {\n    name = 'N/A';\n    address = 'N/A';\n    state = 'N/A';\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">' + name + '</div>' +\n                '</div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"start\"><button id=\"details\" type=\"button\" mat-raised-button color=\"primary\">Open details</button></div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<div fxLayout=\"row\" class=\"params\">' +\n              '<div fxFlex=\"70\" class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">Address: </div>' +\n                '<div class=\"param\">'+ address +'</div>' +\n              '</div>' +\n              '<div fxFlex=\"30\" class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">State: </div>' +\n                '<div class=\"param\">'+ getStateHtml(state) +'</div>' +\n              '</div>' +\n          '</div>' +\n       '<div>';\n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        default:\n            return state;\n    }\n}\n",
@@ -7215,11 +7206,8 @@
                 "icon": "more_horiz",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "supermarket_details",
-                "setEntityId": true,
-                "stateEntityParamName": "selectedSupermarket",
-                "openRightLayout": false,
+                "type": "custom",
+                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_details', params);\t",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "984f40ea-3647-03d7-b77b-aa0ad394803b"
@@ -7250,22 +7238,6 @@
               "filterId": null,
               "dataKeys": [
                 {
-                  "name": "criticalAlarmsCount",
-                  "type": "timeseries",
-                  "label": "criticalAlarmsCount",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.49753796156080154
-                },
-                {
-                  "name": "majorAlarmsCount",
-                  "type": "timeseries",
-                  "label": "majorAlarmsCount",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.11472918773496366
-                },
-                {
                   "name": "address",
                   "type": "attribute",
                   "label": "address",
@@ -7287,7 +7259,7 @@
           "padding": "8px",
           "settings": {
             "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
-            "markdownTextFunction": "var criticalAlarmsCount;\nvar majorAlarmsCount;\nif (data && data.length) {\n    criticalAlarmsCount = data[0]['criticalAlarmsCount'];\n    majorAlarmsCount = data[0]['majorAlarmsCount'];\n} else {\n    criticalAlarmsCount = 'N/A';\n    majorAlarmsCount = 'N/A';\n}\n\nreturn '<div style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' + \n           '<div>Critical alarms: ' + criticalAlarmsCount + '</div>' +\n           '<div>Major alarms: ' + majorAlarmsCount + '</div>' +\n       '</div>';\n",
+            "markdownTextFunction": "var criticalAlarmsCount;\nvar majorAlarmsCount;\nif (data && data.length) {\n    criticalAlarmsCount = data[0]['criticalAlarmsCount'];\n    majorAlarmsCount = data[0]['majorAlarmsCount'];\n} else {\n    criticalAlarmsCount = 'N/A';\n    majorAlarmsCount = 'N/A';\n}\n\nreturn '<div><tb-dashboard-state style=\"width: 100%; height: 90px;\" [ctx]=\"ctx\" stateId=\"alarm_badges\"></tb-dashboard-state></div>';\n",
             "useMarkdownTextFunction": true
           },
           "title": "New Markdown/HTML Card",
@@ -7404,9 +7376,9 @@
             "enableStickyHeader": true,
             "reserveSpaceForHiddenAction": "true",
             "useRowStyleFunction": false,
-            "alarmsTitle": "${entityLabel}: Alarms"
+            "alarmsTitle": "Alarms"
           },
-          "title": "New Alarms table",
+          "title": "Alarms",
           "dropShadow": false,
           "enableFullscreen": false,
           "titleStyle": {
@@ -7547,10 +7519,10 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "4px",
           "settings": {
-            "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
-            "markdownTextFunction": "var supermarketState;\nif (data && data.length && data[0]['entityId']) {\n    supermarketState = true;\n} else {\n    supermarketState = false;\n}\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (supermarketState \n            ? ('<tb-dashboard-state style=\"height: 174px;\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_card_header\"></tb-dashboard-state>' +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_card_details\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>') +\n          '<mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"' + (supermarketState ? 'true' : 'false') + '\" stateId=\"'+ (supermarketState ? 'supermarket_alarms' : 'supermarkets_alarms') +'\"></tb-dashboard-state>' +\n       '</div>';",
+            "markdownTextFunction": "var supermarketState;\nif (data && data.length && data[0]['entityId']) {\n    supermarketState = true;\n} else {\n    supermarketState = false;\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">{{ ctx.stateController.getStateParams().selectedSupermarket?.entityName }}</div>' +\n                '</div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (supermarketState \n            ? (header +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"devices_card\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>') +\n          '<mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"' + (supermarketState ? 'true' : 'false') + '\" stateId=\"'+ (supermarketState ? 'supermarket_alarms' : 'supermarkets_alarms') +'\"></tb-dashboard-state>' +\n       '</div>';",
             "useMarkdownTextFunction": true,
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n"
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n.main-layout .header {\n    height: 60px;\n    margin: 4px;\n} \n\n.main-layout .header .mat-icon.title-icon {\n    width: 40px;\n    height: 40px;\n}\n\n.main-layout .header .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n\n.main-layout .header .subtitle {\n    font-size: 13px;\n    font-weight: normal;\n    color: #757575;\n}\n",
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <section *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" fxFlex fxLayout=\"column\">\n\t<h5 class=\"market-title\">{{ ctx.stateController.getStateParams().selectedSupermarket.entityName }}</h5>\n\t<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"devices_card\"></tb-dashboard-state>\n    </section>\n    <tb-dashboard-state *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>\n    <tb-dashboard-state *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_alarms\"></tb-dashboard-state>\n    <tb-dashboard-state *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"false\" stateId=\"supermarkets_alarms\"></tb-dashboard-state>\n</div>"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -7576,7 +7548,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "var params = widgetContext.stateController.getStateParams();\nparams['selectedDevice'] = null;\nwidgetContext.stateController.updateState(null, params);",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nparams['selectedSupermarket'] = null;\nwidgetContext.stateController.updateState(null, params);",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "116515c2-d9bd-80b6-7a34-97373a802806"
