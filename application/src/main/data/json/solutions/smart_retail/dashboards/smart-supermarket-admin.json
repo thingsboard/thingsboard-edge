@@ -536,11 +536,11 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "0px",
+          "padding": "8px",
           "settings": {
             "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div class=\"title\">Title: ${entityName}</div>\n</div>",
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div fxLayout=\"row\">\n        <mat-form-field fxFlex fxFlex.gt-md=\"50\">\n              <mat-label>Title</mat-label>\n              <input #titleInput matInput [disabled]=\"!editTitle\"\n                     value=\"${entityName}\" (keyUp.enter)=\"titleInput.value !== '${entityName}' ? saveTitleButton._elementRef.nativeElement.click() : return;\"\n                     (keyUp.escape)=\"editTitle = false; titleInput.value = '${entityName}';\"/>\n        <button *ngIf=\"!editTitle\" type=\"button\" matSuffix mat-icon-button (click)=\"editTitle = true\">\n            <mat-icon>edit</mat-icon>\n        </button>             \n        <button #saveTitleButton id=\"save-title\" [fxShow]=\"editTitle && titleInput.value !== '${entityName}'\" [attr.data-title]=\"titleInput.value\" type=\"button\" matSuffix mat-icon-button>\n            <mat-icon>check</mat-icon>\n        </button> \n        <button *ngIf=\"editTitle\" type=\"button\" matSuffix mat-icon-button (click)=\"editTitle = false; titleInput.value = '${entityName}';\">\n            <mat-icon>clear</mat-icon>\n        </button> \n        </mat-form-field>\n    </div>\n</div>",
             "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.main-layout .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n"
           },
           "title": "New Markdown/HTML Card",
@@ -558,7 +558,22 @@
           "showLegend": false,
           "enableDataExport": false,
           "widgetCss": "",
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "save-title",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "const targetElement = $($event.target).closest('#save-title', widgetContext.$container[0]);\n\nvar title = $(targetElement).attr('data-title');\n\nwidgetContext.assetService.getAsset(entityId.id, {ignoreLoading: true}).subscribe((supermarket) => {\n    supermarket.name = title;\n    widgetContext.assetService.saveAsset(supermarket, null, {ignoreLoading: true}).subscribe(() => {\n       var stateParams = widgetContext.stateController.getStateParams();\n       stateParams.selectedSupermarket.entityName = title;\n       widgetContext.stateController.updateState(null, stateParams);\n       if (widgetContext.parentDashboard) {\n           widgetContext.parentDashboard.aliasController.updateAliases();\n       }\n       widgetContext.updateAliases();\n    });\n});\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "088a4799-8551-7ab4-892f-2a08d6d40a7c"
+              }
+            ]
+          }
         },
         "row": 0,
         "col": 0,
