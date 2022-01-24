@@ -83,7 +83,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     if (widgetsBundleUpdateMsg.hasDescription()) {
                         widgetsBundle.setDescription(widgetsBundleUpdateMsg.getDescription());
                     }
-                    widgetsBundleService.saveWidgetsBundle(widgetsBundle);
+                    widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                     if (created) {
                         saveCloudEvent(tenantId, CloudEventType.WIDGETS_BUNDLE, ActionType.WIDGET_BUNDLE_TYPES_REQUEST, widgetsBundleId, null);

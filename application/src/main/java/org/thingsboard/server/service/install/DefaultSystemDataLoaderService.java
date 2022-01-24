@@ -279,7 +279,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Override
     public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
-//        installScripts.updateMailTemplates(adminSettingsId, value);
+        // TODO: @voba merge comment
+        // installScripts.updateMailTemplates(adminSettingsId, value);
     }
 
     @Override

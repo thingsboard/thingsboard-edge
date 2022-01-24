@@ -34,8 +34,5 @@ import org.thingsboard.server.controller.BaseComponentDescriptorControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 @DaoSqlTest
-/**
- * Created by Valerii Sosliuk on 6/28/2017.
- */
 public class ComponentDescriptorControllerSqlTest extends BaseComponentDescriptorControllerTest {
 }

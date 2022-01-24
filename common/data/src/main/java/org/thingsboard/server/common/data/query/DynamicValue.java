@@ -37,8 +37,6 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.io.Serializable;
 
-import java.io.Serializable;
-
 @Data
 @RequiredArgsConstructor
 public class DynamicValue<T> implements Serializable {

@@ -330,7 +330,7 @@ integrations:
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   rpc:
     enabled: "${INTEGRATIONS_RPC_ENABLED:true}"
-    port: "${INTEGRATIONS_RPC_PORT:19090}"
+    port: "${INTEGRATIONS_RPC_PORT:9090}"
     ssl:
       # Enable/disable SSL support
       enabled: "${INTEGRATIONS_RPC_SSL_ENABLED:false}"
@@ -351,7 +351,7 @@ cache:
   maximumPoolSize: "${CACHE_MAXIMUM_POOL_SIZE:16}" # max pool size to process futures that calls the external cache
   attributes:
     # make sure that if cache.type is 'redis' and cache.attributes.enabled is 'true' that you change 'maxmemory-policy' Redis config property to 'allkeys-lru', 'allkeys-lfu' or 'allkeys-random'
-    enabled: "${CACHE_ATTRIBUTES_ENABLED:false}"
+    enabled: "${CACHE_ATTRIBUTES_ENABLED:true}"
 
 caffeine:
   specs:

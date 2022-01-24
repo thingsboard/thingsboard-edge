@@ -169,6 +169,13 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         Map<RuleNodeId, Integer> ruleNodeIndexMap = new HashMap<>();
         if (nodes != null) {
             for (RuleNode node : nodes) {
+                /* TODO: voba - merge comment
+                if (node.getId() != null) {
+                    ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
+                } else {
+                    toAddOrUpdate.add(node);
+                }
+                 */
                 ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
                 toAddOrUpdate.add(node);
             }
@@ -621,6 +628,8 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Override
     public RuleChain getEdgeTemplateRootRuleChain(TenantId tenantId) {
         Validator.validateId(tenantId, "Incorrect tenant id for search request.");
+        // TODO: voba - merge comment
+        // return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.EDGE);
         return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.CORE);
     }
 
@@ -754,6 +763,8 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                             throw new DataValidationException("Another root rule chain is present in scope of current tenant!");
                         }
                     }
+                    // TODO: voba - merge comment
+                    // if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
                     if (ruleChain.isRoot() && RuleChainType.CORE.equals(ruleChain.getType())) {
                         RuleChain edgeTemplateRootRuleChain = getEdgeTemplateRootRuleChain(ruleChain.getTenantId());
                         if (edgeTemplateRootRuleChain != null && !edgeTemplateRootRuleChain.getId().equals(ruleChain.getId())) {

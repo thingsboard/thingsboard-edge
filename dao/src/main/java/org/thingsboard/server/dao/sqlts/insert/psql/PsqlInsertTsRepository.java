@@ -37,12 +37,14 @@ import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sqlts.insert.AbstractInsertRepository;
 import org.thingsboard.server.dao.sqlts.insert.InsertTsRepository;
 import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
+@SqlTsDao
 @PsqlDao
 @Repository
 @Transactional

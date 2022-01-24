@@ -30,11 +30,11 @@ pom.xml.versionsBackup
 **/build
 **/target
 **/Californium.properties
+**/.env
 .instance_id
 rebuild-docker.sh
-state_file.txt
-data_*.txt
-.run
 .run/**
 */.run/**
+.run
 instance-license.data
+instance-edge-license.data

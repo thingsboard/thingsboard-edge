@@ -39,7 +39,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
 import org.thingsboard.server.dao.sqlts.insert.AbstractInsertRepository;
 import org.thingsboard.server.dao.sqlts.insert.latest.InsertLatestTsRepository;
-import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.dao.util.PsqlTsLatestAnyDao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -47,7 +47,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-@PsqlDao
+@PsqlTsLatestAnyDao
 @Repository
 @Transactional
 public class PsqlLatestInsertTsRepository extends AbstractInsertRepository implements InsertLatestTsRepository {

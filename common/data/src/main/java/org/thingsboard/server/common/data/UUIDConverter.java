@@ -60,9 +60,5 @@ public class UUIDConverter {
         return uuids.stream().map(UUIDConverter::fromTimeUUID).collect(Collectors.toList());
     }
 
-    public static void main(String[] args) {
-        System.out.println(fromTimeUUID(UUID.fromString("33762690-d335-11ea-a95e-49069ccd65f7")));
-    }
-
 }
 

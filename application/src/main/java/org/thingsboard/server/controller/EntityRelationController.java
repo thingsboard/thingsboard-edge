@@ -106,6 +106,10 @@ public class EntityRelationController extends BaseController {
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, null, relation);
 
+            /* merge comment
+            sendRelationNotificationMsg(getTenantId(), relation, EdgeEventActionType.RELATION_ADD_OR_UPDATE);
+             */
+
             sendNotificationMsgToCloudService(getTenantId(), relation, ActionType.RELATION_ADD_OR_UPDATE);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
@@ -147,6 +151,10 @@ public class EntityRelationController extends BaseController {
                     ActionType.RELATION_DELETED, null, relation);
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, null, relation);
+
+            /* merge comment
+            sendRelationNotificationMsg(getTenantId(), relation, EdgeEventActionType.RELATION_DELETED);
+             */
 
             sendNotificationMsgToCloudService(getTenantId(), relation, ActionType.RELATION_DELETED);
         } catch (Exception e) {

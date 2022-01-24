@@ -59,7 +59,7 @@ public class ContainerTestSuite {
 
     public static DockerComposeContainer<?> testContainer;
 
-    private static final String SOURCE_DIR = "./../../docker/";
+    private static final String SOURCE_DIR = "./../../docker-edge/";
 
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
@@ -78,7 +78,7 @@ public class ContainerTestSuite {
         env.put("CLOUD_RPC_HOST", "tb-monolith");
 
         if (testContainer == null) {
-            boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
+            boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("edgeBlackBoxTests.skipTailChildContainers"));
             try {
                 final String targetDir = FileUtils.getTempDirectoryPath() + "/" + "ContainerTestSuite-" + UUID.randomUUID() + "/";
                 log.info("targetDir {}", targetDir);
@@ -100,9 +100,9 @@ public class ContainerTestSuite {
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(
-                        new File("./../../docker/docker-compose.yml"),
-                        new File("./../../docker/docker-compose.postgres.yml"),
-                        new File("./../../docker/docker-compose.postgres.volumes.yml"))
+                        new File("./../../docker-edge/docker-compose.yml"),
+                        new File("./../../docker-edge/docker-compose.postgres.yml"),
+                        new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)

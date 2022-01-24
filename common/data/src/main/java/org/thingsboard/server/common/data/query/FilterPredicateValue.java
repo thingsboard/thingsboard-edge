@@ -41,8 +41,6 @@ import javax.validation.Valid;
 
 import java.io.Serializable;
 
-import java.io.Serializable;
-
 @Data
 public class FilterPredicateValue<T> implements Serializable {
 

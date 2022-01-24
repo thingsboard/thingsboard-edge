@@ -894,9 +894,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
             for (ListenableFuture<WhiteLabelingParams> future : futures) {
                 future.get();
             }
-//            ListenableFuture<List<Void>> future = updateTenantMailTemplates(tenant.getId());
-//            return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
-//                    MoreExecutors.directExecutor());
+            /* TODO: voba - merge comment
+            ListenableFuture<List<Void>> future = updateTenantMailTemplates(tenant.getId());
+            return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
+                    MoreExecutors.directExecutor());
+             */
             return updateEntityWhiteLabelingParameters(tenant.getId());
         }
     };
@@ -1031,16 +1033,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return result;
     }
 
-//    private ListenableFuture<List<Void>> updateTenantMailTemplates(TenantId tenantId) {
-//        String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
-//        if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-//            Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
-//            if (updated.isPresent()) {
-//                return this.saveEntityAttribute(tenantId, MAIL_TEMPLATES, updated.get());
-//            }
-//        }
-//        return Futures.immediateFuture(Collections.emptyList());
-//    }
+    private ListenableFuture<List<Void>> updateTenantMailTemplates(TenantId tenantId) {
+        String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
+        if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
+            Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
+            if (updated.isPresent()) {
+                return this.saveEntityAttribute(tenantId, MAIL_TEMPLATES, updated.get());
+            }
+        }
+        return Futures.immediateFuture(Collections.emptyList());
+    }
 
     private void updateTenantIntegrations(TenantId tenantId) {
         PageLink pageLink = new PageLink(DEFAULT_LIMIT);

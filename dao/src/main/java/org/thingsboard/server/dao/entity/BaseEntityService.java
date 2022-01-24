@@ -377,7 +377,10 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             edge.setTenantId(new TenantId((UUID) row.get("tenant_id")));
             edge.setName(row.get("name").toString());
             edge.setType(row.get("type").toString());
-            edge.setLabel(row.get("label").toString());
+            Object label = row.get("label");
+            if (label != null) {
+                edge.setLabel(label.toString());
+            }
             edge.setRootRuleChainId(new RuleChainId((UUID) row.get("root_rule_chain_id")));
             edge.setRoutingKey(row.get("routing_key").toString());
             edge.setSecret(row.get("secret").toString());

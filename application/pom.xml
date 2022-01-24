@@ -169,15 +169,15 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
+            <artifactId>stats</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
             <artifactId>edge-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>proto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>stats</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard</groupId>
@@ -207,11 +207,6 @@
                     <artifactId>hibernate-validator</artifactId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

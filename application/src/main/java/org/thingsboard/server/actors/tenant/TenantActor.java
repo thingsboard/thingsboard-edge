@@ -48,12 +48,14 @@ import org.thingsboard.server.actors.ruleChain.RuleChainOutputMsg;
 import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -67,12 +69,14 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
+import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
@@ -198,6 +202,9 @@ public class TenantActor extends RuleChainManagerActor {
             case RULE_CHAIN_TO_RULE_CHAIN_MSG:
                 onRuleChainMsg((RuleChainAwareMsg) msg);
                 break;
+            case EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG:
+                onToEdgeSessionMsg((EdgeEventUpdateMsg) msg);
+                break;
             default:
                 return false;
         }
@@ -292,8 +299,7 @@ public class TenantActor extends RuleChainManagerActor {
                 log.info("[{}] Received API state update. Going to ENABLE Rule Engine execution.", tenantId);
                 initRuleChains();
             }
-        } /* voba - merge comment
-        else if (msg.getEntityId().getEntityType() == EntityType.EDGE) {
+        } else if (msg.getEntityId().getEntityType() == EntityType.EDGE) {
             EdgeId edgeId = new EdgeId(msg.getEntityId().getId());
             EdgeRpcService edgeRpcService = systemContext.getEdgeRpcService();
             if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
@@ -304,7 +310,7 @@ public class TenantActor extends RuleChainManagerActor {
                     edgeRpcService.updateEdge(tenantId, edge);
                 }
             }
-        } */ else if (isRuleEngineForCurrentTenant) {
+        } else if (isRuleEngineForCurrentTenant) {
             TbActorRef target = getEntityActorRef(msg.getEntityId());
             if (target != null) {
                 if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
@@ -327,12 +333,10 @@ public class TenantActor extends RuleChainManagerActor {
                 () -> new DeviceActorCreator(systemContext, tenantId, deviceId));
     }
 
-    /* voba - merge comment
     private void onToEdgeSessionMsg(EdgeEventUpdateMsg msg) {
         log.trace("[{}] onToEdgeSessionMsg [{}]", msg.getTenantId(), msg);
         systemContext.getEdgeRpcService().onEdgeEvent(tenantId, msg.getEdgeId());
     }
-     */
 
     public static class ActorCreator extends ContextBasedCreator {
 

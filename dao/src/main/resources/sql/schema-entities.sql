@@ -724,7 +724,7 @@ CREATE TABLE IF NOT EXISTS edge (
     tenant_id uuid,
     CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
-    );
+);
 
 CREATE TABLE IF NOT EXISTS edge_event (
     id uuid NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,

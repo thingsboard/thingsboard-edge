@@ -75,6 +75,9 @@ public @interface RuleNode {
 
     boolean ruleChainNode() default false;
 
+    // TODO: voba - merge comment
+    //RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
+
     RuleChainType[] ruleChainTypes() default {RuleChainType.CORE};
 
 }

@@ -42,6 +42,8 @@ public interface WidgetsBundleService {
 
     WidgetsBundle findWidgetsBundleById(TenantId tenantId, WidgetsBundleId widgetsBundleId);
 
+    WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle, boolean doValidate);
+
     WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle);
 
     void deleteWidgetsBundle(TenantId tenantId, WidgetsBundleId widgetsBundleId);

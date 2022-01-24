@@ -39,7 +39,7 @@ import java.util.Arrays;
 
 @SpringBootApplication
 @EnableAsync
-@ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api", "org.thingsboard.storage"})
+@ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api"})
 public class ThingsboardKafkaIntegrationApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";

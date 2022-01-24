@@ -56,9 +56,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
-        List<File> composeFiles = Arrays.asList(new File("./../../docker/docker-compose.yml"),
-                new File("./../../docker/docker-compose.postgres.yml"),
-                new File("./../../docker/docker-compose.postgres.volumes.yml"));
+        List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
+                new File("./../../docker-edge/docker-compose.postgres.yml"),
+                new File("./../../docker-edge/docker-compose.postgres.volumes.yml"));
 
         String identifier = Base58.randomString(6).toLowerCase();
         String project = identifier + Base58.randomString(6).toLowerCase();
@@ -69,7 +69,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
-        Dotenv dotenv = Dotenv.configure().directory("./../../docker").filename(".env").load();
+        Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge").filename(".env").load();
 
         env = new HashMap<>();
         for (DotenvEntry entry : dotenv.entries()) {

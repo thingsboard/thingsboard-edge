@@ -668,6 +668,12 @@ public abstract class BaseController {
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            /* merge comment
+            if (entity.getId() != null) {
+                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
+            }
+             */
+
             return savedEntity;
 
         } catch (Exception e) {
@@ -749,6 +755,9 @@ public abstract class BaseController {
                 case ENTITY_VIEW:
                     checkEntityViewId(new EntityViewId(entityId.getId()), operation);
                     return;
+                case EDGE:
+                    checkEdgeId(new EdgeId(entityId.getId()), operation);
+                    return;
                 case ROLE:
                     checkRoleId(new RoleId(entityId.getId()), operation);
                     return;
@@ -761,8 +770,6 @@ public abstract class BaseController {
                 case GROUP_PERMISSION:
                     checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
                     return;
-                case EDGE:
-                    checkEdgeId(new EdgeId(entityId.getId()), operation);
                 case TB_RESOURCE:
                     checkResourceId(new TbResourceId(entityId.getId()), operation);
                     return;

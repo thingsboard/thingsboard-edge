@@ -53,6 +53,7 @@ import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -80,6 +81,7 @@ import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cloud.CloudNotificationService;
+import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -135,6 +137,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
     private final PlatformIntegrationService platformIntegrationService;
     private final RuleEngineCallService ruleEngineCallService;
+    private final EdgeNotificationService edgeNotificationService;
     private final CloudNotificationService cloudNotificationService;
     private final OtaPackageStateService firmwareStateService;
     private final TbCoreConsumerStats stats;
@@ -150,7 +153,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCoreDeviceRpcService tbCoreDeviceRpcService, PlatformIntegrationService platformIntegrationService,
                                         RuleEngineCallService ruleEngineCallService, StatsFactory statsFactory, TbDeviceProfileCache deviceProfileCache,
                                         TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
-                                        CloudNotificationService cloudNotificationService,
+                                        EdgeNotificationService edgeNotificationService, CloudNotificationService cloudNotificationService,
                                         OtaPackageStateService firmwareStateService) {
         super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
@@ -163,6 +166,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
         this.platformIntegrationService = platformIntegrationService;
         this.ruleEngineCallService = ruleEngineCallService;
+        this.edgeNotificationService = edgeNotificationService;
         this.cloudNotificationService = cloudNotificationService;
         this.stats = new TbCoreConsumerStats(statsFactory);
         this.firmwareStateService = firmwareStateService;
@@ -249,6 +253,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                 } else if (toCoreMsg.hasIntegrationDownlinkMsg()) {
                                     log.trace("[{}] Forwarding message to integration service {}", id, toCoreMsg.getIntegrationDownlinkMsg());
                                     forwardToIntegrationService(toCoreMsg.getIntegrationDownlinkMsg(), callback);
+                                } else if (toCoreMsg.hasEdgeNotificationMsg()) {
+                                    log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
+                                    forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);
                                 } else if (toCoreMsg.hasCloudNotificationMsg()) {
                                     log.trace("[{}] Forwarding message to cloud service {}", id, toCoreMsg.getCloudNotificationMsg());
                                     forwardToCloudNotificationService(toCoreMsg.getCloudNotificationMsg(), callback);
@@ -559,6 +566,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             stats.log(toDeviceActorMsg);
         }
         actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
+    }
+
+    private void forwardToEdgeNotificationService(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.log(edgeNotificationMsg);
+        }
+        edgeNotificationService.pushNotificationToEdge(edgeNotificationMsg, callback);
     }
 
     private void forwardToCloudNotificationService(CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback) {

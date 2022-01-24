@@ -84,6 +84,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     }
 
     private static class DebugEventCallback implements IntegrationCallback<Void> {
+
         @Override
         public void onSuccess(Void msg) {
             if (log.isDebugEnabled()) {

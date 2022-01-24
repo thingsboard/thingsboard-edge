@@ -42,10 +42,12 @@ import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sqlts.AbstractChunkedAggregationTimeseriesDao;
 import org.thingsboard.server.dao.timeseries.TimeseriesDao;
 import org.thingsboard.server.dao.util.HsqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 
 @Component
 @Slf4j
+@SqlTsDao
 @HsqlDao
 public class JpaHsqlTimeseriesDao extends AbstractChunkedAggregationTimeseriesDao implements TimeseriesDao {
 

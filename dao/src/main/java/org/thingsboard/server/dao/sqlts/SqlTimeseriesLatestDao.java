@@ -61,6 +61,7 @@ import org.thingsboard.server.dao.sqlts.insert.latest.InsertLatestTsRepository;
 import org.thingsboard.server.dao.sqlts.latest.SearchTsKvLatestRepository;
 import org.thingsboard.server.dao.sqlts.latest.TsKvLatestRepository;
 import org.thingsboard.server.dao.timeseries.TimeseriesLatestDao;
+import org.thingsboard.server.dao.util.SqlTsLatestAnyDao;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -76,6 +77,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@SqlTsLatestAnyDao
 public class SqlTimeseriesLatestDao extends BaseAbstractSqlTimeseriesDao implements TimeseriesLatestDao {
 
     private static final String DESC_ORDER = "DESC";

@@ -79,10 +79,17 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     }
 
     @Override
-    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails) {
+    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails, boolean doValidate) {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
-        widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
+        if (doValidate) {
+            widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
+        }
         return widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
+    }
+
+    @Override
+    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails) {
+        return saveWidgetType(widgetTypeDetails, true);
     }
 
     @Override
@@ -185,18 +192,14 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
                 @Override
                 protected void validateUpdate(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
                     WidgetType storedWidgetType = widgetTypeDao.findById(tenantId, widgetTypeDetails.getId().getId());
-                    if (storedWidgetType != null) {
-                        if (!storedWidgetType.getTenantId().getId().equals(widgetTypeDetails.getTenantId().getId())) {
-                            throw new DataValidationException("Can't move existing widget type to different tenant!");
-                        }
-                        if (!storedWidgetType.getBundleAlias().equals(widgetTypeDetails.getBundleAlias())) {
-                            throw new DataValidationException("Update of widget type bundle alias is prohibited!");
-                        }
-                        if (!storedWidgetType.getAlias().equals(widgetTypeDetails.getAlias())) {
-                            throw new DataValidationException("Update of widget type alias is prohibited!");
-                        }
-                    } else {
-                        validateCreate(tenantId, widgetTypeDetails);
+                    if (!storedWidgetType.getTenantId().getId().equals(widgetTypeDetails.getTenantId().getId())) {
+                        throw new DataValidationException("Can't move existing widget type to different tenant!");
+                    }
+                    if (!storedWidgetType.getBundleAlias().equals(widgetTypeDetails.getBundleAlias())) {
+                        throw new DataValidationException("Update of widget type bundle alias is prohibited!");
+                    }
+                    if (!storedWidgetType.getAlias().equals(widgetTypeDetails.getAlias())) {
+                        throw new DataValidationException("Update of widget type alias is prohibited!");
                     }
                 }
             };

@@ -35,17 +35,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.cloud.CloudEventService;
-import org.thingsboard.server.dao.util.PsqlDao;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-@PsqlDao
+@TbCoreComponent
 @Slf4j
 @Service
 public class CloudEventsCleanUpService extends AbstractCleanUpService {
 
     public static final String RANDOM_DELAY_INTERVAL_MS_EXPRESSION =
-            "#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${sql.ttl.events.execution_interval_ms})}";
+            "#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${sql.ttl.cloud_events.execution_interval_ms})}";
 
     @Value("${sql.ttl.cloud_events.cloud_events_ttl}")
     private long ttl;

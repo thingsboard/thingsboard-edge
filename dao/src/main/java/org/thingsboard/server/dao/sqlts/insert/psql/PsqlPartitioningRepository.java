@@ -34,10 +34,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.dao.timeseries.PsqlPartition;
 import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+@SqlTsDao
 @PsqlDao
 @Repository
 @Transactional

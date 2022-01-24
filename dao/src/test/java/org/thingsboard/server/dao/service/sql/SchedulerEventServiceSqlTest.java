@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.service.sql;
 
 import org.thingsboard.server.dao.service.BaseSchedulerEventServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
+@DaoSqlTest
 public class SchedulerEventServiceSqlTest extends BaseSchedulerEventServiceTest {
 }

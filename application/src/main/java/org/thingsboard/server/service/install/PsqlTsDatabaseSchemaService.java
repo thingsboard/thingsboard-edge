@@ -34,8 +34,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 @Service
+@SqlTsDao
 @PsqlDao
 @Profile("install")
 public class PsqlTsDatabaseSchemaService extends SqlAbstractDatabaseSchemaService implements TsDatabaseSchemaService {

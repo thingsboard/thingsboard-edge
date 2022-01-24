@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -269,6 +270,40 @@ public class InstallScripts {
         JsonNode mailTemplatesJson = readMailTemplates();
         mailTemplateSettings.setJsonValue(mailTemplatesJson);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+    }
+
+    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
+        AdminSettings mailTemplateSettings = new AdminSettings();
+        mailTemplateSettings.setId(adminSettingsId);
+        mailTemplateSettings.setKey("mailTemplates");
+        JsonNode mailTemplatesJson = readMailTemplates();
+
+        ObjectNode result = objectMapper.createObjectNode();
+        Iterator<String> fieldsIterator = mailTemplatesJson.fieldNames();
+        while (fieldsIterator.hasNext()) {
+            String field = fieldsIterator.next();
+            if (value.has(field)) {
+                result.set(field, value.get(field));
+            } else {
+                result.set(field, mailTemplatesJson.get(field));
+            }
+        }
+        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
+        if (updated.isPresent()) {
+            result = (ObjectNode) objectMapper.readTree(updated.get());
+        }
+        mailTemplateSettings.setJsonValue(result);
+        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+    }
+
+    public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
+        Matcher matcher = velocityVarPattern.matcher(mailTemplatesJsonString);
+        if (matcher.find()) {
+            mailTemplatesJsonString = matcher.replaceAll(velocityVarToFreeMakerReplacementPattern);
+            return Optional.of(mailTemplatesJsonString);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private JsonNode readMailTemplates() throws IOException {

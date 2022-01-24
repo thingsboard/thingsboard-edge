@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.service.sql;
 
 import org.thingsboard.server.dao.service.BaseEntityGroupServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
+@DaoSqlTest
 public class EntityGroupServiceSqlTest extends BaseEntityGroupServiceTest {
 }

@@ -84,7 +84,7 @@ public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
                     if (widgetTypeUpdateMsg.hasDescription()) {
                         widgetTypeDetails.setDescription(widgetTypeUpdateMsg.getDescription());
                     }
-                    widgetTypeService.saveWidgetType(widgetTypeDetails);
+                    widgetTypeService.saveWidgetType(widgetTypeDetails, false);
                 } finally {
                     widgetCreationLock.unlock();
                 }

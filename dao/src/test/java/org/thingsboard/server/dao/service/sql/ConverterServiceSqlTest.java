@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.service.sql;
 
 import org.thingsboard.server.dao.service.BaseConverterServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
+@DaoSqlTest
 public class ConverterServiceSqlTest extends BaseConverterServiceTest {
 }

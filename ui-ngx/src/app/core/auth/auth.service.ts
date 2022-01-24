@@ -486,9 +486,14 @@ export class AuthService {
     }
   }
 
+  public loadIsEdgesSupportEnabled(): Observable<boolean> {
+    return this.http.get<boolean>('/api/edges/enabled', defaultHttpOptions());
+  }
+
   private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
+                     this.loadIsEdgesSupportEnabled(),
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
@@ -500,9 +505,9 @@ export class AuthService {
       .pipe(map((data) => {
         const userTokenAccessEnabled: boolean = data[0] as boolean;
         const allowedDashboardIds: string[] = data[1] as string[];
-        const whiteLabelingAllowedInfo = data[2] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
-        this.peMenuAllowed = data[8].cloudType == CloudType.PE;
-        const edgesSupportEnabled: boolean = true;
+        const edgesSupportEnabled: boolean = data[2] as boolean;
+        const whiteLabelingAllowedInfo = data[3] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        this.peMenuAllowed = data[9].cloudType == CloudType.PE;
         return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});

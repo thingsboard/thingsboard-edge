@@ -160,7 +160,7 @@
     </properties>
 
     <modules>
-<!--        <module>netty-mqtt</module>-->
+        <module>netty-mqtt</module>
         <module>common</module>
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
@@ -2077,10 +2077,6 @@
             <id>thingsboard-repo</id>
             <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
         </repository>
-<!--        <repository>-->
-<!--            <id>tb-edge-develop-repo</id>-->
-<!--            <url>https://edge.jfrog.io/artifactory/edge-libs-snapshot-local/</url>-->
-<!--        </repository>-->
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>

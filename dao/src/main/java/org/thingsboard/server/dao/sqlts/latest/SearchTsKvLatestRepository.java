@@ -32,12 +32,14 @@ package org.thingsboard.server.dao.sqlts.latest;
 
 import org.springframework.stereotype.Repository;
 import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
+import org.thingsboard.server.dao.util.SqlTsLatestAnyDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.UUID;
 
+@SqlTsLatestAnyDao
 @Repository
 public class SearchTsKvLatestRepository {
 
