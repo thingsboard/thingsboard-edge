@@ -161,6 +161,7 @@ import {
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import cssjs from '@core/css/css';
 import { DOCUMENT } from '@angular/common';
+import { IAliasController } from '@core/api/widget-api.models';
 
 // @dynamic
 @Component({
@@ -208,6 +209,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   @Input()
   parentDashboard?: IDashboardComponent = null;
+
+  @Input()
+  parentAliasController?: IAliasController = null;
 
   @ViewChild('dashboardContainer') dashboardContainer: ElementRef<HTMLElement>;
 
@@ -457,7 +461,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       }
     }
 
-    this.dashboardCtx.aliasController = new AliasController(this.utils,
+    this.dashboardCtx.aliasController = this.parentAliasController ? this.parentAliasController : new AliasController(this.utils,
       this.entityService,
       this.translate,
       () => this.dashboardCtx.stateController,
