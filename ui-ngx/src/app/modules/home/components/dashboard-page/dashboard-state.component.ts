@@ -34,7 +34,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { StateObject } from '@core/api/widget-api.models';
+import { IAliasController, StateObject } from '@core/api/widget-api.models';
 import { updateEntityParams, WidgetContext } from '@home/models/widget-component.models';
 import { deepClone, isDefinedAndNotNull, isNotEmptyStr, objToBase64 } from '@core/utils';
 import { IDashboardComponent } from '@home/models/dashboard-component.models';
@@ -78,6 +78,8 @@ export class DashboardStateComponent extends PageComponent implements OnInit, On
 
   parentDashboard: IDashboardComponent;
 
+  parentAliasController: IAliasController;
+
   stateExists = true;
 
   private stateSubscription: Subscription;
@@ -107,6 +109,7 @@ export class DashboardStateComponent extends PageComponent implements OnInit, On
       this.parentDashboard = this.ctx.parentDashboard ?
         this.ctx.parentDashboard : this.ctx.dashboard;
       if (this.syncParentStateParams) {
+        this.parentAliasController = this.parentDashboard.aliasController;
         this.stateSubscription = this.ctx.stateController.dashboardCtrl.dashboardCtx.stateChanged.subscribe(() => {
           this.updateCurrentState();
           this.cd.markForCheck();
