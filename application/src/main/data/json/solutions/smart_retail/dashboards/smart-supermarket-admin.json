@@ -331,183 +331,6 @@
         "col": 0,
         "id": "c2559a58-e82d-3250-7e35-f520ced0d916"
       },
-      "fd9c60ce-666e-c091-362b-1fea85d94f96": {
-        "isSystemType": true,
-        "bundleAlias": "maps_v2",
-        "typeAlias": "openstreetmap",
-        "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 8.5,
-        "sizeY": 6,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "1c348dad-e738-a4db-5e7e-4c0271790ab7",
-              "filterId": "460595a7-fcfd-4938-90b1-e66a5e7da88b",
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "latitude",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.862061599769905
-                },
-                {
-                  "name": "longitude",
-                  "type": "attribute",
-                  "label": "longitude",
-                  "color": "#4caf50",
-                  "settings": {},
-                  "_hash": 0.017864596400994026
-                },
-                {
-                  "name": "state",
-                  "type": "attribute",
-                  "label": "state",
-                  "color": "#f44336",
-                  "settings": {},
-                  "_hash": 0.652632058135977
-                }
-              ]
-            },
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "latitude",
-                  "type": "attribute",
-                  "label": "selectedSupermarket",
-                  "color": "#ffc107",
-                  "settings": {},
-                  "_hash": 0.5292772206260663,
-                  "units": null,
-                  "decimals": null,
-                  "funcBody": null,
-                  "usePostProcessing": true,
-                  "postFuncBody": "if (value) {\n    return true;\n} else {\n    return false;\n}"
-                }
-              ]
-            }
-          ],
-          "timewindow": {
-            "realtime": {
-              "timewindowMs": 60000
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "4px",
-          "settings": {
-            "fitMapBounds": false,
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "showLabel": true,
-            "label": "${entityName}",
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-devices'>Supermarket devices</link-act>",
-            "markerImageSize": 34,
-            "useColorFunction": false,
-            "markerImages": [],
-            "useMarkerImageFunction": true,
-            "color": "#fe7569",
-            "mapProvider": "CartoDB.Positron",
-            "showTooltip": true,
-            "autocloseTooltip": true,
-            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
-            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
-            "provider": "openstreet-map",
-            "defaultCenterPosition": "0,0",
-            "showTooltipAction": "click",
-            "mapPageSize": 16384,
-            "useTooltipFunction": false,
-            "useCustomProvider": false,
-            "useDefaultCenterPosition": false,
-            "draggableMarker": false,
-            "disableScrollZooming": false,
-            "useLabelFunction": false,
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "showPolygon": false,
-            "useClusterMarkers": false,
-            "disableZoomControl": false,
-            "markerImageFunction": "var state = data['state'];\nvar selectedSupermarket = data['selectedSupermarket'] === true;\nvar selectedMode = dsData.filter(function (data) { return data['selectedSupermarket'] === true; }).length > 0;\n\nvar status = state;\nvar width = 30;\nvar svgStr = getSupermarketSvg(status, width, selectedSupermarket);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nif (selectedSupermarket) {\n    width += 8;\n}\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(status, width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = getBackgroundColor(status);\n    var background = getBackground(color);\n    var svgWidth = isSelected ? (width + 8) : width;\n    var svgHeight = isSelected ? 38 : 30;\n    \n    var opacity = selectedMode && !isSelected ? 0.4 : 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    wrapIfSelected(background + shape, isSelected);\n    if (isSelected) {\n        supermarketSvg += getSupermarketSelectionStroke();\n    }\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction wrapIfSelected(svg, isSelected) {\n    if (isSelected) {\n        return '<g transform=\"translate(4 4)\">' + svg + '</g>';\n    } else {\n        return svg;\n    }\n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n\nfunction getSupermarketSelectionStroke() {\n     return '<circle cx=\"19\" cy=\"19\" r=\"18\" stroke=\"#D5C21B\" stroke-width=\"2\"/>';\n}\n\nfunction getBackgroundColor(status) {\n    switch(status) {\n        case 'major':\n            return '#D5C21B';\n        case 'critical':   \n            return '#E64A19';\n        case 'normal':\n        default:    \n            return '#1F8B4D';\n    }\n}\n",
-            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
-            "gmDefaultMapType": "roadmap",
-            "mapProviderHere": "HERE.normalDay",
-            "credentials": {
-              "app_id": "AhM6TzD9ThyK78CT3ptx",
-              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
-            },
-            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
-            "tmDefaultMapType": "roadmap",
-            "defaultZoomLevel": 14,
-            "snappable": false,
-            "initDragMode": true,
-            "hideAllControlButton": true,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": false
-          },
-          "title": "Supermarkets map",
-          "dropShadow": true,
-          "enableFullscreen": false,
-          "titleStyle": {
-            "fontSize": "24px",
-            "fontWeight": 700,
-            "padding": "5px 10px 5px 10px",
-            "height": "60px"
-          },
-          "useDashboardTimewindow": true,
-          "showLegend": false,
-          "widgetStyle": {},
-          "actions": {
-            "markerClick": [
-              {
-                "name": "Select supermarket",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "custom",
-                "customFunction": "var params = widgetContext.stateController.getStateParams();\nvar selectedSupermarket = params['selectedSupermarket'];\nif (selectedSupermarket && selectedSupermarket.entityId.id === entityId.id) {\n    params['selectedSupermarket'] = null;\n} else {\n    params['selectedSupermarket'] = { entityId: entityId, entityName: entityName, entityLabel: entityLabel };\n}\nwidgetContext.stateController.updateState(null, params);\n",
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "4de7962b-a1de-5cb1-cd78-993dc7863614"
-              }
-            ],
-            "tooltipAction": [
-              {
-                "name": "supermarket-devices",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "custom",
-                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_devices', params);\t",
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "1ca54350-817a-27b3-26a7-3572544d8523"
-              }
-            ]
-          },
-          "showTitleIcon": false,
-          "enableDataExport": false,
-          "widgetCss": "",
-          "noDataDisplayMessage": "",
-          "titleTooltip": ""
-        },
-        "row": 0,
-        "col": 0,
-        "id": "fd9c60ce-666e-c091-362b-1fea85d94f96"
-      },
       "28303a0b-d427-6d9e-0ee1-ae2c3f344769": {
         "isSystemType": true,
         "bundleAlias": "cards",
@@ -540,8 +363,8 @@
           "settings": {
             "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div fxLayout=\"row\">\n        <mat-form-field fxFlex fxFlex.gt-md=\"50\">\n              <mat-label>Title</mat-label>\n              <input #titleInput matInput [disabled]=\"!editTitle\"\n                     value=\"${entityName}\" (keyUp.enter)=\"titleInput.value !== '${entityName}' ? saveTitleButton._elementRef.nativeElement.click() : return;\"\n                     (keyUp.escape)=\"editTitle = false; titleInput.value = '${entityName}';\"/>\n        <button *ngIf=\"!editTitle\" type=\"button\" matSuffix mat-icon-button (click)=\"editTitle = true\">\n            <mat-icon>edit</mat-icon>\n        </button>             \n        <button #saveTitleButton id=\"save-title\" [fxShow]=\"editTitle && titleInput.value !== '${entityName}'\" [attr.data-title]=\"titleInput.value\" type=\"button\" matSuffix mat-icon-button>\n            <mat-icon>check</mat-icon>\n        </button> \n        <button *ngIf=\"editTitle\" type=\"button\" matSuffix mat-icon-button (click)=\"editTitle = false; titleInput.value = '${entityName}';\">\n            <mat-icon>clear</mat-icon>\n        </button> \n        </mat-form-field>\n    </div>\n</div>",
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.main-layout .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n"
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex fxFlex.gt-md=\"50\" style=\"height: 70px;\" stateId='edit_supermarket_title'></tb-dashboard-state>\n    </div>\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex fxFlex.gt-md=\"50\" style=\"height: 150px;\" stateId='edit_supermarket_floorplan'></tb-dashboard-state>\n    </div>\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex fxFlex.gt-md=\"50\" style=\"height: 70px;\" stateId='edit_supermarket_address'></tb-dashboard-state>\n    </div>\n    <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex stateId='edit_supermarket_location'></tb-dashboard-state>\n</div>",
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -567,7 +390,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "const targetElement = $($event.target).closest('#save-title', widgetContext.$container[0]);\n\nvar title = $(targetElement).attr('data-title');\n\nwidgetContext.assetService.getAsset(entityId.id, {ignoreLoading: true}).subscribe((supermarket) => {\n    supermarket.name = title;\n    widgetContext.assetService.saveAsset(supermarket, null, {ignoreLoading: true}).subscribe(() => {\n       var stateParams = widgetContext.stateController.getStateParams();\n       stateParams.selectedSupermarket.entityName = title;\n       widgetContext.stateController.updateState(null, stateParams);\n       if (widgetContext.parentDashboard) {\n           widgetContext.parentDashboard.aliasController.updateAliases();\n       }\n       widgetContext.updateAliases();\n    });\n});\n",
+                "customFunction": "const targetElement = $($event.target).closest('#save-title', widgetContext.$container[0]);\n\nvar title = $(targetElement).attr('data-title');\n\nwidgetContext.assetService.getAsset(entityId.id, {ignoreLoading: true}).subscribe((supermarket) => {\n    supermarket.name = title;\n    widgetContext.assetService.saveAsset(supermarket, null, {ignoreLoading: true}).subscribe(() => {\n       var stateParams = widgetContext.stateController.getStateParams();\n       stateParams.selectedSupermarket.entityName = title;\n       widgetContext.stateController.updateState(null, stateParams);\n       /*if (widgetContext.parentDashboard) {\n           widgetContext.parentDashboard.aliasController.updateAliases();\n       }\n       widgetContext.updateAliases();*/\n    });\n});\n",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "088a4799-8551-7ab4-892f-2a08d6d40a7c"
@@ -694,6 +517,33 @@
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "71c478b6-a4b1-e569-e99a-85d5562cc721"
+              },
+              {
+                "name": "Delete supermarket",
+                "icon": "delete",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar deviceService = $injector.get(widgetContext.servicesMap.get('deviceService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket and all related devices will become unrecoverable!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var deleteDeviceObservables = [];\n      relatedDevicesRelations.forEach((deviceRelation) => {\n          deleteDeviceObservables.push(deviceService.deleteDevice(deviceRelation.to.id));\n      });\n      var deleteDevicesObservable = deleteDeviceObservables.length ? widgetContext.rxjs.forkJoin(deleteDeviceObservables) : widgetContext.rxjs.of(null);\n      deleteDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n  \n}\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "338d9fd7-c752-eb0e-4687-2c2e32ca1a32"
+              }
+            ],
+            "headerButton": [
+              {
+                "name": "Add supermarket",
+                "icon": "add",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "customPretty",
+                "customHtml": "<form #addEntityForm=\"ngForm\" [formGroup]=\"addSupermarketFormGroup\"\n      (ngSubmit)=\"save()\" class=\"add-entity-form\" style=\"width: 350px;\">\n  <mat-toolbar fxLayout=\"row\" color=\"primary\">\n    <h2>Add supermarket</h2>\n    <span fxFlex></span>\n    <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n      <mat-icon class=\"material-icons\">close</mat-icon>\n    </button>\n  </mat-toolbar>\n  <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\n  </mat-progress-bar>\n  <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n  <div mat-dialog-content fxLayout=\"column\">\n    <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\"  fxLayoutGap.xs=\"0\">\n      <mat-form-field fxFlex class=\"mat-block\">\n        <mat-label>Supermarket title</mat-label>\n        <input matInput formControlName=\"name\" required>\n        <mat-error *ngIf=\"addSupermarketFormGroup.get('name').hasError('required')\">\n          Supermarket title is required.\n        </mat-error>\n      </mat-form-field>\n    </div>\n  </div>\n  <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n    <button mat-button color=\"primary\"\n            type=\"button\"\n            [disabled]=\"(isLoading$ | async)\"\n            (click)=\"cancel()\" cdkFocusInitial>\n      Cancel\n    </button>\n    <button mat-button mat-raised-button color=\"primary\"\n            type=\"submit\"\n            [disabled]=\"(isLoading$ | async) || addSupermarketFormGroup.invalid || !addSupermarketFormGroup.dirty\">\n      Add supermarket\n    </button>\n  </div>\n</form>\n",
+                "customCss": "/*=======================================================================*/\n/*==========  There are two examples: for edit and add entity  ==========*/\n/*=======================================================================*/\n/*========================  Edit entity example  ========================*/\n/*=======================================================================*/\n/*\n.edit-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.edit-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n/*========================================================================*/\n/*=========================  Add entity example  =========================*/\n/*========================================================================*/\n/*\n.add-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.add-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\nlet entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\n\nopenAddSupermarketDialog();\n\nfunction openAddSupermarketDialog() {\n  customDialog.customDialog(htmlTemplate, AddSupermarketDialogController).subscribe();\n}\n\nfunction AddSupermarketDialogController(instance) {\n  let vm = instance;\n\n  vm.addSupermarketFormGroup = vm.fb.group({\n    name: ['', [vm.validators.required]]\n  });\n\n  vm.cancel = function () {\n    vm.dialogRef.close(null);\n  };\n  \n  vm.save = function () {\n    var customerId;\n    if (widgetContext.currentUser.authority === 'TENANT_ADMIN') {\n        customerId = widgetContext.stateController.getStateParams().entityId;\n    } else {\n        customerId = { id: widgetContext.currentUser.customerId, entityType: 'CUSTOMER'};\n    }\n    vm.addSupermarketFormGroup.markAsPristine();\n    saveSupermarketObservable(customerId).subscribe(\n      function (supermarket) {\n          widgetContext.rxjs.forkJoin([\n              saveCustomerToSupermarketRelation(customerId, supermarket.id),\n              saveAttributes(supermarket.id)\n          ]).subscribe(\n              function () {\n                var params = widgetContext.stateController.getStateParams();\n                var selectedSupermarket = params['selectedSupermarket'];\n                params['selectedSupermarket'] = { entityId: supermarket.id, entityName: supermarket.name, entityLabel: '' };\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n              }\n        );\n      }\n    );\n  };\n\n  function saveSupermarketObservable(customerId) {\n    return getSupermarketsGroup(customerId).pipe(\n        widgetContext.rxjs.switchMap((supermarketsGroup) => {\n            const formValues = vm.addSupermarketFormGroup.value;\n            let supermarket = {\n              name: formValues.name,\n              type: 'supermarket',\n              customerId: customerId\n            };\n            return assetService.saveAsset(supermarket, supermarketsGroup.id.id)\n        })\n    );\n  }\n  \n  function getSupermarketsGroup(customerId) {\n      return entityGroupService.getEntityGroupsByOwnerId(customerId.entityType, customerId.id, 'ASSET').pipe(\n          widgetContext.rxjs.switchMap((entityGroups) => {\n              var supermarketsGroup = entityGroups.find(group => group.name === 'Supermarkets');\n              if (supermarketsGroup) {\n                  return widgetContext.rxjs.of(supermarketsGroup);\n              } else {\n                  supermarketsGroup = {\n                      type: 'ASSET',\n                      name: 'Supermarkets',\n                      ownerId: customerId\n                  };\n                  return entityGroupService.saveEntityGroup(supermarketsGroup);\n              }\n          })\n      );\n  }\n\n  function saveCustomerToSupermarketRelation(customerId, supermarketId) {\n      var relation = {\n          from: customerId,\n          to: supermarketId,\n          typeGroup: 'COMMON',\n          type: 'Owns'\n      };\n      return entityRelationService.saveRelation(relation);\n  }\n  \n  function saveAttributes(entityId) {\n    let attributesArray = [\n        {\n            key: 'latitude',\n            value: 37.780108\n        },\n        {\n            key: 'longitude',\n            value: -122.447053\n        },\n        {\n            key: 'address',\n            value: 'N/A'\n        },\n        {\n            key: 'floorplan',\n            value: 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCEtLSBDcmVhdGVkIHdpdGggSW5rc2NhcGUgKGh0dHA6Ly93d3cuaW5rc2NhcGUub3JnLykgLS0+Cjxzdmcgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDc5LjM3NSA3OS4zNzUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiA8cmVjdCB4PSIyLjcwMTkiIHk9IjIuNzAxOSIgd2lkdGg9IjczLjk3MSIgaGVpZ2h0PSI3My45NzEiIGZpbGw9IiNmZmYiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9Ii4xMTIxIiBzdHlsZT0icGFpbnQtb3JkZXI6bWFya2VycyBmaWxsIHN0cm9rZSIvPgogPGcgdHJhbnNmb3JtPSJtYXRyaXgoLjI2NDU4IDAgMCAuMjY0NTggMi42MzUgLTIuODgzNCkiIHN0cm9rZS13aWR0aD0iMXB4IiBzdHlsZT0ic2hhcGUtaW5zaWRlOnVybCgjcmVjdDQ4MzYpO3doaXRlLXNwYWNlOnByZSIgYXJpYS1sYWJlbD0iICAgTm8gcGxhbiBjb25maWd1cmVkIj4KICA8cGF0aCBkPSJtMTAxLjY3IDExOC4yOXYyOC40MzhoLTMuNzg5MWwtMTQuMzE2LTIxLjkzNHYyMS45MzRoLTMuNzY5NXYtMjguNDM4aDMuNzY5NWwxNC4zNzUgMjEuOTkydi0yMS45OTJ6Ii8+CiAgPHBhdGggZD0ibTEwNi44MyAxMzUuOTVxMC00LjU4OTggMi41NzgxLTcuNjU2MiAyLjU3ODEtMy4wODU5IDcuMDExNy0zLjA4NTl0Ny4wMTE3IDMuMDI3M3EyLjU3ODEgMy4wMDc4IDIuNjM2NyA3LjUxOTV2MC42NDQ1M3EwIDQuNTg5OC0yLjU5NzcgNy42NTYyLTIuNTc4MSAzLjA2NjQtNy4wMTE3IDMuMDY2NC00LjQ1MzEgMC03LjA1MDgtMy4wNjY0LTIuNTc4MS0zLjA2NjQtMi41NzgxLTcuNjU2MnptMy42MTMzIDAuNDQ5MjJxMCAzLjE0NDUgMS40ODQ0IDUuNDQ5MiAxLjUwMzkgMi4zMDQ3IDQuNTMxMiAyLjMwNDcgMi45NDkyIDAgNC40NTMxLTIuMjY1NiAxLjUwMzktMi4yODUyIDEuNTIzNC01LjQyOTd2LTAuNTA3ODFxMC0zLjEwNTUtMS41MDM5LTUuNDI5Ny0xLjUwMzktMi4zNDM4LTQuNTExNy0yLjM0MzgtMi45ODgzIDAtNC40OTIyIDIuMzQzOC0xLjQ4NDQgMi4zMjQyLTEuNDg0NCA1LjQyOTd6Ii8+CiAgPHBhdGggZD0ibTE1MC4xNyAxNDcuMTJxLTMuODA4NiAwLTYuMDM1Mi0yLjQ0MTR2MTAuMTc2aC0zLjYzMjh2LTI5LjI1OGgzLjMyMDNsMC4xNzU3OCAyLjMyNDJxMi4yMjY2LTIuNzE0OCA2LjExMzMtMi43MTQ4IDQuMDAzOSAwIDYuMTMyOCAyLjk2ODggMi4xMjg5IDIuOTY4OCAyLjEyODkgNy44MTI1djAuNDEwMTZxMCA0LjYyODktMi4xNDg0IDcuNjc1OC0yLjEyODkgMy4wNDY5LTYuMDU0NyAzLjA0Njl6bS0xLjExMzMtMTguODY3cS0zLjI4MTIgMC00LjkyMTkgMi45MTAydjEwLjExN3ExLjY2MDIgMi44NzExIDQuOTYwOSAyLjg3MTEgMi45Mjk3IDAgNC4yNzczLTIuMzA0NyAxLjM2NzItMi4zMDQ3IDEuMzY3Mi01LjQ0OTJ2LTAuNDEwMTZxMC0zLjE0NDUtMS4zNjcyLTUuNDI5Ny0xLjM0NzYtMi4zMDQ3LTQuMzE2NC0yLjMwNDd6Ii8+CiAgPHBhdGggZD0ibTE2Ni45MSAxMTYuNzN2MzBoLTMuNjMyOHYtMzB6Ii8+CiAgPHBhdGggZD0ibTE4NS43NSAxNDYuNzNxLTAuMzUxNTctMC43NjE3Mi0wLjUwNzgyLTIuMjI2Ni0xLjAxNTYgMS4wNzQyLTIuNTM5MSAxLjg1NTUtMS41MjM0IDAuNzYxNzItMy40NzY2IDAuNzYxNzItMy4yNDIyIDAtNS4xOTUzLTEuODE2NC0xLjk1MzEtMS44MTY0LTEuOTUzMS00LjQ1MzEgMC0zLjM5ODQgMi41NzgxLTUuMTU2MiAyLjU3ODEtMS43NzczIDYuOTMzNi0xLjc3NzNoMy41NzQydi0xLjY3OTdxMC0xLjg3NS0xLjEzMjgtMi45ODgzLTEuMTEzMy0xLjEzMjgtMy4zMjAzLTEuMTMyOC0yLjA1MDggMC0zLjMyMDMgMS4wMTU2LTEuMjUgMC45OTYxLTEuMjUgMi4zMjQyaC0zLjYxMzNxMC0yLjI2NTYgMi4yODUyLTQuMjU3OCAyLjI4NTItMS45OTIyIDYuMTEzMy0xLjk5MjIgMy40Mzc1IDAgNS42NDQ1IDEuNzU3OCAyLjIwNyAxLjc1NzggMi4yMDcgNS4zMTI1djkuNDkyMnEwIDIuOTI5NyAwLjc0MjE5IDQuNjQ4NHYwLjMxMjV6bS01Ljk5NjEtMi43NzM0cTEuOTUzMSAwIDMuMzc4OS0wLjk3NjU2IDEuNDQ1My0wLjk3NjU2IDIuMDMxMi0yLjE2OHYtNC4zNTU1aC0zLjM1OTRxLTYuMDkzOCAwLjExNzE5LTYuMDkzOCAzLjkwNjIgMCAxLjUwMzkgMS4wMTU2IDIuNTU4NiAxLjAxNTYgMS4wMzUyIDMuMDI3MyAxLjAzNTJ6Ii8+CiAgPHBhdGggZD0ibTIwMy4yMyAxMjguMjVxLTEuNzM4MyAwLTMuMDY2NCAwLjkzNzUtMS4zMjgxIDAuOTM3NS0yLjA4OTggMi40NDE0djE1LjA5OGgtMy42MTMzdi0yMS4xMzNoMy40MThsMC4xMTcxOSAyLjYzNjdxMi40MDIzLTMuMDI3MyA2LjMwODYtMy4wMjczIDMuMTA1NSAwIDQuOTIxOSAxLjczODMgMS44MzU5IDEuNzM4MyAxLjg1NTUgNS44Mzk4djEzLjk0NWgtMy42MzI4di0xMy44ODdxMC0yLjQ4MDUtMS4wOTM4LTMuNTM1Mi0xLjA3NDItMS4wNTQ3LTMuMTI1LTEuMDU0N3oiLz4KICA8cGF0aCBkPSJtNTcuOTQxIDE5NC4xNXExLjkzMzYgMCAzLjM3ODktMS4xNTIzIDEuNDY0OC0xLjE1MjMgMS42MDE2LTIuOTQ5MmgzLjQzNzVxLTAuMTM2NzIgMi44MzItMi41OTc3IDQuOTYwOS0yLjQ2MDkgMi4xMDk0LTUuODIwMyAyLjEwOTQtNC43NjU2IDAtNy4wODk4LTMuMTQ0NS0yLjMwNDctMy4xNDQ1LTIuMzA0Ny03LjQwMjN2LTAuODIwMzFxMC00LjI1NzggMi4zMDQ3LTcuNDAyNCAyLjMyNDItMy4xNDQ1IDcuMDg5OC0zLjE0NDUgMy43MTA5IDAgNS45OTYxIDIuMjA3IDIuMjg1MiAyLjE4NzUgMi40MjE5IDUuNDQ5MmgtMy40Mzc1cS0wLjEzNjcyLTEuOTUzMS0xLjQ4NDQtMy4zMjAzLTEuMzI4MS0xLjM2NzItMy40OTYxLTEuMzY3Mi0yLjIyNjYgMC0zLjQ5NjEgMS4xMzI4LTEuMjUgMS4xMzI4LTEuNzc3MyAyLjg3MTEtMC41MDc4MSAxLjczODMtMC41MDc4MSAzLjU3NDJ2MC44MjAzMXEwIDEuODU1NSAwLjUwNzgxIDMuNTkzOCAwLjUwNzgxIDEuNzM4MyAxLjc1NzggMi44NzExIDEuMjY5NSAxLjExMzMgMy41MTU2IDEuMTEzM3oiLz4KICA8cGF0aCBkPSJtNjkuNDY1IDE4NS45NXEwLTQuNTg5OCAyLjU3ODEtNy42NTYyIDIuNTc4MS0zLjA4NTkgNy4wMTE3LTMuMDg1OSA0LjQzMzYgMCA3LjAxMTcgMy4wMjczIDIuNTc4MSAzLjAwNzggMi42MzY3IDcuNTE5NXYwLjY0NDUzcTAgNC41ODk4LTIuNTk3NyA3LjY1NjItMi41NzgxIDMuMDY2NC03LjAxMTcgMy4wNjY0LTQuNDUzMSAwLTcuMDUwOC0zLjA2NjQtMi41NzgxLTMuMDY2NC0yLjU3ODEtNy42NTYyem0zLjYxMzMgMC40NDkyMnEwIDMuMTQ0NSAxLjQ4NDQgNS40NDkyIDEuNTAzOSAyLjMwNDcgNC41MzEyIDIuMzA0NyAyLjk0OTIgMCA0LjQ1MzEtMi4yNjU2IDEuNTAzOS0yLjI4NTIgMS41MjM0LTUuNDI5N3YtMC41MDc4MXEwLTMuMTA1NS0xLjUwMzktNS40Mjk3LTEuNTAzOS0yLjM0MzgtNC41MTE3LTIuMzQzOC0yLjk4ODMgMC00LjQ5MjIgMi4zNDM4LTEuNDg0NCAyLjMyNDItMS40ODQ0IDUuNDI5N3oiLz4KICA8cGF0aCBkPSJtMTAyIDE3OC4yNXEtMS43MzgzIDAtMy4wNjY0IDAuOTM3NS0xLjMyODEgMC45Mzc1LTIuMDg5OCAyLjQ0MTR2MTUuMDk4aC0zLjYxMzN2LTIxLjEzM2gzLjQxOGwwLjExNzE5IDIuNjM2N3EyLjQwMjMtMy4wMjczIDYuMzA4Ni0zLjAyNzMgMy4xMDU1IDAgNC45MjE5IDEuNzM4MyAxLjgzNTkgMS43MzgzIDEuODU1NSA1LjgzOTh2MTMuOTQ1aC0zLjYzMjh2LTEzLjg4N3EwLTIuNDgwNS0xLjA5MzgtMy41MzUyLTEuMDc0Mi0xLjA1NDctMy4xMjUtMS4wNTQ3eiIvPgogIDxwYXRoIGQ9Im0xMjQuNDYgMTc4LjM3aC00LjMxNjR2MTguMzU5aC0zLjYxMzN2LTE4LjM1OWgtMy4zMzk4di0yLjc3MzRoMy4zMzk4di0xLjgzNTlxMC0zLjU5MzggMi4wNzAzLTUuNTA3OCAyLjA3MDMtMS45MzM2IDUuNjY0MS0xLjkzMzYgMi4xODc1IDAgNS41MjczIDEuMTkxNGwtMC42MDU0NiAzLjA0NjlxLTIuNTM5MS0wLjk5NjA5LTQuNjY4LTAuOTk2MDktMi4zMjQyIDAtMy4zNTk0IDEuMDU0Ny0xLjAxNTYgMS4wMzUyLTEuMDE1NiAzLjE0NDV2MS44MzU5aDQuMzE2NHptNy4xMDk0LTIuNzczNHYyMS4xMzNoLTMuNjEzM3YtMjEuMTMzeiIvPgogIDxwYXRoIGQ9Im0xNDUuNTIgMjA1LjA3cS0xLjY0MDYgMC00LjAyMzQtMC44MDA3OC0yLjM4MjgtMC44MDA3OC0zLjgwODYtMi44NzExbDEuODk0NS0yLjE0ODRxMi4zNDM4IDIuODUxNiA1LjY2NDEgMi44NTE2IDIuNTU4NiAwIDQuMDgyLTEuNDQ1MyAxLjUyMzQtMS40MjU4IDEuNTIzNC00LjE5OTJ2LTEuODU1NXEtMi4xNDg0IDIuNTE5NS01LjkxOCAyLjUxOTUtMy44MDg2IDAtNi4wNTQ3LTMuMDQ2OS0yLjI0NjEtMy4wNDY5LTIuMjQ2MS03LjY3NTh2LTAuNDEwMTZxMC00Ljg0MzggMi4yMjY2LTcuODEyNSAyLjI0NjEtMi45Njg4IDYuMTEzMy0yLjk2ODggMy44ODY3IDAgNi4wMzUyIDIuNzM0NGwwLjE3NTc4LTIuMzQzOGgzLjI4MTJ2MjAuNjg0cTAgNC4xOTkyLTIuNSA2LjQ4NDQtMi41IDIuMzA0Ny02LjQ0NTMgMi4zMDQ3em0tNS4yNzM0LTE4LjY3MnEwIDMuMTQ0NSAxLjMwODYgNS40MTAyIDEuMzI4MSAyLjI0NjEgNC4yNTc4IDIuMjQ2MSAzLjQzNzUgMCA1LjAzOTEtMy4xMjV2LTkuNjI4OXEtMC42ODM1OS0xLjMwODYtMS44OTQ1LTIuMTY4LTEuMjEwOS0wLjg3ODktMy4xMDU1LTAuODc4OS0yLjk0OTIgMC00LjI3NzMgMi4zMDQ3LTEuMzI4MSAyLjI4NTItMS4zMjgxIDUuNDI5N3oiLz4KICA8cGF0aCBkPSJtMTczLjA2IDE5Ni43My0wLjA3ODEtMi4wODk4cS0yLjA3MDMgMi40ODA1LTYuMTcxOSAyLjQ4MDUtMy4xMDU1IDAtNS4wMTk1LTEuODM1OS0xLjkxNDEtMS44MzU5LTEuOTE0MS02LjA1NDd2LTEzLjYzM2gzLjYxMzN2MTMuNjcycTAgMi44NTE2IDEuMTkxNCAzLjgyODEgMS4yMTA5IDAuOTU3MDMgMi42OTUzIDAuOTU3MDMgNC4wODIgMCA1LjUwNzgtMy4wNjY0di0xNS4zOTFoMy42MzI4djIxLjEzM3oiLz4KICA8cGF0aCBkPSJtMTkwLjQ0IDE3OC42OHEtMy41MzUyIDAtNC44MjQyIDMuMDQ2OXYxNWgtMy42MTMzdi0yMS4xMzNoMy41MTU2bDAuMDc4MSAyLjQyMTlxMS43MzgzLTIuODEyNSA1LjAxOTUtMi44MTI1IDEuMDE1NiAwIDEuNjAxNiAwLjI3MzQ0bC0wLjAxOTUgMy4zNTk0cS0wLjgwMDc4LTAuMTU2MjUtMS43NTc4LTAuMTU2MjV6Ii8+CiAgPHBhdGggZD0ibTIxMS45MSAxOTMuMDRxLTEuMDM1MiAxLjU2MjUtMi45Mjk3IDIuODMyLTEuODk0NSAxLjI1LTUuMDE5NSAxLjI1LTQuNDE0MSAwLTcuMDcwMy0yLjg3MTEtMi42MzY3LTIuODcxMS0yLjYzNjctNy4zNDM4di0wLjgyMDMxcTAtMy40NTcgMS4zMDg2LTUuODc4OSAxLjMyODEtMi40NDE0IDMuNDM3NS0zLjcxMDkgMi4xMDk0LTEuMjg5MSA0LjQ5MjItMS4yODkxIDQuNTMxMiAwIDYuNjAxNiAyLjk2ODggMi4wODk4IDIuOTQ5MiAyLjA4OTggNy4zODI4djEuNjIxMWgtMTQuMjk3cTAuMDc4MSAyLjkxMDIgMS43MTg4IDQuOTYwOSAxLjY2MDIgMi4wMzEyIDQuNTUwOCAyLjAzMTIgMS45MTQxIDAgMy4yNDIyLTAuNzgxMjUgMS4zMjgxLTAuNzgxMjUgMi4zMjQyLTIuMDg5OHptLTguNDE4LTE0Ljg2M3EtMi4xNDg0IDAtMy42MzI4IDEuNTYyNS0xLjQ4NDQgMS41NjI1LTEuODU1NSA0LjQ5MjJoMTAuNTY2di0wLjI3MzQ0cS0wLjEzNjcyLTIuMTA5NC0xLjIzMDUtMy45NDUzLTEuMDc0Mi0xLjgzNTktMy44NDc3LTEuODM1OXoiLz4KICA8cGF0aCBkPSJtMjMwLjAzIDE5Ni43My0wLjE3NTc4LTIuMjY1NnEtMi4xNjggMi42NTYyLTYuMDM1MiAyLjY1NjItMy43MTA5IDAtNS45OTYxLTMuMDA3OC0yLjI4NTItMy4wMDc4LTIuMzI0Mi03LjU1ODZ2LTAuNTY2NDFxMC00Ljg0MzggMi4yODUyLTcuODEyNSAyLjMwNDctMi45Njg4IDYuMDc0Mi0yLjk2ODggMy43MzA1IDAgNS44NTk0IDIuNXYtMTAuOTc3aDMuNjMyOHYzMHptLTEwLjg5OC0xMC4zMzJxMCAzLjE0NDUgMS4zMjgxIDUuNDEwMiAxLjMyODEgMi4yNDYxIDQuMjU3OCAyLjI0NjEgMy4zNTk0IDAgNS0zLjA2NjR2LTkuNzI2NnEtMS42MjExLTMuMDA3OC00Ljk2MDktMy4wMDc4LTIuOTQ5MiAwLTQuMjk2OSAyLjMwNDctMS4zMjgxIDIuMjg1Mi0xLjMyODEgNS40Mjk3eiIvPgogPC9nPgo8L3N2Zz4K'\n        }\n    ];\n    return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n  }\n}\n",
+                "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "e965b8a1-a6ac-5ae4-fd79-2b7220b91ed1"
               }
             ]
           },
@@ -738,7 +588,7 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "4px",
           "settings": {
-            "markdownTextFunction": "var supermarketState;\nif (data && data.length && data[0]['entityId']) {\n    supermarketState = true;\n} else {\n    supermarketState = false;\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">Edit Supermarket: {{ ctx.stateController.getStateParams().selectedSupermarket?.entityName }}</div>' +\n                '</div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (supermarketState \n            ? (header +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"edit_supermarket_card\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>') +\n       '</div>';       ",
+            "markdownTextFunction": "var supermarketState;\nif (data && data.length && data[0]['entityId']) {\n    supermarketState = true;\n} else {\n    supermarketState = false;\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">Edit Supermarket: {{ ctx.stateController.getStateParams().selectedSupermarket?.entityName }}</div>' +\n                '</div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"start\"><button id=\"delete-supermarket\" type=\"button\" mat-raised-button color=\"primary\">Delete</button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"start\"><button id=\"supermarket-devices\" type=\"button\" mat-raised-button color=\"primary\">Supermarket devices</button></div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (supermarketState \n            ? (header +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"edit_supermarket_card\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets_card\"></tb-dashboard-state>') +\n       '</div>';       ",
             "useMarkdownTextFunction": true,
             "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n.main-layout .header {\n    height: 60px;\n    margin: 4px;\n} \n\n.main-layout .header .mat-icon.title-icon {\n    width: 40px;\n    height: 40px;\n}\n\n.main-layout .header .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n\n.main-layout .header .subtitle {\n    font-size: 13px;\n    font-weight: normal;\n    color: #757575;\n}\n",
             "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <section *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" fxFlex fxLayout=\"column\">\n\t<h5 class=\"market-title\">{{ ctx.stateController.getStateParams().selectedSupermarket.entityName }}</h5>\n\t<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"devices_card\"></tb-dashboard-state>\n    </section>\n    <tb-dashboard-state *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" stateId=\"supermarkets_card\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>\n    <tb-dashboard-state *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_alarms\"></tb-dashboard-state>\n    <tb-dashboard-state *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"false\" stateId=\"supermarkets_alarms\"></tb-dashboard-state>\n</div>"
@@ -771,13 +621,611 @@
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "116515c2-d9bd-80b6-7a34-97373a802806"
+              },
+              {
+                "name": "supermarket-devices",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarket_devices",
+                "setEntityId": true,
+                "stateEntityParamName": "selectedSupermarket",
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "f921410a-47b7-5884-1c63-d010a39064a4"
+              },
+              {
+                "name": "delete-supermarket",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar deviceService = $injector.get(widgetContext.servicesMap.get('deviceService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket and all related devices will become unrecoverable!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var deleteDeviceObservables = [];\n      relatedDevicesRelations.forEach((deviceRelation) => {\n          deleteDeviceObservables.push(deviceService.deleteDevice(deviceRelation.to.id));\n      });\n      var deleteDevicesObservable = deleteDeviceObservables.length ? widgetContext.rxjs.forkJoin(deleteDeviceObservables) : widgetContext.rxjs.of(null);\n      deleteDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n  \n}\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "1af63269-0a95-b82e-0703-86bd8daf9356"
+              }
+            ],
+            "headerButton": []
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "ab845ee8-ff10-b684-3652-cb49e2d9acbe"
+      },
+      "980bd0c3-44e9-a1f9-c8f9-3dc533011fde": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_server_string_attribute",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "address",
+                  "type": "attribute",
+                  "label": "address",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.7546586070710162
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "showResultMessage": false,
+            "showLabel": true,
+            "isRequired": true,
+            "labelValue": "Address",
+            "requiredErrorMessage": "Address is required"
+          },
+          "title": "New Update server string attribute",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "980bd0c3-44e9-a1f9-c8f9-3dc533011fde"
+      },
+      "00041a85-d8fe-09f2-4aab-1c86d8a7444d": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": []
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div style=\"width: 100%; height: 100%;\" fxLayout=\"row\" class=\"attribute-update-form\" style=\"padding: 0 8px;\">\n    <div fxFlex fxLayout=\"column\">\n        <mat-form-field class=\"mat-block\" style=\"width: 100%;\">\n              <mat-label>Title</mat-label>\n              <input #titleInput #titleInputCtrl=\"ngModel\" required matInput [(ngModel)]=\"titleInput.value\"\n                     value=\"${entityName}\" (keyUp.enter)=\"titleInput.value !== '${entityName}' ? saveTitleButton._elementRef.nativeElement.click() : return;\"\n                     (keyUp.escape)=\"titleInput.value = '${entityName}';\"/>\n              <mat-error *ngIf=\"!titleInputCtrl.valid\">Title is required</mat-error>         \n        </mat-form-field>\n    </div>\n    <div class=\"input-buttons\">\n        <button #saveTitleButton id=\"save-title\" [disabled]=\"titleInput.value === '${entityName}' || !titleInputCtrl.valid\" [attr.data-title]=\"titleInput.value\" type=\"button\" mat-icon-button>\n            <mat-icon>check</mat-icon>\n        </button> \n        <button [disabled]=\"titleInput.value === '${entityName}'\" type=\"button\" mat-icon-button (click)=\"titleInput.value = '${entityName}';\">\n            <mat-icon>close</mat-icon>\n        </button>\n    </div>\n</div>\n",
+            "markdownCss": ".tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view  .grid__element:last-child {\n    margin-top: 19px;\n    margin-left: 7px;\n}\n\n.tb-markdown-view  .attribute-update-form .mat-icon-button {\n    width: 32px;\n    min-width: 32px;\n    height: 32px;\n    min-height: 32px;\n    padding: 0 !important;\n    margin: 0 !important;\n    line-height: 20px;\n}\n\n.tb-markdown-view  .attribute-update-form .mat-icon-button mat-icon {\n    width: 20px;\n    min-width: 20px;\n    height: 20px;\n    min-height: 20px;\n    font-size: 20px;\n}\n\n.tb-markdown-view .attribute-update-form .input-buttons {\n    margin-top: 19px;\n    margin-left: 7px;\n    display: flex;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "save-title",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "const targetElement = $($event.target).closest('#save-title', widgetContext.$container[0]);\n\nvar title = $(targetElement).attr('data-title');\n\nwidgetContext.assetService.getAsset(entityId.id, {ignoreLoading: true}).subscribe((supermarket) => {\n    supermarket.name = title;\n    widgetContext.assetService.saveAsset(supermarket, null, {ignoreLoading: true}).subscribe(() => {\n       widgetContext.stateController.getStateParams().selectedSupermarket.entityName = title;\n       widgetContext.updateAliases();\n    });\n});\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "088a4799-8551-7ab4-892f-2a08d6d40a7c"
               }
             ]
           }
         },
         "row": 0,
         "col": 0,
-        "id": "ab845ee8-ff10-b684-3652-cb49e2d9acbe"
+        "id": "00041a85-d8fe-09f2-4aab-1c86d8a7444d"
+      },
+      "1d0b53f4-7805-fbfd-1cc6-e91d0df3d4bf": {
+        "isSystemType": true,
+        "bundleAlias": "maps_v2",
+        "typeAlias": "openstreetmap",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "latitude",
+                  "type": "attribute",
+                  "label": "latitude",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.862061599769905
+                },
+                {
+                  "name": "longitude",
+                  "type": "attribute",
+                  "label": "longitude",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.017864596400994026
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "fitMapBounds": true,
+            "latKeyName": "latitude",
+            "lngKeyName": "longitude",
+            "showLabel": true,
+            "label": "${entityName}",
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-devices'>Supermarket devices</link-act>",
+            "markerImageSize": 34,
+            "useColorFunction": false,
+            "markerImages": [],
+            "useMarkerImageFunction": true,
+            "color": "#fe7569",
+            "mapProvider": "CartoDB.Positron",
+            "showTooltip": false,
+            "autocloseTooltip": true,
+            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
+            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "provider": "openstreet-map",
+            "defaultCenterPosition": "0,0",
+            "showTooltipAction": "click",
+            "mapPageSize": 16384,
+            "useTooltipFunction": false,
+            "useCustomProvider": false,
+            "useDefaultCenterPosition": false,
+            "draggableMarker": true,
+            "disableScrollZooming": false,
+            "useLabelFunction": false,
+            "tooltipOffsetX": 0,
+            "tooltipOffsetY": -1,
+            "markerOffsetX": 0.5,
+            "markerOffsetY": 1,
+            "showPolygon": false,
+            "useClusterMarkers": false,
+            "disableZoomControl": false,
+            "markerImageFunction": "var width = 30;\nvar svgStr = getSupermarketSvg(width);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = '#1F8B4D';\n    var background = getBackground(color);\n    var svgWidth = width;\n    var svgHeight = 30;\n    \n    var opacity = 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background + shape;\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n",
+            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
+            "gmDefaultMapType": "roadmap",
+            "mapProviderHere": "HERE.normalDay",
+            "credentials": {
+              "app_id": "AhM6TzD9ThyK78CT3ptx",
+              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
+            },
+            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
+            "tmDefaultMapType": "roadmap",
+            "defaultZoomLevel": 14,
+            "snappable": false,
+            "initDragMode": true,
+            "hideAllControlButton": true,
+            "hideDrawControlButton": false,
+            "hideEditControlButton": false,
+            "hideRemoveControlButton": false
+          },
+          "title": "Edit supermarket location",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "widgetStyle": {},
+          "actions": {
+            "markerClick": [],
+            "tooltipAction": []
+          },
+          "showTitleIcon": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "titleTooltip": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "1d0b53f4-7805-fbfd-1cc6-e91d0df3d4bf"
+      },
+      "59df0b6f-17dd-3c4c-a484-69c0836246da": {
+        "isSystemType": true,
+        "bundleAlias": "input_widgets",
+        "typeAlias": "update_server_image_attribute",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "floorplan",
+                  "type": "attribute",
+                  "label": "floorplan",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.5234606901361916
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "showResultMessage": false,
+            "displayPreview": true,
+            "displayClearButton": false,
+            "widgetTitle": "Floor plan"
+          },
+          "title": "Floor plan",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "actions": {},
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "59df0b6f-17dd-3c4c-a484-69c0836246da"
+      },
+      "8a7abdae-72fd-610d-7977-4e211fa999f4": {
+        "isSystemType": true,
+        "bundleAlias": "maps_v2",
+        "typeAlias": "openstreetmap",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8.5,
+        "sizeY": 6,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "1c348dad-e738-a4db-5e7e-4c0271790ab7",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "latitude",
+                  "type": "attribute",
+                  "label": "latitude",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.862061599769905
+                },
+                {
+                  "name": "longitude",
+                  "type": "attribute",
+                  "label": "longitude",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.017864596400994026
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "7add11d8-cbf7-fd15-6b12-d5df058f11fa",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "latitude",
+                  "type": "attribute",
+                  "label": "selectedSupermarket",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.5292772206260663,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "if (value !== '') {\n    return true;\n} else {\n    return false;\n}"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "fitMapBounds": true,
+            "latKeyName": "latitude",
+            "lngKeyName": "longitude",
+            "showLabel": true,
+            "label": "${entityName}",
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-devices'>Supermarket devices</link-act><br/><link-act name='delete-supermarket'>Delete</link-act>",
+            "markerImageSize": 34,
+            "useColorFunction": false,
+            "markerImages": [],
+            "useMarkerImageFunction": true,
+            "color": "#fe7569",
+            "mapProvider": "CartoDB.Positron",
+            "showTooltip": true,
+            "autocloseTooltip": true,
+            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
+            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "provider": "openstreet-map",
+            "defaultCenterPosition": "0,0",
+            "showTooltipAction": "click",
+            "mapPageSize": 16384,
+            "useTooltipFunction": false,
+            "useCustomProvider": false,
+            "useDefaultCenterPosition": false,
+            "draggableMarker": false,
+            "disableScrollZooming": false,
+            "useLabelFunction": false,
+            "tooltipOffsetX": 0,
+            "tooltipOffsetY": -1,
+            "markerOffsetX": 0.5,
+            "markerOffsetY": 1,
+            "showPolygon": false,
+            "useClusterMarkers": false,
+            "disableZoomControl": false,
+            "markerImageFunction": "var selectedSupermarket = data['selectedSupermarket'] === true;\nvar selectedMode = dsData.filter(function (data) { return data['selectedSupermarket'] === true; }).length > 0;\n\nvar width = 30;\nvar svgStr = getSupermarketSvg(width, selectedSupermarket);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nif (selectedSupermarket) {\n    width += 8;\n}\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = '#1F8B4D';\n    var background = getBackground(color);\n    var svgWidth = isSelected ? (width + 8) : width;\n    var svgHeight = isSelected ? 38 : 30;\n    \n    var opacity = selectedMode && !isSelected ? 0.4 : 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    wrapIfSelected(background + shape, isSelected);\n    if (isSelected) {\n        supermarketSvg += getSupermarketSelectionStroke();\n    }\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction wrapIfSelected(svg, isSelected) {\n    if (isSelected) {\n        return '<g transform=\"translate(4 4)\">' + svg + '</g>';\n    } else {\n        return svg;\n    }\n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n\nfunction getSupermarketSelectionStroke() {\n     return '<circle cx=\"19\" cy=\"19\" r=\"18\" stroke=\"#D5C21B\" stroke-width=\"2\"/>';\n}\n",
+            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
+            "gmDefaultMapType": "roadmap",
+            "mapProviderHere": "HERE.normalDay",
+            "credentials": {
+              "app_id": "AhM6TzD9ThyK78CT3ptx",
+              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
+            },
+            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
+            "tmDefaultMapType": "roadmap",
+            "defaultZoomLevel": 14,
+            "snappable": false,
+            "initDragMode": true,
+            "hideAllControlButton": true,
+            "hideDrawControlButton": false,
+            "hideEditControlButton": false,
+            "hideRemoveControlButton": false
+          },
+          "title": "Supermarkets map",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
+          },
+          "useDashboardTimewindow": true,
+          "showLegend": false,
+          "widgetStyle": {},
+          "actions": {
+            "markerClick": [
+              {
+                "name": "Select supermarket",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var params = widgetContext.stateController.getStateParams();\nvar selectedSupermarket = params['selectedSupermarket'];\nif (selectedSupermarket && selectedSupermarket.entityId.id === entityId.id) {\n    params['selectedSupermarket'] = null;\n} else {\n    params['selectedSupermarket'] = { entityId: entityId, entityName: entityName, entityLabel: entityLabel };\n}\nwidgetContext.stateController.updateState(null, params);\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "4de7962b-a1de-5cb1-cd78-993dc7863614"
+              }
+            ],
+            "tooltipAction": [
+              {
+                "name": "supermarket-devices",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var params = JSON.parse(JSON.stringify(widgetContext.stateController.getStateParams()));\nparams['selectedSupermarket'] = {\n        entityId: entityId,\n        entityName: entityName,\n        entityLabel: entityLabel,\n};\nparams['targetEntityParamName'] = 'selectedSupermarket';\nparams['selectedDevice'] = null;\n\nwidgetContext.stateController.openState('supermarket_devices', params);\t",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "1ca54350-817a-27b3-26a7-3572544d8523"
+              },
+              {
+                "name": "delete-supermarket",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar deviceService = $injector.get(widgetContext.servicesMap.get('deviceService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket and all related devices will become unrecoverable!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var deleteDeviceObservables = [];\n      relatedDevicesRelations.forEach((deviceRelation) => {\n          deleteDeviceObservables.push(deviceService.deleteDevice(deviceRelation.to.id));\n      });\n      var deleteDevicesObservable = deleteDeviceObservables.length ? widgetContext.rxjs.forkJoin(deleteDeviceObservables) : widgetContext.rxjs.of(null);\n      deleteDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n  \n}\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "89d67b54-a78e-f190-3832-1aae29cee395"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "titleTooltip": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "8a7abdae-72fd-610d-7977-4e211fa999f4"
+      },
+      "7a671e82-7171-d1e2-75cc-565f67598090": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
+            "useMarkdownTextFunction": false,
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    font-size: 26px;\n    padding-bottom: 16px;\n    padding-left: 10px;\n    padding-top: 5px;\n}\n\n",
+            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n     <div fxLayout=\"row\" style=\"width: 100%; height: 60px;\" fxLayoutAlign=\"center start\">\n        <h5 fxFlex class=\"market-title\">Supermarkets</h5>\n        <button id=\"add-supermarket\" mat-raised-button color=\"primary\">Add supermarket</button>\n     </div>\n    <div fxFlex fxLayout=\"column\" style=\"position: relative;\">\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets_map\"></tb-dashboard-state>\n    </div>\n</div>"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": ".tb-widget-container .tb-widget .tb-multiple-input {\n    background-color: #FAFAFA;\n    border-radius: 4px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .input-field {\n    padding-right: 30px;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input mat-slide-toggle {\n    margin-top: 15px !important;\n    margin-bottom: 0 !important;\n}\n\n.tb-widget-container .tb-widget .tb-multiple-input .mat-slide-toggle-content {\n    width: 120px;\n}\n\n.tb-widget-container .tb-widget .mat-slide-toggle-bar {\n    width: 42px;\n    height: 24px;\n    border-radius: 16px;\n}\n\n.tb-widget-container .tb-widget .mat-slide-toggle-thumb-container {\n    top: 2px;\n    left: 2px;\n}\n\n.tb-widget-container .tb-widget .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb-container {\n    transform: translate3d(18px, 0, 0);\n}\n\n.tb-widget-container .tb-widget .mat-slide-toggle-thumb {\n    background-color: #fafafa;\n}\n\n.tb-widget-container .tb-widget .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {\n    background-color: #F2994A;\n}\n",
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "add-supermarket",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "customPretty",
+                "customHtml": "<form #addEntityForm=\"ngForm\" [formGroup]=\"addSupermarketFormGroup\"\n      (ngSubmit)=\"save()\" class=\"add-entity-form\" style=\"width: 350px;\">\n  <mat-toolbar fxLayout=\"row\" color=\"primary\">\n    <h2>Add supermarket</h2>\n    <span fxFlex></span>\n    <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n      <mat-icon class=\"material-icons\">close</mat-icon>\n    </button>\n  </mat-toolbar>\n  <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\n  </mat-progress-bar>\n  <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n  <div mat-dialog-content fxLayout=\"column\">\n    <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\"  fxLayoutGap.xs=\"0\">\n      <mat-form-field fxFlex class=\"mat-block\">\n        <mat-label>Supermarket title</mat-label>\n        <input matInput formControlName=\"name\" required>\n        <mat-error *ngIf=\"addSupermarketFormGroup.get('name').hasError('required')\">\n          Supermarket title is required.\n        </mat-error>\n      </mat-form-field>\n    </div>\n  </div>\n  <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n    <button mat-button color=\"primary\"\n            type=\"button\"\n            [disabled]=\"(isLoading$ | async)\"\n            (click)=\"cancel()\" cdkFocusInitial>\n      Cancel\n    </button>\n    <button mat-button mat-raised-button color=\"primary\"\n            type=\"submit\"\n            [disabled]=\"(isLoading$ | async) || addSupermarketFormGroup.invalid || !addSupermarketFormGroup.dirty\">\n      Add supermarket\n    </button>\n  </div>\n</form>\n",
+                "customCss": "/*=======================================================================*/\n/*==========  There are two examples: for edit and add entity  ==========*/\n/*=======================================================================*/\n/*========================  Edit entity example  ========================*/\n/*=======================================================================*/\n/*\n.edit-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.edit-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n/*========================================================================*/\n/*=========================  Add entity example  =========================*/\n/*========================================================================*/\n/*\n.add-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.add-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\nlet entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\n\nopenAddSupermarketDialog();\n\nfunction openAddSupermarketDialog() {\n  customDialog.customDialog(htmlTemplate, AddSupermarketDialogController).subscribe();\n}\n\nfunction AddSupermarketDialogController(instance) {\n  let vm = instance;\n\n  vm.addSupermarketFormGroup = vm.fb.group({\n    name: ['', [vm.validators.required]]\n  });\n\n  vm.cancel = function () {\n    vm.dialogRef.close(null);\n  };\n  \n  vm.save = function () {\n    var customerId;\n    if (widgetContext.currentUser.authority === 'TENANT_ADMIN') {\n        customerId = widgetContext.stateController.getStateParams().entityId;\n    } else {\n        customerId = { id: widgetContext.currentUser.customerId, entityType: 'CUSTOMER'};\n    }\n    vm.addSupermarketFormGroup.markAsPristine();\n    saveSupermarketObservable(customerId).subscribe(\n      function (supermarket) {\n          widgetContext.rxjs.forkJoin([\n              saveCustomerToSupermarketRelation(customerId, supermarket.id),\n              saveAttributes(supermarket.id)\n          ]).subscribe(\n              function () {\n                var params = widgetContext.stateController.getStateParams();\n                var selectedSupermarket = params['selectedSupermarket'];\n                params['selectedSupermarket'] = { entityId: supermarket.id, entityName: supermarket.name, entityLabel: '' };\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n              }\n        );\n      }\n    );\n  };\n\n  function saveSupermarketObservable(customerId) {\n    return getSupermarketsGroup(customerId).pipe(\n        widgetContext.rxjs.switchMap((supermarketsGroup) => {\n            const formValues = vm.addSupermarketFormGroup.value;\n            let supermarket = {\n              name: formValues.name,\n              type: 'supermarket',\n              customerId: customerId\n            };\n            return assetService.saveAsset(supermarket, supermarketsGroup.id.id)\n        })\n    );\n  }\n  \n  function getSupermarketsGroup(customerId) {\n      return entityGroupService.getEntityGroupsByOwnerId(customerId.entityType, customerId.id, 'ASSET').pipe(\n          widgetContext.rxjs.switchMap((entityGroups) => {\n              var supermarketsGroup = entityGroups.find(group => group.name === 'Supermarkets');\n              if (supermarketsGroup) {\n                  return widgetContext.rxjs.of(supermarketsGroup);\n              } else {\n                  supermarketsGroup = {\n                      type: 'ASSET',\n                      name: 'Supermarkets',\n                      ownerId: customerId\n                  };\n                  return entityGroupService.saveEntityGroup(supermarketsGroup);\n              }\n          })\n      );\n  }\n\n  function saveCustomerToSupermarketRelation(customerId, supermarketId) {\n      var relation = {\n          from: customerId,\n          to: supermarketId,\n          typeGroup: 'COMMON',\n          type: 'Owns'\n      };\n      return entityRelationService.saveRelation(relation);\n  }\n  \n  function saveAttributes(entityId) {\n    let attributesArray = [\n        {\n            key: 'latitude',\n            value: 37.780108\n        },\n        {\n            key: 'longitude',\n            value: -122.447053\n        },\n        {\n            key: 'address',\n            value: 'N/A'\n        },\n        {\n            key: 'floorplan',\n            value: 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCEtLSBDcmVhdGVkIHdpdGggSW5rc2NhcGUgKGh0dHA6Ly93d3cuaW5rc2NhcGUub3JnLykgLS0+Cjxzdmcgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDc5LjM3NSA3OS4zNzUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiA8cmVjdCB4PSIyLjcwMTkiIHk9IjIuNzAxOSIgd2lkdGg9IjczLjk3MSIgaGVpZ2h0PSI3My45NzEiIGZpbGw9IiNmZmYiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9Ii4xMTIxIiBzdHlsZT0icGFpbnQtb3JkZXI6bWFya2VycyBmaWxsIHN0cm9rZSIvPgogPGcgdHJhbnNmb3JtPSJtYXRyaXgoLjI2NDU4IDAgMCAuMjY0NTggMi42MzUgLTIuODgzNCkiIHN0cm9rZS13aWR0aD0iMXB4IiBzdHlsZT0ic2hhcGUtaW5zaWRlOnVybCgjcmVjdDQ4MzYpO3doaXRlLXNwYWNlOnByZSIgYXJpYS1sYWJlbD0iICAgTm8gcGxhbiBjb25maWd1cmVkIj4KICA8cGF0aCBkPSJtMTAxLjY3IDExOC4yOXYyOC40MzhoLTMuNzg5MWwtMTQuMzE2LTIxLjkzNHYyMS45MzRoLTMuNzY5NXYtMjguNDM4aDMuNzY5NWwxNC4zNzUgMjEuOTkydi0yMS45OTJ6Ii8+CiAgPHBhdGggZD0ibTEwNi44MyAxMzUuOTVxMC00LjU4OTggMi41NzgxLTcuNjU2MiAyLjU3ODEtMy4wODU5IDcuMDExNy0zLjA4NTl0Ny4wMTE3IDMuMDI3M3EyLjU3ODEgMy4wMDc4IDIuNjM2NyA3LjUxOTV2MC42NDQ1M3EwIDQuNTg5OC0yLjU5NzcgNy42NTYyLTIuNTc4MSAzLjA2NjQtNy4wMTE3IDMuMDY2NC00LjQ1MzEgMC03LjA1MDgtMy4wNjY0LTIuNTc4MS0zLjA2NjQtMi41NzgxLTcuNjU2MnptMy42MTMzIDAuNDQ5MjJxMCAzLjE0NDUgMS40ODQ0IDUuNDQ5MiAxLjUwMzkgMi4zMDQ3IDQuNTMxMiAyLjMwNDcgMi45NDkyIDAgNC40NTMxLTIuMjY1NiAxLjUwMzktMi4yODUyIDEuNTIzNC01LjQyOTd2LTAuNTA3ODFxMC0zLjEwNTUtMS41MDM5LTUuNDI5Ny0xLjUwMzktMi4zNDM4LTQuNTExNy0yLjM0MzgtMi45ODgzIDAtNC40OTIyIDIuMzQzOC0xLjQ4NDQgMi4zMjQyLTEuNDg0NCA1LjQyOTd6Ii8+CiAgPHBhdGggZD0ibTE1MC4xNyAxNDcuMTJxLTMuODA4NiAwLTYuMDM1Mi0yLjQ0MTR2MTAuMTc2aC0zLjYzMjh2LTI5LjI1OGgzLjMyMDNsMC4xNzU3OCAyLjMyNDJxMi4yMjY2LTIuNzE0OCA2LjExMzMtMi43MTQ4IDQuMDAzOSAwIDYuMTMyOCAyLjk2ODggMi4xMjg5IDIuOTY4OCAyLjEyODkgNy44MTI1djAuNDEwMTZxMCA0LjYyODktMi4xNDg0IDcuNjc1OC0yLjEyODkgMy4wNDY5LTYuMDU0NyAzLjA0Njl6bS0xLjExMzMtMTguODY3cS0zLjI4MTIgMC00LjkyMTkgMi45MTAydjEwLjExN3ExLjY2MDIgMi44NzExIDQuOTYwOSAyLjg3MTEgMi45Mjk3IDAgNC4yNzczLTIuMzA0NyAxLjM2NzItMi4zMDQ3IDEuMzY3Mi01LjQ0OTJ2LTAuNDEwMTZxMC0zLjE0NDUtMS4zNjcyLTUuNDI5Ny0xLjM0NzYtMi4zMDQ3LTQuMzE2NC0yLjMwNDd6Ii8+CiAgPHBhdGggZD0ibTE2Ni45MSAxMTYuNzN2MzBoLTMuNjMyOHYtMzB6Ii8+CiAgPHBhdGggZD0ibTE4NS43NSAxNDYuNzNxLTAuMzUxNTctMC43NjE3Mi0wLjUwNzgyLTIuMjI2Ni0xLjAxNTYgMS4wNzQyLTIuNTM5MSAxLjg1NTUtMS41MjM0IDAuNzYxNzItMy40NzY2IDAuNzYxNzItMy4yNDIyIDAtNS4xOTUzLTEuODE2NC0xLjk1MzEtMS44MTY0LTEuOTUzMS00LjQ1MzEgMC0zLjM5ODQgMi41NzgxLTUuMTU2MiAyLjU3ODEtMS43NzczIDYuOTMzNi0xLjc3NzNoMy41NzQydi0xLjY3OTdxMC0xLjg3NS0xLjEzMjgtMi45ODgzLTEuMTEzMy0xLjEzMjgtMy4zMjAzLTEuMTMyOC0yLjA1MDggMC0zLjMyMDMgMS4wMTU2LTEuMjUgMC45OTYxLTEuMjUgMi4zMjQyaC0zLjYxMzNxMC0yLjI2NTYgMi4yODUyLTQuMjU3OCAyLjI4NTItMS45OTIyIDYuMTEzMy0xLjk5MjIgMy40Mzc1IDAgNS42NDQ1IDEuNzU3OCAyLjIwNyAxLjc1NzggMi4yMDcgNS4zMTI1djkuNDkyMnEwIDIuOTI5NyAwLjc0MjE5IDQuNjQ4NHYwLjMxMjV6bS01Ljk5NjEtMi43NzM0cTEuOTUzMSAwIDMuMzc4OS0wLjk3NjU2IDEuNDQ1My0wLjk3NjU2IDIuMDMxMi0yLjE2OHYtNC4zNTU1aC0zLjM1OTRxLTYuMDkzOCAwLjExNzE5LTYuMDkzOCAzLjkwNjIgMCAxLjUwMzkgMS4wMTU2IDIuNTU4NiAxLjAxNTYgMS4wMzUyIDMuMDI3MyAxLjAzNTJ6Ii8+CiAgPHBhdGggZD0ibTIwMy4yMyAxMjguMjVxLTEuNzM4MyAwLTMuMDY2NCAwLjkzNzUtMS4zMjgxIDAuOTM3NS0yLjA4OTggMi40NDE0djE1LjA5OGgtMy42MTMzdi0yMS4xMzNoMy40MThsMC4xMTcxOSAyLjYzNjdxMi40MDIzLTMuMDI3MyA2LjMwODYtMy4wMjczIDMuMTA1NSAwIDQuOTIxOSAxLjczODMgMS44MzU5IDEuNzM4MyAxLjg1NTUgNS44Mzk4djEzLjk0NWgtMy42MzI4di0xMy44ODdxMC0yLjQ4MDUtMS4wOTM4LTMuNTM1Mi0xLjA3NDItMS4wNTQ3LTMuMTI1LTEuMDU0N3oiLz4KICA8cGF0aCBkPSJtNTcuOTQxIDE5NC4xNXExLjkzMzYgMCAzLjM3ODktMS4xNTIzIDEuNDY0OC0xLjE1MjMgMS42MDE2LTIuOTQ5MmgzLjQzNzVxLTAuMTM2NzIgMi44MzItMi41OTc3IDQuOTYwOS0yLjQ2MDkgMi4xMDk0LTUuODIwMyAyLjEwOTQtNC43NjU2IDAtNy4wODk4LTMuMTQ0NS0yLjMwNDctMy4xNDQ1LTIuMzA0Ny03LjQwMjN2LTAuODIwMzFxMC00LjI1NzggMi4zMDQ3LTcuNDAyNCAyLjMyNDItMy4xNDQ1IDcuMDg5OC0zLjE0NDUgMy43MTA5IDAgNS45OTYxIDIuMjA3IDIuMjg1MiAyLjE4NzUgMi40MjE5IDUuNDQ5MmgtMy40Mzc1cS0wLjEzNjcyLTEuOTUzMS0xLjQ4NDQtMy4zMjAzLTEuMzI4MS0xLjM2NzItMy40OTYxLTEuMzY3Mi0yLjIyNjYgMC0zLjQ5NjEgMS4xMzI4LTEuMjUgMS4xMzI4LTEuNzc3MyAyLjg3MTEtMC41MDc4MSAxLjczODMtMC41MDc4MSAzLjU3NDJ2MC44MjAzMXEwIDEuODU1NSAwLjUwNzgxIDMuNTkzOCAwLjUwNzgxIDEuNzM4MyAxLjc1NzggMi44NzExIDEuMjY5NSAxLjExMzMgMy41MTU2IDEuMTEzM3oiLz4KICA8cGF0aCBkPSJtNjkuNDY1IDE4NS45NXEwLTQuNTg5OCAyLjU3ODEtNy42NTYyIDIuNTc4MS0zLjA4NTkgNy4wMTE3LTMuMDg1OSA0LjQzMzYgMCA3LjAxMTcgMy4wMjczIDIuNTc4MSAzLjAwNzggMi42MzY3IDcuNTE5NXYwLjY0NDUzcTAgNC41ODk4LTIuNTk3NyA3LjY1NjItMi41NzgxIDMuMDY2NC03LjAxMTcgMy4wNjY0LTQuNDUzMSAwLTcuMDUwOC0zLjA2NjQtMi41NzgxLTMuMDY2NC0yLjU3ODEtNy42NTYyem0zLjYxMzMgMC40NDkyMnEwIDMuMTQ0NSAxLjQ4NDQgNS40NDkyIDEuNTAzOSAyLjMwNDcgNC41MzEyIDIuMzA0NyAyLjk0OTIgMCA0LjQ1MzEtMi4yNjU2IDEuNTAzOS0yLjI4NTIgMS41MjM0LTUuNDI5N3YtMC41MDc4MXEwLTMuMTA1NS0xLjUwMzktNS40Mjk3LTEuNTAzOS0yLjM0MzgtNC41MTE3LTIuMzQzOC0yLjk4ODMgMC00LjQ5MjIgMi4zNDM4LTEuNDg0NCAyLjMyNDItMS40ODQ0IDUuNDI5N3oiLz4KICA8cGF0aCBkPSJtMTAyIDE3OC4yNXEtMS43MzgzIDAtMy4wNjY0IDAuOTM3NS0xLjMyODEgMC45Mzc1LTIuMDg5OCAyLjQ0MTR2MTUuMDk4aC0zLjYxMzN2LTIxLjEzM2gzLjQxOGwwLjExNzE5IDIuNjM2N3EyLjQwMjMtMy4wMjczIDYuMzA4Ni0zLjAyNzMgMy4xMDU1IDAgNC45MjE5IDEuNzM4MyAxLjgzNTkgMS43MzgzIDEuODU1NSA1LjgzOTh2MTMuOTQ1aC0zLjYzMjh2LTEzLjg4N3EwLTIuNDgwNS0xLjA5MzgtMy41MzUyLTEuMDc0Mi0xLjA1NDctMy4xMjUtMS4wNTQ3eiIvPgogIDxwYXRoIGQ9Im0xMjQuNDYgMTc4LjM3aC00LjMxNjR2MTguMzU5aC0zLjYxMzN2LTE4LjM1OWgtMy4zMzk4di0yLjc3MzRoMy4zMzk4di0xLjgzNTlxMC0zLjU5MzggMi4wNzAzLTUuNTA3OCAyLjA3MDMtMS45MzM2IDUuNjY0MS0xLjkzMzYgMi4xODc1IDAgNS41MjczIDEuMTkxNGwtMC42MDU0NiAzLjA0NjlxLTIuNTM5MS0wLjk5NjA5LTQuNjY4LTAuOTk2MDktMi4zMjQyIDAtMy4zNTk0IDEuMDU0Ny0xLjAxNTYgMS4wMzUyLTEuMDE1NiAzLjE0NDV2MS44MzU5aDQuMzE2NHptNy4xMDk0LTIuNzczNHYyMS4xMzNoLTMuNjEzM3YtMjEuMTMzeiIvPgogIDxwYXRoIGQ9Im0xNDUuNTIgMjA1LjA3cS0xLjY0MDYgMC00LjAyMzQtMC44MDA3OC0yLjM4MjgtMC44MDA3OC0zLjgwODYtMi44NzExbDEuODk0NS0yLjE0ODRxMi4zNDM4IDIuODUxNiA1LjY2NDEgMi44NTE2IDIuNTU4NiAwIDQuMDgyLTEuNDQ1MyAxLjUyMzQtMS40MjU4IDEuNTIzNC00LjE5OTJ2LTEuODU1NXEtMi4xNDg0IDIuNTE5NS01LjkxOCAyLjUxOTUtMy44MDg2IDAtNi4wNTQ3LTMuMDQ2OS0yLjI0NjEtMy4wNDY5LTIuMjQ2MS03LjY3NTh2LTAuNDEwMTZxMC00Ljg0MzggMi4yMjY2LTcuODEyNSAyLjI0NjEtMi45Njg4IDYuMTEzMy0yLjk2ODggMy44ODY3IDAgNi4wMzUyIDIuNzM0NGwwLjE3NTc4LTIuMzQzOGgzLjI4MTJ2MjAuNjg0cTAgNC4xOTkyLTIuNSA2LjQ4NDQtMi41IDIuMzA0Ny02LjQ0NTMgMi4zMDQ3em0tNS4yNzM0LTE4LjY3MnEwIDMuMTQ0NSAxLjMwODYgNS40MTAyIDEuMzI4MSAyLjI0NjEgNC4yNTc4IDIuMjQ2MSAzLjQzNzUgMCA1LjAzOTEtMy4xMjV2LTkuNjI4OXEtMC42ODM1OS0xLjMwODYtMS44OTQ1LTIuMTY4LTEuMjEwOS0wLjg3ODktMy4xMDU1LTAuODc4OS0yLjk0OTIgMC00LjI3NzMgMi4zMDQ3LTEuMzI4MSAyLjI4NTItMS4zMjgxIDUuNDI5N3oiLz4KICA8cGF0aCBkPSJtMTczLjA2IDE5Ni43My0wLjA3ODEtMi4wODk4cS0yLjA3MDMgMi40ODA1LTYuMTcxOSAyLjQ4MDUtMy4xMDU1IDAtNS4wMTk1LTEuODM1OS0xLjkxNDEtMS44MzU5LTEuOTE0MS02LjA1NDd2LTEzLjYzM2gzLjYxMzN2MTMuNjcycTAgMi44NTE2IDEuMTkxNCAzLjgyODEgMS4yMTA5IDAuOTU3MDMgMi42OTUzIDAuOTU3MDMgNC4wODIgMCA1LjUwNzgtMy4wNjY0di0xNS4zOTFoMy42MzI4djIxLjEzM3oiLz4KICA8cGF0aCBkPSJtMTkwLjQ0IDE3OC42OHEtMy41MzUyIDAtNC44MjQyIDMuMDQ2OXYxNWgtMy42MTMzdi0yMS4xMzNoMy41MTU2bDAuMDc4MSAyLjQyMTlxMS43MzgzLTIuODEyNSA1LjAxOTUtMi44MTI1IDEuMDE1NiAwIDEuNjAxNiAwLjI3MzQ0bC0wLjAxOTUgMy4zNTk0cS0wLjgwMDc4LTAuMTU2MjUtMS43NTc4LTAuMTU2MjV6Ii8+CiAgPHBhdGggZD0ibTIxMS45MSAxOTMuMDRxLTEuMDM1MiAxLjU2MjUtMi45Mjk3IDIuODMyLTEuODk0NSAxLjI1LTUuMDE5NSAxLjI1LTQuNDE0MSAwLTcuMDcwMy0yLjg3MTEtMi42MzY3LTIuODcxMS0yLjYzNjctNy4zNDM4di0wLjgyMDMxcTAtMy40NTcgMS4zMDg2LTUuODc4OSAxLjMyODEtMi40NDE0IDMuNDM3NS0zLjcxMDkgMi4xMDk0LTEuMjg5MSA0LjQ5MjItMS4yODkxIDQuNTMxMiAwIDYuNjAxNiAyLjk2ODggMi4wODk4IDIuOTQ5MiAyLjA4OTggNy4zODI4djEuNjIxMWgtMTQuMjk3cTAuMDc4MSAyLjkxMDIgMS43MTg4IDQuOTYwOSAxLjY2MDIgMi4wMzEyIDQuNTUwOCAyLjAzMTIgMS45MTQxIDAgMy4yNDIyLTAuNzgxMjUgMS4zMjgxLTAuNzgxMjUgMi4zMjQyLTIuMDg5OHptLTguNDE4LTE0Ljg2M3EtMi4xNDg0IDAtMy42MzI4IDEuNTYyNS0xLjQ4NDQgMS41NjI1LTEuODU1NSA0LjQ5MjJoMTAuNTY2di0wLjI3MzQ0cS0wLjEzNjcyLTIuMTA5NC0xLjIzMDUtMy45NDUzLTEuMDc0Mi0xLjgzNTktMy44NDc3LTEuODM1OXoiLz4KICA8cGF0aCBkPSJtMjMwLjAzIDE5Ni43My0wLjE3NTc4LTIuMjY1NnEtMi4xNjggMi42NTYyLTYuMDM1MiAyLjY1NjItMy43MTA5IDAtNS45OTYxLTMuMDA3OC0yLjI4NTItMy4wMDc4LTIuMzI0Mi03LjU1ODZ2LTAuNTY2NDFxMC00Ljg0MzggMi4yODUyLTcuODEyNSAyLjMwNDctMi45Njg4IDYuMDc0Mi0yLjk2ODggMy43MzA1IDAgNS44NTk0IDIuNXYtMTAuOTc3aDMuNjMyOHYzMHptLTEwLjg5OC0xMC4zMzJxMCAzLjE0NDUgMS4zMjgxIDUuNDEwMiAxLjMyODEgMi4yNDYxIDQuMjU3OCAyLjI0NjEgMy4zNTk0IDAgNS0zLjA2NjR2LTkuNzI2NnEtMS42MjExLTMuMDA3OC00Ljk2MDktMy4wMDc4LTIuOTQ5MiAwLTQuMjk2OSAyLjMwNDctMS4zMjgxIDIuMjg1Mi0xLjMyODEgNS40Mjk3eiIvPgogPC9nPgo8L3N2Zz4K'\n        }\n    ];\n    return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n  }\n}\n",
+                "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "7cad1c71-0765-4277-32a8-c87808a0c689"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "7a671e82-7171-d1e2-75cc-565f67598090"
       }
     },
     "states": {
@@ -839,17 +1287,17 @@
         "layouts": {
           "main": {
             "widgets": {
-              "fd9c60ce-666e-c091-362b-1fea85d94f96": {
+              "ab845ee8-ff10-b684-3652-cb49e2d9acbe": {
                 "sizeX": 11,
                 "sizeY": 12,
                 "row": 0,
-                "col": 0
+                "col": 13
               },
-              "ab845ee8-ff10-b684-3652-cb49e2d9acbe": {
+              "7a671e82-7171-d1e2-75cc-565f67598090": {
                 "sizeX": 13,
                 "sizeY": 12,
                 "row": 0,
-                "col": 11
+                "col": 0
               }
             },
             "gridSettings": {
@@ -938,6 +1386,136 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "edit_supermarket_address": {
+        "name": "Edit supermarket address",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "980bd0c3-44e9-a1f9-c8f9-3dc533011fde": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "edit_supermarket_location": {
+        "name": "Edit supermarket location",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "1d0b53f4-7805-fbfd-1cc6-e91d0df3d4bf": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "edit_supermarket_floorplan": {
+        "name": "Edit supermarket floorplan",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "59df0b6f-17dd-3c4c-a484-69c0836246da": {
+                "sizeX": 24,
+                "sizeY": 3,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "edit_supermarket_title": {
+        "name": "edit_supermarket_title",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "00041a85-d8fe-09f2-4aab-1c86d8a7444d": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "supermarkets_map": {
+        "name": "Supermarkets map",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "8a7abdae-72fd-610d-7977-4e211fa999f4": {
+                "sizeX": 24,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
               "mobileRowHeight": 70
             }
           }
@@ -1035,99 +1613,6 @@
                   },
                   "ignoreCase": false,
                   "type": "STRING"
-                },
-                "userInfo": {
-                  "editable": true,
-                  "label": "",
-                  "autogeneratedLabel": true,
-                  "order": 0
-                }
-              }
-            ]
-          }
-        ],
-        "editable": false
-      },
-      "460595a7-fcfd-4938-90b1-e66a5e7da88b": {
-        "id": "460595a7-fcfd-4938-90b1-e66a5e7da88b",
-        "filter": "Supermarket filter",
-        "keyFilters": [
-          {
-            "key": {
-              "type": "ATTRIBUTE",
-              "key": "state"
-            },
-            "valueType": "STRING",
-            "predicates": [
-              {
-                "keyFilterPredicate": {
-                  "operation": "OR",
-                  "predicates": [
-                    {
-                      "keyFilterPredicate": {
-                        "operation": "EQUAL",
-                        "value": {
-                          "defaultValue": "normal",
-                          "dynamicValue": {
-                            "sourceType": "CURRENT_USER",
-                            "sourceAttribute": "displayNormalSupermarket",
-                            "inherit": false
-                          }
-                        },
-                        "ignoreCase": false,
-                        "type": "STRING"
-                      },
-                      "userInfo": {
-                        "editable": true,
-                        "label": "",
-                        "autogeneratedLabel": true,
-                        "order": 0
-                      }
-                    },
-                    {
-                      "keyFilterPredicate": {
-                        "operation": "EQUAL",
-                        "value": {
-                          "defaultValue": "critical",
-                          "dynamicValue": {
-                            "sourceType": "CURRENT_USER",
-                            "sourceAttribute": "displayCriticalSupermarket",
-                            "inherit": false
-                          }
-                        },
-                        "ignoreCase": false,
-                        "type": "STRING"
-                      },
-                      "userInfo": {
-                        "editable": true,
-                        "label": "",
-                        "autogeneratedLabel": true,
-                        "order": 0
-                      }
-                    },
-                    {
-                      "keyFilterPredicate": {
-                        "operation": "EQUAL",
-                        "value": {
-                          "defaultValue": "major",
-                          "dynamicValue": {
-                            "sourceType": "CURRENT_USER",
-                            "sourceAttribute": "displayMajorSupermarket",
-                            "inherit": false
-                          }
-                        },
-                        "ignoreCase": false,
-                        "type": "STRING"
-                      },
-                      "userInfo": {
-                        "editable": true,
-                        "label": "",
-                        "autogeneratedLabel": true,
-                        "order": 0
-                      }
-                    }
-                  ],
-                  "type": "COMPLEX"
                 },
                 "userInfo": {
                   "editable": true,
