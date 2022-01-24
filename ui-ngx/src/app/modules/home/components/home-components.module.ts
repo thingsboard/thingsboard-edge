@@ -178,7 +178,7 @@ import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config
 import { TargetSelectComponent } from '@home/components/scheduler/config/target-select.component';
 import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
 import { WidgetContainerComponent } from '@home/components/widget/widget-container.component';
-import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snpm/snmp-device-profile-transport.module';
+import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snmp/snmp-device-profile-transport.module';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
 import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';

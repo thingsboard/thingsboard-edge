@@ -100,7 +100,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
           name: this.translate.instant('converter.create-new-converter'),
           icon: 'insert_drive_file',
           isEnabled: () => true,
-          onAction: ($event) => this.config.table.addEntity($event)
+          onAction: ($event) => this.config.getTable().addEntity($event)
         },
         {
           name: this.translate.instant('converter.import'),
@@ -148,7 +148,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.importConverter().subscribe(
      (converter) => {
       if (converter) {
-        this.config.table.updateData();
+        this.config.updateData();
       }
     });
   }

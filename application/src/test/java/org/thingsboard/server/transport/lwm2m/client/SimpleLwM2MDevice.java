@@ -33,6 +33,7 @@ package org.thingsboard.server.transport.lwm2m.client;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.client.resource.BaseInstanceEnabler;
 import org.eclipse.leshan.client.servers.ServerIdentity;
+import org.eclipse.leshan.core.Destroyable;
 import org.eclipse.leshan.core.model.ObjectModel;
 import org.eclipse.leshan.core.model.ResourceModel;
 import org.eclipse.leshan.core.node.LwM2mResource;
@@ -40,7 +41,6 @@ import org.eclipse.leshan.core.response.ExecuteResponse;
 import org.eclipse.leshan.core.response.ReadResponse;
 import org.eclipse.leshan.core.response.WriteResponse;
 
-import javax.security.auth.Destroyable;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -118,11 +118,11 @@ public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyabl
                 return WriteResponse.notFound();
             case 14:
                 setUtcOffset((String) value.getValue());
-                fireResourcesChange(resourceId);
+                fireResourceChange(resourceId);
                 return WriteResponse.success();
             case 15:
                 setTimezone((String) value.getValue());
-                fireResourcesChange(resourceId);
+                fireResourceChange(resourceId);
                 return WriteResponse.success();
             default:
                 return super.write(identity, replace, resourceId, value);

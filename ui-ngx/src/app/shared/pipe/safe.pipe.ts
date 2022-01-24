@@ -29,25 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { SharedModule } from '@shared/shared.module';
-import { CommonModule } from '@angular/common';
-import { SnmpDeviceProfileTransportConfigurationComponent } from '@home/components/profile/device/snpm/snmp-device-profile-transport-configuration.component';
-import { SnmpDeviceProfileCommunicationConfigComponent } from '@home/components/profile/device/snpm/snmp-device-profile-communication-config.component';
-import { SnmpDeviceProfileMappingComponent } from '@home/components/profile/device/snpm/snmp-device-profile-mapping.component';
+import { Pipe, PipeTransform } from '@angular/core';
+import { DomSanitizer, SafeHtml, SafeStyle, SafeScript, SafeUrl, SafeResourceUrl } from '@angular/platform-browser';
 
-@NgModule({
-  declarations: [
-    SnmpDeviceProfileTransportConfigurationComponent,
-    SnmpDeviceProfileCommunicationConfigComponent,
-    SnmpDeviceProfileMappingComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule
-  ],
-  exports: [
-    SnmpDeviceProfileTransportConfigurationComponent
-  ]
+@Pipe({
+  name: 'safe'
 })
-export class SnmpDeviceProfileTransportModule { }
+export class SafePipe implements PipeTransform {
+
+  constructor(protected sanitizer: DomSanitizer) {}
+
+  public transform(value: any, type: string): SafeHtml | SafeStyle | SafeScript | SafeUrl | SafeResourceUrl {
+    switch (type) {
+      case 'html': return this.sanitizer.bypassSecurityTrustHtml(value);
+      case 'style': return this.sanitizer.bypassSecurityTrustStyle(value);
+      case 'script': return this.sanitizer.bypassSecurityTrustScript(value);
+      case 'url': return this.sanitizer.bypassSecurityTrustUrl(value);
+      case 'resourceUrl': return this.sanitizer.bypassSecurityTrustResourceUrl(value);
+      default: throw new Error(`Invalid safe type specified: ${type}`);
+    }
+  }
+}

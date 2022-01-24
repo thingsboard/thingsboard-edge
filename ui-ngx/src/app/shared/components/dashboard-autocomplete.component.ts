@@ -34,7 +34,7 @@ import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from 
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
@@ -58,6 +58,8 @@ import { FloatLabelType } from '@angular/material/form-field/form-field';
   }]
 })
 export class DashboardAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit {
+
+  private dirty = false;
 
   selectDashboardFormGroup: FormGroup;
 
@@ -133,10 +135,10 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
           }
           this.updateView(modelValue);
         }),
-        startWith<string | DashboardInfo>(''),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
         distinctUntilChanged(),
-        switchMap(name => this.fetchDashboards(name) )
+        switchMap(name => this.fetchDashboards(name) ),
+        share()
       );
   }
 
@@ -175,18 +177,19 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
         this.dashboardService.getDashboardInfo(value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (dashboard) => {
             this.modelValue = this.useIdValue ? dashboard.id.id : dashboard;
-            this.selectDashboardFormGroup.get('dashboard').patchValue(dashboard, {emitEvent: true});
+            this.selectDashboardFormGroup.get('dashboard').patchValue(dashboard, {emitEvent: false});
           }
         );
       } else {
         this.modelValue = this.useIdValue ? value.id.id : value;
-        this.selectDashboardFormGroup.get('dashboard').patchValue(value, {emitEvent: true});
+        this.selectDashboardFormGroup.get('dashboard').patchValue(value, {emitEvent: false});
       }
     } else {
       this.modelValue = null;
-      this.selectDashboardFormGroup.get('dashboard').patchValue(null, {emitEvent: true});
+      this.selectDashboardFormGroup.get('dashboard').patchValue('', {emitEvent: false});
       this.selectFirstDashboardIfNeeded();
     }
+    this.dirty = true;
   }
 
   updateView(value: DashboardInfo | string | null) {
@@ -231,8 +234,15 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
     return dashboardsObservable;
   }
 
+  onFocus() {
+    if (this.dirty) {
+      this.selectDashboardFormGroup.get('dashboard').updateValueAndValidity({onlySelf: true});
+      this.dirty = false;
+    }
+  }
+
   clear() {
-    this.selectDashboardFormGroup.get('dashboard').patchValue(null, {emitEvent: true});
+    this.selectDashboardFormGroup.get('dashboard').patchValue('');
     setTimeout(() => {
       this.dashboardInput.nativeElement.blur();
       this.dashboardInput.nativeElement.focus();

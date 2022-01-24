@@ -368,7 +368,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([device.id.id], {relativeTo: config.table.route});
+    const url = this.router.createUrlTree([device.id.id], {relativeTo: config.getActivatedRoute()});
     this.router.navigateByUrl(url);
   }
 
@@ -376,7 +376,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     /*this.homeDialogs.importEntities(EntityType.DEVICE).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('deviceSaved');
-        this.config.table.updateData();
+        this.config.updateData();
       }
     });
   }*/
@@ -387,12 +387,12 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        entitiesTableConfig: this.config.table.entitiesTableConfig
+        entitiesTableConfig: this.config
       }
     }).afterClosed().subscribe(
       (res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       }
     );
@@ -413,7 +413,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -432,7 +432,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         if (res) {
           this.deviceService.makeDevicePublic(device.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -455,7 +455,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -484,7 +484,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         if (res) {
           this.deviceService.unassignDeviceFromCustomer(device.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData(this.config.componentsData.deviceScope !== 'tenant');
             }
           );
         }
@@ -512,7 +512,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }

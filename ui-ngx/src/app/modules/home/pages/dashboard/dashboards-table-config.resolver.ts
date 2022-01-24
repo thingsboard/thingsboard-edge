@@ -107,7 +107,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
       return this.dashboardService.saveDashboard(dashboard as Dashboard);
     };
     this.config.onEntityAction = action => this.onDashboardAction(action);
-    this.config.detailsReadonly = () => (this.config.componentsData.dashboardScope === 'customer_user' || this.config.componentsData.dashboardScope === 'edge_customer_user');
+    this.config.detailsReadonly = () => (this.config.componentsData.dashboardScope === 'customer_user' ||
+      this.config.componentsData.dashboardScope === 'edge_customer_user');
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DashboardInfo | Dashboard>> {
@@ -146,7 +147,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         this.config.cellActionDescriptors = this.configureCellActions(this.config.componentsData.dashboardScope);
         this.config.groupActionDescriptors = this.configureGroupActions(this.config.componentsData.dashboardScope);
         this.config.addActionDescriptors = this.configureAddActions(this.config.componentsData.dashboardScope);
-        this.config.addEnabled = !(this.config.componentsData.dashboardScope === 'customer_user' || this.config.componentsData.dashboardScope === 'edge_customer_user');
+        this.config.addEnabled = !(this.config.componentsData.dashboardScope === 'customer_user' ||
+          this.config.componentsData.dashboardScope === 'edge_customer_user');
         this.config.entitiesDeleteEnabled = this.config.componentsData.dashboardScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.dashboardScope === 'tenant';
         return this.config;
@@ -323,7 +325,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           name: this.translate.instant('dashboard.create-new-dashboard'),
           icon: 'insert_drive_file',
           isEnabled: () => true,
-          onAction: ($event) => this.config.table.addEntity($event)
+          onAction: ($event) => this.config.getTable().addEntity($event)
         },
         {
           name: this.translate.instant('dashboard.import'),
@@ -363,7 +365,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.importDashboard(null).subscribe(
       (dashboard) => {
         if (dashboard) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       }
     );
@@ -391,7 +393,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -411,7 +413,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           }
         }).afterClosed()
           .subscribe(() => {
-            this.config.table.updateData();
+            this.config.updateData();
           });
       }
     );
@@ -431,7 +433,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         if (res) {
           this.dashboardService.makeDashboardPrivate(dashboard.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }
@@ -471,7 +473,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     }).afterClosed()
       .subscribe((res) => {
         if (res) {
-          this.config.table.updateData();
+          this.config.updateData();
         }
       });
   }
@@ -490,7 +492,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         if (res) {
           this.dashboardService.unassignDashboardFromCustomer(customerId, dashboard.id.id).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData(this.config.componentsData.dashboardScope !== 'tenant');
             }
           );
         }
@@ -518,7 +520,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.config.table.updateData();
+              this.config.updateData();
             }
           );
         }

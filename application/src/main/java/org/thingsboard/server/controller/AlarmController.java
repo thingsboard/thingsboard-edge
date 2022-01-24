@@ -349,6 +349,7 @@ public class AlarmController extends BaseController {
         }
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
+        accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         try {
             if (getCurrentUser().isCustomerUser()) {
                 return checkNotNull(alarmService.findCustomerAlarms(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator)).get());

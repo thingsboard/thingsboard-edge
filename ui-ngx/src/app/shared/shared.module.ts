@@ -191,6 +191,7 @@ import { HELP_MARKDOWN_COMPONENT_TOKEN, SHARED_MODULE_TOKEN } from '@shared/comp
 import { TbMarkdownComponent } from '@shared/components/markdown.component';
 import { ProtobufContentComponent } from '@shared/components/protobuf-content.component';
 import { CssComponent } from '@shared/components/css.component';
+import { SafePipe } from '@shared/pipe/safe.pipe';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -205,6 +206,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TruncatePipe,
     TbJsonPipe,
     FileSizePipe,
+    SafePipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -311,6 +313,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TruncatePipe,
     TbJsonPipe,
     FileSizePipe,
+    SafePipe,
     SelectableColumnsPipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
@@ -523,6 +526,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbJsonPipe,
     KeyboardShortcutPipe,
     FileSizePipe,
+    SafePipe,
     SelectableColumnsPipe,
     RouterModule,
     HasGenericPermissionPipe,

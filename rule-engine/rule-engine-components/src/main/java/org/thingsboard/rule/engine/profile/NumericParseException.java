@@ -28,44 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.rule.engine.profile;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.HsqlDao;
-
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-
-@Service
-@Slf4j
-@HsqlDao
-@Profile("install")
-public class HsqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
-        implements EntityDatabaseSchemaService {
-    protected HsqlEntityDatabaseSchemaService() {
-        super("schema-entities-hsql.sql", "schema-entities-idx.sql");
-    }
-
-    private final String schemaTypesSql = "schema-types-hsql.sql";
-
-    @Override
-    public void createDatabaseSchema(boolean createIndexes) throws Exception {
-
-        log.info("Installing SQL DataBase types part: " + schemaTypesSql);
-
-        Path schemaFile = Paths.get(installScripts.getDataDir(), SQL_DIR, schemaTypesSql);
-        try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-            String sql = new String(Files.readAllBytes(schemaFile), Charset.forName("UTF-8"));
-            conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to load initial thingsboard database schema
-        }
-
-        super.createDatabaseSchema(createIndexes);
+public class NumericParseException extends RuntimeException {
+    public NumericParseException(String message) {
+        super(message);
     }
 }
-

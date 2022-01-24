@@ -63,7 +63,7 @@ import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
 import { EdgeService } from '@core/http/edge.service';
 import { concatMap, map } from 'rxjs/operators';
-import { EntityService } from "@core/http/entity.service";
+import { EntityService } from '@core/http/entity.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
@@ -109,9 +109,9 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
 
   private onUpdate(attributes: any): void {
     this.queueStartTs = 0;
-    let edge = attributes.reduce(function (map, attribute) {
-      map[attribute.key] = attribute;
-      return map;
+    const edge = attributes.reduce((attrMap, attribute) => {
+      attrMap[attribute.key] = attribute;
+      return attrMap;
     }, {});
     this.queueStartTs = edge.queueStartTs && edge.queueStartTs.value ? edge.queueStartTs.value : 0;
   }
@@ -129,7 +129,8 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
       new EntityTableColumn<EdgeEvent>('status', 'event.status', '10%',
         (entity) => this.updateEdgeEventStatus(entity.createdTime),
         entity => ({
-          color: this.isPending(entity.createdTime) ? edgeEventStatusColor.get(EdgeEventStatus.PENDING) : edgeEventStatusColor.get(EdgeEventStatus.DEPLOYED)
+          color: this.isPending(entity.createdTime) ? edgeEventStatusColor.get(EdgeEventStatus.PENDING) :
+            edgeEventStatusColor.get(EdgeEventStatus.DEPLOYED)
         }), false),
       new EntityActionTableColumn<EdgeEvent>('data', 'event.data',
         {
@@ -139,7 +140,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
           onAction: ($event, entity) =>
             {
               this.prepareEdgeEventContent(entity).subscribe(
-                (content) => this.showEdgeEventContent($event, content,'event.data'),
+                (content) => this.showEdgeEventContent($event, content, 'event.data'),
                 () => this.showEntityNotFoundError()
               );
             }
@@ -147,7 +148,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
         '40px'),
     );
     if (updateTableColumns) {
-      this.table.columnsUpdated(true);
+      this.getTable().columnsUpdated(true);
     }
   }
 

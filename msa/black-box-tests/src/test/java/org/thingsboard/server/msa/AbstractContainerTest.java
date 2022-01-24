@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
@@ -80,6 +81,7 @@ public abstract class AbstractContainerTest {
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
     protected ObjectMapper mapper = new ObjectMapper();
+    protected JsonParser jsonParser = new JsonParser();
     protected static final String TELEMETRY_KEY = "temperature";
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;

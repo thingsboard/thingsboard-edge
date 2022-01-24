@@ -161,7 +161,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
-      const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: config.table.route});
+      const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: config.getActivatedRoute()});
       this.router.navigateByUrl(url);
     }
   }
@@ -182,7 +182,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     }
     this.importExport.importDashboard(customerId, entityGroupId).subscribe((res) => {
       if (res) {
-        config.table.updateData();
+        config.updateData();
       }
     });
   }

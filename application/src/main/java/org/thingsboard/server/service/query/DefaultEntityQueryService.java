@@ -125,7 +125,7 @@ public class DefaultEntityQueryService implements EntityQueryService {
                 entitiesMap.put(entityData.getEntityId(), entityData);
             }
             PageData<AlarmData> alarms = alarmService.findAlarmDataByQueryForEntities(securityUser.getTenantId(),
-                    securityUser.getCustomerId(), securityUser.getUserPermissions(), query, entitiesMap.keySet());
+                    securityUser.getUserPermissions(), query, entitiesMap.keySet());
             for (AlarmData alarmData : alarms.getData()) {
                 EntityId entityId = alarmData.getEntityId();
                 if (entityId != null) {
