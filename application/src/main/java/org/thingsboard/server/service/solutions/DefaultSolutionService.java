@@ -94,6 +94,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -125,6 +126,8 @@ import org.thingsboard.server.service.solutions.data.definition.TenantDefinition
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserGroupDefinition;
 import org.thingsboard.server.service.solutions.data.emulator.DeviceEmulatorLauncher;
+import org.thingsboard.server.service.solutions.data.names.RandomNameData;
+import org.thingsboard.server.service.solutions.data.names.RandomNameUtil;
 import org.thingsboard.server.service.solutions.data.solution.SolutionDescriptor;
 import org.thingsboard.server.service.solutions.data.solution.SolutionInstallResponse;
 import org.thingsboard.server.service.solutions.data.solution.SolutionTemplate;
@@ -747,7 +750,7 @@ public class DefaultSolutionService implements SolutionService {
             Customer entity = new Customer();
             entity.setTenantId(ctx.getTenantId());
             entity.setTitle(entityDef.getName());
-            entity.setEmail(randomize(entityDef.getEmail()));
+            entity.setEmail(randomize(entityDef.getEmail(), RandomNameUtil.next()));
             entity.setCountry(entityDef.getCountry());
             entity.setCity(entityDef.getCity());
             entity.setState(entityDef.getState());
@@ -804,24 +807,7 @@ public class DefaultSolutionService implements SolutionService {
 
             for (UserDefinition uDef : entityDef.getUsers()) {
                 EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), uDef.getGroup());
-                User user = new User();
-                if (!StringUtils.isEmpty(uDef.getFirstname())) {
-                    user.setFirstName(uDef.getFirstname());
-                }
-                if (!StringUtils.isEmpty(uDef.getLastname())) {
-                    user.setLastName(uDef.getLastname());
-                }
-                user.setAuthority(Authority.CUSTOMER_USER);
-                if (uDef.getName().equals("$customerEmail")) {
-                    uDef.setName(entity.getEmail());
-                } else {
-                    uDef.setName(randomize(uDef.getName()));
-                }
-                user.setEmail(uDef.getName());
-                user.setCustomerId(entity.getId());
-                user.setTenantId(ctx.getTenantId());
-                log.info("[{}] Saving user: {}", entity.getId(), user);
-                user = userService.saveUser(user);
+                User user = createUser(ctx, entity, uDef);
                 // TODO: get activation token, etc..
                 UserCredentials credentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                 credentials.setEnabled(true);
@@ -850,9 +836,53 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private String randomize(String src) {
-        return src != null ?
-                src.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase()) : null;
+    private User createUser(SolutionInstallContext ctx, Customer entity, UserDefinition uDef) {
+        int attempts = 0;
+        Exception finalE = null;
+        while (attempts < 10) {
+            try {
+                var randomName = RandomNameUtil.next();
+                User user = new User();
+                if (!StringUtils.isEmpty(uDef.getFirstname())) {
+                    user.setFirstName(randomize(uDef.getFirstname(), randomName));
+                } else {
+                    user.setFirstName(randomName.getFirstName());
+                }
+                if (!StringUtils.isEmpty(uDef.getLastname())) {
+                    user.setLastName(randomize(uDef.getLastname(), randomName));
+                } else {
+                    user.setLastName(randomName.getLastName());
+                }
+                user.setAuthority(Authority.CUSTOMER_USER);
+                if (uDef.getName().equals("$customerEmail")) {
+                    user.setEmail(entity.getEmail());
+                } else {
+                    user.setEmail(randomize(uDef.getName(), randomName));
+                }
+                user.setCustomerId(entity.getId());
+                user.setTenantId(ctx.getTenantId());
+                log.info("[{}] Saving user: {}", entity.getId(), user);
+                user = userService.saveUser(user);
+                uDef.setName(user.getEmail());
+                return user;
+            } catch (Exception e) {
+                finalE = e;
+                attempts++;
+            }
+        }
+        throw new RuntimeException(finalE);
+    }
+
+    private String randomize(String src, RandomNameData data) {
+        if (src == null) {
+            return null;
+        } else {
+            return src
+                    .replace("$randomFirstName", data.getFirstName())
+                    .replace("$randomLastName", data.getLastName())
+                    .replace("$randomEmail", data.getEmail())
+                    .replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase());
+        }
     }
 
     private EntityGroup getUserGroupInfo(TenantId tenantId, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
