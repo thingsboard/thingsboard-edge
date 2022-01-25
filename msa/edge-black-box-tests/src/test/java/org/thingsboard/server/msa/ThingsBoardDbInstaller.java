@@ -32,6 +32,7 @@ package org.thingsboard.server.msa;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class ThingsBoardDbInstaller extends ExternalResource {
 
     private final static String POSTGRES_DATA_VOLUME = "tb-postgres-test-data-volume";
@@ -56,37 +58,42 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
-        List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
-                new File("./../../docker-edge/docker-compose.postgres.yml"),
-                new File("./../../docker-edge/docker-compose.postgres.volumes.yml"));
+        try {
+            List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
+                    new File("./../../docker-edge/docker-compose.postgres.yml"),
+                    new File("./../../docker-edge/docker-compose.postgres.volumes.yml"));
 
-        String identifier = Base58.randomString(6).toLowerCase();
-        String project = identifier + Base58.randomString(6).toLowerCase();
+            String identifier = Base58.randomString(6).toLowerCase();
+            String project = identifier + Base58.randomString(6).toLowerCase();
 
-        postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
-        tbLogVolume = project + "_" + TB_LOG_VOLUME;
-        tbEdgeLogVolume = project + "_" + TB_EDGE_LOG_VOLUME;
+            postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
+            tbLogVolume = project + "_" + TB_LOG_VOLUME;
+            tbEdgeLogVolume = project + "_" + TB_EDGE_LOG_VOLUME;
 
-        dockerCompose = new DockerComposeExecutor(composeFiles, project);
+            dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
-        Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge").filename(".env").load();
+            Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge").filename(".env").load();
 
-        env = new HashMap<>();
-        for (DotenvEntry entry : dotenv.entries()) {
-            env.put(entry.getKey(), entry.getValue());
+            env = new HashMap<>();
+            for (DotenvEntry entry : dotenv.entries()) {
+                env.put(entry.getKey(), entry.getValue());
+            }
+            env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
+            env.put("TB_LOG_VOLUME", tbLogVolume);
+            env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
+
+            env.put("DOCKER_REPO", "thingsboard");
+            env.put("TB_VERSION", "3.3.3PE-SNAPSHOT");
+
+            env.put("EDGE_DOCKER_REPO", "thingsboard");
+            env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
+            env.put("TB_EDGE_VERSION", "3.3.3EDGE-SNAPSHOT");
+
+            dockerCompose.withEnv(env);
+        } catch (Exception e) {
+            log.error("Failed to create ThingsBoardDbInstaller", e);
+            throw e;
         }
-        env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
-        env.put("TB_LOG_VOLUME", tbLogVolume);
-        env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
-
-        env.put("DOCKER_REPO", "thingsboard");
-        env.put("TB_VERSION", "3.3.3PE-SNAPSHOT");
-
-        env.put("EDGE_DOCKER_REPO", "thingsboard");
-        env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
-        env.put("TB_EDGE_VERSION", "3.3.3EDGE-SNAPSHOT");
-
-        dockerCompose.withEnv(env);
     }
 
     public Map<String, String> getEnv() {
@@ -119,33 +126,45 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             try {
                 dockerCompose.withCommand("down -v");
                 dockerCompose.invokeCompose();
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                log.error("Failed [before]", e);
+            }
         }
     }
 
     @Override
     protected void after() {
-        copyLogs(tbLogVolume, "./target/tb-logs/");
-        copyLogs(tbEdgeLogVolume, "./target/tb-edge-logs/");
+        try {
+            copyLogs(tbLogVolume, "./target/tb-logs/");
+            copyLogs(tbEdgeLogVolume, "./target/tb-edge-logs/");
 
-        dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume);
-        dockerCompose.invokeDocker();
+            dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume);
+            dockerCompose.invokeDocker();
+        } catch (Exception e) {
+            log.error("Failed [after]", e);
+            throw e;
+        }
     }
 
     private void copyLogs(String volumeName, String targetDir) {
-        File tbLogsDir = new File(targetDir);
-        tbLogsDir.mkdirs();
+        try {
+            File tbLogsDir = new File(targetDir);
+            tbLogsDir.mkdirs();
 
-        String logsContainerName = "tb-logs-container-" + RandomStringUtils.randomAlphanumeric(10);
+            String logsContainerName = "tb-logs-container-" + RandomStringUtils.randomAlphanumeric(10);
 
-        dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
-        dockerCompose.invokeDocker();
+            dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
+            dockerCompose.invokeDocker();
 
-        dockerCompose.withCommand("cp " + logsContainerName + ":/root/. "+tbLogsDir.getAbsolutePath());
-        dockerCompose.invokeDocker();
+            dockerCompose.withCommand("cp " + logsContainerName + ":/root/. "+tbLogsDir.getAbsolutePath());
+            dockerCompose.invokeDocker();
 
-        dockerCompose.withCommand("rm -f " + logsContainerName);
-        dockerCompose.invokeDocker();
+            dockerCompose.withCommand("rm -f " + logsContainerName);
+            dockerCompose.invokeDocker();
+        } catch (Exception e) {
+            log.error("Failed [copy logs]", e);
+            throw e;
+        }
     }
 
 }
