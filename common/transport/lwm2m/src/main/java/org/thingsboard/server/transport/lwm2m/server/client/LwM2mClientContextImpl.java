@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.core.node.LwM2mPath;
 import org.eclipse.leshan.server.registration.Registration;
+import org.eclipse.leshan.server.registration.RegistrationStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
     private final LwM2MSessionManager sessionManager;
     private final TransportDeviceProfileCache deviceProfileCache;
     private final LwM2MModelConfigService modelConfigService;
+    private final RegistrationStore registrationStore;
 
     @Autowired
     @Lazy
@@ -133,8 +135,11 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
 
     private void updateFetchedClient(String nodeId, LwM2mClient client) {
         boolean updated = false;
-        if (client.getRegistration() != null) {
-            lwM2mClientsByRegistrationId.put(client.getRegistration().getId(), client);
+        Registration registration = registrationStore.getRegistrationByEndpoint(client.getEndpoint());
+
+        if (registration != null) {
+            client.setRegistration(registration);
+            lwM2mClientsByRegistrationId.put(registration.getId(), client);
         }
         if (client.getSession() != null) {
             client.refreshSessionId(nodeId);

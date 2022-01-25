@@ -47,8 +47,8 @@
     ],
     "users": [
       {
-        "name": "user.retailerA.$random@thingsboard.org",
-        "firstname": "John",
+        "name": "$randomEmail@retailerA.com",
+        "firstname": "$randomFirstName",
         "lastname": "User",
         "password": "customer",
         "group": "Smart Retail Users",
@@ -61,8 +61,8 @@
         }
       },
       {
-        "name": "admin.retailerA.$random@thingsboard.org",
-        "firstname": "John",
+        "name": "$randomEmail@retailerA.com",
+        "firstname": "$randomFirstName",
         "lastname": "Admin",
         "password": "customer",
         "group": "Smart Retail Administrators",
@@ -124,8 +124,8 @@
     ],
     "users": [
       {
-        "name": "user.retailerB.$random@thingsboard.org",
-        "firstname": "John",
+        "name": "$randomEmail@retailerB.com",
+        "firstname": "$randomFirstName",
         "lastname": "User",
         "password": "customer",
         "group": "Smart Retail Users",
@@ -138,8 +138,8 @@
         }
       },
       {
-        "name": "admin.retailerB.$random@thingsboard.org",
-        "firstname": "John",
+        "name": "$randomEmail@retailerB.com",
+        "firstname": "$randomFirstName",
         "lastname": "Admin",
         "password": "customer",
         "group": "Smart Retail Administrators",

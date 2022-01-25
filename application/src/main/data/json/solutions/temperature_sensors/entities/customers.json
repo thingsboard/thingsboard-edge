@@ -24,9 +24,9 @@
     ],
     "users": [
       {
-        "name": "john.$random@customer.com",
-        "firstname": "John",
-        "lastname": "Doe",
+        "name": "$randomEmail@customer.com",
+        "firstname": "$randomFirstName",
+        "lastname": "$randomLastName",
         "password": "customer",
         "group": "Customer Administrators",
         "attributes": {
@@ -37,9 +37,9 @@
         }
       },
       {
-        "name": "jane.$random@customer.com",
-        "firstname": "Jane",
-        "lastname": "Doe",
+        "name": "$randomEmail@customer.com",
+        "firstname": "$randomFirstName",
+        "lastname": "$randomLastName",
         "password": "customer",
         "group": "Customer Administrators",
         "attributes": {

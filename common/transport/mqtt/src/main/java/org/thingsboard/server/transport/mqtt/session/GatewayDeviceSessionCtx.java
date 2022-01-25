@@ -34,6 +34,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
@@ -153,6 +154,11 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     @Override
     public void onToServerRpcResponse(ToServerRpcResponseMsg toServerResponse) {
         // This feature is not supported in the TB IoT Gateway yet.
+    }
+
+    @Override
+    public void onDeviceDeleted(DeviceId deviceId) {
+        parent.onDeviceDeleted(this.getSessionInfo().getDeviceName());
     }
 
     private boolean isAckExpected(MqttMessage message) {

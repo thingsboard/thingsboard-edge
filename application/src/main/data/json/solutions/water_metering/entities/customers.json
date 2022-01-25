@@ -42,9 +42,9 @@
     ],
     "users": [
       {
-        "name": "$customerEmail",
-        "firstname": "John",
-        "lastname": "Doe",
+        "name": "$randomEmail@thingsboard.org",
+        "firstname": "$randomFirstName",
+        "lastname": "$randomLastName",
         "password": "customer",
         "group": "Customer Users",
         "attributes": {
@@ -99,9 +99,9 @@
     ],
     "users": [
       {
-        "name": "$customerEmail",
-        "firstname": "Jane",
-        "lastname": "Doe",
+        "name": "$randomEmail@thingsboard.org",
+        "firstname": "$randomFirstName",
+        "lastname": "$randomLastName",
         "password": "customer",
         "group": "Customer Users",
         "attributes": {
