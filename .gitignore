@@ -30,7 +30,6 @@ pom.xml.versionsBackup
 **/build
 **/target
 **/Californium.properties
-**/.env
 .instance_id
 rebuild-docker.sh
 .run/**
