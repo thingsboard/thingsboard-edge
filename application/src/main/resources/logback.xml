@@ -42,6 +42,8 @@
 
     <logger name="org.thingsboard.server" level="INFO" />
 
+    <logger name="org.thingsboard.server.service.cloud" level="TRACE" />
+
 <!--    <logger name="org.thingsboard.server.service.queue" level="TRACE" />-->
 <!--    <logger name="org.thingsboard.server.service.transport" level="TRACE" />-->
 <!--    <logger name="org.thingsboard.server.queue.memory.InMemoryStorage" level="DEBUG" />-->
