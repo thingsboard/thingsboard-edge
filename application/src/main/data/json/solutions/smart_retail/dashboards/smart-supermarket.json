@@ -927,6 +927,19 @@
                   "funcBody": null,
                   "usePostProcessing": null,
                   "postFuncBody": null
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#7b1fa2",
+                  "settings": {},
+                  "_hash": 0.21345101236172837,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 }
               ]
             },

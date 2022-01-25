@@ -70,7 +70,7 @@
 
         },
         "dashboard": {
-          "name": "Smart Supermarket",
+          "name": "Smart Supermarket Admin",
           "fullScreen": true
         }
       }
@@ -147,7 +147,7 @@
 
         },
         "dashboard": {
-          "name": "Smart Supermarket",
+          "name": "Smart Supermarket Admin",
           "fullScreen": true
         }
       }
