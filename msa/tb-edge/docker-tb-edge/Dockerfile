@@ -49,6 +49,8 @@ RUN mv /tmp/logback.xml ${pkg.installFolder}/conf \
 
 ENV DATA_FOLDER=/data
 
+ENV CONF_FOLDER="${pkg.installFolder}/conf"
+
 ENV SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
 ENV SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
 ENV SPRING_DATASOURCE_USERNAME=postgres
