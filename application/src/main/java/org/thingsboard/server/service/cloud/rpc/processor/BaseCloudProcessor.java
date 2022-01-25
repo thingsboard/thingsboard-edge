@@ -86,10 +86,10 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
-import org.thingsboard.server.service.cloud.rpc.constructor.AlarmMsgConstructor;
-import org.thingsboard.server.service.cloud.rpc.constructor.DeviceMsgConstructor;
-import org.thingsboard.server.service.cloud.rpc.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.cloud.rpc.constructor.RelationMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 

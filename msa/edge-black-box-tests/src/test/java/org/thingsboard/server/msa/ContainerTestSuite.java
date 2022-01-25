@@ -64,9 +64,6 @@ public class ContainerTestSuite {
     @ClassRule
     public static ThingsBoardDbInstaller installTb = new ThingsBoardDbInstaller();
 
-//    @ClassRule
-//    public static TbEdgeInstaller installEdge = new TbEdgeInstaller();
-
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         HashMap<String, String> env = new HashMap<>();

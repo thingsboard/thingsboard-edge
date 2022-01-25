@@ -197,7 +197,7 @@
                     <includes>
                         <include>**/*TestSuite.java</include>
                     </includes>
-                    <skipTests>${blackBoxTests.skip}</skipTests>
+                    <skipTests>${edgeBlackBoxTests.skip}</skipTests>
                 </configuration>
             </plugin>
         </plugins>
