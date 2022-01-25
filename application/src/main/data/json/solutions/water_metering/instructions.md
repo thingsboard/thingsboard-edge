@@ -81,6 +81,8 @@ Meters "WM0000123" and "WM0000124" are assigned to a newly created customer "Wat
 You may notice that "Water Metering Customer A" has a user, and the "Water Metering User Dashboard" dashboard is assigned to the user by default.
 You may create more Customers and more Users via <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Water Metering Tenant Dashboard"</a>.
 
+**User list**
+
 ${user_list}
 
 
