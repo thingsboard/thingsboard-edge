@@ -6370,7 +6370,7 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "0px",
           "settings": {
-            "fitMapBounds": false,
+            "fitMapBounds": true,
             "latKeyName": "latitude",
             "lngKeyName": "longitude",
             "showLabel": true,
