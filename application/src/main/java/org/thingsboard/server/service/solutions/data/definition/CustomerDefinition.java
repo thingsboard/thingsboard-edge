@@ -41,6 +41,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CustomerDefinition extends BaseEntityDefinition {
 
+    private String group;
     private String email;
     private String country;
     private String city;

@@ -766,10 +766,12 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void provisionCustomers(SolutionInstallContext ctx) {
+    private void provisionCustomers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
         List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
         });
         for (CustomerDefinition entityDef : customers) {
+            EntityGroup groupEntity = getCustomerGroupInfo(ctx, ctx.getTenantId(), entityDef.getGroup());
+
             Customer entity = new Customer();
             entity.setTenantId(ctx.getTenantId());
             entity.setTitle(entityDef.getName());
@@ -789,6 +791,8 @@ public class DefaultSolutionService implements SolutionService {
 
             entityDef.getAssetGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.ASSET));
             entityDef.getDeviceGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.DEVICE));
+
+            entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupEntity.getId(), Collections.singletonList(entity.getId()));
         }
     }
 
@@ -910,15 +914,23 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
+    private EntityGroup getCustomerGroupInfo(SolutionInstallContext ctx, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
+        return getGroupInfo(ctx, entityId, EntityType.CUSTOMER, ugName);
+    }
+
     private EntityGroup getUserGroupInfo(SolutionInstallContext ctx, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
-        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entityId, EntityType.USER, ugName).get();
+        return getGroupInfo(ctx, entityId, EntityType.USER, ugName);
+    }
+
+    private EntityGroup getGroupInfo(SolutionInstallContext ctx, EntityId entityId, EntityType entityType, String ugName) throws ExecutionException, InterruptedException {
+        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entityId, entityType, ugName).get();
         EntityGroup ugEntity;
         if (ugEntityOpt.isPresent()) {
             ugEntity = ugEntityOpt.get();
         } else {
             EntityGroup entityGroup = new EntityGroup();
             entityGroup.setName(ugName);
-            entityGroup.setType(EntityType.USER);
+            entityGroup.setType(entityType);
             ugEntity = entityGroupService.saveEntityGroup(ctx.getTenantId(), entityId, entityGroup);
             ctx.register(ugEntity.getId());
         }
