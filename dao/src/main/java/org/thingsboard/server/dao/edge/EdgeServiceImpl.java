@@ -363,13 +363,13 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public PageData<Edge> findEdgesByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
-        log.trace("Executing findEdgesByTenantIdAndEntityGroupId, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
-        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
     }
 
     private DataValidator<Edge> edgeValidator =
@@ -479,13 +479,13 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
                         return createEmptyEdgeIdPageData();
                     }
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink));
+                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
                 case ENTITY_GROUP:
                     EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                     if (groupType == null) {
                         groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
                     }
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink));
+                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
                 case RULE_CHAIN:
                 case SCHEDULER_EVENT:
                     return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
