@@ -7908,7 +7908,7 @@
     },
     "states": {
       "default": {
-        "name": "Supermarket Administration",
+        "name": "Supermarkets",
         "root": true,
         "layouts": {
           "main": {
