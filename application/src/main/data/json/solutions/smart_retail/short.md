@@ -1,10 +1,12 @@
-Template for smart supermarket demonstrating common platform capabilities.
+Template for smart supermarket solution with the following use cases:
 
 * Monitor inventory levels using smart shelves;
 * Detect issues with chillers and freezers;
-* Optimize energy consumption;
-* Monitor and control HVAC;
+* Control liquid levels in sanitizers and soap dispensers;
 * Monitor usage of trash and recycle bins;
-* Control liquid levels in sanitizer and dispensers.
+* Raise alarms on movement during night hours and fire alarms;
+* Be aware of doors that are left open;
+* Control prolonged occupancy of critical areas;
+
 
 Press install button to get started!

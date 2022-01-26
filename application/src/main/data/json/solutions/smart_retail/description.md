@@ -5,24 +5,27 @@ You may easily adopt the template to your needs and monitor other types of retai
 We share this and other templates with you to make the on-boarding faster and simpler.
 
 #### Benefits
-No need to develop specific rule chains, set up alarm rules, configure transport, and spend time with multi-layer interactive dashboard development
+
+No need to develop specific rule chains, set up alarm rules, and spend time with multi-layer interactive dashboard development
 One-click install and uninstall of the template.
 
 #### What’s available?
-As the Tenant Administrator you get a dashboard to provision multiple supermarkets.
-You will be able to upload floor plan and layout the sensors.
 
-As a Supermarket Administrator you get a dashboard to browse the state of the supermarket.
-You may configure and browse alarms for various devices:
+As a Tenant Administrator, you get a "Smart Supermarket Administration" dashboard to provision multiple customers.
+We assume you have manufactured or acquired different types of devices listed below. 
+You will be able to connect real devices to the platform and assign them to your Customers.
+Either you our your customers will upload the floor plan of the supermarket and position sensors on the plan.
+Customer users are also able to configure the thresholds to raise the alarms.
+
+We have configured the platform to raise alarms on data that arrives from various devices using device profiles:
 
 * "Smart Shelf" devices generate alarm when shelf weight is below a defined threshold;
 * "Chiller" and "Freezer" devices generate alarm when temperature is above the defined threshold;
 * "Smart bin" sensor generates alarm when the bin level is above the defined threshold;
-* "Reverse Vending Machines" inform if they are low on coins or overloaded with cans;
-* "Coffee Vending Machines" inform if they are low on milk or coffee beans;
-* "Light" and "Motion" sensors raise alerts if someone is in the store after working hours;
-* "Fire Alarm" devices react on smoke and fire;
-* "Liquid Level" devices react on low liquid levels in sanitizers and dispensers;
+* "Door" and "Motion" sensors raise alerts if someone is in the store after working hours;
+* "Smoke Sensor" devices react on smoke and fire;
+* "Liquid Level Sensor" devices raise alarms on low liquid levels in sanitizers and soap dispensers;
+* "Occupancy Sensor" devices raise alarms on prolonged occupancy of critical rooms;
 
 #### How to use?
 

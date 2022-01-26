@@ -56,8 +56,6 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
-import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -102,7 +100,6 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -117,6 +114,7 @@ import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
+import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
 import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
 import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
 import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
@@ -488,6 +486,12 @@ public class DefaultSolutionService implements SolutionService {
                 "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
                         "/" + ctx.getSolutionInstructions().getDashboardId().getId());
 
+        for(DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
+            template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_URL}",
+                    "/dashboardGroups/" + dashboardLinkInfo.getEntityGroupId().getId() +
+                            "/" + dashboardLinkInfo.getDashboardId().getId());
+        }
+
         StringBuilder devList = new StringBuilder();
 
         devList.append("| Device name | Access token | Customer name |");
@@ -563,8 +567,7 @@ public class DefaultSolutionService implements SolutionService {
         for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
             // Rule chains should be ordered correctly to exclude dependencies.
             Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getFile());
-            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
-            replaceIdsRecursively(ctx, ruleChainJson);
+            JsonNode ruleChainJson = replaceIds(ctx,  JacksonUtil.toJsonNode(ruleChainPath));
             RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             ruleChain.setTenantId(ctx.getTenantId());
             String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
@@ -612,8 +615,7 @@ public class DefaultSolutionService implements SolutionService {
         for (DashboardDefinition entityDef : dashboards) {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Path dashboardsPath = resolve(ctx.getSolutionId(), "dashboards", entityDef.getFile());
-            JsonNode dashboardJson = JacksonUtil.toJsonNode(dashboardsPath);
-            replaceIdsRecursively(ctx, dashboardJson);
+            JsonNode dashboardJson = replaceIds(ctx,  JacksonUtil.toJsonNode(dashboardsPath));
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(ctx.getTenantId());
             dashboard.setTitle(entityDef.getName());
@@ -623,13 +625,14 @@ public class DefaultSolutionService implements SolutionService {
             ctx.register(entityDef, dashboard);
             ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
             EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());
+            if (entityGroupId == null) {
+                entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
+            }
             if (entityDef.isMain()) {
-                if (entityGroupId == null) {
-                    entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
-                }
                 ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
                 ctx.getSolutionInstructions().setDashboardId(dashboard.getId());
             }
+            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId()));
         }
     }
 
@@ -1045,40 +1048,12 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void replaceIdsRecursively(SolutionInstallContext ctx, JsonNode root) {
-        if (root.isArray()) {
-            ArrayNode array = (ArrayNode) root;
-            array.forEach(root1 -> replaceIdsRecursively(ctx, root1));
-        } else if (root.isObject()) {
-            if (!findAndReplaceEntityId(ctx, root)) {
-                root.fields().forEachRemaining(e -> {
-                    if (!findAndReplaceEntityId(ctx, e.getValue())) {
-                        replaceIdsRecursively(ctx, e.getValue());
-                    }
-                });
-            }
+    private JsonNode replaceIds(SolutionInstallContext ctx, JsonNode dashboardJson) {
+        String jsonStr = JacksonUtil.toString(dashboardJson);
+        for(var e : ctx.getRealIds().entrySet()){
+            jsonStr = jsonStr.replace(e.getKey(), e.getValue());
         }
-    }
-
-    private boolean findAndReplaceEntityId(SolutionInstallContext ctx, JsonNode node) {
-        if (node.isObject() && node.size() == 2) {
-            ObjectNode value = (ObjectNode) node;
-            if (value.has("id") && value.has("entityType")) {
-                if (EntityType.TENANT.name().equalsIgnoreCase(value.get("entityType").asText())) {
-                    value.put("id", ctx.getTenantId().getId().toString());
-                    return true;
-                } else {
-                    String oldId = value.get("id").asText();
-                    if (ctx.getRealIds().containsKey(oldId)) {
-                        value.put("id", ctx.getRealIds().get(oldId));
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-        return false;
+        return JacksonUtil.toJsonNode(jsonStr);
     }
 
     private String toCreatedEntitiesKey(String solutionId) {

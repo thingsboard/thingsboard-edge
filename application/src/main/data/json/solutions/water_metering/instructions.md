@@ -48,7 +48,7 @@ The most simple example of the expected payload is in JSON format:
 {"pulseCounter":  550, "temperature":  22.0, "battery":  97, "leakage":  false}{:copy-code}
 ```
 
-To emulate the data upload on behalf of device "Sensor T1", one should execute the following command:
+To emulate the data upload on behalf of device "WM0000123", one should execute the following command:
 
 ```bash
 curl -v -X POST -d "{\"pulseCounter\":  550, \"temperature\":  22.0, \"battery\":  97, \"leakage\":  false}" ${BASE_URL}/api/v1/${WM0000123ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
