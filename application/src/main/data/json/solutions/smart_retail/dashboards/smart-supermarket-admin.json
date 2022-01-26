@@ -160,6 +160,21 @@
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "b8747e47-5bc7-db5a-8f81-816c24eec09a"
+              },
+              {
+                "name": "Manage users",
+                "icon": "people",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboard",
+                "targetDashboardStateId": null,
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openNewBrowserTab": false,
+                "targetDashboardId": "1b6e5810-7ea6-11ec-b4a3-1952bf8c6601",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "347536c1-e013-249a-c93e-acc1706de1bb"
               }
             ],
             "headerButton": [

@@ -9,5 +9,10 @@
     "name": "Smart Supermarket Admin",
     "file": "smart-supermarket-admin.json",
     "group": "Smart Supermarket"
+  },
+  {
+    "name": "Smart Supermarket User Management",
+    "file": "smart-supermarket-user-management.json",
+    "group": "Smart Supermarket"
   }
 ]
