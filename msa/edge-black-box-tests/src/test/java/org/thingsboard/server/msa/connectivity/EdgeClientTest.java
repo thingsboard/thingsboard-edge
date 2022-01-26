@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -101,6 +102,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -212,8 +214,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     public void testAdminSettings() {
         verifyAdminSettingsByKey("general");
         verifyAdminSettingsByKey("mailTemplates");
-        // TODO: @voba - uncomment this after latest merge with 3.3.0
-        // verifyAdminSettingsByKey("mail");
+        verifyAdminSettingsByKey("mail");
 
         // TODO: @voba - verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
         // login as sysadmin on edge
@@ -499,8 +500,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() -> edgeRestClient.getDeviceById(edgeDevice1.getId()).isEmpty());
 
         restClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
-
-        log.info("Devices tested successfully");
     }
 
     private boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
@@ -557,8 +556,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
 
         restClient.deleteRuleChain(savedRuleChain.getId());
-
-        log.info("RuleChains tested successfully");
     }
 
     private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
@@ -632,8 +629,6 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testRelations() throws Exception {
-        log.info("Testing Relations");
-
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
         Asset asset = saveAndAssignAssetToEdge(createEntityGroup(EntityType.ASSET));
 
@@ -653,14 +648,10 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
-
-        log.info("Relations tested successfully");
     }
 
     @Test
     public void testAlarms() throws Exception {
-        log.info("Testing Alarms");
-
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
         Alarm alarm = new Alarm();
@@ -697,8 +688,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> getAlarmForEntityFromEdge(device.getId()).isEmpty());
-
-        log.info("Alarms tested successfully");
     }
 
 
@@ -756,8 +745,6 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundleAndWidgetType() throws Exception {
-        log.info("Testing WidgetsBundle and WidgetType");
-
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");
         WidgetsBundle savedWidgetsBundle = restClient.saveWidgetsBundle(widgetsBundle);
@@ -789,8 +776,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
-
-        log.info("WidgetsBundle and WidgetType tested successfully");
     }
 
     @Test
@@ -1049,45 +1034,8 @@ public class EdgeClientTest extends AbstractContainerTest {
         return attributeKvEntries;
     }
 
-//    private void testRpcCall() throws Exception {
-//        ObjectNode body = mapper.createObjectNode();
-//        body.put("requestId", new Random().nextInt());
-//        body.put("requestUUID", Uuids.timeBased().toString());
-//        body.put("oneway", false);
-//        body.put("expirationTime", System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10));
-//        body.put("method", "test_method");
-//        body.put("params", "{\"param1\":\"value1\"}");
-//
-//        EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.RPC_CALL, globalTestDevice.getId().getId(), EdgeEventType.DEVICE, body);
-//        edgeImitator.expectMessageAmount(1);
-//        edgeEventService.saveAsync(edgeEvent);
-//        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//
-//        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof DeviceRpcCallMsg);
-//        DeviceRpcCallMsg latestDeviceRpcCallMsg = (DeviceRpcCallMsg) latestMessage;
-//        Assert.assertEquals("test_method", latestDeviceRpcCallMsg.getRequestMsg().getMethod());
-//    }
-//
-
-    private void testSendMessagesToCloud() throws Exception {
-        log.info("Sending messages to cloud");
-        sendDeviceToCloud();
-        sendDeviceWithNameThatAlreadyExistsOnCloud();
-        sendRelationToCloud();
-        sendAlarmToCloud();
-        testSendPostTelemetryRequestToCloud();
-        testSendPostAttributesRequestToCloud();
-        testSendAttributesUpdatedToCloud();
-//        sendDeviceRpcResponse();
-        log.info("Messages were sent successfully");
-    }
-
     @Test
     public void sendDeviceToCloud() throws Exception {
-        log.info("Testing send device to cloud");
-
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
 
         Awaitility.await()
@@ -1114,8 +1062,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> restClient.getEntityGroupsForEntity(savedDeviceOnEdge.getId()).size() == 1);
-
-        log.info("Send device to cloud tested successfully");
     }
 
     private void verifyDeviceCredentialsOnCloudAndEdge(Device savedDeviceOnEdge) {
@@ -1145,8 +1091,6 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() throws Exception {
-        log.info("Testing send device to cloud with name already exists on cloud");
-
         String deviceName = RandomStringUtils.randomAlphanumeric(15);
         Device savedDeviceOnCloud = saveDeviceOnCloud(deviceName, "default");
         Device savedDeviceOnEdge = saveDeviceOnEdge(deviceName, "default");
@@ -1163,14 +1107,10 @@ public class EdgeClientTest extends AbstractContainerTest {
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
         restClient.deleteDevice(savedDeviceOnEdge.getId());
         restClient.deleteDevice(savedDeviceOnCloud.getId());
-
-        log.info("Send device to cloud with name already exists on cloud tested successfully");
     }
 
     @Test
     public void sendRelationToCloud() throws Exception {
-        log.info("Testing relations from edge");
-
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");
@@ -1197,14 +1137,10 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
         restClient.deleteDevice(savedDeviceOnEdge.getId());
-
-        log.info("Relations from edge tested successfully");
     }
 
     @Test
     public void sendAlarmToCloud() throws Exception {
-        log.info("Testing alarms from edge");
-
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
         Alarm alarm = new Alarm();
@@ -1244,43 +1180,141 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> getAlarmForEntityFromCloud(device.getId()).isEmpty());
-
-        log.info("Alarms from edge tested successfully");
     }
-
-
-//    private void sendDeviceRpcResponse() throws Exception {
-//        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
-//        DeviceRpcCallMsg.Builder deviceRpcCallResponseBuilder = DeviceRpcCallMsg.newBuilder();
-//        deviceRpcCallResponseBuilder.setDeviceIdMSB(globalTestDevice.getUuidId().getMostSignificantBits());
-//        deviceRpcCallResponseBuilder.setDeviceIdLSB(globalTestDevice.getUuidId().getLeastSignificantBits());
-//        deviceRpcCallResponseBuilder.setOneway(true);
-//        deviceRpcCallResponseBuilder.setRequestId(0);
-//        deviceRpcCallResponseBuilder.setExpirationTime(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(10));
-//        RpcResponseMsg.Builder responseBuilder =
-//                RpcResponseMsg.newBuilder().setResponse("{}");
-//
-//        deviceRpcCallResponseBuilder.setResponseMsg(responseBuilder.build());
-//
-//        uplinkMsgBuilder.addDeviceRpcCallMsg(deviceRpcCallResponseBuilder.build());
-//
-//        edgeImitator.expectResponsesAmount(1);
-//        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
-//        Assert.assertTrue(edgeImitator.waitForResponses());
-//    }
 
     @Test
     public void changeOwnerToCustomer() {
-        // TODO
+        // create device and assign it to edge
+        // create customer A on cloud
+        // add admin users to customer A
+        // change edge owner from tenant to customer A
+        // login to edge with customer A admin user
+        // make sure that device assigned to edge from tenant is not available on edge anymore
+        // change edge owner from customer A to tenant
+        // make sure that login edge with customer A admin user doesn't work
     }
 
     @Test
-    public void testRpcCall() {
-        // TODO
+    public void testOneWayRpcCall() throws Exception {
+        // create device on cloud and assign to edge
+        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = restClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        Optional<DeviceCredentials> deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+
+        Assert.assertTrue(deviceCredentials.isPresent());
+
+        // subscribe to rpc requests to edge
+        final ResponseEntity<JsonNode>[] rpcSubscriptionRequest = new ResponseEntity[]{null};
+
+        new Thread(() -> {
+            String subscribeToRpcRequestUrl = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/rpc?timeout=20000";
+            rpcSubscriptionRequest[0] = edgeRestClient.getRestTemplate().getForEntity(subscribeToRpcRequestUrl, JsonNode.class);
+        }).start();
+
+        // send rpc request to device over cloud
+        ObjectNode initialRequestBody = mapper.createObjectNode();
+        initialRequestBody.put("method", "setGpio");
+        initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
+        restClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
+
+        // verify that rpc request was received
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    if (rpcSubscriptionRequest[0] == null || rpcSubscriptionRequest[0].getBody() == null) {
+                        return false;
+                    }
+                    JsonNode requestBody = rpcSubscriptionRequest[0].getBody();
+                    if (requestBody.get("id") == null) {
+                        return false;
+                    }
+                    return initialRequestBody.get("method").equals(requestBody.get("method"))
+                            && initialRequestBody.get("params").equals(requestBody.get("params"));
+                });
+    }
+
+    @Test
+    public void testTwoWayRpcCall() throws Exception {
+        // create device on cloud and assign to edge
+        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = restClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        Optional<DeviceCredentials> deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+
+        Assert.assertTrue(deviceCredentials.isPresent());
+
+        // subscribe to rpc requests to edge
+        final ResponseEntity<JsonNode>[] rpcSubscriptionRequest = new ResponseEntity[]{null};
+
+        new Thread(() -> {
+            String subscribeToRpcRequestUrl = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/rpc?timeout=20000";
+            rpcSubscriptionRequest[0] = edgeRestClient.getRestTemplate().getForEntity(subscribeToRpcRequestUrl, JsonNode.class);
+        }).start();
+
+        // send two-way rpc request to device over cloud
+        ObjectNode initialRequestBody = mapper.createObjectNode();
+        initialRequestBody.put("method", "setGpio");
+        initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
+
+        final JsonNode[] rpcTwoWayRequest = new JsonNode[]{null};
+        new Thread(() -> {
+            rpcTwoWayRequest[0] = restClient.handleTwoWayDeviceRPCRequest(device.getId(), initialRequestBody);
+        }).start();
+
+        // verify that rpc request was received
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    if (rpcSubscriptionRequest[0] == null || rpcSubscriptionRequest[0].getBody() == null) {
+                        return false;
+                    }
+                    JsonNode requestBody = rpcSubscriptionRequest[0].getBody();
+                    if (requestBody.get("id") == null) {
+                        return false;
+                    }
+                    return initialRequestBody.get("method").equals(requestBody.get("method"))
+                            && initialRequestBody.get("params").equals(requestBody.get("params"));
+                });
+
+        // send response back to the rpc request
+        ObjectNode replyBody = mapper.createObjectNode();
+        replyBody.put("result", "ok");
+
+        String rpcReply = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/rpc/" + rpcSubscriptionRequest[0].getBody().get("id");
+        edgeRestClient.getRestTemplate().postForEntity(rpcReply, replyBody, Void.class);
+
+        // verify on the cloud that rpc response was received
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    if (rpcTwoWayRequest[0] == null) {
+                        return false;
+                    }
+                    JsonNode responseBody = rpcTwoWayRequest[0];
+                    return "ok".equals(responseBody.get("result").textValue());
+                });
     }
 
     // Utility methods
-
     private Device saveDeviceOnEdge(String deviceName, String type) throws Exception {
         return saveDevice(deviceName, type, null, edgeRestClient);
     }

@@ -329,7 +329,8 @@ integrations:
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   rpc:
-    enabled: "${INTEGRATIONS_RPC_ENABLED:true}"
+    # integrations not available on edge at the moment
+    enabled: "${INTEGRATIONS_RPC_ENABLED:false}"
     port: "${INTEGRATIONS_RPC_PORT:9090}"
     ssl:
       # Enable/disable SSL support
