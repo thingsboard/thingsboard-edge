@@ -186,7 +186,7 @@ public class RandomNameUtil {
             "Lilla", "Kip", "Jodee", "Alice", "Josie", "Malik", "Lita", "Edie", "Yoko", "Kandy",
             "Tracy", "Belen", "Dani", "Joey", "Jae", "Hee", "Nila", "Jude", "Betty", "Kent",
             "Hilda", "Ellyn", "Pam", "Pia", "Niki", "Mina", "Bob", "Jacki", "Santa", "Tasha",
-            "Andra", "Huong", "Leah", "Erika", "Randy", "Hui", "Noah", "Judie", "Kim", "Ines",
+            "Andra", "Huong", "Leah", "Erika", "Randy", "Noah", "Judie", "Kim", "Ines",
             "Edwin", "Karla", "Trena", "Alisa", "Oscar", "Karyl", "Neil", "Marti", "Alix", "Aja",
             "Alec", "Cathi", "Shea", "Marc", "Dirk", "Kate", "Wanda", "Aleta", "Dayna", "Soo",
             "Rosa", "Daryl", "Will", "Rusty", "Silas", "Suzie", "Sammy", "Kyle", "Gil", "Boyd"

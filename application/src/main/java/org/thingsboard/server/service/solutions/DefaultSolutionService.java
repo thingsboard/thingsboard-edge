@@ -117,6 +117,7 @@ import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
+import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
 import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
 import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
 import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
@@ -488,6 +489,12 @@ public class DefaultSolutionService implements SolutionService {
                 "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
                         "/" + ctx.getSolutionInstructions().getDashboardId().getId());
 
+        for(DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
+            template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_URL}",
+                    "/dashboardGroups/" + dashboardLinkInfo.getEntityGroupId().getId() +
+                            "/" + dashboardLinkInfo.getDashboardId().getId());
+        }
+
         StringBuilder devList = new StringBuilder();
 
         devList.append("| Device name | Access token | Customer name |");
@@ -623,13 +630,14 @@ public class DefaultSolutionService implements SolutionService {
             ctx.register(entityDef, dashboard);
             ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
             EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());
+            if (entityGroupId == null) {
+                entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
+            }
             if (entityDef.isMain()) {
-                if (entityGroupId == null) {
-                    entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
-                }
                 ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
                 ctx.getSolutionInstructions().setDashboardId(dashboard.getId());
             }
+            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId()));
         }
     }
 
