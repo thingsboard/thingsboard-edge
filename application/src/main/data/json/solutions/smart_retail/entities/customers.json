@@ -23,7 +23,7 @@
           {
             "roleName": "Smart Retail Read Only",
             "groupType": "DASHBOARD",
-            "groupName": "Smart Supermarket Shared"
+            "groupName": "Supermarket Users Shared"
           }
         ],
         "genericRoles": ["Smart Retail User"]
@@ -34,12 +34,12 @@
           {
             "roleName": "Smart Retail Read Only",
             "groupType": "DASHBOARD",
-            "groupName": "Smart Supermarket Shared"
+            "groupName": "Supermarket Administrators Shared"
           },
           {
             "roleName": "Smart Retail Read Only",
             "groupType": "DASHBOARD",
-            "groupName": "Smart Supermarket"
+            "groupName": "Supermarket Users Shared"
           }
         ],
         "genericRoles": ["Smart Retail Administrator"]
@@ -70,7 +70,7 @@
 
         },
         "dashboard": {
-          "name": "Smart Supermarket Admin",
+          "name": "Smart Supermarket Administration",
           "fullScreen": true
         }
       }
@@ -100,7 +100,7 @@
           {
             "roleName": "Smart Retail Read Only",
             "groupType": "DASHBOARD",
-            "groupName": "Smart Supermarket Shared"
+            "groupName": "Supermarket Users Shared"
           }
         ],
         "genericRoles": ["Smart Retail User"]
@@ -111,12 +111,12 @@
           {
             "roleName": "Smart Retail Read Only",
             "groupType": "DASHBOARD",
-            "groupName": "Smart Supermarket Shared"
+            "groupName": "Supermarket Administrators Shared"
           },
           {
             "roleName": "Smart Retail Read Only",
             "groupType": "DASHBOARD",
-            "groupName": "Smart Supermarket"
+            "groupName": "Supermarket Users Shared"
           }
         ],
         "genericRoles": ["Smart Retail Administrator"]
@@ -126,7 +126,7 @@
       {
         "name": "$randomEmail@retailerB.com",
         "firstname": "$randomFirstName",
-        "lastname": "User",
+        "lastname": "$randomLastName",
         "password": "customer",
         "group": "Smart Retail Users",
         "attributes": {
@@ -140,14 +140,14 @@
       {
         "name": "$randomEmail@retailerB.com",
         "firstname": "$randomFirstName",
-        "lastname": "Admin",
+        "lastname": "$randomLastName",
         "password": "customer",
         "group": "Smart Retail Administrators",
         "attributes": {
 
         },
         "dashboard": {
-          "name": "Smart Supermarket Admin",
+          "name": "Smart Supermarket Administration",
           "fullScreen": true
         }
       }

@@ -9,7 +9,7 @@ We will review and describe each solution part below:
 
 ##### Smart Supermarket Administration
 
-The <a href="${Smart Supermarket AdminDASHBOARD_URL}" target="_blank">"Smart Supermarket Administration"</a> dashboard
+The <a href="${Smart Supermarket AdministrationDASHBOARD_URL}" target="_blank">"Smart Supermarket Administration"</a> dashboard
 is designed to provision customers, their users, supermarkets and devices. It has multiple states:
 
 * **Main** state allows you to list the retail companies (customers). 
@@ -244,7 +244,11 @@ Each Customer has:
  * device group "Unassigned Devices" to store devices that are not yet assigned to any supermarket.
  * user group "Smart Retail Users" to store users with "Smart Retail User" role.
  * user group "Smart Retail Administrators" to store users with "Smart Retail Administrator" role.
- * dashboard group 
+   
+Tenant has:
+
+ * dashboard group "Supermarket Users Shared" to share "Smart Supermarket" dashboard in read-only mode with all Customer user groups named "Smart Retail Users".
+ * dashboard group "Supermarket Admins Shared" to share "Smart Supermarket Administration" dashboard in read-only mode with all Customer user groups named "Smart Retail Administrators".
 
       
 ### Implementation details

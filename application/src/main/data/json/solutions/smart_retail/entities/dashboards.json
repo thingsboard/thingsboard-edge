@@ -1,18 +1,19 @@
 [
   {
-    "name": "Smart Supermarket",
-    "file": "smart-supermarket.json",
-    "group": "Smart Supermarket Shared",
-    "main": true
-  },
-  {
-    "name": "Smart Supermarket Admin",
-    "file": "smart-supermarket-admin.json",
-    "group": "Smart Supermarket"
-  },
-  {
     "name": "Smart Supermarket User Management",
     "file": "smart-supermarket-user-management.json",
-    "group": "Smart Supermarket"
+    "group": "Supermarket Administrators Shared",
+    "jsonId": "1b6e5810-7ea6-11ec-b4a3-1952bf8c6601"
+  },
+  {
+    "name": "Smart Supermarket Administration",
+    "file": "smart-supermarket-admin.json",
+    "group": "Supermarket Administrators Shared"
+  },
+  {
+    "name": "Smart Supermarket",
+    "file": "smart-supermarket.json",
+    "group": "Supermarket Users Shared",
+    "main": true
   }
 ]
