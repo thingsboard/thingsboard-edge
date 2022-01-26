@@ -1,0 +1,367 @@
+{
+  "title": "Smart Supermarket User Management",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
+  "configuration": {
+    "description": "",
+    "widgets": {
+      "13ab3ad2-6f50-a808-e2e0-aab3e28c34e8": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "entities_table",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "4px",
+          "settings": {
+            "enableSearch": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "email",
+            "displayEntityName": false,
+            "displayEntityType": false,
+            "enableSelectColumnDisplay": true,
+            "enableStickyHeader": true,
+            "enableStickyAction": true,
+            "reserveSpaceForHiddenAction": "true",
+            "entitiesTitle": "Smart Retail Users",
+            "entityNameColumnTitle": "Name",
+            "displayEntityLabel": false,
+            "useRowStyleFunction": false
+          },
+          "title": "Smart Retail Users",
+          "dropShadow": true,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "24px",
+            "fontWeight": 700,
+            "padding": "5px 10px 5px 10px",
+            "height": "60px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "9b171800-9363-3259-f036-851c5f1746f9",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "email",
+                  "type": "entityField",
+                  "label": "Email",
+                  "color": "#2196f3",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.5669544029828533
+                },
+                {
+                  "name": "firstName",
+                  "type": "entityField",
+                  "label": "First name",
+                  "color": "#4caf50",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.835575628975763
+                },
+                {
+                  "name": "lastName",
+                  "type": "entityField",
+                  "label": "Last name",
+                  "color": "#f44336",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "cellStyleFunction": "",
+                    "useCellContentFunction": false,
+                    "cellContentFunction": "",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.7276117794959098
+                }
+              ]
+            }
+          ],
+          "actions": {
+            "rowClick": [
+              {
+                "name": "Manage supermarkets",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarkets",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "5e50c296-0eac-8841-a69a-1cbbfe04d1c5"
+              }
+            ],
+            "actionCellButton": [
+              {
+                "name": "Manage devices",
+                "icon": "devices_other",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "devices",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "1ff495e4-f4af-3172-63c3-14c96faf3307"
+              },
+              {
+                "name": "Manage supermarkets",
+                "icon": "shopping_cart_checkout",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "supermarkets",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "ef986bd4-8ab7-fde5-79e7-52b3bb257474"
+              },
+              {
+                "name": "Edit company",
+                "icon": "edit",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "customPretty",
+                "customHtml": "<form #addEntityForm=\"ngForm\" [formGroup]=\"editCompanyFormGroup\"\n      (ngSubmit)=\"save()\" class=\"add-entity-form\" style=\"width: 600px;\">\n  <mat-toolbar fxLayout=\"row\" color=\"primary\">\n    <h2>Edit company</h2>\n    <span fxFlex></span>\n    <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n      <mat-icon class=\"material-icons\">close</mat-icon>\n    </button>\n  </mat-toolbar>\n  <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\n  </mat-progress-bar>\n  <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n  <div mat-dialog-content fxLayout=\"column\">\n      <mat-form-field fxFlex class=\"mat-block\">\n        <mat-label>Company title</mat-label>\n        <input matInput formControlName=\"title\" required>\n        <mat-error *ngIf=\"editCompanyFormGroup.get('title').hasError('required')\">\n          Company title is required.\n        </mat-error>\n        <mat-error *ngIf=\"editCompanyFormGroup.get('title').hasError('maxlength')\">\n          {{ 'customer.title-max-length' | translate }}\n        </mat-error>\n      </mat-form-field>\n      <tb-contact [parentForm]=\"editCompanyFormGroup\" [isEdit]=\"true\"></tb-contact>\n  </div>\n  <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n    <button mat-button color=\"primary\"\n            type=\"button\"\n            [disabled]=\"(isLoading$ | async)\"\n            (click)=\"cancel()\" cdkFocusInitial>\n      Cancel\n    </button>\n    <button mat-button mat-raised-button color=\"primary\"\n            type=\"submit\"\n            [disabled]=\"(isLoading$ | async) || editCompanyFormGroup.invalid || !editCompanyFormGroup.dirty\">\n      Save company\n    </button>\n  </div>\n</form>\n",
+                "customCss": "/*=======================================================================*/\n/*==========  There are two examples: for edit and add entity  ==========*/\n/*=======================================================================*/\n/*========================  Edit entity example  ========================*/\n/*=======================================================================*/\n/*\n.edit-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.edit-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n/*========================================================================*/\n/*=========================  Add entity example  =========================*/\n/*========================================================================*/\n/*\n.add-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.add-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n",
+                "customFunction": "const POSTAL_CODE_PATTERNS = {\n  'United States': '(\\\\d{5}([\\\\-]\\\\d{4})?)',\n  'Australia': '[0-9]{4}',\n  'Austria': '[0-9]{4}',\n  'Belgium': '[0-9]{4}',\n  'Brazil': '[0-9]{5}[\\\\-]?[0-9]{3}',\n  'Canada': '^(?!.*[DFIOQU])[A-VXY][0-9][A-Z][ -]?[0-9][A-Z][0-9]$',\n  'Denmark': '[0-9]{3,4}',\n  'Faroe Islands': '[0-9]{3,4}',\n  'Netherlands': '[1-9][0-9]{3}\\\\s?[a-zA-Z]{2}',\n  'Germany': '[0-9]{5}',\n  'Hungary': '[0-9]{4}',\n  'Italy': '[0-9]{5}',\n  'Japan': '\\\\d{3}-\\\\d{4}',\n  'Luxembourg': '(L\\\\s*(-|—|–))\\\\s*?[\\\\d]{4}',\n  'Poland': '[0-9]{2}\\\\-[0-9]{3}',\n  'Spain': '((0[1-9]|5[0-2])|[1-4][0-9])[0-9]{3}',\n  'Sweden': '\\\\d{3}\\\\s?\\\\d{2}',\n  'United Kingdom': '[A-Za-z]{1,2}[0-9Rr][0-9A-Za-z]? [0-9][ABD-HJLNP-UW-Zabd-hjlnp-uw-z]{2}'\n};\n\nlet $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet customerService = $injector.get(widgetContext.servicesMap.get('customerService'));\nlet entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenEditCompanyDialog();\n\nfunction openEditCompanyDialog() {\n  customDialog.customDialog(htmlTemplate, EditCompanyDialogController).subscribe();\n}\n\nfunction EditCompanyDialogController(instance) {\n  let vm = instance;\n  \n  vm.customer = {};\n\n  vm.editCompanyFormGroup = vm.fb.group({\n    title: ['', [vm.validators.required, vm.validators.maxLength(255)]]\n  });\n  \n  vm.editCompanyFormGroup.addControl('country', vm.fb.control('', []));\n  vm.editCompanyFormGroup.addControl('city', vm.fb.control('', []));\n  vm.editCompanyFormGroup.addControl('state', vm.fb.control('', []));\n  vm.editCompanyFormGroup.addControl('zip', vm.fb.control('',\n      zipValidators('')\n  ));\n  vm.editCompanyFormGroup.addControl('address', vm.fb.control('', []));\n  vm.editCompanyFormGroup.addControl('address2', vm.fb.control('', []));\n  vm.editCompanyFormGroup.addControl('phone', vm.fb.control('', []));\n  vm.editCompanyFormGroup.addControl('email', vm.fb.control('', [vm.validators.email]));\n  \n  \n  vm.editCompanyFormGroup.get('country').valueChanges.subscribe(\n      (country) => {\n        vm.editCompanyFormGroup.get('zip').setValidators(zipValidators(country));\n        vm.editCompanyFormGroup.get('zip').updateValueAndValidity({onlySelf: true});\n        vm.editCompanyFormGroup.get('zip').markAsTouched({onlySelf: true});\n      }\n  );\n  \n  getCompany();\n\n\n  vm.cancel = function () {\n    vm.dialogRef.close(null);\n  };\n  \n  vm.save = function () {\n    vm.editCompanyFormGroup.markAsPristine();\n    saveCompanyObservable().subscribe(\n      function (customer) {\n          widgetContext.rxjs.forkJoin([\n              saveAttributes(customer)\n          ]).subscribe(\n              function () {\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n              }\n        );\n      }\n    );\n  };\n  \n  function getCompany() {\n      customerService.getCustomer(entityId.id).subscribe(\n          (customer) => {\n                vm.customer = customer;          \n                vm.editCompanyFormGroup.patchValue({\n                  title: vm.customer.title,\n                  country: vm.customer.country,\n                  city: vm.customer.city,\n                  state: vm.customer.state,\n                  zip: vm.customer.zip,\n                  address: vm.customer.address,\n                  address2: vm.customer.address2,\n                  phone: vm.customer.phone,\n                  email: vm.customer.email\n                }, {emitEvent: false});\n                vm.editCompanyFormGroup.get('zip').setValidators(zipValidators(vm.customer.country));\n                vm.editCompanyFormGroup.get('zip').updateValueAndValidity({onlySelf: true});\n          }\n    );\n  }\n  \n  function zipValidators(country) {\n    const zipValidators = [];\n    if (country && POSTAL_CODE_PATTERNS[country]) {\n      const postalCodePattern = POSTAL_CODE_PATTERNS[country];\n      zipValidators.push(vm.validators.pattern(postalCodePattern));\n    }\n    return zipValidators;\n  }\n\n  function saveCompanyObservable() {\n      const formValues = vm.editCompanyFormGroup.value;\n      vm.customer.title = formValues.title;\n      vm.customer.country = formValues.country;\n      vm.customer.city = formValues.city;\n      vm.customer.state = formValues.state;\n      vm.customer.zip = formValues.zip;\n      vm.customer.address = formValues.address;\n      vm.customer.address2 = formValues.address2;\n      vm.customer.phone = formValues.phone;\n      vm.customer.email = formValues.email;\n      return customerService.saveCustomer(vm.customer);\n  }\n  \n  function saveAttributes(customer) {\n    let attributesArray = [\n        {\n            key: 'type',\n            value: 'retail'\n        },\n        {\n            key: 'address',\n            value: getAddressValue(customer)\n        }\n    ];\n    return attributeService.saveEntityAttributes(customer.id, \"SERVER_SCOPE\", attributesArray);\n  }\n  \n  function getAddressValue(customer) {\n      var address = '';\n      if (customer.address) {\n          address += customer.address;\n      }\n      if (customer.address2) {\n          address += (address ? ', ' : '') + customer.address2;\n      }\n      if (customer.city) {\n          address += (address ? ', ' : '') + customer.city;\n      }\n      if (customer.state) {\n          address += (address ? ', ' : '') + customer.state;\n      }\n      if (customer.zip) {\n          address += (customer.state ? ' ' : (address ? ', ' : '')) + customer.zip;\n      }\n      if (customer.country) {\n          address += (address ? ', ' : '') + customer.country;\n      }\n      return address;\n  }\n}\n",
+                "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "449af9be-1767-a18a-2e1b-cfba5b6ee674"
+              },
+              {
+                "name": "Delete company",
+                "icon": "delete",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar customerService = $injector.get(widgetContext.servicesMap.get('customerService'));\n\nopenDeleteCustomerDialog();\n\nfunction openDeleteCustomerDialog() {\n  var title = 'Are you sure you want to delete the company ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the company and all related data will become unrecoverable!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteCustomer();\n      }\n    }\n  );\n}\n\nfunction deleteCustomer() {\n  customerService.deleteCustomer(entityId.id).subscribe(\n    function() {\n      widgetContext.updateAliases();\n    }\n  );\n}\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "b8747e47-5bc7-db5a-8f81-816c24eec09a"
+              }
+            ],
+            "headerButton": [
+              {
+                "name": "Add company",
+                "icon": "add",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "customPretty",
+                "customHtml": "<form #addEntityForm=\"ngForm\" [formGroup]=\"addCompanyFormGroup\"\n      (ngSubmit)=\"save()\" class=\"add-entity-form\" style=\"width: 600px;\">\n  <mat-toolbar fxLayout=\"row\" color=\"primary\">\n    <h2>Add company</h2>\n    <span fxFlex></span>\n    <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n      <mat-icon class=\"material-icons\">close</mat-icon>\n    </button>\n  </mat-toolbar>\n  <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\n  </mat-progress-bar>\n  <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n  <div mat-dialog-content fxLayout=\"column\">\n      <mat-form-field fxFlex class=\"mat-block\">\n        <mat-label>Company title</mat-label>\n        <input matInput formControlName=\"title\" required>\n        <mat-error *ngIf=\"addCompanyFormGroup.get('title').hasError('required')\">\n          Company title is required.\n        </mat-error>\n        <mat-error *ngIf=\"addCompanyFormGroup.get('title').hasError('maxlength')\">\n          {{ 'customer.title-max-length' | translate }}\n        </mat-error>\n      </mat-form-field>\n      <tb-contact [parentForm]=\"addCompanyFormGroup\" [isEdit]=\"true\"></tb-contact>\n  </div>\n  <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n    <button mat-button color=\"primary\"\n            type=\"button\"\n            [disabled]=\"(isLoading$ | async)\"\n            (click)=\"cancel()\" cdkFocusInitial>\n      Cancel\n    </button>\n    <button mat-button mat-raised-button color=\"primary\"\n            type=\"submit\"\n            [disabled]=\"(isLoading$ | async) || addCompanyFormGroup.invalid || !addCompanyFormGroup.dirty\">\n      Add company\n    </button>\n  </div>\n</form>\n",
+                "customCss": "/*=======================================================================*/\n/*==========  There are two examples: for edit and add entity  ==========*/\n/*=======================================================================*/\n/*========================  Edit entity example  ========================*/\n/*=======================================================================*/\n/*\n.edit-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.edit-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n/*========================================================================*/\n/*=========================  Add entity example  =========================*/\n/*========================================================================*/\n/*\n.add-entity-form .boolean-value-input {\n    padding-left: 5px;\n}\n\n.add-entity-form .boolean-value-input .checkbox-label {\n    margin-bottom: 8px;\n    color: rgba(0,0,0,0.54);\n    font-size: 12px;\n}\n\n.relations-list .header {\n    padding-right: 5px;\n    padding-bottom: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .header .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(0, 0, 0, .54);\n    white-space: nowrap;\n}\n\n.relations-list .mat-form-field-infix {\n    width: auto !important;\n}\n\n.relations-list .body {\n    padding-right: 5px;\n    padding-bottom: 15px;\n    padding-left: 5px;\n}\n\n.relations-list .body .row {\n    padding-top: 5px;\n}\n\n.relations-list .body .cell {\n    padding-right: 5px;\n    padding-left: 5px;\n}\n\n.relations-list .body .md-button {\n    margin: 0;\n}\n*/\n",
+                "customFunction": "const POSTAL_CODE_PATTERNS = {\n  'United States': '(\\\\d{5}([\\\\-]\\\\d{4})?)',\n  'Australia': '[0-9]{4}',\n  'Austria': '[0-9]{4}',\n  'Belgium': '[0-9]{4}',\n  'Brazil': '[0-9]{5}[\\\\-]?[0-9]{3}',\n  'Canada': '^(?!.*[DFIOQU])[A-VXY][0-9][A-Z][ -]?[0-9][A-Z][0-9]$',\n  'Denmark': '[0-9]{3,4}',\n  'Faroe Islands': '[0-9]{3,4}',\n  'Netherlands': '[1-9][0-9]{3}\\\\s?[a-zA-Z]{2}',\n  'Germany': '[0-9]{5}',\n  'Hungary': '[0-9]{4}',\n  'Italy': '[0-9]{5}',\n  'Japan': '\\\\d{3}-\\\\d{4}',\n  'Luxembourg': '(L\\\\s*(-|—|–))\\\\s*?[\\\\d]{4}',\n  'Poland': '[0-9]{2}\\\\-[0-9]{3}',\n  'Spain': '((0[1-9]|5[0-2])|[1-4][0-9])[0-9]{3}',\n  'Sweden': '\\\\d{3}\\\\s?\\\\d{2}',\n  'United Kingdom': '[A-Za-z]{1,2}[0-9Rr][0-9A-Za-z]? [0-9][ABD-HJLNP-UW-Zabd-hjlnp-uw-z]{2}'\n};\n\nlet $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet customerService = $injector.get(widgetContext.servicesMap.get('customerService'));\nlet entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet roleService = $injector.get(widgetContext.servicesMap.get('roleService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenAddCompanyDialog();\n\nfunction openAddCompanyDialog() {\n  customDialog.customDialog(htmlTemplate, AddCompanyDialogController).subscribe();\n}\n\nfunction AddCompanyDialogController(instance) {\n  let vm = instance;\n\n  vm.addCompanyFormGroup = vm.fb.group({\n    title: ['', [vm.validators.required, vm.validators.maxLength(255)]]\n  });\n  \n  vm.addCompanyFormGroup.addControl('country', vm.fb.control('', []));\n  vm.addCompanyFormGroup.addControl('city', vm.fb.control('', []));\n  vm.addCompanyFormGroup.addControl('state', vm.fb.control('', []));\n  vm.addCompanyFormGroup.addControl('zip', vm.fb.control('',\n      zipValidators('')\n  ));\n  vm.addCompanyFormGroup.addControl('address', vm.fb.control('', []));\n  vm.addCompanyFormGroup.addControl('address2', vm.fb.control('', []));\n  vm.addCompanyFormGroup.addControl('phone', vm.fb.control('', []));\n  vm.addCompanyFormGroup.addControl('email', vm.fb.control('', [vm.validators.email]));\n  \n  \n  vm.addCompanyFormGroup.get('country').valueChanges.subscribe(\n      (country) => {\n        vm.addCompanyFormGroup.get('zip').setValidators(zipValidators(country));\n        vm.addCompanyFormGroup.get('zip').updateValueAndValidity({onlySelf: true});\n        vm.addCompanyFormGroup.get('zip').markAsTouched({onlySelf: true});\n      }\n  );\n\n\n  vm.cancel = function () {\n    vm.dialogRef.close(null);\n  };\n  \n  vm.save = function () {\n    vm.addCompanyFormGroup.markAsPristine();\n    saveCompanyObservable().subscribe(\n      function (customer) {\n          widgetContext.rxjs.forkJoin([\n              saveAttributes(customer),\n              saveUserGroups(customer.id)\n          ]).subscribe(\n              function () {\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n              }\n        );\n      }\n    );\n  };\n  \n  function zipValidators(country) {\n    const zipValidators = [];\n    if (country && POSTAL_CODE_PATTERNS[country]) {\n      const postalCodePattern = POSTAL_CODE_PATTERNS[country];\n      zipValidators.push(vm.validators.pattern(postalCodePattern));\n    }\n    return zipValidators;\n  }\n\n  function saveCompanyObservable() {\n      const formValues = vm.addCompanyFormGroup.value;\n      let customer = {\n          title: formValues.title,\n          country: formValues.country,\n          city: formValues.city,\n          state: formValues.state,\n          zip: formValues.zip,\n          address: formValues.address,\n          address2: formValues.address2,\n          phone: formValues.phone,\n          email: formValues.email\n      };\n      return customerService.saveCustomer(customer);\n  }\n  \n  function saveUserGroups(customerId) {\n      \n      return widgetContext.rxjs.forkJoin([\n         getRoleByName(\"Smart Retail Read Only\", \"GROUP\"),\n         getRoleByName(\"Smart Retail User\", \"GENERIC\"),\n         getRoleByName(\"Smart Retail Administrator\", \"GENERIC\"),\n         getEntityGroupByName(\"Smart Supermarket Shared\", \"DASHBOARD\"),\n         getEntityGroupByName(\"Smart Supermarket\", \"DASHBOARD\")\n      ]).pipe(widgetContext.rxjs.switchMap((data) => {\n          \n            var smartRetailReadOnlyGroupRole = data[0];\n            var smartRetailUserGenericRole = data[1];\n            var smartRetailAdministratorGenericRole = data[2];\n            var smartSupermarketSharedGroup = data[3];\n            var smartSupermarketGroup = data[4];\n            \n            var smartRetailUsers = {\n              type: 'USER',\n              name: 'Smart Retail Users',\n              ownerId: customerId\n            };\n            \n            var smartRetailAdministrators = {\n              type: 'USER',\n              name: 'Smart Retail Administrators',\n              ownerId: customerId\n            };\n    \n            return widgetContext.rxjs.forkJoin([\n                entityGroupService.saveEntityGroup(smartRetailUsers),\n                entityGroupService.saveEntityGroup(smartRetailAdministrators)\n            ]).pipe(widgetContext.rxjs.switchMap((data) => {\n                var smartRetailUsersGroup = data[0];\n                var smartRetailAdministratorsGroup = data[1];\n                const tasks = [];\n\n                if (smartRetailReadOnlyGroupRole) {\n                    if (smartSupermarketSharedGroup) {\n                        let smartSupermarketSharedGroupPermissionForUsers = {\n                            userGroupId: smartRetailUsersGroup.id,\n                            roleId: smartRetailReadOnlyGroupRole.id,\n                            entityGroupId: smartSupermarketSharedGroup.id,\n                            entityGroupType: smartSupermarketSharedGroup.type\n                        };\n                        let smartSupermarketSharedGroupPermissionForAdmins = {\n                            userGroupId: smartRetailAdministratorsGroup.id,\n                            roleId: smartRetailReadOnlyGroupRole.id,\n                            entityGroupId: smartSupermarketSharedGroup.id,\n                            entityGroupType: smartSupermarketSharedGroup.type\n                        };\n                        tasks.push(roleService.saveGroupPermission(smartSupermarketSharedGroupPermissionForUsers));\n                        tasks.push(roleService.saveGroupPermission(smartSupermarketSharedGroupPermissionForAdmins));\n                    }\n                    if (smartSupermarketGroup) {\n                        let smartSupermarketGroupPermissionForAdmins = {\n                            userGroupId: smartRetailAdministratorsGroup.id,\n                            roleId: smartRetailReadOnlyGroupRole.id,\n                            entityGroupId: smartSupermarketGroup.id,\n                            entityGroupType: smartSupermarketGroup.type\n                        };\n                        tasks.push(roleService.saveGroupPermission(smartSupermarketGroupPermissionForAdmins));\n                    }\n                }\n\n                if (smartRetailUserGenericRole) {\n                    let smartRetailUserGenericPermission = {\n                        userGroupId: smartRetailUsersGroup.id,\n                        roleId: smartRetailUserGenericRole.id\n                    };\n                    tasks.push(roleService.saveGroupPermission(smartRetailUserGenericPermission));\n                }\n\n                if (smartRetailAdministratorGenericRole) {\n                    let smartRetailAdminGenericPermission = {\n                        userGroupId: smartRetailAdministratorsGroup.id,\n                        roleId: smartRetailAdministratorGenericRole.id\n                    };\n                    tasks.push(roleService.saveGroupPermission(smartRetailAdminGenericPermission));\n                }\n                \n                if (tasks.length) {\n                    return widgetContext.rxjs.forkJoin(tasks);\n                } else {\n                    return widgetContext.rxjs.of(null);\n                }\n            }));\n          \n      }));\n      \n  }\n  \n  function getRoleByName(roleName, type) {\n      var rolesPageLink = widgetContext.pageLink(10, 0, roleName);\n      return roleService.getRoles(rolesPageLink, type, {ignoreLoading: true}).pipe(\n          widgetContext.rxjs.map((data) => {\n            if (data.data.length) {\n                return data.data.find((role) => role.name === roleName);\n            } else {\n                return null;\n            }\n          })\n      );\n  }\n  \n  function getEntityGroupByName(groupName, groupType) {\n      var entityGroupsPageLink = widgetContext.pageLink(10, 0, groupName);\n      return entityGroupService.getEntityGroupsByPageLink(entityGroupsPageLink, groupType, {ignoreLoading: true}).pipe(\n          widgetContext.rxjs.map((data) => {\n            if (data.data.length) {\n                return data.data.find((group) => group.name === groupName);\n            } else {\n                return null;\n            }\n          })\n      );\n  }\n  \n  function saveAttributes(customer) {\n    let attributesArray = [\n        {\n            key: 'type',\n            value: 'retail'\n        },\n        {\n            key: 'address',\n            value: getAddressValue(customer)\n        }\n    ];\n    return attributeService.saveEntityAttributes(customer.id, \"SERVER_SCOPE\", attributesArray);\n  }\n  \n  function getAddressValue(customer) {\n      var address = '';\n      if (customer.address) {\n          address += customer.address;\n      }\n      if (customer.address2) {\n          address += (address ? ', ' : '') + customer.address2;\n      }\n      if (customer.city) {\n          address += (address ? ', ' : '') + customer.city;\n      }\n      if (customer.state) {\n          address += (address ? ', ' : '') + customer.state;\n      }\n      if (customer.zip) {\n          address += (customer.state ? ' ' : (address ? ', ' : '')) + customer.zip;\n      }\n      if (customer.country) {\n          address += (address ? ', ' : '') + customer.country;\n      }\n      return address;\n  }\n}\n",
+                "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "f089248b-5725-30f6-58dd-64e50dfb0496"
+              }
+            ]
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "13ab3ad2-6f50-a808-e2e0-aab3e28c34e8"
+      }
+    },
+    "states": {
+      "default": {
+        "name": "Smart Supermarket User Management",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "13ab3ad2-6f50-a808-e2e0-aab3e28c34e8": {
+                "sizeX": 13,
+                "sizeY": 12,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": false,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      }
+    },
+    "entityAliases": {
+      "5f975742-2dff-c2d2-c716-3b9eaa579592": {
+        "id": "5f975742-2dff-c2d2-c716-3b9eaa579592",
+        "alias": "Retail companies",
+        "filter": {
+          "type": "entityType",
+          "resolveMultiple": true,
+          "entityType": "CUSTOMER"
+        }
+      },
+      "9b171800-9363-3259-f036-851c5f1746f9": {
+        "id": "9b171800-9363-3259-f036-851c5f1746f9",
+        "alias": "Smart Retail Users",
+        "filter": {
+          "type": "entitiesByGroupName",
+          "resolveMultiple": true,
+          "groupStateEntity": true,
+          "stateEntityParamName": null,
+          "groupType": "USER",
+          "entityGroupNameFilter": "Smart Retail Users"
+        }
+      },
+      "396ed5c4-245e-e833-7786-8e0586746884": {
+        "id": "396ed5c4-245e-e833-7786-8e0586746884",
+        "alias": "Smart Retail Administrators",
+        "filter": {
+          "type": "entitiesByGroupName",
+          "resolveMultiple": true,
+          "groupStateEntity": true,
+          "stateEntityParamName": null,
+          "groupType": "USER",
+          "entityGroupNameFilter": "Smart Retail Administrators"
+        }
+      }
+    },
+    "filters": {
+      "b501464a-c33f-23de-f08a-f463b24e8248": {
+        "id": "b501464a-c33f-23de-f08a-f463b24e8248",
+        "filter": "Retail company",
+        "keyFilters": [
+          {
+            "key": {
+              "type": "ATTRIBUTE",
+              "key": "type"
+            },
+            "valueType": "STRING",
+            "predicates": [
+              {
+                "keyFilterPredicate": {
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": "retail",
+                    "dynamicValue": null
+                  },
+                  "ignoreCase": false,
+                  "type": "STRING"
+                },
+                "userInfo": {
+                  "editable": true,
+                  "label": "",
+                  "autogeneratedLabel": true,
+                  "order": 0
+                }
+              }
+            ]
+          }
+        ],
+        "editable": false
+      }
+    },
+    "timewindow": {
+      "displayValue": "",
+      "hideInterval": false,
+      "hideAggregation": false,
+      "hideAggInterval": false,
+      "hideTimezone": false,
+      "selectedTab": 0,
+      "realtime": {
+        "realtimeType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "quickInterval": "CURRENT_DAY"
+      },
+      "history": {
+        "historyType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "fixedTimewindow": {
+          "startTimeMs": 1643114862287,
+          "endTimeMs": 1643201262287
+        },
+        "quickInterval": "CURRENT_DAY"
+      },
+      "aggregation": {
+        "type": "AVG",
+        "limit": 25000
+      }
+    },
+    "settings": {
+      "stateControllerId": "entity",
+      "showTitle": false,
+      "showDashboardsSelect": true,
+      "showEntitiesSelect": false,
+      "showDashboardTimewindow": false,
+      "showDashboardExport": true,
+      "toolbarAlwaysOpen": true,
+      "titleColor": "rgba(0,0,0,0.870588)",
+      "showDashboardLogo": false,
+      "dashboardLogoUrl": null,
+      "hideToolbar": false,
+      "showFilters": false,
+      "showUpdateDashboardImage": false,
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
+    }
+  },
+  "name": "Smart Supermarket User Management"
+}
