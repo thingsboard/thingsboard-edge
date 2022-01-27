@@ -879,7 +879,9 @@
             "showResultMessage": false,
             "displayPreview": true,
             "displayClearButton": false,
-            "widgetTitle": "Floor plan"
+            "widgetTitle": "Floor plan",
+            "displayApplyButton": false,
+            "displayDiscardButton": true
           },
           "title": "Floor plan",
           "dropShadow": false,
