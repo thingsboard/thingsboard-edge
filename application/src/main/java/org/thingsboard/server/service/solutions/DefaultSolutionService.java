@@ -32,7 +32,6 @@ package org.thingsboard.server.service.solutions;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
@@ -486,7 +485,7 @@ public class DefaultSolutionService implements SolutionService {
                 "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
                         "/" + ctx.getSolutionInstructions().getDashboardId().getId());
 
-        for(DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
+        for (DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
             template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_URL}",
                     "/dashboardGroups/" + dashboardLinkInfo.getEntityGroupId().getId() +
                             "/" + dashboardLinkInfo.getDashboardId().getId());
@@ -567,7 +566,7 @@ public class DefaultSolutionService implements SolutionService {
         for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
             // Rule chains should be ordered correctly to exclude dependencies.
             Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getFile());
-            JsonNode ruleChainJson = replaceIds(ctx,  JacksonUtil.toJsonNode(ruleChainPath));
+            JsonNode ruleChainJson = replaceIds(ctx, JacksonUtil.toJsonNode(ruleChainPath));
             RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             ruleChain.setTenantId(ctx.getTenantId());
             String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
@@ -615,7 +614,7 @@ public class DefaultSolutionService implements SolutionService {
         for (DashboardDefinition entityDef : dashboards) {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Path dashboardsPath = resolve(ctx.getSolutionId(), "dashboards", entityDef.getFile());
-            JsonNode dashboardJson = replaceIds(ctx,  JacksonUtil.toJsonNode(dashboardsPath));
+            JsonNode dashboardJson = replaceIds(ctx, JacksonUtil.toJsonNode(dashboardsPath));
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(ctx.getTenantId());
             dashboard.setTitle(entityDef.getName());
@@ -770,7 +769,10 @@ public class DefaultSolutionService implements SolutionService {
         List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
         });
         for (CustomerDefinition entityDef : customers) {
-            EntityGroup groupEntity = getCustomerGroupInfo(ctx, ctx.getTenantId(), entityDef.getGroup());
+            EntityGroup groupEntity = null;
+            if (!StringUtils.isEmpty(entityDef.getGroup())) {
+                groupEntity = getCustomerGroupInfo(ctx, ctx.getTenantId(), entityDef.getGroup());
+            }
 
             Customer entity = new Customer();
             entity.setTenantId(ctx.getTenantId());
@@ -792,7 +794,9 @@ public class DefaultSolutionService implements SolutionService {
             entityDef.getAssetGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.ASSET));
             entityDef.getDeviceGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.DEVICE));
 
-            entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupEntity.getId(), Collections.singletonList(entity.getId()));
+            if (groupEntity != null) {
+                entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupEntity.getId(), Collections.singletonList(entity.getId()));
+            }
         }
     }
 
@@ -1062,7 +1066,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private JsonNode replaceIds(SolutionInstallContext ctx, JsonNode dashboardJson) {
         String jsonStr = JacksonUtil.toString(dashboardJson);
-        for(var e : ctx.getRealIds().entrySet()){
+        for (var e : ctx.getRealIds().entrySet()) {
             jsonStr = jsonStr.replace(e.getKey(), e.getValue());
         }
         return JacksonUtil.toJsonNode(jsonStr);
