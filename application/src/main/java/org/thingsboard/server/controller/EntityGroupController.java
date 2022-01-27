@@ -1002,7 +1002,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), groupType, EdgeEventActionType.ASSIGNED_TO_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
@@ -1047,7 +1047,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
-            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), groupType, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
