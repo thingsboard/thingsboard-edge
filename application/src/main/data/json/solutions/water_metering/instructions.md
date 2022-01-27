@@ -17,7 +17,6 @@ water metering devices, users and alarms:
     * upload water meter photo;
     * change location of the device;
 * use "Customers" view to manage your customers;   
-* use "Users" view to add more tenant administrators that will receive notifications about alarms;
 * use "Alarms" view to browse and clear alarms from water meters;
 * use "Settings" view to:
     * turn system alarms on and off;
