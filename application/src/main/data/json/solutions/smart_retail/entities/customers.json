@@ -10,7 +10,6 @@
     "zip": "94103",
     "address": "18 10th St",
     "attributes": {
-      "type": "retail",
       "address": "18 10th St, San Francisco, CA 94103, United States"
     },
     "relations": [
@@ -88,7 +87,6 @@
     "zip": "94104",
     "address": "41 Sutter St",
     "attributes": {
-      "type": "retail",
       "address": "41 Sutter St, San Francisco, CA 94104, United States"
     },
     "relations": [
