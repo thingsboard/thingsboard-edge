@@ -99,6 +99,7 @@ public class ThingsboardInstallService {
                 cacheCleanupService.clearCache(upgradeFromVersion);
 
                 switch (upgradeFromVersion) {
+                    case "3.3.0-EDGE": // fix because of incorrect upgrade version in 3.3.0 release
                     case "3.3.0":
                         log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.3 ...");
                         databaseEntitiesUpgradeService.upgradeDatabase("3.3.2");

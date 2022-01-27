@@ -40,7 +40,7 @@ source "${CONF_FOLDER}/${configfile}"
 
 FROM_VERSION=`cat ${upgradeversion}`
 
-echo "Starting ThingsBoard upgrade ..."
+echo "Starting ThingsBoard Edge upgrade ..."
 
 if [[ -z "${FROM_VERSION// }" ]]; then
     echo "FROM_VERSION variable is invalid or unspecified!"
@@ -56,4 +56,4 @@ java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstal
                 -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
                 org.springframework.boot.loader.PropertiesLauncher
 
-# echo "${pkg.upgradeVersion}" > ${upgradeversion}
+echo "${pkg.upgradeVersion}" > ${upgradeversion}

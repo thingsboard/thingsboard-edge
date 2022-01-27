@@ -322,7 +322,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("edge_widgets");
 
         // TODO: @voba merge comment - widgets on edge created by sync process
-        // installScripts.loadSystemWidgets();
+        installScripts.loadSystemWidgets();
     }
 
     @Override
