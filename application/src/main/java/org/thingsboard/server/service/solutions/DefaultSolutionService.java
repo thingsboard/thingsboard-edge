@@ -434,7 +434,9 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionDeviceProfiles(ctx);
 
-            provisionCustomers(ctx);
+            List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {});
+
+            provisionCustomers(ctx, customers);
 
             provisionAssets(ctx);
 
@@ -444,7 +446,7 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionDashboards(ctx);
 
-            provisionCustomerUsers(ctx);
+            provisionCustomerUsers(ctx, customers);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
 
@@ -511,16 +513,17 @@ public class DefaultSolutionService implements SolutionService {
 
         StringBuilder userList = new StringBuilder();
 
-        userList.append("| Name | Login | Password | Customer name |");
+        userList.append("| Name | Login | Password | Customer name | User Group |");
         userList.append(System.lineSeparator());
-        userList.append("| :---  | :---  | :---  | :---  |");
+        userList.append("| :---  | :---  | :---  | :---  | :---  |");
         userList.append(System.lineSeparator());
 
         for (UserCredentialsInfo credentialsInfo : ctx.getCreatedUsers().values()) {
             userList.append("|").append(credentialsInfo.getName())
                     .append("|").append(credentialsInfo.getLogin()).append("{:copy-code}")
                     .append("|").append(credentialsInfo.getPassword()).append("{:copy-code}")
-                    .append("|").append(credentialsInfo.getCustomerName() != null ? credentialsInfo.getCustomerName() : "");
+                    .append("|").append(credentialsInfo.getCustomerName() != null ? credentialsInfo.getCustomerName() : "")
+                    .append("|").append(credentialsInfo.getCustomerGroup() != null ? credentialsInfo.getCustomerGroup() : "");
             userList.append(System.lineSeparator());
         }
 
@@ -765,19 +768,17 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void provisionCustomers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
-        });
+    private void provisionCustomers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
             EntityGroup groupEntity = null;
             if (!StringUtils.isEmpty(entityDef.getGroup())) {
                 groupEntity = getCustomerGroupInfo(ctx, ctx.getTenantId(), entityDef.getGroup());
             }
-
+            entityDef.setRandomNameData(generateRandomName(ctx));
             Customer entity = new Customer();
             entity.setTenantId(ctx.getTenantId());
-            entity.setTitle(entityDef.getName());
-            entity.setEmail(randomize(entityDef.getEmail(), RandomNameUtil.next()));
+            entity.setTitle(randomize(entityDef.getName(), entityDef.getRandomNameData()));
+            entity.setEmail(randomize(entityDef.getEmail(), entityDef.getRandomNameData()));
             entity.setCountry(entityDef.getCountry());
             entity.setCity(entityDef.getCity());
             entity.setState(entityDef.getState());
@@ -788,21 +789,19 @@ public class DefaultSolutionService implements SolutionService {
             ctx.register(entityDef, entity);
             CustomerId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
-            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes(), entityDef.getRandomNameData());
             ctx.put(entityId, entityDef.getRelations());
 
             entityDef.getAssetGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.ASSET));
             entityDef.getDeviceGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.DEVICE));
-
+            entityDef.setName(entity.getName());
             if (groupEntity != null) {
                 entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupEntity.getId(), Collections.singletonList(entity.getId()));
             }
         }
     }
 
-    private void provisionCustomerUsers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
-        });
+    private void provisionCustomerUsers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
 
@@ -838,7 +837,7 @@ public class DefaultSolutionService implements SolutionService {
 
             for (UserDefinition uDef : entityDef.getUsers()) {
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), uDef.getGroup());
-                User user = createUser(ctx, entity, uDef);
+                User user = createUser(ctx, entity, uDef, entityDef);
                 // TODO: get activation token, etc..
                 UserCredentials credentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                 credentials.setEnabled(true);
@@ -861,13 +860,14 @@ public class DefaultSolutionService implements SolutionService {
                 credentialsInfo.setLogin(uDef.getName());
                 credentialsInfo.setPassword(uDef.getPassword());
                 credentialsInfo.setCustomerName(entityDef.getName());
+                credentialsInfo.setCustomerGroup(uDef.getGroup());
                 ctx.addUserCredentials(credentialsInfo);
                 ctx.register(entityDef, uDef, user);
             }
         }
     }
 
-    private User createUser(SolutionInstallContext ctx, Customer entity, UserDefinition uDef) {
+    private User createUser(SolutionInstallContext ctx, Customer entity, UserDefinition uDef, CustomerDefinition cDef) {
         int maxAttempts = 10;
         int attempts = 0;
         Exception finalE = null;
@@ -877,21 +877,17 @@ public class DefaultSolutionService implements SolutionService {
                 var randomName = lastAttempt ? RandomNameUtil.nextSuperRandom() : RandomNameUtil.next();
                 User user = new User();
                 if (!StringUtils.isEmpty(uDef.getFirstname())) {
-                    user.setFirstName(randomize(uDef.getFirstname(), randomName));
+                    user.setFirstName(randomize(uDef.getFirstname(), randomName, cDef.getRandomNameData()));
                 } else {
                     user.setFirstName(randomName.getFirstName());
                 }
                 if (!StringUtils.isEmpty(uDef.getLastname())) {
-                    user.setLastName(randomize(uDef.getLastname(), randomName));
+                    user.setLastName(randomize(uDef.getLastname(), randomName, cDef.getRandomNameData()));
                 } else {
                     user.setLastName(randomName.getLastName());
                 }
                 user.setAuthority(Authority.CUSTOMER_USER);
-                if (uDef.getName().equals("$customerEmail")) {
-                    user.setEmail(entity.getEmail());
-                } else {
-                    user.setEmail(randomize(uDef.getName(), randomName));
-                }
+                user.setEmail(randomize(uDef.getName(), randomName, cDef.getRandomNameData()));
                 user.setCustomerId(entity.getId());
                 user.setTenantId(ctx.getTenantId());
                 log.info("[{}] Saving user: {}", entity.getId(), user);
@@ -906,15 +902,41 @@ public class DefaultSolutionService implements SolutionService {
         throw new RuntimeException(finalE);
     }
 
-    private String randomize(String src, RandomNameData data) {
+    private RandomNameData generateRandomName(SolutionInstallContext ctx) {
+        int i = 0;
+        while (i < 10) {
+            var randomName = RandomNameUtil.next();
+            var user = userService.findUserByEmail(ctx.getTenantId(), randomName.getEmail() );
+            if (user == null) {
+                return randomName;
+            } else {
+                i++;
+            }
+        }
+        String firstName = RandomStringUtils.randomAlphanumeric(5);
+        String lastName = RandomStringUtils.randomAlphanumeric(5);
+        return new RandomNameData(firstName, lastName, firstName + "." + lastName + "@thingsboard.io");
+    }
+
+    private String randomize(String src, RandomNameData name) {
+        return randomize(src, name, null);
+    }
+
+    private String randomize(String src, RandomNameData name, RandomNameData customer) {
         if (src == null) {
             return null;
         } else {
-            return src
-                    .replace("$randomFirstName", data.getFirstName())
-                    .replace("$randomLastName", data.getLastName())
-                    .replace("$randomEmail", data.getEmail())
-                    .replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase());
+            String result = src
+                    .replace("$randomFirstName", name.getFirstName())
+                    .replace("$randomLastName", name.getLastName())
+                    .replace("$randomEmail", name.getEmail());
+            if (customer != null) {
+                result = result
+                        .replace("$customerFirstName", customer.getFirstName())
+                        .replace("$customerLastName", customer.getLastName())
+                        .replace("$customerEmail", customer.getEmail());
+            }
+            return result.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase());
         }
     }
 
@@ -942,8 +964,15 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes) {
+        saveServerSideAttributes(tenantId, entityId, attributes, null);
+    }
+
+    private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData) {
         if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
             log.info("[{}] Saving attributes: {}", entityId, attributes);
+            if (randomNameData != null) {
+                attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
+            }
             attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE,
                     new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(JacksonUtil.toString(attributes)))));
         }
@@ -1021,7 +1050,6 @@ public class DefaultSolutionService implements SolutionService {
             return new ArrayList<>();
         }
     }
-
 
     private void deleteEntity(TenantId tenantId, EntityId entityId) {
         try {

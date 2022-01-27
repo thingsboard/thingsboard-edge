@@ -24,7 +24,7 @@
     ],
     "users": [
       {
-        "name": "$randomEmail@customer.com",
+        "name": "$randomEmail",
         "firstname": "$randomFirstName",
         "lastname": "$randomLastName",
         "password": "customer",
@@ -37,7 +37,7 @@
         }
       },
       {
-        "name": "$randomEmail@customer.com",
+        "name": "$randomEmail",
         "firstname": "$randomFirstName",
         "lastname": "$randomLastName",
         "password": "customer",

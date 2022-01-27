@@ -47,7 +47,7 @@
     ],
     "users": [
       {
-        "name": "$randomEmail@retailerA.com",
+        "name": "$randomEmail",
         "firstname": "$randomFirstName",
         "lastname": "$randomLastName",
         "password": "customer",
@@ -61,7 +61,7 @@
         }
       },
       {
-        "name": "$randomEmail@retailerA.com",
+        "name": "$randomEmail",
         "firstname": "$randomFirstName",
         "lastname": "$randomLastName",
         "password": "customer",
@@ -124,7 +124,7 @@
     ],
     "users": [
       {
-        "name": "$randomEmail@retailerB.com",
+        "name": "$randomEmail",
         "firstname": "$randomFirstName",
         "lastname": "$randomLastName",
         "password": "customer",
@@ -138,7 +138,7 @@
         }
       },
       {
-        "name": "$randomEmail@retailerB.com",
+        "name": "$randomEmail",
         "firstname": "$randomFirstName",
         "lastname": "$randomLastName",
         "password": "customer",

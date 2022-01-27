@@ -404,7 +404,7 @@ public class RandomNameUtil {
     }
 
     private static String toEmail(String firstName, String lastName) {
-        return firstName.toLowerCase() + "." + lastName.toLowerCase();
+        return firstName.toLowerCase() + "." + lastName.toLowerCase() + "@thingsboard.io";
     }
 
     public static RandomNameData next() {
