@@ -443,19 +443,22 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionDeviceProfiles(ctx);
 
-            List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {});
+            List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
+            });
 
             provisionCustomers(ctx, customers);
 
             provisionAssets(ctx);
 
-            provisionDevices(user, ctx);
+            var devices = provisionDevices(user, ctx);
 
             provisionRelations(ctx);
 
             provisionDashboards(ctx);
 
             provisionCustomerUsers(ctx, customers);
+
+            launchEmulators(ctx, devices);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
 
@@ -671,11 +674,11 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    protected void provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
+    protected Map<Device, DeviceDefinition> provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
+        Map<Device, DeviceDefinition> result = new HashMap<>();
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
-        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+
         for (DeviceDefinition entityDef : devices) {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Device entity = new Device();
@@ -704,9 +707,20 @@ public class DefaultSolutionService implements SolutionService {
 
             ctx.addDeviceCredentials(deviceCredentialsInfo);
 
+            result.put(entity, entityDef);
+            tbClusterService.onDeviceUpdated(entity, null);
+        }
+        return result;
+    }
+
+    private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap) throws Exception {
+        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
+        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+
+        for (var entry : devicesMap.entrySet()) {
             DeviceEmulatorLauncher.builder()
-                    .device(entity)
-                    .deviceProfile(deviceEmulators.get(entityDef.getProfile()))
+                    .device(entry.getKey())
+                    .deviceProfile(deviceEmulators.get(entry.getValue().getProfile()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
                     .partitionService(partitionService)
@@ -714,8 +728,6 @@ public class DefaultSolutionService implements SolutionService {
                     .serviceInfoProvider(serviceInfoProvider)
                     .tsSubService(tsSubService)
                     .build().launch();
-
-            tbClusterService.onDeviceUpdated(entity, null);
         }
     }
 
@@ -917,7 +929,7 @@ public class DefaultSolutionService implements SolutionService {
         int i = 0;
         while (i < 10) {
             var randomName = RandomNameUtil.next();
-            var user = userService.findUserByEmail(ctx.getTenantId(), randomName.getEmail() );
+            var user = userService.findUserByEmail(ctx.getTenantId(), randomName.getEmail());
             if (user == null) {
                 return randomName;
             } else {
