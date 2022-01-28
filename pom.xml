@@ -316,6 +316,10 @@
                                                 </excludes>
                                                 <filtering>true</filtering>
                                             </resource>
+                                            <resource>
+                                                <directory>config</directory>
+                                                <filtering>true</filtering>
+                                            </resource>
                                         </resources>
                                         <filters>
                                             <filter>${main.dir}/packaging/${pkg.type}/filters/windows.properties
