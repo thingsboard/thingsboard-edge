@@ -49,12 +49,14 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final static String POSTGRES_DATA_VOLUME = "tb-postgres-test-data-volume";
     private final static String TB_LOG_VOLUME = "tb-log-test-volume";
     private final static String TB_EDGE_LOG_VOLUME = "tb-edge-log-test-volume";
+    private final static String TB_EDGE_DATA_VOLUME = "tb-edge-data-test-volume";
 
     private final DockerComposeExecutor dockerCompose;
 
     private final String postgresDataVolume;
     private final String tbLogVolume;
     private final String tbEdgeLogVolume;
+    private final String tbEdgeDataVolume;
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
@@ -69,6 +71,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
             tbLogVolume = project + "_" + TB_LOG_VOLUME;
             tbEdgeLogVolume = project + "_" + TB_EDGE_LOG_VOLUME;
+            tbEdgeDataVolume = project + "_" + TB_EDGE_DATA_VOLUME;
 
             dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
@@ -81,6 +84,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
             env.put("TB_LOG_VOLUME", tbLogVolume);
             env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
+            env.put("TB_EDGE_DATA_VOLUME", tbEdgeDataVolume);
 
             env.put("DOCKER_REPO", "thingsboard");
             env.put("TB_VERSION", "3.3.3PE-SNAPSHOT");
@@ -111,6 +115,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.invokeDocker();
 
             dockerCompose.withCommand("volume create " + tbEdgeLogVolume);
+            dockerCompose.invokeDocker();
+
+            dockerCompose.withCommand("volume create " + tbEdgeDataVolume);
             dockerCompose.invokeDocker();
 
             dockerCompose.withCommand("up -d postgres");
