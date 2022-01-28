@@ -51,6 +51,6 @@ public final class CloudEventUtils {
                 null,
                 new SortOrder("createdTime", SortOrder.Direction.ASC),
                 startTs,
-                System.currentTimeMillis());
+                null);
     }
 }

@@ -168,7 +168,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
   }
 
   updateCloudEventStatus(createdTime: number): string {
-    if (createdTime < this.queueStartTs) {
+    if (this.queueStartTs && createdTime <= this.queueStartTs) {
       return this.translate.instant('edge.deployed');
     } else {
       return this.translate.instant('edge.pending');
