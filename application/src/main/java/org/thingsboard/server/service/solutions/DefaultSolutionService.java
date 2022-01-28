@@ -37,6 +37,7 @@ import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -109,6 +110,12 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -196,7 +203,6 @@ public class DefaultSolutionService implements SolutionService {
     private final TimeseriesService tsService;
     private final DashboardService dashboardService;
     private final RelationService relationService;
-    private final TenantService tenantService;
     private final DeviceService deviceService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
@@ -208,8 +214,9 @@ public class DefaultSolutionService implements SolutionService {
     private final SystemSecurityService systemSecurityService;
     private final TbClusterService tbClusterService;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final TbTenantProfileCache tenantProfileCache;
-    private final DeviceStateService deviceStateService;
+    private final TbQueueProducerProvider tbQueueProducerProvider;
+    private final TbServiceInfoProvider serviceInfoProvider;
+    private final PartitionService partitionService;
     private final TelemetrySubscriptionService tsSubService;
     private final EntityActionService entityActionService;
     private final AlarmService alarmService;
@@ -702,7 +709,9 @@ public class DefaultSolutionService implements SolutionService {
                     .deviceProfile(deviceEmulators.get(entityDef.getProfile()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
-                    .deviceStateService(deviceStateService)
+                    .partitionService(partitionService)
+                    .tbQueueProducerProvider(tbQueueProducerProvider)
+                    .serviceInfoProvider(serviceInfoProvider)
                     .tsSubService(tsSubService)
                     .build().launch();
 

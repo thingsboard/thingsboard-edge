@@ -44,12 +44,23 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -58,11 +69,24 @@ import java.util.concurrent.TimeUnit;
 @Data
 public class DeviceEmulatorLauncher {
 
+    private static final TbQueueCallback EMPTY_CALLBACK = new TbQueueCallback() {
+        @Override
+        public void onSuccess(TbQueueMsgMetadata metadata) {
+
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+
+        }
+    };
     private final Device device;
     private final DeviceEmulatorDefinition deviceProfile;
     private final ExecutorService oldTelemetryExecutor;
     private final TbClusterService tbClusterService;
-    private final DeviceStateService deviceStateService;
+    private final PartitionService partitionService;
+    private final TbQueueProducerProvider tbQueueProducerProvider;
+    private final TbServiceInfoProvider serviceInfoProvider;
     private final TelemetrySubscriptionService tsSubService;
     private final long publishFrequency;
 
@@ -71,12 +95,17 @@ public class DeviceEmulatorLauncher {
 
     @Builder
     public DeviceEmulatorLauncher(Device device, DeviceEmulatorDefinition deviceProfile, ExecutorService oldTelemetryExecutor, TbClusterService tbClusterService,
-                                  DeviceStateService deviceStateService, TelemetrySubscriptionService tsSubService) throws Exception {
+                                  PartitionService partitionService,
+                                  TbQueueProducerProvider tbQueueProducerProvider,
+                                  TbServiceInfoProvider serviceInfoProvider,
+                                  TelemetrySubscriptionService tsSubService) throws Exception {
         this.device = device;
         this.deviceProfile = deviceProfile;
         this.oldTelemetryExecutor = oldTelemetryExecutor;
         this.tbClusterService = tbClusterService;
-        this.deviceStateService = deviceStateService;
+        this.partitionService = partitionService;
+        this.tbQueueProducerProvider = tbQueueProducerProvider;
+        this.serviceInfoProvider = serviceInfoProvider;
         this.tsSubService = tsSubService;
         this.publishFrequency = TimeUnit.SECONDS.toMillis(deviceProfile.getPublishFrequencyInSeconds());
         if (StringUtils.isEmpty(deviceProfile.getClazz())) {
@@ -95,11 +124,33 @@ public class DeviceEmulatorLauncher {
                     pushOldTelemetry(latestTs);
                 }
                 if (this.deviceProfile.getActivityPeriodInMillis() > 0) {
-                    this.deviceStateService.onDeviceActivity(device.getTenantId(), device.getId(), System.currentTimeMillis());
                     tsSubService.saveAttrAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
                             DefaultDeviceStateService.INACTIVITY_TIMEOUT, this.deviceProfile.getActivityPeriodInMillis(), new FutureCallback<>() {
                                 @Override
-                                public void onSuccess(@Nullable Void unused) {}
+                                public void onSuccess(@Nullable Void unused) {
+                                    TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, device.getTenantId(), device.getId());
+                                    UUID sessionId = UUID.randomUUID();
+                                    TransportProtos.TransportToDeviceActorMsg msg = TransportProtos.TransportToDeviceActorMsg.newBuilder()
+                                            .setSessionInfo(TransportProtos.SessionInfoProto.newBuilder()
+                                                    .setSessionIdMSB(sessionId.getMostSignificantBits())
+                                                    .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                                                    .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                                                    .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                                                    .setDeviceProfileIdMSB(device.getId().getId().getMostSignificantBits())
+                                                    .setDeviceProfileIdLSB(device.getId().getId().getLeastSignificantBits())
+                                                    .setDeviceName(device.getName())
+                                                    .setDeviceType(device.getType())
+                                                    .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                                                    .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                                                    .setNodeId(serviceInfoProvider.getServiceId())
+                                                    .build())
+                                            .setSubscriptionInfo(TransportProtos.SubscriptionInfoProto.newBuilder().setLastActivityTime(System.currentTimeMillis()).build())
+                                            .build();
+                                    tbQueueProducerProvider.getTbCoreMsgProducer().send(tpi,
+                                            new TbProtoQueueMsg<>(device.getUuidId(),
+                                                    TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), EMPTY_CALLBACK
+                                    );
+                                }
 
                                 @Override
                                 public void onFailure(Throwable throwable) {}
