@@ -1289,6 +1289,10 @@ public abstract class BaseController {
         sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
     }
 
+    protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, null, action, groupType, null);
+    }
+
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
                                                   EntityGroupId entityGroupId) {
         sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);

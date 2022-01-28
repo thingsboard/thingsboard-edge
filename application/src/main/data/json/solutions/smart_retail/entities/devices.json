@@ -1,0 +1,706 @@
+[
+  {
+    "name": "Smart Shelf 457321",
+    "label": "Vegetables",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.7241627311506073,
+      "yPos": 0.5483131839908542,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Shelf 557322",
+    "label": "Fruits",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.6895846593918546,
+      "yPos": 0.6990715532286214,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Chiller 3",
+    "label": "Milk",
+    "type": "Chiller",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Chiller",
+    "attributes": {
+      "xPos": 0.5121248625980332,
+      "yPos": 0.13135823879258277,
+      "chillerHighTemperatureMajorThreshold": 10,
+      "chillerHighTemperatureCriticalThreshold": 15
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Freezer 1",
+    "type": "Freezer",
+    "label": "Meat",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Freezer",
+    "attributes": {
+      "xPos": 0.06905060096603549,
+      "yPos": 0.7218696071835972,
+      "freezerHighTemperatureMajorThreshold": -10,
+      "freezerHighTemperatureCriticalThreshold": -3
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Bin 1",
+    "label": "Organic",
+    "type": "Smart Bin",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Bin",
+    "attributes": {
+      "xPos": 0.4598393861933647,
+      "yPos": 0.8291699184647086,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Bin 2",
+    "label": "Plastic",
+    "type": "Smart Bin",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Bin",
+    "attributes": {
+      "xPos": 0.4593,
+      "yPos": 0.7494,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Bin 3",
+    "label": "Paper",
+    "type": "Smart Bin",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Bin",
+    "attributes": {
+      "xPos": 0.4599,
+      "yPos": 0.7874,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Bin 4",
+    "label": "Glass",
+    "type": "Smart Bin",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Bin",
+    "attributes": {
+      "xPos": 0.4593,
+      "yPos": 0.8667,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Liquid Level Sensor 1",
+    "label": "WC Soap",
+    "type": "Liquid Level Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Liquid Level Sensor",
+    "attributes": {
+      "totalCapacity": 1.0,
+      "xPos": 0.3072,
+      "yPos": 0.2781,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Liquid Level Sensor 2",
+    "label": "WC Sanitizer",
+    "type": "Liquid Level Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Liquid Level Sensor",
+    "attributes": {
+      "totalCapacity": 1.0,
+      "xPos": 0.3072,
+      "yPos": 0.3138,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Liquid Level Sensor 3",
+    "label": "Entrance Sanitizer Left",
+    "type": "Liquid Level Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Liquid Level Sensor",
+    "attributes": {
+      "totalCapacity": 3.0,
+      "xPos": 0.4593,
+      "yPos": 0.9002,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Liquid Level Sensor 4",
+    "label": "Entrance Sanitizer Right",
+    "type": "Liquid Level Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Liquid Level Sensor",
+    "attributes": {
+      "totalCapacity": 3.0,
+      "xPos": 0.5356,
+      "yPos": 0.8991,
+      "minLiquidLevelCriticalThreshold": 10,
+      "minLiquidLevelMajorThreshold":30,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 1",
+    "label": "Back Door",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.0557,
+      "yPos": 0.0636,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 2",
+    "label": "Restricted Area",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.3585,
+      "yPos": 0.1273,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 3",
+    "label": "Main Entrance",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.4996,
+      "yPos": 0.9303,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Occupancy Sensor",
+    "label": "WC",
+    "type": "Occupancy Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Occupancy Sensor",
+    "attributes": {
+      "xPos": 0.3290,
+      "yPos": 0.3361,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 1",
+    "label": "Smoke Sensor 1",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.4964,
+      "yPos": 0.7103,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 2",
+    "label": "Smoke Sensor 2",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.7646,
+      "yPos": 0.2278,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 3",
+    "label": "Smoke Sensor 3",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.4983,
+      "yPos": 0.2211,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 4",
+    "label": "Smoke Sensor 4",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.1345,
+      "yPos": 0.2590,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 5",
+    "label": "Smoke Sensor 5",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.7716,
+      "yPos": 0.6221,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor 6",
+    "label": "Smoke Sensor 6",
+    "type": "Smoke Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smoke Sensor",
+    "attributes": {
+      "xPos": 0.2276,
+      "yPos": 0.6221,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Motion Sensor 1",
+    "label": "Restricted Area Motion Sensor",
+    "type": "Motion Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Motion Sensor",
+    "attributes": {
+      "xPos": 0.0255,
+      "yPos": 0.1551,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Shelf 765765",
+    "label": "Fruits",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.8554396146493717,
+      "yPos": 0.2868097994555209,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Chiller 65644",
+    "label": "Milk",
+    "type": "Chiller",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Chiller",
+    "attributes": {
+      "xPos": 0.04916282921733878,
+      "yPos": 0.9502955437131321,
+      "chillerHighTemperatureMajorThreshold": 10,
+      "chillerHighTemperatureCriticalThreshold": 15
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Freezer 43545",
+    "type": "Freezer",
+    "label": "Meat",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Freezer",
+    "attributes": {
+      "xPos": 0.2647355841475662,
+      "yPos": 0.7933730007919398,
+      "freezerHighTemperatureMajorThreshold": -10,
+      "freezerHighTemperatureCriticalThreshold": -3
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 4534",
+    "label": "Back Door",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company A",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.08672322904097433,
+      "yPos": 0.06918620262565178,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S2",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Smart Shelf 89546",
+    "label": "Vegetables",
+    "type": "Smart Shelf",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Smart Shelf",
+    "attributes": {
+      "xPos": 0.5156885661722124,
+      "yPos": 0.3227717783356312,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Chiller 378876",
+    "label": "Milk",
+    "type": "Chiller",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Chiller",
+    "attributes": {
+      "xPos": 0.3240744362093502,
+      "yPos": 0.23297034417911724,
+      "chillerHighTemperatureMajorThreshold": 10,
+      "chillerHighTemperatureCriticalThreshold": 15
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Freezer 67478",
+    "type": "Freezer",
+    "label": "Meat",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Freezer",
+    "attributes": {
+      "xPos": 0.8647263298256778,
+      "yPos": 0.25065742616032766,
+      "freezerHighTemperatureMajorThreshold": -10,
+      "freezerHighTemperatureCriticalThreshold": -3
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor 3456",
+    "label": "Back Door",
+    "type": "Door Sensor",
+    "group": "Supermarket Devices",
+    "customer": "Retail Company B",
+    "profile": "Door Sensor",
+    "attributes": {
+      "xPos": 0.9322576326827318,
+      "yPos": 0.6866720308317166,
+      "lowBatteryMajorThreshold": 30,
+      "lowBatteryCriticalThreshold": 10,
+      "maxDoorOpenDurationMajorThreshold": 30,
+      "maxDoorOpenDurationCriticalThreshold":60
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Supermarket S3",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  }
+]

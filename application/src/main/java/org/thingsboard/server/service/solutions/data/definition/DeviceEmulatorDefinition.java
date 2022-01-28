@@ -42,5 +42,6 @@ public class DeviceEmulatorDefinition {
     private int publishPeriodInDays;
     private int publishFrequencyInSeconds;
     private int publishPauseInMillis;
+    private long activityPeriodInMillis;
     private List<TelemetryProfile> telemetryProfiles = Collections.emptyList();
 }

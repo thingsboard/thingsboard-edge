@@ -44,6 +44,7 @@ import { DataSet, DatasourceType, widgetType } from '@shared/models/widget.model
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { WidgetSubscriptionOptions } from '@core/api/widget-api.models';
 import { isDefinedAndNotNull, isEmptyStr } from '@core/utils';
+import { EntityDataPageLink } from '@shared/models/query/query.models';
 
 const maxZoom = 4; // ?
 
@@ -103,6 +104,7 @@ export class ImageMap extends LeafletMap {
       let isUpdate = false;
       const imageUrlSubscriptionOptions: WidgetSubscriptionOptions = {
         datasources,
+        hasDataPageLink: true,
         useDashboardTimewindow: false,
         type: widgetType.latest,
         callbacks: {
@@ -112,7 +114,15 @@ export class ImageMap extends LeafletMap {
           }
         }
       };
-      this.ctx.subscriptionApi.createSubscription(imageUrlSubscriptionOptions, true).subscribe(() => { });
+      this.ctx.subscriptionApi.createSubscription(imageUrlSubscriptionOptions, true).subscribe((subscription) => {
+        const pageLink: EntityDataPageLink = {
+          page: 0,
+          pageSize: 1,
+          textSearch: null,
+          dynamic: true
+        };
+        subscription.subscribeAllForPaginatedData(pageLink, null);
+      });
       return this.imageFromAlias(result);
     }
 
@@ -169,6 +179,7 @@ export class ImageMap extends LeafletMap {
         const southWest = this.pointToLatLng(-padding, h + padding);
         const northEast = this.pointToLatLng(w + padding, -padding);
         const maxBounds = new L.LatLngBounds(southWest, northEast);
+        (this.map as any)._enforcingBounds = true;
         this.map.setMaxBounds(maxBounds);
         if (lastCenterPos) {
             lastCenterPos.x *= w;
@@ -176,6 +187,7 @@ export class ImageMap extends LeafletMap {
             const center = this.pointToLatLng(lastCenterPos.x, lastCenterPos.y);
             this.map.panTo(center, { animate: false });
         }
+        (this.map as any)._enforcingBounds = false;
     }
 
     onResize(updateImage?: boolean) {
@@ -200,7 +212,9 @@ export class ImageMap extends LeafletMap {
             lastCenterPos.x /= prevWidth;
             lastCenterPos.y /= prevHeight;
             this.updateBounds(updateImage, lastCenterPos);
-            this.map.invalidateSize(true);
+            (this.map as any)._enforcingBounds = true;
+            this.map.invalidateSize(false);
+            (this.map as any)._enforcingBounds = false;
             this.updateMarkers(this.markersData);
             if (this.options.draggableMarker && this.addMarkers.length) {
               this.addMarkers.forEach((marker) => {
@@ -271,7 +285,7 @@ export class ImageMap extends LeafletMap {
         return L.CRS.Simple.pointToLatLng({ x, y } as L.PointExpression, maxZoom - 1);
     }
 
-    latLngToPoint(latLng: LatLngLiteral) {
+    latLngToPoint(latLng: LatLngLiteral): L.Point {
         return L.CRS.Simple.latLngToPoint(latLng, maxZoom - 1);
     }
 
