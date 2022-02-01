@@ -32,8 +32,8 @@ package org.thingsboard.server.dao.sql.entityview;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.EntityViewEntity;
 
@@ -43,7 +43,7 @@ import java.util.UUID;
 /**
  * Created by Victor Basanets on 8/31/2017.
  */
-public interface EntityViewRepository extends PagingAndSortingRepository<EntityViewEntity, UUID> {
+public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UUID> {
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +
             "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")

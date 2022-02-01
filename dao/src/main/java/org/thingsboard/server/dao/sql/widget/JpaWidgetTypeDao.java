@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.widget;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.widget.WidgetType;
@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.WidgetTypeDetailsEntity;
-import org.thingsboard.server.dao.model.sql.WidgetTypeEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.widget.WidgetTypeDao;
 
@@ -61,7 +60,7 @@ public class JpaWidgetTypeDao extends JpaAbstractDao<WidgetTypeDetailsEntity, Wi
     }
 
     @Override
-    protected CrudRepository<WidgetTypeDetailsEntity, UUID> getCrudRepository() {
+    protected JpaRepository<WidgetTypeDetailsEntity, UUID> getRepository() {
         return widgetTypeRepository;
     }
 
