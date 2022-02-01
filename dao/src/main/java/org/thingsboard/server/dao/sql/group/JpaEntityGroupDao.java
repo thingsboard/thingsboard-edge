@@ -33,7 +33,7 @@ package org.thingsboard.server.dao.sql.group;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -66,7 +66,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    protected JpaRepository<EntityGroupEntity, UUID> getRepository() {
+    protected CrudRepository<EntityGroupEntity, UUID> getCrudRepository() {
         return entityGroupRepository;
     }
 

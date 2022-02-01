@@ -32,7 +32,7 @@ package org.thingsboard.server.dao.sql.rule;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -57,7 +57,7 @@ public class JpaRuleNodeDao extends JpaAbstractSearchTextDao<RuleNodeEntity, Rul
     }
 
     @Override
-    protected JpaRepository<RuleNodeEntity, UUID> getRepository() {
+    protected CrudRepository<RuleNodeEntity, UUID> getCrudRepository() {
         return ruleNodeRepository;
     }
 

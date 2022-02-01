@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.blob;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
@@ -52,7 +52,7 @@ public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity,
     }
 
     @Override
-    protected JpaRepository<BlobEntityEntity, UUID> getRepository() {
+    protected CrudRepository<BlobEntityEntity, UUID> getCrudRepository() {
         return blobEntityRepository;
     }
 }

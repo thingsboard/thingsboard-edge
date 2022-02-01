@@ -32,7 +32,7 @@ package org.thingsboard.server.dao.sql.rpc;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -60,7 +60,7 @@ public class JpaRpcDao extends JpaAbstractDao<RpcEntity, Rpc> implements RpcDao 
     }
 
     @Override
-    protected JpaRepository<RpcEntity, UUID> getRepository() {
+    protected CrudRepository<RpcEntity, UUID> getCrudRepository() {
         return rpcRepository;
     }
 
