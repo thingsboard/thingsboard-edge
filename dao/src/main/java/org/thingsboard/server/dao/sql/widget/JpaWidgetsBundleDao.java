@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.widget;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -62,7 +62,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
     }
 
     @Override
-    protected CrudRepository<WidgetsBundleEntity, UUID> getCrudRepository() {
+    protected JpaRepository<WidgetsBundleEntity, UUID> getRepository() {
         return widgetsBundleRepository;
     }
 

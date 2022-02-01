@@ -32,14 +32,14 @@ package org.thingsboard.server.dao.sql.scheduler;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
 
 import java.util.UUID;
 
-public interface SchedulerEventRepository extends CrudRepository<SchedulerEventEntity, UUID> {
+public interface SchedulerEventRepository extends JpaRepository<SchedulerEventEntity, UUID> {
 
     Long countByTenantId(UUID tenantId);
 
