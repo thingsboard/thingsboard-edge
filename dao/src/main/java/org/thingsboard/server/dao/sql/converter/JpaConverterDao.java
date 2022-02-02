@@ -32,7 +32,7 @@ package org.thingsboard.server.dao.sql.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -80,7 +80,7 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    protected CrudRepository<ConverterEntity, UUID> getCrudRepository() {
+    protected JpaRepository<ConverterEntity, UUID> getRepository() {
         return converterRepository;
     }
 
