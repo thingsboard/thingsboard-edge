@@ -10,13 +10,13 @@ Put your PR description here instead of this sentence.
 - [ ] Description references specific [issue](https://github.com/thingsboard/thingsboard/issues).
 - [ ] Description contains human-readable scope of changes.
 - [ ] Description contains brief notes about what needs to be added to the documentation.
-- [ ] No merge conficts, commented blocks of code, code formatting issues.
+- [ ] No merge conflicts, commented blocks of code, code formatting issues.
 - [ ] Changes are backward compatible or upgrade script is provided.
   
 ## Front-End feature checklist
 
 - [ ] Screenshots with affected component(s) are added. The best option is to provide 2 screens: before and after changes;
-- [ ] If you change widget or other API, ensure it is backward-compatible or upgrade script is present.
+- [ ] If you change the widget or other API, ensure it is backward-compatible or upgrade script is present.
 - [ ] Ensure new API is documented [here](https://github.com/thingsboard/thingsboard-pe-ui-help)
 
 ## Back-End feature checklist
