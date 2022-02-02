@@ -31,9 +31,7 @@
 package org.thingsboard.server.dao.sql.widget;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.github.springtestdbunit.annotation.DatabaseOperation;
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-import com.github.springtestdbunit.annotation.DatabaseTearDown;
+
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,7 +47,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 /**
  * Created by Valerii Sosliuk on 4/23/2017.
@@ -81,7 +78,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
             System.out.println(widgetsBundle);
             assertEquals("CHECK" + 0, widgetsBundle.getAlias());
         } finally {
-            List<WidgetsBundle> allWidgets = widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID.getId(),
+            List<WidgetsBundle> allWidgets = widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(AbstractServiceTest.SYSTEM_TENANT_ID.getId(),
                     new PageLink(1, 0, "CHECK" + 0)).getData();
             deleteWidgetBundles(allWidgets);
         }
@@ -101,7 +98,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
             PageData<WidgetsBundle> widgetsBundles2 = widgetsBundleDao.findSystemWidgetsBundles(AbstractServiceTest.SYSTEM_TENANT_ID, pageLink);
             assertEquals(10, widgetsBundles2.getData().size());
         } finally {
-            List<WidgetsBundle> allWidgets = widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID.getId(),
+            List<WidgetsBundle> allWidgets = widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(AbstractServiceTest.SYSTEM_TENANT_ID.getId(),
                     new PageLink(500, 0, "WB")).getData();
             deleteWidgetBundles(allWidgets);
         }
@@ -137,7 +134,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
                             new PageLink(500, 0, "WB1_")).getData();
             allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(tenantId2,
                     new PageLink(500, 0, "WB2_")).getData());
-            allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID.getId(),
+            allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(AbstractServiceTest.SYSTEM_TENANT_ID.getId(),
                     new PageLink(500, 0, "WB_SYS_")).getData());
             deleteWidgetBundles(allWidgets);
         }
@@ -175,7 +172,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
                             new PageLink(500, 0, "WB1_")).getData();
             allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(tenantId2,
                     new PageLink(500, 0, "WB2_")).getData());
-            allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID.getId(),
+            allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(AbstractServiceTest.SYSTEM_TENANT_ID.getId(),
                     new PageLink(500, 0, "WB_SYS_")).getData());
             deleteWidgetBundles(allWidgets);
         }
@@ -194,7 +191,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
             List<WidgetsBundle> allWidgets =
                     widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(tenantId,
                             new PageLink(500, 0, "ABC_")).getData();
-            allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID.getId(),
+            allWidgets.addAll(widgetsBundleDao.findAllTenantWidgetsBundlesByTenantId(AbstractServiceTest.SYSTEM_TENANT_ID.getId(),
                     new PageLink(500, 0, "SYS_")).getData());
             deleteWidgetBundles(allWidgets);
         }
@@ -216,7 +213,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
             WidgetsBundle widgetsBundle = new WidgetsBundle();
             widgetsBundle.setAlias(prefix + i);
             widgetsBundle.setTitle(prefix + i);
-            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+            widgetsBundle.setTenantId(AbstractServiceTest.SYSTEM_TENANT_ID);
             widgetsBundle.setId(new WidgetsBundleId(Uuids.timeBased()));
             widgetsBundleDao.save(AbstractServiceTest.SYSTEM_TENANT_ID, widgetsBundle);
         }
