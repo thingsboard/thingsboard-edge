@@ -167,9 +167,20 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
     }
 
     @Override
+    public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
+        return doSaveDeviceProfile(deviceProfile,  doValidate);
+    }
+
+    @Override
     public DeviceProfile saveDeviceProfile(DeviceProfile deviceProfile) {
+        return doSaveDeviceProfile(deviceProfile,  true);
+    }
+
+    private DeviceProfile doSaveDeviceProfile(DeviceProfile deviceProfile, boolean doValidate) {
         log.trace("Executing saveDeviceProfile [{}]", deviceProfile);
-        deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
+        if (doValidate) {
+            deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
+        }
         DeviceProfile oldDeviceProfile = null;
         if (deviceProfile.getId() != null) {
             oldDeviceProfile = deviceProfileDao.findById(deviceProfile.getTenantId(), deviceProfile.getId().getId());

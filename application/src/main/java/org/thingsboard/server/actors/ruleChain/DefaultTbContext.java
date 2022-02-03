@@ -63,6 +63,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -546,6 +547,11 @@ class DefaultTbContext implements TbContext {
     @Override
     public EdgeEventService getEdgeEventService() {
         return mainCtx.getEdgeEventService();
+    }
+
+    @Override
+    public CloudEventService getCloudEventService() {
+        return mainCtx.getCloudEventService();
     }
 
     @Override

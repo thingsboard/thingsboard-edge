@@ -33,6 +33,8 @@ public interface UserService {
 
 	User findUserByEmail(TenantId tenantId, String email);
 
+	User saveUser(User user, boolean doValidate);
+
 	User saveUser(User user);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
@@ -42,6 +44,8 @@ public interface UserService {
 	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
 	
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
@@ -68,4 +72,8 @@ public interface UserService {
 	void onUserLoginSuccessful(TenantId tenantId, UserId userId);
 
 	int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId);
+
+	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials);
+
+	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
 }

@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -127,6 +126,15 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Override
     public Tenant saveTenant(Tenant tenant) {
+        return doSaveTenant(tenant, false);
+    }
+
+    @Override
+    public Tenant saveTenant(Tenant tenant, boolean forceCreate) {
+        return doSaveTenant(tenant, forceCreate);
+    }
+
+    private Tenant doSaveTenant(Tenant tenant, boolean forceCreate) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         if (tenant.getTenantProfileId() == null) {
@@ -135,7 +143,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         }
         tenantValidator.validate(tenant, Tenant::getId);
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
-        if (tenant.getId() == null) {
+        if (tenant.getId() == null || forceCreate) {
+            // TODO: voba - devices profiles are created by cloud manager service
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
@@ -199,11 +208,13 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Tenant tenant) {
+                    /* merge comment
                     Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
                     if (old == null) {
                         throw new DataValidationException("Can't update non existing tenant!");
                     }
                     validateTenantProfile(tenantId, tenant);
+                     */
                 }
 
                 private void validateTenantProfile(TenantId tenantId, Tenant tenant) {

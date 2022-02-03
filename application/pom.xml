@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.3-SNAPSHOT</version>
+        <version>3.3.3EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>application</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard Server Application</name>
+    <name>ThingsBoard Edge CE Application</name>
     <url>https://thingsboard.io</url>
-    <description>Open-source IoT Platform - Device management, data collection, processing and visualization
+    <description>Open-source ThingsBoard Edge Software - Device management, data collection, processing and visualization
     </description>
 
     <properties>
@@ -38,11 +38,11 @@
         <pkg.disabled>false</pkg.disabled>
         <pkg.process-resources.phase>process-resources</pkg.process-resources.phase>
         <pkg.package.phase>package</pkg.package.phase>
-        <pkg.name>thingsboard</pkg.name>
+        <pkg.name>tb-edge</pkg.name>
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
         <pkg.copyInstallScripts>true</pkg.copyInstallScripts>
-        <pkg.implementationTitle>ThingsBoard</pkg.implementationTitle>
-        <pkg.mainClass>org.thingsboard.server.ThingsboardServerApplication</pkg.mainClass>
+        <pkg.implementationTitle>ThingsBoard Edge CE</pkg.implementationTitle>
+        <pkg.mainClass>org.thingsboard.server.TbEdgeApplication</pkg.mainClass>
     </properties>
 
     <dependencies>
@@ -368,7 +368,7 @@
                 <version>${surfire.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <spring.config.name>thingsboard</spring.config.name>
+                        <spring.config.name>tb-edge</spring.config.name>
                     </systemPropertyVariables>
                     <excludes>
                         <exclude>**/sql/*Test.java</exclude>

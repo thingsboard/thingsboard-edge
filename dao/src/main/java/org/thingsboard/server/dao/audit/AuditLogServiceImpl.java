@@ -81,6 +81,12 @@ public class AuditLogServiceImpl implements AuditLogService {
     private AuditLogSink auditLogSink;
 
     @Override
+    public ListenableFuture<Void> saveOrUpdateAuditLog(AuditLog auditLogEntry) {
+        auditLogValidator.validate(auditLogEntry, AuditLog::getTenantId);
+        return auditLogDao.saveByTenantId(auditLogEntry);
+    }
+
+    @Override
     public PageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink) {
         log.trace("Executing findAuditLogsByTenantIdAndCustomerId [{}], [{}], [{}]", tenantId, customerId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

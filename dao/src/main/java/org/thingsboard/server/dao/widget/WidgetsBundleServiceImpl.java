@@ -61,10 +61,17 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
-    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle) {
+    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle, boolean doValidate) {
         log.trace("Executing saveWidgetsBundle [{}]", widgetsBundle);
-        widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
+        if (doValidate) {
+            widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
+        }
         return widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
+    }
+
+    @Override
+    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle) {
+        return saveWidgetsBundle(widgetsBundle, true);
     }
 
     @Override

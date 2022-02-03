@@ -64,10 +64,17 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     }
 
     @Override
-    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails) {
+    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails, boolean doValidate) {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
-        widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
+        if (doValidate) {
+            widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
+        }
         return widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
+    }
+
+    @Override
+    public WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetTypeDetails) {
+        return saveWidgetType(widgetTypeDetails, true);
     }
 
     @Override

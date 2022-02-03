@@ -654,6 +654,19 @@ message EdgeNotificationMsgProto {
   PostAttributeMsg postAttributesMsg = 12;
 }
 
+message CloudNotificationMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string cloudEventType = 3;
+  string cloudEventAction = 4;
+  int64 entityIdMSB = 5;
+  int64 entityIdLSB = 6;
+  string entityType = 7;
+  string entityBody = 8;
+  PostTelemetryMsg postTelemetryMsg = 9;
+  PostAttributeMsg postAttributesMsg = 10;
+}
+
 /**
  * Main messages;
  */
@@ -696,6 +709,7 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4;
   EdgeNotificationMsgProto edgeNotificationMsg = 5;
+  CloudNotificationMsgProto cloudNotificationMsg = 6;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */

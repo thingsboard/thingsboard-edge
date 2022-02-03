@@ -31,6 +31,8 @@ public interface TenantService {
     ListenableFuture<Tenant> findTenantByIdAsync(TenantId callerId, TenantId tenantId);
     
     Tenant saveTenant(Tenant tenant);
+
+    Tenant saveTenant(Tenant tenant, boolean forceCreate);
     
     void deleteTenant(TenantId tenantId);
     

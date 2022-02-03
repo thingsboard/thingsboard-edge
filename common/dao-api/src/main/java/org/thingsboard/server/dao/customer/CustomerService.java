@@ -32,6 +32,8 @@ public interface CustomerService {
 
     ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId);
 
+    Customer saveCustomer(Customer customer, boolean doValidate);
+
     Customer saveCustomer(Customer customer);
 
     void deleteCustomer(TenantId tenantId, CustomerId customerId);

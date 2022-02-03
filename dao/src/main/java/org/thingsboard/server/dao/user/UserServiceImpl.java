@@ -69,7 +69,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     private static final String LAST_LOGIN_TS = "lastLoginTs";
     private static final String FAILED_LOGIN_ATTEMPTS = "failedLoginAttempts";
 
-    private static final int DEFAULT_TOKEN_LENGTH = 30;
+    public static final int DEFAULT_TOKEN_LENGTH = 30;
     public static final String INCORRECT_USER_ID = "Incorrect userId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
@@ -125,9 +125,20 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public User saveUser(User user, boolean doValidate) {
+        return doSaveUser(user, doValidate);
+    }
+
+    @Override
     public User saveUser(User user) {
+        return doSaveUser(user, true);
+    }
+
+    private User doSaveUser(User user, boolean doValidate) {
         log.trace("Executing saveUser [{}]", user);
-        userValidator.validate(user, User::getTenantId);
+        if (doValidate) {
+            userValidator.validate(user, User::getTenantId);
+        }
         if (!userLoginCaseSensitive) {
             user.setEmail(user.getEmail().toLowerCase());
         }
@@ -165,9 +176,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     @Override
     public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
+        return saveUserCredentials(tenantId, userCredentials, true);
+    }
+
+    @Override
+    public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory) {
         log.trace("Executing saveUserCredentials [{}]", userCredentials);
         userCredentialsValidator.validate(userCredentials, data -> tenantId);
-        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials);
+        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials, updatePasswordHistory);
     }
 
     @Override
@@ -348,11 +364,19 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         return failedLoginAttempts;
     }
 
-    private UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials) {
+    @Override
+    public UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials) {
+        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials, true);
+    }
+
+    @Override
+    public UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory) {
         UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
-        User user = findUserById(tenantId, userCredentials.getUserId());
-        if (userCredentials.getPassword() != null) {
-            updatePasswordHistory(user, userCredentials);
+        if (updatePasswordHistory) {
+            User user = findUserById(tenantId, userCredentials.getUserId());
+            if (userCredentials.getPassword() != null) {
+                updatePasswordHistory(user, userCredentials);
+            }
         }
         return result;
     }
