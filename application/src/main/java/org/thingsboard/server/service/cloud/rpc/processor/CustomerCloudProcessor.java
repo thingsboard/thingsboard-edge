@@ -39,11 +39,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 
@@ -60,7 +58,7 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg, CloudType cloudType) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -116,11 +114,6 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                         entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
                         entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
                     }
-
-                    if (created && CloudType.CE.equals(cloudType)) {
-                        createCustomerEntityGroupsOnTenantLevel(tenantId, savedCustomer.getId());
-                    }
-
                 } finally {
                     customerCreationLock.unlock();
                 }
@@ -151,26 +144,5 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
         if (entityGroup != null && entityGroup.getId() != null) {
             entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
         }
-    }
-
-    private void createCustomerEntityGroupsOnTenantLevel(TenantId tenantId, CustomerId customerId) {
-        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DEVICE);
-        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ASSET);
-        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ENTITY_VIEW);
-        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DASHBOARD);
-    }
-
-    private void createCustomerEntityGroupOnTenantLevel(TenantId tenantId, CustomerId customerId, EntityType entityType) {
-        EntityGroup entityGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, entityType);
-        Role readOnlyGroupRole = roleService.findOrCreateReadOnlyEntityGroupRole(tenantId, null);
-
-        EntityGroup edgeCECustomerUsers =
-                entityGroupService.findOrCreateEdgeCECustomerUsersGroup(tenantId, customerId);
-
-        entityGroupService.findOrCreateEntityGroupPermission(tenantId,
-                entityGroup.getId(),
-                entityGroup.getType(),
-                edgeCECustomerUsers.getId(),
-                readOnlyGroupRole.getId());
     }
 }

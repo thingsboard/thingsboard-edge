@@ -43,13 +43,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.CloudType;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -75,15 +71,13 @@ import java.util.UUID;
 public class DeviceCloudProcessor extends BaseCloudProcessor {
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
-                                                            CustomerId customerId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
-                                                            CloudType cloudType,
                                                             Long queueStartTs) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateDevice(tenantId, customerId, deviceUpdateMsg, cloudType);
+                saveOrUpdateDevice(tenantId, deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
@@ -170,7 +164,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private Device saveOrUpdateDevice(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType) {
+    private Device saveOrUpdateDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
         Device device;
         deviceCreationLock.lock();
         try {
@@ -198,7 +192,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             if (deviceUpdateMsg.hasAdditionalInfo()) {
                 device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
             }
-            CustomerId deviceCustomerId = safeSetCustomerId(deviceUpdateMsg, cloudType, device);
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();
@@ -210,42 +203,19 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
 
                 tbClusterService.onDeviceUpdated(savedDevice, device);
             }
-            addToEntityGroup(tenantId, customerId, deviceUpdateMsg, cloudType, deviceId, deviceCustomerId);
+            addToEntityGroup(tenantId, deviceUpdateMsg, deviceId);
         } finally {
             deviceCreationLock.unlock();
         }
         return device;
     }
 
-    private CustomerId safeSetCustomerId(DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType, Device device) {
-        CustomerId deviceCustomerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(),
-                deviceUpdateMsg.getCustomerIdLSB());
-        if (CloudType.PE.equals(cloudType)) {
-            device.setCustomerId(deviceCustomerId);
-        }
-        return deviceCustomerId;
-    }
-
-    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType, DeviceId deviceId, CustomerId deviceCustomerId) {
-        if (CloudType.CE.equals(cloudType)) {
-            if (deviceCustomerId != null && deviceCustomerId.equals(customerId)) {
-                EntityGroup customerDevicesEntityGroup =
-                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
-                entityGroupService.addEntityToEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
-            }
-            if ((deviceCustomerId == null || deviceCustomerId.isNullUid()) &&
-                    (customerId != null && !customerId.isNullUid())) {
-                EntityGroup customerDevicesEntityGroup =
-                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
-                entityGroupService.removeEntityFromEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
-            }
-        } else {
-            if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
-                UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
-                        deviceUpdateMsg.getEntityGroupIdLSB());
-                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                addEntityToGroup(tenantId, entityGroupId, deviceId);
-            }
+    private void addToEntityGroup(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg, DeviceId deviceId) {
+        if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
+            UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
+                    deviceUpdateMsg.getEntityGroupIdLSB());
+            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+            addEntityToGroup(tenantId, entityGroupId, deviceId);
         }
     }
 

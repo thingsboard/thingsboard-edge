@@ -37,11 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.CloudType;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,7 +49,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
@@ -71,7 +69,6 @@ public class UserCloudProcessor extends BaseCloudProcessor {
 
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
                                                           UserUpdateMsg userUpdateMsg,
-                                                          CloudType cloudType,
                                                           Long queueStartTs) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
@@ -111,7 +108,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                             entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
                         }
                     }
-                    addToEntityGroup(tenantId, userUpdateMsg, cloudType, savedUser);
+                    addToEntityGroup(tenantId, userUpdateMsg, savedUser);
                 } finally {
                     userCreationLock.unlock();
                 }
@@ -147,24 +144,12 @@ public class UserCloudProcessor extends BaseCloudProcessor {
         return Futures.transform(t, tt -> null, dbCallbackExecutor);
     }
 
-    private void addToEntityGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType, User savedUser) {
-        if (CloudType.CE.equals(cloudType)) {
-            if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
-                EntityGroup edgeCETenantAdmins =
-                        entityGroupService.findOrCreateEdgeCETenantAdminsGroup(savedUser.getTenantId());
-                entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCETenantAdmins.getId(), savedUser.getId());
-            } else {
-                EntityGroup edgeCECustomerUsers =
-                        entityGroupService.findOrCreateEdgeCECustomerUsersGroup(savedUser.getTenantId(), savedUser.getCustomerId());
-                entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCECustomerUsers.getId(), savedUser.getId());
-            }
-        } else {
-            if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
-                UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
-                        userUpdateMsg.getEntityGroupIdLSB());
-                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
-            }
+    private void addToEntityGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, User savedUser) {
+        if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
+            UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
+                    userUpdateMsg.getEntityGroupIdLSB());
+            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+            addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
         }
     }
 

@@ -40,6 +40,5 @@ public class EdgeSettings {
     private String name;
     private String type;
     private String routingKey;
-    private CloudType cloudType;
     private boolean fullSyncRequired;
 }

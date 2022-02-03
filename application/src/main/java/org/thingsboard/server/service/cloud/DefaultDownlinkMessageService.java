@@ -197,8 +197,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceMsgFromCloud(
-                            tenantId, customerId, deviceUpdateMsg, currentEdgeSettings.getCloudType(), queueStartTs));
+                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, deviceUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
@@ -213,14 +212,12 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
                 for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
-                    result.add(assetProcessor.processAssetMsgFromCloud(
-                            tenantId, customerId, assetUpdateMsg, currentEdgeSettings.getCloudType(), queueStartTs));
+                    result.add(assetProcessor.processAssetMsgFromCloud(tenantId, assetUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
                 for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
-                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(
-                            tenantId, customerId, entityViewUpdateMsg, currentEdgeSettings.getCloudType(), queueStartTs));
+                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(tenantId, entityViewUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
@@ -235,8 +232,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getDashboardUpdateMsgCount() > 0) {
                 for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
-                    result.add(dashboardProcessor.processDashboardMsgFromCloud(
-                            tenantId, customerId, dashboardUpdateMsg, currentEdgeSettings.getCloudType(), queueStartTs));
+                    result.add(dashboardProcessor.processDashboardMsgFromCloud(tenantId, dashboardUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
@@ -248,7 +244,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
                     sequenceDependencyLock.lock();
                     try {
-                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, currentEdgeSettings.getCloudType()));
+                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg));
                         updateCustomerId(tenantId, customerUpdateMsg);
                     } finally {
                         sequenceDependencyLock.unlock();
@@ -274,8 +270,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
                     sequenceDependencyLock.lock();
                     try {
-                        result.add(userProcessor.processUserMsgFromCloud(
-                                tenantId, userUpdateMsg, currentEdgeSettings.getCloudType(), queueStartTs));
+                        result.add(userProcessor.processUserMsgFromCloud(tenantId, userUpdateMsg, queueStartTs));
                     } finally {
                         sequenceDependencyLock.unlock();
                     }

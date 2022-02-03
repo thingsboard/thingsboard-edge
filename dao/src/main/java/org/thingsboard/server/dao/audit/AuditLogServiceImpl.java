@@ -42,9 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionStatus;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
@@ -65,14 +65,12 @@ import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.common.util.JacksonUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;

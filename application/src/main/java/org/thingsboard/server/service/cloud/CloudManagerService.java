@@ -54,7 +54,6 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -558,7 +557,7 @@ public class CloudManagerService extends BaseCloudEventService {
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-        this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
+        this.tenantId = getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
         UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
         CustomerId customerId = new CustomerId(customerUUID);
@@ -588,9 +587,6 @@ public class CloudManagerService extends BaseCloudEventService {
         updateConnectivityStatus(true);
 
         AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
-        if (newEdgeSetting.getCloudType().equals(CloudType.CE) && existingMailTemplates == null) {
-            installScripts.loadMailTemplates();
-        }
 
         initialized = true;
     }
@@ -672,19 +668,15 @@ public class CloudManagerService extends BaseCloudEventService {
         }
     }
 
-    private Tenant getOrCreateTenant(TenantId tenantId, CloudType cloudType) {
+    private Tenant getOrCreateTenant(TenantId tenantId) {
         Tenant tenant = tenantService.findTenantById(tenantId);
-        if (tenant == null) {
-            tenant = new Tenant();
-            tenant.setTitle("Tenant");
-            tenant.setId(tenantId);
-            Tenant savedTenant = tenantService.saveTenant(tenant, true);
-            if (CloudType.CE.equals(cloudType)) {
-                entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-                entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
-            }
+        if (tenant != null) {
+            return tenant;
         }
-        return tenant;
+        tenant = new Tenant();
+        tenant.setTitle("Tenant");
+        tenant.setId(tenantId);
+        return tenantService.saveTenant(tenant, true);
     }
 
     private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {
@@ -696,7 +688,6 @@ public class CloudManagerService extends BaseCloudEventService {
         edgeSettings.setName(edgeConfiguration.getName());
         edgeSettings.setType(edgeConfiguration.getType());
         edgeSettings.setRoutingKey(edgeConfiguration.getRoutingKey());
-        edgeSettings.setCloudType(CloudType.valueOf(edgeConfiguration.getCloudType()));
         edgeSettings.setFullSyncRequired(true);
         return edgeSettings;
     }

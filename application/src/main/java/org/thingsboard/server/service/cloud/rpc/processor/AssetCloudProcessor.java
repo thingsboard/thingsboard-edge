@@ -35,15 +35,11 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.CloudType;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 
 import java.util.UUID;
@@ -57,9 +53,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
     private final Lock assetCreationLock = new ReentrantLock();
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
-                                                           CustomerId customerId,
                                                            AssetUpdateMsg assetUpdateMsg,
-                                                           CloudType cloudType,
                                                            Long queueStartTs) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
@@ -84,12 +78,11 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                     if (assetUpdateMsg.hasAdditionalInfo()) {
                         asset.setAdditionalInfo(JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()));
                     }
-                    CustomerId assetCustomerId = safeSetCustomerId(assetUpdateMsg, cloudType, asset);
                     Asset savedAsset = assetService.saveAsset(asset, false);
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
                     }
-                    addToEntityGroup(tenantId, customerId, assetUpdateMsg, cloudType, assetId, assetCustomerId);
+                    addToEntityGroup(tenantId, assetUpdateMsg, assetId);
                 } finally {
                     assetCreationLock.unlock();
                 }
@@ -115,36 +108,12 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
-    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType, AssetId assetId, CustomerId assetCustomerId) {
-        if (CloudType.CE.equals(cloudType)) {
-            if (assetCustomerId != null && assetCustomerId.equals(customerId)) {
-                EntityGroup customerAssetsEntityGroup =
-                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
-                entityGroupService.addEntityToEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
-            }
-            if ((assetCustomerId == null || assetCustomerId.isNullUid()) &&
-                    (customerId != null && !customerId.isNullUid())) {
-                EntityGroup customerAssetsEntityGroup =
-                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
-                entityGroupService.removeEntityFromEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
-            }
-        } else {
-            if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
-                UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
-                        assetUpdateMsg.getEntityGroupIdLSB());
-                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                addEntityToGroup(tenantId, entityGroupId, assetId);
-            }
+    private void addToEntityGroup(TenantId tenantId, AssetUpdateMsg assetUpdateMsg, AssetId assetId) {
+        if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
+            UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
+                    assetUpdateMsg.getEntityGroupIdLSB());
+            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+            addEntityToGroup(tenantId, entityGroupId, assetId);
         }
     }
-
-    private CustomerId safeSetCustomerId(AssetUpdateMsg assetUpdateMsg, CloudType cloudType, Asset asset) {
-        CustomerId assetCustomerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(),
-                assetUpdateMsg.getCustomerIdLSB());
-        if (CloudType.PE.equals(cloudType)) {
-            asset.setCustomerId(assetCustomerId);
-        }
-        return assetCustomerId;
-    }
-
 }

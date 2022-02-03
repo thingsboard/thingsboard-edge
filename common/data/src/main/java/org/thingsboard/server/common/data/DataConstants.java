@@ -147,7 +147,7 @@ public class DataConstants {
 
     public static final String LAST_CONNECTED_GATEWAY = "lastConnectedGateway";
 
-    // edge specifics
+    // edge constants
     public static final String CLOUD_MSG_SOURCE = "cloud";
     public static final String EDGE_SETTINGS_ATTR_KEY = "edgeSettings";
 }

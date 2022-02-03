@@ -187,10 +187,6 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private DeviceCredentialsService deviceCredentialsService;
-
-    @Autowired
-    @Getter
     private AssetService assetService;
 
     @Autowired
