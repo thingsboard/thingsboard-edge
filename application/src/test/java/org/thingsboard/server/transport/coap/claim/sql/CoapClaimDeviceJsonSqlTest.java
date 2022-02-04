@@ -15,8 +15,8 @@
  */
 package org.thingsboard.server.transport.coap.claim.sql;
 
-import org.thingsboard.server.transport.coap.claim.AbstractCoapClaimJsonDeviceTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.coap.claim.AbstractCoapClaimJsonDeviceTest;
 
 @DaoSqlTest
 public class CoapClaimDeviceJsonSqlTest extends AbstractCoapClaimJsonDeviceTest {

@@ -132,6 +132,8 @@ import { ManageDashboardStatesDialogComponent } from '@home/components/dashboard
 import { DashboardStateDialogComponent } from '@home/components/dashboard-page/states/dashboard-state-dialog.component';
 import { EmbedDashboardDialogComponent } from '@home/components/widget/dialog/embed-dashboard-dialog.component';
 import { EMBED_DASHBOARD_DIALOG_TOKEN } from '@home/components/widget/dialog/embed-dashboard-dialog-token';
+import { CloudEventTableComponent } from '@home/components/cloud-event/cloud-event-table.component';
+import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/cloud-event-details-dialog.component';
 import { EdgeDownlinkTableComponent } from '@home/components/edge/edge-downlink-table.component';
 import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
@@ -267,7 +269,9 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
       DashboardStateDialogComponent,
       DashboardImageDialogComponent,
       EmbedDashboardDialogComponent,
-      DisplayWidgetTypesPanelComponent
+      DisplayWidgetTypesPanelComponent,
+      CloudEventTableComponent,
+      CloudEventDetailsDialogComponent
     ],
   imports: [
     CommonModule,
@@ -380,7 +384,9 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
     DashboardStateDialogComponent,
     DashboardImageDialogComponent,
     EmbedDashboardDialogComponent,
-    DisplayWidgetTypesPanelComponent
+    DisplayWidgetTypesPanelComponent,
+    CloudEventTableComponent,
+    CloudEventDetailsDialogComponent
   ],
   providers: [
     WidgetComponentService,

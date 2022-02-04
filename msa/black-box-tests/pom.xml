@@ -105,6 +105,7 @@
             <groupId>org.thingsboard</groupId>
             <artifactId>rest-client</artifactId>
         </dependency>
+        <!-- merge comment
         <dependency>
             <groupId>org.thingsboard.msa</groupId>
             <artifactId>js-executor</artifactId>
@@ -144,7 +145,7 @@
             <groupId>org.thingsboard.msa.transport</groupId>
             <artifactId>snmp</artifactId>
             <type>docker-info</type>
-        </dependency>
+        </dependency> -->
     </dependencies>
     <build>
         <plugins>

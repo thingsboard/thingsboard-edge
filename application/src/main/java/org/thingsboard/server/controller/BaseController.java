@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -94,6 +96,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
@@ -237,6 +240,9 @@ public abstract class BaseController {
     protected ClaimDevicesService claimDevicesService;
 
     @Autowired
+    protected CloudEventService cloudEventService;
+
+    @Autowired
     protected PartitionService partitionService;
 
     @Autowired
@@ -263,11 +269,13 @@ public abstract class BaseController {
     @Autowired(required = false)
     protected EdgeService edgeService;
 
+    /* voba - merge comment
     @Autowired(required = false)
     protected EdgeNotificationService edgeNotificationService;
 
     @Autowired(required = false)
     protected EdgeRpcService edgeGrpcService;
+    */
 
     @Autowired(required = false)
     protected EdgeLicenseService edgeLicenseService;
@@ -923,4 +931,33 @@ public abstract class BaseController {
             return MediaType.APPLICATION_OCTET_STREAM;
         }
     }
+
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, ActionType cloudEventAction) {
+        try {
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);
+        } catch (Exception e) {
+            log.warn("Failed to push relation to core: {}", relation, e);
+        }
+    }
+
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, ActionType cloudEventAction) {
+        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+        if (cloudEventType != null) {
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
+        }
+    }
+
+    protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, Alarm alarm) {
+        try {
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, ActionType.DELETED);
+        } catch (Exception e) {
+            log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
+        }
+    }
+
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                                     ActionType cloudEventAction) {
+        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
+    }
+
 }

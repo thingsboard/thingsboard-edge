@@ -105,6 +105,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
+            /* voba - merge comment
             case "1.3.0":
                 log.info("Updating schema ...");
                 Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.3.1", SCHEMA_UPDATE_SQL);
@@ -512,6 +513,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed updating schema!!!", e);
                 }
                 break;
+             */
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }

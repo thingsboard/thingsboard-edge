@@ -22,10 +22,6 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.util.PsqlDao;
 import org.thingsboard.server.dao.util.TimescaleDBTsDao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
 @Service
 @TimescaleDBTsDao
 @PsqlDao

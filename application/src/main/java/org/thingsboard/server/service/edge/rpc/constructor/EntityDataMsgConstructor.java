@@ -61,7 +61,11 @@ public class EntityDataMsgConstructor {
                 try {
                     JsonObject data = entityData.getAsJsonObject();
                     TransportProtos.PostAttributeMsg attributesUpdatedMsg = JsonConverter.convertToAttributesProto(data.getAsJsonObject("kv"));
-                    builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
+                    if (data.has("isPostAttributes") && data.getAsJsonPrimitive("isPostAttributes").getAsBoolean()) {
+                        builder.setPostAttributesMsg(attributesUpdatedMsg);
+                    } else {
+                        builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
+                    }
                     builder.setPostAttributeScope(data.getAsJsonPrimitive("scope").getAsString());
                 } catch (Exception e) {
                     log.warn("[{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", entityId, entityData, e);

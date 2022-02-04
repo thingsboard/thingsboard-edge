@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -261,7 +262,9 @@ public class DeviceController extends BaseController {
             DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
             Device device = checkDeviceId(deviceId, Operation.DELETE);
 
+            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), deviceId);
+             */
 
             deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
 
@@ -272,7 +275,11 @@ public class DeviceController extends BaseController {
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
 
+            /* merge comment
             sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
+             */
+
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE),
                     null,
@@ -421,11 +428,16 @@ public class DeviceController extends BaseController {
             DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId(), result), null);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), device.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
+             */
 
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);
+
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED);
+
             return result;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), null,

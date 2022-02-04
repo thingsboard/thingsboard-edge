@@ -23,7 +23,7 @@
     <version>3.3.3EDGE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Thingsboard</name>
+    <name>Thingsboard Edge</name>
     <url>https://thingsboard.io</url>
     <inceptionYear>2016</inceptionYear>
 
@@ -139,7 +139,7 @@
         <module>common</module>
         <module>rule-engine</module>
         <module>dao</module>
-        <module>transport</module>
+<!--        <module>transport</module>-->
         <module>ui-ngx</module>
         <module>tools</module>
         <module>application</module>

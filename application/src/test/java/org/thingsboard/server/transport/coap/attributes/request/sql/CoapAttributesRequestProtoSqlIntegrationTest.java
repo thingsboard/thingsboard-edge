@@ -15,8 +15,8 @@
  */
 package org.thingsboard.server.transport.coap.attributes.request.sql;
 
-import org.thingsboard.server.transport.coap.attributes.request.AbstractCoapAttributesRequestProtoIntegrationTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.coap.attributes.request.AbstractCoapAttributesRequestProtoIntegrationTest;
 
 @DaoSqlTest
 public class CoapAttributesRequestProtoSqlIntegrationTest extends AbstractCoapAttributesRequestProtoIntegrationTest {

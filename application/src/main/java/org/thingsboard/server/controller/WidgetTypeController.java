@@ -102,8 +102,10 @@ public class WidgetTypeController extends BaseController {
             checkEntity(widgetTypeDetails.getId(), widgetTypeDetails, Resource.WIDGET_TYPE);
             WidgetTypeDetails savedWidgetTypeDetails = widgetTypeService.saveWidgetType(widgetTypeDetails);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), savedWidgetTypeDetails.getId(),
                     widgetTypeDetails.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+             */
 
             return checkNotNull(savedWidgetTypeDetails);
         } catch (Exception e) {
@@ -125,7 +127,9 @@ public class WidgetTypeController extends BaseController {
             checkWidgetTypeId(widgetTypeId, Operation.DELETE);
             widgetTypeService.deleteWidgetType(getCurrentUser().getTenantId(), widgetTypeId);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), widgetTypeId, EdgeEventActionType.DELETED);
+             */
 
         } catch (Exception e) {
             throw handleException(e);

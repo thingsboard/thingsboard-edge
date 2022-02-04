@@ -231,8 +231,10 @@ public class DeviceProfileController extends BaseController {
 
             otaPackageStateService.update(savedDeviceProfile, isFirmwareChanged, isSoftwareChanged);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), savedDeviceProfile.getId(),
                     deviceProfile.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+             */
             return savedDeviceProfile;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE_PROFILE), deviceProfile,
@@ -264,7 +266,9 @@ public class DeviceProfileController extends BaseController {
                     null,
                     ActionType.DELETED, null, strDeviceProfileId);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), deviceProfile.getId(), EdgeEventActionType.DELETED);
+             */
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE_PROFILE),
                     null,

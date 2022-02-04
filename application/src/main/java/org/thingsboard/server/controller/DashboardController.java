@@ -217,7 +217,9 @@ public class DashboardController extends BaseController {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
 
+            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), dashboardId);
+             */
 
             dashboardService.deleteDashboard(getCurrentUser().getTenantId(), dashboardId);
 
@@ -225,7 +227,9 @@ public class DashboardController extends BaseController {
                     null,
                     ActionType.DELETED, null, strDashboardId);
 
+            /* merge comment
             sendDeleteNotificationMsg(getTenantId(), dashboardId, relatedEdgeIds);
+             */
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.DASHBOARD),

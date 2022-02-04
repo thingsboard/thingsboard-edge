@@ -92,7 +92,7 @@ public class RuleChainMsgConstructor {
     }
 
     private void constructRuleChainMetadataUpdatedMsg_V_3_3_3(RuleChainMetadataUpdateMsg.Builder builder,
-                                                                                           RuleChainMetaData ruleChainMetaData) throws JsonProcessingException {
+                                                              RuleChainMetaData ruleChainMetaData) throws JsonProcessingException {
         builder.setRuleChainIdMSB(ruleChainMetaData.getRuleChainId().getId().getMostSignificantBits())
                 .setRuleChainIdLSB(ruleChainMetaData.getRuleChainId().getId().getLeastSignificantBits())
                 .addAllNodes(constructNodes(ruleChainMetaData.getNodes()))
@@ -106,7 +106,7 @@ public class RuleChainMsgConstructor {
     }
 
     private void constructRuleChainMetadataUpdatedMsg_V_3_3_0(RuleChainMetadataUpdateMsg.Builder builder,
-                                                                                           RuleChainMetaData ruleChainMetaData) throws JsonProcessingException {
+                                                              RuleChainMetaData ruleChainMetaData) throws JsonProcessingException {
         List<RuleNode> supportedNodes = filterNodes_V_3_3_0(ruleChainMetaData.getNodes());
         NavigableSet<Integer> removedNodeIndexes = getRemovedNodeIndexes(ruleChainMetaData.getNodes(), ruleChainMetaData.getConnections());
         List<NodeConnectionInfo> connections = filterConnections_V_3_3_0(ruleChainMetaData.getNodes(), ruleChainMetaData.getConnections(), removedNodeIndexes);

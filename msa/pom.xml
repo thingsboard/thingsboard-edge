@@ -39,11 +39,12 @@
     </properties>
 
     <modules>
-        <module>tb</module>
-        <module>js-executor</module>
-        <module>web-ui</module>
-        <module>tb-node</module>
-        <module>transport</module>
+<!--        <module>tb</module>-->
+<!--        <module>js-executor</module>-->
+<!--        <module>web-ui</module>-->
+<!--        <module>tb-node</module>-->
+<!--        <module>transport</module>-->
+        <module>tb-edge</module>
     </modules>
 
     <profiles>
@@ -57,6 +58,18 @@
             </activation>
             <modules>
                 <module>black-box-tests</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>edge-black-box-tests</id>
+            <activation>
+                <property>
+                    <name>edgeBlackBoxTests.skip</name>
+                    <value>false</value>
+                </property>
+            </activation>
+            <modules>
+                <module>edge-black-box-tests</module>
             </modules>
         </profile>
         <profile>

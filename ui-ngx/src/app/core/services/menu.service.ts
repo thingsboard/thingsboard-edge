@@ -229,6 +229,22 @@ export class MenuService {
 
   private buildTenantAdminMenu(authState: AuthState): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
+    const edgePages: Array<MenuSection> = [
+      {
+        id: guid(),
+        name: 'edge.status',
+        type: 'link',
+        path: '/edge/status',
+        icon: 'info'
+      },
+      {
+        id: guid(),
+        name: 'edge.cloud-events',
+        type: 'link',
+        path: '/edge/cloudEvents',
+        icon: 'date_range'
+      }
+    ];
     sections.push(
       {
         id: guid(),
@@ -236,6 +252,14 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home'
+      },
+      {
+        id: guid(),
+        name: 'edge.edge',
+        type: 'toggle',
+        path: '/edge',
+        icon: 'router',
+        pages: edgePages
       },
       {
         id: guid(),
@@ -273,6 +297,7 @@ export class MenuService {
         icon: 'mdi:alpha-d-box',
         isMdiIcon: true
       },
+      /* @voba - merge comment - hide this on edge
       {
         id: guid(),
         name: 'ota-update.ota-updates',
@@ -280,6 +305,7 @@ export class MenuService {
         path: '/otaUpdates',
         icon: 'memory'
       },
+       */
       {
         id: guid(),
         name: 'entity-view.entity-views',
@@ -288,6 +314,7 @@ export class MenuService {
         icon: 'view_quilt'
       }
     );
+    /* @voba - merge comment - these sections should not be visible on edge
     if (authState.edgesSupportEnabled) {
       sections.push(
         {
@@ -316,6 +343,7 @@ export class MenuService {
         }
       );
     }
+     */
     sections.push(
       {
         id: guid(),
@@ -377,6 +405,23 @@ export class MenuService {
     const homeSections: Array<HomeSection> = [];
     homeSections.push(
       {
+        name: 'edge.edge',
+        places: [
+          {
+            name: 'edge.status',
+            icon: 'info',
+            path: '/edge/status'
+          },
+          {
+            name: 'edge.cloud-events',
+            icon: 'date_range',
+            path: '/edge/cloudEvents'
+          }
+        ]
+      }
+    );
+    homeSections.push(
+      {
         name: 'rulechain.management',
         places: [
           {
@@ -420,11 +465,13 @@ export class MenuService {
             isMdiIcon: true,
             path: '/deviceProfiles'
           },
+          /* @voba - merge comment - hide this on edge
           {
             name: 'ota-update.ota-updates',
             icon: 'memory',
             path: '/otaUpdates'
           }
+           */
         ]
       },
       {
@@ -438,6 +485,7 @@ export class MenuService {
         ]
       }
     );
+    /* @voba - merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       homeSections.push(
         {
@@ -457,6 +505,7 @@ export class MenuService {
         }
       );
     }
+     */
     homeSections.push(
       {
         name: 'dashboard.management',
@@ -539,6 +588,7 @@ export class MenuService {
         icon: 'view_quilt'
       }
     );
+    /* @voba - merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       sections.push(
         {
@@ -550,6 +600,7 @@ export class MenuService {
         }
       );
     }
+     */
     sections.push(
       {
         id: guid(),
@@ -596,6 +647,7 @@ export class MenuService {
         ]
       }
     );
+    /* @voba - merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       homeSections.push(
         {
@@ -610,6 +662,7 @@ export class MenuService {
         }
       );
     }
+     */
     homeSections.push(
       {
         name: 'dashboard.view-dashboards',

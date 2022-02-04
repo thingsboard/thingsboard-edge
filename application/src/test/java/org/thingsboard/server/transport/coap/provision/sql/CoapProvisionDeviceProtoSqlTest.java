@@ -15,8 +15,8 @@
  */
 package org.thingsboard.server.transport.coap.provision.sql;
 
-import org.thingsboard.server.transport.coap.provision.AbstractCoapProvisionProtoDeviceTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.coap.provision.AbstractCoapProvisionProtoDeviceTest;
 
 @DaoSqlTest
 public class CoapProvisionDeviceProtoSqlTest extends AbstractCoapProvisionProtoDeviceTest {

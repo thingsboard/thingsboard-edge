@@ -184,7 +184,9 @@ public class CustomerController extends BaseController {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             Customer customer = checkCustomerId(customerId, Operation.DELETE);
 
+            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), customerId);
+             */
 
             customerService.deleteCustomer(getTenantId(), customerId);
 
@@ -192,7 +194,9 @@ public class CustomerController extends BaseController {
                     customer.getId(),
                     ActionType.DELETED, null, strCustomerId);
 
+            /* merge comment
             sendDeleteNotificationMsg(getTenantId(), customerId, relatedEdgeIds);
+             */
             tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), customerId, ComponentLifecycleEvent.DELETED);
         } catch (Exception e) {
 

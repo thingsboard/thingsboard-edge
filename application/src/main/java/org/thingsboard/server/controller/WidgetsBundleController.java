@@ -103,8 +103,10 @@ public class WidgetsBundleController extends BaseController {
             checkEntity(widgetsBundle.getId(), widgetsBundle, Resource.WIDGETS_BUNDLE);
             WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), savedWidgetsBundle.getId(),
                     widgetsBundle.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+             */
 
             return checkNotNull(savedWidgetsBundle);
         } catch (Exception e) {
@@ -126,7 +128,9 @@ public class WidgetsBundleController extends BaseController {
             checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
             widgetsBundleService.deleteWidgetsBundle(getTenantId(), widgetsBundleId);
 
+            /* merge comment
             sendEntityNotificationMsg(getTenantId(), widgetsBundleId, EdgeEventActionType.DELETED);
+             */
 
         } catch (Exception e) {
             throw handleException(e);

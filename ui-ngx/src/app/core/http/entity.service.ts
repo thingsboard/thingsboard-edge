@@ -82,6 +82,7 @@ import {
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
+import { CloudEventType } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import {
   Edge,
@@ -1352,6 +1353,41 @@ export class EntityService {
       const dataKey = this.utils.createKey(keyInfo, type);
       datasource.dataKeys.push(dataKey);
     });
+  }
+
+  public getCloudEventByType(entity: any): Observable<any> {
+    let entityObservable: Observable<any>;
+    const entityId: string = entity.entityId;
+    const entityType: any = entity.cloudEventType;
+    switch (entityType) {
+      case CloudEventType.DASHBOARD:
+      case CloudEventType.ALARM:
+      case CloudEventType.RULE_CHAIN:
+      case CloudEventType.EDGE:
+      case CloudEventType.USER:
+      case CloudEventType.CUSTOMER:
+      case CloudEventType.ASSET:
+      case CloudEventType.DEVICE:
+      case CloudEventType.ENTITY_VIEW:
+        entityObservable = this.getEntity(entityType, entityId, { ignoreLoading: true, ignoreErrors: true });
+        break;
+      case CloudEventType.RULE_CHAIN_METADATA:
+        entityObservable = this.ruleChainService.getRuleChainMetadata(entityId);
+        break;
+      case CloudEventType.WIDGET_TYPE:
+        entityObservable = this.widgetService.getWidgetTypeById(entityId);
+        break;
+      case CloudEventType.WIDGETS_BUNDLE:
+        entityObservable = this.widgetService.getWidgetsBundle(entityId);
+        break;
+      case CloudEventType.DEVICE_PROFILE:
+        entityObservable = this.deviceProfileService.getDeviceProfile(entityId);
+        break;
+      case CloudEventType.RELATION:
+        entityObservable = of(entity.entityBody);
+        break;
+    }
+    return entityObservable;
   }
 
   public getAssignedToEdgeEntitiesByType(edgeId: string, entityType: EntityType, pageLink: PageLink): Observable<PageData<any>> {

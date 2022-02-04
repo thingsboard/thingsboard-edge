@@ -562,6 +562,16 @@ public class ModelConstants {
     public static final String EDGE_EVENT_BY_ID_VIEW_NAME = "edge_event_by_id";
 
     /**
+     * cloud queue constants.
+     */
+    public static final String CLOUD_EVENT_COLUMN_FAMILY_NAME = "cloud_event";
+    public static final String CLOUD_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String CLOUD_EVENT_TYPE_PROPERTY = "cloud_event_type";
+    public static final String CLOUD_EVENT_ACTION_PROPERTY = "cloud_event_action";
+    public static final String CLOUD_EVENT_ENTITY_ID_PROPERTY = "entity_id";
+    public static final String CLOUD_EVENT_ENTITY_BODY_PROPERTY = "entity_body";
+
+    /**
      * Cassandra attributes and timeseries constants.
      */
     public static final String ATTRIBUTES_KV_CF = "attributes_kv_cf";

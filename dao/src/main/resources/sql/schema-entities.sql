@@ -634,6 +634,17 @@ CREATE TABLE IF NOT EXISTS rpc (
     status varchar(255) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS cloud_event (
+    id uuid NOT NULL CONSTRAINT cloud_event_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    ts bigint NOT NULL
+);
+
 CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(IN ttl bigint, IN debug_ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$
@@ -668,7 +679,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE cleanup_edge_events_by_ttl(IN ttl bigint, INOUT deleted bigint)
+CREATE OR REPLACE PROCEDURE cleanup_cloud_events_by_ttl(IN ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$
 DECLARE
@@ -678,9 +689,9 @@ BEGIN
     IF ttl > 0 THEN
         ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - ttl::bigint * 1000)::bigint;
         EXECUTE format(
-                'WITH deleted AS (DELETE FROM edge_event WHERE ts < %L::bigint RETURNING *) SELECT count(*) FROM deleted', ttl_ts) into ttl_deleted_count;
+                'WITH deleted AS (DELETE FROM cloud_event WHERE ts < %L::bigint RETURNING *) SELECT count(*) FROM deleted', ttl_ts) into ttl_deleted_count;
     END IF;
-    RAISE NOTICE 'Edge events removed by ttl: %', ttl_deleted_count;
+    RAISE NOTICE 'Cloud events removed by ttl: %', ttl_deleted_count;
     deleted := ttl_deleted_count;
 END
 $$;

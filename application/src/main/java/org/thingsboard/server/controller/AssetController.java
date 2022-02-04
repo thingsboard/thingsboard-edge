@@ -191,15 +191,18 @@ public class AssetController extends BaseController {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             Asset asset = checkAssetId(assetId, Operation.DELETE);
 
+            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), assetId);
+             */
 
             assetService.deleteAsset(getTenantId(), assetId);
 
             logEntityAction(assetId, asset,
                     asset.getCustomerId(),
                     ActionType.DELETED, null, strAssetId);
-
+            /* merge comment
             sendDeleteNotificationMsg(getTenantId(), assetId, relatedEdgeIds);
+             */
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ASSET),
                     null,

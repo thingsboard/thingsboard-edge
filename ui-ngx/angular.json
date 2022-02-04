@@ -27,7 +27,7 @@
             "tsConfig": "src/tsconfig.app.json",
             "aot": true,
             "assets": [
-              "src/thingsboard.ico",
+              "src/tb-edge.ico",
               "src/assets",
               {
                 "glob": "worker-html.js",

@@ -153,11 +153,15 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         Map<RuleNodeId, Integer> ruleNodeIndexMap = new HashMap<>();
         if (nodes != null) {
             for (RuleNode node : nodes) {
+                /* TODO: voba - merge comment
                 if (node.getId() != null) {
                     ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
                 } else {
                     toAddOrUpdate.add(node);
                 }
+                 */
+                ruleNodeIndexMap.put(node.getId(), nodes.indexOf(node));
+                toAddOrUpdate.add(node);
             }
         }
 
@@ -167,8 +171,9 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             Integer index = ruleNodeIndexMap.get(existingNode.getId());
             RuleNode newRuleNode = null;
             if (index != null) {
-                newRuleNode = ruleChainMetaData.getNodes().get(index);
-                toAddOrUpdate.add(newRuleNode);
+                // @voba - merge comment
+                // newRuleNode = ruleChainMetaData.getNodes().get(index);
+                // toAddOrUpdate.add(newRuleNode);
             } else {
                 updatedRuleNodes.add(new RuleNodeUpdateResult(existingNode, null));
                 toDelete.add(existingNode);
@@ -384,6 +389,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             if (ruleChain.isRoot()) {
                 throw new DataValidationException("Deletion of Root Tenant Rule Chain is prohibited!");
             }
+            /* merge comment
             if (RuleChainType.EDGE.equals(ruleChain.getType())) {
                 PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
                 PageData<Edge> pageData;
@@ -401,6 +407,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     }
                 } while (pageData != null && pageData.hasNext());
             }
+             */
         }
         checkRuleNodesAndDelete(tenantId, ruleChainId);
     }
@@ -605,7 +612,9 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Override
     public RuleChain getEdgeTemplateRootRuleChain(TenantId tenantId) {
         Validator.validateId(tenantId, "Incorrect tenant id for search request.");
-        return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.EDGE);
+        // TODO: voba - merge comment
+        // return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.EDGE);
+        return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.CORE);
     }
 
     @Override
@@ -730,13 +739,17 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     if (tenant == null) {
                         throw new DataValidationException("Rule chain is referencing to non-existent tenant!");
                     }
-                    if (ruleChain.isRoot() && RuleChainType.CORE.equals(ruleChain.getType())) {
+
+                    // TODO: voba  this check is not needed currently on edge
+                    if (ruleChain.isRoot()) {
                         RuleChain rootRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
                         if (rootRuleChain != null && !rootRuleChain.getId().equals(ruleChain.getId())) {
                             throw new DataValidationException("Another root rule chain is present in scope of current tenant!");
                         }
                     }
-                    if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
+                    // TODO: voba - merge comment
+                    // if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
+                    if (ruleChain.isRoot() && RuleChainType.CORE.equals(ruleChain.getType())) {
                         RuleChain edgeTemplateRootRuleChain = getEdgeTemplateRootRuleChain(ruleChain.getTenantId());
                         if (edgeTemplateRootRuleChain != null && !edgeTemplateRootRuleChain.getId().equals(ruleChain.getId())) {
                             throw new DataValidationException("Another edge template root rule chain is present in scope of current tenant!");

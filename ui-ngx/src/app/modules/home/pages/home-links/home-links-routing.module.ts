@@ -22,6 +22,9 @@ import { Authority } from '@shared/models/authority.enum';
 import { Observable } from 'rxjs';
 import { HomeDashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
+import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeSettings } from '@shared/models/edge.models';
 
 @Injectable()
 export class HomeDashboardResolver implements Resolve<HomeDashboard> {
@@ -34,6 +37,20 @@ export class HomeDashboardResolver implements Resolve<HomeDashboard> {
   }
 }
 
+@Injectable()
+export class EdgeSettingsResolver implements Resolve<EdgeSettings> {
+
+  constructor(private edgeService: EdgeService) {
+  }
+
+  resolve(): Observable<EdgeSettings> {
+    return this.edgeService.getEdgeSettings();
+  }
+}
+
+export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
+  ((route, translate, component) => route.data.edgeSettings.name);
+
 const routes: Routes = [
   {
     path: 'home',
@@ -42,12 +59,13 @@ const routes: Routes = [
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       title: 'home.home',
       breadcrumb: {
-        label: 'home.home',
+        labelFunction: edgeNameResolver,
         icon: 'home'
-      }
+      } as BreadCrumbConfig<HomeLinksComponent>
     },
     resolve: {
-      homeDashboard: HomeDashboardResolver
+      homeDashboard: HomeDashboardResolver,
+      edgeSettings: EdgeSettingsResolver
     }
   }
 ];
@@ -56,7 +74,8 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    HomeDashboardResolver
+    HomeDashboardResolver,
+    EdgeSettingsResolver
   ]
 })
 export class HomeLinksRoutingModule { }

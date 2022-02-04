@@ -38,10 +38,12 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -50,6 +52,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
@@ -149,6 +152,7 @@ public class EdgeController extends BaseController {
         }
     }
 
+    /* voba - merge comment
     @ApiOperation(value = "Create Or Update Edge (saveEdge)",
             notes = "Create or update the Edge. When creating edge, platform generates Edge Id as " + UUID_WIKI_LINK +
                     "The newly created edge id will be present in the response. " +
@@ -234,6 +238,7 @@ public class EdgeController extends BaseController {
             throw handleException(e);
         }
     }
+     */
 
     @ApiOperation(value = "Get Tenant Edges (getEdges)",
             notes = "Returns a page of edges owned by tenant. " +
@@ -453,6 +458,7 @@ public class EdgeController extends BaseController {
         }
     }
 
+    /* voba - merge comment
     @ApiOperation(value = "Set root rule chain for provided edge (setEdgeRootRuleChain)",
             notes = "Change root rule chain of the edge to the new provided rule chain. \n" +
                     "This operation will send a notification to update root rule chain on remote edge service." + TENANT_AUTHORITY_PARAGRAPH,
@@ -490,6 +496,7 @@ public class EdgeController extends BaseController {
             throw handleException(e);
         }
     }
+     */
 
     @ApiOperation(value = "Get Customer Edges (getCustomerEdges)",
             notes = "Returns a page of edges objects assigned to customer. " +
@@ -671,6 +678,7 @@ public class EdgeController extends BaseController {
         }
     }
 
+    /* voba - merge comment
     @ApiOperation(value = "Sync edge (syncEdge)",
             notes = "Starts synchronization process between edge and cloud. \n" +
                     "All entities that are assigned to particular edge are going to be send to remote edge service." + TENANT_AUTHORITY_PARAGRAPH)
@@ -733,10 +741,6 @@ public class EdgeController extends BaseController {
         });
     }
 
-    private void cleanUpLicenseKey(Edge edge) {
-        edge.setEdgeLicenseKey(null);
-    }
-
     @ApiOperation(value = "Check edge license (checkInstance)",
             notes = "Checks license request from edge service by forwarding request to license portal.",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -767,4 +771,43 @@ public class EdgeController extends BaseController {
             throw new ThingsboardException(e, ThingsboardErrorCode.SUBSCRIPTION_VIOLATION);
         }
     }
+     */
+
+    private void cleanUpLicenseKey(Edge edge) {
+        edge.setEdgeLicenseKey(null);
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeSettings getEdgeSettings() throws ThingsboardException {
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<CloudEvent> getCloudEvents(
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

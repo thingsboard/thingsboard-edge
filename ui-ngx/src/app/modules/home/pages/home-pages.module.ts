@@ -36,6 +36,8 @@ import { DeviceProfileModule } from './device-profile/device-profile.module';
 import { ApiUsageModule } from '@home/pages/api-usage/api-usage.module';
 import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
+import { CloudEventModule } from '@home/pages/cloud-event/cloud-event.module';
+import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
 
 @NgModule({
   exports: [
@@ -56,7 +58,9 @@ import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
     AuditLogModule,
     ApiUsageModule,
     OtaUpdateModule,
-    UserModule
+    UserModule,
+    CloudEventModule,
+    EdgeStatusModule
   ],
   providers: [
     {

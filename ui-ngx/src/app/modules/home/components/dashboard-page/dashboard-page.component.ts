@@ -229,7 +229,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   addingLayoutCtx: DashboardPageLayoutContext;
 
   private dashboardLogoCache: SafeUrl;
-  private defaultDashboardLogo = 'assets/logo_title_white.svg';
+  private defaultDashboardLogo = 'assets/logo_title_white_edge.svg';
 
   dashboardCtx: DashboardContext = {
     instanceId: this.utils.guid(),

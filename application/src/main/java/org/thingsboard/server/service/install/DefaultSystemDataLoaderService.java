@@ -263,6 +263,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Override
     public void loadDemoData() throws Exception {
+        /* voba - merge comment
         Tenant demoTenant = new Tenant();
         demoTenant.setRegion("Global");
         demoTenant.setTitle("Tenant");
@@ -446,6 +447,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                         new BaseAttributeKvEntry(System.currentTimeMillis(), new LongDataEntry("humidityAlarmThreshold", (long) 30))));
 
         installScripts.loadDashboards(demoTenant.getId(), null);
+         */
     }
 
     @Override
