@@ -48,7 +48,6 @@ export interface EdgeSettings {
   name: string;
   type: string;
   routingKey: string;
-  cloudType: CloudType.PE | CloudType.CE;
 }
 
 export interface CloudEvent extends BaseData<CloudEventId> {
@@ -65,11 +64,6 @@ export class CloudEventId implements HasUUID {
   constructor(id: string) {
     this.id = id;
   }
-}
-
-export enum CloudType {
-  PE = "PE",
-  CE = "CE"
 }
 
 export enum CloudEventType {
@@ -123,16 +117,16 @@ export enum EdgeEventType {
   ALARM = "ALARM",
   RULE_CHAIN = "RULE_CHAIN",
   RULE_CHAIN_METADATA = "RULE_CHAIN_METADATA",
+  EDGE = "EDGE",
   USER = "USER",
   CUSTOMER = "CUSTOMER",
   RELATION = "RELATION",
-  ENTITY_GROUP = "ENTITY_GROUP",
-  EDGE = "EDGE",
   GROUP_PERMISSIONS_REQUEST = "GROUP_PERMISSIONS_REQUEST",
   TENANT = "TENANT",
   WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
   WIDGET_TYPE = "WIDGET_TYPE",
   ADMIN_SETTINGS = "ADMIN_SETTINGS",
+  ENTITY_GROUP = "ENTITY_GROUP",
   SCHEDULER_EVENT = "SCHEDULER_EVENT",
   WHITE_LABELING = "WHITE_LABELING",
   LOGIN_WHITE_LABELING = "LOGIN_WHITE_LABELING",

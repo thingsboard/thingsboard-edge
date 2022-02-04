@@ -130,6 +130,10 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
 
     private ScheduledExecutorService scheduler;
 
+    /* merge comment
+    @Value("${database.ts.type}")
+    private String databaseTsType;
+     */
     @Value("${server.ws.dynamic_page_link.refresh_interval:6}")
     private long dynamicPageLinkRefreshInterval;
     @Value("${server.ws.dynamic_page_link.refresh_pool_size:1}")
@@ -142,6 +146,9 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     private int maxAlarmQueriesPerRefreshInterval;
 
     private ExecutorService wsCallBackExecutor;
+    /* merge comment
+    private boolean tsInSqlDB;
+     */
     private String serviceId;
     private SubscriptionServiceStatistics stats = new SubscriptionServiceStatistics();
 
@@ -149,6 +156,9 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     public void initExecutor() {
         serviceId = serviceInfoProvider.getServiceId();
         wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ws-entity-sub-callback"));
+        /* merge comment
+        tsInSqlDB = databaseTsType.equalsIgnoreCase("sql") || databaseTsType.equalsIgnoreCase("timescale");
+         */
         ThreadFactory tbThreadFactory = ThingsBoardThreadFactory.forName("ws-entity-sub-scheduler");
         if (dynamicPageLinkRefreshPoolSize == 1) {
             scheduler = Executors.newSingleThreadScheduledExecutor(tbThreadFactory);
@@ -447,6 +457,65 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     private void handleLatestCmd(TbEntityDataSubCtx ctx, LatestValueCmd latestCmd) {
         log.trace("[{}][{}] Going to process latest command: {}", ctx.getSessionId(), ctx.getCmdId(), latestCmd);
         //Fetch the latest values for telemetry keys (in case they are not copied from NoSQL to SQL DB in hybrid mode.
+        /* merge comment
+        if (!tsInSqlDB) {
+            log.trace("[{}][{}] Going to fetch missing latest values: {}", ctx.getSessionId(), ctx.getCmdId(), latestCmd);
+            List<String> allTsKeys = latestCmd.getKeys().stream()
+                    .filter(key -> key.getType().equals(EntityKeyType.TIME_SERIES))
+                    .map(EntityKey::getKey).collect(Collectors.toList());
+
+            Map<EntityData, ListenableFuture<Map<String, TsValue>>> missingTelemetryFutures = new HashMap<>();
+            for (EntityData entityData : ctx.getData().getData()) {
+                Map<EntityKeyType, Map<String, TsValue>> latestEntityData = entityData.getLatest();
+                Map<String, TsValue> tsEntityData = latestEntityData.get(EntityKeyType.TIME_SERIES);
+                Set<String> missingTsKeys = new LinkedHashSet<>(allTsKeys);
+                if (tsEntityData != null) {
+                    missingTsKeys.removeAll(tsEntityData.keySet());
+                } else {
+                    tsEntityData = new HashMap<>();
+                    latestEntityData.put(EntityKeyType.TIME_SERIES, tsEntityData);
+                }
+
+                ListenableFuture<List<TsKvEntry>> missingTsData = tsService.findLatest(ctx.getTenantId(), entityData.getEntityId(), missingTsKeys);
+                missingTelemetryFutures.put(entityData, Futures.transform(missingTsData, this::toTsValue, MoreExecutors.directExecutor()));
+            }
+            Futures.addCallback(Futures.allAsList(missingTelemetryFutures.values()), new FutureCallback<List<Map<String, TsValue>>>() {
+                @Override
+                public void onSuccess(@Nullable List<Map<String, TsValue>> result) {
+                    missingTelemetryFutures.forEach((key, value) -> {
+                        try {
+                            key.getLatest().get(EntityKeyType.TIME_SERIES).putAll(value.get());
+                        } catch (InterruptedException | ExecutionException e) {
+                            log.warn("[{}][{}] Failed to lookup latest telemetry: {}:{}", ctx.getSessionId(), ctx.getCmdId(), key.getEntityId(), allTsKeys, e);
+                        }
+                    });
+                    EntityDataUpdate update;
+                    if (!ctx.isInitialDataSent()) {
+                        update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());
+                        ctx.setInitialDataSent(true);
+                    } else {
+                        update = new EntityDataUpdate(ctx.getCmdId(), null, ctx.getData().getData(), ctx.getMaxEntitiesPerDataSubscription());
+                    }
+                    wsService.sendWsMsg(ctx.getSessionId(), update);
+                    ctx.createLatestValuesSubscriptions(latestCmd.getKeys());
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.warn("[{}][{}] Failed to process websocket command: {}:{}", ctx.getSessionId(), ctx.getCmdId(), ctx.getQuery(), latestCmd, t);
+                    wsService.sendWsMsg(ctx.getSessionId(),
+                            new EntityDataUpdate(ctx.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR.getCode(), "Failed to process websocket command!"));
+                }
+            }, wsCallBackExecutor);
+        } else {
+            if (!ctx.isInitialDataSent()) {
+                EntityDataUpdate update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());
+                wsService.sendWsMsg(ctx.getSessionId(), update);
+                ctx.setInitialDataSent(true);
+            }
+            ctx.createLatestValuesSubscriptions(latestCmd.getKeys());
+        }
+         */
         if (!ctx.isInitialDataSent()) {
             EntityDataUpdate update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());
             wsService.sendWsMsg(ctx.getSessionId(), update);

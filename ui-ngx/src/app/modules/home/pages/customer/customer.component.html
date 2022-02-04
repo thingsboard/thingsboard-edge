@@ -72,7 +72,8 @@
           [fxShow]="!hideManageEntityViews() && !isEdit">
     {{'customer.manage-entity-view-groups' | translate }}
   </button>
-  <!--<button mat-raised-button color="primary"
+  <!-- @voba - merge comment
+  <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEdges')"
           [fxShow]="!hideManageEdges() && !isEdit"

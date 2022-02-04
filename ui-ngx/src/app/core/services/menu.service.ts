@@ -611,7 +611,7 @@ export class MenuService {
       );
     }
     */
-    if (this.authService.isPEMenuAllowed() && this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
           id: guid(),
@@ -623,7 +623,7 @@ export class MenuService {
         }
       );
     }
-    if (this.authService.isPEMenuAllowed() && authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
         {
           id: guid(),
@@ -690,7 +690,6 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide api usage state on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
         this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
       sections.push(
@@ -704,7 +703,6 @@ export class MenuService {
         }
       );
     }
-    */
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING) ||
       this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
       const pages: Array<MenuSection> = [];
@@ -1016,7 +1014,6 @@ export class MenuService {
       homeSections.push(
         dashboardManagement
       );
-      /* @voba - merge comment - hide this on edge
       if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
         dashboardManagement.places.push(
           {
@@ -1027,7 +1024,6 @@ export class MenuService {
           }
         );
       }
-      */
       if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD)) {
         dashboardManagement.places.push(
           {
@@ -1039,7 +1035,7 @@ export class MenuService {
         );
       }
     }
-    if (this.authService.isPEMenuAllowed() && this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       homeSections.push(
         {
           name: 'scheduler.management',
@@ -1054,7 +1050,7 @@ export class MenuService {
         }
       );
     }
-    if (this.authService.isPEMenuAllowed() && authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       homeSections.push(
         {
           name: 'white-labeling.white-labeling',
@@ -1128,7 +1124,6 @@ export class MenuService {
           }
         );
       }
-      /* @voba - merge comment - hide this on edge
       if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
         this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
         audit.places.push(
@@ -1140,7 +1135,6 @@ export class MenuService {
           }
         );
       }
-      */
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING) ||
       this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
@@ -1254,7 +1248,7 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    if (this.authService.isPEMenuAllowed() && this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
           id: guid(),
@@ -1266,7 +1260,7 @@ export class MenuService {
         }
       );
     }
-    if (this.authService.isPEMenuAllowed() && authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
         {
           id: guid(),
@@ -1453,6 +1447,7 @@ export class MenuService {
         }
       );
     }
+    /* @voba - merge comment - hide this on edge
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
@@ -1468,6 +1463,7 @@ export class MenuService {
         }
       );
     }
+     */
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD)) {
       homeSections.push({
         name: 'dashboard.management',
@@ -1481,7 +1477,7 @@ export class MenuService {
         ]
       });
     }
-    if (this.authService.isPEMenuAllowed() && this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       homeSections.push(
         {
           name: 'scheduler.management',
@@ -1496,7 +1492,7 @@ export class MenuService {
         }
       );
     }
-    if (this.authService.isPEMenuAllowed() && authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       homeSections.push(
         {
           name: 'white-labeling.white-labeling',

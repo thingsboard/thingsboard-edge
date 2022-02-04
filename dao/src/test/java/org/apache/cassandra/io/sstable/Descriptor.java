@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.io.sstable;
+package org.apache.cassandra.io.sstable;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -185,7 +185,7 @@ public class Descriptor
     {
         List<File> ret = new ArrayList<>();
         File[] tmpFiles = directory.listFiles((dir, name) ->
-                name.endsWith(org.apache.cassandra.io.sstable.Descriptor.TMP_EXT));
+                name.endsWith(TMP_EXT));
 
         for (File tmpFile : tmpFiles)
             ret.add(tmpFile);

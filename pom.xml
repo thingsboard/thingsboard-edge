@@ -38,14 +38,12 @@
     <version>3.3.3EDGE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>ThingsBoard Edge</name>
+    <name>ThingsBoard Edge PE</name>
     <url>https://thingsboard.io</url>
     <inceptionYear>2016</inceptionYear>
 
     <properties>
         <main.dir>${basedir}</main.dir>
-        <thingsboard-pe.version>3.3.3PE-SNAPSHOT</thingsboard-pe.version>
-        <thingsboard-ce.version>3.3.1</thingsboard-ce.version>
         <pkg.disabled>true</pkg.disabled>
         <pkg.process-resources.phase>none</pkg.process-resources.phase>
         <pkg.package.phase>none</pkg.package.phase>
@@ -171,7 +169,7 @@
         <module>tools</module>
         <module>application</module>
         <module>msa</module>
-<!--        <module>rest-client</module>-->
+        <module>rest-client</module>
     </modules>
 
     <profiles>
@@ -880,7 +878,7 @@
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>netty-mqtt</artifactId>
-                <version>${thingsboard-ce.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
@@ -932,77 +930,78 @@
                 <artifactId>integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>http-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>kafka-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>rabbitmq-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>apache-pulsar</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.apache.pulsar</groupId>-->
-<!--                <artifactId>pulsar-client</artifactId>-->
-<!--                <version>${apache-pulsar.version}</version>-->
-<!--                <exclusions>-->
-<!--                    <exclusion>-->
-<!--                        <groupId>javax.validation</groupId>-->
-<!--                        <artifactId>validation-api</artifactId>-->
-<!--                    </exclusion>-->
-<!--                </exclusions>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>mqtt-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>gcloud-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>azure-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.apache.qpid</groupId>-->
-<!--                <artifactId>proton-j</artifactId>-->
-<!--                <version>${proton-j.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>aws-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>opcua-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>coap-integrations</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.thingsboard.common.integration</groupId>-->
-<!--                <artifactId>remote-integration-api</artifactId>-->
-<!--                <version>${project.version}</version>-->
-<!--            </dependency>-->
+            <!-- voba - merge comment
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>http-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>kafka-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>rabbitmq-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>apache-pulsar</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.pulsar</groupId>
+                <artifactId>pulsar-client</artifactId>
+                <version>${apache-pulsar.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.validation</groupId>
+                        <artifactId>validation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>mqtt-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>gcloud-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>azure-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.qpid</groupId>
+                <artifactId>proton-j</artifactId>
+                <version>${proton-j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>aws-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>opcua-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>coap-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>remote-integration-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>-->
             <dependency>
                 <groupId>org.thingsboard.rule-engine</groupId>
                 <artifactId>rule-engine-components</artifactId>
@@ -1088,7 +1087,7 @@
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>rest-client</artifactId>
-                <version>${thingsboard-pe.version}</version>
+                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -2073,10 +2072,6 @@
     </distributionManagement>
 
     <repositories>
-        <repository>
-            <id>thingsboard-repo</id>
-            <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
-        </repository>
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>

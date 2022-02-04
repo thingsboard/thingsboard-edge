@@ -48,9 +48,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 @Service
-@SqlTsDao
 @Profile("install")
 @Slf4j
+@SqlTsDao
 @PsqlDao
 public class PsqlTsDatabaseUpgradeService extends AbstractSqlTsDatabaseUpgradeService implements DatabaseTsUpgradeService {
 

@@ -44,6 +44,8 @@ import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
 import org.thingsboard.server.service.install.TsLatestDatabaseSchemaService;
+import org.thingsboard.server.service.install.migrate.EntitiesMigrateService;
+import org.thingsboard.server.service.install.migrate.TsLatestMigrateService;
 import org.thingsboard.server.service.install.update.CacheCleanupService;
 import org.thingsboard.server.service.install.update.DataUpdateService;
 
@@ -91,10 +93,16 @@ public class ThingsboardInstallService {
     @Autowired
     private CacheCleanupService cacheCleanupService;
 
+    @Autowired(required = false)
+    private EntitiesMigrateService entitiesMigrateService;
+
+    @Autowired(required = false)
+    private TsLatestMigrateService latestMigrateService;
+
     public void performInstall() {
         try {
             if (isUpgrade) {
-                log.info("Starting ThingsBoard Upgrade from version {} ...", upgradeFromVersion);
+                log.info("Starting ThingsBoard Edge Upgrade from version {} ...", upgradeFromVersion);
 
                 cacheCleanupService.clearCache(upgradeFromVersion);
 

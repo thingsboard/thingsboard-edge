@@ -1635,7 +1635,6 @@
         "last-connect-time": "Last time connected to Cloud",
         "last-disconnect-time": "Last time disconnected from Cloud",
         "routing-key": "Routing Key",
-        "cloud-type": "Cloud type",
         "connected": "Connected",
         "disconnected": "Disconnected",
         "cloud-events": "Cloud events",

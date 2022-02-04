@@ -46,9 +46,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
+import org.thingsboard.server.common.data.DeviceProfileType;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -137,6 +143,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Autowired
     private TenantProfileService tenantProfileService;
@@ -288,6 +297,196 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         installScripts.createOAuth2Templates();
     }
 
+
+    @Override
+    public void loadDemoData() throws Exception {
+        /* voba - merge comment
+        Tenant demoTenant = new Tenant();
+        demoTenant.setRegion("Global");
+        demoTenant.setTitle("Tenant");
+        demoTenant = tenantService.saveTenant(demoTenant);
+        installScripts.loadDemoRuleChains(demoTenant.getId());
+        createUser(Authority.TENANT_ADMIN, demoTenant.getId(), null, "tenant@thingsboard.org", "tenant");
+
+        Customer customerA = new Customer();
+        customerA.setTenantId(demoTenant.getId());
+        customerA.setTitle("Customer A");
+        customerA = customerService.saveCustomer(customerA);
+        Customer customerB = new Customer();
+        customerB.setTenantId(demoTenant.getId());
+        customerB.setTitle("Customer B");
+        customerB = customerService.saveCustomer(customerB);
+        Customer customerC = new Customer();
+        customerC.setTenantId(demoTenant.getId());
+        customerC.setTitle("Customer C");
+        customerC = customerService.saveCustomer(customerC);
+        createUser(Authority.CUSTOMER_USER, demoTenant.getId(), customerA.getId(), "customer@thingsboard.org", CUSTOMER_CRED);
+        createUser(Authority.CUSTOMER_USER, demoTenant.getId(), customerA.getId(), "customerA@thingsboard.org", CUSTOMER_CRED);
+        createUser(Authority.CUSTOMER_USER, demoTenant.getId(), customerB.getId(), "customerB@thingsboard.org", CUSTOMER_CRED);
+        createUser(Authority.CUSTOMER_USER, demoTenant.getId(), customerC.getId(), "customerC@thingsboard.org", CUSTOMER_CRED);
+
+        DeviceProfile defaultDeviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(demoTenant.getId(), DEFAULT_DEVICE_TYPE);
+
+        createDevice(demoTenant.getId(), customerA.getId(), defaultDeviceProfile.getId(), "Test Device A1", "A1_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerA.getId(), defaultDeviceProfile.getId(), "Test Device A2", "A2_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerA.getId(), defaultDeviceProfile.getId(), "Test Device A3", "A3_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerB.getId(), defaultDeviceProfile.getId(), "Test Device B1", "B1_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerC.getId(), defaultDeviceProfile.getId(), "Test Device C1", "C1_TEST_TOKEN", null);
+
+        createDevice(demoTenant.getId(), null, defaultDeviceProfile.getId(), "DHT11 Demo Device", "DHT11_DEMO_TOKEN", "Demo device that is used in sample " +
+                "applications that upload data from DHT11 temperature and humidity sensor");
+
+        createDevice(demoTenant.getId(), null, defaultDeviceProfile.getId(), "Raspberry Pi Demo Device", "RASPBERRY_PI_DEMO_TOKEN", "Demo device that is used in " +
+                "Raspberry Pi GPIO control sample application");
+
+        DeviceProfile thermostatDeviceProfile = new DeviceProfile();
+        thermostatDeviceProfile.setTenantId(demoTenant.getId());
+        thermostatDeviceProfile.setDefault(false);
+        thermostatDeviceProfile.setName("thermostat");
+        thermostatDeviceProfile.setType(DeviceProfileType.DEFAULT);
+        thermostatDeviceProfile.setTransportType(DeviceTransportType.DEFAULT);
+        thermostatDeviceProfile.setProvisionType(DeviceProfileProvisionType.DISABLED);
+        thermostatDeviceProfile.setDescription("Thermostat device profile");
+        thermostatDeviceProfile.setDefaultRuleChainId(ruleChainService.findTenantRuleChainsByType(
+                demoTenant.getId(), RuleChainType.CORE, new PageLink(1, 0, "Thermostat")).getData().get(0).getId());
+
+        DeviceProfileData deviceProfileData = new DeviceProfileData();
+        DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
+        DefaultDeviceProfileTransportConfiguration transportConfiguration = new DefaultDeviceProfileTransportConfiguration();
+        DisabledDeviceProfileProvisionConfiguration provisionConfiguration = new DisabledDeviceProfileProvisionConfiguration(null);
+        deviceProfileData.setConfiguration(configuration);
+        deviceProfileData.setTransportConfiguration(transportConfiguration);
+        deviceProfileData.setProvisionConfiguration(provisionConfiguration);
+        thermostatDeviceProfile.setProfileData(deviceProfileData);
+
+        DeviceProfileAlarm highTemperature = new DeviceProfileAlarm();
+        highTemperature.setId("highTemperatureAlarmID");
+        highTemperature.setAlarmType("High Temperature");
+        AlarmRule temperatureRule = new AlarmRule();
+        AlarmCondition temperatureCondition = new AlarmCondition();
+        temperatureCondition.setSpec(new SimpleAlarmConditionSpec());
+
+        AlarmConditionFilter temperatureAlarmFlagAttributeFilter = new AlarmConditionFilter();
+        temperatureAlarmFlagAttributeFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, "temperatureAlarmFlag"));
+        temperatureAlarmFlagAttributeFilter.setValueType(EntityKeyValueType.BOOLEAN);
+        BooleanFilterPredicate temperatureAlarmFlagAttributePredicate = new BooleanFilterPredicate();
+        temperatureAlarmFlagAttributePredicate.setOperation(BooleanFilterPredicate.BooleanOperation.EQUAL);
+        temperatureAlarmFlagAttributePredicate.setValue(new FilterPredicateValue<>(Boolean.TRUE));
+        temperatureAlarmFlagAttributeFilter.setPredicate(temperatureAlarmFlagAttributePredicate);
+
+        AlarmConditionFilter temperatureTimeseriesFilter = new AlarmConditionFilter();
+        temperatureTimeseriesFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, "temperature"));
+        temperatureTimeseriesFilter.setValueType(EntityKeyValueType.NUMERIC);
+        NumericFilterPredicate temperatureTimeseriesFilterPredicate = new NumericFilterPredicate();
+        temperatureTimeseriesFilterPredicate.setOperation(NumericFilterPredicate.NumericOperation.GREATER);
+        FilterPredicateValue<Double> temperatureTimeseriesPredicateValue =
+                new FilterPredicateValue<>(25.0, null,
+                        new DynamicValue<>(DynamicValueSourceType.CURRENT_DEVICE, "temperatureAlarmThreshold"));
+        temperatureTimeseriesFilterPredicate.setValue(temperatureTimeseriesPredicateValue);
+        temperatureTimeseriesFilter.setPredicate(temperatureTimeseriesFilterPredicate);
+        temperatureCondition.setCondition(Arrays.asList(temperatureAlarmFlagAttributeFilter, temperatureTimeseriesFilter));
+        temperatureRule.setAlarmDetails("Current temperature = ${temperature}");
+        temperatureRule.setCondition(temperatureCondition);
+        highTemperature.setCreateRules(new TreeMap<>(Collections.singletonMap(AlarmSeverity.MAJOR, temperatureRule)));
+
+        AlarmRule clearTemperatureRule = new AlarmRule();
+        AlarmCondition clearTemperatureCondition = new AlarmCondition();
+        clearTemperatureCondition.setSpec(new SimpleAlarmConditionSpec());
+
+        AlarmConditionFilter clearTemperatureTimeseriesFilter = new AlarmConditionFilter();
+        clearTemperatureTimeseriesFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, "temperature"));
+        clearTemperatureTimeseriesFilter.setValueType(EntityKeyValueType.NUMERIC);
+        NumericFilterPredicate clearTemperatureTimeseriesFilterPredicate = new NumericFilterPredicate();
+        clearTemperatureTimeseriesFilterPredicate.setOperation(NumericFilterPredicate.NumericOperation.LESS_OR_EQUAL);
+        FilterPredicateValue<Double> clearTemperatureTimeseriesPredicateValue =
+                new FilterPredicateValue<>(25.0, null,
+                        new DynamicValue<>(DynamicValueSourceType.CURRENT_DEVICE, "temperatureAlarmThreshold"));
+
+        clearTemperatureTimeseriesFilterPredicate.setValue(clearTemperatureTimeseriesPredicateValue);
+        clearTemperatureTimeseriesFilter.setPredicate(clearTemperatureTimeseriesFilterPredicate);
+        clearTemperatureCondition.setCondition(Collections.singletonList(clearTemperatureTimeseriesFilter));
+        clearTemperatureRule.setCondition(clearTemperatureCondition);
+        clearTemperatureRule.setAlarmDetails("Current temperature = ${temperature}");
+        highTemperature.setClearRule(clearTemperatureRule);
+
+        DeviceProfileAlarm lowHumidity = new DeviceProfileAlarm();
+        lowHumidity.setId("lowHumidityAlarmID");
+        lowHumidity.setAlarmType("Low Humidity");
+        AlarmRule humidityRule = new AlarmRule();
+        AlarmCondition humidityCondition = new AlarmCondition();
+        humidityCondition.setSpec(new SimpleAlarmConditionSpec());
+
+        AlarmConditionFilter humidityAlarmFlagAttributeFilter = new AlarmConditionFilter();
+        humidityAlarmFlagAttributeFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.ATTRIBUTE, "humidityAlarmFlag"));
+        humidityAlarmFlagAttributeFilter.setValueType(EntityKeyValueType.BOOLEAN);
+        BooleanFilterPredicate humidityAlarmFlagAttributePredicate = new BooleanFilterPredicate();
+        humidityAlarmFlagAttributePredicate.setOperation(BooleanFilterPredicate.BooleanOperation.EQUAL);
+        humidityAlarmFlagAttributePredicate.setValue(new FilterPredicateValue<>(Boolean.TRUE));
+        humidityAlarmFlagAttributeFilter.setPredicate(humidityAlarmFlagAttributePredicate);
+
+        AlarmConditionFilter humidityTimeseriesFilter = new AlarmConditionFilter();
+        humidityTimeseriesFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, "humidity"));
+        humidityTimeseriesFilter.setValueType(EntityKeyValueType.NUMERIC);
+        NumericFilterPredicate humidityTimeseriesFilterPredicate = new NumericFilterPredicate();
+        humidityTimeseriesFilterPredicate.setOperation(NumericFilterPredicate.NumericOperation.LESS);
+        FilterPredicateValue<Double> humidityTimeseriesPredicateValue =
+                new FilterPredicateValue<>(60.0, null,
+                        new DynamicValue<>(DynamicValueSourceType.CURRENT_DEVICE, "humidityAlarmThreshold"));
+        humidityTimeseriesFilterPredicate.setValue(humidityTimeseriesPredicateValue);
+        humidityTimeseriesFilter.setPredicate(humidityTimeseriesFilterPredicate);
+        humidityCondition.setCondition(Arrays.asList(humidityAlarmFlagAttributeFilter, humidityTimeseriesFilter));
+
+        humidityRule.setCondition(humidityCondition);
+        humidityRule.setAlarmDetails("Current humidity = ${humidity}");
+        lowHumidity.setCreateRules(new TreeMap<>(Collections.singletonMap(AlarmSeverity.MINOR, humidityRule)));
+
+        AlarmRule clearHumidityRule = new AlarmRule();
+        AlarmCondition clearHumidityCondition = new AlarmCondition();
+        clearHumidityCondition.setSpec(new SimpleAlarmConditionSpec());
+
+        AlarmConditionFilter clearHumidityTimeseriesFilter = new AlarmConditionFilter();
+        clearHumidityTimeseriesFilter.setKey(new AlarmConditionFilterKey(AlarmConditionKeyType.TIME_SERIES, "humidity"));
+        clearHumidityTimeseriesFilter.setValueType(EntityKeyValueType.NUMERIC);
+        NumericFilterPredicate clearHumidityTimeseriesFilterPredicate = new NumericFilterPredicate();
+        clearHumidityTimeseriesFilterPredicate.setOperation(NumericFilterPredicate.NumericOperation.GREATER_OR_EQUAL);
+        FilterPredicateValue<Double> clearHumidityTimeseriesPredicateValue =
+                new FilterPredicateValue<>(60.0, null,
+                        new DynamicValue<>(DynamicValueSourceType.CURRENT_DEVICE, "humidityAlarmThreshold"));
+
+        clearHumidityTimeseriesFilterPredicate.setValue(clearHumidityTimeseriesPredicateValue);
+        clearHumidityTimeseriesFilter.setPredicate(clearHumidityTimeseriesFilterPredicate);
+        clearHumidityCondition.setCondition(Collections.singletonList(clearHumidityTimeseriesFilter));
+        clearHumidityRule.setCondition(clearHumidityCondition);
+        clearHumidityRule.setAlarmDetails("Current humidity = ${humidity}");
+        lowHumidity.setClearRule(clearHumidityRule);
+
+        deviceProfileData.setAlarms(Arrays.asList(highTemperature, lowHumidity));
+
+        DeviceProfile savedThermostatDeviceProfile = deviceProfileService.saveDeviceProfile(thermostatDeviceProfile);
+
+        DeviceId t1Id = createDevice(demoTenant.getId(), null, savedThermostatDeviceProfile.getId(), "Thermostat T1", "T1_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
+        DeviceId t2Id = createDevice(demoTenant.getId(), null, savedThermostatDeviceProfile.getId(), "Thermostat T2", "T2_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
+
+        attributesService.save(demoTenant.getId(), t1Id, DataConstants.SERVER_SCOPE,
+                Arrays.asList(new BaseAttributeKvEntry(System.currentTimeMillis(), new DoubleDataEntry("latitude", 37.3948)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new DoubleDataEntry("longitude", -122.1503)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new BooleanDataEntry("temperatureAlarmFlag", true)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new BooleanDataEntry("humidityAlarmFlag", true)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new LongDataEntry("temperatureAlarmThreshold", (long) 20)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new LongDataEntry("humidityAlarmThreshold", (long) 50))));
+
+        attributesService.save(demoTenant.getId(), t2Id, DataConstants.SERVER_SCOPE,
+                Arrays.asList(new BaseAttributeKvEntry(System.currentTimeMillis(), new DoubleDataEntry("latitude", 37.493801)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new DoubleDataEntry("longitude", -121.948769)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new BooleanDataEntry("temperatureAlarmFlag", true)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new BooleanDataEntry("humidityAlarmFlag", true)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new LongDataEntry("temperatureAlarmThreshold", (long) 25)),
+                        new BaseAttributeKvEntry(System.currentTimeMillis(), new LongDataEntry("humidityAlarmThreshold", (long) 30))));
+
+        installScripts.loadDashboards(demoTenant.getId(), null);
+         */
+    }
+
     @Override
     public void deleteSystemWidgetBundle(String bundleAlias) throws Exception {
         WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
@@ -320,14 +519,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("entity_admin_widgets");
         this.deleteSystemWidgetBundle("navigation_widgets");
         this.deleteSystemWidgetBundle("edge_widgets");
-
-        // TODO: @voba merge comment - widgets on edge created by sync process
         installScripts.loadSystemWidgets();
-    }
-
-    @Override
-    public void loadDemoData() throws Exception {
-
     }
 
     private User createUser(Authority authority,

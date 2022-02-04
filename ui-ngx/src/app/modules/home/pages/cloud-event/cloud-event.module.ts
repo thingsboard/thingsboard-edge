@@ -32,7 +32,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { EdgeStatusRoutingModule } from "@home/pages/edge-status/edge-status-routing.module";
+import { EdgeStatusRoutingModule } from '@home/pages/edge-status/edge-status-routing.module';
 
 @NgModule({
   declarations: [

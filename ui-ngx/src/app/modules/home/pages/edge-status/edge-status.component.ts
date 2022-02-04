@@ -30,14 +30,14 @@
 ///
 
 import { Component, OnInit } from '@angular/core';
-import { PageComponent } from "@shared/components/page.component";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { Store } from "@ngrx/store";
-import { AppState } from "@core/core.state";
-import { EdgeService } from "@core/http/edge.service";
-import { EdgeSettings } from "@shared/models/edge.models";
-import { AttributeService } from "@core/http/attribute.service";
-import { DatePipe } from "@angular/common";
+import { PageComponent } from '@shared/components/page.component';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EdgeService } from '@core/http/edge.service';
+import { EdgeSettings } from '@shared/models/edge.models';
+import { AttributeService } from '@core/http/attribute.service';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -70,7 +70,6 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
       id: '',
       type: '',
       routingKey: '',
-      cloudType: '',
       lastConnectTime: '',
       lastDisconnectTime: ''
     });
@@ -95,7 +94,6 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
           id: edgeSettings.edgeId,
           type: edgeSettings.type,
           routingKey: edgeSettings.routingKey,
-          cloudType: edgeSettings.cloudType,
           lastConnectTime: this.datePipe.transform(lastConnectTime, 'yyyy-MM-dd HH:mm:ss'),
           lastDisconnectTime: lastDisconnectTime ? this.datePipe.transform(lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss') : 'N/A'
         });

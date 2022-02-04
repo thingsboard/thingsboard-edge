@@ -37,7 +37,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { Observable } from 'rxjs';
 import { HomeDashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
-import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
+import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { EdgeService } from '@core/http/edge.service';
 import { EdgeSettings } from '@shared/models/edge.models';
 
@@ -61,7 +61,6 @@ export class EdgeSettingsResolver implements Resolve<EdgeSettings> {
   resolve(): Observable<EdgeSettings> {
     return this.edgeService.getEdgeSettings();
   }
-
 }
 
 export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =

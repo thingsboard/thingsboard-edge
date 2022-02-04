@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.io.util;
+package org.apache.cassandra.io.util;
 
 import org.apache.cassandra.concurrent.ScheduledExecutors;
 import org.apache.cassandra.io.FSError;
@@ -344,7 +344,7 @@ public final class FileUtils
         }
         catch(Exception ex)
         {
-            String absDataPath = org.apache.cassandra.io.util.FileUtils.getCanonicalPath(basePath);
+            String absDataPath = getCanonicalPath(basePath);
             return Paths.get(absDataPath).relativize(Paths.get(path)).toString();
         }
     }

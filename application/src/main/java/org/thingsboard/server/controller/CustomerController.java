@@ -226,7 +226,6 @@ public class CustomerController extends BaseController {
                     customer.getId(),
                     ActionType.DELETED, null, strCustomerId);
             /* merge comment
-                        /* merge comment
             sendDeleteNotificationMsg(getTenantId(), customerId, relatedEdgeIds);
             */
             tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), customerId, ComponentLifecycleEvent.DELETED);
