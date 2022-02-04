@@ -341,13 +341,15 @@ public class CloudManagerService extends BaseCloudEventService {
                         } while (initialized && (!success || pageData.hasNext()));
                         if (ifOffset != null) {
                             Long newStartTs = Uuids.unixTimestamp(ifOffset);
-                            updateQueueStartTs(newStartTs);
+                            try {
+                                updateQueueStartTs(newStartTs).get();
+                                log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
+                            } catch (Exception e) {
+                                log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                                throw e;
+                            }
                         }
-                        try {
-                            Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
-                        } catch (InterruptedException e) {
-                            log.error("Error during sleep", e);
-                        }
+                        Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
                     } else {
                         Thread.sleep(TimeUnit.SECONDS.toMillis(1));
                     }
@@ -512,12 +514,13 @@ public class CloudManagerService extends BaseCloudEventService {
         }, dbCallbackExecutorService);
     }
 
-    private void updateQueueStartTs(Long newStartTs) {
+    private ListenableFuture<List<Void>> updateQueueStartTs(Long newStartTs) {
+        log.trace("updating QueueStartTs [{}]", newStartTs);
         List<AttributeKvEntry> attributes = Collections.singletonList(
                 new BaseAttributeKvEntry(
                         new LongDataEntry(QUEUE_START_TS_ATTR_KEY, newStartTs),
                         System.currentTimeMillis()));
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+        return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {

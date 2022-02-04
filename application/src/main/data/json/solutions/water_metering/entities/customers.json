@@ -1,15 +1,16 @@
 [
   {
-    "name": "Water Metering Customer A",
+    "name": "$randomFirstName $randomLastName",
+    "group": "Water Metering",
     "jsonId": "70d6d5b0-8b0f-11eb-8d54-672ef9e6d207",
-    "email": "customerA.$random@thingsboard.org",
+    "email": "$randomEmail",
     "country": "Germany",
     "city": "Berlin",
     "zip": "98000",
     "address": "17, boulevard Albert",
     "attributes": {
-      "firstName": "John",
-      "lastName": "Doe",
+      "firstName": "$randomFirstName",
+      "lastName": "$randomLastName",
       "cLowTempAlarmEnabled": true,
       "cLowTempThreshold": 19,
       "cDailyConsumptionAlarmEnabled":true,
@@ -43,8 +44,8 @@
     "users": [
       {
         "name": "$customerEmail",
-        "firstname": "John",
-        "lastname": "Doe",
+        "firstname": "$customerFirstName",
+        "lastname": "$customerLastName",
         "password": "customer",
         "group": "Customer Users",
         "attributes": {
@@ -58,15 +59,16 @@
     ]
   },
   {
-    "name": "Water Metering Customer B",
-    "email": "customerB.$random@thingsboard.org",
+    "name": "$randomFirstName $randomLastName",
+    "group": "Water Metering",
+    "email": "$randomEmail",
     "country": "Germany",
     "city": "Berlin",
     "zip": "98000",
     "address": "18, boulevard Albert",
     "attributes": {
-      "firstName": "Jane",
-      "lastName": "Doe",
+      "firstName": "$randomFirstName",
+      "lastName": "$randomLastName",
       "cLowTempAlarmEnabled": true,
       "cLowTempThreshold": 19,
       "cDailyConsumptionAlarmEnabled":true,
@@ -100,8 +102,8 @@
     "users": [
       {
         "name": "$customerEmail",
-        "firstname": "Jane",
-        "lastname": "Doe",
+        "firstname": "$customerFirstName",
+        "lastname": "$customerLastName",
         "password": "customer",
         "group": "Customer Users",
         "attributes": {

@@ -31,18 +31,24 @@
 package org.thingsboard.server.service.solutions.data.emulator;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.FutureCallback;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
+import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -56,17 +62,22 @@ public class DeviceEmulatorLauncher {
     private final DeviceEmulatorDefinition deviceProfile;
     private final ExecutorService oldTelemetryExecutor;
     private final TbClusterService tbClusterService;
+    private final DeviceStateService deviceStateService;
+    private final TelemetrySubscriptionService tsSubService;
     private final long publishFrequency;
 
     private final DeviceEmulator deviceEmulator;
     private ScheduledFuture<?> scheduledFuture;
 
     @Builder
-    public DeviceEmulatorLauncher(Device device, DeviceEmulatorDefinition deviceProfile, ExecutorService oldTelemetryExecutor, TbClusterService tbClusterService) throws Exception {
+    public DeviceEmulatorLauncher(Device device, DeviceEmulatorDefinition deviceProfile, ExecutorService oldTelemetryExecutor, TbClusterService tbClusterService,
+                                  DeviceStateService deviceStateService, TelemetrySubscriptionService tsSubService) throws Exception {
         this.device = device;
         this.deviceProfile = deviceProfile;
         this.oldTelemetryExecutor = oldTelemetryExecutor;
         this.tbClusterService = tbClusterService;
+        this.deviceStateService = deviceStateService;
+        this.tsSubService = tsSubService;
         this.publishFrequency = TimeUnit.SECONDS.toMillis(deviceProfile.getPublishFrequencyInSeconds());
         if (StringUtils.isEmpty(deviceProfile.getClazz())) {
             deviceEmulator = new BasicDeviceEmulator();
@@ -82,6 +93,17 @@ public class DeviceEmulatorLauncher {
             try {
                 if (latestTs < (System.currentTimeMillis() - publishFrequency)) {
                     pushOldTelemetry(latestTs);
+                }
+                if (this.deviceProfile.getActivityPeriodInMillis() > 0) {
+                    this.deviceStateService.onDeviceActivity(device.getTenantId(), device.getId(), System.currentTimeMillis());
+                    tsSubService.saveAttrAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
+                            DefaultDeviceStateService.INACTIVITY_TIMEOUT, this.deviceProfile.getActivityPeriodInMillis(), new FutureCallback<>() {
+                                @Override
+                                public void onSuccess(@Nullable Void unused) {}
+
+                                @Override
+                                public void onFailure(Throwable throwable) {}
+                            });
                 }
             } catch (Exception e) {
                 log.warn("[{}] Failed to upload telemetry for device: ", device.getName(), e);

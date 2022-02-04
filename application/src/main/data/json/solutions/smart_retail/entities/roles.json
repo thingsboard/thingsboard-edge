@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Smart Retail Read Only",
+    "type": "GROUP",
+    "operations": [
+      "READ",
+      "READ_ATTRIBUTES",
+      "READ_CREDENTIALS",
+      "READ_TELEMETRY"
+    ]
+  },
+  {
+    "name": "Smart Retail User",
+    "type": "GENERIC",
+    "operations": {
+      "ALL": [
+        "READ", "RPC_CALL", "READ_CREDENTIALS", "READ_ATTRIBUTES", "READ_TELEMETRY"
+      ],
+      "PROFILE": [
+        "ALL"
+      ],
+      "ALARM": [
+        "READ",
+        "WRITE"
+      ],
+      "CUSTOMER": [
+        "WRITE_ATTRIBUTES"
+      ],
+      "DEVICE": [
+        "WRITE_ATTRIBUTES"
+      ],
+      "ASSET": [
+        "WRITE_ATTRIBUTES"
+      ]
+    }
+  },
+  {
+    "name": "Smart Retail Administrator",
+    "type": "GENERIC",
+    "operations": {
+      "ALL": [
+        "ALL"
+      ]
+    }
+  }
+]

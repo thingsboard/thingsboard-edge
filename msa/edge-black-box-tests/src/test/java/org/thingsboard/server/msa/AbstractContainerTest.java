@@ -65,6 +65,8 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -78,8 +80,11 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -99,16 +104,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
-
-import javax.net.ssl.SSLContext;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -118,10 +113,11 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractContainerTest {
+
+    private static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
+
     protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
-    protected static String rpcURLHttp;
-    protected static String TB_TOKEN;
     protected static RestClient restClient;
     protected static ObjectMapper mapper = new ObjectMapper();
 
@@ -170,9 +166,13 @@ public abstract class AbstractContainerTest {
         Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
         Assert.assertTrue(tenant.isPresent());
         Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+
+        updateRootRuleChain();
+
+        createCustomDeviceProfile();
     }
 
-    protected void updateRootRuleChain() throws IOException {
+    protected static void updateRootRuleChain() throws IOException {
         PageData<RuleChain> ruleChains = restClient.getRuleChains(new PageLink(100));
         RuleChainId rootRuleChainId = null;
         for (RuleChain datum : ruleChains.getData()) {
@@ -182,13 +182,19 @@ public abstract class AbstractContainerTest {
             }
         }
         Assert.assertNotNull(rootRuleChainId);
-        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("PushToEdgeRootRuleChainMetadata.json"));
+        JsonNode configuration = mapper.readTree(AbstractContainerTest.class.getClassLoader().getResourceAsStream("PushToEdgeRootRuleChainMetadata.json"));
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(rootRuleChainId);
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
         ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
         ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
         restClient.saveRuleChainMetaData(ruleChainMetaData);
+    }
+
+    private static void createCustomDeviceProfile() {
+        DeviceProfile deviceProfile = createDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, null);
+        extendDeviceProfileData(deviceProfile);
+        restClient.saveDeviceProfile(deviceProfile);
     }
 
     private static void setWhiteLabelingAndCustomTranslation() {
@@ -266,7 +272,7 @@ public abstract class AbstractContainerTest {
         return restClient.saveDevice(device);
     }
 
-    protected DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+    protected static DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -289,7 +295,7 @@ public abstract class AbstractContainerTest {
         return restClient.saveDeviceProfile(deviceProfile);
     }
 
-    protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
+    protected static void extendDeviceProfileData(DeviceProfile deviceProfile) {
         DeviceProfileData profileData = deviceProfile.getProfileData();
         List<DeviceProfileAlarm> alarms = new ArrayList<>();
         DeviceProfileAlarm deviceProfileAlarm = new DeviceProfileAlarm();

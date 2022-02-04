@@ -41,6 +41,7 @@ services:
   tb-edge:
     volumes:
       - tb-edge-log-volume:/var/log/tb-edge
+      - tb-edge-data-volume:/data
 volumes:
   postgres-db-volume:
     external: true
@@ -51,4 +52,6 @@ volumes:
   tb-edge-log-volume:
     external: true
     name: ${TB_EDGE_LOG_VOLUME}
-
+  tb-edge-data-volume:
+    external: true
+    name: ${TB_EDGE_DATA_VOLUME}

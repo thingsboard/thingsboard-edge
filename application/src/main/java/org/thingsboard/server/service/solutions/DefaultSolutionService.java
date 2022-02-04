@@ -32,7 +32,6 @@ package org.thingsboard.server.service.solutions;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +53,14 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -76,6 +79,7 @@ import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -87,6 +91,7 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -104,9 +109,11 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
+import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
 import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
 import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
 import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
@@ -125,6 +132,8 @@ import org.thingsboard.server.service.solutions.data.definition.TenantDefinition
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserGroupDefinition;
 import org.thingsboard.server.service.solutions.data.emulator.DeviceEmulatorLauncher;
+import org.thingsboard.server.service.solutions.data.names.RandomNameData;
+import org.thingsboard.server.service.solutions.data.names.RandomNameUtil;
 import org.thingsboard.server.service.solutions.data.solution.SolutionDescriptor;
 import org.thingsboard.server.service.solutions.data.solution.SolutionInstallResponse;
 import org.thingsboard.server.service.solutions.data.solution.SolutionTemplate;
@@ -134,6 +143,8 @@ import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateLe
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateDetails;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInfo;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
+import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -196,12 +207,16 @@ public class DefaultSolutionService implements SolutionService {
     private final TbClusterService tbClusterService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final TbTenantProfileCache tenantProfileCache;
+    private final DeviceStateService deviceStateService;
+    private final TelemetrySubscriptionService tsSubService;
+    private final EntityActionService entityActionService;
+    private final AlarmService alarmService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
     public void init() {
         Path solutionsDescriptorsFile = resolve("solutions.json");
-        List<SolutionDescriptor> descriptors = JacksonUtil.readValue(solutionsDescriptorsFile.toFile(), new TypeReference<List<SolutionDescriptor>>() {
+        List<SolutionDescriptor> descriptors = JacksonUtil.readValue(solutionsDescriptorsFile.toFile(), new TypeReference<>() {
         });
         for (SolutionDescriptor descriptor : descriptors) {
             SolutionTemplateInfo templateInfo = new SolutionTemplateInfo();
@@ -300,7 +315,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     @Override
-    public SolutionInstallResponse installSolution(TenantId tenantId, String solutionId, HttpServletRequest request) throws ThingsboardException {
+    public SolutionInstallResponse installSolution(User user, TenantId tenantId, String solutionId, HttpServletRequest request) throws ThingsboardException {
         if (!solutionsMap.containsKey(solutionId)) {
             throw new ThingsboardException("Solution does not exist", ThingsboardErrorCode.ITEM_NOT_FOUND);
         }
@@ -309,7 +324,7 @@ public class DefaultSolutionService implements SolutionService {
         if (validateResult != null && !validateResult.isSuccess()) {
             return validateResult;
         } else {
-            return doInstallSolution(tenantId, solutionId, request);
+            return doInstallSolution(user, tenantId, solutionId, request);
         }
     }
 
@@ -359,7 +374,7 @@ public class DefaultSolutionService implements SolutionService {
         //TODO: check that enough entities in subscription plan.
         //TODO: check other entities.
 
-        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(solutionId, "rule_chains.json", new TypeReference<List<ReferenceableEntityDefinition>>() {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(solutionId, "rule_chains.json", new TypeReference<>() {
         });
         if (!ruleChains.isEmpty()) {
             for (ReferenceableEntityDefinition ruleChain : ruleChains) {
@@ -370,8 +385,9 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
-        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(solutionId, "device_profiles.json", new TypeReference<List<DeviceProfile>>() {
+        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(solutionId, "device_profiles.json", new TypeReference<>() {
         });
+        deviceProfiles.addAll(loadListOfEntitiesFromDirectory(solutionId, "device_profiles", DeviceProfile.class));
         // Validate that entities with such name does not exist entities
         if (!deviceProfiles.isEmpty()) {
             for (DeviceProfile deviceProfile : deviceProfiles) {
@@ -382,7 +398,7 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
-        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<List<DashboardDefinition>>() {
+        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<>() {
         });
         if (!dashboards.isEmpty()) {
             for (DashboardDefinition dashboard : dashboards) {
@@ -396,11 +412,9 @@ public class DefaultSolutionService implements SolutionService {
             SolutionInstallResponse solutionInstallResponse = new SolutionInstallResponse();
             StringBuilder detailsBuilder = new StringBuilder();
             detailsBuilder.append("## Validation failed").append(System.lineSeparator()).append(System.lineSeparator());
-            alreadyExistingEntities.forEach((type, list) -> {
-                detailsBuilder.append("The following **").append(getTypeLabel(type)).append("** entities already exist: ")
-                        .append(list.stream().map(HasName::getName).map(name -> "'" + name + "'").collect(Collectors.joining(","))).append(";")
-                        .append(System.lineSeparator()).append(System.lineSeparator());
-            });
+            alreadyExistingEntities.forEach((type, list) -> detailsBuilder.append("The following **").append(getTypeLabel(type)).append("** entities already exist: ")
+                    .append(list.stream().map(HasName::getName).map(name -> "'" + name + "'").collect(Collectors.joining(","))).append(";")
+                    .append(System.lineSeparator()).append(System.lineSeparator()));
             solutionInstallResponse.setSuccess(false);
             solutionInstallResponse.setDetails(detailsBuilder.toString());
             return solutionInstallResponse;
@@ -409,7 +423,7 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private SolutionInstallResponse doInstallSolution(TenantId tenantId, String solutionId, HttpServletRequest request) {
+    private SolutionInstallResponse doInstallSolution(User user, TenantId tenantId, String solutionId, HttpServletRequest request) {
         SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, new TenantSolutionTemplateInstructions());
         try {
             provisionRoles(ctx);
@@ -420,17 +434,19 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionDeviceProfiles(ctx);
 
-            provisionCustomers(ctx);
+            List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {});
+
+            provisionCustomers(ctx, customers);
 
             provisionAssets(ctx);
 
-            provisionDevices(ctx);
+            provisionDevices(user, ctx);
 
             provisionRelations(ctx);
 
             provisionDashboards(ctx);
 
-            provisionCustomerUsers(ctx);
+            provisionCustomerUsers(ctx, customers);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
 
@@ -471,6 +487,12 @@ public class DefaultSolutionService implements SolutionService {
                 "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
                         "/" + ctx.getSolutionInstructions().getDashboardId().getId());
 
+        for (DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
+            template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_URL}",
+                    "/dashboardGroups/" + dashboardLinkInfo.getEntityGroupId().getId() +
+                            "/" + dashboardLinkInfo.getDashboardId().getId());
+        }
+
         StringBuilder devList = new StringBuilder();
 
         devList.append("| Device name | Access token | Customer name |");
@@ -491,16 +513,17 @@ public class DefaultSolutionService implements SolutionService {
 
         StringBuilder userList = new StringBuilder();
 
-        userList.append("| Name | Login | Password | Customer name |");
+        userList.append("| Name | Login | Password | Customer name | User Group |");
         userList.append(System.lineSeparator());
-        userList.append("| :---  | :---  | :---  | :---  |");
+        userList.append("| :---  | :---  | :---  | :---  | :---  |");
         userList.append(System.lineSeparator());
 
         for (UserCredentialsInfo credentialsInfo : ctx.getCreatedUsers().values()) {
             userList.append("|").append(credentialsInfo.getName())
                     .append("|").append(credentialsInfo.getLogin()).append("{:copy-code}")
                     .append("|").append(credentialsInfo.getPassword()).append("{:copy-code}")
-                    .append("|").append(credentialsInfo.getCustomerName() != null ? credentialsInfo.getCustomerName() : "");
+                    .append("|").append(credentialsInfo.getCustomerName() != null ? credentialsInfo.getCustomerName() : "")
+                    .append("|").append(credentialsInfo.getCustomerGroup() != null ? credentialsInfo.getCustomerGroup() : "");
             userList.append(System.lineSeparator());
         }
 
@@ -526,7 +549,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionRoles(SolutionInstallContext ctx) {
-        List<RoleDefinition> roleDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "roles.json", new TypeReference<List<RoleDefinition>>() {
+        List<RoleDefinition> roleDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "roles.json", new TypeReference<>() {
         });
         for (RoleDefinition roleDef : roleDefinitions) {
             Role role = new Role();
@@ -541,13 +564,12 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionRuleChains(SolutionInstallContext ctx) {
-        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<List<ReferenceableEntityDefinition>>() {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
         });
         for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
             // Rule chains should be ordered correctly to exclude dependencies.
             Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getFile());
-            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
-            replaceIdsRecursively(ctx, ruleChainJson);
+            JsonNode ruleChainJson = replaceIds(ctx, JacksonUtil.toJsonNode(ruleChainPath));
             RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             ruleChain.setTenantId(ctx.getTenantId());
             String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
@@ -567,8 +589,9 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionDeviceProfiles(SolutionInstallContext ctx) {
-        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_profiles.json", new TypeReference<List<DeviceProfile>>() {
+        List<DeviceProfile> deviceProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_profiles.json", new TypeReference<>() {
         });
+        deviceProfiles.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "device_profiles", DeviceProfile.class));
         deviceProfiles.forEach(deviceProfile -> {
             deviceProfile.setId(null);
             deviceProfile.setCreatedTime(0L);
@@ -589,13 +612,12 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<List<DashboardDefinition>>() {
+        List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<>() {
         });
         for (DashboardDefinition entityDef : dashboards) {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Path dashboardsPath = resolve(ctx.getSolutionId(), "dashboards", entityDef.getFile());
-            JsonNode dashboardJson = JacksonUtil.toJsonNode(dashboardsPath);
-            replaceIdsRecursively(ctx, dashboardJson);
+            JsonNode dashboardJson = replaceIds(ctx, JacksonUtil.toJsonNode(dashboardsPath));
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(ctx.getTenantId());
             dashboard.setTitle(entityDef.getName());
@@ -605,13 +627,14 @@ public class DefaultSolutionService implements SolutionService {
             ctx.register(entityDef, dashboard);
             ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
             EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());
+            if (entityGroupId == null) {
+                entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
+            }
             if (entityDef.isMain()) {
-                if (entityGroupId == null) {
-                    entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
-                }
                 ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
                 ctx.getSolutionInstructions().setDashboardId(dashboard.getId());
             }
+            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId()));
         }
     }
 
@@ -639,8 +662,8 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    protected void provisionDevices(SolutionInstallContext ctx) throws Exception {
-        List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<List<DeviceDefinition>>() {
+    protected void provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
+        List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
         Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
         }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
@@ -653,6 +676,9 @@ public class DefaultSolutionService implements SolutionService {
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
             entity = deviceService.saveDevice(entity);
+
+            entityActionService.logEntityAction(user, entity.getId(), entity, customerId, ActionType.ADDED, null);
+
             ctx.register(entityDef, entity);
             log.info("[{}] Saved device: {}", entity.getId(), entity);
             DeviceId entityId = entity.getId();
@@ -674,6 +700,8 @@ public class DefaultSolutionService implements SolutionService {
                     .deviceProfile(deviceEmulators.get(entityDef.getProfile()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
+                    .deviceStateService(deviceStateService)
+                    .tsSubService(tsSubService)
                     .build().launch();
 
             tbClusterService.onDeviceUpdated(entity, null);
@@ -687,7 +715,7 @@ public class DefaultSolutionService implements SolutionService {
             ctx.put(ctx.getTenantId(), tenant.getRelations());
 
             for (UserGroupDefinition ugDef : tenant.getUserGroups()) {
-                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), ctx.getTenantId(), ugDef.getName());
+                EntityGroup ugEntity = getUserGroupInfo(ctx, ctx.getTenantId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
 
                 for (String genericRoleName : ugDef.getGenericRoles()) {
@@ -720,7 +748,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     protected void provisionAssets(SolutionInstallContext ctx) {
-        List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<List<AssetDefinition>>() {
+        List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
             Asset entity = new Asset();
@@ -740,14 +768,17 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void provisionCustomers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<List<CustomerDefinition>>() {
-        });
+    private void provisionCustomers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
+            EntityGroup groupEntity = null;
+            if (!StringUtils.isEmpty(entityDef.getGroup())) {
+                groupEntity = getCustomerGroupInfo(ctx, ctx.getTenantId(), entityDef.getGroup());
+            }
+            entityDef.setRandomNameData(generateRandomName(ctx));
             Customer entity = new Customer();
             entity.setTenantId(ctx.getTenantId());
-            entity.setTitle(entityDef.getName());
-            entity.setEmail(randomize(entityDef.getEmail()));
+            entity.setTitle(randomize(entityDef.getName(), entityDef.getRandomNameData()));
+            entity.setEmail(randomize(entityDef.getEmail(), entityDef.getRandomNameData()));
             entity.setCountry(entityDef.getCountry());
             entity.setCity(entityDef.getCity());
             entity.setState(entityDef.getState());
@@ -758,22 +789,24 @@ public class DefaultSolutionService implements SolutionService {
             ctx.register(entityDef, entity);
             CustomerId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
-            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes(), entityDef.getRandomNameData());
             ctx.put(entityId, entityDef.getRelations());
 
             entityDef.getAssetGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.ASSET));
             entityDef.getDeviceGroups().forEach(name -> createEntityGroup(ctx, entityId, name, EntityType.DEVICE));
+            entityDef.setName(entity.getName());
+            if (groupEntity != null) {
+                entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupEntity.getId(), Collections.singletonList(entity.getId()));
+            }
         }
     }
 
-    private void provisionCustomerUsers(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
-        List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<List<CustomerDefinition>>() {
-        });
+    private void provisionCustomerUsers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
 
             for (UserGroupDefinition ugDef : entityDef.getUserGroups()) {
-                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), ugDef.getName());
+                EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
                 for (String genericRoleName : ugDef.getGenericRoles()) {
                     RoleId roleId = ctx.getIdFromMap(EntityType.ROLE, genericRoleName);
@@ -803,25 +836,8 @@ public class DefaultSolutionService implements SolutionService {
             }
 
             for (UserDefinition uDef : entityDef.getUsers()) {
-                EntityGroup ugEntity = getUserGroupInfo(ctx.getTenantId(), entity.getId(), uDef.getGroup());
-                User user = new User();
-                if (!StringUtils.isEmpty(uDef.getFirstname())) {
-                    user.setFirstName(uDef.getFirstname());
-                }
-                if (!StringUtils.isEmpty(uDef.getLastname())) {
-                    user.setLastName(uDef.getLastname());
-                }
-                user.setAuthority(Authority.CUSTOMER_USER);
-                if (uDef.getName().equals("$customerEmail")) {
-                    uDef.setName(entity.getEmail());
-                } else {
-                    uDef.setName(randomize(uDef.getName()));
-                }
-                user.setEmail(uDef.getName());
-                user.setCustomerId(entity.getId());
-                user.setTenantId(ctx.getTenantId());
-                log.info("[{}] Saving user: {}", entity.getId(), user);
-                user = userService.saveUser(user);
+                EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), uDef.getGroup());
+                User user = createUser(ctx, entity, uDef, entityDef);
                 // TODO: get activation token, etc..
                 UserCredentials credentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                 credentials.setEnabled(true);
@@ -844,31 +860,119 @@ public class DefaultSolutionService implements SolutionService {
                 credentialsInfo.setLogin(uDef.getName());
                 credentialsInfo.setPassword(uDef.getPassword());
                 credentialsInfo.setCustomerName(entityDef.getName());
+                credentialsInfo.setCustomerGroup(uDef.getGroup());
                 ctx.addUserCredentials(credentialsInfo);
                 ctx.register(entityDef, uDef, user);
             }
         }
     }
 
-    private String randomize(String src) {
-        return src != null ?
-                src.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase()) : null;
+    private User createUser(SolutionInstallContext ctx, Customer entity, UserDefinition uDef, CustomerDefinition cDef) {
+        int maxAttempts = 10;
+        int attempts = 0;
+        Exception finalE = null;
+        while (attempts < maxAttempts) {
+            try {
+                boolean lastAttempt = maxAttempts == (attempts + 1);
+                var randomName = lastAttempt ? RandomNameUtil.nextSuperRandom() : RandomNameUtil.next();
+                User user = new User();
+                if (!StringUtils.isEmpty(uDef.getFirstname())) {
+                    user.setFirstName(randomize(uDef.getFirstname(), randomName, cDef.getRandomNameData()));
+                } else {
+                    user.setFirstName(randomName.getFirstName());
+                }
+                if (!StringUtils.isEmpty(uDef.getLastname())) {
+                    user.setLastName(randomize(uDef.getLastname(), randomName, cDef.getRandomNameData()));
+                } else {
+                    user.setLastName(randomName.getLastName());
+                }
+                user.setAuthority(Authority.CUSTOMER_USER);
+                user.setEmail(randomize(uDef.getName(), randomName, cDef.getRandomNameData()));
+                user.setCustomerId(entity.getId());
+                user.setTenantId(ctx.getTenantId());
+                log.info("[{}] Saving user: {}", entity.getId(), user);
+                user = userService.saveUser(user);
+                uDef.setName(user.getEmail());
+                return user;
+            } catch (Exception e) {
+                finalE = e;
+                attempts++;
+            }
+        }
+        throw new RuntimeException(finalE);
     }
 
-    private EntityGroup getUserGroupInfo(TenantId tenantId, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
-        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.USER, ugName).get();
+    private RandomNameData generateRandomName(SolutionInstallContext ctx) {
+        int i = 0;
+        while (i < 10) {
+            var randomName = RandomNameUtil.next();
+            var user = userService.findUserByEmail(ctx.getTenantId(), randomName.getEmail() );
+            if (user == null) {
+                return randomName;
+            } else {
+                i++;
+            }
+        }
+        String firstName = RandomStringUtils.randomAlphanumeric(5);
+        String lastName = RandomStringUtils.randomAlphanumeric(5);
+        return new RandomNameData(firstName, lastName, firstName + "." + lastName + "@thingsboard.io");
+    }
+
+    private String randomize(String src, RandomNameData name) {
+        return randomize(src, name, null);
+    }
+
+    private String randomize(String src, RandomNameData name, RandomNameData customer) {
+        if (src == null) {
+            return null;
+        } else {
+            String result = src
+                    .replace("$randomFirstName", name.getFirstName())
+                    .replace("$randomLastName", name.getLastName())
+                    .replace("$randomEmail", name.getEmail());
+            if (customer != null) {
+                result = result
+                        .replace("$customerFirstName", customer.getFirstName())
+                        .replace("$customerLastName", customer.getLastName())
+                        .replace("$customerEmail", customer.getEmail());
+            }
+            return result.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase());
+        }
+    }
+
+    private EntityGroup getCustomerGroupInfo(SolutionInstallContext ctx, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
+        return getGroupInfo(ctx, entityId, EntityType.CUSTOMER, ugName);
+    }
+
+    private EntityGroup getUserGroupInfo(SolutionInstallContext ctx, EntityId entityId, String ugName) throws ExecutionException, InterruptedException {
+        return getGroupInfo(ctx, entityId, EntityType.USER, ugName);
+    }
+
+    private EntityGroup getGroupInfo(SolutionInstallContext ctx, EntityId entityId, EntityType entityType, String ugName) throws ExecutionException, InterruptedException {
+        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entityId, entityType, ugName).get();
         EntityGroup ugEntity;
         if (ugEntityOpt.isPresent()) {
             ugEntity = ugEntityOpt.get();
         } else {
-            throw new RuntimeException("Creation of user groups from JSON is not supported yet!");
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName(ugName);
+            entityGroup.setType(entityType);
+            ugEntity = entityGroupService.saveEntityGroup(ctx.getTenantId(), entityId, entityGroup);
+            ctx.register(ugEntity.getId());
         }
         return ugEntity;
     }
 
     private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes) {
+        saveServerSideAttributes(tenantId, entityId, attributes, null);
+    }
+
+    private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData) {
         if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
             log.info("[{}] Saving attributes: {}", entityId, attributes);
+            if (randomNameData != null) {
+                attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
+            }
             attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE,
                     new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(JacksonUtil.toString(attributes)))));
         }
@@ -925,11 +1029,38 @@ public class DefaultSolutionService implements SolutionService {
         if (Files.exists(filePath)) {
             return JacksonUtil.readValue(filePath.toFile(), typeReference);
         } else {
-            return Collections.emptyList();
+            return new ArrayList<>();
+        }
+    }
+
+    private <T> List<T> loadListOfEntitiesFromDirectory(String solutionId, String dirName, Class<T> clazz) {
+        Path dirPath = resolve(solutionId, dirName);
+        if (Files.exists(dirPath) && Files.isDirectory(dirPath)) {
+            List<T> result = new ArrayList<>();
+            try {
+                for (Path filePath : Files.list(dirPath).collect(Collectors.toList())) {
+                    result.add(JacksonUtil.readValue(filePath.toFile(), clazz));
+                }
+            } catch (IOException e) {
+                log.warn("[{}] Failed to read directory: {}", solutionId, dirName, e);
+                throw new RuntimeException(e);
+            }
+            return result;
+        } else {
+            return new ArrayList<>();
         }
     }
 
     private void deleteEntity(TenantId tenantId, EntityId entityId) {
+        try {
+            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, false))
+                    .get().getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
+            alarmIds.forEach(alarmId -> {
+                alarmService.deleteAlarm(tenantId, alarmId);
+            });
+        } catch (Exception e) {
+            log.error("[{}] Failed to delete alarms for entity", entityId.getId(), e);
+        }
         switch (entityId.getEntityType()) {
             case RULE_CHAIN:
                 ruleChainService.deleteRuleChainById(tenantId, new RuleChainId(entityId.getId()));
@@ -961,40 +1092,12 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void replaceIdsRecursively(SolutionInstallContext ctx, JsonNode root) {
-        if (root.isArray()) {
-            ArrayNode array = (ArrayNode) root;
-            array.forEach(root1 -> replaceIdsRecursively(ctx, root1));
-        } else if (root.isObject()) {
-            if (!findAndReplaceEntityId(ctx, root)) {
-                root.fields().forEachRemaining(e -> {
-                    if (!findAndReplaceEntityId(ctx, e.getValue())) {
-                        replaceIdsRecursively(ctx, e.getValue());
-                    }
-                });
-            }
+    private JsonNode replaceIds(SolutionInstallContext ctx, JsonNode dashboardJson) {
+        String jsonStr = JacksonUtil.toString(dashboardJson);
+        for (var e : ctx.getRealIds().entrySet()) {
+            jsonStr = jsonStr.replace(e.getKey(), e.getValue());
         }
-    }
-
-    private boolean findAndReplaceEntityId(SolutionInstallContext ctx, JsonNode node) {
-        if (node.isObject() && node.size() == 2) {
-            ObjectNode value = (ObjectNode) node;
-            if (value.has("id") && value.has("entityType")) {
-                if (EntityType.TENANT.name().equalsIgnoreCase(value.get("entityType").asText())) {
-                    value.put("id", ctx.getTenantId().getId().toString());
-                    return true;
-                } else {
-                    String oldId = value.get("id").asText();
-                    if (ctx.getRealIds().containsKey(oldId)) {
-                        value.put("id", ctx.getRealIds().get(oldId));
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-        return false;
+        return JacksonUtil.toJsonNode(jsonStr);
     }
 
     private String toCreatedEntitiesKey(String solutionId) {

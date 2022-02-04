@@ -133,7 +133,7 @@ public class SolutionController extends BaseController {
         checkParameter("solutionTemplateId", solutionTemplateId);
         try {
             checkAllPermissions();
-            return checkNotNull(solutionService.installSolution(getTenantId(), solutionTemplateId, request));
+            return checkNotNull(solutionService.installSolution(getCurrentUser(), getTenantId(), solutionTemplateId, request));
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -30,44 +30,52 @@
  */
 package org.thingsboard.server.service.queue;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.rule.engine.api.msg.DeviceEdgeUpdateMsg;
 import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.CloudUtils;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -82,12 +90,14 @@ import org.thingsboard.server.queue.common.MultipleTbQueueCallbackWrapper;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -114,6 +124,9 @@ public class DefaultTbClusterService implements TbClusterService {
     private final TbDeviceProfileCache deviceProfileCache;
     private final OtaPackageStateService otaPackageStateService;
     private final GatewayNotificationsService gatewayNotificationsService;
+    private final EntityGroupService entityGroupService;
+    private final EdgeService edgeService;
+    private final DbCallbackExecutorService dbCallbackExecutor;
 
     @Override
     public void pushMsgToCore(TenantId tenantId, EntityId entityId, ToCoreMsg msg, TbQueueCallback callback) {
@@ -521,9 +534,74 @@ public class DefaultTbClusterService implements TbClusterService {
         }
         TransportProtos.EdgeNotificationMsgProto msg = builder.build();
         log.trace("[{}] sending notification to edge service {}", tenantId.getId(), msg);
-        pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
-                TransportProtos.ToCoreMsg.newBuilder().setEdgeNotificationMsg(msg).build(), null);
+<<<<<<< HEAD
+        pushMsgToCore(tenantId, entityId != null ? entityId : tenantId, TransportProtos.ToCoreMsg.newBuilder().setEdgeNotificationMsg(msg).build(), null);
+
+        if (entityId != null && (EntityType.DEVICE.equals(entityGroupType) || EntityType.DEVICE.equals(entityId.getEntityType()))) {
+            pushDeviceUpdateMessage(tenantId, edgeId, entityId, action, entityGroupType, entityGroupId);
+        }
          */
+    }
+
+    private void pushDeviceUpdateMessage(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action,
+                                         EntityType entityGroupType, EntityGroupId entityGroupId) {
+        switch (entityId.getEntityType()) {
+            case ENTITY_GROUP:
+                if (EntityType.DEVICE.equals(entityGroupType)) {
+                    switch (action) {
+                        case ASSIGNED_TO_EDGE:
+                            pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), edgeId);
+                            break;
+                        case UNASSIGNED_FROM_EDGE:
+                            pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), null);
+                            break;
+                    }
+                }
+                break;
+            case DEVICE:
+                switch (action) {
+                    case ADDED_TO_ENTITY_GROUP:
+                    case REMOVED_FROM_ENTITY_GROUP:
+                        EdgeId relatedEdgeId = findRelatedEdgeIdIfAny(tenantId, entityGroupId);
+                        log.trace("{} Going to send edge update notification for device actor, device id {}, edge id {}", tenantId, entityId, relatedEdgeId);
+                        pushMsgToCore(new DeviceEdgeUpdateMsg(tenantId, new DeviceId(entityId.getId()), relatedEdgeId), null);
+                        break;
+                }
+        }
+    }
+
+    private void pushDeviceUpdateMessageByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId) {
+        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new PageLink(Integer.MAX_VALUE));
+        Futures.addCallback(entityIdsFuture, new FutureCallback<>() {
+            @Override
+            public void onSuccess(@Nullable List<EntityId> entityIds) {
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    for (EntityId entityId : entityIds) {
+                        log.trace("{} Going to send edge update notification for device actor, device id {}, edge id {}", tenantId, entityId, edgeId);
+                        pushMsgToCore(new DeviceEdgeUpdateMsg(tenantId, new DeviceId(entityId.getId()), edgeId), null);
+                    }
+                } else {
+                    log.trace("{} No entities found for the provided entity group {}", tenantId, entityGroupId);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable th) {
+                String errMsg = String.format("[%s] Failed to find all entity ids, entityGroupId = %s", tenantId, entityGroupId);
+                log.error(errMsg, th);
+            }
+        }, dbCallbackExecutor);
+    }
+
+    private EdgeId findRelatedEdgeIdIfAny(TenantId tenantId, EntityGroupId entityGroupId) {
+        PageLink pageLink = new PageLink(1);
+        PageData<EdgeId> pageData;
+        pageData = edgeService.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), EntityType.DEVICE, pageLink);
+        if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+            return pageData.getData().get(0);
+        } else {
+            return null;
+        }
     }
 
     private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,

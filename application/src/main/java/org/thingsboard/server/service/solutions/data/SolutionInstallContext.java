@@ -74,6 +74,7 @@ public class SolutionInstallContext {
     private final Map<String, DeviceCredentialsInfo> createdDevices = new LinkedHashMap<>();
     private final Map<String, UserCredentialsInfo> createdUsers = new LinkedHashMap<>();
     private final Map<String, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
+    private final List<DashboardLinkInfo> dashboardLinks = new ArrayList<>();
 
     public SolutionInstallContext(TenantId tenantId, String solutionId, TenantSolutionTemplateInstructions solutionInstructions) {
         this.tenantId = tenantId;

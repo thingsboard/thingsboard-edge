@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.service.solutions.data.definition;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.service.solutions.data.names.RandomNameData;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +43,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CustomerDefinition extends BaseEntityDefinition {
 
+    private String group;
     private String email;
     private String country;
     private String city;
@@ -52,6 +55,9 @@ public class CustomerDefinition extends BaseEntityDefinition {
     private List<String> deviceGroups = Collections.emptyList();
     private List<UserGroupDefinition> userGroups = Collections.emptyList();
     private List<UserDefinition> users = Collections.emptyList();
+
+    @JsonIgnore
+    private RandomNameData randomNameData;
 
     @Override
     public EntityType getEntityType() {

@@ -121,7 +121,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
     }
 
     private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {
-        if (config.isCountAlarmsForPropagationEntities() && alarm.isPropagate()) {
+        if (config.isCountAlarmsForPropagationEntities() && (alarm.isPropagate() || alarm.isPropagateToOwner() || alarm.isPropagateToOwnerHierarchy() || alarm.isPropagateToTenant())) {
             Set<EntityId> propagationEntityIds = ctx.getAlarmService().getPropagationEntityIds(alarm, config.getPropagationEntityTypes());
             propagationEntityIds.add(alarm.getOriginator());
             return propagationEntityIds;

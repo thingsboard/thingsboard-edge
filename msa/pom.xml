@@ -61,9 +61,10 @@
 <!--        <module>web-report</module>-->
 <!--        <module>tb-node</module>-->
 <!--        <module>transport</module>-->
-        <module>tb-edge</module>
 <!--        <module>integration</module>-->
+        <module>tb-edge</module>
     </modules>
+
 
     <profiles>
         <profile>

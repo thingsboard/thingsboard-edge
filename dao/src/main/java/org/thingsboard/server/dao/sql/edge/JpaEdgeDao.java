@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -182,17 +183,16 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
     }
 
     @Override
-    public PageData<Edge> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink) {
-        log.debug("Try to find edges by tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink) {
+        log.debug("Try to find edge ids by tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        return DaoUtil.toPageData(
-                edgeRepository.findByTenantIdAndEntityIds(
+        return DaoUtil.pageToPageData(
+                edgeRepository.findEdgeIdsByTenantIdAndEntityIds(
                         tenantId,
                         entityGroupIds,
                         EntityType.ENTITY_GROUP.name(),
                         relationType,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
     }
 
     private List<EntitySubtype> convertTenantEdgeTypesToDto(UUID tenantId, List<String> types) {

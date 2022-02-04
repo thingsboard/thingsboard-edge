@@ -39,6 +39,7 @@ public class UserCredentialsInfo {
     String login;
     String password;
     String customerName;
+    String customerGroup;
 
 
 }
