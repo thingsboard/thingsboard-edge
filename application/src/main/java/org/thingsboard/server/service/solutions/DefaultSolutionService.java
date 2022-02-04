@@ -37,6 +37,7 @@ import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -109,6 +110,13 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
@@ -169,6 +177,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@TbCoreComponent
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -194,7 +203,6 @@ public class DefaultSolutionService implements SolutionService {
     private final TimeseriesService tsService;
     private final DashboardService dashboardService;
     private final RelationService relationService;
-    private final TenantService tenantService;
     private final DeviceService deviceService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
@@ -206,8 +214,9 @@ public class DefaultSolutionService implements SolutionService {
     private final SystemSecurityService systemSecurityService;
     private final TbClusterService tbClusterService;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final TbTenantProfileCache tenantProfileCache;
-    private final DeviceStateService deviceStateService;
+    private final TbQueueProducerProvider tbQueueProducerProvider;
+    private final TbServiceInfoProvider serviceInfoProvider;
+    private final PartitionService partitionService;
     private final TelemetrySubscriptionService tsSubService;
     private final EntityActionService entityActionService;
     private final AlarmService alarmService;
@@ -434,19 +443,22 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionDeviceProfiles(ctx);
 
-            List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {});
+            List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
+            });
 
             provisionCustomers(ctx, customers);
 
             provisionAssets(ctx);
 
-            provisionDevices(user, ctx);
+            var devices = provisionDevices(user, ctx);
 
             provisionRelations(ctx);
 
             provisionDashboards(ctx);
 
             provisionCustomerUsers(ctx, customers);
+
+            launchEmulators(ctx, devices);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
 
@@ -662,11 +674,11 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    protected void provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
+    protected Map<Device, DeviceDefinition> provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
+        Map<Device, DeviceDefinition> result = new HashMap<>();
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
-        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+
         for (DeviceDefinition entityDef : devices) {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Device entity = new Device();
@@ -695,16 +707,27 @@ public class DefaultSolutionService implements SolutionService {
 
             ctx.addDeviceCredentials(deviceCredentialsInfo);
 
+            result.put(entity, entityDef);
+            tbClusterService.onDeviceUpdated(entity, null);
+        }
+        return result;
+    }
+
+    private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap) throws Exception {
+        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
+        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+
+        for (var entry : devicesMap.entrySet()) {
             DeviceEmulatorLauncher.builder()
-                    .device(entity)
-                    .deviceProfile(deviceEmulators.get(entityDef.getProfile()))
+                    .device(entry.getKey())
+                    .deviceProfile(deviceEmulators.get(entry.getValue().getProfile()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
-                    .deviceStateService(deviceStateService)
+                    .partitionService(partitionService)
+                    .tbQueueProducerProvider(tbQueueProducerProvider)
+                    .serviceInfoProvider(serviceInfoProvider)
                     .tsSubService(tsSubService)
                     .build().launch();
-
-            tbClusterService.onDeviceUpdated(entity, null);
         }
     }
 
@@ -906,7 +929,7 @@ public class DefaultSolutionService implements SolutionService {
         int i = 0;
         while (i < 10) {
             var randomName = RandomNameUtil.next();
-            var user = userService.findUserByEmail(ctx.getTenantId(), randomName.getEmail() );
+            var user = userService.findUserByEmail(ctx.getTenantId(), randomName.getEmail());
             if (user == null) {
                 return randomName;
             } else {
