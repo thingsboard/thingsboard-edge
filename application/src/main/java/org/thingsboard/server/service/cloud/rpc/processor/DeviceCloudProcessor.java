@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -192,6 +193,9 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             if (deviceUpdateMsg.hasAdditionalInfo()) {
                 device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
             }
+            CustomerId customerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(),
+                    deviceUpdateMsg.getCustomerIdLSB());
+            device.setCustomerId(customerId);
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();

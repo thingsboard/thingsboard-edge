@@ -81,6 +81,9 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
 
+                    CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(),
+                            dashboardUpdateMsg.getCustomerIdLSB());
+                    dashboard.setCustomerId(customerId);
                     Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
