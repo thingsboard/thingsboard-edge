@@ -97,7 +97,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -324,28 +323,6 @@ public abstract class AbstractContainerTest {
         profileData.setProvisionConfiguration(new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("123"));
     }
 
-    protected WsClient subscribeToWebSocket(DeviceId deviceId, String scope, CmdsType property) throws Exception {
-        WsClient wsClient = new WsClient(new URI(WSS_URL + "/api/ws/plugins/telemetry?token=" + restClient.getToken()));
-        SSLContextBuilder builder = SSLContexts.custom();
-        builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        wsClient.setSocketFactory(builder.build().getSocketFactory());
-        wsClient.connectBlocking();
-
-        JsonObject cmdsObject = new JsonObject();
-        cmdsObject.addProperty("entityType", EntityType.DEVICE.name());
-        cmdsObject.addProperty("entityId", deviceId.toString());
-        cmdsObject.addProperty("scope", scope);
-        cmdsObject.addProperty("cmdId", new Random().nextInt(100));
-
-        JsonArray cmd = new JsonArray();
-        cmd.add(cmdsObject);
-        JsonObject wsRequest = new JsonObject();
-        wsRequest.add(property.toString(), cmd);
-        wsClient.send(wsRequest.toString());
-        wsClient.waitForFirstReply();
-        return wsClient;
-    }
-
     protected Map<String, Long> getExpectedLatestValues(long ts) {
         return ImmutableMap.<String, Long>builder()
                 .put("booleanKey", ts)
@@ -353,16 +330,6 @@ public abstract class AbstractContainerTest {
                 .put("doubleKey", ts)
                 .put("longKey", ts)
                 .build();
-    }
-
-    protected boolean verify(WsTelemetryResponse wsTelemetryResponse, String key, Long expectedTs, String expectedValue) {
-        List<Object> list = wsTelemetryResponse.getDataValuesByKey(key);
-        return expectedTs.equals(list.get(0)) && expectedValue.equals(list.get(1));
-    }
-
-    protected boolean verify(WsTelemetryResponse wsTelemetryResponse, String key, String expectedValue) {
-        List<Object> list = wsTelemetryResponse.getDataValuesByKey(key);
-        return expectedValue.equals(list.get(1));
     }
 
     protected JsonObject createGatewayConnectPayload(String deviceName){
