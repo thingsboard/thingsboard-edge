@@ -1657,7 +1657,7 @@
         "cloud-endpoint": "Cloud Endpoint",
         "cloud-endpoint-required": "Cloud Endpoint is required.",
         "cloud-endpoint-max-length": "Cloud Endpoint should be less than 256",
-        "cloud-endpoint-hint": "Edge requires HTTP(s) access to Cloud (ThingsBoard CE/PE) to verify the license key. Please specify Cloud URL that Edge is able to connect to.",
+        "cloud-endpoint-hint": "Edge requires HTTP(s) access to Cloud (ThingsBoard PE) to verify the license key. Please specify Cloud URL that Edge is able to connect to.",
         "description": "Description",
         "details": "Details",
         "events": "Events",
