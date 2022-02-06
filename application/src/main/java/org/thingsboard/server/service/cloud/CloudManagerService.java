@@ -663,8 +663,6 @@ public class CloudManagerService extends BaseCloudEventService {
             List<EntityGroup> entityGroups = entityGroupsFuture.get();
             entityGroups.stream()
                     .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CE_TENANT_ADMINS_NAME))
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CE_CUSTOMER_USERS_NAME))
                     .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenant.getId(), entityGroup.getId()));
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unable to delete entity groups", e);

@@ -81,53 +81,6 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
 
     private static final List<Operation> NONE_PERMISSIONS = Arrays.asList();
 
-    public static final Map<Resource, List<Operation>> EDGE_CE_TENANT_ADMIN_PERMISSIONS = new HashMap<>();
-    public static final Map<Resource, List<Operation>> EDGE_CE_CUSTOMER_USER_PERMISSIONS = new HashMap<>();
-
-    static {
-        Map<Resource, List<Operation>> commonEdgePermissions = new HashMap<>();
-
-        commonEdgePermissions.put(Resource.PROFILE, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.ALARM, Arrays.asList(Operation.ALL));
-
-        commonEdgePermissions.put(Resource.DEVICE_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.ASSET_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.ENTITY_VIEW_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.DASHBOARD_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-
-        commonEdgePermissions.put(Resource.ASSET, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.DASHBOARD, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.ENTITY_VIEW, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.EDGE, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.TENANT, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.CUSTOMER, READ_ONLY_GROUP_PERMISSIONS);
-
-        commonEdgePermissions.put(Resource.USER, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.WIDGETS_BUNDLE, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.WIDGET_TYPE, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.SCHEDULER_EVENT, READ_ONLY_GROUP_PERMISSIONS);
-        commonEdgePermissions.put(Resource.BLOB_ENTITY, READ_ONLY_GROUP_PERMISSIONS);
-
-        commonEdgePermissions.put(Resource.WHITE_LABELING, READ_ONLY_GROUP_PERMISSIONS);
-
-        commonEdgePermissions.put(Resource.ROLE, NONE_PERMISSIONS);
-        commonEdgePermissions.put(Resource.GROUP_PERMISSION, NONE_PERMISSIONS);
-        commonEdgePermissions.put(Resource.CONVERTER, NONE_PERMISSIONS);
-        commonEdgePermissions.put(Resource.INTEGRATION, NONE_PERMISSIONS);
-
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.putAll(commonEdgePermissions);
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.DEVICE, Arrays.asList(Operation.ALL));
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.RULE_CHAIN, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.USER_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.CUSTOMER_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.AUDIT_LOG, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_CE_TENANT_ADMIN_PERMISSIONS.put(Resource.ADMIN_SETTINGS, READ_ONLY_GROUP_PERMISSIONS);
-
-        EDGE_CE_CUSTOMER_USER_PERMISSIONS.putAll(commonEdgePermissions);
-        EDGE_CE_CUSTOMER_USER_PERMISSIONS.put(Resource.DEVICE, READ_ONLY_GROUP_PERMISSIONS);
-    }
-
     public static final Map<Resource, List<Operation>> PUBLIC_USER_PERMISSIONS = new HashMap<>();
     static {
         PUBLIC_USER_PERMISSIONS.put(Resource.DASHBOARD, Arrays.asList(

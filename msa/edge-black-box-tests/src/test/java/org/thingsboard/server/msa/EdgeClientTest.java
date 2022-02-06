@@ -1384,8 +1384,8 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     private EntityView saveEntityViewOnCloud(String entityViewName, String type, DeviceId deviceId, EntityGroupId entityGroupId) throws Exception {
         EntityView entityView = new EntityView();
-        entityView.setName("Edge EntityView 1");
-        entityView.setType("test");
+        entityView.setName(entityViewName);
+        entityView.setType(type);
         entityView.setEntityId(deviceId);
         EntityView savedEntityView = restClient.saveEntityView(entityView);
         if (entityGroupId != null) {

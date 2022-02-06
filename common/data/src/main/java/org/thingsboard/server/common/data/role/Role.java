@@ -64,8 +64,6 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public static final String ROLE_PUBLIC_USER_ENTITY_GROUP_NAME = "Entity Group Public User";
     public static final String ROLE_READ_ONLY_ENTITY_GROUP_NAME = "Entity Group Read-only User";
     public static final String ROLE_WRITE_ENTITY_GROUP_NAME = "Entity Group Write User";
-    public static final String ROLE_EDGE_CE_TENANT_ADMIN_NAME = "Edge CE Tenant Administrator";
-    public static final String ROLE_EDGE_CE_CUSTOMER_USER_NAME = "Edge CE Customer User";
 
     @ApiModelProperty(position = 3, required = true, value = "JSON object with Tenant Id.", readOnly = true)
     private TenantId tenantId;

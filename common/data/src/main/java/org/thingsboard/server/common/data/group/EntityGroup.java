@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ApiModel
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId {
 
     private static final long serialVersionUID = 2807349040519543363L;
@@ -70,9 +72,6 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     public static final String GROUP_CUSTOMER_USERS_NAME = "Customer Users";
     public static final String GROUP_CUSTOMER_ADMINS_NAME = "Customer Administrators";
     public static final String GROUP_PUBLIC_USERS_NAME = "Public Users";
-
-    public static final String GROUP_EDGE_CE_TENANT_ADMINS_NAME = "Edge CE Tenant Administrators";
-    public static final String GROUP_EDGE_CE_CUSTOMER_USERS_NAME = "Edge CE Customer Users";
 
     private static final String GROUP_EDGE_ALL_STARTS_WITH = "[Edge]";
     private static final String GROUP_EDGE_ALL_ENDS_WITH = "All";

@@ -40,6 +40,7 @@ source "${CONF_FOLDER}/${configfile}"
 if [ "$INSTALL_TB_EDGE" == "true" ]; then
 
   install-tb-edge.sh --loadDemo
+  touch ${firstlaunch}
 
 else
   if [ ! -f ${firstlaunch} ]; then

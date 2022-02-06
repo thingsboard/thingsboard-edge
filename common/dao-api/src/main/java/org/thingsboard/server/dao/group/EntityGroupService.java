@@ -121,10 +121,6 @@ public interface EntityGroupService {
 
     boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 
-    EntityGroup findOrCreateEdgeCETenantAdminsGroup(TenantId tenantId);
-
-    EntityGroup findOrCreateEdgeCECustomerUsersGroup(TenantId tenantId, CustomerId customerId);
-
     GroupPermission findOrCreateEntityGroupPermission(TenantId tenantId, EntityGroupId entityGroupId,
                                                              EntityType entityGroupType, EntityGroupId userGroupId, RoleId roleId);
 
