@@ -129,6 +129,6 @@ CREATE TABLE IF NOT EXISTS device_group_ota_package (
     ota_package_id uuid NOT NULL,
     ota_package_update_time bigint NOT NULL,
     CONSTRAINT device_group_ota_package_unq_key UNIQUE (group_id, ota_package_type),
-    CONSTRAINT fk_ota_package_device_group_ota_package FOREIGN KEY (ota_package_id) REFERENCES ota_package(id),
+    CONSTRAINT fk_ota_package_device_group_ota_package FOREIGN KEY (ota_package_id) REFERENCES ota_package(id) ON DELETE CASCADE,
     CONSTRAINT fk_entity_group_device_group_ota_package FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
 );

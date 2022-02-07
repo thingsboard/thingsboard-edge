@@ -25,3 +25,8 @@ $$
         END IF;
     END;
 $$;
+
+ALTER TABLE device_group_ota_package
+    DROP CONSTRAINT fk_ota_package_device_group_ota_package;
+ALTER TABLE device_group_ota_package
+    ADD CONSTRAINT fk_ota_package_device_group_ota_package FOREIGN KEY (ota_package_id) REFERENCES ota_package (id) ON DELETE CASCADE;

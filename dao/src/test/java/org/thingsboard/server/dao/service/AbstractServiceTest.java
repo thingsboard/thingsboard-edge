@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.service;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -45,6 +47,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
@@ -56,7 +59,11 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.group.ColumnConfiguration;
+import org.thingsboard.server.common.data.group.ColumnType;
+import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -99,6 +106,8 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -318,6 +327,42 @@ public abstract class AbstractServiceTest {
         firmware.setData(ByteBuffer.wrap(new byte[]{1}));
         firmware.setDataSize(1L);
         return firmware;
+    }
+
+    protected EntityGroup createDeviceGroup(TenantId tenantId, String name) {
+        return createEntityGroup(tenantId, EntityType.DEVICE, name);
+    }
+
+    protected EntityGroup createEntityGroup(TenantId tenantId, EntityType groupType, String name) {
+        EntityGroup testDevicesGroup = new EntityGroup();
+        testDevicesGroup.setType(groupType);
+        testDevicesGroup.setName(name);
+        testDevicesGroup.setOwnerId(tenantId);
+
+        EntityGroupConfiguration entityGroupConfiguration = new EntityGroupConfiguration();
+
+        entityGroupConfiguration.setColumns(Collections.singletonList(
+                new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
+        ));
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
+        jsonConfiguration.putObject("settings");
+        jsonConfiguration.putObject("actions");
+        testDevicesGroup.setConfiguration(jsonConfiguration);
+        EntityGroup savedGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, testDevicesGroup);
+        Assert.assertNotNull(savedGroup);
+        return savedGroup;
+    }
+
+    protected Device createDevice(TenantId tenantId, String name, DeviceProfileId deviceProfileId) {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName(name);
+        device.setDeviceProfileId(deviceProfileId);
+        Device savedDevice = deviceService.saveDevice(device);
+        Assert.assertNotNull(savedDevice);
+        return savedDevice;
     }
 
 }
