@@ -18,7 +18,6 @@ package org.thingsboard.server.msa;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -47,11 +46,8 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -65,11 +61,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -79,22 +71,18 @@ import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
+import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -115,21 +103,12 @@ public abstract class AbstractContainerTest {
     public static void before() throws Exception {
         restClient = new RestClient(CLOUD_HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+        restClient.login("tenant@thingsboard.org", "tenant");
 
         String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
         Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
         edgeUrl = "http://" + edgeHost + ":" + edgePort;
         edgeRestClient = new RestClient(edgeUrl);
-
-        setWhiteLabelingAndCustomTranslation();
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
-                            Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
-                            return cloudLoginWhiteLabelParams.isPresent() &&
-                                    cloudLoginWhiteLabelParams.get().getDomainName().equals("tenant.org");
-                        });
 
         edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
@@ -155,6 +134,32 @@ public abstract class AbstractContainerTest {
         updateRootRuleChain();
 
         createCustomDeviceProfile();
+
+        // This is a starting point to start other tests
+        verifyWidgetBundles();
+    }
+
+    private static void verifyWidgetBundles() {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
+
+        PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
+
+        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
+            Awaitility.await()
+                    .atMost(30, TimeUnit.SECONDS).
+                    until(() -> {
+                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
+                                && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
+                    });
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
+            Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
+        }
     }
 
     protected static void updateRootRuleChain() throws IOException {
@@ -180,36 +185,6 @@ public abstract class AbstractContainerTest {
         DeviceProfile deviceProfile = createDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, null);
         extendDeviceProfileData(deviceProfile);
         restClient.saveDeviceProfile(deviceProfile);
-    }
-
-    private static void setWhiteLabelingAndCustomTranslation() {
-        restClient.login("sysadmin@thingsboard.org", "sysadmin");
-
-        CustomTranslation content = new CustomTranslation();
-        content.getTranslationMap().put("key", "sys_admin_value");
-        restClient.saveCustomTranslation(content);
-
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle("Sys Admin TB");
-        restClient.saveWhiteLabelParams(whiteLabelingParams);
-
-        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName("sysadmin.org");
-        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
-
-        restClient.login("tenant@thingsboard.org", "tenant");
-
-        content = new CustomTranslation();
-        content.getTranslationMap().put("key", "tenant_value");
-        restClient.saveCustomTranslation(content);
-
-        whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle("Tenant TB");
-        restClient.saveWhiteLabelParams(whiteLabelingParams);
-
-        loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName("tenant.org");
-        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
     }
 
     @Rule
@@ -309,46 +284,6 @@ public abstract class AbstractContainerTest {
         profileData.setProvisionConfiguration(new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("123"));
     }
 
-    protected WsClient subscribeToWebSocket(DeviceId deviceId, String scope, CmdsType property) throws Exception {
-        WsClient wsClient = new WsClient(new URI(WSS_URL + "/api/ws/plugins/telemetry?token=" + restClient.getToken()));
-        SSLContextBuilder builder = SSLContexts.custom();
-        builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        wsClient.setSocketFactory(builder.build().getSocketFactory());
-        wsClient.connectBlocking();
-
-        JsonObject cmdsObject = new JsonObject();
-        cmdsObject.addProperty("entityType", EntityType.DEVICE.name());
-        cmdsObject.addProperty("entityId", deviceId.toString());
-        cmdsObject.addProperty("scope", scope);
-        cmdsObject.addProperty("cmdId", new Random().nextInt(100));
-
-        JsonArray cmd = new JsonArray();
-        cmd.add(cmdsObject);
-        JsonObject wsRequest = new JsonObject();
-        wsRequest.add(property.toString(), cmd);
-        wsClient.send(wsRequest.toString());
-        wsClient.waitForFirstReply();
-        return wsClient;
-    }
-
-    protected Map<String, Long> getExpectedLatestValues(long ts) {
-        return ImmutableMap.<String, Long>builder()
-                .put("booleanKey", ts)
-                .put("stringKey", ts)
-                .put("doubleKey", ts)
-                .put("longKey", ts)
-                .build();
-    }
-
-    protected boolean verify(WsTelemetryResponse wsTelemetryResponse, String key, Long expectedTs, String expectedValue) {
-        List<Object> list = wsTelemetryResponse.getDataValuesByKey(key);
-        return expectedTs.equals(list.get(0)) && expectedValue.equals(list.get(1));
-    }
-
-    protected boolean verify(WsTelemetryResponse wsTelemetryResponse, String key, String expectedValue) {
-        List<Object> list = wsTelemetryResponse.getDataValuesByKey(key);
-        return expectedValue.equals(list.get(1));
-    }
 
     protected JsonObject createGatewayConnectPayload(String deviceName){
         JsonObject payload = new JsonObject();
@@ -387,21 +322,6 @@ public abstract class AbstractContainerTest {
         values.addProperty("longKey", 73L);
 
         return values;
-    }
-
-    protected Converter createUplink(JsonNode config) {
-        Converter converter = new Converter();
-        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(config);
-        return restClient.saveConverter(converter);
-    }
-
-    protected void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integrationId);
-        restClient.deleteConverter(idForDelete);
     }
 
     protected enum CmdsType {
