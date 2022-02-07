@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
@@ -82,7 +81,6 @@ import java.util.stream.Collectors;
 public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
-    @Ignore
     public void testDeviceProfiles() {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -93,13 +91,11 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testTenantAdminSettings() {
         // TODO: voba
     }
 
     @Test
-    @Ignore
     public void testWidgetsBundles() {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -311,7 +307,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testDevices() throws Exception {
         Device edgeDevice1 = saveAndAssignDeviceToEdge();
 
@@ -343,7 +338,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testAssets() throws Exception {
         Asset savedAsset = saveAndAssignAssetToEdge();
 
@@ -363,7 +357,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testRuleChains() throws Exception {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -432,7 +425,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testDashboards() throws Exception {
         Dashboard savedDashboardOnCloud = saveDashboardOnCloud("Edge Dashboard 1");
 
@@ -452,7 +444,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testRelations() throws Exception {
         Device device = saveAndAssignDeviceToEdge();
         Asset asset = saveAndAssignAssetToEdge();
@@ -476,7 +467,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testAlarms() throws Exception {
         Device device = saveAndAssignDeviceToEdge();
 
@@ -536,7 +526,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testEntityViews() throws Exception {
         Device device = saveAndAssignDeviceToEdge();
 
@@ -558,7 +547,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testWidgetsBundleAndWidgetType() throws Exception {
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");
@@ -622,7 +610,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testSendPostTelemetryRequestToEdge() throws Exception {
         List<String> keys = Arrays.asList("strTelemetryToEdge", "boolTelemetryToEdge", "doubleTelemetryToEdge", "longTelemetryToEdge");
 
@@ -679,48 +666,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         return targetRestClient.getLatestTimeseries(device.getId(), keys);
     }
 
-
-    public static void main(String[] args) throws Exception {
-
-        restClient = new RestClient("http://localhost:8080");
-        restClient.login("tenant@thingsboard.org", "tenant");
-
-        edgeRestClient = new RestClient("http://localhost:18080");
-        edgeRestClient.login("tenant@thingsboard.org", "tenant");
-
-        List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
-
-        JsonObject attrPayload = new JsonObject();
-        attrPayload.addProperty("strAttrToCloud", "value1");
-        attrPayload.addProperty("boolAttrToCloud", true);
-        attrPayload.addProperty("doubleAttrToCloud", 42.0);
-        attrPayload.addProperty("longAttrToCloud", 72L);
-
-        edge = new Edge();
-        edge.setId(new EdgeId(UUID.fromString("e881a330-6c7b-11ec-bafd-c9a47a5c8d99")));
-
-        edgeUrl = "http://localhost:18080";
-
-        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(edgeRestClient, edgeUrl, restClient, attrPayload, keys);
-
-        for (AttributeKvEntry attributeKvEntry : kvEntries) {
-            if (attributeKvEntry.getKey().equals("strAttrToCloud")) {
-                Assert.assertEquals("value1", attributeKvEntry.getStrValue().get());
-            }
-            if (attributeKvEntry.getKey().equals("boolAttrToCloud")) {
-                Assert.assertEquals(true, attributeKvEntry.getBooleanValue().get());
-            }
-            if (attributeKvEntry.getKey().equals("doubleAttrToCloud")) {
-                Assert.assertEquals(42.0, (double) attributeKvEntry.getDoubleValue().get(), 0.0);
-            }
-            if (attributeKvEntry.getKey().equals("longAttrToCloud")) {
-                Assert.assertEquals(72L, attributeKvEntry.getLongValue().get().longValue());
-            }
-        }
-    }
-
-        @Test
-    @Ignore
+    @Test
     public void testSendPostAttributesRequestToCloud() throws Exception {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
@@ -750,7 +696,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testSendPostAttributesRequestToEdge() throws Exception {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
@@ -804,7 +749,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testSendAttributesUpdatedToEdge() throws Exception {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
@@ -839,7 +783,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testSendAttributesUpdatedToCloud() throws Exception {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
@@ -889,16 +832,10 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         sourceRestClient.deleteEntityAttributes(device.getId(), scope, keys);
 
-        // TODO: @voba - verify remove of attributes from edge
-//        Awaitility.await()
-//                .atMost(30, TimeUnit.SECONDS)
-//                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).isEmpty());
-
         return attributeKvEntries;
     }
 
     @Test
-    @Ignore
     public void sendDeviceToCloud() throws Exception {
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
 
@@ -954,7 +891,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceName = RandomStringUtils.randomAlphanumeric(15);
         Device savedDeviceOnCloud = saveDeviceOnCloud(deviceName, "default");
@@ -975,7 +911,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void sendRelationToCloud() throws Exception {
         Device device = saveAndAssignDeviceToEdge();
 
@@ -1006,7 +941,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void sendAlarmToCloud() throws Exception {
         Device device = saveAndAssignDeviceToEdge();
 
@@ -1050,7 +984,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testOneWayRpcCall() throws Exception {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge();
@@ -1100,7 +1033,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testTwoWayRpcCall() throws Exception {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge();
