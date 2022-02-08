@@ -110,17 +110,18 @@ public class ThingsboardInstallService {
                     case "3.3.0-EDGE": // fix because of incorrect upgrade version in 3.3.0 release
                     case "3.3.0":
                     case "3.3.1":
-                        log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.3 ...");
+                        log.info("Upgrading ThingsBoard Edge from version 3.3.0 to 3.3.3 ...");
                         databaseEntitiesUpgradeService.upgradeDatabase("3.3.2");
                         dataUpdateService.updateData("3.3.2");
                     case "3.3.3": // to 3.3.3PE
                         log.info("Upgrading ThingsBoard Edge from version 3.3.3 to 3.3.3PE ...");
-                        databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");
-                        dataUpdateService.updateData("3.3.3");
+                    case "3.3.4": // to 3.3.4PE
+                        log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.3.4PE ...");
+                        databaseEntitiesUpgradeService.upgradeDatabase("3.3.4");
+                        dataUpdateService.updateData("3.3.4");
                         log.info("Updating system data...");
                         systemDataLoaderService.updateSystemWidgets();
                         break;
-
                     //TODO update CacheCleanupService on the next version upgrade
 
                     default:
