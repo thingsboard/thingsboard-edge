@@ -113,7 +113,7 @@ public class ThingsboardInstallService {
                         log.info("Upgrading ThingsBoard Edge from version 3.3.0 to 3.3.3 ...");
                         databaseEntitiesUpgradeService.upgradeDatabase("3.3.2");
                         dataUpdateService.updateData("3.3.2");
-                    case "3.3.3": // to 3.3.3PE
+                    case "3.3.3":
                         log.info("Upgrading ThingsBoard Edge from version 3.3.3 to 3.3.3PE ...");
                     case "3.3.4": // to 3.3.4PE
                         log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.3.4PE ...");
