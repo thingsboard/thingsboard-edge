@@ -30,10 +30,10 @@
  */
 package org.thingsboard.server.dao.sql.blob;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
 
 import java.util.UUID;
 
-public interface BlobEntityRepository extends CrudRepository<BlobEntityEntity, UUID> {
+public interface BlobEntityRepository extends JpaRepository<BlobEntityEntity, UUID> {
 }

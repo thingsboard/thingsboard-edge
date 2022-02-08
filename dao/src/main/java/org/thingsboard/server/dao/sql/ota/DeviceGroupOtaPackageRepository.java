@@ -30,13 +30,13 @@
  */
 package org.thingsboard.server.dao.sql.ota;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.dao.model.sql.DeviceGroupOtaPackageEntity;
 
 import java.util.UUID;
 
-public interface DeviceGroupOtaPackageRepository extends CrudRepository<DeviceGroupOtaPackageEntity, UUID> {
+public interface DeviceGroupOtaPackageRepository extends JpaRepository<DeviceGroupOtaPackageEntity, UUID> {
 
     DeviceGroupOtaPackageEntity findByGroupIdAndOtaPackageType(UUID groupId, OtaPackageType otaPackageType);
 
