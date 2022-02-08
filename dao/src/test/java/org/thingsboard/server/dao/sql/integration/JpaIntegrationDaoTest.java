@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.integration;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -44,6 +45,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,8 +56,17 @@ import static org.junit.Assert.assertTrue;
 
 public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
+    List<Integration> savedIntegrations = new ArrayList<>();
     @Autowired
     private IntegrationDao integrationDao;
+
+    @After
+    public void tearDown() {
+        for (Integration integration : savedIntegrations) {
+            integrationDao.removeById(integration.getTenantId(), integration.getUuidId());
+        }
+        savedIntegrations.clear();
+    }
 
     @Test
     public void testFindIntegrationsByTenantId() {
@@ -86,8 +98,8 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         UUID converterId2 = Uuids.timeBased();
         String routingKey = RandomStringUtils.randomAlphanumeric(15);
         String routingKey2 = RandomStringUtils.randomAlphanumeric(15);
-        saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT);
-        saveIntegration(integrationId2, tenantId2, converterId2, "TEST_INTEGRATION", routingKey2, IntegrationType.OCEANCONNECT);
+        savedIntegrations.add(saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT));
+        savedIntegrations.add(saveIntegration(integrationId2, tenantId2, converterId2, "TEST_INTEGRATION", routingKey2, IntegrationType.OCEANCONNECT));
 
         Optional<Integration> integrationOpt1 = integrationDao.findByRoutingKey(tenantId1, routingKey);
         assertTrue("Optional expected to be non-empty", integrationOpt1.isPresent());
@@ -108,12 +120,12 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
             UUID integrationId = Uuids.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             UUID converterId = i % 2 == 0 ? converterId1 : converterId2;
-            saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),
-                    IntegrationType.OCEANCONNECT);
+            savedIntegrations.add(saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),
+                    IntegrationType.OCEANCONNECT));
         }
     }
 
-    private void saveIntegration(UUID id, UUID tenantId, UUID converterId, String name, String routingKey, IntegrationType type) {
+    private Integration saveIntegration(UUID id, UUID tenantId, UUID converterId, String name, String routingKey, IntegrationType type) {
         Integration integration = new Integration();
         integration.setId(new IntegrationId(id));
         integration.setTenantId(new TenantId(tenantId));
@@ -121,6 +133,6 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         integration.setName(name);
         integration.setRoutingKey(routingKey);
         integration.setType(type);
-        integrationDao.save(new TenantId(tenantId), integration);
+        return integrationDao.save(new TenantId(tenantId), integration);
     }
 }
