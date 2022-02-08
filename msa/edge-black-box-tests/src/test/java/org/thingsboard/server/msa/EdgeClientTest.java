@@ -205,10 +205,10 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testAdminSettings() {
-        verifyAdminSettingsByKey("general");
-        verifyAdminSettingsByKey("mailTemplates");
-        verifyAdminSettingsByKey("mail");
+    public void testTenantAdminSettings() {
+        verifyTenantAdminSettingsByKey("general");
+        verifyTenantAdminSettingsByKey("mailTemplates");
+        verifyTenantAdminSettingsByKey("mail");
 
         // TODO: @voba - verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
         // login as sysadmin on edge
@@ -218,7 +218,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         // verifyAdminSettingsByKey("mail");
     }
 
-    private void verifyAdminSettingsByKey(String key) {
+    private void verifyTenantAdminSettingsByKey(String key) {
         Optional<AdminSettings> edgeAdminSettings = edgeRestClient.getAdminSettings(key);
         Assert.assertTrue("Admin settings is not available on edge, key = " + key, edgeAdminSettings.isPresent());
         Optional<AdminSettings> cloudAdminSettings = restClient.getAdminSettings(key);
