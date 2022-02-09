@@ -145,7 +145,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         if (tenant.getId() == null || forceCreate) {
             // TODO: voba - devices profiles are created by cloud manager service
-            deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+            if (!forceCreate) {
+                deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+            }
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
         return savedTenant;
