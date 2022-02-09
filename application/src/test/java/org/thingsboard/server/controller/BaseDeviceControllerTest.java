@@ -842,7 +842,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
+    // @voba - merge comment
+    // edge assign functionality only in CE/PE
+    // @Test
     public void testAssignDeviceToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

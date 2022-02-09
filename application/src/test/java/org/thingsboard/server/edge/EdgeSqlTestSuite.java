@@ -20,7 +20,9 @@ import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 
-@RunWith(ClasspathSuite.class)
+// @voba - merge comment
+// edge test runs only on CE/PE
+//@RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({
         "org.thingsboard.server.edge.sql.*Test",
 })

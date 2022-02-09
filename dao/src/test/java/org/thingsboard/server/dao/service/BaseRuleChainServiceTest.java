@@ -494,7 +494,8 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         return ruleChainMetaData;
     }
 
-    @Test
+    // @voba - merge comment
+    // @Test
     public void testFindEdgeRuleChainsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
         Edge savedEdge = edgeService.saveEdge(edge, true);

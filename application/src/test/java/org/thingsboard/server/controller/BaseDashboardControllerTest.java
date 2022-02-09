@@ -358,7 +358,9 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         Assert.assertEquals(dashboards, loadedDashboards);
     }
 
-    @Test
+    // @voba - merge comment
+    // edge assign functionality only in CE/PE
+    // @Test
     public void testAssignDashboardToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

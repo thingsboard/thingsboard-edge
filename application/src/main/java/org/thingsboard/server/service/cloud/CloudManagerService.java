@@ -29,6 +29,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -218,6 +219,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledFuture<?> scheduledFuture;
+    private ScheduledExecutorService shutdownExecutor;
     private volatile boolean initialized;
 
     private final Map<Integer, UplinkMsg> pendingMsgsMap = new HashMap<>();
@@ -226,30 +228,37 @@ public class CloudManagerService extends BaseCloudEventService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        validateRoutingKeyAndSecret();
-
-        log.info("Starting Cloud Edge service");
-        edgeRpcClient.connect(routingKey, routingSecret,
-                this::onUplinkResponse,
-                this::onEdgeUpdate,
-                this::onDownlink,
-                this::scheduleReconnect);
-        executor = Executors.newSingleThreadExecutor();
-        reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
-        processHandleMessages();
+        if (validateRoutingKeyAndSecret()) {
+            log.info("Starting Cloud Edge service");
+            edgeRpcClient.connect(routingKey, routingSecret,
+                    this::onUplinkResponse,
+                    this::onEdgeUpdate,
+                    this::onDownlink,
+                    this::scheduleReconnect);
+            executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager"));
+            reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
+            processHandleMessages();
+        }
     }
 
-    private void validateRoutingKeyAndSecret() {
+    private boolean validateRoutingKeyAndSecret() {
         if (StringUtils.isBlank(routingKey) || StringUtils.isBlank(routingSecret)) {
-            new Thread(() -> {
-                log.error("Routing Key and Routing Secret must be provided and can't be blank. Please configure Routing Key and Routing Secret in the tb-edge.yml file or add CLOUD_ROUTING_KEY and CLOUD_ROUTING_SECRET export to the tb-edge.conf file. Stopping ThingsBoard Edge application...");
-                System.exit(-1);
-            }, "Shutdown Thread").start();
+            shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
+            shutdownExecutor.scheduleAtFixedRate(() -> log.error(
+                    "Routing Key and Routing Secret must be provided! " +
+                            "Please configure Routing Key and Routing Secret in the tb-edge.yml file " +
+                            "or add CLOUD_ROUTING_KEY and CLOUD_ROUTING_SECRET variable to the tb-edge.conf file. " +
+                            "ThingsBoard Edge is not going to connect to cloud!"), 0, 10, TimeUnit.SECONDS);
+            return false;
         }
+        return true;
     }
 
     @PreDestroy
     public void destroy() throws InterruptedException {
+        if (shutdownExecutor != null) {
+            shutdownExecutor.shutdown();
+        }
 
         updateConnectivityStatus(false);
 

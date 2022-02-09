@@ -687,7 +687,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    @Test
+    // @voba - merge comment
+    // edge assign functionality only in CE/PE
+    // @Test
     public void testAssignAssetToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

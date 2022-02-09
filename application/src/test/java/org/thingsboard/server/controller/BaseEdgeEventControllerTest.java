@@ -77,7 +77,9 @@ public abstract class BaseEdgeEventControllerTest extends AbstractControllerTest
                 .andExpect(status().isOk());
     }
 
-    @Test
+    // @voba - merge comment
+    // edge assign functionality only in CE/PE
+    // @Test
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
