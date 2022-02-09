@@ -517,6 +517,7 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private void updateQueueStartTs(Long newStartTs) throws ExecutionException, InterruptedException {
+        log.trace("updating QueueStartTs [{}]", newStartTs);
         List<AttributeKvEntry> attributes = Collections.singletonList(
                 new BaseAttributeKvEntry(
                         new LongDataEntry(QUEUE_START_TS_ATTR_KEY, newStartTs),
