@@ -33,7 +33,6 @@ package org.thingsboard.server.msa;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -62,11 +61,8 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -80,11 +76,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -95,20 +87,20 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -169,6 +161,32 @@ public abstract class AbstractContainerTest {
         updateRootRuleChain();
 
         createCustomDeviceProfile();
+
+        // This is a starting point to start other tests
+        verifyWidgetBundles();
+    }
+
+    private static void verifyWidgetBundles() {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 16);
+
+        PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
+
+        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
+            Awaitility.await()
+                    .atMost(30, TimeUnit.SECONDS).
+                    until(() -> {
+                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
+                                && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
+                    });
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
+            Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
+        }
     }
 
     protected static void updateRootRuleChain() throws IOException {
@@ -323,15 +341,6 @@ public abstract class AbstractContainerTest {
         profileData.setProvisionConfiguration(new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("123"));
     }
 
-    protected Map<String, Long> getExpectedLatestValues(long ts) {
-        return ImmutableMap.<String, Long>builder()
-                .put("booleanKey", ts)
-                .put("stringKey", ts)
-                .put("doubleKey", ts)
-                .put("longKey", ts)
-                .build();
-    }
-
     protected JsonObject createGatewayConnectPayload(String deviceName){
         JsonObject payload = new JsonObject();
         payload.addProperty("device", deviceName);
@@ -369,21 +378,6 @@ public abstract class AbstractContainerTest {
         values.addProperty("longKey", 73L);
 
         return values;
-    }
-
-    protected Converter createUplink(JsonNode config) {
-        Converter converter = new Converter();
-        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(config);
-        return restClient.saveConverter(converter);
-    }
-
-    protected void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integrationId);
-        restClient.deleteConverter(idForDelete);
     }
 
     protected enum CmdsType {

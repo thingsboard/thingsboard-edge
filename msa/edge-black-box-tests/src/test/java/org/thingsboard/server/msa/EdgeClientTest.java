@@ -110,15 +110,19 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testRoles() {
-        PageData<Role> genericPageData = new PageDataFetcherWithAttempts<>(
-                link -> edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100)),
-                50,
-                2).fetchData();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100)).getTotalElements() == 2);
+
+        PageData<Role> genericPageData = edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100));
+        assertEntitiesByIdsAndType(genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
+
         List<EntityId> genericIds = genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
-        PageData<Role> groupPageData = new PageDataFetcherWithAttempts<>(
-                link -> edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100)),
-                50,
-                1).fetchData();
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100)).getTotalElements() == 1);
+        PageData<Role> groupPageData = edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100));
         List<EntityId> groupIds = groupPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
         genericIds.addAll(groupIds);
         assertEntitiesByIdsAndType(genericIds, EntityType.ROLE);
@@ -126,10 +130,11 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testDeviceProfiles() {
-        PageData<DeviceProfile> pageData = new PageDataFetcherWithAttempts<>(
-                link -> edgeRestClient.getDeviceProfiles(new PageLink(100)),
-                50,
-                3).fetchData();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == 3);
+
+        PageData<DeviceProfile> pageData = edgeRestClient.getDeviceProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
     }
 
@@ -228,42 +233,25 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundles() {
-        PageData<WidgetsBundle> pageData = new PageDataFetcherWithAttempts<>(
-                link -> edgeRestClient.getWidgetsBundles(new PageLink(100)),
-                50,
-                16).fetchData();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 16);
+        PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
 
         for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
-            boolean found = false;
-            int attempt = 0;
-            List<WidgetType> edgeBundleWidgetTypes = null;
-            List<WidgetType> cloudBundleWidgetTypes = null;
-            do {
-                try {
-                    edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                    cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                    if (cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
-                            && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size()) {
-                        found = true;
-                    }
-                } catch (Exception ignored1) {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ignored2) {}
-                }
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored2) {}
-                attempt++;
-                if (attempt > 50) {
-                    break;
-                }
-            } while (!found);
+            Awaitility.await()
+                    .atMost(30, TimeUnit.SECONDS).
+                    until(() -> {
+                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
+                                && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
+                    });
+            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
-            Assert.assertTrue("Number of fetched widget types for cloud and edge is different. " +
-                    "Alias " + widgetsBundlesAlias + ", Cloud " + cloudBundleWidgetTypes.size() + ", Edge " + edgeBundleWidgetTypes.size(), found);
             assertEntitiesByIdsAndType(edgeBundleWidgetTypes.stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGET_TYPE);
         }
     }
@@ -515,6 +503,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
 
+
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isEmpty());
@@ -524,10 +513,11 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testRuleChains() throws Exception {
-        PageData<RuleChain> pageData = new PageDataFetcherWithAttempts<>(
-                link -> edgeRestClient.getRuleChains(new PageLink(100)),
-                50,
-                1).fetchData();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getRuleChains(new PageLink(100)).getTotalElements() == 1);
+
+        PageData<RuleChain> pageData = edgeRestClient.getRuleChains(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
 
         RuleChain ruleChain = new RuleChain();
@@ -829,7 +819,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     private List<TsKvEntry> sendPostTelemetryRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
-                                          JsonObject timeseriesPayload, List<String> keys) throws Exception {
+                                                     JsonObject timeseriesPayload, List<String> keys) throws Exception {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
         DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
@@ -844,8 +834,15 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> targetRestClient.getLatestTimeseries(device.getId(), keys).size() == keys.size());
-
+                .until(() -> {
+                    List<TsKvEntry> latestTimeseries;
+                    try {
+                        latestTimeseries = targetRestClient.getLatestTimeseries(device.getId(), keys);
+                    } catch (Exception e) {
+                        return false;
+                    }
+                    return latestTimeseries.size() == keys.size();
+                });
         return targetRestClient.getLatestTimeseries(device.getId(), keys);
     }
 

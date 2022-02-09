@@ -378,7 +378,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         RuleChain edgeRuleChain = new RuleChain();
         edgeRuleChain.setTenantId(tenantId);
         // merge comment
-        // edgeRuleChain.setType(RuleChainType.EDGE);
+        //edgeRuleChain.setType(RuleChainType.EDGE);
         edgeRuleChain.setType(RuleChainType.CORE);
         edgeRuleChain.setName(name);
         RuleChain savedEdgeRuleChain = ruleChainService.saveRuleChain(edgeRuleChain);
@@ -524,7 +524,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             ruleChain.setName(name);
             // merge comment
-            // edgeRuleChain.setType(RuleChainType.EDGE);
+            //ruleChain.setType(RuleChainType.EDGE);
             ruleChain.setType(RuleChainType.CORE);
             ruleChainsName1.add(ruleChainService.saveRuleChain(ruleChain));
         }
@@ -540,7 +540,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             ruleChain.setName(name);
             // merge comment
-            // edgeRuleChain.setType(RuleChainType.EDGE);
+            //ruleChain.setType(RuleChainType.EDGE);
             ruleChain.setType(RuleChainType.CORE);
             ruleChainsName2.add(ruleChainService.saveRuleChain(ruleChain));
         }

@@ -46,14 +46,13 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -94,6 +93,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
@@ -106,7 +106,6 @@ import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
@@ -342,14 +341,17 @@ public class CloudManagerService extends BaseCloudEventService {
                         if (ifOffset != null) {
                             Long newStartTs = Uuids.unixTimestamp(ifOffset);
                             try {
-                                updateQueueStartTs(newStartTs).get();
+                                updateQueueStartTs(newStartTs);
                                 log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
                             } catch (Exception e) {
                                 log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
-                                throw e;
                             }
                         }
-                        Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
+                        try {
+                            Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
+                        } catch (InterruptedException e) {
+                            log.error("Error during sleep", e);
+                        }
                     } else {
                         Thread.sleep(TimeUnit.SECONDS.toMillis(1));
                     }
@@ -514,13 +516,12 @@ public class CloudManagerService extends BaseCloudEventService {
         }, dbCallbackExecutorService);
     }
 
-    private ListenableFuture<List<Void>> updateQueueStartTs(Long newStartTs) {
-        log.trace("updating QueueStartTs [{}]", newStartTs);
+    private void updateQueueStartTs(Long newStartTs) throws ExecutionException, InterruptedException {
         List<AttributeKvEntry> attributes = Collections.singletonList(
                 new BaseAttributeKvEntry(
                         new LongDataEntry(QUEUE_START_TS_ATTR_KEY, newStartTs),
                         System.currentTimeMillis()));
-        return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {
@@ -588,8 +589,6 @@ public class CloudManagerService extends BaseCloudEventService {
         whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
 
         updateConnectivityStatus(true);
-
-        AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
 
         initialized = true;
     }
@@ -782,3 +781,4 @@ public class CloudManagerService extends BaseCloudEventService {
         }
     }
 }
+

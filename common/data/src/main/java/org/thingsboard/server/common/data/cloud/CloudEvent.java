@@ -33,7 +33,6 @@ package org.thingsboard.server.common.data.cloud;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.id.CloudEventId;

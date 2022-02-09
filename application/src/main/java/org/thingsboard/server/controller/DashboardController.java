@@ -34,10 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.Example;
 import io.swagger.annotations.ExampleProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -65,7 +65,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -88,6 +87,7 @@ import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_AUT
 import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -104,10 +104,9 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.WL_WRITE_CHECK;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
-import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
 @TbCoreComponent
@@ -222,6 +221,7 @@ public class DashboardController extends BaseController {
         try {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
+
             /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), dashboardId);
              */
@@ -230,6 +230,7 @@ public class DashboardController extends BaseController {
             logEntityAction(dashboardId, dashboard,
                     null,
                     ActionType.DELETED, null, strDashboardId);
+
             /* merge comment
             sendDeleteNotificationMsg(getTenantId(), dashboardId, relatedEdgeIds);
              */

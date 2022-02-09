@@ -61,6 +61,7 @@ export interface CloudEvent extends BaseData<CloudEventId> {
 
 export class CloudEventId implements HasUUID {
   id: string;
+
   constructor(id: string) {
     this.id = id;
   }

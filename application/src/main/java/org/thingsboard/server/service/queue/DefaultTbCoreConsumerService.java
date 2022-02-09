@@ -54,6 +54,7 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.CloudNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -72,8 +73,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.CloudNotificationMsgProto;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
@@ -541,7 +540,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
     private void forwardToSchedulerService(SchedulerServiceMsgProto schedulerServiceMsg, TbCallback callback) {
-        if (statsEnabled) {
+       if (statsEnabled) {
             stats.log(schedulerServiceMsg);
         }
         schedulerService.onQueueMsg(schedulerServiceMsg, callback);
@@ -561,11 +560,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 
-    private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
+    private void forwardToDeviceActor(TransportProtos.TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(toDeviceActorMsg);
         }
-        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
+        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback) );
     }
 
     private void forwardToEdgeNotificationService(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {

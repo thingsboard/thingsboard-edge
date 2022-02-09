@@ -659,8 +659,7 @@ public class EdgeController extends BaseController {
             throw new ThingsboardException(e, ThingsboardErrorCode.SUBSCRIPTION_VIOLATION);
         }
     }
-
-    */
+     */
 
     private void cleanUpLicenseKey(Edge edge) {
         edge.setEdgeLicenseKey(null);

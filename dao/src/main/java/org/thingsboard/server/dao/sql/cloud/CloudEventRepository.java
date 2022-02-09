@@ -39,14 +39,7 @@ import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.util.UUID;
-
-import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ACTION_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TYPE_PROPERTY;
 
 public interface CloudEventRepository extends PagingAndSortingRepository<CloudEventEntity, UUID>, JpaSpecificationExecutor<CloudEventEntity> {
 

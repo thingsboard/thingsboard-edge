@@ -72,6 +72,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
         }
     }
 
+    @Override
     public AdminSettings saveAdminSettings(TenantId tenantId, AdminSettings adminSettings) {
         log.trace("Executing saveAdminSettings [{}]", adminSettings);
         adminSettingsValidator.validate(adminSettings, data -> tenantId);

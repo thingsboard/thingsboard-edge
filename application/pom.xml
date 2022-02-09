@@ -56,7 +56,7 @@
         <pkg.name>tb-edge</pkg.name>
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
         <pkg.copyInstallScripts>true</pkg.copyInstallScripts>
-        <pkg.implementationTitle>ThingsBoard Edge</pkg.implementationTitle>
+        <pkg.implementationTitle>ThingsBoard Edge PE</pkg.implementationTitle>
         <pkg.mainClass>org.thingsboard.server.TbEdgeApplication</pkg.mainClass>
     </properties>
 

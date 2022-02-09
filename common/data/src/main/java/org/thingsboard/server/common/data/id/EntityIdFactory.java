@@ -31,8 +31,8 @@
 package org.thingsboard.server.common.data.id;
 
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 
 import java.util.UUID;
 

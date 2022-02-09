@@ -34,15 +34,14 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
-import org.thingsboard.server.service.cloud.rpc.processor.BaseCloudProcessor;
 
 import java.util.ArrayList;
 import java.util.List;

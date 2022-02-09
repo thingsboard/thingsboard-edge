@@ -30,13 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
@@ -51,6 +44,6 @@ public final class CloudEventUtils {
                 null,
                 new SortOrder("createdTime", SortOrder.Direction.ASC),
                 startTs,
-                null);
+                System.currentTimeMillis());
     }
 }
