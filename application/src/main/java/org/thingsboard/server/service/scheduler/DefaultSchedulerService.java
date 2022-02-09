@@ -76,6 +76,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -122,6 +123,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private final EntityGroupService entityGroupService;
     private final DeviceGroupOtaPackageService deviceGroupOtaPackageService;
     private final OtaPackageService otaPackageService;
+    private final TbServiceInfoProvider serviceInfoProvider;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
@@ -133,10 +135,13 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
 
     final Queue<Set<TopicPartitionInfo>> subscribeQueue = new ConcurrentLinkedQueue<>();
 
+    private String serviceId;
+
     @PostConstruct
     public void init() {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
+        serviceId = serviceInfoProvider.getServiceId();
     }
 
     @PreDestroy
@@ -441,6 +446,11 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                 metaData.put("additionalInfo", mapper.writeValueAsString(event.getAdditionalInfo()));
             }
         }
+
+        if ("sendRpcRequest".equals(event.getType())) {
+            metaData.put("originServiceId", serviceId);
+        }
+
         return new TbMsgMetaData(metaData);
     }
 
