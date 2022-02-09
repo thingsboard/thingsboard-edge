@@ -200,7 +200,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         if (tenant.getId() == null || forceCreate) {
             // TODO: voba - devices profiles are created by cloud manager service
-            // deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+            if (!forceCreate) {
+                deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+            }
 
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
@@ -211,8 +213,10 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
             // TODO: voba - these entity groups are created by cloud manager service
-            // entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-            // entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
+            if (!forceCreate) {
+                entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
+                entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
+            }
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
         return savedTenant;

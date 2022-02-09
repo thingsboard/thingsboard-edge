@@ -168,7 +168,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (doValidate) {
             customerValidator.validate(customer, Customer::getTenantId);
         }
-        return saveCustomerInternal(customer);
+        return saveCustomerInternal(customer, doValidate);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         return saveCustomer(customer, true);
     }
 
-    private Customer saveCustomerInternal(Customer customer) {
+    private Customer saveCustomerInternal(Customer customer, boolean addDefaultGroups) {
         Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
         if (customer.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
@@ -190,10 +190,14 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
             if (!customer.isPublic()) {
                 // TODO: voba - these entity groups are created by cloud manager service
-                // entityGroupService.findOrCreateCustomerUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId(), savedCustomer.getParentCustomerId());
-                // entityGroupService.findOrCreateCustomerAdminsGroup(savedCustomer.getTenantId(), savedCustomer.getId(), savedCustomer.getParentCustomerId());
+                if (addDefaultGroups) {
+                    entityGroupService.findOrCreateCustomerUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId(), savedCustomer.getParentCustomerId());
+                    entityGroupService.findOrCreateCustomerAdminsGroup(savedCustomer.getTenantId(), savedCustomer.getId(), savedCustomer.getParentCustomerId());
+                }
             } else {
-//                entityGroupService.findOrCreatePublicUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId());
+                if (addDefaultGroups) {
+                    entityGroupService.findOrCreatePublicUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId());
+                }
             }
         }
         return savedCustomer;
@@ -280,7 +284,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     } catch (IOException e) {
                         throw new IncorrectParameterException("Unable to create public customer.", e);
                     }
-                    publicCustomer = saveCustomerInternal(publicCustomer);
+                    publicCustomer = saveCustomerInternal(publicCustomer, true);
                 }
                 return publicCustomer;
             } else {

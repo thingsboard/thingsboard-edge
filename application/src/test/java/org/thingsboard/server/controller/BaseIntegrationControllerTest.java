@@ -106,7 +106,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .andExpect(status().isOk());
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testSaveIntegration() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -130,7 +132,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertEquals(foundIntegration.getName(), savedIntegration.getName());
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testFindIntegrationById() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -144,7 +148,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertEquals(savedIntegration, foundIntegration);
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testDeleteIntegration() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -161,7 +167,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .andExpect(status().isNotFound());
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testSaveIntegrationWithEmptyType() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -172,7 +180,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .andExpect(statusReason(containsString("Integration type should be specified")));
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testSaveIntegrationWithEmptyRoutingKey() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -184,7 +194,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .andExpect(statusReason(containsString("Integration routing key should be specified")));
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testSaveIntegrationWithEmptyConverterId() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -196,7 +208,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .andExpect(statusReason(containsString("Integration default converter should be specified")));
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testFindTenantIntegrations() throws Exception {
         List<Integration> integrationList = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
@@ -227,7 +241,9 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
 
-    @Test
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
     public void testFindTenantIntegrationsBySearchText() throws Exception {
         String title1 = "Integration title 1";
         List<Integration> integrations1 = new ArrayList<>();

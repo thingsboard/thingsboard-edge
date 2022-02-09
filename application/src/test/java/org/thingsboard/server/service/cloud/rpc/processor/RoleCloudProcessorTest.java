@@ -48,7 +48,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
+import org.thingsboard.server.common.data.role.RoleType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +88,7 @@ public class RoleCloudProcessorTest {
         permissions.set(Resource.DEVICE.name(), deviceOperations);
         permissions.set(Resource.ASSET.name(), assetOperations);
         role.setPermissions(permissions);
+        role.setType(RoleType.GENERIC);
 
         Role updatedRole = processor.replaceWriteOperationsToReadIfRequired(role);
 
@@ -96,7 +97,9 @@ public class RoleCloudProcessorTest {
         MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
         Map<Resource, List<Operation>> newPermissions = JacksonUtil.OBJECT_MAPPER.readValue(updatedRole.getPermissions().toString(), mapType);
 
-        Assert.assertFalse(newPermissions.containsKey(Resource.ALL));
+        Assert.assertTrue(newPermissions.containsKey(Resource.ALL));
+        Assert.assertFalse(newPermissions.get(Resource.ALL).contains(Operation.ALL));
+
         Assert.assertTrue(newPermissions.containsKey(Resource.DEVICE_GROUP));
         Assert.assertTrue(newPermissions.containsKey(Resource.DEVICE));
         Assert.assertTrue(newPermissions.containsKey(Resource.ALARM));

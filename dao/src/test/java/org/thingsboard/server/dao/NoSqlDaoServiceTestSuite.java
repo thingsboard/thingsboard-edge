@@ -38,7 +38,9 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 
-@RunWith(ClasspathSuite.class)
+// @voba - merge comment
+// NoSQL is not supported on edge
+//@RunWith(ClasspathSuite.class)
 @ClassnameFilters({
         "org.thingsboard.server.dao.service.nosql.*ServiceNoSqlTest",
 })
