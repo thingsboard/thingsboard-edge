@@ -723,7 +723,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
     }
 
-    private static List<AttributeKvEntry> testSendPostAttributesRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
+    private List<AttributeKvEntry> testSendPostAttributesRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
                                                JsonObject attributesPayload, List<String> keys) throws Exception {
 
         Device device = saveAndAssignDeviceToEdge();
@@ -1108,11 +1108,11 @@ public class EdgeClientTest extends AbstractContainerTest {
         return saveDevice(deviceName, type, edgeRestClient);
     }
 
-    private static Device saveDeviceOnCloud(String deviceName, String type) throws Exception {
+    private Device saveDeviceOnCloud(String deviceName, String type) throws Exception {
         return saveDevice(deviceName, type, restClient);
     }
 
-    private static Device saveAndAssignDeviceToEdge() throws Exception {
+    private Device saveAndAssignDeviceToEdge() throws Exception {
         Device device = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), "default");
         restClient.assignDeviceToEdge(edge.getId(), device.getId());
 
@@ -1134,7 +1134,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         return asset;
     }
 
-    private static Device saveDevice(String deviceName, String type, RestClient restClient) {
+    private Device saveDevice(String deviceName, String type, RestClient restClient) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(type);

@@ -294,7 +294,12 @@ public class CloudManagerService extends BaseCloudEventService {
                         } while (initialized && (!success || pageData.hasNext()));
                         if (ifOffset != null) {
                             Long newStartTs = Uuids.unixTimestamp(ifOffset);
-                            updateQueueStartTs(newStartTs);
+                            try {
+                                updateQueueStartTs(newStartTs);
+                                log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
+                            } catch (Exception e) {
+                                log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                            }
                         }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
@@ -455,12 +460,13 @@ public class CloudManagerService extends BaseCloudEventService {
         }, dbCallbackExecutorService);
     }
 
-    private void updateQueueStartTs(Long newStartTs) {
+    private void updateQueueStartTs(Long newStartTs) throws ExecutionException, InterruptedException {
+        log.trace("updating QueueStartTs [{}]", newStartTs);
         List<AttributeKvEntry> attributes = Collections.singletonList(
                 new BaseAttributeKvEntry(
                         new LongDataEntry(QUEUE_START_TS_ATTR_KEY, newStartTs),
                         System.currentTimeMillis()));
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {

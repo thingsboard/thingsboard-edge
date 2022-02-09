@@ -12,7 +12,7 @@ if %jver% NEQ 110 GOTO JAVA_NOT_INSTALLED
 :JAVA_INSTALLED
 
 @ECHO Java 11 found!
-@ECHO Installing Thingsboard Edge ...
+@ECHO Installing ThingsBoard Edge ...
 
 SET loadDemo=false
 
