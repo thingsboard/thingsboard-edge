@@ -115,7 +115,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() ->  edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100)).getTotalElements() == 2);
 
         PageData<Role> genericPageData = edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100));
-        assertEntitiesByIdsAndType(genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
 
         List<EntityId> genericIds = genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
 
