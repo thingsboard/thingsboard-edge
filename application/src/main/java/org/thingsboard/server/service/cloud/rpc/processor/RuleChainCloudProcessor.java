@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
@@ -82,6 +83,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     }
                     ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
                     ruleChain.setRoot(false);
+                    ruleChain.setType(RuleChainType.CORE);
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
 
@@ -128,7 +130,8 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     RuleChainMetaData ruleChainMetadata = new RuleChainMetaData();
-                    RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB()));
+                    UUID ruleChainUUID = new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB());
+                    RuleChainId ruleChainId = new RuleChainId(ruleChainUUID);
                     ruleChainMetadata.setRuleChainId(ruleChainId);
                     ruleChainMetadata.setNodes(parseNodeProtos(ruleChainId, ruleChainMetadataUpdateMsg.getNodesList()));
                     ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
