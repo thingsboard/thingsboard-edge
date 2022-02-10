@@ -471,9 +471,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
-        // wait to fully process all edge entities for group requests
-        Thread.sleep(1000);
-
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
 
         Awaitility.await()
@@ -497,11 +494,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         Asset savedAsset = saveAndAssignAssetToEdge(savedAssetEntityGroup);
 
-        // wait to fully process all edge entities for group requests
-        Thread.sleep(1000);
-
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
-
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -595,9 +588,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isPresent());
-
-        // wait to fully process all edge entities for group requests
-        Thread.sleep(1000);
 
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedDashboardEntityGroup.getId(), EntityType.DASHBOARD);
 
@@ -711,9 +701,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isPresent());
-
-        // wait to fully process all edge entities for group requests
-        Thread.sleep(1000);
 
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedEntityViewEntityGroup.getId(), EntityType.ENTITY_VIEW);
 
