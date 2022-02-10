@@ -345,7 +345,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                             throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
                         }
 
-                        EntityId originatorId = getOriginatorId(schedulerEvent.getConfiguration());
+                        EntityId originatorId = getOriginatorId(schedulerEvent.getId(), schedulerEvent.getConfiguration());
 
                         if (originatorId == null) {
                             throw new DataValidationException("SchedulerEvent originatorId should be specified!");
@@ -369,8 +369,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
                 }
             };
 
-    private EntityId getOriginatorId(JsonNode configuration) {
-        EntityId originatorId = null;
+    public static EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
+        EntityId originatorId = eventId;
         if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
             JsonNode entityId = configuration.get("originatorId");
             if (entityId != null) {

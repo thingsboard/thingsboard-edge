@@ -30,16 +30,24 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.client;
 
-import org.eclipse.leshan.core.model.ResourceModel;
-import org.eclipse.leshan.core.node.LwM2mMultipleResource;
+import org.eclipse.leshan.core.link.Link;
+import org.eclipse.leshan.core.request.Identity;
+import org.eclipse.leshan.server.registration.Registration;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
-import java.io.Serializable;
+import java.net.InetSocketAddress;
 
-public class TbLwM2mMultipleResource extends LwM2mMultipleResource implements TbLwM2MResource, Serializable {
+public class LwM2mClientTest {
 
-    private static final long serialVersionUID = 4658477128628087186L;
+    @Test
+    public void setRegistration() {
+        LwM2mClient client = new LwM2mClient("nodeId", "testEndpoint");
+        Registration registration = new Registration
+                .Builder("test", "testEndpoint", Identity.unsecure(new InetSocketAddress(1000)))
+                .objectLinks(new Link[0])
+                .build();
 
-    public TbLwM2mMultipleResource(int id, ResourceModel.Type type, TbLwM2MResourceInstance... instances) {
-        super(id, type, instances);
+        Assertions.assertDoesNotThrow(() -> client.setRegistration(registration));
     }
 }

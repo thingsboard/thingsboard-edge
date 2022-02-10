@@ -257,8 +257,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.3.2 to 3.3.3 ...");
                 updateNestedRuleChains();
                 break;
-            case "3.3.3":
-                log.info("Updating data from version 3.3.3 to 3.3.3PE ...");
+            case "3.3.4":
+                log.info("Updating data from version 3.3.4 to 3.3.4PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);

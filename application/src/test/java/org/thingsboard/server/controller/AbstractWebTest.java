@@ -94,6 +94,7 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -634,5 +635,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;
+    }
+
+    protected static void setFieldReflectively(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }
