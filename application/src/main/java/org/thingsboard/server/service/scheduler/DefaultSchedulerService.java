@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -76,6 +75,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -102,6 +102,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Collections.emptyList;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
+import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.getOriginatorId;
 
 /**
  * Created by ashvayka on 25.06.18.
@@ -122,6 +123,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     private final EntityGroupService entityGroupService;
     private final DeviceGroupOtaPackageService deviceGroupOtaPackageService;
     private final OtaPackageService otaPackageService;
+    private final TbServiceInfoProvider serviceInfoProvider;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
@@ -133,10 +135,13 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
 
     final Queue<Set<TopicPartitionInfo>> subscribeQueue = new ConcurrentLinkedQueue<>();
 
+    private String serviceId;
+
     @PostConstruct
     public void init() {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
+        serviceId = serviceInfoProvider.getServiceId();
     }
 
     @PreDestroy
@@ -414,19 +419,6 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         return (configuration.has("msgType") && !configuration.get("msgType").isNull()) ? configuration.get("msgType").asText() : event.getType();
     }
 
-    private EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
-        EntityId originatorId = eventId;
-        if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
-            JsonNode entityId = configuration.get("originatorId");
-            if (entityId != null) {
-                if (entityId.has("entityType") && !entityId.get("entityType").isNull()
-                        && entityId.has("id") && !entityId.get("id").isNull())
-                    originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
-            }
-        }
-        return originatorId;
-    }
-
     private TbMsgMetaData getTbMsgMetaData(SchedulerEvent event, JsonNode configuration) throws JsonProcessingException {
         HashMap<String, String> metaData = new HashMap<>();
         if (configuration.has("metadata") && !configuration.get("metadata").isNull()) {
@@ -441,6 +433,11 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
                 metaData.put("additionalInfo", mapper.writeValueAsString(event.getAdditionalInfo()));
             }
         }
+
+        if ("sendRpcRequest".equals(event.getType())) {
+            metaData.put("originServiceId", serviceId);
+        }
+
         return new TbMsgMetaData(metaData);
     }
 
@@ -456,8 +453,8 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
         log.debug("scheduleAndAddToMap event {}", event);
         long ts = System.currentTimeMillis();
         SchedulerEventMetaData eventMd = getSchedulerEventMetaData(event);
-        scheduleNextEvent(ts, event, eventMd);
         eventsMetaData.put(event.getId(), eventMd);
+        scheduleNextEvent(ts, event, eventMd);
     }
 
     private void sendSchedulerEvent(TenantId tenantId, SchedulerEventId eventId, boolean added, boolean updated, boolean deleted) {

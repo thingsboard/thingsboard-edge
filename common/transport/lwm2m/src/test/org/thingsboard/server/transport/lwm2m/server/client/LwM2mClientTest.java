@@ -28,24 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service;
+package org.thingsboard.server.transport.lwm2m.server.client;
 
-import org.junit.BeforeClass;
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.runner.RunWith;
-import org.thingsboard.server.queue.memory.InMemoryStorage;
+import org.eclipse.leshan.core.link.Link;
+import org.eclipse.leshan.core.request.Identity;
+import org.eclipse.leshan.server.registration.Registration;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
-@RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({
-        "org.thingsboard.server.service.resource.sql.*Test",
-        "org.thingsboard.server.service.sql.*Test",
-        "org.thingsboard.server.service.scheduler.sql.*Test"
-})
-public class ServiceSqlTestSuite {
+import java.net.InetSocketAddress;
 
-    @BeforeClass
-    public static void cleanupInMemStorage() {
-        InMemoryStorage.getInstance().cleanup();
+public class LwM2mClientTest {
+
+    @Test
+    public void setRegistration() {
+        LwM2mClient client = new LwM2mClient("nodeId", "testEndpoint");
+        Registration registration = new Registration
+                .Builder("test", "testEndpoint", Identity.unsecure(new InetSocketAddress(1000)))
+                .objectLinks(new Link[0])
+                .build();
+
+        Assertions.assertDoesNotThrow(() -> client.setRegistration(registration));
     }
-
 }
