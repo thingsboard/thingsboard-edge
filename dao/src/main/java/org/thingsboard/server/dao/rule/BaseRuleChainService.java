@@ -628,9 +628,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Override
     public RuleChain getEdgeTemplateRootRuleChain(TenantId tenantId) {
         Validator.validateId(tenantId, "Incorrect tenant id for search request.");
-        // TODO: voba - merge comment
-        // return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.EDGE);
-        return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.CORE);
+        return ruleChainDao.findRootRuleChainByTenantIdAndType(tenantId.getId(), RuleChainType.EDGE);
     }
 
     @Override
@@ -756,16 +754,14 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                         throw new DataValidationException("Rule chain is referencing to non-existent tenant!");
                     }
 
-                    // TODO: voba  this check is not needed currently on edge
-                    if (ruleChain.isRoot()) {
+                    if (ruleChain.isRoot() && RuleChainType.CORE.equals(ruleChain.getType())) {
                         RuleChain rootRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
                         if (rootRuleChain != null && !rootRuleChain.getId().equals(ruleChain.getId())) {
                             throw new DataValidationException("Another root rule chain is present in scope of current tenant!");
                         }
                     }
-                    // TODO: voba - merge comment
-                    // if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
-                    if (ruleChain.isRoot() && RuleChainType.CORE.equals(ruleChain.getType())) {
+
+                    if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
                         RuleChain edgeTemplateRootRuleChain = getEdgeTemplateRootRuleChain(ruleChain.getTenantId());
                         if (edgeTemplateRootRuleChain != null && !edgeTemplateRootRuleChain.getId().equals(ruleChain.getId())) {
                             throw new DataValidationException("Another edge template root rule chain is present in scope of current tenant!");

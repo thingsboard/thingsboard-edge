@@ -186,13 +186,6 @@ public class InstallScripts {
                 ruleChain.setName(newRuleChainName);
             }
 
-            // @voba - merge comment
-            // ignore EDGE root rule chains
-            // before saving EDGE root rule chain change root to false
-            if (ruleChain.isRoot() && RuleChainType.EDGE.equals(ruleChain.getType())) {
-                ruleChain.setRoot(false);
-            }
-
             ruleChain = ruleChainService.saveRuleChain(ruleChain);
 
             ruleChainMetaData.setRuleChainId(ruleChain.getId());
