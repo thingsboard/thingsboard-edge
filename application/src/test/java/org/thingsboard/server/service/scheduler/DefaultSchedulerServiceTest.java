@@ -48,8 +48,9 @@ import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 
 import java.util.Set;
@@ -96,6 +97,9 @@ public class DefaultSchedulerServiceTest {
     DeviceGroupOtaPackageService deviceGroupOtaPackageService;
     @Mock
     OtaPackageService otaPackageService;
+    @Mock
+    TbServiceInfoProvider serviceInfoProvider;
+
 
     DefaultSchedulerService schedulerService;
 
@@ -105,8 +109,8 @@ public class DefaultSchedulerServiceTest {
     @Before
     public void setUp() throws Exception {
         schedulerService = spy(new DefaultSchedulerService(
-                tenantService, clusterService, partitionService, schedulerEventService,
-                firmwareStateService, deviceService, deviceProfileService, entityGroupService, deviceGroupOtaPackageService, otaPackageService)
+                tenantService, clusterService, partitionService, schedulerEventService, firmwareStateService, deviceService,
+                deviceProfileService, entityGroupService, deviceGroupOtaPackageService, otaPackageService, serviceInfoProvider)
         );
         schedulerService.init();
     }
