@@ -49,6 +49,9 @@
       <mat-error *ngIf="sendRpcRequestFormGroup.get('msgBody').get('method').hasError('required')">
         {{ 'scheduler.rpc-method-required' | translate }}
       </mat-error>
+      <mat-error *ngIf="sendRpcRequestFormGroup.get('msgBody').get('method').hasError('pattern')">
+        {{ 'scheduler.rpc-method-white-space' | translate }}
+      </mat-error>
     </mat-form-field>
     <tb-json-object-edit
       class="tb-scheduler-event-configuration-json"

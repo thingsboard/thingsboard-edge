@@ -2203,6 +2203,7 @@
         "target": "Ціль",
         "rpc-method": "Метод",
         "rpc-method-required": "Необхідно вказати метод",
+        "rpc-method-white-space": "Пробіли не допускаються.",
         "rpc-params": "Параметри",
         "select-dashboard-state": "Виберіть стан панелі візуалізації",
         "hours": "Години",

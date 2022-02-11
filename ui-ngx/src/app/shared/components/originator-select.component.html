@@ -55,7 +55,6 @@
       formControlName="groupOwnerId"
       [excludeOwnerIds]="[currentUser.tenantId]"
       *ngIf="originatorFormGroup.get('originator').value === 'ownerGroup'"
-      [required]="required"
       placeholderText="group-permission.user-group-owner"
       notFoundText="group-permission.no-owners-matching"
       requiredText="group-permission.target-user-group-owner-required">
