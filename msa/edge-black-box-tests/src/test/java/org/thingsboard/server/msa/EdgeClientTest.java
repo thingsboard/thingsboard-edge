@@ -494,6 +494,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         Asset savedAsset = saveAndAssignAssetToEdge(savedAssetEntityGroup);
 
+        JsonNode assetAttributes = mapper.readTree("{\"assetKey\":\"assetValue\"}");
+        restClient.saveEntityAttributesV1(savedAsset.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> verifyAttributeOnEdge(savedAsset.getId(),
+                        DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
+
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
 
         Awaitility.await()
@@ -588,6 +596,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isPresent());
+
+        JsonNode dashboardAttributes = mapper.readTree("{\"dashboardKey\":\"dashboardValue\"}");
+        restClient.saveEntityAttributesV1(savedDashboardOnCloud.getId(), DataConstants.SERVER_SCOPE, dashboardAttributes);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> verifyAttributeOnEdge(savedDashboardOnCloud.getId(),
+                        DataConstants.SERVER_SCOPE, "dashboardKey", "dashboardValue"));
 
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedDashboardEntityGroup.getId(), EntityType.DASHBOARD);
 
@@ -701,6 +717,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isPresent());
+
+        JsonNode entityViewAttributes = mapper.readTree("{\"entityViewKey\":\"entityViewValue\"}");
+        restClient.saveEntityAttributesV1(savedEntityViewOnCloud.getId(), DataConstants.SERVER_SCOPE, entityViewAttributes);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> verifyAttributeOnEdge(savedEntityViewOnCloud.getId(),
+                        DataConstants.SERVER_SCOPE, "entityViewKey", "entityViewValue"));
 
         restClient.unassignEntityGroupFromEdge(edge.getId(), savedEntityViewEntityGroup.getId(), EntityType.ENTITY_VIEW);
 
@@ -911,11 +935,6 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         sourceRestClient.deleteEntityAttributes(device.getId(), DataConstants.CLIENT_SCOPE, keys);
 
-        // TODO: @voba - verify remove of attributes from cloud
-//        Awaitility.await()
-//                .atMost(30, TimeUnit.SECONDS)
-//                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).isEmpty());
-
         return attributeKvEntries;
     }
 
@@ -1002,11 +1021,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 targetRestClient.getAttributesByScope(device.getId(), scope, keys);
 
         sourceRestClient.deleteEntityAttributes(device.getId(), scope, keys);
-
-        // TODO: @voba - verify remove of attributes from edge
-//        Awaitility.await()
-//                .atMost(30, TimeUnit.SECONDS)
-//                .until(() -> targetRestClient.getAttributeKvEntries(globalTestDevice.getId(), keys).isEmpty());
 
         return attributeKvEntries;
     }
