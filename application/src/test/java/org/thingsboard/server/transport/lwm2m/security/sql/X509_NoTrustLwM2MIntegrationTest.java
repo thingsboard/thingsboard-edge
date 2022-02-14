@@ -79,7 +79,8 @@ public class X509_NoTrustLwM2MIntegrationTest extends AbstractSecurityLwM2MInteg
                 "await on client state (X509_Trust_Lwm2m)",
                 expectedStatusesRegistrationLwm2mSuccess,
                 false,
-                ON_REGISTRATION_SUCCESS);
+                ON_REGISTRATION_SUCCESS,
+                true);
     }
 
     @Test
@@ -139,6 +140,7 @@ public class X509_NoTrustLwM2MIntegrationTest extends AbstractSecurityLwM2MInteg
                 "await on client state (X509NoTrust two section)",
                 expectedStatusesRegistrationBsSuccess,
                 true,
-                ON_REGISTRATION_SUCCESS);
+                ON_REGISTRATION_SUCCESS,
+                true);
     }
 }

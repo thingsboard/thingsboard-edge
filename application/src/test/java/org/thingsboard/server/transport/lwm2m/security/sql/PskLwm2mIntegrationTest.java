@@ -77,7 +77,8 @@ public class PskLwm2mIntegrationTest extends AbstractSecurityLwM2MIntegrationTes
                 "await on client state (Psk_Lwm2m)",
                 expectedStatusesRegistrationLwm2mSuccess,
                 false,
-                ON_REGISTRATION_SUCCESS);
+                ON_REGISTRATION_SUCCESS,
+                true);
     }
 
     @Test
@@ -122,6 +123,7 @@ public class PskLwm2mIntegrationTest extends AbstractSecurityLwM2MIntegrationTes
                 "await on client state (PskBS two section)",
                 expectedStatusesRegistrationBsSuccess,
                 true,
-                ON_REGISTRATION_SUCCESS);
+                ON_REGISTRATION_SUCCESS,
+                true);
     }
 }
