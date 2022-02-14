@@ -1,8 +1,8 @@
 # ThingsBoard 
 
-The ThingsBoard Edge is an open-source ThingsBoard's software product for edge computing.
+The **ThingsBoard Edge** is an open-source ThingsBoard's software product for edge computing.
 
-It allows bringing data analysis and management to the edge, where the data created. At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud ((ThingsBoard Demo)[https://demo.thingsboard.io/] or ThingsBoard CE) according to your business needs.
+It allows bringing data analysis and management to the edge, where the data created. At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud ([ThingsBoard Demo](https://demo.thingsboard.io/) or [ThingsBoard CE](https://github.com/thingsboard/thingsboard)) according to your business needs.
 
 ## Documentation
 
@@ -55,14 +55,14 @@ With **ThingsBoard Edge** you get the following benefits:
 ThingsBoard Edge inherits features from ThingsBoard CE to provide you the same experience how to connect, manage and process data from your devices.  
 
 It supports next **ThingsBoard Community Edition** features:
- * [**Attributes**](https://thingsboard.io/docs/docs/user-guide/attributes/) - assign and manage custom attributes to your entities.
- * [**Telemetry**](https://thingsboard.io/docs/docs/user-guide/telemetry/) - API for collection of time-series data of your devices.
- * [**Entities and relations**](https://thingsboard.io/docs/docs/user-guide/entities-and-relations/) - model physical world objects (e.g. devices and assets) and relations between them.
- * [**Data visualization**](https://thingsboard.io/docs/docs/guides#AnchorIDDataVisualization) - develop custom dashboards and widgets.
- * [**Rule engine**](https://thingsboard.io/docs/docs/pe/user-guide/rule-engine-2-0/re-getting-started/) - manage data processing & actions on incoming telemetry and events.
- * [**RPC**](https://thingsboard.io/docs/docs/user-guide/rpc/) - send remote procedure calls (RPC) **both from edge and cloud sides** to devices and vice versa.
- * [**Audit log**](https://thingsboard.io/docs/docs/user-guide/audit-log/) - track user activity.
- * [**API Limits**](https://thingsboard.io/docs/docs/user-guide/api-limits/) - control and limit number of API requests from a single host.
+ * [**Attributes**](https://thingsboard.io/docs/user-guide/attributes/) - assign and manage custom attributes to your entities.
+ * [**Telemetry**](https://thingsboard.io/docs/user-guide/telemetry/) - API for collection of time-series data of your devices.
+ * [**Entities and relations**](https://thingsboard.io/docs/user-guide/entities-and-relations/) - model physical world objects (e.g. devices and assets) and relations between them.
+ * [**Data visualization**](https://thingsboard.io/docs/guides#AnchorIDDataVisualization) - develop custom dashboards and widgets.
+ * [**Rule engine**](https://thingsboard.io/docs/pe/user-guide/rule-engine-2-0/re-getting-started/) - manage data processing & actions on incoming telemetry and events.
+ * [**RPC**](https://thingsboard.io/docs/user-guide/rpc/) - send remote procedure calls (RPC) **both from edge and cloud sides** to devices and vice versa.
+ * [**Audit log**](https://thingsboard.io/docs/user-guide/audit-log/) - track user activity.
+ * [**API Limits**](https://thingsboard.io/docs/user-guide/api-limits/) - control and limit number of API requests from a single host.
 
 ## Getting Started
 
