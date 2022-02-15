@@ -81,7 +81,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   @Input()
   set ownerId(value: EntityId) {
-    if (isDefinedAndNotNull(this.ownerIdValue) && !isEqual(this.ownerIdValue, value)) {
+    if (isDefinedAndNotNull(value) && !isEqual(this.ownerIdValue, value)) {
       this.reset();
       this.dirty = true;
     }
