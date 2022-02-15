@@ -582,12 +582,19 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
                     try {
-                        conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
                     try {
                         conn.createStatement().execute("ALTER TABLE alarm ADD COLUMN propagate_to_owner_hierarchy boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
-
+                    try {
+                        conn.createStatement().execute("ALTER TABLE edge ADD COLUMN edge_license_key varchar(30) DEFAULT 'PUT_YOUR_EDGE_LICENSE_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {
+                    }
+                    try {
+                        conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {
+                    }
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
