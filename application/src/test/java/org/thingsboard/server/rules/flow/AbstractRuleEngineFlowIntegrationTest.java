@@ -151,12 +151,9 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         device = doPost("/api/device", device, Device.class);
 
         attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
-                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey1", "serverAttributeValue1"), System.currentTimeMillis())));
+                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey1", "serverAttributeValue1"), System.currentTimeMillis()))).get();
         attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
-                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey2", "serverAttributeValue2"), System.currentTimeMillis())));
-
-
-        Thread.sleep(1000);
+                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey2", "serverAttributeValue2"), System.currentTimeMillis()))).get();
 
         TbMsgCallback tbMsgCallback = Mockito.mock(TbMsgCallback.class);
         Mockito.when(tbMsgCallback.isMsgValid()).thenReturn(true);
@@ -264,12 +261,9 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         device = doPost("/api/device", device, Device.class);
 
         attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
-                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey1", "serverAttributeValue1"), System.currentTimeMillis())));
+                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey1", "serverAttributeValue1"), System.currentTimeMillis()))).get();
         attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
-                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey2", "serverAttributeValue2"), System.currentTimeMillis())));
-
-
-        Thread.sleep(1000);
+                Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey2", "serverAttributeValue2"), System.currentTimeMillis()))).get();
 
         TbMsgCallback tbMsgCallback = Mockito.mock(TbMsgCallback.class);
         Mockito.when(tbMsgCallback.isMsgValid()).thenReturn(true);
