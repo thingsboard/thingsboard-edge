@@ -28,14 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.opcua;
+package org.thingsboard.server.service.integration.opcua;
 
-public class OpcUaIntegrationException extends Exception {
-    public OpcUaIntegrationException(String s, Exception e) {
-        super(s, e.getCause());
+import org.junit.BeforeClass;
+import org.junit.extensions.cpsuite.ClasspathSuite;
+import org.junit.runner.RunWith;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
+
+@RunWith(ClasspathSuite.class)
+@ClasspathSuite.ClassnameFilters({
+        "org.thingsboard.server.service.integration.opcua.sql.*Test"
+})
+public class OpcUaIntegrationSqlTestSuite {
+
+    @BeforeClass
+    public static void cleanupInMemStorage() {
+        InMemoryStorage.getInstance().cleanup();
     }
 
-    public OpcUaIntegrationException(String s) {
-        super(s);
-    }
 }

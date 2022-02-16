@@ -28,14 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.opcua;
+package org.thingsboard.server.service.integration.opcua.sql;
 
-public class OpcUaIntegrationException extends Exception {
-    public OpcUaIntegrationException(String s, Exception e) {
-        super(s, e.getCause());
-    }
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.service.integration.opcua.AbstractBasicOpcUaIntegrationTest;
 
-    public OpcUaIntegrationException(String s) {
-        super(s);
-    }
+@DaoSqlTest
+public class BasicOpcUaIntegrationSqlTest extends AbstractBasicOpcUaIntegrationTest {
 }
