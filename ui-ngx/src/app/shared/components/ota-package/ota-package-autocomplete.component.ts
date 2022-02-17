@@ -65,7 +65,7 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
 
   modelValue: string | EntityId | null;
 
-  private otaUpdateType: OtaUpdateType;
+  private otaUpdateType: OtaUpdateType = OtaUpdateType.FIRMWARE;
 
   get type(): OtaUpdateType {
     return this.otaUpdateType;
