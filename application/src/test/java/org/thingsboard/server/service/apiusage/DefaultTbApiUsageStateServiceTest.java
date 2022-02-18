@@ -47,8 +47,10 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.UUID;
 
@@ -79,6 +81,10 @@ public class DefaultTbApiUsageStateServiceTest {
     @Mock
     MailService mailService;
     @Mock
+    OwnersCacheService ownersCacheService;
+    @Mock
+    TbQueueProducerProvider producerProvider;
+    @Mock
     DbCallbackExecutorService dbExecutor;
 
     TenantId tenantId = TenantId.fromUUID(UUID.fromString("00797a3b-7aeb-4b5b-b57a-c2a810d0f112"));
@@ -87,7 +93,7 @@ public class DefaultTbApiUsageStateServiceTest {
 
     @Before
     public void setUp() {
-        service = spy(new DefaultTbApiUsageStateService(clusterService, partitionService, tenantService, tsService, apiUsageStateService, tenantProfileCache, mailService, dbExecutor));
+        service = spy(new DefaultTbApiUsageStateService(clusterService, partitionService, tenantService, tsService, apiUsageStateService, tenantProfileCache, mailService, ownersCacheService, producerProvider, dbExecutor));
     }
 
     @Test

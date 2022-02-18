@@ -107,7 +107,7 @@ import java.util.stream.Collectors;
 public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService<EntityId> implements TbApiUsageStateService {
 
     public static final String HOURLY = "Hourly";
-    public static final FutureCallback<Integer> VOID_CALLBACK = new FutureCallback<Integer>() {
+    public static final FutureCallback<Integer> VOID_CALLBACK = new FutureCallback<>() {
         @Override
         public void onSuccess(@Nullable Integer result) {
         }
@@ -157,8 +157,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
                                          MailService mailService,
                                          OwnersCacheService ownersCacheService,
                                          TbQueueProducerProvider producerProvider,
-                                         DbCallbackExecutorService dbExecutor
-                                         ) {
+                                         DbCallbackExecutorService dbExecutor) {
         this.clusterService = clusterService;
         this.partitionService = partitionService;
         this.tenantService = tenantService;

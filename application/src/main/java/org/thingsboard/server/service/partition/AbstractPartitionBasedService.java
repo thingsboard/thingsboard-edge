@@ -89,7 +89,7 @@ public abstract class AbstractPartitionBasedService<T extends EntityId> extends 
      * Any locks or delays in this module will affect DiscoveryService and entire system
      */
     @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    public void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (getServiceType().equals(partitionChangeEvent.getServiceType())) {
             log.debug("onTbApplicationEvent, processing event: {}", partitionChangeEvent);
             subscribeQueue.add(partitionChangeEvent.getPartitions());
@@ -124,7 +124,9 @@ public abstract class AbstractPartitionBasedService<T extends EntityId> extends 
             // We no longer manage current partition of entities;
             removedPartitions.forEach(partition -> {
                 Set<T> entities = partitionedEntities.remove(partition);
-                entities.forEach(this::cleanupEntityOnPartitionRemoval);
+                if (entities != null) {
+                    entities.forEach(this::cleanupEntityOnPartitionRemoval);
+                }
             });
 
             onRepartitionEvent();
