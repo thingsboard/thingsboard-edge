@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.service.event;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
@@ -50,6 +51,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public abstract class BaseEventServiceTest extends AbstractServiceTest {
 
@@ -57,21 +59,13 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
     public void saveEvent() throws Exception {
         DeviceId devId = new DeviceId(Uuids.timeBased());
         Event event = generateEvent(null, devId, "ALARM", Uuids.timeBased().toString());
-        Event saved = eventService.save(event);
+        eventService.saveAsync(event).get();
         Optional<Event> loaded = eventService.findEvent(event.getTenantId(), event.getEntityId(), event.getType(), event.getUid());
         Assert.assertTrue(loaded.isPresent());
         Assert.assertNotNull(loaded.get());
-        Assert.assertEquals(saved, loaded.get());
-    }
-
-    @Test
-    public void saveEventIfNotExists() throws Exception {
-        DeviceId devId = new DeviceId(Uuids.timeBased());
-        Event event = generateEvent(null, devId, "ALARM", Uuids.timeBased().toString());
-        Optional<Event> saved = eventService.saveIfNotExists(event);
-        Assert.assertTrue(saved.isPresent());
-        saved = eventService.saveIfNotExists(event);
-        Assert.assertFalse(saved.isPresent());
+        Assert.assertEquals(event.getEntityId(), loaded.get().getEntityId());
+        Assert.assertEquals(event.getType(), loaded.get().getType());
+        Assert.assertEquals(event.getBody(), loaded.get().getBody());
     }
 
     @Test
@@ -111,11 +105,11 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
 
     @Test
     public void findEventsByTypeAndTimeDescOrder() throws Exception {
-        long timeBeforeStartTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 11, 30).toEpochSecond(ZoneOffset.UTC);
-        long startTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 12, 0).toEpochSecond(ZoneOffset.UTC);
-        long eventTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 12, 30).toEpochSecond(ZoneOffset.UTC);
-        long endTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 13, 0).toEpochSecond(ZoneOffset.UTC);
-        long timeAfterEndTime = LocalDateTime.of(2016, Month.NOVEMBER, 1, 13, 30).toEpochSecond(ZoneOffset.UTC);
+        long timeBeforeStartTime = LocalDateTime.of(2017, Month.NOVEMBER, 1, 11, 30).toEpochSecond(ZoneOffset.UTC);
+        long startTime = LocalDateTime.of(2017, Month.NOVEMBER, 1, 12, 0).toEpochSecond(ZoneOffset.UTC);
+        long eventTime = LocalDateTime.of(2017, Month.NOVEMBER, 1, 12, 30).toEpochSecond(ZoneOffset.UTC);
+        long endTime = LocalDateTime.of(2017, Month.NOVEMBER, 1, 13, 0).toEpochSecond(ZoneOffset.UTC);
+        long timeAfterEndTime = LocalDateTime.of(2017, Month.NOVEMBER, 1, 13, 30).toEpochSecond(ZoneOffset.UTC);
 
         CustomerId customerId = new CustomerId(Uuids.timeBased());
         TenantId tenantId = TenantId.fromUUID(Uuids.timeBased());
@@ -144,9 +138,10 @@ public abstract class BaseEventServiceTest extends AbstractServiceTest {
         Assert.assertFalse(events.hasNext());
     }
 
-    private Event saveEventWithProvidedTime(long time, EntityId entityId, TenantId tenantId) throws IOException {
+    private Event saveEventWithProvidedTime(long time, EntityId entityId, TenantId tenantId) throws Exception {
         Event event = generateEvent(tenantId, entityId, DataConstants.STATS, null);
         event.setId(new EventId(Uuids.startOf(time)));
-        return eventService.save(event);
+        eventService.saveAsync(event).get();
+        return event;
     }
 }

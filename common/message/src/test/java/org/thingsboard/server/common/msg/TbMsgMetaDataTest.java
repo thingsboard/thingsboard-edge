@@ -30,55 +30,42 @@
  */
 package org.thingsboard.server.common.msg;
 
-import lombok.Data;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by ashvayka on 13.01.18.
- */
-@Data
-public final class TbMsgMetaData implements Serializable {
+import static org.junit.Assert.assertEquals;
 
-    public static final TbMsgMetaData EMPTY = new TbMsgMetaData(0);
+public class TbMsgMetaDataTest {
 
-    private final Map<String, String> data;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final String metadataJsonStr = "{\"deviceName\":\"Test Device\",\"deviceType\":\"default\",\"ts\":\"1645112691407\"}";
+    private JsonNode metadataJson;
+    private Map<String, String> metadataExpected;
 
-    public TbMsgMetaData() {
-        this.data = new ConcurrentHashMap<>();
+    @Before
+    public void startInit() throws Exception {
+        metadataJson = objectMapper.readValue(metadataJsonStr, JsonNode.class);
+        metadataExpected = objectMapper.convertValue(metadataJson, new TypeReference<>() {
+        });
     }
 
-    public TbMsgMetaData(Map<String, String> data) {
-        this.data = new ConcurrentHashMap<>();
-        data.forEach(this::putValue);
+    @Test
+    public void testScript_whenMetadataWithoutPropertiesValueNull_returnMetadataWithAllValue() {
+        TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(metadataExpected);
+        Map<String, String> dataActual = tbMsgMetaData.values();
+        assertEquals(metadataExpected.size(), dataActual.size());
     }
 
-    /**
-     * Internal constructor to create immutable TbMsgMetaData.EMPTY
-     * */
-    private TbMsgMetaData(int ignored) {
-        this.data = Collections.emptyMap();
-    }
-
-    public String getValue(String key) {
-        return this.data.get(key);
-    }
-
-    public void putValue(String key, String value) {
-        if (key != null && value != null) {
-            this.data.put(key, value);
-        }
-    }
-
-    public Map<String, String> values() {
-        return new HashMap<>(this.data);
-    }
-
-    public TbMsgMetaData copy() {
-        return new TbMsgMetaData(this.data);
+    @Test
+    public void testScript_whenMetadataWithPropertiesValueNull_returnMetadataWithoutPropertiesValueEqualsNull() {
+        metadataExpected.put("deviceName", null);
+        TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(metadataExpected);
+        Map<String, String> dataActual = tbMsgMetaData.copy().getData();
+        assertEquals(metadataExpected.size() - 1, dataActual.size());
     }
 }
