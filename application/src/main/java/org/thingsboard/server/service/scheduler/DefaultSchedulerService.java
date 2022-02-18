@@ -148,6 +148,11 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     }
 
     @Override
+    protected String getServiceName() {
+        return "Scheduler";
+    }
+
+    @Override
     protected String getSchedulerExecutorName() {
         return "scheduler-service";
     }
