@@ -31,6 +31,10 @@
 package org.thingsboard.server.service.apiusage;
 
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -38,9 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.ApiUsageState;
@@ -74,13 +78,16 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceM
 import org.thingsboard.server.gen.transport.TransportProtos.UsageStatsKVProto;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.scheduler.SchedulerComponent;
+import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 import org.thingsboard.server.service.telemetry.InternalTelemetryService;
 
 import javax.annotation.PostConstruct;
@@ -91,13 +98,15 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -105,7 +114,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class DefaultTbApiUsageStateService extends TbApplicationEventListener<PartitionChangeEvent> implements TbApiUsageStateService {
+public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService<EntityId> implements TbApiUsageStateService {
 
     public static final String HOURLY = "Hourly";
     public static final FutureCallback<Integer> VOID_CALLBACK = new FutureCallback<Integer>() {
@@ -122,22 +131,22 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
     private final TenantService tenantService;
     private final TimeseriesService tsService;
     private final ApiUsageStateService apiUsageStateService;
-    private final SchedulerComponent scheduler;
     private final TbTenantProfileCache tenantProfileCache;
     private final MailService mailService;
     private final OwnersCacheService ownersCacheService;
     private final TbQueueProducerProvider producerProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;
+    private final DbCallbackExecutorService dbExecutor;
     @Lazy
     @Autowired
     private InternalTelemetryService tsWsService;
 
     // Entities that should be processed on this server
-    private final Map<EntityId, BaseApiUsageState> myUsageStates = new ConcurrentHashMap<>();
+    final Map<EntityId, BaseApiUsageState> myUsageStates = new ConcurrentHashMap<>();
     // Entities that should be processed on other servers
-    private final Map<EntityId, ApiUsageState> otherUsageStates = new ConcurrentHashMap<>();
+    final Map<EntityId, ApiUsageState> otherUsageStates = new ConcurrentHashMap<>();
 
-    private final Set<EntityId> deletedEntities = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    final Set<EntityId> deletedEntities = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Value("${usage.stats.report.enabled:true}")
     private boolean enabled;
@@ -154,33 +163,39 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
                                          TenantService tenantService,
                                          TimeseriesService tsService,
                                          ApiUsageStateService apiUsageStateService,
-                                         SchedulerComponent scheduler,
                                          TbTenantProfileCache tenantProfileCache,
                                          MailService mailService,
                                          OwnersCacheService ownersCacheService,
-                                         TbQueueProducerProvider producerProvider
+                                         TbQueueProducerProvider producerProvider,
+                                         DbCallbackExecutorService dbExecutor
                                          ) {
         this.clusterService = clusterService;
         this.partitionService = partitionService;
         this.tenantService = tenantService;
         this.tsService = tsService;
         this.apiUsageStateService = apiUsageStateService;
-        this.scheduler = scheduler;
         this.tenantProfileCache = tenantProfileCache;
         this.mailService = mailService;
         this.ownersCacheService = ownersCacheService;
         this.producerProvider = producerProvider;
         this.mailExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("api-usage-svc-mail"));
+        this.dbExecutor = dbExecutor;
     }
 
     @PostConstruct
     public void init() {
+        super.init();
         if (enabled) {
             log.info("Starting api usage service.");
             msgProducer = producerProvider.getTbUsageStatsMsgProducer();
-            scheduler.scheduleAtFixedRate(this::checkStartOfNextCycle, nextCycleCheckInterval, nextCycleCheckInterval, TimeUnit.MILLISECONDS);
+            scheduledExecutor.scheduleAtFixedRate(this::checkStartOfNextCycle, nextCycleCheckInterval, nextCycleCheckInterval, TimeUnit.MILLISECONDS);
             log.info("Started api usage service.");
         }
+    }
+
+    @Override
+    protected String getSchedulerExecutorName() {
+        return "api-usage-scheduled";
     }
 
     @Override
@@ -252,19 +267,6 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
 
         TopicPartitionInfo partitionInfo = partitionService.resolve(ServiceType.TB_CORE, tenantId, owner).newByTopic(msgProducer.getDefaultTopic());
         msgProducer.send(partitionInfo, new TbProtoQueueMsg<>(UUID.randomUUID(), newStatsMsg), null);
-    }
-
-    @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
-        if (partitionChangeEvent.getServiceType().equals(ServiceType.TB_CORE)) {
-            myUsageStates.entrySet().removeIf(entry -> {
-                return !partitionService.resolve(ServiceType.TB_CORE, entry.getValue().getTenantId(), entry.getKey()).isMyPartition();
-            });
-            otherUsageStates.entrySet().removeIf(entry -> {
-                return partitionService.resolve(ServiceType.TB_CORE, entry.getValue().getTenantId(), entry.getKey()).isMyPartition();
-            });
-            initStatesFromDataBase();
-        }
     }
 
     @Override
@@ -349,6 +351,18 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
                 oldProfileData.getConfiguration(), profile.getProfileData().getConfiguration());
     }
 
+    private void addEntityState(TopicPartitionInfo tpi, BaseApiUsageState state) {
+        EntityId entityId = state.getEntityId();
+        Set<EntityId> entityIds = partitionedEntities.get(tpi);
+        if (entityIds != null) {
+            entityIds.add(entityId);
+            myUsageStates.put(entityId, state);
+        } else {
+            log.debug("[{}] belongs to external partition {}", entityId, tpi.getFullTopicName());
+            throw new RuntimeException(entityId.getEntityType() + " belongs to external partition " + tpi.getFullTopicName() + "!");
+        }
+    }
+
     private void updateProfileThresholds(TenantId tenantId, ApiUsageStateId id,
                                          TenantProfileConfiguration oldData, TenantProfileConfiguration newData) {
         long ts = System.currentTimeMillis();
@@ -375,6 +389,11 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
     public void onCustomerDelete(CustomerId customerId) {
         deletedEntities.add(customerId);
         myUsageStates.remove(customerId);
+    }
+
+    @Override
+    protected void cleanupEntityOnPartitionRemoval(EntityId entityId) {
+        myUsageStates.remove(entityId);
     }
 
     private void persistAndNotify(BaseApiUsageState state, Map<ApiFeature, ApiUsageStateValue> result) {
@@ -458,7 +477,7 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
         tsWsService.saveAndNotifyInternal(state.getTenantId(), state.getApiUsageState().getId(), counts, VOID_CALLBACK);
     }
 
-    private BaseApiUsageState getOrFetchState(TenantId tenantId, EntityId entityId) {
+    BaseApiUsageState getOrFetchState(TenantId tenantId, EntityId entityId) {
         if (entityId == null || entityId.isNullUid()) {
             entityId = tenantId;
         }
@@ -511,7 +530,12 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
                 }
             }
             log.debug("[{}] Initialized state: {}", entityId, storedState);
-            myUsageStates.put(entityId, state);
+            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId);
+            if (tpi.isMyPartition()) {
+                addEntityState(tpi, state);
+            } else {
+                otherUsageStates.put(entityId, state.getApiUsageState());
+            }
             saveNewCounts(state, newCounts);
         } catch (InterruptedException | ExecutionException e) {
             log.warn("[{}] Failed to fetch api usage state from db.", tenantId, e);
@@ -520,38 +544,44 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
         return state;
     }
 
-    private void initStatesFromDataBase() {
+    @Override
+    protected void onRepartitionEvent() {
+        otherUsageStates.entrySet().removeIf(entry ->
+                partitionService.resolve(ServiceType.TB_CORE, entry.getValue().getTenantId(), entry.getKey()).isMyPartition());
+    }
+
+    @Override
+    protected void onAddedPartitions(Set<TopicPartitionInfo> addedPartitions) {
         try {
             log.info("Initializing tenant states.");
             updateLock.lock();
             try {
-                ExecutorService tmpInitExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "init-tenant-states-from-db");
-                try {
-                    PageDataIterable<Tenant> tenantIterator = new PageDataIterable<>(tenantService::findTenants, 1024);
-                    List<Future<?>> futures = new ArrayList<>();
-                    for (Tenant tenant : tenantIterator) {
-                        if (!myUsageStates.containsKey(tenant.getId()) && partitionService.resolve(ServiceType.TB_CORE, tenant.getId(), tenant.getId()).isMyPartition()) {
+                PageDataIterable<Tenant> tenantIterator = new PageDataIterable<>(tenantService::findTenants, 1024);
+                List<ListenableFuture<?>> futures = new ArrayList<>();
+                for (Tenant tenant : tenantIterator) {
+                    TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenant.getId(), tenant.getId());
+                    if (addedPartitions.contains(tpi)) {
+                        if (!myUsageStates.containsKey(tenant.getId()) && tpi.isMyPartition()) {
                             log.debug("[{}] Initializing tenant state.", tenant.getId());
-                            futures.add(tmpInitExecutor.submit(() -> {
+                            futures.add(dbExecutor.submit(() -> {
                                 try {
                                     updateTenantState((TenantApiUsageState) getOrFetchState(tenant.getId(), tenant.getId()), tenantProfileCache.get(tenant.getTenantProfileId()));
                                     log.debug("[{}] Initialized tenant state.", tenant.getId());
                                 } catch (Exception e) {
                                     log.warn("[{}] Failed to initialize tenant API state", tenant.getId(), e);
                                 }
+                                return null;
                             }));
                         }
+                    } else {
+                        log.debug("[{}][{}] Tenant doesn't belong to current partition. tpi [{}]", tenant.getName(), tenant.getId(), tpi);
                     }
-                    for (Future<?> future : futures) {
-                        future.get();
-                    }
-                } finally {
-                    tmpInitExecutor.shutdownNow();
                 }
+                Futures.whenAllComplete(futures);
             } finally {
                 updateLock.unlock();
             }
-            log.info("Initialized tenant states.");
+            log.info("Initialized {} tenant states.", myUsageStates.size());
         } catch (Exception e) {
             log.warn("Unknown failure", e);
         }
@@ -559,6 +589,7 @@ public class DefaultTbApiUsageStateService extends TbApplicationEventListener<Pa
 
     @PreDestroy
     private void destroy() {
+        super.stop();
         if (mailExecutor != null) {
             mailExecutor.shutdownNow();
         }
