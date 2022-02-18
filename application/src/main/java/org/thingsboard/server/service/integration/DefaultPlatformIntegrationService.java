@@ -390,6 +390,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     @Override
     public void updateIntegration(Integration configuration) {
         if (configuration.isRemote()) {
+            integrationsByIdMap.remove(configuration.getId());
+            integrationsByRoutingKeyMap.remove(configuration.getRoutingKey());
             integrationRpcService.updateIntegration(configuration);
         } else {
             if (configuration.getType().isSingleton()) {
