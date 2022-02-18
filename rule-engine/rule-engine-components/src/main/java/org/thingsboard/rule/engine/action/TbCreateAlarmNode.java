@@ -190,6 +190,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 .propagate(config.isPropagate())
                 .propagateToOwner(config.isPropagateToOwner())
                 .propagateToTenant(config.isPropagateToTenant())
+                .propagateToOwnerHierarchy(config.isPropagateToOwnerHierarchy())
                 .type(TbNodeUtils.processPattern(this.config.getAlarmType(), msg))
                 .propagateRelationTypes(relationTypes)
                 .startTs(ts)
