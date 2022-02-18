@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
@@ -101,7 +102,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
             return any();
         });
 
-        setFieldReflectively(schedulerService, "queueExecutor", mockExecutor);
+        ReflectionTestUtils.setField(schedulerService, "scheduledExecutor", mockExecutor);
 
         SchedulerEvent schedulerEvent = createSchedulerEvent(savedDevice.getId());
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
