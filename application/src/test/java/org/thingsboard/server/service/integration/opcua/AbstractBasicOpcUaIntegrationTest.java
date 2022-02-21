@@ -42,60 +42,55 @@ import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.AbstractIntegrationTest;
 import org.thingsboard.server.service.integration.opcua.server.TestServer;
 
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @Slf4j
+@DaoSqlTest
 public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     private final static String OPCUA_UPLINK_CONVERTER_FILEPATH = "opcua/default_converter_configuration.json";
     private final static String OPCUA_UPLINK_CONVERTER_NAME = "Default test uplink converter";
+    private final static String OPCUA_DOWNLINK_CONVERTER_NAME = "Default test downlink converter";
 
     private final List<String> expectedNodes = Arrays.asList("Boolean", "Byte", "SByte", "Integer", "Int16", "Int32", "Int64", "UInteger", "UInt16", "UInt32", "UInt64", "Float", "Double", "String", "DateTime", "Guid", "ByteString", "XmlElement", "LocalizedText", "QualifiedName", "NodeId", "Variant", "Duration", "UtcTime");
     protected TestServer server;
 
     @Before
     public void beforeTest() throws Exception {
-        loginSysAdmin();
-
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedTenant);
-
-        tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
-        tenantAdmin.setFirstName("Joe");
-        tenantAdmin.setLastName("Downs");
-
-        tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+        loginTenantAdmin();
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(OPCUA_UPLINK_CONVERTER_FILEPATH);
         ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
         Assert.assertNotNull(jsonFile);
 
-        if (jsonFile.has("configuration")) {
-            createConverter(OPCUA_UPLINK_CONVERTER_NAME, jsonFile.get("configuration"));
+        if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {
+            createConverter(OPCUA_UPLINK_CONVERTER_NAME, ConverterType.UPLINK, jsonFile.get("configuration"));
         }
-        Assert.assertNotNull(converter);
+        if (jsonFile.has("configuration") && jsonFile.get("configuration").has("encoder")) {
+            createConverter(OPCUA_DOWNLINK_CONVERTER_NAME, ConverterType.DOWNLINK, jsonFile.get("configuration"));
+        }
+        Assert.assertNotNull(uplinkConverter);
 
         createIntegration("Test OPC-UA integration", IntegrationType.OPC_UA);
         Assert.assertNotNull(integration);
@@ -118,17 +113,12 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     @After
     public void afterTest() throws Exception {
         try {
-            disableIntegration();
-            if (server.getStarted()) {
+            if (server != null && server.getStarted()) {
                 stopServer();
             }
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error during stopping OPC-UA server", e);
         }
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -153,7 +143,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         Assert.assertFalse(isIntegrationConnected( 1, 6000));
         startServer();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected( 5, 3000));
+        Assert.assertTrue(isIntegrationConnected( 5, 20000));
     }
 
     @Test
@@ -194,6 +184,28 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testDownlinkProcessing() throws Exception {
         enableIntegration();
+        Assert.assertTrue(isIntegrationConnected(1, 5000));
+
+        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = createIntegrationDownlinkMessage();
+
+        platformIntegrationService.onQueueMsg(downlinkMsgProto, new TbCallback() {
+            @Override
+            public void onSuccess() {
+                log.info("SUCCESS");
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("", t);
+            }
+        });
+        Thread.sleep(20000);
+        Device savedDevice = doGet("/api/tenant/devices?deviceName=OPCUA_device", Device.class);
+        ObjectNode actualKeys = doGetAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/values/timeseries?keys=String", ObjectNode.class);
+        log.info(actualKeys.toString());
+        Assert.assertNotNull(actualKeys);
+        Assert.assertTrue(actualKeys.has("String"));
+        Assert.assertEquals("New value", actualKeys.get("String").get(0).get("value").asText());
 
     }
 
@@ -246,6 +258,27 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         clientConfiguration.set("metadata", JacksonUtil.newObjectNode());
 
         return clientConfiguration;
+    }
+
+    private TransportProtos.IntegrationDownlinkMsgProto createIntegrationDownlinkMessage() {
+        ObjectNode dataNode = JacksonUtil.newObjectNode();
+        ObjectNode writeValuesNode = JacksonUtil.newObjectNode();
+        ArrayNode writeValuesArray = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        ObjectNode writeValueNode = JacksonUtil.newObjectNode();
+        writeValueNode.put("nodeId", "ns=2;s=HelloWorld/ScalarTypes/String");
+        writeValueNode.put("value", "New value");
+        writeValuesArray.add(writeValueNode);
+        writeValuesNode.set("writeValues", writeValuesArray);
+        dataNode.set("data", writeValuesNode);
+        TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
+
+        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", new DeviceId(UUID.randomUUID()),tbMsgMetaData, writeValueNode.toString());
+        return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setIntegrationIdLSB(integration.getId().getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(integration.getId().getId().getMostSignificantBits())
+                .setData(TbMsg.toByteString(tbMsg)).build();
     }
 
     private List<Event> getIntegrationDebugConnectionMessages(int eventsCount, long timeout) throws Exception{

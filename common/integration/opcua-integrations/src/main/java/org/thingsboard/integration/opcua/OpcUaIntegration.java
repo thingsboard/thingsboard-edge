@@ -510,7 +510,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
                 for (ReferenceDescription rd : references) {
                     if (rd.getNodeId().isLocal()) {
-                        NodeId childNodeId = rd.getNodeId().local(client.getNamespaceTable()).orElse(null);
+                        NodeId childNodeId = rd.getNodeId().toNodeId(client.getNamespaceTable()).orElse(null);
                         if (childNodeId != null) {
                             OpcUaNode childNode = new OpcUaNode(node, childNodeId, rd.getBrowseName().getName());
                             scanForDevices(childNode);
@@ -657,7 +657,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             for (ReferenceDescription rd : references) {
                 NodeId childId;
                 if (rd.getNodeId().isLocal()) {
-                    childId = rd.getNodeId().local(client.getNamespaceTable()).get();
+                    childId = rd.getNodeId().toNodeId(client.getNamespaceTable()).get();
                 } else {
                     log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
                     continue;

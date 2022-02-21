@@ -35,10 +35,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -51,25 +51,38 @@ import java.util.Map;
 
 public abstract class AbstractIntegrationTest extends AbstractControllerTest {
 
-    protected Tenant savedTenant;
-    protected User tenantAdmin;
-    protected Converter converter;
+    @Autowired
+    protected PlatformIntegrationService platformIntegrationService;
+
+    protected Converter uplinkConverter;
+    protected Converter downlinkConverter;
     protected Integration integration;
 
-    protected void createConverter(String converterName, JsonNode converterConfig) throws Exception {
+    protected void createConverter(String converterName, ConverterType type, JsonNode converterConfig) throws Exception {
         Converter newConverter = new Converter();
-        newConverter.setTenantId(tenantAdmin.getTenantId());
+        newConverter.setTenantId(tenantId);
         newConverter.setName(converterName);
-        newConverter.setType(ConverterType.UPLINK);
+        newConverter.setType(type);
         newConverter.setConfiguration(converterConfig);
-        converter = doPost("/api/converter", newConverter, Converter.class);
-        Assert.assertNotNull(converter);
+        switch (type) {
+            case UPLINK:
+                uplinkConverter = doPost("/api/converter", newConverter, Converter.class);
+                Assert.assertNotNull(uplinkConverter);
+                break;
+            case DOWNLINK:
+                downlinkConverter = doPost("/api/converter", newConverter, Converter.class);
+                Assert.assertNotNull(downlinkConverter);
+                break;
+        }
     }
 
     protected void createIntegration(String integrationName, IntegrationType type) throws Exception {
         Integration newIntegration = new Integration();
-        newIntegration.setTenantId(tenantAdmin.getTenantId());
-        newIntegration.setDefaultConverterId(converter.getId());
+        newIntegration.setTenantId(tenantId);
+        newIntegration.setDefaultConverterId(uplinkConverter.getId());
+        if (downlinkConverter != null) {
+            newIntegration.setDownlinkConverterId(downlinkConverter.getId());
+        }
         newIntegration.setName(integrationName);
         newIntegration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         newIntegration.setType(type);
@@ -98,15 +111,5 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     }
 
     protected abstract JsonNode createIntegrationClientConfiguration();
-
-    protected Map<String, List<TsData>> getLatestTelemetryKeysValue(String deviceName, List<String> keys) throws Exception {
-        String telemetryKeys = String.join(",", keys);
-        Device device = doGet("/api/tenant/devices?deviceName={deviceName}", Device.class, deviceName);
-        Map<String, List<TsData>> latestValues = doGetTyped("/api/plugins/telemetry/DEVICE/{entityId}/values/timeseries?keys={telemetryKeys}&useStrictDataTypes={useStrictDataTypes}", new TypeReference<Map<String, List<TsData>>>(){}, device.getId(), telemetryKeys, true);
-        Assert.assertNotNull(latestValues);
-        Assert.assertFalse(latestValues.isEmpty());
-        return latestValues;
-    }
-
 
 }
