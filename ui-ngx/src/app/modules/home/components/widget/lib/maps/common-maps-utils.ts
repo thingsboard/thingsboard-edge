@@ -138,6 +138,7 @@ export function aspectCache(imageUrl: string): Observable<number> {
       return aspect;
     }));
   }
+  return of(0);
 }
 
 export type TranslateFunc = (key: string, defaultTranslation?: string) => string;

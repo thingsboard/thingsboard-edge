@@ -52,21 +52,17 @@ public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
             "WHERE t.id = :tenantId")
     TenantInfoEntity findTenantInfoById(@Param("tenantId") UUID tenantId);
 
-    @Query("SELECT t FROM TenantEntity t WHERE t.region = :region " +
-            "AND LOWER(t.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<TenantEntity> findByRegionNextPage(@Param("region") String region,
-                                            @Param("textSearch") String textSearch,
-                                            Pageable pageable);
+    @Query("SELECT t FROM TenantEntity t WHERE LOWER(t.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<TenantEntity> findTenantsNextPage(@Param("textSearch") String textSearch,
+                                           Pageable pageable);
 
     List<TenantEntity> findTenantsByIdIn(List<UUID> tenantIds);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.TenantInfoEntity(t, p.name) " +
             "FROM TenantEntity t " +
             "LEFT JOIN TenantProfileEntity p on p.id = t.tenantProfileId " +
-            "WHERE t.region = :region " +
-            "AND LOWER(t.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<TenantInfoEntity> findTenantInfoByRegionNextPage(@Param("region") String region,
-                                                          @Param("textSearch") String textSearch,
+            "WHERE LOWER(t.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<TenantInfoEntity> findTenantInfosNextPage(@Param("textSearch") String textSearch,
                                                           Pageable pageable);
 
     @Query("SELECT t.id FROM TenantEntity t")
