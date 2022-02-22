@@ -82,9 +82,21 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testDeviceProfiles() {
+        verifyDeviceProfilesOnEdge(3);
+
+        DeviceProfile oneMoreDeviceProfile = createCustomDeviceProfile("ONE_MORE_DEVICE_PROFILE");
+
+        verifyDeviceProfilesOnEdge(4);
+
+        restClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
+
+        verifyDeviceProfilesOnEdge(3);
+    }
+
+    private void verifyDeviceProfilesOnEdge(int expectedDeviceProfilesCnt) {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == 3);
+                until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
 
         PageData<DeviceProfile> pageData = edgeRestClient.getDeviceProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);
