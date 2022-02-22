@@ -34,9 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
@@ -56,7 +54,6 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -64,8 +61,6 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -85,7 +80,7 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 @Slf4j
 public class CustomerServiceImpl extends AbstractEntityService implements CustomerService {
 
-    private static final String PUBLIC_CUSTOMER_TITLE = "Public";
+    public static final String PUBLIC_CUSTOMER_TITLE = "Public";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_OWNER_ID = "Incorrect ownerId ";
@@ -95,9 +90,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private TenantDao tenantDao;
 
     @Autowired
     private AssetService assetService;
@@ -130,8 +122,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private ApiUsageStateService apiUsageStateService;
 
     @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
+    private DataValidator<Customer> customerValidator;
 
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
@@ -332,56 +323,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         validatePageLink(pageLink);
         return customerDao.findCustomersByEntityGroupIds(toUUIDs(groupIds), toUUIDs(additionalCustomerIds), pageLink);
     }
-
-    private DataValidator<Customer> customerValidator =
-            new DataValidator<Customer>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, Customer customer) {
-                    DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration)tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-                    long maxCustomers = profileConfiguration.getMaxCustomers();
-
-                    validateNumberOfEntitiesPerTenant(tenantId, customerDao, maxCustomers, EntityType.CUSTOMER);
-                    customerDao.findCustomersByTenantIdAndTitle(customer.getTenantId().getId(), customer.getTitle()).ifPresent(
-                            c -> {
-                                throw new DataValidationException("Customer with such title already exists!");
-                            }
-                    );
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, Customer customer) {
-                    customerDao.findCustomersByTenantIdAndTitle(customer.getTenantId().getId(), customer.getTitle()).ifPresent(
-                            c -> {
-                                if (!c.getId().equals(customer.getId())) {
-                                    throw new DataValidationException("Customer with such title already exists!");
-                                }
-                            }
-                    );
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Customer customer) {
-                    if (StringUtils.isEmpty(customer.getTitle())) {
-                        throw new DataValidationException("Customer title should be specified!");
-                    }
-                    if (customer.getTitle().equals(PUBLIC_CUSTOMER_TITLE)) {
-                        throw new DataValidationException("'Public' title for customer is system reserved!");
-                    }
-                    if (!StringUtils.isEmpty(customer.getEmail())) {
-                        validateEmail(customer.getEmail());
-                    }
-                    if (customer.getTenantId() == null) {
-                        throw new DataValidationException("Customer should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, customer.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Customer is referencing to non-existent tenant!");
-                        }
-                    }
-                }
-            };
 
     private PaginatedRemover<TenantId, Customer> customersByTenantRemover =
             new PaginatedRemover<TenantId, Customer>() {

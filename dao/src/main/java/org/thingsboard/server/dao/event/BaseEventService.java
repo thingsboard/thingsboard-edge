@@ -61,6 +61,9 @@ public class BaseEventService implements EventService {
     @Autowired
     public EventDao eventDao;
 
+    @Autowired
+    private DataValidator<Event> eventValidator;
+
     @Override
     public ListenableFuture<Void> saveAsync(Event event) {
         eventValidator.validate(event, Event::getTenantId);
@@ -143,20 +146,4 @@ public class BaseEventService implements EventService {
     public void cleanupEvents(long regularEventStartTs, long regularEventEndTs, long debugEventStartTs, long debugEventEndTs) {
         eventDao.cleanupEvents(regularEventStartTs, regularEventEndTs, debugEventStartTs, debugEventEndTs);
     }
-
-    private DataValidator<Event> eventValidator =
-            new DataValidator<Event>() {
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Event event) {
-                    if (event.getEntityId() == null) {
-                        throw new DataValidationException("Entity id should be specified!.");
-                    }
-                    if (StringUtils.isEmpty(event.getType())) {
-                        throw new DataValidationException("Event type should be specified!.");
-                    }
-                    if (event.getBody() == null) {
-                        throw new DataValidationException("Event body should be specified!.");
-                    }
-                }
-            };
 }

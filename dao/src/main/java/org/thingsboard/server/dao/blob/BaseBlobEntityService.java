@@ -34,8 +34,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
@@ -44,17 +42,13 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.TimePaginatedRemover;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 
@@ -66,7 +60,6 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_BLOB_ENTITY_ID = "Incorrect blobEntityId ";
 
-
     @Autowired
     private BlobEntityDao blobEntityDao;
 
@@ -74,10 +67,7 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     private BlobEntityInfoDao blobEntityInfoDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private CustomerDao customerDao;
+    private DataValidator<BlobEntity> blobEntityValidator;
 
     @Override
     public BlobEntity findBlobEntityById(TenantId tenantId, BlobEntityId blobEntityId) {
@@ -164,50 +154,6 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         customerBlobEntitiesRemover.removeEntities(tenantId, customerId);
     }
-
-    private DataValidator<BlobEntity> blobEntityValidator =
-            new DataValidator<BlobEntity>() {
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
-                    throw new DataValidationException("Update of BlobEntity is prohibited!");
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, BlobEntity blobEntity) {
-                    if (org.springframework.util.StringUtils.isEmpty(blobEntity.getType())) {
-                        throw new DataValidationException("BlobEntity type should be specified!");
-                    }
-                    if (org.springframework.util.StringUtils.isEmpty(blobEntity.getName())) {
-                        throw new DataValidationException("BlobEntity name should be specified!");
-                    }
-                    if (org.springframework.util.StringUtils.isEmpty(blobEntity.getContentType())) {
-                        throw new DataValidationException("BlobEntity content type should be specified!");
-                    }
-                    if (blobEntity.getData() == null) {
-                        throw new DataValidationException("BlobEntity data should be specified!");
-                    }
-                    if (blobEntity.getTenantId() == null) {
-                        throw new DataValidationException("BlobEntity should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, blobEntity.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("BlobEntity is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (blobEntity.getCustomerId() == null) {
-                        blobEntity.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!blobEntity.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(tenantId, blobEntity.getCustomerId().getId());
-                        if (customer == null) {
-                            throw new DataValidationException("Can't assign blobEntity to non-existent customer!");
-                        }
-                        if (!customer.getTenantId().equals(blobEntity.getTenantId())) {
-                            throw new DataValidationException("Can't assign blobEntity to customer from different tenant!");
-                        }
-                    }
-                }
-            };
 
     private TimePaginatedRemover<TenantId, BlobEntityWithCustomerInfo> tenantBlobEntitiesRemover =
             new TimePaginatedRemover<TenantId, BlobEntityWithCustomerInfo>() {
