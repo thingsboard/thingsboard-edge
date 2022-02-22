@@ -160,7 +160,7 @@ public abstract class AbstractContainerTest {
 
         updateRootRuleChain();
 
-        createCustomDeviceProfile();
+        createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
 
         // This is a starting point to start other tests
         verifyWidgetBundles();
@@ -208,10 +208,10 @@ public abstract class AbstractContainerTest {
         restClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
-    private static void createCustomDeviceProfile() {
-        DeviceProfile deviceProfile = createDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, null);
+    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
+        DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, null);
         extendDeviceProfileData(deviceProfile);
-        restClient.saveDeviceProfile(deviceProfile);
+        return restClient.saveDeviceProfile(deviceProfile);
     }
 
     private static void setWhiteLabelingAndCustomTranslation() {
