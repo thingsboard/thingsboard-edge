@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.rule.engine.mail;
 
@@ -27,10 +42,19 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +78,11 @@ public class TbMsgToEmailNode implements TbNode {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String IMAGES = "images";
     private static final String DYNAMIC = "dynamic";
+
+    public static final String ATTACHMENTS = "attachments";
+    private static final String EMAIL_TIMEZONE = "emailTimezone";
+
+    private static final Pattern dateVarPattern = Pattern.compile("%d\\{([^\\}]*)\\}");
 
     private TbMsgToEmailNodeConfiguration config;
     private boolean isDynamicHtmlTemplate;
@@ -81,7 +110,15 @@ public class TbMsgToEmailNode implements TbNode {
         return ctx.transformMsg(msg, SEND_EMAIL_TYPE, msg.getOriginator(), msg.getMetaData().copy(), emailJson);
     }
 
+
     private TbEmail convert(TbMsg msg) throws IOException {
+        TimeZone tz = null;
+        String emailTimezone = msg.getMetaData().getValue(EMAIL_TIMEZONE);
+        if (!StringUtils.isEmpty(emailTimezone)) {
+            tz = TimeZone.getTimeZone(emailTimezone);
+        }
+        Date currentDate = new Date();
+
         TbEmail.TbEmailBuilder builder = TbEmail.builder();
         builder.from(fromTemplate(this.config.getFromTemplate(), msg));
         builder.to(fromTemplate(this.config.getToTemplate(), msg));
@@ -92,13 +129,22 @@ public class TbMsgToEmailNode implements TbNode {
         } else {
             builder.html(Boolean.parseBoolean(this.config.getMailBodyType()));
         }
-        builder.subject(fromTemplate(this.config.getSubjectTemplate(), msg));
-        builder.body(fromTemplate(this.config.getBodyTemplate(), msg));
+        builder.subject(fromTemplateWithDate(this.config.getSubjectTemplate(), msg, currentDate, tz));
+        builder.body(fromTemplateWithDate(this.config.getBodyTemplate(), msg, currentDate, tz));
+        List<BlobEntityId> attachments = new ArrayList<>();
+        String attachmentsStr = msg.getMetaData().getValue(ATTACHMENTS);
+        if (!StringUtils.isEmpty(attachmentsStr)) {
+            String[] attachmentsStrArray = attachmentsStr.split(",");
+            for (String attachmentStr : attachmentsStrArray) {
+                attachments.add(new BlobEntityId(UUID.fromString(attachmentStr)));
+            }
+        }
         String imagesStr = msg.getMetaData().getValue(IMAGES);
         if (!StringUtils.isEmpty(imagesStr)) {
             Map<String, String> imgMap = MAPPER.readValue(imagesStr, new TypeReference<HashMap<String, String>>() {});
             builder.images(imgMap);
         }
+        builder.attachments(attachments);
         return builder.build();
     }
 
@@ -108,6 +154,29 @@ public class TbMsgToEmailNode implements TbNode {
         } else {
             return null;
         }
+    }
+
+    private String fromTemplateWithDate(String template, TbMsg msg, Date currentDate, TimeZone tz) {
+        if (!StringUtils.isEmpty(template)) {
+            return processDatePatterns(TbNodeUtils.processPattern(template, msg), currentDate, tz);
+        } else {
+            return null;
+        }
+    }
+
+    private String processDatePatterns(String datePattern, Date currentDate, TimeZone tz) {
+        String result = datePattern;
+        Matcher matcher = dateVarPattern.matcher(datePattern);
+        while (matcher.find()) {
+            String toReplace = matcher.group(0);
+            SimpleDateFormat dateFormat = new SimpleDateFormat(matcher.group(1));
+            if (tz != null) {
+                dateFormat.setTimeZone(tz);
+            }
+            String replacement = dateFormat.format(currentDate);
+            result = result.replace(toReplace, replacement);
+        }
+        return result;
     }
 
     @Override

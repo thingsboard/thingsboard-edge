@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.sql.query;
 
@@ -74,9 +89,12 @@ public class EntityKeyMapping {
     public static final String ADDITIONAL_INFO = "additionalInfo";
     public static final String RELATED_PARENT_ID = "parentId";
 
+
     public static final List<String> typedEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE, ADDITIONAL_INFO);
     public static final List<String> widgetEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME);
     public static final List<String> commonEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, ADDITIONAL_INFO);
+    public static final List<String> entityGroupFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE, ADDITIONAL_INFO);
+
     public static final List<String> dashboardEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, TITLE);
     public static final List<String> labeledEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE, LABEL, ADDITIONAL_INFO);
     public static final List<String> contactBasedEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, EMAIL, TITLE, COUNTRY, STATE, CITY, ADDRESS, ADDRESS_2, ZIP, PHONE, ADDITIONAL_INFO);
@@ -88,6 +106,7 @@ public class EntityKeyMapping {
     static {
         allowedEntityFieldMap.put(EntityType.DEVICE, new HashSet<>(labeledEntityFields));
         allowedEntityFieldMap.put(EntityType.ASSET, new HashSet<>(labeledEntityFields));
+        allowedEntityFieldMap.put(EntityType.EDGE, new HashSet<>(labeledEntityFields));
         allowedEntityFieldMap.put(EntityType.ENTITY_VIEW, new HashSet<>(typedEntityFields));
 
         allowedEntityFieldMap.put(EntityType.TENANT, new HashSet<>(contactBasedEntityFields));
@@ -99,8 +118,15 @@ public class EntityKeyMapping {
         allowedEntityFieldMap.put(EntityType.DASHBOARD, new HashSet<>(dashboardEntityFields));
         allowedEntityFieldMap.put(EntityType.RULE_CHAIN, new HashSet<>(commonEntityFields));
         allowedEntityFieldMap.put(EntityType.RULE_NODE, new HashSet<>(commonEntityFields));
+
         allowedEntityFieldMap.put(EntityType.WIDGET_TYPE, new HashSet<>(widgetEntityFields));
         allowedEntityFieldMap.put(EntityType.WIDGETS_BUNDLE, new HashSet<>(widgetEntityFields));
+        allowedEntityFieldMap.put(EntityType.CONVERTER, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.INTEGRATION, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.SCHEDULER_EVENT, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.BLOB_ENTITY, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.ROLE, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.ENTITY_GROUP, new HashSet<>(entityGroupFields));
         allowedEntityFieldMap.put(EntityType.API_USAGE_STATE, apiUsageStateEntityFields);
 
         entityFieldColumnMap.put(CREATED_TIME, ModelConstants.CREATED_TIME_PROPERTY);
@@ -134,7 +160,9 @@ public class EntityKeyMapping {
         aliases.put(EntityType.DEVICE, commonEntityAliases);
         aliases.put(EntityType.ASSET, commonEntityAliases);
         aliases.put(EntityType.ENTITY_VIEW, commonEntityAliases);
+        aliases.put(EntityType.EDGE, commonEntityAliases);
         aliases.put(EntityType.WIDGETS_BUNDLE, commonEntityAliases);
+        aliases.put(EntityType.ENTITY_GROUP, commonEntityAliases);
 
         Map<String, String> userEntityAliases = new HashMap<>();
         userEntityAliases.put(TITLE, EMAIL);
@@ -193,23 +221,35 @@ public class EntityKeyMapping {
 
     private String getEntityFieldAlias(EntityFilterType filterType, EntityType entityType) {
         String alias;
-        if (filterType.equals(EntityFilterType.RELATIONS_QUERY)) {
-            alias = entityKey.getKey();
-        } else {
-            alias = getAliasByEntityKeyAndType(entityKey.getKey(), entityType);
+        switch (filterType) {
+            case RELATIONS_QUERY:
+                alias = entityKey.getKey();
+                break;
+            case ENTITY_GROUP_LIST:
+            case ENTITY_GROUP_NAME:
+                alias = getAliasByEntityKeyAndType(entityKey.getKey(), EntityType.ENTITY_GROUP);
+                break;
+            default:
+                alias = getAliasByEntityKeyAndType(entityKey.getKey(), entityType);
         }
         return alias;
     }
 
     private Set<String> getExistingEntityFields(EntityFilterType filterType, EntityType entityType) {
         Set<String> existingEntityFields;
-        if (filterType.equals(EntityFilterType.RELATIONS_QUERY)) {
-            existingEntityFields = relationQueryEntityFieldsSet;
-        } else {
-            existingEntityFields = allowedEntityFieldMap.get(entityType);
-            if (existingEntityFields == null) {
-                existingEntityFields = commonEntityFieldsSet;
-            }
+        switch (filterType){
+            case RELATIONS_QUERY:
+                existingEntityFields = relationQueryEntityFieldsSet;
+                break;
+            case ENTITY_GROUP_LIST:
+            case ENTITY_GROUP_NAME:
+                existingEntityFields = allowedEntityFieldMap.get(EntityType.ENTITY_GROUP);
+                break;
+            default:
+                existingEntityFields = allowedEntityFieldMap.get(entityType);
+                if (existingEntityFields == null) {
+                    existingEntityFields = commonEntityFieldsSet;
+                }
         }
         return existingEntityFields;
     }
@@ -253,15 +293,17 @@ public class EntityKeyMapping {
             filterQuery = " AND (" + filterQuery + ")";
         }
         if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
+            String readFilter = "entities." + DefaultEntityQueryRepository.TS_READ_FLAG + " = 1 AND ";
             String join = (hasFilter() && hasFilterValues(ctx)) ? "inner join" : "left join";
-            return String.format("%s ts_kv_latest %s ON %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id) %s",
-                    join, alias, alias, alias, alias, filterQuery);
+            return String.format("%s ts_kv_latest %s ON %s %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id) %s",
+                    join, alias, readFilter, alias, alias, alias, filterQuery);
         } else {
             String query;
+            String readFilter = "entities." + DefaultEntityQueryRepository.ATTR_READ_FLAG + " = 1 AND ";
             if (!entityKey.getType().equals(EntityKeyType.ATTRIBUTE)) {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "inner join" : "left join";
-                query = String.format("%s attribute_kv %s ON %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id ",
-                        join, alias, alias, alias, entityTypeStr, alias, alias);
+                query = String.format("%s attribute_kv %s ON %s %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id",
+                        join, alias, readFilter, alias, alias, entityTypeStr, alias, alias);
                 String scope;
                 if (entityKey.getType().equals(EntityKeyType.CLIENT_ATTRIBUTE)) {
                     scope = DataConstants.CLIENT_SCOPE;
@@ -273,9 +315,10 @@ public class EntityKeyMapping {
                 query = String.format("%s AND %s.attribute_type='%s' %s", query, alias, scope, filterQuery);
             } else {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "join LATERAL" : "left join LATERAL";
-                query = String.format("%s (select * from attribute_kv %s WHERE %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id %s " +
+                // Why don't we filter by entityTypeStr entity type here?
+                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.attribute_key=:%s_key_id %s" +
                                 "ORDER BY %s.last_update_ts DESC limit 1) as %s ON true",
-                        join, alias, alias, alias, entityTypeStr, alias, alias, filterQuery, alias, alias);
+                        join, alias, readFilter, alias, alias, alias, filterQuery, alias, alias);
             }
             return query;
         }
@@ -291,15 +334,19 @@ public class EntityKeyMapping {
         return alias + "_key_id";
     }
 
+    public static String getEntityFieldColumnName(String field) {
+        return entityFieldColumnMap.getOrDefault(field, field);
+    }
+
     public static String buildSelections(List<EntityKeyMapping> mappings, EntityFilterType filterType, EntityType entityType) {
         return mappings.stream().map(mapping -> mapping.toSelection(filterType, entityType)).collect(
                 Collectors.joining(", "));
     }
 
-    public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, EntityType entityType, List<EntityKeyMapping> latestMappings, boolean countQuery) {
+    public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> latestMappings, boolean countQuery) {
         return latestMappings.stream()
                 .filter(mapping -> !countQuery || mapping.hasFilter())
-                .map(mapping -> mapping.toLatestJoin(ctx, entityFilter, entityType))
+                .map(mapping -> mapping.toLatestJoin(ctx, entityFilter, ctx.getEntityType()))
                 .collect(Collectors.joining(" "));
     }
 

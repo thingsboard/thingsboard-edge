@@ -1,17 +1,32 @@
 --
--- Copyright © 2016-2022 The Thingsboard Authors
+-- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 --
---     http://www.apache.org/licenses/LICENSE-2.0
+-- NOTICE: All information contained herein is, and remains
+-- the property of ThingsBoard, Inc. and its suppliers,
+-- if any.  The intellectual and technical concepts contained
+-- herein are proprietary to ThingsBoard, Inc.
+-- and its suppliers and may be covered by U.S. and Foreign Patents,
+-- patents in process, and are protected by trade secret or copyright law.
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Dissemination of this information or reproduction of this material is strictly forbidden
+-- unless prior written permission is obtained from COMPANY.
+--
+-- Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+-- managers or contractors who have executed Confidentiality and Non-disclosure agreements
+-- explicitly covering such access.
+--
+-- The copyright notice above does not evidence any actual or intended publication
+-- or disclosure  of  this source code, which includes
+-- information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+-- ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+-- OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+-- THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+-- AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+-- THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+-- DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+-- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
@@ -333,6 +348,7 @@ DECLARE
     table_name varchar := 'customer';
     column_id  varchar := 'id';
     column_tenant_id  varchar := 'tenant_id';
+    column_parent_customer_id  varchar := 'parent_customer_id';
 BEGIN
     data_type := get_column_type(table_name, column_id);
     IF data_type = 'character varying' THEN
@@ -353,6 +369,14 @@ BEGIN
     ELSE
         RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
     END IF;
+
+    data_type := get_column_type(table_name, column_parent_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_parent_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_parent_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_parent_customer_id;
+    END IF;
 END;
 $$;
 
@@ -366,6 +390,7 @@ DECLARE
     table_name varchar := 'dashboard';
     column_id  varchar := 'id';
     column_tenant_id  varchar := 'tenant_id';
+    column_customer_id  varchar := 'customer_id';
 BEGIN
     data_type := get_column_type(table_name, column_id);
     IF data_type = 'character varying' THEN
@@ -385,6 +410,14 @@ BEGIN
         RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
     ELSE
         RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_customer_id;
     END IF;
 END;
 $$;
@@ -853,6 +886,309 @@ BEGIN
         RAISE NOTICE 'Table % column % updated!', table_name, column_customer_id;
     ELSE
         RAISE NOTICE 'Table % column % already updated!', table_name, column_customer_id;
+    END IF;
+END;
+$$;
+
+-- integration
+CREATE
+OR REPLACE PROCEDURE update_integration()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'integration';
+    column_id  varchar := 'id';
+    column_tenant_id varchar := 'tenant_id';
+    column_converter_id varchar := 'converter_id';
+    column_downlink_converter_id varchar := 'downlink_converter_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE integration DROP CONSTRAINT integration_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE integration ADD COLUMN created_time BIGINT;
+        UPDATE integration SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE integration ADD CONSTRAINT integration_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_tenant_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_tenant_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_converter_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_converter_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_converter_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_converter_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_downlink_converter_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_downlink_converter_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_downlink_converter_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_downlink_converter_id;
+    END IF;
+END;
+$$;
+
+-- converter
+CREATE
+    OR REPLACE PROCEDURE update_converter()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'converter';
+    column_id  varchar := 'id';
+    column_tenant_id varchar := 'tenant_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE converter DROP CONSTRAINT converter_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE converter ADD COLUMN created_time BIGINT;
+        UPDATE converter SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE converter ADD CONSTRAINT converter_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_tenant_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_tenant_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+END;
+$$;
+
+-- entity_group
+CREATE
+    OR REPLACE PROCEDURE update_entity_group()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'entity_group';
+    column_id  varchar := 'id';
+    column_owner_id varchar := 'owner_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE entity_group DROP CONSTRAINT entity_group_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE entity_group ADD COLUMN created_time BIGINT;
+        UPDATE entity_group SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE entity_group ADD CONSTRAINT entity_group_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_owner_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_owner_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_owner_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_owner_id;
+    END IF;
+END;
+$$;
+
+-- scheduler_event
+CREATE
+    OR REPLACE PROCEDURE update_scheduler_event()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'scheduler_event';
+    column_id  varchar := 'id';
+    column_tenant_id varchar := 'tenant_id';
+    column_customer_id varchar := 'customer_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE scheduler_event DROP CONSTRAINT scheduler_event_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE scheduler_event ADD COLUMN created_time BIGINT;
+        UPDATE scheduler_event SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE scheduler_event ADD CONSTRAINT scheduler_event_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_tenant_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_tenant_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_customer_id;
+    END IF;
+END;
+$$;
+
+-- blob_entity
+CREATE
+    OR REPLACE PROCEDURE update_blob_entity()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'blob_entity';
+    column_id  varchar := 'id';
+    column_tenant_id varchar := 'tenant_id';
+    column_customer_id varchar := 'customer_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE blob_entity DROP CONSTRAINT blob_entity_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE blob_entity ADD COLUMN created_time BIGINT;
+        UPDATE blob_entity SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE blob_entity ADD CONSTRAINT blob_entity_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_tenant_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_tenant_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_customer_id;
+    END IF;
+END;
+$$;
+
+-- role
+CREATE
+    OR REPLACE PROCEDURE update_role()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'role';
+    column_id  varchar := 'id';
+    column_tenant_id varchar := 'tenant_id';
+    column_customer_id varchar := 'customer_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE role DROP CONSTRAINT role_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE role ADD COLUMN created_time BIGINT;
+        UPDATE role SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE role ADD CONSTRAINT role_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_tenant_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_tenant_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_customer_id;
+    END IF;
+END;
+$$;
+
+-- group_permission
+CREATE
+    OR REPLACE PROCEDURE update_group_permission()
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    data_type  varchar;
+    table_name varchar := 'group_permission';
+    column_id  varchar := 'id';
+    column_tenant_id varchar := 'tenant_id';
+    column_role_id varchar := 'role_id';
+    column_user_group_id varchar := 'user_group_id';
+    column_entity_group_id varchar := 'entity_group_id';
+BEGIN
+    data_type := get_column_type(table_name, column_id);
+    IF data_type = 'character varying' THEN
+        ALTER TABLE group_permission DROP CONSTRAINT group_permission_pkey;
+        PERFORM column_type_to_uuid(table_name, column_id);
+        ALTER TABLE group_permission ADD COLUMN created_time BIGINT;
+        UPDATE group_permission SET created_time = extract_ts(id) WHERE id is not null;
+        ALTER TABLE group_permission ADD CONSTRAINT group_permission_pkey PRIMARY KEY (id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_tenant_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_tenant_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_role_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_role_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_role_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_role_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_user_group_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_user_group_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_user_group_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_user_group_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_entity_group_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_entity_group_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_entity_group_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_entity_group_id;
     END IF;
 END;
 $$;

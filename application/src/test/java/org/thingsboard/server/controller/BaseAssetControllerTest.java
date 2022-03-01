@@ -1,38 +1,48 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.service.stats.DefaultRuleEngineStatisticsService;
 
 import java.util.ArrayList;
@@ -198,83 +208,6 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         doPost("/api/asset", asset)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Asset name should be specified")));
-    }
-
-    @Test
-    public void testAssignUnassignAssetToCustomer() throws Exception {
-        Asset asset = new Asset();
-        asset.setName("My asset");
-        asset.setType("default");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
-
-        Customer customer = new Customer();
-        customer.setTitle("My customer");
-        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
-
-        Asset assignedAsset = doPost("/api/customer/" + savedCustomer.getId().getId().toString()
-                + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
-        Assert.assertEquals(savedCustomer.getId(), assignedAsset.getCustomerId());
-
-        Asset foundAsset = doGet("/api/asset/" + savedAsset.getId().getId().toString(), Asset.class);
-        Assert.assertEquals(savedCustomer.getId(), foundAsset.getCustomerId());
-
-        Asset unassignedAsset =
-                doDelete("/api/customer/asset/" + savedAsset.getId().getId().toString(), Asset.class);
-        Assert.assertEquals(ModelConstants.NULL_UUID, unassignedAsset.getCustomerId().getId());
-
-        foundAsset = doGet("/api/asset/" + savedAsset.getId().getId().toString(), Asset.class);
-        Assert.assertEquals(ModelConstants.NULL_UUID, foundAsset.getCustomerId().getId());
-    }
-
-    @Test
-    public void testAssignAssetToNonExistentCustomer() throws Exception {
-        Asset asset = new Asset();
-        asset.setName("My asset");
-        asset.setType("default");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
-
-        doPost("/api/customer/" + Uuids.timeBased().toString()
-                + "/asset/" + savedAsset.getId().getId().toString())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void testAssignAssetToCustomerFromDifferentTenant() throws Exception {
-        loginSysAdmin();
-
-        Tenant tenant2 = new Tenant();
-        tenant2.setTitle("Different tenant");
-        Tenant savedTenant2 = doPost("/api/tenant", tenant2, Tenant.class);
-        Assert.assertNotNull(savedTenant2);
-
-        User tenantAdmin2 = new User();
-        tenantAdmin2.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin2.setTenantId(savedTenant2.getId());
-        tenantAdmin2.setEmail("tenant3@thingsboard.org");
-        tenantAdmin2.setFirstName("Joe");
-        tenantAdmin2.setLastName("Downs");
-
-        tenantAdmin2 = createUserAndLogin(tenantAdmin2, "testPassword1");
-
-        Customer customer = new Customer();
-        customer.setTitle("Different customer");
-        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
-
-        login(tenantAdmin.getEmail(), "testPassword1");
-
-        Asset asset = new Asset();
-        asset.setName("My asset");
-        asset.setType("default");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
-
-        doPost("/api/customer/" + savedCustomer.getId().getId().toString()
-                + "/asset/" + savedAsset.getId().getId().toString())
-                .andExpect(status().isForbidden());
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant2.getId().getId().toString())
-                .andExpect(status().isOk());
     }
 
     @Test
@@ -467,250 +400,6 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         pageData = doGetTypedWithPageLink("/api/tenant/assets?type={type}&",
                 new TypeReference<PageData<Asset>>(){}, pageLink, type2);
         Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-    }
-
-    @Test
-    public void testFindCustomerAssets() throws Exception {
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer = doPost("/api/customer", customer, Customer.class);
-        CustomerId customerId = customer.getId();
-
-        List<Asset> assets = new ArrayList<>();
-        for (int i = 0; i < 128; i++) {
-            Asset asset = new Asset();
-            asset.setName("Asset" + i);
-            asset.setType("default");
-            asset = doPost("/api/asset", asset, Asset.class);
-            assets.add(doPost("/api/customer/" + customerId.getId().toString()
-                    + "/asset/" + asset.getId().getId().toString(), Asset.class));
-        }
-
-        List<Asset> loadedAssets = new ArrayList<>();
-        PageLink pageLink = new PageLink(23);
-        PageData<Asset> pageData = null;
-        do {
-            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?",
-                    new TypeReference<PageData<Asset>>(){}, pageLink);
-            loadedAssets.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(assets, idComparator);
-        Collections.sort(loadedAssets, idComparator);
-
-        Assert.assertEquals(assets, loadedAssets);
-    }
-
-    @Test
-    public void testFindCustomerAssetsByName() throws Exception {
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer = doPost("/api/customer", customer, Customer.class);
-        CustomerId customerId = customer.getId();
-
-        String title1 = "Asset title 1";
-        List<Asset> assetsTitle1 = new ArrayList<>();
-        for (int i = 0; i < 125; i++) {
-            Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            asset.setName(name);
-            asset.setType("default");
-            asset = doPost("/api/asset", asset, Asset.class);
-            assetsTitle1.add(doPost("/api/customer/" + customerId.getId().toString()
-                    + "/asset/" + asset.getId().getId().toString(), Asset.class));
-        }
-        String title2 = "Asset title 2";
-        List<Asset> assetsTitle2 = new ArrayList<>();
-        for (int i = 0; i < 143; i++) {
-            Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            asset.setName(name);
-            asset.setType("default");
-            asset = doPost("/api/asset", asset, Asset.class);
-            assetsTitle2.add(doPost("/api/customer/" + customerId.getId().toString()
-                    + "/asset/" + asset.getId().getId().toString(), Asset.class));
-        }
-
-        List<Asset> loadedAssetsTitle1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<Asset> pageData = null;
-        do {
-            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?",
-                    new TypeReference<PageData<Asset>>(){}, pageLink);
-            loadedAssetsTitle1.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(assetsTitle1, idComparator);
-        Collections.sort(loadedAssetsTitle1, idComparator);
-
-        Assert.assertEquals(assetsTitle1, loadedAssetsTitle1);
-
-        List<Asset> loadedAssetsTitle2 = new ArrayList<>();
-        pageLink = new PageLink(4, 0, title2);
-        do {
-            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?",
-                    new TypeReference<PageData<Asset>>(){}, pageLink);
-            loadedAssetsTitle2.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(assetsTitle2, idComparator);
-        Collections.sort(loadedAssetsTitle2, idComparator);
-
-        Assert.assertEquals(assetsTitle2, loadedAssetsTitle2);
-
-        for (Asset asset : loadedAssetsTitle1) {
-            doDelete("/api/customer/asset/" + asset.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-
-        pageLink = new PageLink(4, 0, title1);
-        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?",
-                new TypeReference<PageData<Asset>>(){}, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-
-        for (Asset asset : loadedAssetsTitle2) {
-            doDelete("/api/customer/asset/" + asset.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-
-        pageLink = new PageLink(4, 0, title2);
-        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?",
-                new TypeReference<PageData<Asset>>(){}, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-    }
-
-    @Test
-    public void testFindCustomerAssetsByType() throws Exception {
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer = doPost("/api/customer", customer, Customer.class);
-        CustomerId customerId = customer.getId();
-
-        String title1 = "Asset title 1";
-        String type1 = "typeC";
-        List<Asset> assetsType1 = new ArrayList<>();
-        for (int i = 0; i < 125; i++) {
-            Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            asset.setName(name);
-            asset.setType(type1);
-            asset = doPost("/api/asset", asset, Asset.class);
-            assetsType1.add(doPost("/api/customer/" + customerId.getId().toString()
-                    + "/asset/" + asset.getId().getId().toString(), Asset.class));
-        }
-        String title2 = "Asset title 2";
-        String type2 = "typeD";
-        List<Asset> assetsType2 = new ArrayList<>();
-        for (int i = 0; i < 143; i++) {
-            Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            asset.setName(name);
-            asset.setType(type2);
-            asset = doPost("/api/asset", asset, Asset.class);
-            assetsType2.add(doPost("/api/customer/" + customerId.getId().toString()
-                    + "/asset/" + asset.getId().getId().toString(), Asset.class));
-        }
-
-        List<Asset> loadedAssetsType1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15);
-        PageData<Asset> pageData = null;
-        do {
-            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?type={type}&",
-                    new TypeReference<PageData<Asset>>(){}, pageLink, type1);
-            loadedAssetsType1.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(assetsType1, idComparator);
-        Collections.sort(loadedAssetsType1, idComparator);
-
-        Assert.assertEquals(assetsType1, loadedAssetsType1);
-
-        List<Asset> loadedAssetsType2 = new ArrayList<>();
-        pageLink = new PageLink(4);
-        do {
-            pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?type={type}&",
-                    new TypeReference<PageData<Asset>>(){}, pageLink, type2);
-            loadedAssetsType2.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(assetsType2, idComparator);
-        Collections.sort(loadedAssetsType2, idComparator);
-
-        Assert.assertEquals(assetsType2, loadedAssetsType2);
-
-        for (Asset asset : loadedAssetsType1) {
-            doDelete("/api/customer/asset/" + asset.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-
-        pageLink = new PageLink(4);
-        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?type={type}&",
-                new TypeReference<PageData<Asset>>(){}, pageLink, type1);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-
-        for (Asset asset : loadedAssetsType2) {
-            doDelete("/api/customer/asset/" + asset.getId().getId().toString())
-                    .andExpect(status().isOk());
-        }
-
-        pageLink = new PageLink(4);
-        pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/assets?type={type}&",
-                new TypeReference<PageData<Asset>>(){}, pageLink, type2);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-    }
-
-    @Test
-    public void testAssignAssetToEdge() throws Exception {
-        Edge edge = constructEdge("My edge", "default");
-        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
-
-        Asset asset = new Asset();
-        asset.setName("My asset");
-        asset.setType("default");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
-
-        PageData<Asset> pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/assets?",
-                new TypeReference<PageData<Asset>>() {}, new PageLink(100));
-
-        Assert.assertEquals(1, pageData.getData().size());
-
-        doDelete("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
-
-        pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/assets?",
-                new TypeReference<PageData<Asset>>() {}, new PageLink(100));
-
         Assert.assertEquals(0, pageData.getData().size());
     }
 }

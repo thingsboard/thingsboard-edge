@@ -158,7 +158,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -316,7 +317,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -484,7 +486,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -655,7 +658,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -818,7 +822,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -975,7 +980,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1158,7 +1164,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1305,7 +1312,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1452,7 +1460,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1604,7 +1613,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1791,7 +1801,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1926,7 +1937,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2061,7 +2073,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2196,7 +2209,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2331,7 +2345,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2502,7 +2517,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2673,7 +2689,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2808,7 +2825,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2943,7 +2961,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -3078,7 +3097,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -3213,7 +3233,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -3348,7 +3369,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -3483,7 +3505,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -3669,7 +3692,8 @@
             "showMax": true,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "id": "2408ad30-163e-8221-08e1-a82b638be564"
       },
@@ -3823,7 +3847,8 @@
             "showMax": true,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "id": "e43dcfe1-b970-6a11-ce0e-5769f3eb5e88"
       },
@@ -3919,7 +3944,8 @@
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
           "titleTooltip": "",
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "enableDataExport": false
         },
         "id": "a669cf86-e715-efa4-dd9a-b839abf499e9"
       },
@@ -4093,7 +4119,8 @@
           "showTitleIcon": false,
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
-          "titleTooltip": ""
+          "titleTooltip": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -4228,7 +4255,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -4363,7 +4391,8 @@
             "showMax": false,
             "showAvg": false,
             "showTotal": true
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,

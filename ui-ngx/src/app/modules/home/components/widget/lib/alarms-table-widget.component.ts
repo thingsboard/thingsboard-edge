@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -32,7 +47,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetAction, WidgetContext } from '@home/models/widget-component.models';
-import { DataKey, WidgetActionDescriptor, WidgetConfig } from '@shared/models/widget.models';
+import { DataKey, DatasourceType, WidgetActionDescriptor, WidgetConfig } from '@shared/models/widget.models';
 import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -49,10 +64,9 @@ import cssjs from '@core/css/css';
 import { sortItems } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, EMPTY, forkJoin, fromEvent, merge, Observable, Subscription } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import { debounceTime, distinctUntilChanged, map, take, tap } from 'rxjs/operators';
+import { concatMap, debounceTime, distinctUntilChanged, expand, map, take, tap, toArray } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -60,6 +74,7 @@ import {
   CellContentInfo,
   CellStyleInfo,
   checkHasActions,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,
@@ -95,9 +110,7 @@ import {
   alarmFields,
   AlarmSearchStatus,
   alarmSeverityColors,
-  alarmSeverityTranslations,
-  AlarmStatus,
-  alarmStatusTranslations
+  AlarmStatus
 } from '@shared/models/alarm.models';
 import { DatePipe } from '@angular/common';
 import {
@@ -108,12 +121,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { DialogService } from '@core/services/dialog.service';
 import { AlarmService } from '@core/http/alarm.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 import {
   AlarmData,
   AlarmDataPageLink,
+  AlarmDataQuery,
   dataKeyToEntityKey,
   dataKeyTypeToEntityKeyType,
   entityDataPageLinkSortDirection,
+  EntityKeyType,
   KeyFilter
 } from '@app/shared/models/query/query.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -123,6 +140,7 @@ import {
   AlarmFilterPanelData
 } from '@home/components/widget/lib/alarm-filter-panel.component';
 import { entityFields } from '@shared/models/entity.models';
+import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
@@ -159,6 +177,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  public readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
   public enableSelection = true;
   public displayPagination = true;
   public enableStickyHeader = true;
@@ -197,6 +216,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private columnWidth: {[key: string]: string} = {};
   private columnDefaultVisibility: {[key: string]: boolean} = {};
   private columnSelectionAvailability: {[key: string]: boolean} = {};
+  private columnExportParameters: {[key: string]: columnExportOptions} = {};
 
   private rowStylesInfo: RowStyleInfo;
 
@@ -230,10 +250,12 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   };
 
   constructor(protected store: Store<AppState>,
+              private userPermissionsService: UserPermissionsService,
               private elementRef: ElementRef,
               private ngZone: NgZone,
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
+              private entityService: EntityService,
               private utils: UtilsService,
               public translate: TranslateService,
               private domSanitizer: DomSanitizer,
@@ -323,6 +345,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private initializeConfig() {
     this.ctx.widgetActions = [this.searchAction, this.alarmFilterAction, this.columnDisplayAction];
 
+    this.ctx.customDataExport = this.customDataExport.bind(this);
+
     this.displayDetails = isDefined(this.settings.displayDetails) ? this.settings.displayDetails : true;
     this.allowAcknowledgment = isDefined(this.settings.allowAcknowledgment) ? this.settings.allowAcknowledgment : true;
     this.allowClear = isDefined(this.settings.allowClear) ? this.settings.allowClear : true;
@@ -336,10 +360,9 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.updateTitle(false);
 
     this.enableSelection = isDefined(this.settings.enableSelection) ? this.settings.enableSelection : true;
-    if (!this.allowAcknowledgment && !this.allowClear) {
+    if (this.readonly || (!this.allowAcknowledgment && !this.allowClear)) {
       this.enableSelection = false;
     }
-
     this.searchAction.show = isDefined(this.settings.enableSearch) ? this.settings.enableSearch : true;
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     this.enableStickyHeader = isDefined(this.settings.enableStickyHeader) ? this.settings.enableStickyHeader : true;
@@ -427,6 +450,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
         this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings);
         this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
+        this.columnExportParameters[dataKey.def] = keySettings.columnExportOption;
         this.columns.push(dataKey);
 
         if (dataKey.type !== DataKeyType.alarm) {
@@ -727,10 +751,10 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     return res;
   }
 
-  public cellContent(alarm: AlarmDataInfo, key: EntityColumn, row: number): SafeHtml {
+  public cellContent(alarm: AlarmDataInfo, key: EntityColumn, row: number, useSafeHtml = true): SafeHtml {
     const col = this.columns.indexOf(key);
     const index = row * this.columns.length + col;
-    let res = this.cellContentCache[index];
+    let res = useSafeHtml ? this.cellContentCache[index] : undefined;
     if (isUndefined(res)) {
       res = '';
       if (alarm && key) {
@@ -746,19 +770,20 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         } else {
           content = this.defaultContent(key, contentInfo, value);
         }
-
         if (isDefined(content)) {
           content = this.utils.customTranslation(content, content);
           switch (typeof content) {
             case 'string':
-              res = this.domSanitizer.bypassSecurityTrustHtml(content);
+              res = useSafeHtml ? this.domSanitizer.bypassSecurityTrustHtml(content) : content;
               break;
             default:
               res = content;
           }
         }
       }
-      this.cellContentCache[index] = res;
+      if (useSafeHtml) {
+        this.cellContentCache[index] = res;
+      }
     }
     return res;
   }
@@ -803,10 +828,10 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
 
   public actionEnabled(alarm: AlarmDataInfo, actionDescriptor: AlarmWidgetActionDescriptor): boolean {
     if (actionDescriptor.acknowledge) {
-      return (alarm.status === AlarmStatus.ACTIVE_UNACK ||
+      return !this.readonly && (alarm.status === AlarmStatus.ACTIVE_UNACK ||
         alarm.status === AlarmStatus.CLEARED_UNACK);
     } else if (actionDescriptor.clear) {
-      return (alarm.status === AlarmStatus.ACTIVE_ACK ||
+      return !this.readonly && (alarm.status === AlarmStatus.ACTIVE_ACK ||
         alarm.status === AlarmStatus.ACTIVE_UNACK);
     }
     return true;
@@ -824,8 +849,9 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
           panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
           data: {
             alarmId: alarm.id.id,
-            allowAcknowledgment: this.allowAcknowledgment,
-            allowClear: this.allowClear,
+            alarm,
+            allowAcknowledgment: !this.readonly && this.allowAcknowledgment,
+            allowClear: !this.readonly && this.allowClear,
             displayDetails: true
           }
         }).afterClosed().subscribe(
@@ -954,17 +980,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     if (isDefined(value)) {
       const alarmField = alarmFields[key.name];
       if (alarmField) {
-        if (alarmField.time) {
-          return value ? this.datePipe.transform(value, 'yyyy-MM-dd HH:mm:ss') : '';
-        } else if (alarmField.value === alarmFields.severity.value) {
-          return this.translate.instant(alarmSeverityTranslations.get(value));
-        } else if (alarmField.value === alarmFields.status.value) {
-          return this.translate.instant(alarmStatusTranslations.get(value));
-        } else if (alarmField.value === alarmFields.originatorType.value) {
-          return this.translate.instant(entityTypeTranslations.get(value).type);
-        } else {
-          return value;
-        }
+        return this.utils.defaultAlarmFieldContent(key, value);
       }
       const entityField = entityFields[key.name];
       if (entityField) {
@@ -1000,6 +1016,81 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
   }
 
+  customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
+    if (this.subscription.alarmSource && this.subscription.alarmSource.type === DatasourceType.entity &&
+        this.subscription.alarmSource.entityFilter) {
+      const pageLink = deepClone(this.pageLink);
+      pageLink.dynamic = false;
+      pageLink.page = 0;
+      pageLink.pageSize = 1000;
+      pageLink.startTs = this.subscription.timeWindow.minTime;
+      pageLink.endTs = this.subscription.timeWindow.maxTime;
+      delete pageLink.timeWindow;
+      const query: AlarmDataQuery = {
+        entityFilter: this.subscription.alarmSource.entityFilter,
+        keyFilters: this.subscription.alarmSource.keyFilters,
+        pageLink
+      };
+      const exportedColumns = this.columns.filter(
+        c => this.includeColumnInExport(c) && c.entityKey);
+      query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
+        entityFields[c.entityKey.key]).map(c => c.entityKey);
+      query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
+        c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
+      query.alarmFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ALARM_FIELD &&
+        alarmFields[c.entityKey.key]).map(c => c.entityKey);
+
+      return this.entityService.findAlarmDataByQuery(query).pipe(
+        expand(data => {
+          if (data.hasNext) {
+            pageLink.page += 1;
+            return this.entityService.findAlarmDataByQuery(query);
+          } else {
+            return EMPTY;
+          }
+        }),
+        map(data => data.data.map((a, index) => this.alarmDataToExportedData(a, index, exportedColumns))),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      const exportedData: {[key: string]: any}[] = [];
+      const alarmsToExport = this.alarmsDatasource.alarms;
+      alarmsToExport.forEach((alarm, index) => {
+        const dataObj: {[key: string]: any} = {};
+        this.columns.forEach((column) => {
+          if (this.includeColumnInExport(column)) {
+            dataObj[column.title] = this.cellContent(alarm, column, index, false);
+          }
+        });
+        exportedData.push(dataObj);
+      });
+      return exportedData;
+    }
+  }
+
+  private includeColumnInExport(column: EntityColumn): boolean {
+    switch (this.columnExportParameters[column.def]) {
+      case columnExportOptions.always:
+        return true;
+      case columnExportOptions.never:
+        return false;
+      default:
+        return this.displayedColumns.indexOf(column.def) > -1;
+    }
+  }
+
+  private alarmDataToExportedData(alarmData: AlarmData,
+                                  index: number,
+                                  columns: EntityColumn[]): {[key: string]: any} {
+    const alarm = this.alarmsDatasource.alarmDataToInfo(alarmData);
+    const dataObj: {[key: string]: any} = {};
+    columns.forEach(column => {
+      dataObj[column.title] = this.cellContent(alarm, column, index, false);
+    });
+    return dataObj;
+  }
+
   isSorting(column: EntityColumn): boolean {
     return column.type === DataKeyType.alarm && column.name.startsWith('details.');
   }
@@ -1024,6 +1115,7 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
 
   private currentAlarm: AlarmDataInfo = null;
 
+  public alarms: AlarmDataInfo[] = [];
   public dataLoading = true;
   public countCellButtonAction = 0;
 
@@ -1068,6 +1160,7 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
       this.selection.clear();
       this.onSelectionModeChanged(false);
     }
+    this.alarms = [];
     this.alarmsSubject.next([]);
     this.pageDataSubject.next(emptyPageData<AlarmDataInfo>());
   }
@@ -1100,6 +1193,7 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
         isEmptySelection = true;
       }
     }
+    this.alarms = alarms;
     const alarmsPageData: PageData<AlarmDataInfo> = {
       data: alarms,
       totalPages: subscriptionAlarms.totalPages,
@@ -1117,7 +1211,7 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
     });
   }
 
-  private alarmDataToInfo(alarmData: AlarmData): AlarmDataInfo {
+  public alarmDataToInfo(alarmData: AlarmData): AlarmDataInfo {
     const alarm: AlarmDataInfo = deepClone(alarmData);
     delete alarm.latest;
     const latest = alarmData.latest;

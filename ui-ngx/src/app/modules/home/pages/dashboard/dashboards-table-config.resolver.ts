@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Injectable } from '@angular/core';
@@ -30,7 +45,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { forkJoin, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { selectAuthUser } from '@core/auth/auth.selectors';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
@@ -41,34 +56,20 @@ import { Customer } from '@app/shared/models/customer.model';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import {
-  AddEntitiesToCustomerDialogComponent,
-  AddEntitiesToCustomerDialogData
-} from '../../dialogs/add-entities-to-customer-dialog.component';
-import {
   Dashboard,
   DashboardInfo,
   getDashboardAssignedCustomersText,
-  isCurrentPublicDashboardCustomer,
   isPublicDashboard
 } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@app/core/http/dashboard.service';
-import { DashboardFormComponent } from '@modules/home/pages/dashboard/dashboard-form.component';
-import {
-  ManageDashboardCustomersActionType,
-  ManageDashboardCustomersDialogComponent,
-  ManageDashboardCustomersDialogData
-} from './manage-dashboard-customers-dialog.component';
-import {
-  MakeDashboardPublicDialogComponent,
-  MakeDashboardPublicDialogData
-} from '@modules/home/pages/dashboard/make-dashboard-public-dialog.component';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
+// import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
-import { EdgeService } from '@core/http/edge.service';
-import {
-  AddEntitiesToEdgeDialogComponent,
-  AddEntitiesToEdgeDialogData
-} from '@home/dialogs/add-entities-to-edge-dialog.component';
+// import { EdgeService } from '@core/http/edge.service';
+// import {
+//   AddEntitiesToEdgeDialogComponent,
+//   AddEntitiesToEdgeDialogData
+// } from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
@@ -78,19 +79,22 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
   constructor(private store: Store<AppState>,
               private dashboardService: DashboardService,
               private customerService: CustomerService,
-              private edgeService: EdgeService,
               private dialogService: DialogService,
               private importExport: ImportExportService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
+              private utils: UtilsService,
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.DASHBOARD;
-    this.config.entityComponent = DashboardFormComponent;
-    this.config.entityTabsComponent = DashboardTabsComponent;
+    // this.config.entityComponent = DashboardFormComponent;
+    // this.config.entityTabsComponent = DashboardTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     this.config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
+
+    this.config.entityTitle = (dashboard) => dashboard ?
+      this.utils.customTranslation(dashboard.title, dashboard.title) : '';
 
     this.config.deleteEntityTitle = dashboard =>
       this.translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: dashboard.title});
@@ -111,8 +115,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     const routeParams = route.params;
     this.config.componentsData = {
       dashboardScope: route.data.dashboardsType,
-      customerId: routeParams.customerId,
-      edgeId: routeParams.edgeId
+      customerId: routeParams.customerId
     };
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
       tap((authUser) => {
@@ -136,10 +139,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           } else {
             this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('dashboard.dashboards');
           }
-        } else if (this.config.componentsData.dashboardScope === 'edge') {
-          this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(
-            edge => this.config.tableTitle = edge.name + ': ' + this.translate.instant('dashboard.dashboards')
-          );
         } else {
           this.config.tableTitle = this.translate.instant('dashboard.dashboards');
         }
@@ -160,7 +159,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
   configureColumns(dashboardScope: string): Array<EntityTableColumn<DashboardInfo>> {
     const columns: Array<EntityTableColumn<DashboardInfo>> = [
       new DateEntityTableColumn<DashboardInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<DashboardInfo>('title', 'dashboard.title', '50%')
+      new EntityTableColumn<DashboardInfo>('title', 'dashboard.title', '50%', this.config.entityTitle)
     ];
     if (dashboardScope === 'tenant') {
       columns.push(
@@ -182,14 +181,16 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
       this.config.entitiesFetchFunction = pageLink =>
         this.dashboardService.getTenantDashboards(pageLink);
       this.config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
-    } else if (dashboardScope === 'edge' || dashboardScope === 'edge_customer_user') {
-      this.config.entitiesFetchFunction = pageLink =>
-        this.dashboardService.getEdgeDashboards(this.config.componentsData.edgeId, pageLink, this.config.componentsData.dashboardsType);
-    } else {
-      this.config.entitiesFetchFunction = pageLink =>
-        this.dashboardService.getCustomerDashboards(this.config.componentsData.customerId, pageLink);
-      this.config.deleteEntity = id =>
-        this.dashboardService.unassignDashboardFromCustomer(this.config.componentsData.customerId, id.id);
+    }
+    // else if (dashboardScope === 'edge' || dashboardScope === 'edge_customer_user') {
+    //   this.config.entitiesFetchFunction = pageLink =>
+    //     this.dashboardService.getEdgeDashboards(this.config.componentsData.edgeId, pageLink, this.config.componentsData.dashboardsType);
+    // }
+    else {
+      // this.config.entitiesFetchFunction = pageLink =>
+      //  this.dashboardService.getCustomerDashboards(this.config.componentsData.customerId, pageLink);
+      // this.config.deleteEntity = id =>
+      //  this.dashboardService.unassignDashboardFromCustomer(this.config.componentsData.customerId, id.id);
     }
   }
 
@@ -211,7 +212,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        {
+       /* {
           name: this.translate.instant('dashboard.make-public'),
           icon: 'share',
           isEnabled: (entity) => !isPublicDashboard(entity),
@@ -228,7 +229,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_ind',
           isEnabled: () => true,
           onAction: ($event, entity) => this.manageAssignedCustomers($event, entity)
-        }
+        }*/
       );
     }
     if (dashboardScope === 'customer') {
@@ -239,7 +240,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        {
+       /* {
           name: this.translate.instant('dashboard.make-private'),
           icon: 'reply',
           isEnabled: (entity) => isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
@@ -250,10 +251,10 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_return',
           isEnabled: (entity) => !isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity, this.config.componentsData.customerId)
-        }
+        }*/
       );
     }
-    if (dashboardScope === 'edge') {
+    /* if (dashboardScope === 'edge') {
       actions.push(
         {
           name: this.translate.instant('dashboard.export'),
@@ -268,13 +269,13 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event, entity) => this.unassignFromEdge($event, entity)
         }
       );
-    }
+    } */
     return actions;
   }
 
   configureGroupActions(dashboardScope: string): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
-    if (dashboardScope === 'tenant') {
+   /* if (dashboardScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('dashboard.assign-dashboards'),
@@ -312,7 +313,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event, entities) => this.unassignDashboardsFromEdge($event, entities)
         }
       );
-    }
+    }*/
     return actions;
   }
 
@@ -334,7 +335,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       );
     }
-    if (dashboardScope === 'customer') {
+    /*if (dashboardScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('dashboard.assign-new-dashboard'),
@@ -343,17 +344,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event) => this.addDashboardsToCustomer($event)
         }
       );
-    }
-    if (dashboardScope === 'edge') {
-      actions.push(
-        {
-          name: this.translate.instant('dashboard.assign-new-dashboard'),
-          icon: 'add',
-          isEnabled: () => true,
-          onAction: ($event) => this.addDashboardsToEdge($event)
-        }
-      );
-    }
+    }*/
     return actions;
   }
 
@@ -371,7 +362,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
   }
 
   importDashboard($event: Event) {
-    this.importExport.importDashboard().subscribe(
+    this.importExport.importDashboard(null).subscribe(
       (dashboard) => {
         if (dashboard) {
           this.config.updateData();
@@ -387,7 +378,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.exportDashboard(dashboard.id.id);
   }
 
-  addDashboardsToCustomer($event: Event) {
+ /* addDashboardsToCustomer($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -535,7 +526,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       }
     );
-  }
+  }*/
 
   onDashboardAction(action: EntityAction<DashboardInfo>): boolean {
     switch (action.action) {
@@ -545,7 +536,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
       case 'export':
         this.exportDashboard(action.event, action.entity);
         return true;
-      case 'makePublic':
+     /* case 'makePublic':
         this.makePublic(action.event, action.entity);
         return true;
       case 'makePrivate':
@@ -559,79 +550,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         return true;
       case 'unassignFromEdge':
         this.unassignFromEdge(action.event, action.entity);
-        return true;
+        return true;*/
     }
     return false;
-  }
-
-  addDashboardsToEdge($event: Event) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        edgeId: this.config.componentsData.edgeId,
-        entityType: EntityType.DASHBOARD
-      }
-    }).afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.config.updateData();
-        }
-      });
-  }
-
-  unassignFromEdge($event: Event, dashboard: DashboardInfo) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialogService.confirm(
-      this.translate.instant('dashboard.unassign-dashboard-title', {dashboardTitle: dashboard.title}),
-      this.translate.instant('dashboard.unassign-dashboard-from-edge-text'),
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).subscribe((res) => {
-        if (res) {
-          this.dashboardService.unassignDashboardFromEdge(this.config.componentsData.edgeId, dashboard.id.id).subscribe(
-            () => {
-              this.config.updateData(this.config.componentsData.dashboardScope !== 'tenant');
-            }
-          );
-        }
-      }
-    );
-  }
-
-  unassignDashboardsFromEdge($event: Event, dashboards: Array<DashboardInfo>) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialogService.confirm(
-      this.translate.instant('dashboard.unassign-dashboards-from-edge-title', {count: dashboards.length}),
-      this.translate.instant('dashboard.unassign-dashboards-from-edge-text'),
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).subscribe((res) => {
-        if (res) {
-          const tasks: Observable<any>[] = [];
-          dashboards.forEach(
-            (dashboard) => {
-              tasks.push(this.dashboardService.unassignDashboardFromEdge(this.config.componentsData.edgeId, dashboard.id.id));
-            }
-          );
-          forkJoin(tasks).subscribe(
-            () => {
-              this.config.updateData();
-            }
-          );
-        }
-      }
-    );
   }
 
 }

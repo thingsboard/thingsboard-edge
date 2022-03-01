@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Component, forwardRef } from '@angular/core';
@@ -58,15 +73,24 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
       let relationTypeText;
       let rootEntityText;
       let directionText;
+      let count: number;
       switch (this.filter.type) {
         case AliasFilterType.singleEntity:
           entityType = this.filter.singleEntity.entityType;
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).list,
             {count: 1});
           break;
+        case AliasFilterType.entityGroup:
+          if (this.filter.groupStateEntity) {
+            this.filterDisplayValue = this.translate.instant('alias.entities-of-group-state-entity');
+          } else {
+            entityType = this.filter.groupType;
+            this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).group);
+          }
+          break;
         case AliasFilterType.entityList:
           entityType = this.filter.entityType;
-          const count = this.filter.entityList.length;
+          count = this.filter.entityList.length;
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).list,
             {count});
           break;
@@ -80,8 +104,28 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           entityType = this.filter.entityType;
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).typePlural);
           break;
+        case AliasFilterType.entityGroupList:
+          entityType = this.filter.groupType;
+          count = this.filter.entityGroupList.length;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).groupList,
+            {count});
+          break;
+        case AliasFilterType.entityGroupName:
+          entityType = this.filter.groupType;
+          prefix = this.filter.entityGroupNameFilter;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).groupNameStartsWith,
+            {prefix});
+          break;
+        case AliasFilterType.entitiesByGroupName:
+          entityType = this.filter.groupType;
+          prefix = this.filter.entityGroupNameFilter;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).group) + ': ' + prefix;
+          break;
         case AliasFilterType.stateEntity:
           this.filterDisplayValue = this.translate.instant('alias.filter-type-state-entity-description');
+          break;
+        case AliasFilterType.stateEntityOwner:
+          this.filterDisplayValue = this.translate.instant('alias.filter-type-state-entity-owner-description');
           break;
         case AliasFilterType.assetType:
           const assetType = this.filter.assetType;
@@ -105,17 +149,6 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
               {deviceType});
           }
           break;
-        case AliasFilterType.edgeType:
-          const edgeType = this.filter.edgeType;
-          prefix = this.filter.edgeNameFilter;
-          if (prefix && prefix.length) {
-            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-type-and-name-description',
-              {edgeType, prefix});
-          } else {
-            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-type-description',
-              {edgeType});
-          }
-          break;
         case AliasFilterType.entityViewType:
           const entityView = this.filter.entityViewType;
           prefix = this.filter.entityViewNameFilter;
@@ -125,6 +158,17 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           } else {
             this.filterDisplayValue = this.translate.instant('alias.filter-type-entity-view-type-description',
               {entityView});
+          }
+          break;
+        case AliasFilterType.edgeType:
+          const edgeType = this.filter.edgeType;
+          prefix = this.filter.edgeNameFilter;
+          if (prefix && prefix.length) {
+            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-type-and-name-description',
+              {edgeType, prefix});
+          } else {
+            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-type-description',
+              {edgeType});
           }
           break;
         case AliasFilterType.relationsQuery:
@@ -241,6 +285,16 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
             const entityViewTypesText = entityViewTypesQuoted.join(', ');
             translationValues.entityViewTypes = entityViewTypesText;
             this.filterDisplayValue = this.translate.instant('alias.filter-type-entity-view-search-query-description',
+              translationValues
+            );
+          } else if (this.filter.type === AliasFilterType.edgeSearchQuery) {
+            const edgeTypesQuoted = [];
+            this.filter.edgeTypes.forEach((filterEdgeType) => {
+              edgeTypesQuoted.push(`'${filterEdgeType}'`);
+            });
+            const edgeTypesText = edgeTypesQuoted.join(', ');
+            translationValues.edgeTypes = edgeTypesText;
+            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-search-query-description',
               translationValues
             );
           }

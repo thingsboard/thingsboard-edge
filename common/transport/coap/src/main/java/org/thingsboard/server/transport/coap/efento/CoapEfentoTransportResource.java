@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.coap.efento;
 
@@ -31,11 +46,13 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.EfentoCoapDeviceTypeConfiguration;
-import org.thingsboard.server.common.transport.adaptor.AdaptorException;
+import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.coap.MeasurementTypeProtos;
-import org.thingsboard.server.gen.transport.coap.MeasurementsProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
+import org.thingsboard.server.gen.transport.coap.MeasurementTypeProtos.MeasurementType;
+import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoMeasurements;
+import org.thingsboard.server.gen.transport.coap.MeasurementsProtos.ProtoChannel;
 import org.thingsboard.server.transport.coap.AbstractCoapTransportResource;
 import org.thingsboard.server.transport.coap.CoapTransportContext;
 import org.thingsboard.server.transport.coap.callback.CoapDeviceAuthCallback;
@@ -113,10 +130,10 @@ public class CoapEfentoTransportResource extends AbstractCoapTransportResource {
     private void processMeasurementsRequest(CoapExchange exchange, Request request) {
         byte[] bytes = request.getPayload();
         try {
-            MeasurementsProtos.ProtoMeasurements protoMeasurements = MeasurementsProtos.ProtoMeasurements.parseFrom(bytes);
+            ProtoMeasurements protoMeasurements = ProtoMeasurements.parseFrom(bytes);
             log.trace("Successfully parsed Efento ProtoMeasurements: [{}]", protoMeasurements.getCloudToken());
             String token = protoMeasurements.getCloudToken();
-            transportService.process(DeviceTransportType.COAP, TransportProtos.ValidateDeviceTokenRequestMsg.newBuilder().setToken(token).build(),
+            transportService.process(DeviceTransportType.COAP, ValidateDeviceTokenRequestMsg.newBuilder().setToken(token).build(),
                     new CoapDeviceAuthCallback(exchange, (msg, deviceProfile) -> {
                         TransportProtos.SessionInfoProto sessionInfo = SessionInfoCreator.create(msg, transportContext, UUID.randomUUID());
                         UUID sessionId = new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
@@ -156,24 +173,24 @@ public class CoapEfentoTransportResource extends AbstractCoapTransportResource {
         }
     }
 
-    private List<EfentoMeasurements> getEfentoMeasurements(MeasurementsProtos.ProtoMeasurements protoMeasurements, UUID sessionId) {
+    private List<EfentoMeasurements> getEfentoMeasurements(ProtoMeasurements protoMeasurements, UUID sessionId) {
         String serialNumber = CoapEfentoUtils.convertByteArrayToString(protoMeasurements.getSerialNum().toByteArray());
         boolean batteryStatus = protoMeasurements.getBatteryStatus();
         int measurementPeriodBase = protoMeasurements.getMeasurementPeriodBase();
         int measurementPeriodFactor = protoMeasurements.getMeasurementPeriodFactor();
         int signal = protoMeasurements.getSignal();
-        List<MeasurementsProtos.ProtoChannel> channelsList = protoMeasurements.getChannelsList();
+        List<ProtoChannel> channelsList = protoMeasurements.getChannelsList();
         Map<Long, JsonObject> valuesMap = new TreeMap<>();
         if (!CollectionUtils.isEmpty(channelsList)) {
             int channel = 0;
             JsonObject values;
-            for (MeasurementsProtos.ProtoChannel protoChannel : channelsList) {
+            for (ProtoChannel protoChannel : channelsList) {
                 channel++;
                 boolean isBinarySensor = false;
-                MeasurementTypeProtos.MeasurementType measurementType = protoChannel.getType();
+                MeasurementType measurementType = protoChannel.getType();
                 String measurementTypeName = measurementType.name();
-                if (measurementType.equals(MeasurementTypeProtos.MeasurementType.OK_ALARM)
-                        || measurementType.equals(MeasurementTypeProtos.MeasurementType.FLOODING)) {
+                if (measurementType.equals(MeasurementType.OK_ALARM)
+                        || measurementType.equals(MeasurementType.FLOODING)) {
                     isBinarySensor = true;
                 }
                 if (measurementPeriodFactor == 0 && isBinarySensor) {

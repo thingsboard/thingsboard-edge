@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.install.migrate;
 
@@ -115,6 +130,32 @@ public class CassandraEntitiesToSqlMigrateService implements EntitiesMigrateServ
                 return super.onConstraintViolation(batchData, data, constraint);
             }
         },
+        new CassandraToSqlTable("integration",
+                idColumn("id"),
+                idColumn("tenant_id"),
+                stringColumn("additional_info"),
+                stringColumn("configuration"),
+                booleanColumn("debug_mode"),
+                booleanColumn("enabled"),
+                booleanColumn("is_remote"),
+                stringColumn("name"),
+                stringColumn("secret"),
+                idColumn("converter_id"),
+                idColumn("downlink_converter_id"),
+                stringColumn("routing_key"),
+                stringColumn("search_text"),
+                stringColumn("type")
+        ),
+        new CassandraToSqlTable("converter",
+                idColumn("id"),
+                idColumn("tenant_id"),
+                stringColumn("name"),
+                stringColumn("type"),
+                stringColumn("search_text"),
+                stringColumn("configuration"),
+                booleanColumn("debug_mode"),
+                stringColumn("additional_info")
+        ),
         new CassandraToSqlTable("audit_log_by_tenant_id", "audit_log",
                 idColumn("id"),
                 idColumn("tenant_id"),
@@ -163,6 +204,7 @@ public class CassandraEntitiesToSqlMigrateService implements EntitiesMigrateServ
         new CassandraToSqlTable("customer",
                 idColumn("id"),
                 idColumn("tenant_id"),
+                idColumn("parent_customer_id"),
                 stringColumn("title"),
                 stringColumn("search_text"),
                 stringColumn("country"),
@@ -177,6 +219,7 @@ public class CassandraEntitiesToSqlMigrateService implements EntitiesMigrateServ
         new CassandraToSqlTable("dashboard",
                 idColumn("id"),
                 idColumn("tenant_id"),
+                idColumn("customer_id"),
                 stringColumn("title"),
                 stringColumn("search_text"),
                 stringColumn("assigned_customers"),
@@ -291,6 +334,15 @@ public class CassandraEntitiesToSqlMigrateService implements EntitiesMigrateServ
                 stringColumn("alias"),
                 stringColumn("title"),
                 stringColumn("search_text")),
+        new CassandraToSqlTable("entity_group",
+                idColumn("id"),
+                stringColumn("type"),
+                stringColumn("name"),
+                idColumn("owner_id"),
+                stringColumn("owner_type"),
+                stringColumn("additional_info"),
+                stringColumn("configuration")
+        ),
         new CassandraToSqlTable("rule_chain",
                 idColumn("id"),
                 idColumn("tenant_id"),
@@ -310,6 +362,26 @@ public class CassandraEntitiesToSqlMigrateService implements EntitiesMigrateServ
                 stringColumn("search_text"),
                 stringColumn("configuration"),
                 stringColumn("additional_info")),
+        new CassandraToSqlTable("scheduler_event",
+                idColumn("id"),
+                idColumn("tenant_id"),
+                idColumn("customer_id"),
+                stringColumn("name"),
+                stringColumn("type"),
+                stringColumn("search_text"),
+                stringColumn("schedule"),
+                stringColumn("configuration"),
+                stringColumn("additional_info")),
+        new CassandraToSqlTable("blob_entity",
+                idColumn("id"),
+                idColumn("tenant_id"),
+                idColumn("customer_id"),
+                stringColumn("name"),
+                stringColumn("type"),
+                stringColumn("content_type"),
+                stringColumn("search_text"),
+                stringColumn("data"),
+                stringColumn("additional_info")),
         new CassandraToSqlTable("entity_view",
                 idColumn("id"),
                 idColumn("tenant_id"),
@@ -322,6 +394,23 @@ public class CassandraEntitiesToSqlMigrateService implements EntitiesMigrateServ
                 bigintColumn("start_ts"),
                 bigintColumn("end_ts"),
                 stringColumn("search_text"),
-                stringColumn("additional_info"))
+                stringColumn("additional_info")),
+        new CassandraToSqlTable("role",
+                idColumn("id"),
+                idColumn("tenant_id"),
+                idColumn("customer_id"),
+                stringColumn("name"),
+                stringColumn("type"),
+                stringColumn("permissions"),
+                stringColumn("search_text"),
+                stringColumn("additional_info")),
+        new CassandraToSqlTable("group_permission",
+                idColumn("id"),
+                idColumn("tenant_id"),
+                idColumn("role_id"),
+                idColumn("user_group_id"),
+                idColumn("entity_group_id"),
+                stringColumn("entity_group_type"),
+                booleanColumn("is_public"))
     );
 }

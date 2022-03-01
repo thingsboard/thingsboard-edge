@@ -1,38 +1,54 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Device } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
   createDeviceTransportConfiguration, DeviceCredentials,
   DeviceData,
-  DeviceInfo,
   DeviceProfileInfo,
   DeviceProfileType,
   DeviceTransportType
 } from '@shared/models/device.models';
 import { EntityType } from '@shared/models/entity-type.models';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { DeviceService } from '@core/http/device.service';
+import { ClipboardService } from 'ngx-clipboard';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { Subject } from 'rxjs';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -43,27 +59,29 @@ import { getEntityDetailsPageURL } from '@core/utils';
   templateUrl: './device.component.html',
   styleUrls: ['./device.component.scss']
 })
-export class DeviceComponent extends EntityComponent<DeviceInfo> {
+export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
 
   deviceCredentials$: Subject<DeviceCredentials>;
 
-  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge' | 'edge_customer_user';
+//  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
 
   otaUpdateType = OtaUpdateType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: DeviceInfo,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<DeviceInfo>,
-              public fb: FormBuilder,
+              private deviceService: DeviceService,
+              private clipboardService: ClipboardService,
+              @Inject('entity') protected entityValue: Device,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
+              protected fb: FormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
   ngOnInit() {
-    this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
+    // this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
     this.deviceCredentials$ = this.entitiesTableConfigValue.componentsData.deviceCredentials$;
     super.ngOnInit();
   }
@@ -76,11 +94,27 @@ export class DeviceComponent extends EntityComponent<DeviceInfo> {
     }
   }
 
-  isAssignedToCustomer(entity: DeviceInfo): boolean {
-    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  hideAssignmentActions() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
+    } else {
+      return false;
+    }
   }
 
-  buildForm(entity: DeviceInfo): FormGroup {
+  hideManageCredentials() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageCredentialsEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  /* isAssignedToCustomer(entity: Device): boolean {
+    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  } */
+
+  buildForm(entity: Device): FormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -111,7 +145,7 @@ export class DeviceComponent extends EntityComponent<DeviceInfo> {
     return form;
   }
 
-  updateForm(entity: DeviceInfo) {
+  updateForm(entity: Device) {
     this.entityForm.patchValue({
       name: entity.name,
       deviceProfileId: entity.deviceProfileId,

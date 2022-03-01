@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Water Metering Solution Tenant Alarm Routing",
+    "file": "water_metering_solution_tenant_alarm_routing.json",
+    "jsonId": "f989af30-8304-11eb-9c0d-65c02c160424"
+  },
+  {
+    "name": "Water Metering Solution Customer Alarm Routing",
+    "file": "water_metering_solution_customer_alarm_routing.json",
+    "jsonId": "600cc4d0-831a-11eb-b965-d742151feed7"
+  },
+  {
+    "name": "Water Metering Solution Main",
+    "file": "water_metering_solution_main.json",
+    "jsonId": "95c148c0-599a-11eb-940c-293b71ac913c"
+  }
+]

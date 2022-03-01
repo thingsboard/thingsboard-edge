@@ -1,20 +1,36 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.usagerecord;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.ApiFeature;
@@ -33,7 +49,6 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfiguration;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.server.dao.tenant.TenantProfileDao;
@@ -47,6 +62,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ApiUsageStateServiceImpl extends AbstractEntityService implements ApiUsageStateService {
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
@@ -54,13 +70,7 @@ public class ApiUsageStateServiceImpl extends AbstractEntityService implements A
     private final TenantProfileDao tenantProfileDao;
     private final TenantDao tenantDao;
     private final TimeseriesService tsService;
-
-    public ApiUsageStateServiceImpl(TenantDao tenantDao, ApiUsageStateDao apiUsageStateDao, TenantProfileDao tenantProfileDao, TimeseriesService tsService) {
-        this.tenantDao = tenantDao;
-        this.apiUsageStateDao = apiUsageStateDao;
-        this.tenantProfileDao = tenantProfileDao;
-        this.tsService = tsService;
-    }
+    private final DataValidator<ApiUsageState> apiUsageStateValidator;
 
     @Override
     public void deleteApiUsageStateByTenantId(TenantId tenantId) {
@@ -156,25 +166,5 @@ public class ApiUsageStateServiceImpl extends AbstractEntityService implements A
         validateId(id, "Incorrect apiUsageStateId " + id);
         return apiUsageStateDao.findById(tenantId, id.getId());
     }
-
-    private DataValidator<ApiUsageState> apiUsageStateValidator =
-            new DataValidator<ApiUsageState>() {
-                @Override
-                protected void validateDataImpl(TenantId requestTenantId, ApiUsageState apiUsageState) {
-                    if (apiUsageState.getTenantId() == null) {
-                        throw new DataValidationException("ApiUsageState should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(requestTenantId, apiUsageState.getTenantId().getId());
-                        if (tenant == null && !requestTenantId.equals(TenantId.SYS_TENANT_ID)) {
-                            throw new DataValidationException("ApiUsageState is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (apiUsageState.getEntityId() == null) {
-                        throw new DataValidationException("UsageRecord should be assigned to entity!");
-                    } else if (apiUsageState.getEntityId().getEntityType() != EntityType.TENANT && apiUsageState.getEntityId().getEntityType() != EntityType.CUSTOMER) {
-                        throw new DataValidationException("Only Tenant and Customer Usage Records are supported!");
-                    }
-                }
-            };
 
 }

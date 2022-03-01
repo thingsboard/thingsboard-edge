@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.edge;
 
@@ -19,62 +34,58 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.Customer;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
-import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.cache.EntitiesCacheManager;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.tenant.TenantDao;
-import org.thingsboard.server.dao.user.UserService;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
+import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -96,16 +107,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     private EdgeDao edgeDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private CustomerDao customerDao;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private CacheManager cacheManager;
+    private EntitiesCacheManager cacheManager;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -113,18 +115,17 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     @Autowired
     private RelationService relationService;
 
+    @Autowired
+    private EntityGroupService entityGroupService;
+
+    @Autowired
+    private DataValidator<Edge> edgeValidator;
+
     @Override
     public Edge findEdgeById(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing findEdgeById [{}]", edgeId);
         validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
         return edgeDao.findById(tenantId, edgeId.getId());
-    }
-
-    @Override
-    public EdgeInfo findEdgeInfoById(TenantId tenantId, EdgeId edgeId) {
-        log.trace("Executing findEdgeInfoById [{}]", edgeId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        return edgeDao.findEdgeInfoById(tenantId, edgeId.getId());
     }
 
     @Override
@@ -152,13 +153,12 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     @CacheEvict(cacheNames = EDGE_CACHE, key = "{#edge.tenantId, #edge.name}")
     @Override
-    public Edge saveEdge(Edge edge, boolean doValidate) {
+    public Edge saveEdge(Edge edge) {
         log.trace("Executing saveEdge [{}]", edge);
-        if (doValidate) {
-            edgeValidator.validate(edge, Edge::getTenantId);
-        }
+        edgeValidator.validate(edge, Edge::getTenantId);
+        Edge savedEdge;
         try {
-            return edgeDao.save(edge.getTenantId(), edge);
+            savedEdge = edgeDao.save(edge.getTenantId(), edge);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null
@@ -168,22 +168,10 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 throw t;
             }
         }
-    }
-
-    @Override
-    public Edge assignEdgeToCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId) {
-        log.trace("[{}] Executing assignEdgeToCustomer [{}][{}]", tenantId, edgeId, customerId);
-        Edge edge = findEdgeById(tenantId, edgeId);
-        edge.setCustomerId(customerId);
-        return saveEdge(edge, true);
-    }
-
-    @Override
-    public Edge unassignEdgeFromCustomer(TenantId tenantId, EdgeId edgeId) {
-        log.trace("[{}] Executing unassignEdgeFromCustomer [{}]", tenantId, edgeId);
-        Edge edge = findEdgeById(tenantId, edgeId);
-        edge.setCustomerId(null);
-        return saveEdge(edge, true);
+        if (edge.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
+        }
+        return savedEdge;
     }
 
     @Override
@@ -195,14 +183,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
         deleteEntityRelations(tenantId, edgeId);
 
-        removeEdgeFromCacheByName(edge.getTenantId(), edge.getName());
+        cacheManager.removeEdgeFromCacheByName(edge.getTenantId(), edge.getName());
 
         edgeDao.removeById(tenantId, edgeId.getId());
-    }
-
-    private void removeEdgeFromCacheByName(TenantId tenantId, String name) {
-        Cache cache = cacheManager.getCache(EDGE_CACHE);
-        cache.evict(Arrays.asList(tenantId, name));
     }
 
     @Override
@@ -220,23 +203,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink);
         return edgeDao.findEdgesByTenantIdAndType(tenantId.getId(), type, pageLink);
-    }
-
-    @Override
-    public PageData<EdgeInfo> findEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
-        log.trace("Executing findEdgeInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink);
-        return edgeDao.findEdgeInfosByTenantIdAndType(tenantId.getId(), type, pageLink);
-    }
-
-    @Override
-    public PageData<EdgeInfo> findEdgeInfosByTenantId(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findEdgeInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink);
-        return edgeDao.findEdgeInfosByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -274,25 +240,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        log.trace("Executing findEdgeInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink);
-        return edgeDao.findEdgeInfosByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
-        log.trace("Executing findEdgeInfosByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink);
-        return edgeDao.findEdgeInfosByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
-    }
-
-    @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<EdgeId> edgeIds) {
         log.trace("Executing findEdgesByTenantIdCustomerIdAndIdsAsync, tenantId [{}], customerId [{}], edgeIds [{}]", tenantId, customerId, edgeIds);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -300,14 +247,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         validateIds(edgeIds, "Incorrect edgeIds " + edgeIds);
         return edgeDao.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId.getId(),
                 customerId.getId(), toUUIDs(edgeIds));
-    }
-
-    @Override
-    public void unassignCustomerEdges(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerEdges, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        customerEdgeUnassigner.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -330,7 +269,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             @Nullable
             @Override
             public List<Edge> apply(@Nullable List<Edge> edgeList) {
-                return edgeList == null ? Collections.emptyList() : edgeList.stream().filter(edge -> query.getEdgeTypes().contains(edge.getType())).collect(Collectors.toList());
+                return edgeList == null ?
+                        Collections.emptyList() :
+                        edgeList.stream().filter(edge -> query.getEdgeTypes().contains(edge.getType())).collect(Collectors.toList());
             }
         }, MoreExecutors.directExecutor());
 
@@ -347,6 +288,27 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     edgeTypes.sort(Comparator.comparing(EntitySubtype::getType));
                     return edgeTypes;
                 }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
+        log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
+        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, oldEdgeName, EntityType.DEVICE);
+        Futures.addCallback(deviceEdgeAllGroupFuture, new FutureCallback<EntityGroup>() {
+            @Override
+            public void onSuccess(@Nullable EntityGroup deviceEdgeAllGroup) {
+                if (deviceEdgeAllGroup != null) {
+                    String newEntityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
+                    deviceEdgeAllGroup.setName(newEntityGroupName);
+                    entityGroupService.saveEntityGroup(tenantId, deviceEdgeAllGroup.getOwnerId(), deviceEdgeAllGroup);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[{}] Failed to find edge all group [{}]", tenantId, edge, t);
+            }
+        }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -368,6 +330,15 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
+    public void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId) {
+        log.trace("Executing assignTenantAdministratorsAndUsersGroupToEdge, tenantId [{}], edgeId [{}]", tenantId, edgeId);
+        EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, admins.getId(), edgeId, admins.getType());
+        EntityGroup users = entityGroupService.findOrCreateTenantUsersGroup(tenantId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, users.getId(), edgeId, users.getType());
+    }
+
+    @Override
     public PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
         log.trace("Executing findEdgesByTenantIdAndEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
@@ -375,62 +346,15 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findEdgesByTenantIdAndEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
     }
 
-    private DataValidator<Edge> edgeValidator =
-            new DataValidator<Edge>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, Edge edge) {
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, Edge edge) {
-                    Edge old = edgeDao.findById(edge.getTenantId(), edge.getId().getId());
-                    if (!old.getName().equals(edge.getName())) {
-                        removeEdgeFromCacheByName(tenantId, old.getName());
-                    }
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Edge edge) {
-                    if (StringUtils.isEmpty(edge.getType())) {
-                        throw new DataValidationException("Edge type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getName())) {
-                        throw new DataValidationException("Edge name should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getSecret())) {
-                        throw new DataValidationException("Edge secret should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getRoutingKey())) {
-                        throw new DataValidationException("Edge routing key should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getEdgeLicenseKey())) {
-                        throw new DataValidationException("Edge license key should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getCloudEndpoint())) {
-                        throw new DataValidationException("Cloud endpoint should be specified!");
-                    }
-                    if (edge.getTenantId() == null) {
-                        throw new DataValidationException("Edge should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(edge.getTenantId(), edge.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Edge is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (edge.getCustomerId() == null) {
-                        edge.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!edge.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(edge.getTenantId(), edge.getCustomerId().getId());
-                        if (customer == null) {
-                            throw new DataValidationException("Can't assign edge to non-existent customer!");
-                        }
-                        if (!customer.getTenantId().getId().equals(edge.getTenantId().getId())) {
-                            throw new DataValidationException("Can't assign edge to customer from different tenant!");
-                        }
-                    }
-                }
-            };
+    @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
+        return edgeDao.findEdgeIdsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
+    }
 
     private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
             new PaginatedRemover<TenantId, Edge>() {
@@ -446,21 +370,13 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 }
             };
 
-    private PaginatedRemover<CustomerId, Edge> customerEdgeUnassigner = new PaginatedRemover<CustomerId, Edge>() {
-
-        @Override
-        protected PageData<Edge> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
-            return edgeDao.findEdgesByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
-        }
-
-        @Override
-        protected void removeEntity(TenantId tenantId, Edge entity) {
-            unassignEdgeFromCustomer(tenantId, new EdgeId(entity.getUuidId()));
-        }
-    };
-
     @Override
     public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        return findRelatedEdgeIdsByEntityId(tenantId, entityId, null, pageLink);
+    }
+
+    @Override
+    public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType, PageLink pageLink) {
         log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}] [{}]", tenantId, entityId, pageLink);
         if (EntityType.TENANT.equals(entityId.getEntityType()) ||
                 EntityType.CUSTOMER.equals(entityId.getEntityType()) ||
@@ -476,27 +392,60 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 case EDGE:
                     List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
                     return new PageData<>(edgeIds, 1, 1, false);
+                case USER:
                 case DEVICE:
                 case ASSET:
                 case ENTITY_VIEW:
                 case DASHBOARD:
-                case RULE_CHAIN:
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
-                case USER:
-                    User userById = userService.findUserById(tenantId, new UserId(entityId.getId()));
-                    if (userById == null) {
+                    List<EntityGroupId> entityGroupsForEntity = null;
+                    try {
+                        entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
+                    }  catch (Exception e) {
+                        log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
+                    }
+                    if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
                         return createEmptyEdgeIdPageData();
                     }
-                    if (userById.getCustomerId() == null || userById.getCustomerId().isNullUid()) {
-                        return convertToEdgeIds(findEdgesByTenantId(tenantId, pageLink));
-                    } else {
-                        return convertToEdgeIds(findEdgesByTenantIdAndCustomerId(tenantId, userById.getCustomerId(), pageLink));
+                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
+                case ENTITY_GROUP:
+                    EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
+                    if (groupType == null) {
+                        groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
                     }
+                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
+                case RULE_CHAIN:
+                case SCHEDULER_EVENT:
+                    return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
                 default:
                     log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
                     return createEmptyEdgeIdPageData();
             }
         }
+    }
+
+    @Override
+    public PageData<Edge> findEdgesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findEdgesByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByEntityGroupId(groupId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<Edge> findEdgesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
+        log.trace("Executing findEdgesByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByEntityGroupIds(toUUIDs(groupIds), pageLink);
+    }
+
+    @Override
+    public PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
+        log.trace("Executing findEdgesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
     private PageData<EdgeId> createEmptyEdgeIdPageData() {

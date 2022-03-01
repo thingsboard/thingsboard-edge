@@ -1,17 +1,32 @@
 --
--- Copyright © 2016-2022 The Thingsboard Authors
+-- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 --
---     http://www.apache.org/licenses/LICENSE-2.0
+-- NOTICE: All information contained herein is, and remains
+-- the property of ThingsBoard, Inc. and its suppliers,
+-- if any.  The intellectual and technical concepts contained
+-- herein are proprietary to ThingsBoard, Inc.
+-- and its suppliers and may be covered by U.S. and Foreign Patents,
+-- patents in process, and are protected by trade secret or copyright law.
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- Dissemination of this information or reproduction of this material is strictly forbidden
+-- unless prior written permission is obtained from COMPANY.
+--
+-- Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+-- managers or contractors who have executed Confidentiality and Non-disclosure agreements
+-- explicitly covering such access.
+--
+-- The copyright notice above does not evidence any actual or intended publication
+-- or disclosure  of  this source code, which includes
+-- information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+-- ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+-- OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+-- THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+-- AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+-- THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+-- DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+-- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
 CREATE TABLE IF NOT EXISTS tb_schema_settings
@@ -35,7 +50,7 @@ call insert_tb_schema_settings();
 CREATE TABLE IF NOT EXISTS admin_settings (
     id uuid NOT NULL CONSTRAINT admin_settings_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
-    json_value varchar,
+    json_value varchar(10000000),
     key varchar(255)
 );
 
@@ -57,6 +72,7 @@ CREATE TABLE IF NOT EXISTS alarm (
     propagate_relation_types varchar,
     type varchar(255),
     propagate_to_owner boolean,
+    propagate_to_owner_hierarchy boolean,
     propagate_to_tenant boolean
 );
 
@@ -83,6 +99,37 @@ CREATE TABLE IF NOT EXISTS asset (
     tenant_id uuid,
     type varchar(255),
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS integration (
+    id uuid NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    additional_info varchar,
+    configuration varchar(10000000),
+    debug_mode boolean,
+    enabled boolean,
+    is_remote boolean,
+    allow_create_devices_or_assets boolean,
+    name varchar(255),
+    secret varchar(255),
+    converter_id uuid,
+    downlink_converter_id uuid,
+    routing_key varchar(255),
+    search_text varchar(255),
+    tenant_id uuid,
+    type varchar(255)
+);
+
+CREATE TABLE IF NOT EXISTS converter (
+    id uuid NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    additional_info varchar,
+    configuration varchar(10000000),
+    debug_mode boolean,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id uuid,
+    type varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -115,6 +162,8 @@ CREATE TABLE IF NOT EXISTS attribute_kv (
   CONSTRAINT attribute_kv_pkey PRIMARY KEY (entity_type, entity_id, attribute_type, attribute_key)
 );
 
+CREATE INDEX IF NOT EXISTS attribute_kv_last_key ON attribute_kv(entity_id, attribute_key, last_update_ts desc);
+
 CREATE TABLE IF NOT EXISTS component_descriptor (
     id uuid NOT NULL CONSTRAINT component_descriptor_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
@@ -140,6 +189,7 @@ CREATE TABLE IF NOT EXISTS customer (
     search_text varchar(255),
     state varchar(255),
     tenant_id uuid,
+    parent_customer_id uuid,
     title varchar(255),
     zip varchar(255)
 );
@@ -151,6 +201,7 @@ CREATE TABLE IF NOT EXISTS dashboard (
     assigned_customers varchar(1000000),
     search_text varchar(255),
     tenant_id uuid,
+    customer_id uuid,
     title varchar(255),
     mobile_hide boolean DEFAULT false,
     mobile_order int,
@@ -307,12 +358,14 @@ CREATE TABLE IF NOT EXISTS relation (
     CONSTRAINT relation_pkey PRIMARY KEY (from_id, from_type, relation_type_group, relation_type, to_id, to_type)
 );
 -- ) PARTITION BY LIST (relation_type_group);
---
+
 -- CREATE TABLE other_relations PARTITION OF relation DEFAULT;
 -- CREATE TABLE common_relations PARTITION OF relation FOR VALUES IN ('COMMON');
 -- CREATE TABLE alarm_relations PARTITION OF relation FOR VALUES IN ('ALARM');
 -- CREATE TABLE dashboard_relations PARTITION OF relation FOR VALUES IN ('DASHBOARD');
 -- CREATE TABLE rule_relations PARTITION OF relation FOR VALUES IN ('RULE_CHAIN', 'RULE_NODE');
+-- CREATE TABLE from_group_relations PARTITION OF relation FOR VALUES IN ('FROM_ENTITY_GROUP');
+-- CREATE TABLE to_group_relations PARTITION OF relation FOR VALUES IN ('TO_ENTITY_GROUP');
 
 CREATE TABLE IF NOT EXISTS tb_user (
     id uuid NOT NULL CONSTRAINT tb_user_pkey PRIMARY KEY,
@@ -392,6 +445,44 @@ CREATE TABLE IF NOT EXISTS widgets_bundle (
     description varchar(255)
 );
 
+CREATE TABLE IF NOT EXISTS entity_group (
+    id uuid NOT NULL CONSTRAINT entity_group_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    type varchar(255) NOT NULL,
+    name varchar(255),
+    owner_id uuid,
+    owner_type varchar(255),
+    additional_info varchar,
+    configuration varchar(10000000),
+    CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)
+);
+
+CREATE TABLE IF NOT EXISTS scheduler_event (
+    id uuid NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    additional_info varchar,
+    customer_id uuid,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id uuid,
+    type varchar(255),
+    schedule varchar,
+    configuration varchar(10000000)
+);
+
+CREATE TABLE IF NOT EXISTS blob_entity (
+    id uuid NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    customer_id uuid,
+    name varchar(255),
+    type varchar(255),
+    content_type varchar(255),
+    search_text varchar(255),
+    data varchar(10485760),
+    additional_info varchar
+);
+
 CREATE TABLE IF NOT EXISTS entity_view (
     id uuid NOT NULL CONSTRAINT entity_view_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
@@ -406,6 +497,29 @@ CREATE TABLE IF NOT EXISTS entity_view (
     end_ts bigint,
     search_text varchar(255),
     additional_info varchar
+);
+
+CREATE TABLE IF NOT EXISTS role (
+    id uuid NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    customer_id uuid,
+    name varchar(255),
+    type varchar(255),
+    search_text varchar(255),
+    permissions varchar(10000000),
+    additional_info varchar
+);
+
+CREATE TABLE IF NOT EXISTS group_permission (
+    id uuid NOT NULL CONSTRAINT group_permission_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    role_id uuid,
+    user_group_id uuid,
+    entity_group_id uuid,
+    entity_group_type varchar(255),
+    is_public boolean
 );
 
 CREATE TABLE IF NOT EXISTS ts_kv_latest
@@ -463,6 +577,8 @@ CREATE TABLE IF NOT EXISTS oauth2_registration (
     basic_customer_name_pattern varchar(255),
     basic_default_dashboard_name varchar(255),
     basic_always_full_screen boolean,
+    basic_parent_customer_name_pattern varchar(255),
+    basic_user_groups_name_pattern varchar(1024),
     custom_url varchar(255),
     custom_username varchar(255),
     custom_password varchar(255),
@@ -511,6 +627,8 @@ CREATE TABLE IF NOT EXISTS oauth2_client_registration_template (
     basic_customer_name_pattern varchar(255),
     basic_default_dashboard_name varchar(255),
     basic_always_full_screen boolean,
+    basic_parent_customer_name_pattern varchar(255),
+    basic_user_groups_name_pattern varchar(1024),
     comment varchar,
     login_button_icon varchar(255),
     login_button_label varchar(255),
@@ -546,6 +664,8 @@ CREATE TABLE IF NOT EXISTS oauth2_client_registration_info (
     basic_customer_name_pattern varchar(255),
     basic_default_dashboard_name varchar(255),
     basic_always_full_screen boolean,
+    basic_parent_customer_name_pattern varchar(255),
+    basic_user_groups_name_pattern varchar(1024),
     custom_url varchar(255),
     custom_username varchar(255),
     custom_password varchar(255),
@@ -619,7 +739,19 @@ CREATE TABLE IF NOT EXISTS edge_event (
     edge_event_action varchar(255),
     body varchar(10000000),
     tenant_id uuid,
+    entity_group_id uuid,
     ts bigint NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS device_group_ota_package (
+    id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,
+    group_id uuid NOT NULL,
+    ota_package_type varchar(32) NOT NULL,
+    ota_package_id uuid NOT NULL,
+    ota_package_update_time bigint NOT NULL,
+    CONSTRAINT device_group_ota_package_unq_key UNIQUE (group_id, ota_package_type),
+    CONSTRAINT fk_ota_package_device_group_ota_package FOREIGN KEY (ota_package_id) REFERENCES ota_package(id),
+    CONSTRAINT fk_entity_group_device_group_ota_package FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS rpc (
@@ -634,24 +766,31 @@ CREATE TABLE IF NOT EXISTS rpc (
     status varchar(255) NOT NULL
 );
 
-CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(IN ttl bigint, IN debug_ttl bigint, INOUT deleted bigint)
+CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(
+    IN regular_events_start_ts bigint,
+    IN regular_events_end_ts bigint,
+    IN debug_events_start_ts bigint,
+    IN debug_events_end_ts bigint,
+    INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$
 DECLARE
-    ttl_ts bigint;
-    debug_ttl_ts bigint;
     ttl_deleted_count bigint DEFAULT 0;
     debug_ttl_deleted_count bigint DEFAULT 0;
 BEGIN
-    IF ttl > 0 THEN
-        ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - ttl::bigint * 1000)::bigint;
+    IF regular_events_start_ts > 0 AND regular_events_end_ts > 0 THEN
         EXECUTE format(
-                'WITH deleted AS (DELETE FROM event WHERE ts < %L::bigint AND (event_type != %L::varchar AND event_type != %L::varchar) RETURNING *) SELECT count(*) FROM deleted', ttl_ts, 'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN') into ttl_deleted_count;
+                'WITH deleted AS (DELETE FROM event WHERE id in (SELECT id from event WHERE ts > %L::bigint AND ts < %L::bigint AND ' ||
+                '(event_type != %L::varchar AND event_type != %L::varchar AND event_type != %L::varchar AND event_type != %L::varchar)) RETURNING *) ' ||
+                'SELECT count(*) FROM deleted', regular_events_start_ts, regular_events_end_ts,
+                'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN', 'DEBUG_CONVERTER', 'DEBUG_INTEGRATION') into ttl_deleted_count;
     END IF;
-    IF debug_ttl > 0 THEN
-        debug_ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - debug_ttl::bigint * 1000)::bigint;
+    IF debug_events_start_ts > 0 AND debug_events_end_ts > 0 THEN
         EXECUTE format(
-                'WITH deleted AS (DELETE FROM event WHERE ts < %L::bigint AND (event_type = %L::varchar OR event_type = %L::varchar) RETURNING *) SELECT count(*) FROM deleted', debug_ttl_ts, 'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN') into debug_ttl_deleted_count;
+                'WITH deleted AS (DELETE FROM event WHERE id in (SELECT id from event WHERE ts > %L::bigint AND ts < %L::bigint AND ' ||
+                '(event_type = %L::varchar OR event_type = %L::varchar OR event_type = %L::varchar OR event_type = %L::varchar)) RETURNING *) ' ||
+                'SELECT count(*) FROM deleted', debug_events_start_ts, debug_events_end_ts,
+                'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN', 'DEBUG_CONVERTER', 'DEBUG_INTEGRATION') into debug_ttl_deleted_count;
     END IF;
     RAISE NOTICE 'Events removed by ttl: %', ttl_deleted_count;
     RAISE NOTICE 'Debug Events removed by ttl: %', debug_ttl_deleted_count;
@@ -666,7 +805,6 @@ BEGIN
                '-' || substring(entity_id, 16, 4) || '-' || substring(entity_id, 20, 12);
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE PROCEDURE cleanup_edge_events_by_ttl(IN ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS

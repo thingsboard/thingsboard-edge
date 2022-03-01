@@ -1,0 +1,364 @@
+[
+  {
+    "name": "Smart Shelf",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "weight",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 70,
+          "maxStartValue": 80,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 150,
+          "maxHighValue": 150,
+          "minIncrement": 20.0,
+          "maxIncrement": 50.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 2.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Chiller",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 10,
+          "maxStartValue": 12,
+          "minLowValue": 5,
+          "maxLowValue": 7,
+          "minHighValue": 20,
+          "maxHighValue": 23,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.7,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Freezer",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": -10,
+          "maxStartValue": -12,
+          "minLowValue": -20,
+          "maxLowValue": -18,
+          "minHighValue": -6,
+          "maxHighValue": -2,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.7,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smart Bin",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "level",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 10,
+          "maxStartValue": 20,
+          "minLowValue": 0,
+          "maxLowValue": 2,
+          "minHighValue": 90,
+          "maxHighValue": 95,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 50.0,
+          "maxDecrement": 100.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Liquid Level Sensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "level",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 80,
+          "maxStartValue": 100,
+          "minLowValue": 27,
+          "maxLowValue": 45,
+          "minHighValue": 98,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 5.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.0
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Door Sensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "open",
+        "valueStrategy": {
+          "type": "composite",
+          "defaultHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 3
+          },
+          "nightHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 10000
+          }
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Occupancy Sensor",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "occupied",
+        "valueStrategy": {
+          "type": "composite",
+          "defaultHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 2
+          },
+          "nightHours": {
+            "type": "constant",
+            "value": false
+          }
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "alarm",
+        "valueStrategy": {
+          "type": "event",
+          "normalValue": false,
+          "anomalyValue": true,
+          "anomalyChance": 2000
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Motion Sensor",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "motion",
+        "valueStrategy": {
+          "type": "composite",
+          "defaultHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 3
+          },
+          "nightHours": {
+            "type": "event",
+            "normalValue": false,
+            "anomalyValue": true,
+            "anomalyChance": 10000
+          }
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]

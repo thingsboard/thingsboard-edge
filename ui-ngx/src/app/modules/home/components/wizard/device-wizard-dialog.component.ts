@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Component, Inject, OnDestroy, SkipSelf, ViewChild } from '@angular/core';
@@ -24,6 +39,7 @@ import { Router } from '@angular/router';
 import {
   createDeviceProfileConfiguration,
   createDeviceProfileTransportConfiguration,
+  Device,
   DeviceProfile,
   DeviceProfileInfo,
   DeviceProfileType,
@@ -34,8 +50,6 @@ import {
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
 import { MatHorizontalStepper } from '@angular/material/stepper';
-import { AddEntityDialogData } from '@home/models/entity/entity-component.models';
-import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -46,6 +60,10 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
+import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
+import { CustomerId } from '@shared/models/id/customer-id';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { ServiceType } from '@shared/models/queue.models';
 import { deepTrim } from '@core/utils';
@@ -57,9 +75,13 @@ import { deepTrim } from '@core/utils';
   styleUrls: ['./device-wizard-dialog.component.scss']
 })
 export class DeviceWizardDialogComponent extends
-  DialogComponent<DeviceWizardDialogComponent, boolean> implements OnDestroy, ErrorStateMatcher {
+  DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
   @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatHorizontalStepper;
+
+  resource = Resource;
+
+  operation = Operation;
 
   selectedIndex = 0;
 
@@ -85,9 +107,11 @@ export class DeviceWizardDialogComponent extends
 
   credentialsFormGroup: FormGroup;
 
-  customerFormGroup: FormGroup;
-
   labelPosition: MatHorizontalStepper['labelPosition'] = 'end';
+
+  entitiesTableConfig = this.data.entitiesTableConfig;
+
+  entityGroup = this.entitiesTableConfig.entityGroup;
 
   serviceType = ServiceType.TB_RULE_ENGINE;
 
@@ -96,11 +120,12 @@ export class DeviceWizardDialogComponent extends
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: AddEntityDialogData<BaseData<EntityId>>,
+              @Inject(MAT_DIALOG_DATA) public data: AddGroupEntityDialogData<Device>,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<DeviceWizardDialogComponent, boolean>,
+              public dialogRef: MatDialogRef<DeviceWizardDialogComponent, Device>,
               private deviceProfileService: DeviceProfileService,
               private deviceService: DeviceService,
+              private userPermissionService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
               private fb: FormBuilder) {
     super(store, router, dialogRef);
@@ -181,11 +206,6 @@ export class DeviceWizardDialogComponent extends
       }
     }));
 
-    this.customerFormGroup = this.fb.group({
-        customerId: [null]
-      }
-    );
-
     this.labelPosition = this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm']) ? 'end' : 'bottom';
 
     this.subscriptions.push(this.breakpointObserver
@@ -240,8 +260,6 @@ export class DeviceWizardDialogComponent extends
         return 'device-profile.device-provisioning';
       case 4:
         return 'device.credentials';
-      case 5:
-        return 'customer.customer';
     }
   }
 
@@ -268,8 +286,8 @@ export class DeviceWizardDialogComponent extends
         mergeMap(profileId => this.createDevice(profileId)),
         mergeMap(device => this.saveCredentials(device))
       ).subscribe(
-        (created) => {
-          this.dialogRef.close(created);
+        (device) => {
+          this.dialogRef.close(device);
         }
       );
     }
@@ -326,7 +344,7 @@ export class DeviceWizardDialogComponent extends
     }
   }
 
-  private createDevice(profileId): Observable<BaseData<HasId>> {
+  private createDevice(profileId): Observable<Device> {
     const device = {
       name: this.deviceWizardFormGroup.get('name').value,
       label: this.deviceWizardFormGroup.get('label').value,
@@ -337,14 +355,12 @@ export class DeviceWizardDialogComponent extends
         description: this.deviceWizardFormGroup.get('description').value
       },
       customerId: null
-    };
-    if (this.customerFormGroup.get('customerId').value) {
-      device.customerId = {
-        entityType: EntityType.CUSTOMER,
-        id: this.customerFormGroup.get('customerId').value
-      };
+    } as Device;
+    if (this.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      device.customerId = this.entityGroup.ownerId as CustomerId;
     }
-    return this.data.entitiesTableConfig.saveEntity(deepTrim(device)).pipe(
+    const entityGroupId = !this.entityGroup.groupAll ? this.entityGroup.id.id : null;
+    return this.deviceService.saveDevice(deepTrim(device), entityGroupId).pipe(
       catchError(e => {
         this.addDeviceWizardStepper.selectedIndex = 0;
         return throwError(e);
@@ -352,7 +368,7 @@ export class DeviceWizardDialogComponent extends
     );
   }
 
-  private saveCredentials(device: BaseData<HasId>): Observable<boolean> {
+  private saveCredentials(device: Device): Observable<Device> {
     if (this.credentialsFormGroup.get('setCredential').value) {
       return this.deviceService.getDeviceCredentials(device.id.id).pipe(
         mergeMap(
@@ -370,9 +386,9 @@ export class DeviceWizardDialogComponent extends
             );
           }
         ),
-        map(() => true));
+        map(() => device));
     }
-    return of(true);
+    return of(device);
   }
 
   allValid(): boolean {

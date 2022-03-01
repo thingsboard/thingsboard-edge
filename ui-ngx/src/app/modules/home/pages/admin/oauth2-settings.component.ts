@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
@@ -167,7 +182,9 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
         Validators.maxLength(255)],
       defaultDashboardName: [mapperConfigBasic?.defaultDashboardName ? mapperConfigBasic.defaultDashboardName : null,
         Validators.maxLength(255)],
-      alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false]
+      alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false],
+      parentCustomerNamePattern: [mapperConfigBasic?.parentCustomerNamePattern ? mapperConfigBasic.parentCustomerNamePattern : null],
+      userGroupsNamePattern: this.fb.array(mapperConfigBasic?.userGroupsNamePattern ? mapperConfigBasic.userGroupsNamePattern : [])
     });
 
     this.subscriptions.push(basicGroup.get('tenantNameStrategy').valueChanges.subscribe((domain) => {
@@ -351,6 +368,7 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
 
     this.subscriptions.push(clientRegistrationFormGroup.get('additionalInfo.providerName').valueChanges.subscribe((provider) => {
       (clientRegistrationFormGroup.get('scope') as FormArray).clear();
+      (clientRegistrationFormGroup.get('mapperConfig.basic.userGroupsNamePattern') as FormArray).clear();
       this.setProviderDefaultValue(provider, clientRegistrationFormGroup);
     }));
 
@@ -371,6 +389,11 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
       template.scope.forEach(() => {
         (clientRegistration.get('scope') as FormArray).push(this.fb.control(''));
       });
+      if (template.mapperConfig && template.mapperConfig.basic && isDefinedAndNotNull(template.mapperConfig.basic.userGroupsNamePattern)) {
+        template.mapperConfig.basic.userGroupsNamePattern.forEach(() => {
+          (clientRegistration.get('mapperConfig.basic.userGroupsNamePattern') as FormArray).push(this.fb.control(''));
+        });
+      }
       clientRegistration.get('accessTokenUri').disable();
       clientRegistration.get('authorizationUri').disable();
       clientRegistration.get('jwkSetUri').disable();
@@ -414,10 +437,10 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
     return this.oauth2SettingsForm;
   }
 
-  addScope(event: MatChipInputEvent, control: AbstractControl): void {
+  addChipValue(event: MatChipInputEvent, control: AbstractControl, fieldName: string): void {
     const input = event.input;
     const value = event.value;
-    const controller = control.get('scope') as FormArray;
+    const controller = control.get(fieldName) as FormArray;
     if ((value.trim() !== '')) {
       controller.push(this.fb.control(value.trim()));
       controller.markAsDirty();
@@ -428,8 +451,8 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
     }
   }
 
-  removeScope(i: number, control: AbstractControl): void {
-    const controller = control.get('scope') as FormArray;
+  removeChipValue(i: number, control: AbstractControl, fieldName: string): void {
+    const controller = control.get(fieldName) as FormArray;
     controller.removeAt(i);
     controller.markAsTouched();
     controller.markAsDirty();

@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { NgModule, SecurityContext } from '@angular/core';
@@ -63,6 +78,7 @@ import { ShareModule as ShareButtonsModule } from 'ngx-sharebuttons';
 import { HotkeyModule } from 'angular2-hotkeys';
 import { ColorPickerModule } from 'ngx-color-picker';
 import { NgxHmCarouselModule } from 'ngx-hm-carousel';
+import { EditorModule, TINYMCE_SCRIPT_SRC } from '@tinymce/tinymce-angular';
 import { UserMenuComponent } from '@shared/components/user-menu.component';
 import { NospacePipe } from '@shared/pipe/nospace.pipe';
 import { TranslateModule } from '@ngx-translate/core';
@@ -79,6 +95,7 @@ import { EnumToArrayPipe } from '@shared/pipe/enum-to-array.pipe';
 import { ClipboardModule } from 'ngx-clipboard';
 import { ValueInputComponent } from '@shared/components/value-input.component';
 import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
+import { MarkdownEditorComponent } from '@shared/components/markdown-editor.component';
 import { FullscreenDirective } from '@shared/components/fullscreen.directive';
 import { HighlightPipe } from '@shared/pipe/highlight.pipe';
 import { DashboardAutocompleteComponent } from '@shared/components/dashboard-autocomplete.component';
@@ -88,7 +105,12 @@ import { EntityAutocompleteComponent } from '@shared/components/entity/entity-au
 import { EntityListComponent } from '@shared/components/entity/entity-list.component';
 import { EntityTypeSelectComponent } from '@shared/components/entity/entity-type-select.component';
 import { EntitySelectComponent } from '@shared/components/entity/entity-select.component';
+import { EntityGroupAutocompleteComponent } from '@shared/components/group/entity-group-autocomplete.component';
+import { OwnerAutocompleteComponent } from '@shared/components/group/owner-autocomplete.component';
+import { EntityGroupSelectComponent } from '@shared/components/group/entity-group-select.component';
+import { EntityGroupListComponent } from '@shared/components/group/entity-group-list.component';
 import { DatetimeComponent } from '@shared/components/time/datetime.component';
+import { TimezoneSelectComponent } from '@shared/components/time/timezone-select.component';
 import { EntityKeysListComponent } from '@shared/components/entity/entity-keys-list.component';
 import { SocialSharePanelComponent } from '@shared/components/socialshare-panel.component';
 import { RelationTypeAutocompleteComponent } from '@shared/components/relation/relation-type-autocomplete.component';
@@ -135,14 +157,25 @@ import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-t
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
 import { HistorySelectorComponent } from '@shared/components/time/history-selector/history-selector.component';
 import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-gateway-select.component';
+import {
+  HasGenericPermissionPipe,
+  HasEntityGroupPermissionPipe,
+  HasGroupEntityPermissionPipe
+} from '@shared/pipe/permission.pipes';
+import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
+import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
+import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
 import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
 import { ContactComponent } from '@shared/components/contact.component';
-import { TimezoneSelectComponent } from '@shared/components/time/timezone-select.component';
 import { FileSizePipe } from '@shared/pipe/file-size.pipe';
 import { WidgetsBundleSearchComponent } from '@shared/components/widgets-bundle-search.component';
 import { SelectableColumnsPipe } from '@shared/pipe/selectable-columns.pipe';
 import { QuickTimeIntervalComponent } from '@shared/components/time/quick-time-interval.component';
+import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
+import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
+import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
+import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-entity-group-list.component';
 import { OtaPackageAutocompleteComponent } from '@shared/components/ota-package/ota-package-autocomplete.component';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CopyButtonComponent } from '@shared/components/button/copy-button.component';
@@ -174,9 +207,16 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbJsonPipe,
     FileSizePipe,
     SafePipe,
+    HasGenericPermissionPipe,
+    HasEntityGroupPermissionPipe,
+    HasGroupEntityPermissionPipe,
     {
       provide: FlowInjectionToken,
       useValue: Flow
+    },
+    {
+      provide: TINYMCE_SCRIPT_SRC,
+      useValue: 'assets/tinymce/tinymce.min.js'
     },
     {
       provide: MAT_DATE_LOCALE,
@@ -228,6 +268,12 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EntityListComponent,
     EntityTypeSelectComponent,
     EntitySelectComponent,
+    EntityGroupAutocompleteComponent,
+    OwnerAutocompleteComponent,
+    EntityGroupSelectComponent,
+    EntityGroupListComponent,
+    EdgeEntityGroupListComponent,
+    OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
@@ -245,6 +291,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     WidgetsBundleSelectComponent,
     ConfirmDialogComponent,
     AlertDialogComponent,
+    ProgressDialogComponent,
     TodoDialogComponent,
     ColorPickerDialogComponent,
     MaterialIconsDialogComponent,
@@ -258,6 +305,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyValMapComponent,
     NavTreeComponent,
     LedLightComponent,
+    MarkdownEditorComponent,
     NospacePipe,
     MillisecondsToTimeStringPipe,
     EnumToArrayPipe,
@@ -268,11 +316,18 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     SafePipe,
     SelectableColumnsPipe,
     KeyboardShortcutPipe,
+    HasGenericPermissionPipe,
+    HasEntityGroupPermissionPipe,
+    HasGroupEntityPermissionPipe,
     TbJsonToStringDirective,
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
+    GroupPermissionsComponent,
+    GroupPermissionDialogComponent,
+    ShareEntityGroupComponent,
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
     CopyButtonComponent,
@@ -325,6 +380,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HotkeyModule,
     ColorPickerModule,
     NgxHmCarouselModule,
+    FullCalendarModule,
     DndModule,
     NgxFlowModule,
     NgxFlowchartModule,
@@ -376,6 +432,12 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EntityListComponent,
     EntityTypeSelectComponent,
     EntitySelectComponent,
+    EntityGroupAutocompleteComponent,
+    OwnerAutocompleteComponent,
+    EntityGroupSelectComponent,
+    EntityGroupListComponent,
+    EdgeEntityGroupListComponent,
+    OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
@@ -434,11 +496,14 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HotkeyModule,
     ColorPickerModule,
     NgxHmCarouselModule,
+    EditorModule,
+    FullCalendarModule,
     DndModule,
     NgxFlowchartModule,
     MarkdownModule,
     ConfirmDialogComponent,
     AlertDialogComponent,
+    ProgressDialogComponent,
     TodoDialogComponent,
     ColorPickerDialogComponent,
     MaterialIconsDialogComponent,
@@ -452,6 +517,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyValMapComponent,
     NavTreeComponent,
     LedLightComponent,
+    MarkdownEditorComponent,
     NospacePipe,
     MillisecondsToTimeStringPipe,
     EnumToArrayPipe,
@@ -463,11 +529,18 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     SafePipe,
     SelectableColumnsPipe,
     RouterModule,
+    HasGenericPermissionPipe,
+    HasEntityGroupPermissionPipe,
+    HasGroupEntityPermissionPipe,
     TranslateModule,
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
+    GroupPermissionsComponent,
+    GroupPermissionDialogComponent,
+    ShareEntityGroupComponent,
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
     CopyButtonComponent,

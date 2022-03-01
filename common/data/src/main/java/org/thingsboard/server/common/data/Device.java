@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.common.data;
 
@@ -26,6 +41,7 @@ import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -36,9 +52,9 @@ import java.io.IOException;
 import java.util.Optional;
 
 @ApiModel
-@EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements HasName, HasTenantId, HasCustomerId, HasOtaPackage {
+@EqualsAndHashCode(callSuper = true)
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -129,7 +145,22 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 5, required = true, value = "Unique Device Name in scope of Tenant", example = "A4B72CCDFF33")
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+    }
+
+    @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
+    @ApiModelProperty(position = 6, required = true, value = "Unique Device Name in scope of Tenant", example = "A4B72CCDFF33")
     @Override
     public String getName() {
         return name;
@@ -139,7 +170,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.name = name;
     }
 
-    @ApiModelProperty(position = 6, required = true, value = "Device Profile Name", example = "Temperature Sensor")
+    @ApiModelProperty(position = 7, required = true, value = "Device Profile Name", example = "Temperature Sensor")
     public String getType() {
         return type;
     }
@@ -148,7 +179,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.type = type;
     }
 
-    @ApiModelProperty(position = 7, required = true, value = "Label that may be used in widgets", example = "Room 234 Sensor")
+    @ApiModelProperty(position = 8, required = true, value = "Label that may be used in widgets", example = "Room 234 Sensor")
     public String getLabel() {
         return label;
     }
@@ -157,7 +188,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.label = label;
     }
 
-    @ApiModelProperty(position = 8, required = true, value = "JSON object with Device Profile Id.")
+    @ApiModelProperty(position = 9, required = true, value = "JSON object with Device Profile Id.")
     public DeviceProfileId getDeviceProfileId() {
         return deviceProfileId;
     }
@@ -166,7 +197,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.deviceProfileId = deviceProfileId;
     }
 
-    @ApiModelProperty(position = 9, value = "JSON object with content specific to type of transport in the device profile.")
+    @ApiModelProperty(position = 10, value = "JSON object with content specific to type of transport in the device profile.")
     public DeviceData getDeviceData() {
         if (deviceData != null) {
             return deviceData;
@@ -199,7 +230,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         return getName();
     }
 
-    @ApiModelProperty(position = 10, value = "JSON object with Ota Package Id.")
+    @ApiModelProperty(position = 11, value = "JSON object with Ota Package Id.")
     public OtaPackageId getFirmwareId() {
         return firmwareId;
     }
@@ -208,7 +239,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.firmwareId = firmwareId;
     }
 
-    @ApiModelProperty(position = 11, value = "JSON object with Ota Package Id.")
+    @ApiModelProperty(position = 12, value = "JSON object with Ota Package Id.")
     public OtaPackageId getSoftwareId() {
         return softwareId;
     }
@@ -217,7 +248,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.softwareId = softwareId;
     }
 
-    @ApiModelProperty(position = 12, value = "Additional parameters of the device", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 13, value = "Additional parameters of the device", dataType = "com.fasterxml.jackson.databind.JsonNode")
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
@@ -250,6 +281,12 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         builder.append(id);
         builder.append("]");
         return builder.toString();
+    }
+
+    @Override
+    @JsonIgnore
+    public EntityType getEntityType() {
+        return EntityType.DEVICE;
     }
 
 }

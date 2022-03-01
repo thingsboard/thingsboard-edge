@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.lwm2m.client;
 
@@ -26,6 +41,7 @@ import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.client.object.Server;
 import org.eclipse.leshan.client.observer.LwM2mClientObserver;
 import org.eclipse.leshan.client.resource.DummyInstanceEnabler;
+import org.eclipse.leshan.client.resource.LwM2mInstanceEnabler;
 import org.eclipse.leshan.client.resource.ObjectsInitializer;
 import org.eclipse.leshan.client.servers.ServerIdentity;
 import org.eclipse.leshan.core.ResponseCode;
@@ -41,12 +57,20 @@ import org.eclipse.leshan.core.request.DeregisterRequest;
 import org.eclipse.leshan.core.request.RegisterRequest;
 import org.eclipse.leshan.core.request.UpdateRequest;
 import org.junit.Assert;
+import org.mockito.Mockito;
+import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClient;
+import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
+import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
 import org.thingsboard.server.transport.lwm2m.utils.LwM2mValueConverterImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RECOMMENDED_CIPHER_SUITES_ONLY;
 import static org.eclipse.leshan.core.LwM2mId.ACCESS_CONTROL;
@@ -57,6 +81,25 @@ import static org.eclipse.leshan.core.LwM2mId.SECURITY;
 import static org.eclipse.leshan.core.LwM2mId.SERVER;
 import static org.eclipse.leshan.core.LwM2mId.SOFTWARE_MANAGEMENT;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.BINARY_APP_DATA_CONTAINER;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_FAILURE;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_STARTED;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_SUCCESS;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_TIMEOUT;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_DEREGISTRATION_FAILURE;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_DEREGISTRATION_STARTED;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_DEREGISTRATION_SUCCESS;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_DEREGISTRATION_TIMEOUT;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_EXPECTED_ERROR;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_INIT;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_FAILURE;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_STARTED;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_SUCCESS;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_TIMEOUT;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_FAILURE;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_STARTED;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_SUCCESS;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_TIMEOUT;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.OBJECT_INSTANCE_ID_0;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.OBJECT_INSTANCE_ID_1;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.OBJECT_INSTANCE_ID_12;
@@ -70,28 +113,61 @@ public class LwM2MTestClient {
 
     private final ScheduledExecutorService executor;
     private final String endpoint;
-    private LeshanClient client;
+    private LeshanClient leshanClient;
 
-    private Server lwm2mServer;
+    private Security lwm2mSecurity;
+    private Security lwm2mSecurityBs;
+    private Lwm2mServer lwm2mServer;
+    private Lwm2mServer lwm2mServerBs;
     private SimpleLwM2MDevice lwM2MDevice;
     private FwLwM2MDevice fwLwM2MDevice;
     private SwLwM2MDevice swLwM2MDevice;
     private LwM2mBinaryAppDataContainer lwM2MBinaryAppDataContainer;
     private LwM2MLocationParams locationParams;
     private LwM2mTemperatureSensor lwM2MTemperatureSensor;
+    private LwM2MClientState clientState;
+    private Set<LwM2MClientState> clientStates;
+    private DefaultLwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
+    private LwM2mClientContext clientContext;
 
-    public void init(Security security, Configuration coapConfig, int port, boolean isRpc) throws InvalidDDFFileException, IOException {
-        Assert.assertNull("client already initialized", client);
+    public void init(Security security, Configuration coapConfig, int port, boolean isRpc, boolean isBootstrap,
+                     int shortServerId, int shortServerIdBs, Security securityBs,
+                     DefaultLwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandler,
+                     LwM2mClientContext clientContext) throws InvalidDDFFileException, IOException {
+        Assert.assertNull("client already initialized", leshanClient);
+        this.defaultLwM2mUplinkMsgHandlerTest = defaultLwM2mUplinkMsgHandler;
+        this.clientContext = clientContext;
         List<ObjectModel> models = new ArrayList<>();
         for (String resourceName : resources) {
             models.addAll(ObjectLoader.loadDdfFile(LwM2MTestClient.class.getClassLoader().getResourceAsStream("lwm2m/" + resourceName), resourceName));
         }
-
         LwM2mModel model = new StaticModel(models);
         ObjectsInitializer initializer = new ObjectsInitializer(model);
-        initializer.setInstancesForObject(SECURITY, security);
-        initializer.setInstancesForObject(SERVER, lwm2mServer = new Server(123, 300));
-        initializer.setInstancesForObject(DEVICE, lwM2MDevice = new SimpleLwM2MDevice());
+        if (securityBs == null) {
+            initializer.setInstancesForObject(SECURITY, this.lwm2mSecurity = security);
+        } else {
+            securityBs.setId(0);
+            security.setId(1);
+            LwM2mInstanceEnabler[] instances = new LwM2mInstanceEnabler[]{this.lwm2mSecurityBs = securityBs, this.lwm2mSecurity = security};
+            initializer.setClassForObject(SECURITY, Security.class);
+            initializer.setInstancesForObject(SECURITY, instances);
+        }
+        if (isBootstrap) {
+            initializer.setInstancesForObject(SERVER, lwm2mServerBs = new Lwm2mServer(shortServerIdBs, 300));
+        } else {
+            if (securityBs == null) {
+                initializer.setInstancesForObject(SERVER, lwm2mServer = new Lwm2mServer(shortServerId, 300));
+            } else {
+                lwm2mServerBs = new Lwm2mServer(shortServerIdBs, 300);
+                lwm2mServerBs.setId(0);
+                lwm2mServer = new Lwm2mServer(shortServerId, 300);
+                lwm2mServer.setId(1);
+                LwM2mInstanceEnabler[] instances = new LwM2mInstanceEnabler[]{lwm2mServerBs, lwm2mServer};
+                initializer.setClassForObject(SERVER, Server.class);
+                initializer.setInstancesForObject(SERVER, instances);
+            }
+        }
+        initializer.setInstancesForObject(DEVICE, lwM2MDevice = new SimpleLwM2MDevice(executor));
         initializer.setInstancesForObject(FIRMWARE, fwLwM2MDevice = new FwLwM2MDevice());
         initializer.setInstancesForObject(SOFTWARE_MANAGEMENT, swLwM2MDevice = new SwLwM2MDevice());
         initializer.setClassForObject(ACCESS_CONTROL, DummyInstanceEnabler.class);
@@ -119,105 +195,133 @@ public class LwM2MTestClient {
         builder.setDecoder(new DefaultLwM2mDecoder(false));
 
         builder.setEncoder(new DefaultLwM2mEncoder(new LwM2mValueConverterImpl(), false));
-        client = builder.build();
+        clientState = ON_INIT;
+        clientStates = new HashSet<>();
+        clientStates.add(clientState);
+        leshanClient = builder.build();
 
         LwM2mClientObserver observer = new LwM2mClientObserver() {
             @Override
             public void onBootstrapStarted(ServerIdentity bsserver, BootstrapRequest request) {
-                log.info("ClientObserver -> onBootstrapStarted...");
+                clientState = ON_BOOTSTRAP_STARTED;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onBootstrapSuccess(ServerIdentity bsserver, BootstrapRequest request) {
-                log.info("ClientObserver -> onBootstrapSuccess...");
+                clientState = ON_BOOTSTRAP_SUCCESS;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onBootstrapFailure(ServerIdentity bsserver, BootstrapRequest request, ResponseCode responseCode, String errorMessage, Exception cause) {
-                log.info("ClientObserver -> onBootstrapFailure...");
+                clientState = ON_BOOTSTRAP_FAILURE;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onBootstrapTimeout(ServerIdentity bsserver, BootstrapRequest request) {
-                log.info("ClientObserver -> onBootstrapTimeout...");
+                clientState = ON_BOOTSTRAP_TIMEOUT;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onRegistrationStarted(ServerIdentity server, RegisterRequest request) {
-//                log.info("ClientObserver -> onRegistrationStarted...  EndpointName [{}]", request.getEndpointName());
+                clientState = ON_REGISTRATION_STARTED;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onRegistrationSuccess(ServerIdentity server, RegisterRequest request, String registrationID) {
-                log.info("ClientObserver -> onRegistrationSuccess...  EndpointName [{}] [{}]", request.getEndpointName(), registrationID);
+                clientState = ON_REGISTRATION_SUCCESS;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onRegistrationFailure(ServerIdentity server, RegisterRequest request, ResponseCode responseCode, String errorMessage, Exception cause) {
-                log.info("ClientObserver -> onRegistrationFailure... ServerIdentity [{}]", server);
+                clientState = ON_REGISTRATION_FAILURE;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onRegistrationTimeout(ServerIdentity server, RegisterRequest request) {
-                log.info("ClientObserver -> onRegistrationTimeout... RegisterRequest [{}]", request);
+                clientState = ON_REGISTRATION_TIMEOUT;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onUpdateStarted(ServerIdentity server, UpdateRequest request) {
-//                log.info("ClientObserver -> onUpdateStarted...  UpdateRequest [{}]", request);
+                clientState = ON_UPDATE_STARTED;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onUpdateSuccess(ServerIdentity server, UpdateRequest request) {
-//                log.info("ClientObserver -> onUpdateSuccess...  UpdateRequest [{}]", request);
+                clientState = ON_UPDATE_SUCCESS;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onUpdateFailure(ServerIdentity server, UpdateRequest request, ResponseCode responseCode, String errorMessage, Exception cause) {
-
+                clientState = ON_UPDATE_FAILURE;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onUpdateTimeout(ServerIdentity server, UpdateRequest request) {
-
+                clientState = ON_UPDATE_TIMEOUT;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onDeregistrationStarted(ServerIdentity server, DeregisterRequest request) {
-                log.info("ClientObserver ->onDeregistrationStarted...  DeregisterRequest [{}]", request.getRegistrationId());
-
+                clientState = ON_DEREGISTRATION_STARTED;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onDeregistrationSuccess(ServerIdentity server, DeregisterRequest request) {
-                log.info("ClientObserver ->onDeregistrationSuccess...  DeregisterRequest [{}]", request.getRegistrationId());
-
+                clientState = ON_DEREGISTRATION_SUCCESS;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onDeregistrationFailure(ServerIdentity server, DeregisterRequest request, ResponseCode responseCode, String errorMessage, Exception cause) {
-                log.info("ClientObserver ->onDeregistrationFailure...  DeregisterRequest [{}] [{}]", request.getRegistrationId(), request.getRegistrationId());
+                clientState = ON_DEREGISTRATION_FAILURE;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onDeregistrationTimeout(ServerIdentity server, DeregisterRequest request) {
-                log.info("ClientObserver ->onDeregistrationTimeout...  DeregisterRequest [{}] [{}]", request.getRegistrationId(), request.getRegistrationId());
+                clientState = ON_DEREGISTRATION_TIMEOUT;
+                clientStates.add(clientState);
             }
 
             @Override
             public void onUnexpectedError(Throwable unexpectedError) {
-
+                clientState = ON_EXPECTED_ERROR;
+                clientStates.add(clientState);
             }
         };
-        this.client.addObserver(observer);
+        this.leshanClient.addObserver(observer);
+
         if (!isRpc) {
-            client.start();
+            this.start(true);
         }
     }
 
     public void destroy() {
-        if (client != null) {
-            client.destroy(true);
+        if (leshanClient != null) {
+            leshanClient.destroy(true);
+        }
+        if (lwm2mSecurityBs != null) {
+            lwm2mSecurityBs = null;
+        }
+        if (lwm2mSecurity != null) {
+            lwm2mSecurity = null;
+        }
+        if (lwm2mServerBs != null) {
+            lwm2mServerBs = null;
         }
         if (lwm2mServer != null) {
             lwm2mServer = null;
@@ -239,9 +343,29 @@ public class LwM2MTestClient {
         }
     }
 
-    public void start() {
-        if (client != null) {
-            client.start();
+    public void start(boolean isStartLw) {
+        if (leshanClient != null) {
+            leshanClient.start();
+            if (isStartLw) {
+                this.awaitClientAfterStartConnectLw();
+            }
+        }
+    }
+
+    private void awaitClientAfterStartConnectLw() {
+        LwM2mClient lwM2MClient = this.clientContext.getClientByEndpoint(endpoint);
+        CountDownLatch latch = new CountDownLatch(1);
+        Mockito.doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(defaultLwM2mUplinkMsgHandlerTest).initAttributes(lwM2MClient, true);
+
+        try {
+            if (!latch.await(1, TimeUnit.SECONDS)) {
+                throw new RuntimeException("Failed to await TimeOut lwm2m client initialization!");
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Exception Failed to await lwm2m client initialization! ", e);
         }
     }
 }

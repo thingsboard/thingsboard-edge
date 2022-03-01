@@ -1,0 +1,225 @@
+[
+  {
+    "name": "bus",
+    "description": null,
+    "type": "DEFAULT",
+    "transportType": "DEFAULT",
+    "provisionType": "DISABLED",
+    "defaultRuleChainId": null,
+    "defaultQueueName": null,
+    "profileData": {
+      "configuration": {
+        "type": "DEFAULT"
+      },
+      "transportConfiguration": {
+        "type": "DEFAULT"
+      },
+      "provisionConfiguration": {
+        "type": "DISABLED",
+        "provisionDeviceSecret": null
+      },
+      "alarms": [
+        {
+          "id": "c06bf26f-c632-89ce-c9d9-fe77d8debed0",
+          "alarmType": "Speed limit",
+          "createRules": {
+            "CRITICAL": {
+              "condition": {
+                "condition": [
+                  {
+                    "key": {
+                      "type": "TIME_SERIES",
+                      "key": "speed"
+                    },
+                    "valueType": "NUMERIC",
+                    "predicate": {
+                      "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 45.0,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  }
+                ],
+                "spec": {
+                  "type": "SIMPLE"
+                }
+              },
+              "schedule": null,
+              "alarmDetails": "Bus has crossed speed limit!"
+            }
+          },
+          "clearRule": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "speed"
+                  },
+                  "valueType": "NUMERIC",
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS",
+                    "value": {
+                      "defaultValue": 45.0,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null
+          },
+          "propagate": false,
+          "propagateRelationTypes": null
+        },
+        {
+          "id": "fdcac145-7cd2-5063-0d40-c7b1c36c908b",
+          "alarmType": "Stopped",
+          "createRules": {
+            "WARNING": {
+              "condition": {
+                "condition": [
+                  {
+                    "key": {
+                      "type": "TIME_SERIES",
+                      "key": "speed"
+                    },
+                    "valueType": "NUMERIC",
+                    "predicate": {
+                      "type": "NUMERIC",
+                      "operation": "EQUAL",
+                      "value": {
+                        "defaultValue": 0.0,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  }
+                ],
+                "spec": {
+                  "type": "DURATION",
+                  "unit": "SECONDS",
+                  "predicate": {
+                    "defaultValue": 5,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              },
+              "schedule": null,
+              "alarmDetails": "Bus stopped"
+            }
+          },
+          "clearRule": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "speed"
+                  },
+                  "valueType": "NUMERIC",
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER",
+                    "value": {
+                      "defaultValue": 0.0,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "SECONDS",
+                "predicate": {
+                  "defaultValue": 5,
+                  "userValue": null,
+                  "dynamicValue": null
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": "Bus is on route again"
+          },
+          "propagate": false,
+          "propagateRelationTypes": null
+        },
+        {
+          "id": "012e6a83-595c-5dd8-6958-6d489a7c5e05",
+          "alarmType": "Low fuel",
+          "createRules": {
+            "MAJOR": {
+              "condition": {
+                "condition": [
+                  {
+                    "key": {
+                      "type": "TIME_SERIES",
+                      "key": "fuel"
+                    },
+                    "valueType": "NUMERIC",
+                    "predicate": {
+                      "type": "NUMERIC",
+                      "operation": "LESS_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 20.0,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    }
+                  }
+                ],
+                "spec": {
+                  "type": "SIMPLE"
+                }
+              },
+              "schedule": null,
+              "alarmDetails": "Low fuel level: only ${fuel}% left"
+            }
+          },
+          "clearRule": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "fuel"
+                  },
+                  "valueType": "NUMERIC",
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 25.0,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": "Fuel level is back to normal: ${fuel}%"
+          },
+          "propagate": false,
+          "propagateRelationTypes": null
+        }
+      ]
+    },
+    "provisionDeviceKey": null,
+    "default": false
+  }
+]

@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Injectable, NgZone } from '@angular/core';
@@ -42,6 +57,11 @@ import { DashboardInfo } from '@shared/models/dashboard.models';
 import { PageData } from '@app/shared/models/page/page-data';
 import { AdminService } from '@core/http/admin.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { CustomMenuService } from '@core/http/custom-menu.service';
+import { CustomTranslationService } from '@core/http/custom-translation.service';
+import { ReportService } from '@core/http/report.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
 import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
@@ -56,6 +76,11 @@ export class AuthService {
     private store: Store<AppState>,
     private http: HttpClient,
     private userService: UserService,
+    private whiteLabelingService: WhiteLabelingService,
+    private customMenuService: CustomMenuService,
+    private customTranslationService: CustomTranslationService,
+    private userPermissionsService: UserPermissionsService,
+    private reportService: ReportService,
     private timeService: TimeService,
     private router: Router,
     private route: ActivatedRoute,
@@ -215,7 +240,7 @@ export class AuthService {
     );
   }
 
-  private forceDefaultPlace(authState?: AuthState, path?: string, params?: any): boolean {
+  public forceDefaultPlace(authState?: AuthState, path?: string, params?: any): boolean {
     if (authState && authState.authUser) {
       if (authState.authUser.authority === Authority.TENANT_ADMIN || authState.authUser.authority === Authority.CUSTOMER_USER) {
         if ((this.userHasDefaultDashboard(authState) && authState.forceFullscreen) || authState.authUser.isPublic) {
@@ -237,7 +262,7 @@ export class AuthService {
     return false;
   }
 
-  public defaultUrl(isAuthenticated: boolean, authState?: AuthState, path?: string, params?: any): UrlTree {
+  public defaultUrl(isAuthenticated: boolean, authState?: AuthState, path?: string, params?: any, data?: any): UrlTree {
     let result: UrlTree = null;
     if (isAuthenticated) {
       if (!path || path === 'login' || this.forceDefaultPlace(authState, path, params)) {
@@ -256,7 +281,7 @@ export class AuthService {
             } else {
               result = this.router.parseUrl(`dashboards/${dashboardId}`);
             }
-          } else if (authState.authUser.isPublic) {
+          } else if (authState.authUser.isPublic && authState.lastPublicDashboardId) {
             result = this.router.parseUrl(`dashboard/${authState.lastPublicDashboardId}`);
           }
         } else if (authState.authUser.authority === Authority.SYS_ADMIN) {
@@ -286,6 +311,7 @@ export class AuthService {
       const username = this.utils.getQueryParam('username');
       const password = this.utils.getQueryParam('password');
       const loginError = this.utils.getQueryParam('loginError');
+      this.reportService.loadReportParams();
       if (publicId) {
         return this.publicLogin(publicId).pipe(
           mergeMap((response) => {
@@ -386,6 +412,13 @@ export class AuthService {
           this.userService.getUser(authPayload.authUser.userId).subscribe(
             (user) => {
               authPayload.userDetails = user;
+              let userLang;
+              if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
+                userLang = authPayload.userDetails.additionalInfo.lang;
+              } else {
+                userLang = null;
+              }
+              this.notifyUserLang(userLang);
               authPayload.forceFullscreen = false;
               if (this.userForceFullscreen(authPayload)) {
                 authPayload.forceFullscreen = true;
@@ -393,13 +426,6 @@ export class AuthService {
               this.loadSystemParams(authPayload).subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
-                  let userLang;
-                  if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
-                    userLang = authPayload.userDetails.additionalInfo.lang;
-                  } else {
-                    userLang = null;
-                  }
-                  this.notifyUserLang(userLang);
                   loadUserSubject.next(authPayload);
                   loadUserSubject.complete();
                 },
@@ -425,11 +451,33 @@ export class AuthService {
   }
 
   private loadIsUserTokenAccessEnabled(authUser: AuthUser): Observable<boolean> {
-    if (authUser.authority === Authority.SYS_ADMIN ||
-        authUser.authority === Authority.TENANT_ADMIN) {
-      return this.http.get<boolean>('/api/user/tokenAccessEnabled', defaultHttpOptions());
+    return this.http.get<boolean>('/api/user/tokenAccessEnabled', defaultHttpOptions());
+  }
+
+  private checkIsWhiteLabelingAllowed(authUser: AuthUser):
+    Observable<{whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean}> {
+    if (authUser.authority === Authority.TENANT_ADMIN || authUser.authority === Authority.CUSTOMER_USER) {
+      return this.whiteLabelingService.isWhiteLabelingAllowed().pipe(
+        mergeMap((whiteLabelingAllowed) => {
+          if (authUser.authority === Authority.TENANT_ADMIN) {
+            return this.whiteLabelingService.isCustomerWhiteLabelingAllowed().pipe(
+              map((customerWhiteLabelingAllowed) => {
+                return {whiteLabelingAllowed, customerWhiteLabelingAllowed};
+              }),
+              catchError((err) => {
+                return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
+              })
+            );
+          } else {
+            return of({whiteLabelingAllowed, customerWhiteLabelingAllowed: false});
+          }
+        }),
+        catchError((err) => {
+          return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
+        })
+      );
     } else {
-      return of(false);
+      return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
     }
   }
 
@@ -441,13 +489,19 @@ export class AuthService {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
                      this.loadIsEdgesSupportEnabled(),
+                     this.checkIsWhiteLabelingAllowed(authPayload.authUser),
+                     this.whiteLabelingService.loadUserWhiteLabelingParams(),
+                     this.customMenuService.loadCustomMenu(),
+                     this.customTranslationService.updateCustomTranslations(true),
+                     this.userPermissionsService.loadPermissionsInfo(),
                      this.timeService.loadMaxDatapointsLimit()];
     return forkJoin(sources)
       .pipe(map((data) => {
         const userTokenAccessEnabled: boolean = data[0] as boolean;
         const allowedDashboardIds: string[] = data[1] as string[];
         const edgesSupportEnabled: boolean = data[2] as boolean;
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled};
+        const whiteLabelingAllowedInfo = data[3] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
       })));
@@ -638,12 +692,8 @@ export class AuthService {
     if (authPayload.forceFullscreen && (authPayload.authUser.authority === Authority.TENANT_ADMIN ||
       authPayload.authUser.authority === Authority.CUSTOMER_USER)) {
       const pageLink = new PageLink(100);
-      let fetchDashboardsObservable: Observable<PageData<DashboardInfo>>;
-      if (authPayload.authUser.authority === Authority.TENANT_ADMIN) {
-        fetchDashboardsObservable = this.dashboardService.getTenantDashboards(pageLink);
-      } else {
-        fetchDashboardsObservable = this.dashboardService.getCustomerDashboards(authPayload.authUser.customerId, pageLink);
-      }
+      const fetchDashboardsObservable: Observable<PageData<DashboardInfo>> =
+        this.dashboardService.getUserDashboards(null, null, pageLink, {ignoreLoading: true});
       return fetchDashboardsObservable.pipe(
         map((result) => {
           const dashboards = result.data;

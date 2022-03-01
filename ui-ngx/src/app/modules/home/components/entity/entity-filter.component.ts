@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
@@ -21,6 +36,7 @@ import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityService } from '@core/http/entity.service';
 import { EntitySearchDirection, entitySearchDirectionTranslations } from '@shared/models/relation.models';
+import { entityGroupTypes } from '@app/shared/models/entity-group.models';
 
 @Component({
   selector: 'tb-entity-filter',
@@ -48,6 +64,7 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
   filterFormGroup: FormGroup;
 
   aliasFilterTypes: Array<AliasFilterType>;
+  entityGroupTypes: Array<EntityType>;
 
   aliasFilterType = AliasFilterType;
   aliasFilterTypeTranslations = aliasFilterTypeTranslationMap;
@@ -67,6 +84,9 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
   ngOnInit(): void {
 
     this.aliasFilterTypes = this.entityService.getAliasFilterTypesByEntityTypes(this.allowedEntityTypes);
+    this.entityGroupTypes = entityGroupTypes.filter((entityType) =>
+      this.allowedEntityTypes ? this.allowedEntityTypes.indexOf(entityType) > - 1 : true
+    );
 
     this.entityFilterFormGroup = this.fb.group({
       type: [null, [Validators.required]]
@@ -111,6 +131,22 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           singleEntity: [filter ? filter.singleEntity : null, [Validators.required]]
         });
         break;
+      case AliasFilterType.entityGroup:
+        this.filterFormGroup = this.fb.group({
+          groupStateEntity: [filter ? filter.groupStateEntity : false, []],
+          stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
+          defaultStateGroupType: [filter ? filter.defaultStateGroupType : null, []],
+          defaultStateEntityGroup: [filter ? filter.defaultStateEntityGroup : null, []],
+          groupType: [filter ? filter.groupType : null, (filter && filter.groupStateEntity) ? [] : [Validators.required]],
+          entityGroup: [filter ? filter.entityGroup : null, (filter && filter.groupStateEntity) ? [] : [Validators.required]],
+        });
+        this.filterFormGroup.get('groupStateEntity').valueChanges.subscribe((groupStateEntity: boolean) => {
+          this.filterFormGroup.get('groupType').setValidators(groupStateEntity ? [] : [Validators.required]);
+          this.filterFormGroup.get('entityGroup').setValidators(groupStateEntity ? [] : [Validators.required]);
+          this.filterFormGroup.get('groupType').updateValueAndValidity();
+          this.filterFormGroup.get('entityGroup').updateValueAndValidity();
+        });
+        break;
       case AliasFilterType.entityList:
         this.filterFormGroup = this.fb.group({
           entityType: [filter ? filter.entityType : null, [Validators.required]],
@@ -128,7 +164,28 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           entityType: [filter ? filter.entityType : null, [Validators.required]]
         });
         break;
+      case AliasFilterType.entityGroupList:
+        this.filterFormGroup = this.fb.group({
+          groupType: [filter ? filter.groupType : null, [Validators.required]],
+          entityGroupList: [filter ? filter.entityGroupList : [], [Validators.required]],
+        });
+        break;
+      case AliasFilterType.entityGroupName:
+        this.filterFormGroup = this.fb.group({
+          groupType: [filter ? filter.groupType : null, [Validators.required]],
+          entityGroupNameFilter: [filter ? filter.entityGroupNameFilter : '', [Validators.required]],
+        });
+        break;
+      case AliasFilterType.entitiesByGroupName:
+        this.filterFormGroup = this.fb.group({
+          groupStateEntity: [filter ? filter.groupStateEntity : false, []],
+          stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
+          groupType: [filter ? filter.groupType : null, [Validators.required]],
+          entityGroupNameFilter: [filter ? filter.entityGroupNameFilter : '', [Validators.required]],
+        });
+        break;
       case AliasFilterType.stateEntity:
+      case AliasFilterType.stateEntityOwner:
         this.filterFormGroup = this.fb.group({
           stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
           defaultStateEntity: [filter ? filter.defaultStateEntity : null, []],
@@ -197,6 +254,9 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           } else if (type === AliasFilterType.entityViewSearchQuery) {
             this.filterFormGroup.addControl('entityViewTypes',
               this.fb.control(filter ? filter.entityViewTypes : [], [Validators.required]));
+          } else if (type === AliasFilterType.edgeSearchQuery) {
+            this.filterFormGroup.addControl('edgeTypes',
+              this.fb.control(filter ? filter.edgeTypes : [], [Validators.required]));
           }
         }
         break;
@@ -208,7 +268,8 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   private filterTypeChanged(type: AliasFilterType) {
     let resolveMultiple = true;
-    if (type === AliasFilterType.singleEntity || type === AliasFilterType.stateEntity || type === AliasFilterType.apiUsageState) {
+    if (type === AliasFilterType.singleEntity || type === AliasFilterType.stateEntity || type === AliasFilterType.apiUsageState ||
+        type === AliasFilterType.stateEntityOwner) {
       resolveMultiple = false;
     }
     if (this.resolveMultiple !== resolveMultiple) {

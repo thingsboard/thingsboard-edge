@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { JsonSettingsSchema } from '@shared/models/widget.models';
@@ -567,7 +582,7 @@ export const mapPolygonSchema =
             polygonKeyName: {
                 title: 'Polygon key name',
                 type: 'string',
-                default: 'coordinates'
+                default: 'perimeter'
             },
             editablePolygon: {
               title: 'Enable polygon edit',
@@ -600,7 +615,7 @@ export const mapPolygonSchema =
             polygonOpacity: {
                 title: 'Polygon opacity',
                 type: 'number',
-                default: 0.5
+                default: 0.2
             },
             polygonStrokeColor: {
                 title: 'Stroke color',
@@ -614,12 +629,22 @@ export const mapPolygonSchema =
             polygonStrokeWeight: {
                 title: 'Stroke weight',
                 type: 'number',
-                default: 1
+                default: 3
             },
             showPolygonTooltip: {
                 title: 'Show polygon tooltip',
                 type: 'boolean',
                 default: false
+            },
+            showPolygonTooltipAction: {
+              title: 'Action for displaying polygon tooltip',
+              type: 'string',
+              default: 'click'
+            },
+            autoClosePolygonTooltip: {
+              title: 'Auto-close polygon tooltips',
+              type: 'boolean',
+              default: true
             },
             polygonTooltipPattern: {
                 title: 'Tooltip (for ex. \'Text ${keyName} units.\' or <link-act name=\'my-action\'>Link text</link-act>\')',
@@ -701,6 +726,26 @@ export const mapPolygonSchema =
         'polygonStrokeOpacity',
         'polygonStrokeWeight',
         'showPolygonTooltip',
+        {
+          key: 'showPolygonTooltipAction',
+          type: 'rc-select',
+          multiple: false,
+          items: [
+            {
+              value: 'click',
+              label: 'Show tooltip on click (Default)'
+            },
+            {
+              value: 'hover',
+              label: 'Show tooltip on hover'
+            }
+          ],
+          condition: 'model.showPolygonTooltip === true'
+        },
+        {
+          key: 'autoClosePolygonTooltip',
+          condition: 'model.showPolygonTooltip === true'
+        },
         {
           key: 'usePolygonTooltipFunction',
           condition: 'model.showPolygonTooltip === true'
@@ -1372,6 +1417,202 @@ export const editorSettingSchema =
       {
         key: 'hideRemoveControlButton',
         condition: 'model.hideAllControlButton == false'
+      }
+    ]
+  };
+
+export const mapCircleSchema =
+  {
+    schema: {
+      title: 'Map Circle Configuration',
+      type: 'object',
+      properties: {
+        showCircle: {
+          title: 'Show circle',
+          type: 'boolean',
+          default: false
+        },
+        circleKeyName: {
+          title: 'Circle key name',
+          type: 'string',
+          default: 'perimeter'
+        },
+        editableCircle: {
+          title: 'Enable circle edit',
+          type: 'boolean',
+          default: false
+        },
+        showCircleLabel: {
+          title: 'Show circle label',
+          type: 'boolean',
+          default: false
+        },
+        circleLabel: {
+          title: 'Circle label (pattern examples: \'${entityName}\', \'${entityName}: (Text ${keyName} units.)\' )',
+          type: 'string',
+          default: '${entityName}'
+        },
+        useCircleLabelFunction: {
+          title: 'Use circle label function',
+          type: 'boolean',
+          default: false
+        },
+        circleLabelFunction: {
+          title: 'Circle label function: f(data, dsData, dsIndex)',
+          type: 'string'
+        },
+        circleFillColor: {
+          title: 'Circle fill color',
+          type: 'string'
+        },
+        useCircleFillColorFunction: {
+          title: 'Use circle fill color function',
+          type: 'boolean',
+          default: false
+        },
+        circleFillColorFunction: {
+          title: 'Circle fill color function: f(data, dsData, dsIndex)',
+          type: 'string'
+        },
+        circleFillColorOpacity: {
+          title: 'Circle fill color opacity',
+          type: 'number',
+          default: 0.2
+        },
+        circleStrokeColor: {
+          title: 'Circle stroke color',
+          type: 'string'
+        },
+        useCircleStrokeColorFunction: {
+          title: 'Use circle stroke color function',
+          type: 'boolean',
+          default: false
+        },
+        circleStrokeColorFunction: {
+          title: 'Circle stroke Color function: f(data, dsData, dsIndex)',
+          type: 'string'
+        },
+        circleStrokeOpacity: {
+          title: 'Circle stroke opacity',
+          type: 'number',
+          default: 1
+        },
+        circleStrokeWeight: {
+          title: 'Circle stroke weight',
+          type: 'number',
+          default: 3
+        },
+        showCircleTooltip: {
+          title: 'Show circle tooltip',
+          type: 'boolean',
+          default: false
+        },
+        showCircleTooltipAction: {
+          title: 'Action for displaying circle tooltip',
+          type: 'string',
+          default: 'click'
+        },
+        autoCloseCircleTooltip: {
+          title: 'Auto-close circle tooltips',
+          type: 'boolean',
+          default: true
+        },
+        circleTooltipPattern: {
+          title: 'Tooltip (for ex. \'Text ${keyName} units.\' or <link-act name=\'my-action\'>Link text</link-act>\')',
+          type: 'string',
+          default: '<b>${entityName}</b><br/><br/><b>Temperatur:</b> ${temp:1}'
+        },
+        useCircleTooltipFunction: {
+          title: 'Use circle tooltip function',
+          type: 'boolean',
+          default: false
+        },
+        circleTooltipFunction: {
+          title: 'Circle tooltip function: f(data, dsData, dsIndex)',
+          type: 'string'
+        }
+      },
+      required: []
+    },
+    form: [
+      'showCircle',
+      'circleKeyName',
+      'editableCircle',
+      'showCircleLabel',
+      {
+        key: 'useCircleLabelFunction',
+        condition: 'model.showCircleLabel === true'
+      },
+      {
+        key: 'circleLabel',
+        condition: 'model.showCircleLabel === true && model.useCircleLabelFunction !== true'
+      },
+      {
+        key: 'circleLabelFunction',
+        type: 'javascript',
+        helpId: 'widget/lib/map/label_fn',
+        condition: 'model.showCircleLabel === true && model.useCircleLabelFunction === true'
+      },
+      {
+        key: 'circleFillColor',
+        type: 'color'
+      },
+      'useCircleFillColorFunction',
+      {
+        key: 'circleFillColorFunction',
+        helpId: 'widget/lib/map/polygon_color_fn',
+        type: 'javascript',
+        condition: 'model.useCircleFillColorFunction === true'
+      },
+      'circleFillColorOpacity',
+      {
+        key: 'circleStrokeColor',
+        type: 'color'
+      },
+      'useCircleStrokeColorFunction',
+      {
+        key: 'circleStrokeColorFunction',
+        helpId: 'widget/lib/map/polygon_color_fn',
+        type: 'javascript',
+        condition: 'model.useCircleStrokeColorFunction === true'
+      },
+      'circleStrokeOpacity',
+      'circleStrokeWeight',
+      'showCircleTooltip',
+      {
+        key: 'showCircleTooltipAction',
+        type: 'rc-select',
+        multiple: false,
+        items: [
+          {
+            value: 'click',
+            label: 'Show tooltip on click (Default)'
+          },
+          {
+            value: 'hover',
+            label: 'Show tooltip on hover'
+          }
+        ],
+        condition: 'model.showCircleTooltip === true'
+      },
+      {
+        key: 'autoCloseCircleTooltip',
+        condition: 'model.showCircleTooltip === true'
+      },
+      {
+        key: 'useCircleTooltipFunction',
+        condition: 'model.showCircleTooltip === true'
+      },
+      {
+        key: 'circleTooltipPattern',
+        type: 'textarea',
+        condition: 'model.showCircleTooltip === true && model.useCircleTooltipFunction !== true'
+      },
+      {
+        key: 'circleTooltipFunction',
+        helpId: 'widget/lib/map/polygon_tooltip_fn',
+        type: 'javascript',
+        condition: 'model.showCircleTooltip === true && model.useCircleTooltipFunction === true'
       }
     ]
   };

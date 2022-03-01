@@ -1,21 +1,35 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -30,18 +44,14 @@ import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.objects.AttributesEntityView;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -174,137 +184,13 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     }
 
     @Test
-    public void testAssignAndUnAssignedEntityViewToCustomer() throws Exception {
-        EntityView view = getNewSavedEntityView("Test entity view");
-        Customer savedCustomer = doPost("/api/customer", getNewCustomer("My customer"), Customer.class);
-        view.setCustomerId(savedCustomer.getId());
-        EntityView savedView = doPost("/api/entityView", view, EntityView.class);
-
-        EntityView assignedView = doPost(
-                "/api/customer/" + savedCustomer.getId().getId().toString() + "/entityView/" + savedView.getId().getId().toString(),
-                EntityView.class);
-        assertEquals(savedCustomer.getId(), assignedView.getCustomerId());
-
-        EntityView foundView = doGet("/api/entityView/" + savedView.getId().getId().toString(), EntityView.class);
-        assertEquals(savedCustomer.getId(), foundView.getCustomerId());
-
-        EntityView unAssignedView = doDelete("/api/customer/entityView/" + savedView.getId().getId().toString(), EntityView.class);
-        assertEquals(ModelConstants.NULL_UUID, unAssignedView.getCustomerId().getId());
-
-        foundView = doGet("/api/entityView/" + savedView.getId().getId().toString(), EntityView.class);
-        assertEquals(ModelConstants.NULL_UUID, foundView.getCustomerId().getId());
-    }
-
-    @Test
-    public void testAssignEntityViewToNonExistentCustomer() throws Exception {
-        EntityView savedView = getNewSavedEntityView("Test entity view");
-        doPost("/api/customer/" + Uuids.timeBased().toString() + "/device/" + savedView.getId().getId().toString())
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void testAssignEntityViewToCustomerFromDifferentTenant() throws Exception {
-        loginSysAdmin();
-
-        Tenant tenant2 = getNewTenant("Different tenant");
-        Tenant savedTenant2 = doPost("/api/tenant", tenant2, Tenant.class);
-        Assert.assertNotNull(savedTenant2);
-
-        User tenantAdmin2 = new User();
-        tenantAdmin2.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin2.setTenantId(savedTenant2.getId());
-        tenantAdmin2.setEmail("tenant3@thingsboard.org");
-        tenantAdmin2.setFirstName("Joe");
-        tenantAdmin2.setLastName("Downs");
-        createUserAndLogin(tenantAdmin2, "testPassword1");
-
-        Customer customer = getNewCustomer("Different customer");
-        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
-
-        login(tenantAdmin.getEmail(), "testPassword1");
-
-        EntityView savedView = getNewSavedEntityView("Test entity view");
-
-        doPost("/api/customer/" + savedCustomer.getId().getId().toString() + "/entityView/" + savedView.getId().getId().toString())
-                .andExpect(status().isForbidden());
-
-        loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant2.getId().getId().toString())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void testGetCustomerEntityViews() throws Exception {
-        Customer customer = doPost("/api/customer", getNewCustomer("Test customer"), Customer.class);
-        CustomerId customerId = customer.getId();
-        String urlTemplate = "/api/customer/" + customerId.getId().toString() + "/entityViewInfos?";
-
-        List<EntityViewInfo> views = new ArrayList<>();
-        for (int i = 0; i < 128; i++) {
-            views.add(
-                    new EntityViewInfo(doPost("/api/customer/" + customerId.getId().toString() + "/entityView/"
-                    + getNewSavedEntityView("Test entity view " + i).getId().getId().toString(), EntityView.class),
-                    customer.getTitle(), customer.isPublic())
-            );
-        }
-
-        List<EntityViewInfo> loadedViews = loadListOfInfo(new PageLink(23), urlTemplate);
-
-        Collections.sort(views, idComparator);
-        Collections.sort(loadedViews, idComparator);
-
-        assertEquals(views, loadedViews);
-    }
-
-    @Test
-    public void testGetCustomerEntityViewsByName() throws Exception {
-        CustomerId customerId = doPost("/api/customer", getNewCustomer("Test customer"), Customer.class).getId();
-        String urlTemplate = "/api/customer/" + customerId.getId().toString() + "/entityViews?";
-
-        String name1 = "Entity view name1";
-        List<EntityView> namesOfView1 = fillListOf(125, name1, "/api/customer/" + customerId.getId().toString()
-                + "/entityView/");
-        List<EntityView> loadedNamesOfView1 = loadListOf(new PageLink(15, 0, name1), urlTemplate);
-        Collections.sort(namesOfView1, idComparator);
-        Collections.sort(loadedNamesOfView1, idComparator);
-        assertEquals(namesOfView1, loadedNamesOfView1);
-
-        String name2 = "Entity view name2";
-        List<EntityView> NamesOfView2 = fillListOf(143, name2, "/api/customer/" + customerId.getId().toString()
-                + "/entityView/");
-        List<EntityView> loadedNamesOfView2 = loadListOf(new PageLink(4, 0, name2), urlTemplate);
-        Collections.sort(NamesOfView2, idComparator);
-        Collections.sort(loadedNamesOfView2, idComparator);
-        assertEquals(NamesOfView2, loadedNamesOfView2);
-
-        for (EntityView view : loadedNamesOfView1) {
-            doDelete("/api/customer/entityView/" + view.getId().getId().toString()).andExpect(status().isOk());
-        }
-        PageData<EntityView> pageData = doGetTypedWithPageLink(urlTemplate,
-                new TypeReference<PageData<EntityView>>() {
-                }, new PageLink(4, 0, name1));
-        Assert.assertFalse(pageData.hasNext());
-        assertEquals(0, pageData.getData().size());
-
-        for (EntityView view : loadedNamesOfView2) {
-            doDelete("/api/customer/entityView/" + view.getId().getId().toString()).andExpect(status().isOk());
-        }
-        pageData = doGetTypedWithPageLink(urlTemplate, new TypeReference<PageData<EntityView>>() {
-                },
-                new PageLink(4, 0, name2));
-        Assert.assertFalse(pageData.hasNext());
-        assertEquals(0, pageData.getData().size());
-    }
-
-    @Test
     public void testGetTenantEntityViews() throws Exception {
 
-        List<EntityViewInfo> views = new ArrayList<>();
+        List<EntityView> views = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
-            views.add(new EntityViewInfo(getNewSavedEntityView("Test entity view" + i), null, false));
+            views.add(getNewSavedEntityView("Test entity view" + i));
         }
-        List<EntityViewInfo> loadedViews = loadListOfInfo(new PageLink(23), "/api/tenant/entityViewInfos?");
+        List<EntityView> loadedViews = loadListOf(new PageLink(23), "/api/tenant/entityViews?");
 
         Collections.sort(views, idComparator);
         Collections.sort(loadedViews, idComparator);
@@ -565,47 +451,5 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         } while (pageData.hasNext());
 
         return loadedItems;
-    }
-
-    private List<EntityViewInfo> loadListOfInfo(PageLink pageLink, String urlTemplate) throws Exception {
-        List<EntityViewInfo> loadedItems = new ArrayList<>();
-        PageData<EntityViewInfo> pageData;
-        do {
-            pageData = doGetTypedWithPageLink(urlTemplate, new TypeReference<PageData<EntityViewInfo>>() {
-            }, pageLink);
-            loadedItems.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        return loadedItems;
-    }
-
-    @Test
-    public void testAssignEntityViewToEdge() throws Exception {
-        Edge edge = constructEdge("My edge", "default");
-        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
-
-        EntityView savedEntityView = getNewSavedEntityView("My entityView");
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/device/" + testDevice.getId().getId().toString(), Device.class);
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/entityView/" + savedEntityView.getId().getId().toString(), EntityView.class);
-
-        PageData<EntityView> pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/entityViews?",
-                new TypeReference<PageData<EntityView>>() {}, new PageLink(100));
-
-        Assert.assertEquals(1, pageData.getData().size());
-
-        doDelete("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/entityView/" + savedEntityView.getId().getId().toString(), EntityView.class);
-
-        pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/entityViews?",
-                new TypeReference<PageData<EntityView>>() {}, new PageLink(100));
-
-        Assert.assertEquals(0, pageData.getData().size());
     }
 }

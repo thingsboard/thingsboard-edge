@@ -1,20 +1,35 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -26,10 +41,13 @@ import { DatasourceType, widgetType } from '@shared/models/widget.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { ThemePalette } from '@angular/material/core/common-behaviors/color';
 
 const switchAspectRation = 2.7893;
 
 type RetrieveValueMethod = 'rpc' | 'attribute' | 'timeseries';
+
+type SwitchType = 'switch' | 'slide-toggle';
 
 interface SwitchSettings {
   initialValue: boolean;
@@ -44,6 +62,8 @@ interface SwitchSettings {
   requestTimeout: number;
   requestPersistent: boolean;
   persistentPollingInterval: number;
+  labelPosition: 'before' | 'after';
+  sliderColor: ThemePalette;
 }
 
 @Component({
@@ -51,28 +71,33 @@ interface SwitchSettings {
   templateUrl: './switch.component.html',
   styleUrls: ['./switch.component.scss']
 })
-export class SwitchComponent extends PageComponent implements OnInit, OnDestroy {
+export class SwitchComponent extends PageComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild('switch', {static: true}) switchElementRef: ElementRef<HTMLElement>;
-  @ViewChild('switchContainer', {static: true}) switchContainerRef: ElementRef<HTMLElement>;
-  @ViewChild('matSlideToggle', {static: true}) matSlideToggleRef: MatSlideToggle;
-  @ViewChild('onoffContainer', {static: true}) onoffContainerRef: ElementRef<HTMLElement>;
-  @ViewChild('onLabel', {static: true}) onLabelRef: ElementRef<HTMLElement>;
-  @ViewChild('offLabel', {static: true}) offLabelRef: ElementRef<HTMLElement>;
-  @ViewChild('switchTitleContainer', {static: true}) switchTitleContainerRef: ElementRef<HTMLElement>;
-  @ViewChild('switchTitle', {static: true}) switchTitleRef: ElementRef<HTMLElement>;
-  @ViewChild('textMeasure', {static: true}) textMeasureRef: ElementRef<HTMLElement>;
-  @ViewChild('switchErrorContainer', {static: true}) switchErrorContainerRef: ElementRef<HTMLElement>;
-  @ViewChild('switchError', {static: true}) switchErrorRef: ElementRef<HTMLElement>;
+  @ViewChild('switch', {static: false}) switchElementRef: ElementRef<HTMLElement>;
+  @ViewChild('switchContainer', {static: false}) switchContainerRef: ElementRef<HTMLElement>;
+  @ViewChild('matSlideToggle', {static: false}) matSlideToggleRef: MatSlideToggle;
+  @ViewChild('onoffContainer', {static: false}) onoffContainerRef: ElementRef<HTMLElement>;
+  @ViewChild('onLabel', {static: false}) onLabelRef: ElementRef<HTMLElement>;
+  @ViewChild('offLabel', {static: false}) offLabelRef: ElementRef<HTMLElement>;
+  @ViewChild('switchTitleContainer', {static: false}) switchTitleContainerRef: ElementRef<HTMLElement>;
+  @ViewChild('switchTitle', {static: false}) switchTitleRef: ElementRef<HTMLElement>;
+  @ViewChild('textMeasure', {static: false}) textMeasureRef: ElementRef<HTMLElement>;
+  @ViewChild('switchErrorContainer', {static: false}) switchErrorContainerRef: ElementRef<HTMLElement>;
+  @ViewChild('switchError', {static: false}) switchErrorRef: ElementRef<HTMLElement>;
 
   @Input()
   ctx: WidgetContext;
+
+  @Input()
+  switchType: SwitchType = 'switch';
 
   showTitle = false;
   value = false;
   error = '';
   title = '';
   showOnOffLabels = false;
+  labelPosition: 'before' | 'after' = 'after';
+  sliderColor: ThemePalette = 'accent';
 
   private isSimulated: boolean;
   private requestTimeout: number;
@@ -87,7 +112,7 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
 
   private valueSubscription: IWidgetSubscription;
 
-  private executingUpdateValue: boolean;
+  public executingUpdateValue: boolean;
   private scheduledValue: boolean;
   private rpcValue: boolean;
 
@@ -111,22 +136,27 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
   }
 
   ngOnInit(): void {
-    this.switchElement = $(this.switchElementRef.nativeElement);
-    this.switchContainer = $(this.switchContainerRef.nativeElement);
-    this.matSlideToggle = $(this.matSlideToggleRef._elementRef.nativeElement);
-    this.onoffContainer = $(this.onoffContainerRef.nativeElement);
-    this.onLabel = $(this.onLabelRef.nativeElement);
-    this.offLabel = $(this.offLabelRef.nativeElement);
-    this.switchTitleContainer = $(this.switchTitleContainerRef.nativeElement);
-    this.switchTitle = $(this.switchTitleRef.nativeElement);
-    this.textMeasure = $(this.textMeasureRef.nativeElement);
-    this.switchErrorContainer = $(this.switchErrorContainerRef.nativeElement);
-    this.switchError = $(this.switchErrorRef.nativeElement);
+  }
 
-    this.switchResize$ = new ResizeObserver(() => {
-      this.resize();
-    });
-    this.switchResize$.observe(this.switchContainerRef.nativeElement);
+  ngAfterViewInit() {
+    if (this.switchType === 'switch') {
+      this.switchElement = $(this.switchElementRef.nativeElement);
+      this.switchContainer = $(this.switchContainerRef.nativeElement);
+      this.matSlideToggle = $(this.matSlideToggleRef._elementRef.nativeElement);
+      this.onoffContainer = $(this.onoffContainerRef.nativeElement);
+      this.onLabel = $(this.onLabelRef.nativeElement);
+      this.offLabel = $(this.offLabelRef.nativeElement);
+      this.switchTitleContainer = $(this.switchTitleContainerRef.nativeElement);
+      this.switchTitle = $(this.switchTitleRef.nativeElement);
+      this.textMeasure = $(this.textMeasureRef.nativeElement);
+      this.switchErrorContainer = $(this.switchErrorContainerRef.nativeElement);
+      this.switchError = $(this.switchErrorRef.nativeElement);
+
+      this.switchResize$ = new ResizeObserver(() => {
+        this.resize();
+      });
+      this.switchResize$.observe(this.switchContainerRef.nativeElement);
+    }
     this.init();
   }
 
@@ -145,6 +175,8 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
     this.title = isDefined(settings.title) ? settings.title : '';
     this.showTitle = !!(this.title && this.title.length);
     this.showOnOffLabels = isDefined(settings.showOnOffLabels) ? settings.showOnOffLabels : true;
+    this.labelPosition = isDefined(settings.labelPosition) ? settings.labelPosition : 'after';
+    this.sliderColor = isDefined(settings.sliderColor) ? settings.sliderColor : 'accent';
     const initialValue = isDefined(settings.initialValue) ? settings.initialValue : false;
     this.setValue(initialValue);
 
@@ -256,7 +288,9 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
 
   private onError(error: string) {
     this.error = error;
-    this.setFontSize(this.switchError, this.error, this.switchErrorContainer.height(), this.switchErrorContainer.width());
+    if (this.switchType === 'switch') {
+      this.setFontSize(this.switchError, this.error, this.switchErrorContainer.height(), this.switchErrorContainer.width());
+    }
     this.ctx.detectChanges();
   }
 
@@ -278,6 +312,10 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
       },
       () => {
         const errorText = this.ctx.defaultSubscription.rpcErrorText;
+        if (this.switchType === 'slide-toggle') {
+          this.ctx.defaultSubscription.rpcErrorText = null;
+          this.ctx.hideToast(this.ctx.toastTargetId);
+        }
         this.onError(errorText);
       }
     );
@@ -304,6 +342,10 @@ export class SwitchComponent extends PageComponent implements OnInit, OnDestroy 
       () => {
         this.executingUpdateValue = false;
         const errorText = this.ctx.defaultSubscription.rpcErrorText;
+        if (this.switchType === 'slide-toggle') {
+          this.ctx.defaultSubscription.rpcErrorText = null;
+          this.ctx.hideToast(this.ctx.toastTargetId);
+        }
         this.onError(errorText);
       }
     );

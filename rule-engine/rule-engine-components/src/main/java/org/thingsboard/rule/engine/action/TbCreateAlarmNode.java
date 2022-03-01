@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.rule.engine.action;
 
@@ -23,6 +38,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -122,40 +138,68 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
     }
 
     private ListenableFuture<TbAlarmResult> createNewAlarm(TbContext ctx, TbMsg msg, Alarm msgAlarm) {
-        ListenableFuture<Alarm> asyncAlarm;
-        if (msgAlarm != null) {
-            asyncAlarm = Futures.immediateFuture(msgAlarm);
-        } else {
+        ListenableFuture<JsonNode> asyncDetails;
+        boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
+        if (buildDetails) {
             ctx.logJsEvalRequest();
-            asyncAlarm = Futures.transform(buildAlarmDetails(ctx, msg, null),
-                    details -> {
-                        ctx.logJsEvalResponse();
-                        return buildAlarm(msg, details, ctx.getTenantId());
-                    }, MoreExecutors.directExecutor());
+            asyncDetails = buildAlarmDetails(ctx, msg, null);
+        } else {
+            asyncDetails = Futures.immediateFuture(null);
         }
+        ListenableFuture<Alarm> asyncAlarm =  Futures.transform(asyncDetails, details -> {
+            if (buildDetails) {
+                ctx.logJsEvalResponse();
+            }
+            Alarm newAlarm;
+            if (msgAlarm != null) {
+                newAlarm = msgAlarm;
+                if (buildDetails) {
+                    newAlarm.setDetails(details);
+                }
+            } else {
+                newAlarm = buildAlarm(msg, details, ctx.getTenantId());
+            }
+            return newAlarm;
+        }, MoreExecutors.directExecutor());
         ListenableFuture<Alarm> asyncCreated = Futures.transform(asyncAlarm,
                 alarm -> ctx.getAlarmService().createOrUpdateAlarm(alarm), ctx.getDbCallbackExecutor());
         return Futures.transform(asyncCreated, alarm -> new TbAlarmResult(true, false, false, alarm), MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<TbAlarmResult> updateAlarm(TbContext ctx, TbMsg msg, Alarm existingAlarm, Alarm msgAlarm) {
-        ctx.logJsEvalRequest();
-        ListenableFuture<Alarm> asyncUpdated = Futures.transform(buildAlarmDetails(ctx, msg, existingAlarm.getDetails()), (Function<JsonNode, Alarm>) details -> {
-            ctx.logJsEvalResponse();
+        ListenableFuture<JsonNode> asyncDetails;
+        boolean buildDetails = !config.isUseMessageAlarmData() || config.isOverwriteAlarmDetails();
+        if (buildDetails) {
+            ctx.logJsEvalRequest();
+            asyncDetails = buildAlarmDetails(ctx, msg, existingAlarm.getDetails());
+        } else {
+            asyncDetails = Futures.immediateFuture(null);
+        }
+        ListenableFuture<Alarm> asyncUpdated = Futures.transform(asyncDetails, (Function<JsonNode, Alarm>) details -> {
+            if (buildDetails) {
+                ctx.logJsEvalResponse();
+            }
             if (msgAlarm != null) {
                 existingAlarm.setSeverity(msgAlarm.getSeverity());
                 existingAlarm.setPropagate(msgAlarm.isPropagate());
                 existingAlarm.setPropagateToOwner(msgAlarm.isPropagateToOwner());
+                existingAlarm.setPropagateToOwnerHierarchy(msgAlarm.isPropagateToOwnerHierarchy());
                 existingAlarm.setPropagateToTenant(msgAlarm.isPropagateToTenant());
                 existingAlarm.setPropagateRelationTypes(msgAlarm.getPropagateRelationTypes());
+                if (buildDetails) {
+                    existingAlarm.setDetails(details);
+                } else {
+                    existingAlarm.setDetails(msgAlarm.getDetails());
+                }
             } else {
                 existingAlarm.setSeverity(processAlarmSeverity(msg));
                 existingAlarm.setPropagate(config.isPropagate());
                 existingAlarm.setPropagateToOwner(config.isPropagateToOwner());
+                existingAlarm.setPropagateToOwnerHierarchy(config.isPropagateToOwnerHierarchy());
                 existingAlarm.setPropagateToTenant(config.isPropagateToTenant());
                 existingAlarm.setPropagateRelationTypes(relationTypes);
+                existingAlarm.setDetails(details);
             }
-            existingAlarm.setDetails(details);
             existingAlarm.setEndTs(System.currentTimeMillis());
             return ctx.getAlarmService().createOrUpdateAlarm(existingAlarm);
         }, ctx.getDbCallbackExecutor());
@@ -171,6 +215,9 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 .status(AlarmStatus.ACTIVE_UNACK)
                 .severity(this.config.isDynamicSeverity() ? processAlarmSeverity(msg) : notDynamicAlarmSeverity)
                 .propagate(config.isPropagate())
+                .propagateToOwner(config.isPropagateToOwner())
+                .propagateToTenant(config.isPropagateToTenant())
+                .propagateToOwnerHierarchy(config.isPropagateToOwnerHierarchy())
                 .type(TbNodeUtils.processPattern(this.config.getAlarmType(), msg))
                 .propagateRelationTypes(relationTypes)
                 .startTs(ts)

@@ -1,7 +1,7 @@
 {
   "name": "thingsboard-js-executor",
   "private": true,
-  "version": "3.3.3",
+  "version": "3.3.4PE",
   "description": "ThingsBoard JavaScript Executor Microservice",
   "main": "server.js",
   "bin": "server.js",
@@ -12,6 +12,8 @@
     "start-prod": "NODE_ENV=production nodemon server.js"
   },
   "dependencies": {
+    "atob": "^2.1.2",
+    "btoa": "^1.2.1",
     "@azure/service-bus": "^1.1.9",
     "@google-cloud/pubsub": "^2.5.0",
     "amqplib": "^0.6.0",

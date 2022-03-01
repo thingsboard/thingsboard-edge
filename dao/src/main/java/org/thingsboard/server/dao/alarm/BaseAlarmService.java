@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.alarm;
 
@@ -25,10 +40,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
@@ -41,17 +56,18 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -59,7 +75,6 @@ import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,10 +97,13 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     private AlarmDao alarmDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private EntityService entityService;
 
     @Autowired
-    private EntityService entityService;
+    private OwnerService ownerService;
+
+    @Autowired
+    private DataValidator<Alarm> alarmDataValidator;
 
     protected ExecutorService readResultsProcessingExecutor;
 
@@ -140,10 +158,10 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
-    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId,
+    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, MergedUserPermissions mergedUserPermissions,
                                                                AlarmDataQuery query, Collection<EntityId> orderedEntityIds) {
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        return alarmDao.findAlarmDataByQueryForEntities(tenantId, query, orderedEntityIds);
+        return alarmDao.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, query, orderedEntityIds);
     }
 
     @Override
@@ -176,8 +194,10 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         if (alarm.isPropagate()) {
             propagatedEntitiesSet.addAll(getRelatedEntities(alarm));
         }
-        if (alarm.isPropagateToOwner()) {
-            propagatedEntitiesSet.add(alarm.getCustomerId() != null ? alarm.getCustomerId() : alarm.getTenantId());
+        if (alarm.isPropagateToOwnerHierarchy()) {
+            propagatedEntitiesSet.addAll(ownerService.getOwners(alarm.getTenantId(), alarm.getOriginator()));
+        } else if (alarm.isPropagateToOwner()) {
+            propagatedEntitiesSet.add(ownerService.getOwner(alarm.getTenantId(), alarm.getOriginator()));
         }
         if (alarm.isPropagateToTenant()) {
             propagatedEntitiesSet.add(alarm.getTenantId());
@@ -189,15 +209,20 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     private Set<EntityId> getRelatedEntities(Alarm alarm) throws InterruptedException, ExecutionException {
-        EntityRelationsQuery query = new EntityRelationsQuery();
-        RelationsSearchParameters parameters = new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, false);
-        query.setParameters(parameters);
+        EntityRelationsQuery commonQuery = new EntityRelationsQuery();
+        commonQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.COMMON, false));
+        EntityRelationsQuery groupQuery = new EntityRelationsQuery();
+        groupQuery.setParameters(new RelationsSearchParameters(alarm.getOriginator(), EntitySearchDirection.TO, Integer.MAX_VALUE, RelationTypeGroup.FROM_ENTITY_GROUP, false));
         List<String> propagateRelationTypes = alarm.getPropagateRelationTypes();
-        Stream<EntityRelation> relations = relationService.findByQuery(alarm.getTenantId(), query).get().stream();
+        Stream<EntityRelation> commonRelations = relationService.findByQuery(alarm.getTenantId(), commonQuery).get().stream();
+        Stream<EntityRelation> groupRelations = relationService.findByQuery(alarm.getTenantId(), groupQuery).get().stream();
         if (!CollectionUtils.isEmpty(propagateRelationTypes)) {
-            relations = relations.filter(entityRelation -> propagateRelationTypes.contains(entityRelation.getType()));
+            commonRelations = commonRelations.filter(entityRelation -> propagateRelationTypes.contains(entityRelation.getType()));
         }
-        return relations.map(EntityRelation::getFrom).collect(Collectors.toCollection(LinkedHashSet::new));
+        Set<EntityId> parentEntities = new LinkedHashSet<>();
+        parentEntities.addAll(commonRelations.map(EntityRelation::getFrom).collect(Collectors.toList()));
+        parentEntities.addAll(groupRelations.map(EntityRelation::getFrom).collect(Collectors.toList()));
+        return parentEntities;
     }
 
     private ListenableFuture<AlarmOperationResult> updateAlarm(Alarm update) {
@@ -218,10 +243,11 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     private AlarmOperationResult updateAlarm(Alarm oldAlarm, Alarm newAlarm) {
         boolean propagationEnabled = !oldAlarm.isPropagate() && newAlarm.isPropagate();
         boolean propagationToOwnerEnabled = !oldAlarm.isPropagateToOwner() && newAlarm.isPropagateToOwner();
+        boolean propagationToOwnerHierarchyEnabled = !oldAlarm.isPropagateToOwnerHierarchy() && newAlarm.isPropagateToOwnerHierarchy();
         boolean propagationToTenantEnabled = !oldAlarm.isPropagateToTenant() && newAlarm.isPropagateToTenant();
         Alarm result = alarmDao.save(newAlarm.getTenantId(), merge(oldAlarm, newAlarm));
         List<EntityId> propagatedEntitiesList;
-        if (propagationEnabled || propagationToOwnerEnabled || propagationToTenantEnabled) {
+        if (propagationEnabled || propagationToOwnerEnabled || propagationToTenantEnabled || propagationToOwnerHierarchyEnabled) {
             try {
                 propagatedEntitiesList = createEntityAlarmRecords(result);
             } catch (InterruptedException | ExecutionException e) {
@@ -336,6 +362,16 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
+    public List<Long> findAlarmCounts(TenantId tenantId, AlarmQuery query, List<AlarmFilter> filters) {
+        List<Long> alarmCounts = new ArrayList<>();
+        for (AlarmFilter filter : filters) {
+            long count = alarmDao.findAlarmCount(tenantId, query, filter);
+            alarmCounts.add(count);
+        }
+        return alarmCounts;
+    }
+
+    @Override
     public AlarmSeverity findHighestAlarmSeverity(TenantId tenantId, EntityId entityId, AlarmSearchStatus alarmSearchStatus,
                                                   AlarmStatus alarmStatus) {
         Set<AlarmStatus> statusList = null;
@@ -374,6 +410,7 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         existing.setCustomerId(alarm.getCustomerId());
         existing.setPropagate(existing.isPropagate() || alarm.isPropagate());
         existing.setPropagateToOwner(existing.isPropagateToOwner() || alarm.isPropagateToOwner());
+        existing.setPropagateToOwnerHierarchy(existing.isPropagateToOwnerHierarchy() || alarm.isPropagateToOwnerHierarchy());
         existing.setPropagateToTenant(existing.isPropagateToTenant() || alarm.isPropagateToTenant());
         List<String> existingPropagateRelationTypes = existing.getPropagateRelationTypes();
         List<String> newRelationTypes = alarm.getPropagateRelationTypes();
@@ -389,9 +426,22 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         return existing;
     }
 
-    private Set<EntityId> getPropagationEntityIds(Alarm alarm) {
-        if (alarm.isPropagate() || alarm.isPropagateToOwner() || alarm.isPropagateToTenant()) {
-            List<EntityAlarm> entityAlarms = alarmDao.findEntityAlarmRecords(alarm.getTenantId(), alarm.getId());
+    @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm) {
+        return processGetPropagationEntityIds(alarm, null);
+    }
+
+    @Override
+    public Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types) {
+        return processGetPropagationEntityIds(alarm, types);
+    }
+
+    private Set<EntityId> processGetPropagationEntityIds(Alarm alarm, List<EntityType> types) {
+        validateId(alarm.getId(), "Alarm id should be specified!");
+        if (alarm.isPropagate() || alarm.isPropagateToOwner() || alarm.isPropagateToTenant() || alarm.isPropagateToOwnerHierarchy()) {
+            List<EntityAlarm> entityAlarms = CollectionUtils.isEmpty(types) ?
+                    alarmDao.findEntityAlarmRecords(alarm.getTenantId(), alarm.getId()) :
+                    alarmDao.findEntityAlarmRecordsByEntityTypes(alarm.getTenantId(), alarm.getId(), types);
             return entityAlarms.stream().map(EntityAlarm::getEntityId).collect(Collectors.toSet());
         } else {
             return Collections.singleton(alarm.getOriginator());
@@ -412,32 +462,4 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         ListenableFuture<Alarm> entity = alarmDao.findAlarmByIdAsync(tenantId, alarmId.getId());
         return Futures.transform(entity, function, readResultsProcessingExecutor);
     }
-
-    private DataValidator<Alarm> alarmDataValidator =
-            new DataValidator<>() {
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Alarm alarm) {
-                    if (StringUtils.isEmpty(alarm.getType())) {
-                        throw new DataValidationException("Alarm type should be specified!");
-                    }
-                    if (alarm.getOriginator() == null) {
-                        throw new DataValidationException("Alarm originator should be specified!");
-                    }
-                    if (alarm.getSeverity() == null) {
-                        throw new DataValidationException("Alarm severity should be specified!");
-                    }
-                    if (alarm.getStatus() == null) {
-                        throw new DataValidationException("Alarm status should be specified!");
-                    }
-                    if (alarm.getTenantId() == null) {
-                        throw new DataValidationException("Alarm should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(alarm.getTenantId(), alarm.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Alarm is referencing to non-existent tenant!");
-                        }
-                    }
-                }
-            };
 }

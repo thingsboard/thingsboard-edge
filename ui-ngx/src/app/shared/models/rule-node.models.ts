@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { BaseData } from '@shared/models/base-data';
@@ -191,6 +206,7 @@ export enum RuleNodeType {
   ENRICHMENT = 'ENRICHMENT',
   TRANSFORMATION = 'TRANSFORMATION',
   ACTION = 'ACTION',
+  ANALYTICS = 'ANALYTICS',
   EXTERNAL = 'EXTERNAL',
   FLOW = 'FLOW',
   UNKNOWN = 'UNKNOWN',
@@ -202,6 +218,7 @@ export const ruleNodeTypesLibrary = [
   RuleNodeType.ENRICHMENT,
   RuleNodeType.TRANSFORMATION,
   RuleNodeType.ACTION,
+  RuleNodeType.ANALYTICS,
   RuleNodeType.EXTERNAL,
   RuleNodeType.FLOW,
 ];
@@ -255,6 +272,16 @@ export const ruleNodeTypeDescriptors = new Map<RuleNodeType, RuleNodeTypeDescrip
         details: 'rulenode.type-action-details',
         nodeClass: 'tb-action-type',
         icon: 'flash_on'
+      }
+    ],
+    [
+      RuleNodeType.ANALYTICS,
+      {
+        value: RuleNodeType.ANALYTICS,
+        name: 'rulenode.type-analytics',
+        details: 'rulenode.type-analytics-details',
+        nodeClass: 'tb-analytics-type',
+        icon: 'timeline'
       }
     ],
     [
@@ -360,11 +387,17 @@ export enum MessageType {
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
   TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
   TIMESERIES_DELETED = 'TIMESERIES_DELETED',
+  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
+  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
+  REST_API_REQUEST = 'REST_API_REQUEST',
+  FIRMWARE_UPDATED = 'FIRMWARE_UPDATED',
+  SOFTWARE_UPDATED = 'SOFTWARE_UPDATED',
   RPC_QUEUED = 'RPC_QUEUED',
   RPC_DELIVERED = 'RPC_DELIVERED',
   RPC_SUCCESSFUL = 'RPC_SUCCESSFUL',
   RPC_TIMEOUT = 'RPC_TIMEOUT',
-  RPC_FAILED = 'RPC_FAILED'
+  RPC_FAILED = 'RPC_FAILED',
+  generateReport = 'generateReport'
 }
 
 export const messageTypeNames = new Map<MessageType, string>(
@@ -386,11 +419,17 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
     [MessageType.TIMESERIES_UPDATED, 'Timeseries Updated'],
     [MessageType.TIMESERIES_DELETED, 'Timeseries Deleted'],
+    [MessageType.ADDED_TO_ENTITY_GROUP, 'Added to Group'],
+    [MessageType.REMOVED_FROM_ENTITY_GROUP, 'Removed from Group'],
+    [MessageType.REST_API_REQUEST, 'REST API request'],
+    [MessageType.FIRMWARE_UPDATED, 'Firmware Update'],
+    [MessageType.SOFTWARE_UPDATED, 'Software Update'],
     [MessageType.RPC_QUEUED, 'RPC Queued'],
     [MessageType.RPC_DELIVERED, 'RPC Delivered'],
     [MessageType.RPC_SUCCESSFUL, 'RPC Successful'],
     [MessageType.RPC_TIMEOUT, 'RPC Timeout'],
-    [MessageType.RPC_FAILED, 'RPC Failed']
+    [MessageType.RPC_FAILED, 'RPC Failed'],
+    [MessageType.generateReport, 'Generate Report']
   ]
 );
 
@@ -445,8 +484,21 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.sms.TbSendSmsNode': 'ruleNodeSendSms',
   'org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode': 'ruleNodePushToCloud',
   'org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode': 'ruleNodePushToEdge',
+  'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
+  'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
+  'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',
+  'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode': 'ruleNodeDuplicateToGroup',
+  'org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupByNameNode': 'ruleNodeDuplicateToGroupByName',
+  'org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode': 'ruleNodeDuplicateToRelated',
+  'org.thingsboard.rule.engine.action.TbChangeOwnerNode': 'ruleNodeChangeOwner',
+  'org.thingsboard.rule.engine.report.TbGenerateReportNode': 'ruleNodeGenerateReport',
+  'org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode': 'ruleNodeRestCallReply',
+  'org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode': 'ruleNodeAggregateLatest',
+  'org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode': 'ruleNodeAggregateStream',
+  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2': 'ruleNodeAlarmsCount',
+  'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCountDeprecated',
   'org.thingsboard.rule.engine.flow.TbRuleChainInputNode': 'ruleNodeRuleChain',
-  'org.thingsboard.rule.engine.flow.TbRuleChainOutputNode': 'ruleNodeOutputNode',
+  'org.thingsboard.rule.engine.flow.TbRuleChainOutputNode': 'ruleNodeOutputNode'
 };
 
 export function getRuleNodeHelpLink(component: RuleNodeComponentDescriptor): string {

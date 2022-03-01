@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.importing;
 
@@ -27,10 +42,12 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -39,8 +56,9 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.controller.BaseController;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.service.action.EntityActionService;
@@ -48,8 +66,6 @@ import org.thingsboard.server.service.importing.BulkImportRequest.ColumnMapping;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.CsvUtils;
 import org.thingsboard.server.utils.TypeCastUtil;
@@ -67,11 +83,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class AbstractBulkImportService<E extends HasId<? extends EntityId> & HasTenantId> {
+public abstract class AbstractBulkImportService<E extends HasId<? extends EntityId> & TenantEntity> {
     @Autowired
     private TelemetrySubscriptionService tsSubscriptionService;
     @Autowired
@@ -95,7 +113,7 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
         }
     }
 
-    public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, Consumer<ImportedEntityInfo<E>> onEntityImported) throws Exception {
+    public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, Consumer<ImportedEntityInfo<E>> onEntityImported, BiConsumer<E, UnaryOperator<E>> entityGroupAssigner) throws Exception {
         List<EntityData> entitiesData = parseData(request);
 
         BulkImportResult<E> result = new BulkImportResult<>();
@@ -106,11 +124,34 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
         entitiesData.forEach(entityData -> DonAsynchron.submit(() -> {
                     SecurityContextHolder.setContext(securityContext);
 
-                    ImportedEntityInfo<E> importedEntityInfo =  saveEntity(entityData.getFields(), user);
-                    E entity = importedEntityInfo.getEntity();
+                    ImportedEntityInfo<E> importedEntityInfo = new ImportedEntityInfo<>();
+                    E entity = findOrCreateEntity(user.getTenantId(), entityData.getFields().get(BulkImportColumnType.NAME));
+                    if (entity.getId() != null) {
+                        importedEntityInfo.setOldEntity((E) entity.getClass().getConstructor(entity.getClass()).newInstance(entity));
+                        importedEntityInfo.setUpdated(true);
+                    } else {
+                        setOwners(entity, user.getTenantId(), request.getCustomerId() != null ? request.getCustomerId() : user.getCustomerId());
+                    }
+
+                    setEntityFields(entity, entityData.getFields());
+                    accessControlService.checkPermission(user, Resource.resourceFromEntityType(getEntityType()), Operation.WRITE, entity.getId(), entity);
+
+                    UnaryOperator<E> savingFunction = e -> {
+                        E savedEntity = saveEntity(entity, entityData.getFields());
+                        importedEntityInfo.setEntity(savedEntity);
+                        return savedEntity;
+                    };
+
+                    if (entityGroupAssigner != null) {
+                        entityGroupAssigner.accept(entity, savingFunction);
+                    } else {
+                        savingFunction.apply(entity);
+                    }
 
                     onEntityImported.accept(importedEntityInfo);
-                    saveKvs(user, entity, entityData.getKvs());
+
+                    E savedEntity = importedEntityInfo.getEntity();
+                    saveKvs(user, savedEntity, entityData.getKvs());
 
                     return importedEntityInfo;
                 },
@@ -133,31 +174,10 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
         return result;
     }
 
-    @SneakyThrows
-    private ImportedEntityInfo<E> saveEntity(Map<BulkImportColumnType, String> fields, SecurityUser user) {
-        ImportedEntityInfo<E> importedEntityInfo = new ImportedEntityInfo<>();
-
-        E entity = findOrCreateEntity(user.getTenantId(), fields.get(BulkImportColumnType.NAME));
-        if (entity.getId() != null) {
-            importedEntityInfo.setOldEntity((E) entity.getClass().getConstructor(entity.getClass()).newInstance(entity));
-            importedEntityInfo.setUpdated(true);
-        } else {
-            setOwners(entity, user);
-        }
-
-        setEntityFields(entity, fields);
-        accessControlService.checkPermission(user, Resource.of(getEntityType()), Operation.WRITE, entity.getId(), entity);
-
-        E savedEntity = saveEntity(entity, fields);
-
-        importedEntityInfo.setEntity(savedEntity);
-        return importedEntityInfo;
-    }
-
 
     protected abstract E findOrCreateEntity(TenantId tenantId, String name);
 
-    protected abstract void setOwners(E entity, SecurityUser user);
+    protected abstract void setOwners(E entity, TenantId tenantId, CustomerId customerId);
 
     protected abstract void setEntityFields(E entity, Map<BulkImportColumnType, String> fields);
 

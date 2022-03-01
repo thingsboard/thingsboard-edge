@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Injectable } from '@angular/core';
@@ -25,11 +40,12 @@ import {
   ClaimResult,
   Device,
   DeviceCredentials,
-  DeviceInfo,
   DeviceSearchQuery
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { AuthService } from '@core/auth/auth.service';
+import { map } from 'rxjs/operators';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
 
@@ -42,7 +58,7 @@ export class DeviceService {
     private http: HttpClient
   ) { }
 
-  public getTenantDeviceInfos(pageLink: PageLink, type: string = '',
+/*  public getTenantDeviceInfos(pageLink: PageLink, type: string = '',
                               config?: RequestConfig): Observable<PageData<DeviceInfo>> {
     return this.http.get<PageData<DeviceInfo>>(`/api/tenant/deviceInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
@@ -58,28 +74,52 @@ export class DeviceService {
                                 config?: RequestConfig): Observable<PageData<DeviceInfo>> {
     return this.http.get<PageData<DeviceInfo>>(`/api/customer/${customerId}/deviceInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
+  }*/
+
+  public getTenantDevices(pageLink: PageLink, type: string = '',
+                          config?: RequestConfig): Observable<PageData<Device>> {
+    return this.http.get<PageData<Device>>(`/api/tenant/devices${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
-  public getCustomerDeviceInfosByDeviceProfileId(customerId: string, pageLink: PageLink, deviceProfileId: string = '',
+  public getCustomerDevices(customerId: string, pageLink: PageLink, type: string = '',
+                                config?: RequestConfig): Observable<PageData<Device>> {
+    return this.http.get<PageData<Device>>(`/api/customer/${customerId}/devices${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+/*  public getCustomerDeviceInfosByDeviceProfileId(customerId: string, pageLink: PageLink, deviceProfileId: string = '',
                                                  config?: RequestConfig): Observable<PageData<DeviceInfo>> {
     return this.http.get<PageData<DeviceInfo>>(`/api/customer/${customerId}/deviceInfos${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`,
       defaultHttpOptionsFromConfig(config));
-  }
+  } */
 
   public getDevice(deviceId: string, config?: RequestConfig): Observable<Device> {
     return this.http.get<Device>(`/api/device/${deviceId}`, defaultHttpOptionsFromConfig(config));
   }
 
   public getDevices(deviceIds: Array<string>, config?: RequestConfig): Observable<Array<Device>> {
-    return this.http.get<Array<Device>>(`/api/devices?deviceIds=${deviceIds.join(',')}`, defaultHttpOptionsFromConfig(config));
+    return this.http.get<Array<Device>>(`/api/devices?deviceIds=${deviceIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((devices) => sortEntitiesByIds(devices, deviceIds))
+    );
   }
 
-  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
+  public getUserDevices(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<Device>> {
+    return this.http.get<PageData<Device>>(`/api/user/devices${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+/*  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
     return this.http.get<DeviceInfo>(`/api/device/info/${deviceId}`, defaultHttpOptionsFromConfig(config));
-  }
+  }*/
 
-  public saveDevice(device: Device, config?: RequestConfig): Observable<Device> {
-    return this.http.post<Device>('/api/device', device, defaultHttpOptionsFromConfig(config));
+  public saveDevice(device: Device, entityGroupId?: string, config?: RequestConfig): Observable<Device> {
+    let url = '/api/device';
+    if (entityGroupId) {
+      url += `?entityGroupId=${entityGroupId}`;
+    }
+    return this.http.post<Device>(url, device, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteDevice(deviceId: string, config?: RequestConfig) {
@@ -118,7 +158,7 @@ export class DeviceService {
     return this.http.post<DeviceCredentials>('/api/device/credentials', deviceCredentials, defaultHttpOptionsFromConfig(config));
   }
 
-  public makeDevicePublic(deviceId: string, config?: RequestConfig): Observable<Device> {
+  /*public makeDevicePublic(deviceId: string, config?: RequestConfig): Observable<Device> {
     return this.http.post<Device>(`/api/customer/public/device/${deviceId}`, null, defaultHttpOptionsFromConfig(config));
   }
 
@@ -129,7 +169,7 @@ export class DeviceService {
 
   public unassignDeviceFromCustomer(deviceId: string, config?: RequestConfig) {
     return this.http.delete(`/api/customer/device/${deviceId}`, defaultHttpOptionsFromConfig(config));
-  }
+  }*/
 
   public sendOneWayRpcCommand(deviceId: string, requestBody: any, config?: RequestConfig): Observable<any> {
     return this.http.post<Device>(`/api/rpc/oneway/${deviceId}`, requestBody, defaultHttpOptionsFromConfig(config));
@@ -174,26 +214,7 @@ export class DeviceService {
     return this.http.delete(`/api/customer/device/${deviceName}/claim`, defaultHttpOptionsFromConfig(config));
   }
 
-  public assignDeviceToEdge(edgeId: string, deviceId: string,
-                            config?: RequestConfig): Observable<Device> {
-    return this.http.post<Device>(`/api/edge/${edgeId}/device/${deviceId}`,
-      defaultHttpOptionsFromConfig(config));
-  }
-
-  public unassignDeviceFromEdge(edgeId: string, deviceId: string,
-                                config?: RequestConfig) {
-    return this.http.delete(`/api/edge/${edgeId}/device/${deviceId}`,
-      defaultHttpOptionsFromConfig(config));
-  }
-
-  public getEdgeDevices(edgeId: string, pageLink: PageLink, type: string = '',
-                        config?: RequestConfig): Observable<PageData<DeviceInfo>> {
-    return this.http.get<PageData<DeviceInfo>>(`/api/edge/${edgeId}/devices${pageLink.toQuery()}&type=${type}`,
-      defaultHttpOptionsFromConfig(config));
-  }
-
   public bulkImportDevices(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
     return this.http.post<BulkImportResult>('/api/device/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
-
 }

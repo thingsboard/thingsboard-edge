@@ -1,18 +1,33 @@
 #!/usr/bin/env bash
 #
-# Copyright © 2016-2022 The Thingsboard Authors
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
 
@@ -29,26 +44,41 @@ cd -- "$(
 	dirname "${0}"
 )" || exit 1
 
-Help()
+ResultInfo()
 {
-   # Display Help
-   echo "Description of the script functions."
-   echo
-   echo "Syntax: scriptTemplate [-g|h|v|V]"
-   echo "options:"
-   echo "h     Print this Help."
-   echo "v     Verbose mode."
-   echo "V     Print software version and exit."
-   echo
+#   # Display Help
+#   echo "Description of the script functions."
+#   echo
+#   echo "Syntax: scriptTemplate [-g|h|v|V]"
+#   echo "options:"
+#   echo "h     Print this Help."
+#   echo "v     Verbose mode."
+#   echo "V     Print software version and exit."
+#   echo
+if  [ "$IS_IHFO" = false ] ; then
+  if [ "$IS_SERVER_CREATED_KEY" = true ] ; then
+    ./lwm2m_cfssl_chain_server_for_test.sh > /dev/null 2>&1 &
+  fi
+  if [ "$IS_TRUST_CLIENT_CREATED_KEY" = true ] ; then
+    ./lwM2M_cfssl_chain_clients_for_test.sh ${INTERMEDIATE_START} ${INTERMEDIATE_FINISH} ${CLIENT_START} ${CLIENT_FINISH} > /dev/null 2>&1 &
+  fi
+else
+    if [ "$IS_SERVER_CREATED_KEY" = true ] ; then
+    ./lwm2m_cfssl_chain_server_for_test.sh
+  fi
+  if [ "$IS_TRUST_CLIENT_CREATED_KEY" = true ] ; then
+    ./lwM2M_cfssl_chain_clients_for_test.sh ${INTERMEDIATE_START} ${INTERMEDIATE_FINISH} ${CLIENT_START} ${CLIENT_FINISH}
+  fi
+fi
 }
 
-if [ "$1" == "-h" ] ; then
-    echo -e "Usage 1: ./`basename $0` \"Information is not displayed\" : \"Keys for the server are generated\" : \"Keys for the clients and trusts are generated\""
-    echo -e "Usage 2: ./`basename $0` true \"Information is displayed\" : \"Keys for the server are generated\" : \"Keys for the clients and trusts are generated\""
-    echo -e "Usage 3: ./`basename $0` true false \"Information is displayed\" : \"Keys for the server are not generated\" : \"Keys for the clients and trusts are generated\""
-    echo -e "Usage 4: ./`basename $0` true false false \"Information is displayed\" : \"Keys for the server are not generated\" : \"Keys for the clients and trusts are not generated\""
-    echo -e "Usage 5: ./`basename $0` true true false \"Information is displayed\" : \"Keys for the server are generated\" : \"Keys for the clients and trusts are not generated\""
-    echo "This Help File: ./`basename $0` -h"
+if [ "$1" == "-h" ] ||[ "$1" == "-?" ] || [ "$1" == "-help" ] ; then
+    echo -e "Usage 1:  \"Information is not displayed\" : \"Keys for the server are generated\" : \"Keys for the clients and trusts are generated\"\n./`basename $0`"
+    echo -e "Usage 2:  \"Information is displayed\" : \"Keys for the server are generated\" : \"Keys for the clients and trusts are generated\"\n./`basename $0` true \n./`basename $0` true true true "
+    echo -e "Usage 3:  \"Information is displayed\" : \"Keys for the server are not generated\" : \"Keys for the clients and trusts are generated\"\n./`basename $0` true false \n./`basename $0` true false true"
+    echo -e "Usage 4:  \"Information is displayed\" : \"Keys for the server are not generated\" : \"Keys for the clients and trusts are not generated\"\n./`basename $0` true false false"
+    echo -e "Usage 5:  \"Information is displayed\" : \"Keys for the server are generated\" : \"Keys for the clients and trusts are not generated\"\n./`basename $0` true true false"
+    echo -e "This Help File: \n./`basename $0` -h | -? | -help"
     exit 0
 fi
 
@@ -63,6 +93,14 @@ fi
 if [ -n "$3" ]; then
   IS_TRUST_CLIENT_CREATED_KEY=$3
 fi
+
+if  [ "$IS_SERVER_CREATED_KEY" = false ] && [ "$IS_TRUST_CLIENT_CREATED_KEY" = false ] ; then
+  echo -e "Result is null"
+  echo -e "This Help File: \n./`basename $0` -h | -? | -help"
+  exit 0
+fi
+
+
 
 if  [ "$IS_IHFO" = false ] ; then
   if [ "$IS_SERVER_CREATED_KEY" = true ] ; then
@@ -79,3 +117,14 @@ else
     ./lwM2M_cfssl_chain_clients_for_test.sh ${INTERMEDIATE_START} ${INTERMEDIATE_FINISH} ${CLIENT_START} ${CLIENT_FINISH}
   fi
 fi
+
+echo -e "Result into:"
+if [ "$IS_SERVER_CREATED_KEY" = true ] ; then
+   echo -e "./Server"
+fi
+if [ "$IS_TRUST_CLIENT_CREATED_KEY" = true ] ; then
+  echo -e "./Client"
+  echo -e "./Trust"
+fi
+
+echo -e "Finish"

@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.sql.event;
 
@@ -37,6 +52,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -56,19 +72,6 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
     private EventDao eventDao;
 
     @Test
-    public void testSaveIfNotExists() {
-        UUID eventId = Uuids.timeBased();
-        UUID tenantId = Uuids.timeBased();
-        UUID entityId = Uuids.timeBased();
-        Event event = getEvent(eventId, tenantId, entityId);
-        Optional<Event> optEvent1 = eventDao.saveIfNotExists(event);
-        assertTrue("Optional is expected to be non-empty", optEvent1.isPresent());
-        assertEquals(event, optEvent1.get());
-        Optional<Event> optEvent2 = eventDao.saveIfNotExists(event);
-        assertFalse("Optional is expected to be empty", optEvent2.isPresent());
-    }
-
-    @Test
     @DatabaseSetup("classpath:dbunit/event.xml")
     public void findEvent() {
         UUID tenantId = UUID.fromString("be41c7a0-31f5-11e7-9cfd-2786e6aa2046");
@@ -82,7 +85,7 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
     }
 
     @Test
-    public void findEventsByEntityIdAndPageLink() {
+    public void findEventsByEntityIdAndPageLink() throws Exception {
         UUID tenantId = Uuids.timeBased();
         UUID entityId1 = Uuids.timeBased();
         UUID entityId2 = Uuids.timeBased();
@@ -116,7 +119,7 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
     }
 
     @Test
-    public void findEventsByEntityIdAndEventTypeAndPageLink() {
+    public void findEventsByEntityIdAndEventTypeAndPageLink() throws Exception {
         UUID tenantId = Uuids.timeBased();
         UUID entityId1 = Uuids.timeBased();
         UUID entityId2 = Uuids.timeBased();
@@ -144,27 +147,27 @@ public class JpaBaseEventDaoTest extends AbstractJpaDaoTest {
         assertEquals(2, events5.getData().size());
     }
 
-    private long createEventsTwoEntitiesTwoTypes(UUID tenantId, UUID entityId1, UUID entityId2, long startTime, int count) {
+    private long createEventsTwoEntitiesTwoTypes(UUID tenantId, UUID entityId1, UUID entityId2, long startTime, int count) throws Exception {
         for (int i = 0; i < count / 2; i++) {
             String type = i % 2 == 0 ? STATS : ALARM;
             UUID eventId1 = Uuids.timeBased();
             Event event1 = getEvent(eventId1, tenantId, entityId1, type);
-            eventDao.save(TenantId.fromUUID(tenantId), event1);
+            eventDao.saveAsync(event1).get();
             UUID eventId2 = Uuids.timeBased();
             Event event2 = getEvent(eventId2, tenantId, entityId2, type);
-            eventDao.save(TenantId.fromUUID(tenantId), event2);
+            eventDao.saveAsync(event2).get();
         }
         return System.currentTimeMillis();
     }
 
-    private long createEventsTwoEntities(UUID tenantId, UUID entityId1, UUID entityId2, long startTime, int count) {
+    private long createEventsTwoEntities(UUID tenantId, UUID entityId1, UUID entityId2, long startTime, int count) throws Exception {
         for (int i = 0; i < count / 2; i++) {
             UUID eventId1 = Uuids.timeBased();
             Event event1 = getEvent(eventId1, tenantId, entityId1);
-            eventDao.save(TenantId.fromUUID(tenantId), event1);
+            eventDao.saveAsync(event1).get();
             UUID eventId2 = Uuids.timeBased();
             Event event2 = getEvent(eventId2, tenantId, entityId2);
-            eventDao.save(TenantId.fromUUID(tenantId), event2);
+            eventDao.saveAsync(event2).get();
         }
         return System.currentTimeMillis();
     }

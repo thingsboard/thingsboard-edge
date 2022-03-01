@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.mqtt.adaptors;
 
@@ -28,10 +43,10 @@ import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
-import org.thingsboard.server.common.transport.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.mqtt.session.MqttDeviceAwareSessionContext;
 
@@ -61,7 +76,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
         try {
             return JsonConverter.convertToTelemetryProto(new JsonParser().parse(payload));
         } catch (IllegalStateException | JsonSyntaxException ex) {
-            log.warn("Failed to decode post telemetry request", ex);
+            log.debug("Failed to decode post telemetry request", ex);
             throw new AdaptorException(ex);
         }
     }
@@ -72,7 +87,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
         try {
             return JsonConverter.convertToAttributesProto(new JsonParser().parse(payload));
         } catch (IllegalStateException | JsonSyntaxException ex) {
-            log.warn("Failed to decode post attributes request", ex);
+            log.debug("Failed to decode post attributes request", ex);
             throw new AdaptorException(ex);
         }
     }
@@ -83,7 +98,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
         try {
             return JsonConverter.convertToClaimDeviceProto(ctx.getDeviceId(), payload);
         } catch (IllegalStateException | JsonSyntaxException ex) {
-            log.warn("Failed to decode claim device request", ex);
+            log.debug("Failed to decode claim device request", ex);
             throw new AdaptorException(ex);
         }
     }
@@ -164,7 +179,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
         try {
             return new JsonParser().parse(payload);
         } catch (JsonSyntaxException ex) {
-            log.warn("Payload is in incorrect format: {}", payload);
+            log.debug("Payload is in incorrect format: {}", payload);
             throw new AdaptorException(ex);
         }
     }
@@ -186,7 +201,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
             }
             return result.build();
         } catch (RuntimeException e) {
-            log.warn("Failed to decode get attributes request", e);
+            log.debug("Failed to decode get attributes request", e);
             throw new AdaptorException(e);
         }
     }
@@ -198,7 +213,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
             String payload = inbound.payload().toString(UTF8);
             return TransportProtos.ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId).setPayload(payload).build();
         } catch (RuntimeException e) {
-            log.warn("Failed to decode rpc response", e);
+            log.debug("Failed to decode rpc response", e);
             throw new AdaptorException(e);
         }
     }
@@ -210,7 +225,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
             int requestId = getRequestId(topicName, topicBase);
             return JsonConverter.convertToServerRpcRequest(new JsonParser().parse(payload), requestId);
         } catch (IllegalStateException | JsonSyntaxException ex) {
-            log.warn("Failed to decode to server rpc request", ex);
+            log.debug("Failed to decode to server rpc request", ex);
             throw new AdaptorException(ex);
         }
     }
@@ -259,7 +274,7 @@ public class JsonMqttAdaptor implements MqttTransportAdaptor {
     private static String validatePayload(UUID sessionId, ByteBuf payloadData, boolean isEmptyPayloadAllowed) throws AdaptorException {
         String payload = payloadData.toString(UTF8);
         if (payload == null) {
-            log.warn("[{}] Payload is empty!", sessionId);
+            log.debug("[{}] Payload is empty!", sessionId);
             if (!isEmptyPayloadAllowed) {
                 throw new AdaptorException(new IllegalArgumentException("Payload is empty!"));
             }

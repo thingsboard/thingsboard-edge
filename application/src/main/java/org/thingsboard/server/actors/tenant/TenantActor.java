@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.actors.tenant;
 
@@ -33,15 +48,19 @@ import org.thingsboard.server.actors.ruleChain.RuleChainOutputMsg;
 import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -56,7 +75,9 @@ import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import java.util.List;
@@ -114,6 +135,8 @@ public class TenantActor extends RuleChainManagerActor {
             }
         } catch (Exception e) {
             log.warn("[{}] Unknown failure", tenantId, e);
+//            TODO: throw this in 3.1?
+//            throw new TbActorException("Failed to init actor", e);
         }
     }
 
@@ -240,7 +263,33 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onComponentLifecycleMsg(ComponentLifecycleMsg msg) {
-        if (msg.getEntityId().getEntityType().equals(EntityType.API_USAGE_STATE)) {
+       if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
+            IntegrationId integrationId = new IntegrationId(msg.getEntityId().getId());
+            PlatformIntegrationService platformIntegrationService = systemContext.getPlatformIntegrationService();
+            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+                platformIntegrationService.deleteIntegration(integrationId);
+            } else {
+                Integration integration = systemContext.getIntegrationService().findIntegrationById(msg.getTenantId(), integrationId);
+                if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+                    platformIntegrationService.createIntegration(integration);
+                } else {
+                    platformIntegrationService.updateIntegration(integration);
+                }
+            }
+        } else if (msg.getEntityId().getEntityType() == EntityType.CONVERTER) {
+            ConverterId converterById = new ConverterId(msg.getEntityId().getId());
+            DataConverterService dataConverterService = systemContext.getDataConverterService();
+            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+                dataConverterService.deleteConverter(converterById);
+            } else {
+                Converter converter = systemContext.getConverterService().findConverterById(tenantId, converterById);
+                if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+                    dataConverterService.createConverter(converter);
+                } else {
+                    dataConverterService.updateConverter(converter);
+                }
+            }
+        } else if (msg.getEntityId().getEntityType().equals(EntityType.API_USAGE_STATE)) {
             ApiUsageState old = apiUsageState;
             apiUsageState = new ApiUsageState(systemContext.getApiUsageStateService().getApiUsageState(tenantId));
             if (old.isReExecEnabled() && !apiUsageState.isReExecEnabled()) {

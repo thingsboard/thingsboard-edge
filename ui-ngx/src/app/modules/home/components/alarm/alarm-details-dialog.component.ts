@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Component, Inject, OnInit } from '@angular/core';
@@ -33,9 +48,11 @@ import { AlarmService } from '@core/http/alarm.service';
 import { tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface AlarmDetailsDialogData {
-  alarmId: string;
+  alarmId?: string;
+  alarm?: AlarmInfo;
   allowAcknowledgment: boolean;
   allowClear: boolean;
   displayDetails: boolean;
@@ -48,6 +65,7 @@ export interface AlarmDetailsDialogData {
 })
 export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDialogComponent, boolean> implements OnInit {
 
+  alarmId: string;
   alarmFormGroup: FormGroup;
 
   allowAcknowledgment: boolean;
@@ -67,6 +85,7 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
   constructor(protected store: Store<AppState>,
               protected router: Router,
               private datePipe: DatePipe,
+              private utils: UtilsService,
               private translate: TranslateService,
               @Inject(MAT_DIALOG_DATA) public data: AlarmDetailsDialogData,
               private alarmService: AlarmService,
@@ -93,12 +112,17 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
       }
     );
 
-    this.loadAlarm();
-
+    if (!this.data.alarm) {
+      this.alarmId = this.data.alarmId;
+      this.loadAlarm();
+    } else {
+      this.alarmId = this.data.alarm?.id?.id;
+      this.loadAlarmSubject.next(this.data.alarm);
+    }
   }
 
   loadAlarm() {
-    this.alarmService.getAlarmInfo(this.data.alarmId).subscribe(
+    this.alarmService.getAlarmInfo(this.alarmId).subscribe(
       alarm => this.loadAlarmSubject.next(alarm)
     );
   }
@@ -124,12 +148,19 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
       this.alarmFormGroup.get('clearTime')
         .patchValue(this.datePipe.transform(alarm.clearTs, 'yyyy-MM-dd HH:mm:ss'));
     }
-    this.alarmFormGroup.get('type').patchValue(alarm.type);
+    this.alarmFormGroup.get('type').patchValue(this.utils.customTranslation(alarm.type, alarm.type));
     this.alarmFormGroup.get('alarmSeverity')
       .patchValue(this.translate.instant(alarmSeverityTranslations.get(alarm.severity)));
     this.alarmFormGroup.get('alarmStatus')
       .patchValue(this.translate.instant(alarmStatusTranslations.get(alarm.status)));
-    this.alarmFormGroup.get('alarmDetails').patchValue(alarm.details);
+    if (alarm.details) {
+      let stringDetails = JSON.stringify(alarm.details, undefined, 2);
+      stringDetails = this.utils.customTranslation(stringDetails, stringDetails);
+      const details = JSON.parse(stringDetails);
+      this.alarmFormGroup.get('alarmDetails').patchValue(details);
+    } else {
+      this.alarmFormGroup.get('alarmDetails').patchValue(null);
+    }
   }
 
   ngOnInit(): void {
@@ -140,15 +171,25 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
   }
 
   acknowledge(): void {
-    this.alarmService.ackAlarm(this.data.alarmId).subscribe(
-      () => { this.alarmUpdated = true; this.loadAlarm(); }
-    );
+    if (this.alarmId) {
+      this.alarmService.ackAlarm(this.alarmId).subscribe(
+        () => {
+          this.alarmUpdated = true;
+          this.loadAlarm();
+        }
+      );
+    }
   }
 
   clear(): void {
-    this.alarmService.clearAlarm(this.data.alarmId).subscribe(
-      () => { this.alarmUpdated = true; this.loadAlarm(); }
-    );
+    if (this.alarmId) {
+      this.alarmService.clearAlarm(this.alarmId).subscribe(
+        () => {
+          this.alarmUpdated = true;
+          this.loadAlarm();
+        }
+      );
+    }
   }
 
 }

@@ -1,24 +1,41 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.ota;
 
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -37,13 +54,14 @@ import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.ota.OtaPackageUpdateStatus;
 import org.thingsboard.server.common.data.ota.OtaPackageUtil;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
@@ -51,6 +69,8 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.provider.TbRuleEngineQueueFactory;
+import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.cluster.TbClusterService;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -60,10 +80,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 import static org.thingsboard.server.common.data.ota.OtaPackageKey.CHECKSUM;
 import static org.thingsboard.server.common.data.ota.OtaPackageKey.CHECKSUM_ALGORITHM;
+import static org.thingsboard.server.common.data.ota.OtaPackageKey.ID;
 import static org.thingsboard.server.common.data.ota.OtaPackageKey.SIZE;
 import static org.thingsboard.server.common.data.ota.OtaPackageKey.STATE;
 import static org.thingsboard.server.common.data.ota.OtaPackageKey.TAG;
@@ -84,22 +106,25 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     private final TbClusterService tbClusterService;
     private final OtaPackageService otaPackageService;
     private final DeviceService deviceService;
-    private final DeviceProfileService deviceProfileService;
     private final RuleEngineTelemetryService telemetryService;
+    private final AttributesService attributesService;
+    private final DbCallbackExecutorService dbExecutor;
     private final TbQueueProducer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> otaPackageStateMsgProducer;
 
     public DefaultOtaPackageStateService(@Lazy TbClusterService tbClusterService,
                                          OtaPackageService otaPackageService,
                                          DeviceService deviceService,
-                                         DeviceProfileService deviceProfileService,
                                          @Lazy RuleEngineTelemetryService telemetryService,
+                                         AttributesService attributesService,
+                                         DbCallbackExecutorService dbExecutor,
                                          Optional<TbCoreQueueFactory> coreQueueFactory,
                                          Optional<TbRuleEngineQueueFactory> reQueueFactory) {
         this.tbClusterService = tbClusterService;
         this.otaPackageService = otaPackageService;
         this.deviceService = deviceService;
-        this.deviceProfileService = deviceProfileService;
         this.telemetryService = telemetryService;
+        this.attributesService = attributesService;
+        this.dbExecutor = dbExecutor;
         if (coreQueueFactory.isPresent()) {
             this.otaPackageStateMsgProducer = coreQueueFactory.get().createToOtaPackageStateServiceMsgProducer();
         } else {
@@ -108,63 +133,156 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     @Override
-    public void update(Device device, Device oldDevice) {
-        updateFirmware(device, oldDevice);
-        updateSoftware(device, oldDevice);
-    }
+    public void update(TenantId tenantId, DeviceGroupOtaPackage newDeviceGroupOtaPackage, DeviceGroupOtaPackage oldDeviceGroupOtaPackage) {
+        long ts = System.currentTimeMillis();
 
-    private void updateFirmware(Device device, Device oldDevice) {
-        OtaPackageId newFirmwareId = device.getFirmwareId();
-        if (newFirmwareId == null) {
-            DeviceProfile newDeviceProfile = deviceProfileService.findDeviceProfileById(device.getTenantId(), device.getDeviceProfileId());
-            newFirmwareId = newDeviceProfile.getFirmwareId();
-        }
-        if (oldDevice != null) {
-            OtaPackageId oldFirmwareId = oldDevice.getFirmwareId();
-            if (oldFirmwareId == null) {
-                DeviceProfile oldDeviceProfile = deviceProfileService.findDeviceProfileById(oldDevice.getTenantId(), oldDevice.getDeviceProfileId());
-                oldFirmwareId = oldDeviceProfile.getFirmwareId();
+        if (oldDeviceGroupOtaPackage == null) {
+            OtaPackageInfo newOtaPackage = otaPackageService.findOtaPackageById(tenantId, newDeviceGroupOtaPackage.getOtaPackageId());
+            update(newDeviceGroupOtaPackage, newOtaPackage, ts);
+        } else if (newDeviceGroupOtaPackage == null) {
+            OtaPackageInfo oldOtaPackage = otaPackageService.findOtaPackageById(tenantId, oldDeviceGroupOtaPackage.getOtaPackageId());
+            remove(oldDeviceGroupOtaPackage, oldOtaPackage, ts);
+        } else {
+            OtaPackageInfo newOtaPackage = otaPackageService.findOtaPackageById(tenantId, newDeviceGroupOtaPackage.getOtaPackageId());
+            OtaPackageInfo oldOtaPackage = otaPackageService.findOtaPackageById(tenantId, oldDeviceGroupOtaPackage.getOtaPackageId());
+            update(newDeviceGroupOtaPackage, newOtaPackage, ts);
+            if (!newOtaPackage.getDeviceProfileId().equals(oldOtaPackage.getDeviceProfileId())) {
+                remove(oldDeviceGroupOtaPackage, oldOtaPackage, ts);
             }
-            if (newFirmwareId != null) {
-                if (!newFirmwareId.equals(oldFirmwareId)) {
-                    // Device was updated and new firmware is different from previous firmware.
-                    send(device.getTenantId(), device.getId(), newFirmwareId, System.currentTimeMillis(), FIRMWARE);
-                }
-            } else if (oldFirmwareId != null){
-                // Device was updated and new firmware is not set.
-                remove(device, FIRMWARE);
-            }
-        } else if (newFirmwareId != null) {
-            // Device was created and firmware is defined.
-            send(device.getTenantId(), device.getId(), newFirmwareId, System.currentTimeMillis(), FIRMWARE);
         }
     }
 
-    private void updateSoftware(Device device, Device oldDevice) {
-        OtaPackageId newSoftwareId = device.getSoftwareId();
-        if (newSoftwareId == null) {
-            DeviceProfile newDeviceProfile = deviceProfileService.findDeviceProfileById(device.getTenantId(), device.getDeviceProfileId());
-            newSoftwareId = newDeviceProfile.getSoftwareId();
-        }
-        if (oldDevice != null) {
-            OtaPackageId oldSoftwareId = oldDevice.getSoftwareId();
-            if (oldSoftwareId == null) {
-                DeviceProfile oldDeviceProfile = deviceProfileService.findDeviceProfileById(oldDevice.getTenantId(), oldDevice.getDeviceProfileId());
-                oldSoftwareId = oldDeviceProfile.getSoftwareId();
+    private void update(DeviceGroupOtaPackage deviceGroupOtaPackage, OtaPackageInfo packageFromGroup, long ts) {
+        PageLink pageLink = createPageLink();
+        PageData<Device> pageData;
+        do {
+            pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(deviceGroupOtaPackage.getGroupId(),
+                    packageFromGroup.getDeviceProfileId(), deviceGroupOtaPackage.getOtaPackageType(), pageLink);
+            pageData.getData().forEach(d ->
+                    send(d.getTenantId(), d.getId(), deviceGroupOtaPackage.getOtaPackageId(), ts, deviceGroupOtaPackage.getOtaPackageType()));
+
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
             }
-            if (newSoftwareId != null) {
-                if (!newSoftwareId.equals(oldSoftwareId)) {
-                    // Device was updated and new firmware is different from previous firmware.
-                    send(device.getTenantId(), device.getId(), newSoftwareId, System.currentTimeMillis(), SOFTWARE);
+        } while (pageData.hasNext());
+    }
+
+    private void remove(DeviceGroupOtaPackage deviceGroupOtaPackage, OtaPackageInfo otaPackageFromGroup, long ts) {
+        OtaPackageType otaPackageType = deviceGroupOtaPackage.getOtaPackageType();
+        PageLink pageLink = createPageLink();
+        PageData<Device> pageData;
+        do {
+            pageData = deviceService.findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(deviceGroupOtaPackage.getGroupId(),
+                    otaPackageFromGroup.getDeviceProfileId(), otaPackageType, pageLink);
+            pageData.getData().forEach(device -> {
+                OtaPackageInfo otaPackageForDevice = otaPackageService.findOtaPackageInfoByDeviceIdAndType(device.getId(), deviceGroupOtaPackage.getOtaPackageType());
+                if (otaPackageForDevice != null) {
+                    ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
+                            attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
+                    DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
+                        if (oldIdOpt.isPresent()) {
+                            OtaPackageId oldFirmwareId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+                            if (!otaPackageForDevice.getId().equals(oldFirmwareId)) {
+                                send(device.getTenantId(), device.getId(), otaPackageForDevice.getId(), ts, otaPackageType);
+                            }
+                        } else {
+                            log.trace("[{}] OtaPackage id attribute not found!", device.getId());
+                        }
+                    }, (e) -> log.error("Failed to get OtaPackage id attribute for device!", e), dbExecutor);
+                } else {
+                    remove(device, otaPackageType);
                 }
-            } else if (oldSoftwareId != null){
-                // Device was updated and new firmware is not set.
-                remove(device, SOFTWARE);
+            });
+
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
             }
-        } else if (newSoftwareId != null) {
-            // Device was created and firmware is defined.
-            send(device.getTenantId(), device.getId(), newSoftwareId, System.currentTimeMillis(), SOFTWARE);
+        } while (pageData.hasNext());
+    }
+
+    @Override
+    public void update(TenantId tenantId, List<DeviceId> deviceIds, boolean isFirmware, boolean isSoftware) {
+        deviceIds.forEach(id -> {
+            if (isFirmware) {
+                update(tenantId, id, FIRMWARE);
+            }
+            if (isSoftware) {
+                update(tenantId, id, SOFTWARE);
+            }
+        });
+    }
+
+    private void update(TenantId tenantId, DeviceId deviceId, OtaPackageType otaPackageType) {
+        OtaPackageInfo otaPackage = otaPackageService.findOtaPackageInfoByDeviceIdAndType(deviceId, otaPackageType);
+        if (otaPackage != null) {
+            ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
+                    attributesService.find(tenantId, deviceId, DataConstants.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
+            DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
+                if (oldIdOpt.isPresent()) {
+                    OtaPackageId otaPackageId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+                    if (!otaPackage.getId().equals(otaPackageId)) {
+                        send(tenantId, deviceId, otaPackage.getId(), System.currentTimeMillis(), otaPackageType);
+                    }
+                } else {
+                    send(tenantId, deviceId, otaPackage.getId(), System.currentTimeMillis(), otaPackageType);
+                }
+            }, (e) -> log.error("Failed to get OtaPackage id attribute for device!", e), dbExecutor);
+        } else {
+            Device device = deviceService.findDeviceById(tenantId, deviceId);
+            remove(device, otaPackageType);
         }
+    }
+
+    @Override
+    public void update(Device device) {
+        updateFirmware(device);
+        updateSoftware(device);
+    }
+
+    private void updateFirmware(Device device) {
+        ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(FIRMWARE, ID));
+        DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
+
+            OtaPackageId oldFirmwareId = null;
+
+            if (oldIdOpt.isPresent()) {
+                oldFirmwareId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+            }
+
+            OtaPackageInfo fw = otaPackageService.findOtaPackageInfoByDeviceIdAndType(device.getId(), FIRMWARE);
+
+            if (fw == null) {
+                if (oldFirmwareId != null) {
+                    remove(device, FIRMWARE);
+                }
+            } else if (!fw.getId().equals(oldFirmwareId)) {
+                send(device.getTenantId(), device.getId(), fw.getId(), System.currentTimeMillis(), FIRMWARE);
+            }
+
+        }, (e) -> log.error("Failed to get firmware id attribute!", e), dbExecutor);
+    }
+
+    private void updateSoftware(Device device) {
+        ListenableFuture<Optional<AttributeKvEntry>> oldSoftwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(SOFTWARE, ID));
+        DonAsynchron.withCallback(oldSoftwareIdFuture, oldIdOpt -> {
+
+            OtaPackageId oldSoftwareId = null;
+
+            if (oldIdOpt.isPresent()) {
+                oldSoftwareId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
+            }
+
+            OtaPackageInfo sw = otaPackageService.findOtaPackageInfoByDeviceIdAndType(device.getId(), SOFTWARE);
+
+            if (sw == null) {
+                if (oldSoftwareId != null) {
+                    remove(device, SOFTWARE);
+                }
+            } else if (!sw.getId().equals(oldSoftwareId)) {
+                send(device.getTenantId(), device.getId(), sw.getId(), System.currentTimeMillis(), SOFTWARE);
+            }
+
+        }, (e) -> log.error("Failed to get software id attribute!", e), dbExecutor);
     }
 
     @Override
@@ -182,17 +300,19 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     private void update(TenantId tenantId, DeviceProfile deviceProfile, OtaPackageType otaPackageType) {
         Consumer<Device> updateConsumer;
 
-        if (deviceProfile.getFirmwareId() != null) {
+        OtaPackageId firmwareId = OtaPackageUtil.getOtaPackageId(deviceProfile, otaPackageType);
+
+        if (firmwareId != null) {
             long ts = System.currentTimeMillis();
-            updateConsumer = d -> send(d.getTenantId(), d.getId(), deviceProfile.getFirmwareId(), ts, otaPackageType);
+            updateConsumer = d -> send(d.getTenantId(), d.getId(), firmwareId, ts, otaPackageType);
         } else {
             updateConsumer = d -> remove(d, otaPackageType);
         }
 
-        PageLink pageLink = new PageLink(100);
+        PageLink pageLink = createPageLink();
         PageData<Device> pageData;
         do {
-            pageData = deviceService.findDevicesByTenantIdAndTypeAndEmptyOtaPackage(tenantId, deviceProfile.getId(), otaPackageType, pageLink);
+            pageData = deviceService.findByDeviceProfileAndEmptyOtaPackage(tenantId, deviceProfile.getId(), otaPackageType, pageLink);
             pageData.getData().forEach(updateConsumer);
 
             if (pageData.hasNext()) {
@@ -212,69 +332,92 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
         Device device = deviceService.findDeviceById(tenantId, deviceId);
         if (device == null) {
-            log.warn("[{}] [{}] Device was removed during firmware update msg was queued!", tenantId, deviceId);
+            log.warn("[{}] [{}] Device was removed during OtaPackage update msg was queued!", tenantId, deviceId);
         } else {
-            OtaPackageId currentOtaPackageId = OtaPackageUtil.getOtaPackageId(device, firmwareType);
-            if (currentOtaPackageId == null) {
-                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, device.getDeviceProfileId());
-                currentOtaPackageId = OtaPackageUtil.getOtaPackageId(deviceProfile, firmwareType);
-            }
+            OtaPackageInfo currentOtaPackage = otaPackageService.findOtaPackageInfoByDeviceIdAndType(deviceId, firmwareType);
 
-            if (targetOtaPackageId.equals(currentOtaPackageId)) {
-                update(device, otaPackageService.findOtaPackageInfoById(device.getTenantId(), targetOtaPackageId), ts);
+            if (currentOtaPackage != null && targetOtaPackageId.equals(currentOtaPackage.getId())) {
+                update(device, currentOtaPackage, ts);
                 isSuccess = true;
             } else {
-                log.warn("[{}] [{}] Can`t update firmware for the device, target firmwareId: [{}], current firmwareId: [{}]!", tenantId, deviceId, targetOtaPackageId, currentOtaPackageId);
+                log.warn("[{}] [{}] Can`t update OtaPackage for the device, target firmwareId: [{}], current firmware: [{}]!", tenantId, deviceId, targetOtaPackageId, currentOtaPackage);
             }
         }
         return isSuccess;
     }
 
-    private void send(TenantId tenantId, DeviceId deviceId, OtaPackageId firmwareId, long ts, OtaPackageType firmwareType) {
-        ToOtaPackageStateServiceMsg msg = ToOtaPackageStateServiceMsg.newBuilder()
-                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
-                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
-                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
-                .setOtaPackageIdMSB(firmwareId.getId().getMostSignificantBits())
-                .setOtaPackageIdLSB(firmwareId.getId().getLeastSignificantBits())
-                .setType(firmwareType.name())
-                .setTs(ts)
-                .build();
+    private void send(TenantId tenantId, DeviceId deviceId, OtaPackageId otaPackageId, long ts, OtaPackageType otaPackageType) {
+        dbExecutor.execute(() -> {
+            ToOtaPackageStateServiceMsg msg = ToOtaPackageStateServiceMsg.newBuilder()
+                    .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                    .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                    .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                    .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
+                    .setOtaPackageIdMSB(otaPackageId.getId().getMostSignificantBits())
+                    .setOtaPackageIdLSB(otaPackageId.getId().getLeastSignificantBits())
+                    .setType(otaPackageType.name())
+                    .setTs(ts)
+                    .build();
 
-        OtaPackageInfo firmware = otaPackageService.findOtaPackageInfoById(tenantId, firmwareId);
-        if (firmware == null) {
-            log.warn("[{}] Failed to send firmware update because firmware was already deleted", firmwareId);
-            return;
-        }
-
-        TopicPartitionInfo tpi = new TopicPartitionInfo(otaPackageStateMsgProducer.getDefaultTopic(), null, null, false);
-        otaPackageStateMsgProducer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), null);
-
-        List<TsKvEntry> telemetry = new ArrayList<>();
-        telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTargetTelemetryKey(firmware.getType(), TITLE), firmware.getTitle())));
-        telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTargetTelemetryKey(firmware.getType(), VERSION), firmware.getVersion())));
-
-        if (StringUtils.isNotEmpty(firmware.getTag())) {
-            telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTargetTelemetryKey(firmware.getType(), TAG), firmware.getTag())));
-        }
-
-        telemetry.add(new BasicTsKvEntry(ts, new LongDataEntry(getTargetTelemetryKey(firmware.getType(), TS), ts)));
-        telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTelemetryKey(firmware.getType(), STATE), OtaPackageUpdateStatus.QUEUED.name())));
-
-        telemetryService.saveAndNotify(tenantId, deviceId, telemetry, new FutureCallback<>() {
-            @Override
-            public void onSuccess(@Nullable Void tmp) {
-                log.trace("[{}] Success save firmware status!", deviceId);
+            OtaPackageInfo firmware = otaPackageService.findOtaPackageInfoById(tenantId, otaPackageId);
+            if (firmware == null) {
+                log.warn("[{}] Failed to send OtaPackage update because firmware was already deleted", otaPackageId);
+                return;
             }
 
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("[{}] Failed to save firmware status!", deviceId, t);
+            CountDownLatch latch = new CountDownLatch(1);
+
+            List<AttributeKvEntry> attributes = new ArrayList<>();
+            attributes.add(new BaseAttributeKvEntry(ts, new StringDataEntry(getAttributeKey(firmware.getType(), ID), firmware.getId().toString())));
+
+            telemetryService.saveAndNotify(tenantId, deviceId, DataConstants.SERVER_SCOPE, attributes, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void tmp) {
+                    log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("[{}] Failed to save attributes with target OtaPackage!", deviceId, t);
+                    latch.countDown();
+                }
+            });
+
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                log.error("Failed to await saving {} id to attributes.", otaPackageType);
+                return;
             }
+
+            List<TsKvEntry> telemetry = new ArrayList<>();
+            telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTargetTelemetryKey(firmware.getType(), TITLE), firmware.getTitle())));
+            telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTargetTelemetryKey(firmware.getType(), VERSION), firmware.getVersion())));
+
+            if (StringUtils.isNotEmpty(firmware.getTag())) {
+                telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTargetTelemetryKey(firmware.getType(), TAG), firmware.getTag())));
+            }
+
+            telemetry.add(new BasicTsKvEntry(ts, new LongDataEntry(getTargetTelemetryKey(firmware.getType(), TS), ts)));
+            telemetry.add(new BasicTsKvEntry(ts, new StringDataEntry(getTelemetryKey(firmware.getType(), STATE), OtaPackageUpdateStatus.QUEUED.name())));
+
+            telemetryService.saveAndNotify(tenantId, deviceId, telemetry, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void tmp) {
+                    log.trace("[{}] Success save OtaPackage status!", deviceId);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("[{}] Failed to save OtaPackage status!", deviceId, t);
+                }
+            });
+
+            TopicPartitionInfo tpi = new TopicPartitionInfo(otaPackageStateMsgProducer.getDefaultTopic(), null, null, false);
+            otaPackageStateMsgProducer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), null);
         });
     }
-
 
     private void update(Device device, OtaPackageInfo otaPackage, long ts) {
         TenantId tenantId = device.getTenantId();
@@ -340,18 +483,35 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
         telemetryService.saveAndNotify(tenantId, deviceId, DataConstants.SHARED_SCOPE, attributes, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Void tmp) {
-                log.trace("[{}] Success save attributes with target firmware!", deviceId);
+                log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("[{}] Failed to save attributes with target firmware!", deviceId, t);
+                log.error("[{}] Failed to save attributes with target OtaPackage!", deviceId, t);
             }
         });
     }
 
     private void remove(Device device, OtaPackageType otaPackageType) {
         remove(device, otaPackageType, OtaPackageUtil.getAttributeKeys(otaPackageType));
+        String idKey = OtaPackageUtil.getAttributeKey(otaPackageType, ID);
+
+        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(idKey),
+                new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable Void tmp) {
+                        log.trace("[{}] Success remove OtaPackage id attribute!", device.getId());
+                        Set<AttributeKey> keysToNotify = new HashSet<>();
+                        keysToNotify.add(new AttributeKey(DataConstants.SERVER_SCOPE, idKey));
+                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), keysToNotify), null);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("[{}] Failed to remove target {} attributes!", device.getId(), otaPackageType, t);
+                    }
+                });
     }
 
     private void remove(Device device, OtaPackageType otaPackageType, List<String> attributesKeys) {
@@ -370,5 +530,9 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                         log.error("[{}] Failed to remove target {} attributes!", device.getId(), otaPackageType, t);
                     }
                 });
+    }
+
+    private PageLink createPageLink() {
+        return new PageLink(100);
     }
 }

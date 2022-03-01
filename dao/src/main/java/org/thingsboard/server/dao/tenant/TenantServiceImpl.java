@@ -1,53 +1,76 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.tenant;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
+import java.util.List;
+
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
@@ -55,9 +78,6 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-
-    @Value("${zk.enabled}")
-    private Boolean zkEnabled;
 
     @Autowired
     private TenantDao tenantDao;
@@ -96,6 +116,27 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     private RuleChainService ruleChainService;
 
     @Autowired
+    private IntegrationService integrationService;
+
+    @Autowired
+    private ConverterService converterService;
+
+    @Autowired
+    private SchedulerEventService schedulerEventService;
+
+    @Autowired
+    private BlobEntityService blobEntityService;
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private GroupPermissionService groupPermissionService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
     private ResourceService resourceService;
 
     @Autowired
@@ -103,6 +144,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Autowired
     private RpcService rpcService;
+
+    @Autowired
+    private DataValidator<Tenant> tenantValidator;
 
     @Override
     public Tenant findTenantById(TenantId tenantId) {
@@ -126,6 +170,13 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     }
 
     @Override
+    public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds) {
+        log.trace("Executing findTenantsByIdsAsync, callerId [{}], tenantIds [{}]", callerId, tenantIds);
+        validateIds(tenantIds, "Incorrect tenantIds " + tenantIds);
+        return tenantDao.findTenantsByIdsAsync(callerId.getId(), toUUIDs(tenantIds));
+    }
+
+    @Override
     public Tenant saveTenant(Tenant tenant) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
@@ -137,6 +188,17 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
+            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
+
+            entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
+            entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
         return savedTenant;
@@ -146,6 +208,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
@@ -155,71 +218,48 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         dashboardService.deleteDashboardsByTenantId(tenantId);
         edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
+        integrationService.deleteIntegrationsByTenantId(tenantId);
+        converterService.deleteConvertersByTenantId(tenantId);
         ruleChainService.deleteRuleChainsByTenantId(tenantId);
+        schedulerEventService.deleteSchedulerEventsByTenantId(tenantId);
+        blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
+        deleteEntityGroups(tenantId, tenantId);
+        deleteEntityRelations(tenantId, tenantId);
+        groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
+        roleService.deleteRolesByTenantId(tenantId);
         apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);
         resourceService.deleteResourcesByTenantId(tenantId);
         otaPackageService.deleteOtaPackagesByTenantId(tenantId);
         rpcService.deleteAllRpcByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
-        deleteEntityRelations(tenantId, tenantId);
     }
 
     @Override
     public PageData<Tenant> findTenants(PageLink pageLink) {
         log.trace("Executing findTenants pageLink [{}]", pageLink);
         Validator.validatePageLink(pageLink);
-        return tenantDao.findTenantsByRegion(TenantId.SYS_TENANT_ID, DEFAULT_TENANT_REGION, pageLink);
+        return tenantDao.findTenants(TenantId.SYS_TENANT_ID, pageLink);
     }
 
     @Override
     public PageData<TenantInfo> findTenantInfos(PageLink pageLink) {
         log.trace("Executing findTenantInfos pageLink [{}]", pageLink);
         Validator.validatePageLink(pageLink);
-        return tenantDao.findTenantInfosByRegion(TenantId.SYS_TENANT_ID, DEFAULT_TENANT_REGION, pageLink);
+        return tenantDao.findTenantInfos(TenantId.SYS_TENANT_ID, pageLink);
     }
 
     @Override
     public void deleteTenants() {
         log.trace("Executing deleteTenants");
-        tenantsRemover.removeEntities(TenantId.SYS_TENANT_ID, DEFAULT_TENANT_REGION);
+        tenantsRemover.removeEntities(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
     }
 
-    private DataValidator<Tenant> tenantValidator =
-            new DataValidator<Tenant>() {
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Tenant tenant) {
-                    if (StringUtils.isEmpty(tenant.getTitle())) {
-                        throw new DataValidationException("Tenant title should be specified!");
-                    }
-                    if (!StringUtils.isEmpty(tenant.getEmail())) {
-                        validateEmail(tenant.getEmail());
-                    }
-                    validateTenantProfile(tenantId, tenant);
-                }
+    private PaginatedRemover<TenantId, Tenant> tenantsRemover =
+            new PaginatedRemover<>() {
 
                 @Override
-                protected void validateUpdate(TenantId tenantId, Tenant tenant) {
-                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
-                    if (old == null) {
-                        throw new DataValidationException("Can't update non existing tenant!");
-                    }
-                    validateTenantProfile(tenantId, tenant);
-                }
-
-                private void validateTenantProfile(TenantId tenantId, Tenant tenant) {
-                    TenantProfile tenantProfileById = tenantProfileService.findTenantProfileById(tenantId, tenant.getTenantProfileId());
-                    if (!zkEnabled && (tenantProfileById.isIsolatedTbCore() || tenantProfileById.isIsolatedTbRuleEngine())) {
-                        throw new DataValidationException("Can't use isolated tenant profiles in monolith setup!");
-                    }
-                }
-            };
-
-    private PaginatedRemover<String, Tenant> tenantsRemover =
-            new PaginatedRemover<String, Tenant>() {
-
-                @Override
-                protected PageData<Tenant> findEntities(TenantId tenantId, String region, PageLink pageLink) {
-                    return tenantDao.findTenantsByRegion(tenantId, region, pageLink);
+                protected PageData<Tenant> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+                    return tenantDao.findTenants(tenantId, pageLink);
                 }
 
                 @Override

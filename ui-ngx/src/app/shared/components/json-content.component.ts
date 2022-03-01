@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -76,6 +91,8 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
   @Input() fillHeight: boolean;
 
   @Input() editorStyle: {[klass: string]: any};
+
+  @Input() tbPlaceholder: string;
 
   private readonlyValue: boolean;
   get readonly(): boolean {
@@ -154,12 +171,47 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
         this.jsonEditor.on('blur', () => {
           this.contentValid = !this.validateContent || this.doValidate(true);
         });
+        if (this.tbPlaceholder && this.tbPlaceholder.length) {
+          this.createPlaceholder();
+        }
         this.editorResize$ = new ResizeObserver(() => {
           this.onAceEditorResize();
         });
         this.editorResize$.observe(editorElement);
       }
     );
+  }
+
+  private createPlaceholder() {
+    this.jsonEditor.on('input', this.updateEditorPlaceholder.bind(this));
+    setTimeout(this.updateEditorPlaceholder.bind(this), 100);
+  }
+
+  private updateEditorPlaceholder() {
+    const shouldShow = !this.jsonEditor.session.getValue().length;
+    let node: HTMLElement = (this.jsonEditor.renderer as any).emptyMessageNode;
+    if (!shouldShow && node) {
+      this.jsonEditor.renderer.getMouseEventTarget().removeChild(node);
+      (this.jsonEditor.renderer as any).emptyMessageNode = null;
+    } else if (shouldShow && !node) {
+      const placeholderElement = $('<textarea></textarea>');
+      placeholderElement.text(this.tbPlaceholder);
+      placeholderElement.addClass('ace_invisible ace_emptyMessage');
+      placeholderElement.css({
+        padding: '0 9px',
+        width: '100%',
+        border: 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        resize: 'none',
+        fontSize: '15px'
+      });
+      const rows = this.tbPlaceholder.split('\n').length;
+      placeholderElement.attr('rows', rows);
+      node = placeholderElement[0];
+      (this.jsonEditor.renderer as any).emptyMessageNode = node;
+      this.jsonEditor.renderer.getMouseEventTarget().appendChild(node);
+    }
   }
 
   ngOnDestroy(): void {
@@ -296,9 +348,14 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
   }
 
   minifyJSON() {
-    const res = JSON.stringify(this.contentBody);
-    this.jsonEditor.setValue(res ? res : '', -1);
-    this.updateView();
+    let res = null;
+    try {
+      res = JSON.stringify(JSON.parse(this.contentBody));
+    } catch (e) {}
+    if (res) {
+      this.jsonEditor.setValue(res, -1);
+      this.updateView();
+    }
   }
 
   onFullscreen() {

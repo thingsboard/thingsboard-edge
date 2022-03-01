@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.controller;
 
@@ -23,12 +38,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -81,39 +99,71 @@ public abstract class BaseEdgeEventControllerTest extends AbstractControllerTest
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
-
-        Device device = constructDevice("TestDevice", "default");
-        Device savedDevice = doPost("/api/device", device, Device.class);
-
         final EdgeId edgeId = edge.getId();
-        doPost("/api/edge/" + edgeId.toString() + "/device/" + savedDevice.getId().toString(), Device.class);
 
+        EntityGroup deviceEntityGroup = constructEntityGroup("TestDevice", EntityType.DEVICE);
+        EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
+        Device device = constructDevice("TestDevice", "default");
+        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+
+        Device savedDevice =
+                doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
+
+        Device device2 = constructDevice("TestDevice2", "default");
+        doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
+
+
+        EntityGroup assetEntityGroup = constructEntityGroup("TestAsset", EntityType.ASSET);
+        EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         Asset asset = constructAsset("TestAsset", "default");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
+        doPost("/api/edge/" + edgeId.toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
 
-        doPost("/api/edge/" + edgeId.toString() + "/asset/" + savedAsset.getId().toString(), Asset.class);
+        Asset savedAsset =
+                doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
+
+        Asset asset2 = constructAsset("TestAsset2", "default");
+        doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
 
         EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
-
         doPost("/api/relation", relation);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-                    return edgeEvents.size() == 4;
+                    return edgeEvents.size() == 8;
                 });
         List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())));
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.DEVICE.equals(ee.getType())));
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ASSET.equals(ee.getType())));
-        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RELATION.equals(ee.getType())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RULE_CHAIN.equals(ee.getType())
+                && EdgeEventActionType.UPDATED.equals(ee.getAction())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ENTITY_GROUP.equals(ee.getType())
+                && EdgeEventActionType.ASSIGNED_TO_EDGE.equals(ee.getAction())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.DEVICE.equals(ee.getType())
+                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
+                && savedDeviceEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.ASSET.equals(ee.getType())
+                && EdgeEventActionType.ADDED_TO_ENTITY_GROUP.equals(ee.getAction())
+                && savedAssetEntityGroup.getUuidId().equals(ee.getEntityGroupId())));
+
+        Assert.assertTrue(edgeEvents.stream().anyMatch(ee -> EdgeEventType.RELATION.equals(ee.getType())
+                && EdgeEventActionType.RELATION_ADD_OR_UPDATE.equals(ee.getAction())));
     }
 
     private List<EdgeEvent> findEdgeEvents(EdgeId edgeId) throws Exception {
         return doGetTypedWithTimePageLink("/api/edge/" + edgeId.toString() + "/events?",
                 new TypeReference<PageData<EdgeEvent>>() {
                 }, new TimePageLink(10)).getData();
+    }
+
+    private EntityGroup constructEntityGroup(String name, EntityType type) {
+        EntityGroup result = new EntityGroup();
+        result.setName(name);
+        result.setType(type);
+        return result;
     }
 
     private Device constructDevice(String name, String type) {
@@ -129,5 +179,4 @@ public abstract class BaseEdgeEventControllerTest extends AbstractControllerTest
         asset.setType(type);
         return asset;
     }
-
 }

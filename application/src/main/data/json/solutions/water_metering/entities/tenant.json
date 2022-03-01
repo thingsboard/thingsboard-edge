@@ -1,0 +1,32 @@
+{
+  "attributes": {
+    "lowBattAlarmEnabled": true,
+    "lowBattThreshold": 20,
+    "lowTempAlarmEnabled": true,
+    "lowTempThreshold": 19,
+    "dailyConsumptionAlarmEnabled":true,
+    "dailyConsumptionThreshold": 100,
+    "weeklyConsumptionAlarmEnabled":true,
+    "weeklyConsumptionThreshold": 500,
+    "inactivityAlarmEnabled": true,
+    "lowBattEmailEnabled": true,
+    "lowTempEmailEnabled": true,
+    "inactivityEmailEnabled": true,
+    "dailyConsumptionEmailEnabled": true,
+    "weeklyConsumptionEmailEnabled": true,
+    "lowBattSmsEnabled": false,
+    "lowTempSmsEnabled": false,
+    "inactivitySmsEnabled": false,
+    "dailyConsumptionSmsEnabled": false,
+    "weeklyConsumptionSmsEnabled": false
+  },
+  "relations": [],
+  "userGroups": [
+    {
+      "name": "Tenant Administrators",
+      "groupRoles": [],
+      "genericRoles": [],
+      "jsonId": "e4878f40-5a68-11eb-a280-b979e84eaa51"
+    }
+  ]
+}

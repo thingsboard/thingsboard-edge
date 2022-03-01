@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.lwm2m.server.client;
 
@@ -42,9 +57,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.TsKvProto;
 import org.thingsboard.server.transport.lwm2m.config.TbLwM2mVersion;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -72,15 +84,14 @@ import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.ge
 @Slf4j
 @EqualsAndHashCode(of = {"endpoint"})
 @ToString(of = "endpoint")
-public class LwM2mClient implements Serializable {
+public class LwM2mClient {
 
-    private static final long serialVersionUID = 8793482946289222623L;
-
+    @Getter
     private final String nodeId;
     @Getter
     private final String endpoint;
 
-    private transient Lock lock;
+    private final Lock lock;
 
     @Getter
     private final Map<String, ResourceValue> resources;
@@ -109,7 +120,7 @@ public class LwM2mClient implements Serializable {
     @Getter
     private Long edrxCycle;
     @Getter
-    private transient Registration registration;
+    private Registration registration;
     @Getter
     @Setter
     private boolean asleep;
@@ -117,14 +128,14 @@ public class LwM2mClient implements Serializable {
     private long lastUplinkTime;
     @Getter
     @Setter
-    private transient Future<Void> sleepTask;
+    private Future<Void> sleepTask;
 
     private boolean firstEdrxDownlink = true;
 
     @Getter
-    private transient Set<ContentFormat> clientSupportContentFormats;
+    private Set<ContentFormat> clientSupportContentFormats;
     @Getter
-    private transient ContentFormat defaultContentFormat;
+    private ContentFormat defaultContentFormat;
     @Getter
     private final AtomicInteger retryAttempts;
 
@@ -228,25 +239,19 @@ public class LwM2mClient implements Serializable {
     }
 
     public boolean saveResourceValue(String pathRezIdVer, LwM2mResource resource, LwM2mModelProvider modelProvider, Mode mode) {
-        if (this.resources.get(pathRezIdVer) != null && this.resources.get(pathRezIdVer).getResourceModel() != null &&
-                resourceEqualsModel(resource, this.resources.get(pathRezIdVer).getResourceModel())) {
+        if (this.resources.get(pathRezIdVer) != null && this.resources.get(pathRezIdVer).getResourceModel() != null) {
             this.resources.get(pathRezIdVer).updateLwM2mResource(resource, mode);
             return true;
         } else {
             LwM2mPath pathIds = new LwM2mPath(fromVersionedIdToObjectId(pathRezIdVer));
             ResourceModel resourceModel = modelProvider.getObjectModel(registration).getResourceModel(pathIds.getObjectId(), pathIds.getResourceId());
-            if (resourceModel != null && resourceEqualsModel(resource, resourceModel)) {
+            if (resourceModel != null) {
                 this.resources.put(pathRezIdVer, new ResourceValue(resource, resourceModel));
                 return true;
             } else {
                 return false;
             }
         }
-    }
-
-    private boolean resourceEqualsModel(LwM2mResource resource, ResourceModel resourceModel) {
-        return ((!resourceModel.multiple && resource instanceof LwM2mSingleResource) ||
-                (resourceModel.multiple && resource instanceof LwM2mMultipleResource));
     }
 
     public Object getResourceValue(String pathRezIdVer, String pathRezId) {
@@ -297,11 +302,22 @@ public class LwM2mClient implements Serializable {
     }
 
     public ObjectModel getObjectModel(String pathIdVer, LwM2mModelProvider modelProvider) {
-        LwM2mPath pathIds = new LwM2mPath(fromVersionedIdToObjectId(pathIdVer));
-        String verSupportedObject = registration.getSupportedObject().get(pathIds.getObjectId());
-        String verRez = getVerFromPathIdVerOrId(pathIdVer);
-        return verRez != null && verRez.equals(verSupportedObject) ? modelProvider.getObjectModel(registration)
-                .getObjectModel(pathIds.getObjectId()) : null;
+        try {
+            LwM2mPath pathIds = new LwM2mPath(fromVersionedIdToObjectId(pathIdVer));
+            String verSupportedObject = registration.getSupportedObject().get(pathIds.getObjectId());
+            String verRez = getVerFromPathIdVerOrId(pathIdVer);
+            return verRez != null && verRez.equals(verSupportedObject) ? modelProvider.getObjectModel(registration)
+                    .getObjectModel(pathIds.getObjectId()) : null;
+        } catch (Exception e) {
+            if (registration == null) {
+                log.error("[{}] Failed Registration is null, GetObjectModelRegistration. ", this.endpoint, e);
+            } else if (registration.getSupportedObject() == null) {
+                log.error("[{}] Failed SupportedObject in Registration, GetObjectModelRegistration.", this.endpoint, e);
+            } else {
+                log.error("[{}] Failed ModelProvider.getObjectModel [{}] in Registration. ", this.endpoint, registration.getSupportedObject(), e);
+            }
+            return null;
+        }
     }
 
 
@@ -423,15 +439,18 @@ public class LwM2mClient implements Serializable {
     private ContentFormat calculateDefaultContentFormat(Registration registration) {
         if (registration == null) {
             return ContentFormat.DEFAULT;
-        } else{
+        } else {
             return TbLwM2mVersion.fromVersion(registration.getLwM2mVersion()).getContentFormat();
         }
     }
 
-    static private Set<ContentFormat> clientSupportContentFormat(Registration registration) {
+    private static Set<ContentFormat> clientSupportContentFormat(Registration registration) {
         Set<ContentFormat> contentFormats = new HashSet<>();
         contentFormats.add(ContentFormat.DEFAULT);
-        LinkParamValue ct = Arrays.stream(registration.getObjectLinks()).filter(link -> link.getUriReference().equals("/")).findFirst().get().getLinkParams().get("ct");
+        LinkParamValue ct = Arrays.stream(registration.getObjectLinks())
+                .filter(link -> link.getUriReference().equals("/"))
+                .findFirst()
+                .map(link -> link.getLinkParams().get("ct")).orElse(null);
         if (ct != null) {
             Set<ContentFormat> codes = Stream.of(ct.getUnquoted().replaceAll("\"", "").split(" ", -1))
                     .map(String::trim)
@@ -441,11 +460,6 @@ public class LwM2mClient implements Serializable {
             contentFormats.addAll(codes);
         }
         return contentFormats;
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        this.lock = new ReentrantLock();
     }
 
     public long updateLastUplinkTime() {

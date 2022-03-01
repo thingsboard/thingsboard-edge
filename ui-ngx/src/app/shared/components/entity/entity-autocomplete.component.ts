@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -54,7 +69,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   selectEntityFormGroup: FormGroup;
 
-  modelValue: string | null;
+  modelValue: string | EntityId | null;
 
   entityTypeValue: EntityType | AliasEntityType;
 
@@ -95,6 +110,9 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   @Input()
   requiredText: string;
+
+  @Input()
+  useFullEntityId: boolean;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -154,7 +172,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
             if (typeof value === 'string' || !value) {
               modelValue = null;
             } else {
-              modelValue = value.id.id;
+              modelValue = this.useFullEntityId ? value.id : value.id.id;
             }
             this.updateView(modelValue, value);
             if (value === null) {
@@ -184,15 +202,15 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           this.noEntitiesMatchingText = 'device.no-devices-matching';
           this.entityRequiredText = 'device.device-required';
           break;
-        case EntityType.EDGE:
-          this.entityText = 'edge.edge';
-          this.noEntitiesMatchingText = 'edge.no-edges-matching';
-          this.entityRequiredText = 'edge.edge-required';
-          break;
         case EntityType.ENTITY_VIEW:
           this.entityText = 'entity-view.entity-view';
           this.noEntitiesMatchingText = 'entity-view.no-entity-views-matching';
           this.entityRequiredText = 'entity-view.entity-view-required';
+          break;
+        case EntityType.EDGE:
+          this.entityText = 'edge.edge';
+          this.noEntitiesMatchingText = 'edge.no-edges-matching';
+          this.entityRequiredText = 'edge.edge-required';
           break;
         case EntityType.RULE_CHAIN:
           this.entityText = 'rulechain.rulechain';
@@ -243,6 +261,31 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
             this.entityRequiredText = 'customer.customer-required';
           }
           break;
+        case EntityType.CONVERTER:
+          this.entityText = 'converter.converter';
+          this.noEntitiesMatchingText = 'converter.no-converters-matching';
+          this.entityRequiredText = 'converter.converter-required';
+          break;
+        case EntityType.INTEGRATION:
+          this.entityText = 'integration.integration';
+          this.noEntitiesMatchingText = 'integration.no-integrations-matching';
+          this.entityRequiredText = 'integration.integration-required';
+          break;
+        case EntityType.SCHEDULER_EVENT:
+          this.entityText = 'scheduler.scheduler-event';
+          this.noEntitiesMatchingText = 'scheduler.no-scheduler-events-matching';
+          this.entityRequiredText = 'scheduler.scheduler-event-required';
+          break;
+        case EntityType.BLOB_ENTITY:
+          this.entityText = 'blob-entity.blob-entity';
+          this.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
+          this.entityRequiredText = 'blob-entity.blob-entity-required';
+          break;
+        case EntityType.ROLE:
+          this.entityText = 'role.role';
+          this.noEntitiesMatchingText = 'role.no-roles-matching';
+          this.entityRequiredText = 'role.role-required';
+          break;
       }
     }
     if (this.labelText && this.labelText.length) {
@@ -280,7 +323,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   async writeValue(value: string | EntityId | null): Promise<void> {
     this.searchText = '';
-    if (value !== null && (typeof value === 'string' ||  (value.entityType && value.id))) {
+    if (value !== null && (typeof value === 'string' || (value.entityType && value.id))) {
       let targetEntityType: EntityType;
       let id: string;
       if (typeof value === 'string') {
@@ -296,7 +339,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
       } catch (e) {
         this.propagateChange(null);
       }
-      this.modelValue = entity !== null ? entity.id.id : null;
+      this.modelValue = entity !== null ? (this.useFullEntityId ? entity.id : entity.id.id) : null;
       this.selectEntityFormGroup.get('entity').patchValue(entity !== null ? entity : '', {emitEvent: false});
       this.entityChanged.emit(entity);
     } else {
@@ -317,7 +360,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
     this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
   }
 
-  updateView(value: string | null, entity: BaseData<EntityId> | null) {
+  updateView(value: string | EntityId | null, entity: BaseData<EntityId> | null) {
     if (!isEqual(this.modelValue, value)) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);

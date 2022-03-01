@@ -1,17 +1,32 @@
 @REM
-@REM Copyright © 2016-2018 The Thingsboard Authors
+@REM ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 @REM
-@REM Licensed under the Apache License, Version 2.0 (the "License");
-@REM you may not use this file except in compliance with the License.
-@REM You may obtain a copy of the License at
+@REM Copyright © 2016-2018 ThingsBoard, Inc. All Rights Reserved.
 @REM
-@REM     http://www.apache.org/licenses/LICENSE-2.0
+@REM NOTICE: All information contained herein is, and remains
+@REM the property of ThingsBoard, Inc. and its suppliers,
+@REM if any.  The intellectual and technical concepts contained
+@REM herein are proprietary to ThingsBoard, Inc.
+@REM and its suppliers and may be covered by U.S. and Foreign Patents,
+@REM patents in process, and are protected by trade secret or copyright law.
 @REM
-@REM Unless required by applicable law or agreed to in writing, software
-@REM distributed under the License is distributed on an "AS IS" BASIS,
-@REM WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-@REM See the License for the specific language governing permissions and
-@REM limitations under the License.
+@REM Dissemination of this information or reproduction of this material is strictly forbidden
+@REM unless prior written permission is obtained from COMPANY.
+@REM
+@REM Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+@REM managers or contractors who have executed Confidentiality and Non-disclosure agreements
+@REM explicitly covering such access.
+@REM
+@REM The copyright notice above does not evidence any actual or intended publication
+@REM or disclosure  of  this source code, which includes
+@REM information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+@REM ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+@REM OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+@REM THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+@REM AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+@REM THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+@REM DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+@REM OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 @REM
 
 @ECHO OFF

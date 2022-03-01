@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import * as AngularAnimations from '@angular/animations';
@@ -92,6 +107,7 @@ import * as FileSizePipe from '@shared/pipe/file-size.pipe';
 import * as NospacePipe from '@shared/pipe/nospace.pipe';
 import * as SelectableColumnsPipe from '@shared/pipe/selectable-columns.pipe';
 import * as KeyboardShortcutPipe from '@shared/pipe/keyboard-shortcut.pipe';
+import * as PermissionPipes from '@shared/pipe/permission.pipes';
 
 import * as FooterComponent from '@shared/components/footer.component';
 import * as LogoComponent from '@shared/components/logo.component';
@@ -169,6 +185,15 @@ import * as WidgetsBundleSearchComponent from '@shared/components/widgets-bundle
 import * as CopyButtonComponent from '@shared/components/button/copy-button.component';
 import * as TogglePasswordComponent from '@shared/components/button/toggle-password.component';
 import * as ProtobufContentComponent from '@shared/components/protobuf-content.component';
+import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
+import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
+import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
+import * as EntityGroupListComponent from '@shared/components/group/entity-group-list.component';
+import * as EdgeEntityGroupListComponent from '@shared/components/group/edge-entity-group-list.component';
+import * as OriginatorSelectComponent from '@shared/components/originator-select.component';
+import * as GroupPermissionsComponent from '@shared/components/role/group-permissions.component';
+import * as GroupPermissionDialogComponent from '@shared/components/role/group-permission-dialog.component';
+import * as ShareEntityGroupComponent from '@shared/components/group/share-entity-group.component';
 
 import * as AddEntityDialogComponent from '@home/components/entity/add-entity-dialog.component';
 import * as EntitiesTableComponent from '@home/components/entity/entities-table.component';
@@ -287,6 +312,38 @@ import * as DisplayWidgetTypesPanelComponent from '@home/components/dashboard-pa
 import * as AlarmDurationPredicateValueComponent from '@home/components/profile/alarm/alarm-duration-predicate-value.component';
 import * as DashboardImageDialogComponent from '@home/components/dashboard-page/dashboard-image-dialog.component';
 import * as WidgetContainerComponent from '@home/components/widget/widget-container.component';
+import * as ConverterAutocompleteComponent from '@home/components/converter/converter-autocomplete.component';
+import * as OperationTypeListComponent from '@home/components/role/operation-type-list.component';
+import * as ResourceTypeAutocompleteComponent from '@home/components/role/resource-type-autocomplete.component';
+import * as PermissionListComponent from '@home/components/role/permission-list.component';
+import * as ViewRoleDialogComponent from '@home/components/role/view-role-dialog.component';
+import * as GroupEntitiesTableComponent from '@home/components/group/group-entities-table.component';
+import * as GroupEntityTabsComponent from '@home/components/group/group-entity-tabs.component';
+import * as GroupEntityTableHeaderComponent from '@home/components/group/group-entity-table-header.component';
+import * as EntityGroupComponent from '@home/components/group/entity-group.component';
+import * as EntityGroupTabsComponent from '@home/components/group/entity-group-tabs.component';
+import * as EntityGroupSettingsComponent from '@home/components/group/entity-group-settings.component';
+import * as EntityGroupColumnComponent from '@home/components/group/entity-group-column.component';
+import * as EntityGroupColumnsComponent from '@home/components/group/entity-group-columns.component';
+import * as EntityGroupColumnDialogComponent from '@home/components/group/entity-group-column-dialog.component';
+import * as AddGroupEntityDialogComponent from '@home/components/group/add-group-entity-dialog.component';
+import * as RegistrationPermissionsComponent from '@home/components/role/registration-permissions.component';
+import * as EntityGroupWizardDialogComponent from '@home/components/wizard/entity-group-wizard-dialog.component';
+import * as OtaUpdateEventConfigComponent from '@home/components/scheduler/config/ota-update-event-config.component';
+import * as SolutionInstallDialogComponent from '@home/components/solution/solution-install-dialog.component';
+import * as SchedulerEventsComponent from '@home/components/scheduler/scheduler-events.component';
+import * as SchedulerEventDialogComponent from '@home/components/scheduler/scheduler-event-dialog.component';
+import * as SchedulerEventTypeAutocompleteComponent from '@home/components/scheduler/scheduler-event-type-autocomplete.component';
+import * as SchedulerEventConfigComponent from '@home/components/scheduler/scheduler-event-config.component';
+import * as SchedulerEventTemplateConfigComponent from '@home/components/scheduler/scheduler-event-template-config.component';
+import * as SendRpcRequestComponent from '@home/components/scheduler/config/send-rpc-request.component';
+import * as UpdateAttributesComponent from '@home/components/scheduler/config/update-attributes.component';
+import * as AttributeKeyValueTableComponent from '@home/components/scheduler/config/attribute-key-value-table.component';
+import * as GenerateReportComponent from '@home/components/scheduler/config/generate-report.component';
+import * as ReportConfigComponent from '@home/components/scheduler/config/report-config.component';
+import * as SelectDashboardStateDialogComponent from '@home/components/scheduler/config/select-dashboard-state-dialog.component';
+import * as EmailConfigComponent from '@home/components/scheduler/config/email-config.component';
+import * as SchedulerEventScheduleComponent from '@home/components/scheduler/scheduler-event-schedule.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
 
@@ -374,6 +431,7 @@ class ModulesMap implements IModulesMap {
     '@shared/pipe/nospace.pipe': NospacePipe,
     '@shared/pipe/selectable-columns.pipe': SelectableColumnsPipe,
     '@shared/pipe/keyboard-shortcut.pipe': KeyboardShortcutPipe,
+    '@shared/pipe/permission.pipes': PermissionPipes,
 
     '@shared/components/footer.component': FooterComponent,
     '@shared/components/logo.component': LogoComponent,
@@ -451,6 +509,15 @@ class ModulesMap implements IModulesMap {
     '@shared/components/button/copy-button.component': CopyButtonComponent,
     '@shared/components/button/toggle-password.component': TogglePasswordComponent,
     '@shared/components/protobuf-content.component': ProtobufContentComponent,
+    '@shared/components/group/entity-group-autocomplete.component': EntityGroupAutocompleteComponent,
+    '@shared/components/group/owner-autocomplete.component': OwnerAutocompleteComponent,
+    '@shared/components/group/entity-group-select.component': EntityGroupSelectComponent,
+    '@shared/components/group/entity-group-list.component': EntityGroupListComponent,
+    '@shared/components/group/edge-entity-group-list.component': EdgeEntityGroupListComponent,
+    '@shared/components/originator-select.component': OriginatorSelectComponent,
+    '@shared/components/role/group-permissions.component': GroupPermissionsComponent,
+    '@shared/components/role/group-permission-dialog.component': GroupPermissionDialogComponent,
+    '@shared/components/group/share-entity-group.component': ShareEntityGroupComponent,
 
     '@home/components/entity/add-entity-dialog.component': AddEntityDialogComponent,
     '@home/components/entity/entities-table.component': EntitiesTableComponent,
@@ -570,6 +637,38 @@ class ModulesMap implements IModulesMap {
     '@home/components/profile/alarm/alarm-duration-predicate-value.component': AlarmDurationPredicateValueComponent,
     '@home/components/dashboard-page/dashboard-image-dialog.component': DashboardImageDialogComponent,
     '@home/components/widget/widget-container.component': WidgetContainerComponent,
+    '@home/components/converter/converter-autocomplete.component': ConverterAutocompleteComponent,
+    '@home/components/role/operation-type-list.component': OperationTypeListComponent,
+    '@home/components/role/resource-type-autocomplete.component': ResourceTypeAutocompleteComponent,
+    '@home/components/role/permission-list.component': PermissionListComponent,
+    '@home/components/role/view-role-dialog.component': ViewRoleDialogComponent,
+    '@home/components/group/group-entities-table.component': GroupEntitiesTableComponent,
+    '@home/components/group/group-entity-tabs.component': GroupEntityTabsComponent,
+    '@home/components/group/group-entity-table-header.component': GroupEntityTableHeaderComponent,
+    '@home/components/group/entity-group.component': EntityGroupComponent,
+    '@home/components/group/entity-group-tabs.component': EntityGroupTabsComponent,
+    '@home/components/group/entity-group-settings.component': EntityGroupSettingsComponent,
+    '@home/components/group/entity-group-column.component': EntityGroupColumnComponent,
+    '@home/components/group/entity-group-columns.component': EntityGroupColumnsComponent,
+    '@home/components/group/entity-group-column-dialog.component': EntityGroupColumnDialogComponent,
+    '@home/components/group/add-group-entity-dialog.component': AddGroupEntityDialogComponent,
+    '@home/components/role/registration-permissions.component': RegistrationPermissionsComponent,
+    '@home/components/wizard/entity-group-wizard-dialog.component': EntityGroupWizardDialogComponent,
+    '@home/components/scheduler/config/ota-update-event-config.component': OtaUpdateEventConfigComponent,
+    '@home/components/solution/solution-install-dialog.component': SolutionInstallDialogComponent,
+    '@home/components/scheduler/scheduler-events.component': SchedulerEventsComponent,
+    '@home/components/scheduler/scheduler-event-dialog.component': SchedulerEventDialogComponent,
+    '@home/components/scheduler/scheduler-event-type-autocomplete.component': SchedulerEventTypeAutocompleteComponent,
+    '@home/components/scheduler/scheduler-event-config.component': SchedulerEventConfigComponent,
+    '@home/components/scheduler/scheduler-event-template-config.component': SchedulerEventTemplateConfigComponent,
+    '@home/components/scheduler/config/send-rpc-request.component': SendRpcRequestComponent,
+    '@home/components/scheduler/config/update-attributes.component': UpdateAttributesComponent,
+    '@home/components/scheduler/config/attribute-key-value-table.component': AttributeKeyValueTableComponent,
+    '@home/components/scheduler/config/generate-report.component': GenerateReportComponent,
+    '@home/components/scheduler/config/report-config.component': ReportConfigComponent,
+    '@home/components/scheduler/config/select-dashboard-state-dialog.component': SelectDashboardStateDialogComponent,
+    '@home/components/scheduler/config/email-config.component': EmailConfigComponent,
+    '@home/components/scheduler/scheduler-event-schedule.component': SchedulerEventScheduleComponent
   };
 
   init() {

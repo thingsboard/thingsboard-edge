@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -74,6 +89,8 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { ItemBufferService, RuleNodeConnection } from '@core/services/item-buffer.service';
 import { Hotkey } from 'angular2-hotkeys';
 import { DebugEventType, EventType } from '@shared/models/event.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 import Timeout = NodeJS.Timeout;
 
 @Component({
@@ -100,6 +117,8 @@ export class RuleChainPageComponent extends PageComponent
     {read: MatExpansionPanel}) expansionPanels: QueryList<MatExpansionPanel>;
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
+
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE);
 
   eventTypes = EventType;
 
@@ -242,6 +261,7 @@ export class RuleChainPageComponent extends PageComponent
               private authService: AuthService,
               private translate: TranslateService,
               private itembuffer: ItemBufferService,
+              private userPermissionsService: UserPermissionsService,
               public dialog: MatDialog,
               public dialogService: DialogService,
               public fb: FormBuilder) {
@@ -259,15 +279,25 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngAfterViewInit() {
-    fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.updateRuleChainLibrary();
-        })
-      )
-      .subscribe();
+    if (!this.readonly) {
+      fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
+        .pipe(
+          debounceTime(150),
+          distinctUntilChanged(),
+          tap(() => {
+            this.updateRuleChainLibrary();
+          })
+        )
+        .subscribe();
+    } else {
+      this.ruleChainCanvas.modelService.isEditable = () => false;
+      this.ruleChainCanvas.modelService.edges.handleEdgeMouseClick = (edge) => {
+        this.openLinkDetails(edge);
+      };
+      const canvas = $(this.ruleChainCanvas.modelService.canvasHtmlElement);
+      const connectorElements  = $('.fc-connector', canvas);
+      connectorElements.attr('draggable', 'false');
+    }
     this.ruleChainCanvas.adjustCanvasSize(true);
   }
 
@@ -471,7 +501,7 @@ export class RuleChainPageComponent extends PageComponent
       }
       model.nodes.push(node);
     });
-    if (this.expansionPanels) {
+    if (this.expansionPanels && !this.readonly) {
       for (let i = 0; i < ruleNodeTypesLibrary.length; i++) {
         const panel = this.expansionPanels.find((item, index) => {
           return index === i;
@@ -561,6 +591,7 @@ export class RuleChainPageComponent extends PageComponent
         );
       }
       nodes.push(node);
+      node.readonly = this.readonly;
       this.ruleChainModel.nodes.push(node);
     });
     if (this.ruleChainMetaData.firstNodeIndex > -1) {
@@ -615,7 +646,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   openRuleChainContextMenu($event: MouseEvent) {
-    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey) {
+    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey && !this.readonly) {
       const x = $event.clientX;
       const y = $event.clientY;
       const item = this.ruleChainCanvas.modelService.getItemInfoAtPoint(x, y);
@@ -1045,8 +1076,10 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   onModelChanged() {
-    this.isDirtyValue = true;
-    this.validate();
+    if (!this.readonly) {
+      this.isDirtyValue = true;
+      this.validate();
+    }
   }
 
   helpLinkIdForRuleNodeType(): string {

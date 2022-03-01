@@ -1,0 +1,76 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="originatorFormGroup" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
+  <mat-radio-group color="primary" formControlName="originator" fxLayout="row" fxLayout.xs="column"
+                    fxLayoutGap="16px"
+                    style="padding: 16px 0;">
+    <mat-radio-button [value]="'entity'" color="primary">
+      <span>{{ singleEntityText | translate }}</span>
+    </mat-radio-button>
+    <mat-radio-button [value]="'groupTenant'" color="primary">
+      <span>{{ groupOfEntitiesText | translate }}</span>
+    </mat-radio-button>
+    <mat-radio-button [value]="'ownerGroup'" color="primary">
+      <span>{{ entitiesGroupOwnerText | translate }}</span>
+    </mat-radio-button>
+  </mat-radio-group>
+  <tb-entity-select
+    [fxShow]="originatorFormGroup.get('originator').value === 'entity'"
+    [allowedEntityTypes]="allowedEntityTypes"
+    [required]="required"
+    formControlName="entityOriginatorId">
+  </tb-entity-select>
+  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('originator').value !== 'entity'">
+    <tb-owner-autocomplete
+      formControlName="groupOwnerId"
+      [excludeOwnerIds]="[currentUser.tenantId]"
+      *ngIf="originatorFormGroup.get('originator').value === 'ownerGroup'"
+      [required]="required"
+      placeholderText="group-permission.user-group-owner"
+      notFoundText="group-permission.no-owners-matching"
+      requiredText="group-permission.target-user-group-owner-required">
+    </tb-owner-autocomplete>
+    <tb-entity-group-select
+      fxFlex
+      [ownerId]="originatorFormGroup.get('groupOwnerId').value"
+      [allowedGroupTypes]="allowedEntityTypes"
+      (currentGroupInfo)="entityGroupLoaded($event)"
+      (currentGroupType)="currentGroupType.emit($event)"
+      formControlName="groupOriginatorId"
+      [required]="required"
+      placeholderText="entity-group.select-entity-group"
+      notFoundText="entity-group.no-entity-groups-matching"
+      requiredText="entity-group.target-entity-group-required">
+    </tb-entity-group-select>
+  </section>
+</section>

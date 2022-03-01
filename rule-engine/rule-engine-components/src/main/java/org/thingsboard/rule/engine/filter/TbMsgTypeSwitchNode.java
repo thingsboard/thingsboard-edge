@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.rule.engine.filter;
 
@@ -35,8 +50,9 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "RPC Queued", "RPC Sent", "RPC Delivered", "RPC Successful", "RPC Timeout", "RPC Expired", "RPC Failed", "RPC Deleted",
                 "Activity Event", "Inactivity Event", "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
-                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Other", "Entity Assigned From Tenant", "Entity Assigned To Tenant",
-                "Timeseries Updated", "Timeseries Deleted"},
+                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Added to Group",
+                "Removed from Group", "REST API request", "Generate Report", "Other", "Entity Assigned From Tenant", "Entity Assigned To Tenant",
+                "Timeseries Updated", "Timeseries Deleted", "Owner changed"},
         nodeDescription = "Route incoming messages by Message Type",
         nodeDetails = "Sends messages with message types <b>\"Post attributes\", \"Post telemetry\", \"RPC Request\"</b> etc. via corresponding chain, otherwise <b>Other</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
@@ -87,6 +103,14 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Alarm Cleared";
         } else if (msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE)) {
             relationType = "RPC Request to Device";
+        } else if (msg.getType().equals(DataConstants.ADDED_TO_ENTITY_GROUP)) {
+            relationType = "Added to Group";
+        } else if (msg.getType().equals(DataConstants.REMOVED_FROM_ENTITY_GROUP)) {
+            relationType = "Removed from Group";
+        } else if (msg.getType().equals(DataConstants.REST_API_REQUEST)) {
+            relationType = "REST API request";
+        } else if (msg.getType().equals(DataConstants.GENERATE_REPORT)) {
+            relationType = "Generate Report";
         } else if (msg.getType().equals(DataConstants.ENTITY_ASSIGNED_FROM_TENANT)) {
             relationType = "Entity Assigned From Tenant";
         } else if (msg.getType().equals(DataConstants.ENTITY_ASSIGNED_TO_TENANT)) {
@@ -95,6 +119,8 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Timeseries Updated";
         } else if (msg.getType().equals(DataConstants.TIMESERIES_DELETED)) {
             relationType = "Timeseries Deleted";
+        } else if (msg.getType().equals(DataConstants.OWNER_CHANGED)) {
+            relationType = "Owner changed";
         } else if (msg.getType().equals(DataConstants.RPC_QUEUED)) {
             relationType = "RPC Queued";
         } else if (msg.getType().equals(DataConstants.RPC_SENT)) {

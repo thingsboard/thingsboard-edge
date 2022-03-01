@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -54,7 +69,6 @@ import {
   DashboardPageLayout,
   DashboardPageLayoutContext,
   DashboardPageLayouts,
-  DashboardPageScope,
   IDashboardController,
   LayoutWidgetsArray
 } from './dashboard-page.models';
@@ -115,8 +129,14 @@ import {
 } from '@home/components/dashboard-page/states/manage-dashboard-states-dialog.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { AuthState } from '@app/core/auth/auth.models';
+import { ReportService } from '@core/http/report.service';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation } from '@shared/models/security.models';
+import { ReportType } from '@shared/models/report.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {
@@ -125,6 +145,13 @@ import {
   DisplayWidgetTypesPanelData
 } from '@home/components/dashboard-page/widget-types-panel.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import {
+  SolutionInstallDialogComponent,
+  SolutionInstallDialogData
+} from '@home/components/solution/solution-install-dialog.component';
+import { SolutionsService } from '@core/http/solutions.service';
+import { SolutionInstallResponse } from '@shared/models/solution-template.models';
 import { MobileService } from '@core/services/mobile.service';
 
 import {
@@ -149,6 +176,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   authState: AuthState = getCurrentAuthState(this.store);
 
   authUser: AuthUser = this.authState.authUser;
+
+  entityGroup: EntityGroupInfo;
+  entityGroupId: string;
 
   @HostBinding('class')
   dashboardPageClass: string;
@@ -188,6 +218,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   prevDashboard: Dashboard;
 
   iframeMode = this.utils.iframeMode;
+  reportView = this.reportService.reportView;
+  stateSelectView = this.utils.stateSelectView;
   widgetEditMode: boolean;
   singlePageMode: boolean;
   forceFullscreen = this.authState.forceFullscreen;
@@ -221,15 +253,13 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   translatedDashboardTitle: string;
 
   currentDashboardId: string;
-  currentCustomerId: string;
-  currentDashboardScope: DashboardPageScope;
 
   setStateDashboardId = false;
 
   addingLayoutCtx: DashboardPageLayoutContext;
 
   private dashboardLogoCache: SafeUrl;
-  private defaultDashboardLogo = 'assets/logo_title_white.svg';
+  private defaultDashboardLogo = this.wl.logoImageUrl();
 
   dashboardCtx: DashboardContext = {
     instanceId: this.utils.guid(),
@@ -293,7 +323,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   private rxSubscriptions = new Array<Subscription>();
 
   get toolbarOpened(): boolean {
-    return !this.widgetEditMode && !this.hideToolbar &&
+    return !this.widgetEditMode && !this.hideToolbar && !this.reportView &&
       (this.toolbarAlwaysOpen() || this.isToolbarOpened || this.isEdit || this.showRightLayoutSwitch());
   }
 
@@ -317,14 +347,18 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private route: ActivatedRoute,
               private router: Router,
               private utils: UtilsService,
+              private reportService: ReportService,
               private dashboardUtils: DashboardUtilsService,
               private authService: AuthService,
               private entityService: EntityService,
               private dialogService: DialogService,
               private widgetComponentService: WidgetComponentService,
               private dashboardService: DashboardService,
+              private userPermissionsService: UserPermissionsService,
+              private wl: WhiteLabelingService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
+              private solutionsService: SolutionsService,
               private mobileService: MobileService,
               private fb: FormBuilder,
               private dialog: MatDialog,
@@ -349,6 +383,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
           data.currentDashboardId = this.dashboard.id ? this.dashboard.id.id : null;
           data.widgetEditMode = false;
           data.singlePageMode = false;
+          data.entityGroup = null;
         } else {
           data.currentDashboardId = this.route.snapshot.params.dashboardId;
         }
@@ -391,6 +426,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
     this.dashboard = data.dashboard;
     this.translatedDashboardTitle = this.getTranslatedDashboardTitle();
+    this.entityGroup = data.entityGroup;
     if (!this.embedded && this.dashboard.id) {
       this.setStateDashboardId = true;
     }
@@ -405,23 +441,25 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
     this.currentDashboardId = data.currentDashboardId;
 
-    if (this.route.snapshot.params.customerId) {
-      this.currentCustomerId = this.route.snapshot.params.customerId;
-      this.currentDashboardScope = 'customer';
-    } else {
-      this.currentDashboardScope = this.authUser.authority === Authority.TENANT_ADMIN ? 'tenant' : 'customer';
-      this.currentCustomerId = this.authUser.customerId;
-    }
-
     this.dashboardConfiguration = this.dashboard.configuration;
-    this.dashboardCtx.dashboardTimewindow = this.dashboardConfiguration.timewindow;
+    if (this.reportService.reportTimewindow) {
+      this.dashboardCtx.dashboardTimewindow = this.reportService.reportTimewindow;
+    } else {
+      this.dashboardCtx.dashboardTimewindow = this.dashboardConfiguration.timewindow;
+    }
     this.layouts.main.layoutCtx.widgets = new LayoutWidgetsArray(this.dashboardCtx);
     this.layouts.right.layoutCtx.widgets = new LayoutWidgetsArray(this.dashboardCtx);
     this.widgetEditMode = data.widgetEditMode;
     this.singlePageMode = data.singlePageMode;
-
-    this.readonly = this.embedded || (this.singlePageMode && !this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))
-                    || this.forceFullscreen || this.isMobileApp || this.authUser.authority === Authority.CUSTOMER_USER;
+    if (this.entityGroup) {
+      this.readonly = !this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, this.entityGroup);
+      this.entityGroupId = this.entityGroup.id.id;
+    } else {
+      if (this.embedded || (this.singlePageMode && !this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))
+               || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView) {
+        this.readonly = true;
+      }
+    }
 
     this.dashboardCtx.aliasController = this.parentAliasController ? this.parentAliasController : new AliasController(this.utils,
       this.entityService,
@@ -437,6 +475,31 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         type: 'widgetEditModeInited'
       };
       this.window.parent.postMessage(JSON.stringify(message), '*');
+    }
+
+    const solutionTemplateId = this.route.snapshot.queryParamMap.get('solutionTemplateId');
+    if (solutionTemplateId) {
+      this.utils.updateQueryParam('solutionTemplateId', null);
+      this.router.navigate([], {
+        queryParams: {
+          solutionTemplateId: null
+        },
+        queryParamsHandling: 'merge'
+      });
+      this.solutionsService.getSolutionTemplateInstructions(solutionTemplateId).subscribe(
+        (solutionTemplateInstructions) => {
+          const solutionInstallResponse: SolutionInstallResponse = {...solutionTemplateInstructions, success: true};
+          this.dialog.open<SolutionInstallDialogComponent, SolutionInstallDialogData>(SolutionInstallDialogComponent, {
+            disableClose: true,
+            panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+            data: {
+              solutionInstallResponse,
+              instructions: false,
+              showMainDashboardButton: false
+            }
+          });
+        }
+      );
     }
   }
 
@@ -491,8 +554,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.editingLayoutCtx = null;
 
     this.currentDashboardId = null;
-    this.currentCustomerId = null;
-    this.currentDashboardScope = null;
 
     this.setStateDashboardId = false;
 
@@ -686,6 +747,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     return this.authUser.isPublic;
   }
 
+  public isCustomerUser(): boolean {
+    return this.authUser.authority === Authority.CUSTOMER_USER;
+  }
+
   public isTenantAdmin(): boolean {
     return this.authUser.authority === Authority.TENANT_ADMIN;
   }
@@ -694,11 +759,22 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     return this.authUser.authority === Authority.SYS_ADMIN;
   }
 
+  public canEdit(): boolean {
+    return this.isTenantAdmin() || this.isCustomerUser() || (this.isSystemAdmin() && this.widgetEditMode);
+  }
+
   public exportDashboard($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
     this.importExport.exportDashboard(this.currentDashboardId);
+  }
+
+  public generateDashboardReport($event: Event, reportType: ReportType) {
+    const state = this.route.snapshot.queryParamMap.get('state');
+    const progressText = this.translate.instant('dashboard.download-dashboard-progress', {reportType});
+    this.dialogService.progress(this.reportService.downloadDashboardReport(this.currentDashboardId, reportType, state,
+      this.dashboardCtx.dashboardTimewindow), progressText).subscribe();
   }
 
   public openEntityAliases($event: Event) {
@@ -846,15 +922,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   public currentDashboardIdChanged(dashboardId: string) {
     if (!this.widgetEditMode) {
       this.dashboardCtx.stateController.cleanupPreservedStates();
-      if (this.currentDashboardScope === 'customer' && this.authUser.authority === Authority.TENANT_ADMIN) {
-        this.router.navigateByUrl(`customers/${this.currentCustomerId}/dashboards/${dashboardId}`);
-      } else {
-        if (this.singlePageMode) {
-          this.router.navigateByUrl(`dashboard/${dashboardId}`);
-        } else {
-          this.router.navigateByUrl(`dashboards/${dashboardId}`);
-        }
-      }
+      const url = this.router.createUrlTree([`../${dashboardId}`], {relativeTo: this.route});
+      this.router.navigateByUrl(url);
     }
   }
 

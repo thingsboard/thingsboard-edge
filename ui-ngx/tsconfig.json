@@ -40,6 +40,9 @@
       "ace": [
         "node_modules/ace-builds/src-noconflict/ace.js"
       ],
+      "exceljs": [
+        "node_modules/exceljs/dist/exceljs.min.js"
+      ],
       "jquery": [
         "node_modules/jquery/dist/jquery.min.js"
       ],

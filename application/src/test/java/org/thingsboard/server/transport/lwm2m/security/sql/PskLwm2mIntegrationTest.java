@@ -1,45 +1,129 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.lwm2m.security.sql;
 
 import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.core.util.Hex;
 import org.junit.Test;
+import org.springframework.test.web.servlet.MvcResult;
+import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MDeviceCredentials;
 import org.thingsboard.server.common.data.device.credentials.lwm2m.PSKClientCredential;
+import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
 import org.thingsboard.server.transport.lwm2m.security.AbstractSecurityLwM2MIntegrationTest;
 
+import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 
 import static org.eclipse.leshan.client.object.Security.psk;
-import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.SECURE_COAP_CONFIG;
-import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.SECURE_URI;
-import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.SHORT_SERVER_ID;
+import static org.eclipse.leshan.client.object.Security.pskBootstrap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode.PSK;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_SUCCESS;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MProfileBootstrapConfigType.BOTH;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MProfileBootstrapConfigType.NONE;
 
 public class PskLwm2mIntegrationTest extends AbstractSecurityLwM2MIntegrationTest {
 
+    //Lwm2m only
     @Test
-    public void testConnectWithPSKAndObserveTelemetry() throws Exception {
+    public void testWithPskConnectLwm2mSuccess() throws Exception {
+        String clientEndpoint = CLIENT_ENDPOINT_PSK;
+        String identity = CLIENT_PSK_IDENTITY;
+        String keyPsk = CLIENT_PSK_KEY;
         PSKClientCredential clientCredentials = new PSKClientCredential();
-        clientCredentials.setEndpoint(CLIENT_ENDPOINT_PSK);
-        clientCredentials.setKey(CLIENT_PSK_KEY);
-        clientCredentials.setIdentity(CLIENT_PSK_IDENTITY);
+        clientCredentials.setEndpoint(clientEndpoint);
+        clientCredentials.setIdentity(identity);
+        clientCredentials.setKey(keyPsk);
         Security security = psk(SECURE_URI,
-                SHORT_SERVER_ID,
-                CLIENT_PSK_IDENTITY.getBytes(StandardCharsets.UTF_8),
-                Hex.decodeHex(CLIENT_PSK_KEY.toCharArray()));
-        super.basicTestConnectionObserveTelemetry(security, clientCredentials, SECURE_COAP_CONFIG, CLIENT_ENDPOINT_PSK);
+                shortServerId,
+                identity.getBytes(StandardCharsets.UTF_8),
+                Hex.decodeHex(keyPsk.toCharArray()));
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsSecure(PSK, NONE));
+        LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsSecure(clientCredentials, null, null, PSK, false);
+        this.basicTestConnection(security,
+                deviceCredentials,
+                COAP_CONFIG,
+                clientEndpoint,
+                transportConfiguration,
+                "await on client state (Psk_Lwm2m)",
+                expectedStatusesRegistrationLwm2mSuccess,
+                false,
+                ON_REGISTRATION_SUCCESS,
+                true);
+    }
+
+    @Test
+    public void testWithPskConnectLwm2mBadPskKeyByLength_BAD_REQUEST() throws Exception {
+        String clientEndpoint = CLIENT_ENDPOINT_PSK;
+        String identity = CLIENT_PSK_IDENTITY + "_BadLength";
+        String keyPsk = CLIENT_PSK_KEY + "05AC";
+        PSKClientCredential clientCredentials = new PSKClientCredential();
+        clientCredentials.setEndpoint(clientEndpoint);
+        clientCredentials.setIdentity(identity);
+        clientCredentials.setKey(keyPsk);
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsSecure(PSK, NONE));
+        createDeviceProfile(transportConfiguration);
+        LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsSecure(clientCredentials, null, null, PSK, false);
+        MvcResult result = createDeviceWithMvcResult(deviceCredentials, clientEndpoint);
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, result.getResponse().getStatus());
+        String msgExpected = "Key must be HexDec format: 32, 64, 128 characters!";
+        assertTrue(result.getResponse().getContentAsString().contains(msgExpected));
+    }
+
+
+    // Bootstrap + Lwm2m
+    @Test
+    public void testWithPskConnectBsSuccess_UpdateTwoSectionsBootstrapAndLm2m_ConnectLwm2mSuccess() throws Exception {
+        String clientEndpoint = CLIENT_ENDPOINT_PSK_BS;
+        String identity = CLIENT_PSK_IDENTITY_BS;
+        String keyPsk = CLIENT_PSK_KEY;
+        PSKClientCredential clientCredentials = new PSKClientCredential();
+        clientCredentials.setEndpoint(clientEndpoint);
+        clientCredentials.setIdentity(identity);
+        clientCredentials.setKey(keyPsk);
+        Security securityBs = pskBootstrap(SECURE_URI_BS,
+                identity.getBytes(StandardCharsets.UTF_8),
+                Hex.decodeHex(keyPsk.toCharArray()));
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsSecure(PSK, BOTH));
+        LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsSecure(clientCredentials, null, null, PSK, false);
+        this.basicTestConnection(securityBs,
+                deviceCredentials,
+                COAP_CONFIG_BS,
+                clientEndpoint,
+                transportConfiguration,
+                "await on client state (PskBS two section)",
+                expectedStatusesRegistrationBsSuccess,
+                true,
+                ON_REGISTRATION_SUCCESS,
+                true);
     }
 }

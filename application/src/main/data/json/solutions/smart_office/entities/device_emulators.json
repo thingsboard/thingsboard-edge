@@ -1,0 +1,295 @@
+[
+  {
+    "name": "hvac",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 5,
+    "telemetryProfiles": [
+      {
+        "key": "airFlow",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 220,
+          "maxStartValue": 330,
+          "minLowValue": 220,
+          "maxLowValue": 220,
+          "minHighValue": 330,
+          "maxHighValue": 330,
+          "minIncrement": 1.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 5.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "targetTemperature",
+        "valueStrategy": {
+          "type": "constant",
+          "value": 21.5
+        }
+      },
+      {
+        "key": "enabled",
+        "valueStrategy": {
+          "type": "constant",
+          "value": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "smart-sensor",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 5,
+    "telemetryProfiles": [
+      {
+        "key": "co2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 550,
+          "maxStartValue": 1900,
+          "minLowValue": 500,
+          "maxLowValue": 600,
+          "minHighValue": 1700,
+          "maxHighValue": 2000,
+          "minIncrement": 1.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 20.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "tvoc",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.2,
+          "maxStartValue": 0.5,
+          "minLowValue": 0.15,
+          "maxLowValue": 0.2,
+          "minHighValue": 0.55,
+          "maxHighValue": 0.6,
+          "minIncrement": 0.001,
+          "maxIncrement": 0.002,
+          "minDecrement": 0.001,
+          "maxDecrement": 0.003,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 21,
+          "maxStartValue": 26,
+          "minLowValue": 21,
+          "maxLowValue": 22,
+          "minHighValue": 26,
+          "maxHighValue": 28,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.05,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "humidity",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 30,
+          "maxStartValue": 55,
+          "minLowValue": 30,
+          "maxLowValue": 33,
+          "minHighValue": 55,
+          "maxHighValue": 60,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.2,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.6,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "occupancy",
+        "valueStrategy": {
+          "type": "constant",
+          "value": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "energy-meter",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 5,
+    "telemetryProfiles": [
+      {
+        "key": "voltage",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 232,
+          "maxStartValue": 237,
+          "minLowValue": 215,
+          "maxLowValue": 220,
+          "minHighValue": 245,
+          "maxHighValue": 248,
+          "minIncrement": 1.0,
+          "maxIncrement": 2.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 3.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "frequency",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 55,
+          "maxStartValue": 62,
+          "minLowValue": 55,
+          "maxLowValue": 55,
+          "minHighValue": 62,
+          "maxHighValue": 62,
+          "minIncrement": 0.2,
+          "maxIncrement": 1.0,
+          "minDecrement": 0.2,
+          "maxDecrement": 1.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "amperage",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 14,
+          "maxStartValue": 18,
+          "minLowValue": 14,
+          "maxLowValue": 14,
+          "minHighValue": 18,
+          "maxHighValue": 18,
+          "minIncrement": 0.2,
+          "maxIncrement": 1.0,
+          "minDecrement": 0.2,
+          "maxDecrement": 1.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "power",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 4000,
+          "maxStartValue": 5000,
+          "minLowValue": 2000,
+          "maxLowValue": 2000,
+          "minHighValue": 5000,
+          "maxHighValue": 5000,
+          "minIncrement": 10,
+          "maxIncrement": 100,
+          "minDecrement": 10,
+          "maxDecrement": 50,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "energy",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 200,
+          "maxStartValue": 400,
+          "minLowValue": 100,
+          "maxLowValue": 200,
+          "minHighValue": 800,
+          "maxHighValue": 100,
+          "minIncrement": 5.0,
+          "maxIncrement": 50.0,
+          "minDecrement": 4.0,
+          "maxDecrement": 30.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "water-meter",
+    "publishPeriodInDays": 1,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 5,
+    "telemetryProfiles": [
+      {
+        "key": "water",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.5,
+          "maxStartValue": 0.5,
+          "minLowValue": 0.1,
+          "maxLowValue": 0.1,
+          "minHighValue": 3.0,
+          "maxHighValue": 3.0,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.9,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "voltage",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 3.6,
+          "maxStartValue": 4.1,
+          "minLowValue": 3.5,
+          "maxLowValue": 3.5,
+          "minHighValue": 4.1,
+          "maxHighValue": 4.2,
+          "minIncrement": 3.0,
+          "maxIncrement": 5.0,
+          "minDecrement": 0.0001,
+          "maxDecrement": 0.0003,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]

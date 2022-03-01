@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.sql.device;
 
@@ -22,7 +37,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
-import org.thingsboard.server.dao.model.sql.DeviceInfoEntity;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,12 +46,48 @@ import java.util.UUID;
  */
 public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.id = :deviceId")
-    DeviceInfoEntity findDeviceInfoById(@Param("deviceId") UUID deviceId);
+    String COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null " +
+            "AND d.id NOT IN ( " +
+            "SELECT r.to_id " +
+            "FROM relation r " +
+            "WHERE r.to_id IN (" +
+            "SELECT d.id " +
+            "FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null) " +
+            "AND r.to_type = 'DEVICE' " +
+            "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+            "AND r.from_id IN (" +
+            "SELECT dgop.group_id " +
+            "FROM ota_package ota " +
+            "INNER JOIN device_group_ota_package dgop ON dgop.ota_package_id = ota.id AND dgop.ota_package_type = 'FIRMWARE' " +
+            "WHERE ota.device_profile_id = :deviceProfileId)" +
+            ")";
+    String COUNT_QUERY_BY_DEVICE_PROFILE_AND_SOFTWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null " +
+            "AND d.id NOT IN ( " +
+            "SELECT r.to_id " +
+            "FROM relation r " +
+            "WHERE r.to_id IN (" +
+            "SELECT d.id " +
+            "FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null) " +
+            "AND r.to_type = 'DEVICE' " +
+            "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+            "AND r.from_id IN (" +
+            "SELECT dgop.group_id " +
+            "FROM ota_package ota " +
+            "INNER JOIN device_group_ota_package dgop ON dgop.ota_package_id = ota.id AND dgop.ota_package_type = 'SOFTWARE' " +
+            "WHERE ota.device_profile_id = :deviceProfileId)" +
+            ")";
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
@@ -55,18 +105,6 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
                                                   @Param("searchText") String searchText,
                                                   Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.tenantId = :tenantId " +
-            "AND d.customerId = :customerId " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceInfoEntity> findDeviceInfosByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
-                                                                  @Param("customerId") UUID customerId,
-                                                                  @Param("searchText") String searchText,
-                                                                  Pageable pageable);
-
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId")
     Page<DeviceEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                       Pageable pageable);
@@ -77,19 +115,6 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
                                       @Param("textSearch") String textSearch,
                                       Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.tenantId = :tenantId " +
-            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(p.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(c.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))")
-    Page<DeviceInfoEntity> findDeviceInfosByTenantId(@Param("tenantId") UUID tenantId,
-                                                     @Param("textSearch") String textSearch,
-                                                     Pageable pageable);
-
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.type = :type " +
             "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
@@ -99,103 +124,56 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
                                              Pageable pageable);
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND d.deviceProfileId = :deviceProfileId " +
-            "AND d.firmwareId = null " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<DeviceEntity> findByTenantIdAndTypeAndFirmwareIdIsNull(@Param("tenantId") UUID tenantId,
-                                             @Param("deviceProfileId") UUID deviceProfileId,
-                                             @Param("textSearch") String textSearch,
-                                             Pageable pageable);
-
-    @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND d.deviceProfileId = :deviceProfileId " +
-            "AND d.softwareId = null " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<DeviceEntity> findByTenantIdAndTypeAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
-                                                                @Param("deviceProfileId") UUID deviceProfileId,
-                                                                @Param("textSearch") String textSearch,
-                                                                Pageable pageable);
-
-    @Query("SELECT count(*) FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND d.deviceProfileId = :deviceProfileId " +
-            "AND d.firmwareId = null")
-    Long countByTenantIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param("tenantId") UUID tenantId,
-                                                              @Param("deviceProfileId") UUID deviceProfileId);
-
-    @Query("SELECT count(*) FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
-            "AND d.deviceProfileId = :deviceProfileId " +
-            "AND d.softwareId = null")
-    Long countByTenantIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
-                                                              @Param("deviceProfileId") UUID deviceProfileId);
-
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.tenantId = :tenantId " +
-            "AND d.type = :type " +
-            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(c.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))")
-    Page<DeviceInfoEntity> findDeviceInfosByTenantIdAndType(@Param("tenantId") UUID tenantId,
-                                                            @Param("type") String type,
-                                                            @Param("textSearch") String textSearch,
-                                                            Pageable pageable);
-
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.tenantId = :tenantId " +
-            "AND d.deviceProfileId = :deviceProfileId " +
-            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
-            "OR LOWER(c.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')))")
-    Page<DeviceInfoEntity> findDeviceInfosByTenantIdAndDeviceProfileId(@Param("tenantId") UUID tenantId,
-                                                                       @Param("deviceProfileId") UUID deviceProfileId,
-                                                                       @Param("textSearch") String textSearch,
-                                                                       Pageable pageable);
-
-    @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
             "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))" +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
     Page<DeviceEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                           @Param("customerId") UUID customerId,
                                                           @Param("type") String type,
                                                           @Param("textSearch") String textSearch,
                                                           Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.tenantId = :tenantId " +
-            "AND d.customerId = :customerId " +
-            "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<DeviceInfoEntity> findDeviceInfosByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
-                                                                         @Param("customerId") UUID customerId,
-                                                                         @Param("type") String type,
-                                                                         @Param("textSearch") String textSearch,
-                                                                         Pageable pageable);
-
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.DeviceInfoEntity(d, c.title, c.additionalInfo, p.name) " +
-            "FROM DeviceEntity d " +
-            "LEFT JOIN CustomerEntity c on c.id = d.customerId " +
-            "LEFT JOIN DeviceProfileEntity p on p.id = d.deviceProfileId " +
-            "WHERE d.tenantId = :tenantId " +
-            "AND d.customerId = :customerId " +
-            "AND d.deviceProfileId = :deviceProfileId " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<DeviceInfoEntity> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(@Param("tenantId") UUID tenantId,
-                                                                                    @Param("customerId") UUID customerId,
-                                                                                    @Param("deviceProfileId") UUID deviceProfileId,
-                                                                                    @Param("textSearch") String textSearch,
-                                                                                    Pageable pageable);
-
     @Query("SELECT DISTINCT d.type FROM DeviceEntity d WHERE d.tenantId = :tenantId")
     List<String> findTenantDeviceTypes(@Param("tenantId") UUID tenantId);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
+    Page<DeviceEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
+                                           @Param("textSearch") String textSearch,
+                                           Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
+    Page<DeviceEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
+                                            @Param("textSearch") String textSearch,
+                                            Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.type = :type " +
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%'))) ")
+    Page<DeviceEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<UUID> groupIds,
+                                                   @Param("type") String type,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
 
     DeviceEntity findByTenantIdAndName(UUID tenantId, String name);
 
@@ -206,26 +184,6 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
     DeviceEntity findByTenantIdAndId(UUID tenantId, UUID id);
 
     Long countByDeviceProfileId(UUID deviceProfileId);
-
-    @Query("SELECT d FROM DeviceEntity d, RelationEntity re WHERE d.tenantId = :tenantId " +
-            "AND d.id = re.toId AND re.toType = 'DEVICE' AND re.relationTypeGroup = 'EDGE' " +
-            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
-                                               @Param("edgeId") UUID edgeId,
-                                               @Param("searchText") String searchText,
-                                               Pageable pageable);
-
-    @Query("SELECT d FROM DeviceEntity d, RelationEntity re WHERE d.tenantId = :tenantId " +
-            "AND d.id = re.toId AND re.toType = 'DEVICE' AND re.relationTypeGroup = 'EDGE' " +
-            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND d.type = :type " +
-            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceEntity> findByTenantIdAndEdgeIdAndType(@Param("tenantId") UUID tenantId,
-                                                      @Param("edgeId") UUID edgeId,
-                                                      @Param("type") String type,
-                                                      @Param("searchText") String searchText,
-                                                      Pageable pageable);
 
     /**
      * Count devices by tenantId.
@@ -244,4 +202,120 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
             "INNER JOIN DeviceProfileEntity p ON d.deviceProfileId = p.id " +
             "WHERE p.transportType = :transportType")
     Page<UUID> findIdsByDeviceProfileTransportType(@Param("transportType") DeviceTransportType transportType, Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND d.firmwareId = null " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
+                                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                                @Param("textSearch") String textSearch,
+                                                                                Pageable pageable);
+
+    @Query("SELECT d FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.deviceProfileId = :deviceProfileId " +
+            "AND d.softwareId = null " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
+                                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                                @Param("textSearch") String textSearch,
+                                                                                Pageable pageable);
+
+    @Query(value = "SELECT d.* FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null " +
+            "AND d.id NOT IN ( " +
+            "SELECT r.to_id " +
+            "FROM relation r " +
+            "WHERE r.to_id IN (" +
+            "SELECT d.id " +
+            "FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.firmware_id is null) " +
+            "AND r.to_type = 'DEVICE' " +
+            "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+            "AND r.from_id IN (" +
+            "SELECT dgop.group_id " +
+            "FROM ota_package ota " +
+            "INNER JOIN device_group_ota_package dgop ON dgop.ota_package_id = ota.id AND dgop.ota_package_type = 'FIRMWARE' " +
+            "WHERE ota.device_profile_id = :deviceProfileId)" +
+            ")",
+
+            countQuery = COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL,
+            nativeQuery = true)
+    Page<DeviceEntity> findByDeviceProfileIdAndFirmwareIdIsNull(@Param("tenantId") UUID tenantId,
+                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                Pageable pageable);
+
+    @Query(value = "SELECT d.* FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.software_id is null " +
+            "AND d.id NOT IN ( " +
+            "SELECT r.to_id " +
+            "FROM relation r " +
+            "WHERE r.to_id IN (" +
+            "SELECT d.id " +
+            "FROM device d " +
+            "WHERE d.device_profile_id = :deviceProfileId " +
+            "AND d.tenant_id = :tenantId " +
+            "AND d.software_id is null) " +
+            "AND r.to_type = 'DEVICE' " +
+            "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
+            "AND r.from_id IN (" +
+            "SELECT dgop.group_id " +
+            "FROM ota_package ota " +
+            "INNER JOIN device_group_ota_package dgop ON dgop.ota_package_id = ota.id AND dgop.ota_package_type = 'SOFTWARE' " +
+            "WHERE ota.device_profile_id = :deviceProfileId)" +
+            ")",
+
+            countQuery = COUNT_QUERY_BY_DEVICE_PROFILE_AND_SOFTWARE_IS_NULL,
+            nativeQuery = true)
+    Page<DeviceEntity> findByDeviceProfileIdAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
+                                                                @Param("deviceProfileId") UUID deviceProfileId,
+                                                                Pageable pageable);
+
+    @Query("SELECT count(*) FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.deviceProfileId = (SELECT op.deviceProfileId FROM OtaPackageInfoEntity op WHERE op.id = :otaPackageId) " +
+            "AND d.firmwareId = null")
+    Long countByEntityGroupIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
+                                                 @Param("otaPackageId") UUID otaPackageId);
+
+    @Query("SELECT count(*) FROM DeviceEntity d, " +
+            "RelationEntity re " +
+            "WHERE d.id = re.toId AND re.toType = 'DEVICE' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND d.deviceProfileId = (SELECT op.deviceProfileId FROM OtaPackageInfoEntity op WHERE op.id = :otaPackageId) " +
+            "AND d.softwareId = null")
+    Long countByEntityGroupIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
+                                                 @Param("otaPackageId") UUID otaPackageId);
+
+    @Query(value = COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL,
+            nativeQuery = true)
+    Long countByDeviceProfileIdAndFirmwareIdIsNull(@Param("tenantId") UUID tenantId,
+                                                   @Param("deviceProfileId") UUID deviceProfileId);
+
+    @Query(value = COUNT_QUERY_BY_DEVICE_PROFILE_AND_SOFTWARE_IS_NULL,
+            nativeQuery = true)
+    Long countByDeviceProfileIdAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
+                                                   @Param("deviceProfileId") UUID deviceProfileId);
 }

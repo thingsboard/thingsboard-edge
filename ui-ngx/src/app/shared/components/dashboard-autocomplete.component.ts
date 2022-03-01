@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
@@ -25,10 +40,11 @@ import { DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { getCurrentAuthUser } from '@app/core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { Operation } from '@shared/models/security.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 import { FloatLabelType } from '@angular/material/form-field/form-field';
 
 @Component({
@@ -59,13 +75,13 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   placeholder: string;
 
   @Input()
-  dashboardsScope: 'customer' | 'tenant';
+  userId: string;
 
   @Input()
   tenantId: string;
 
   @Input()
-  customerId: string;
+  operation: Operation;
 
   @Input()
   floatLabel: FloatLabelType = 'auto';
@@ -158,7 +174,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
     this.searchText = '';
     if (value != null) {
       if (typeof value === 'string') {
-        this.dashboardService.getDashboardInfo(value).subscribe(
+        this.dashboardService.getDashboardInfo(value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (dashboard) => {
             this.modelValue = this.useIdValue ? dashboard.id.id : dashboard;
             this.selectDashboardFormGroup.get('dashboard').patchValue(dashboard, {emitEvent: false});
@@ -204,25 +220,16 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   getDashboards(pageLink: PageLink): Observable<PageData<DashboardInfo>> {
     let dashboardsObservable: Observable<PageData<DashboardInfo>>;
     const authUser = getCurrentAuthUser(this.store);
-    if (this.dashboardsScope === 'customer' || authUser.authority === Authority.CUSTOMER_USER) {
-      if (this.customerId) {
-        dashboardsObservable = this.dashboardService.getCustomerDashboards(this.customerId, pageLink,
-          {ignoreLoading: true});
-      } else {
-        dashboardsObservable = of(emptyPageData());
-      }
+    if (authUser.authority === Authority.SYS_ADMIN && this.tenantId) {
+      dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
+        {ignoreLoading: true});
     } else {
-      if (authUser.authority === Authority.SYS_ADMIN) {
-        if (this.tenantId) {
-          dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
-            {ignoreLoading: true});
-        } else {
-          dashboardsObservable = of(emptyPageData());
-        }
-      } else {
-        dashboardsObservable = this.dashboardService.getTenantDashboards(pageLink,
-          {ignoreLoading: true});
+      let userId = this.userId;
+      if (!userId) {
+        userId = authUser.userId;
       }
+      dashboardsObservable = this.dashboardService.getUserDashboards(userId, this.operation, pageLink,
+        {ignoreLoading: true});
     }
     return dashboardsObservable;
   }

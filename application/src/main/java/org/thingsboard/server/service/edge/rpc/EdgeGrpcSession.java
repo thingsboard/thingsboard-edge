@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.edge.rpc;
 
@@ -28,9 +43,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -54,6 +72,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EdgeUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
+import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
@@ -68,6 +87,7 @@ import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
+import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.GeneralEdgeEventFetcher;
 
@@ -224,6 +244,18 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
+    private void syncEdgeOwner(TenantId tenantId, Edge edge) throws Exception {
+        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+            EdgeEvent customerEdgeEvent = EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null);
+            DownlinkMsg customerDownlinkMsg = convertToDownlinkMsg(customerEdgeEvent);
+            sendDownlinkMsgsPack(Collections.singletonList(customerDownlinkMsg));
+
+            startProcessingEdgeEvents(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
+        }
+    }
+
+
     private void onUplinkMsg(UplinkMsg uplinkMsg) {
         ListenableFuture<List<Void>> future = processUplinkMsg(uplinkMsg);
         Futures.addCallback(future, new FutureCallback<>() {
@@ -266,7 +298,7 @@ public final class EdgeGrpcSession implements Closeable {
                 sessionState.getSendDownlinkMsgsFuture().set(null);
             }
         } catch (Exception e) {
-            log.error("[{}] Can't process downlink response message [{}]", this.sessionId, msg, e);
+            log.error("[{}] Can't process downlink response message [{}] {}", this.sessionId, msg, e);
         }
     }
 
@@ -277,7 +309,7 @@ public final class EdgeGrpcSession implements Closeable {
             try {
                 outputStream.onNext(downlinkMsg);
             } catch (Exception e) {
-                log.error("[{}] Failed to send downlink message [{}]", this.sessionId, downlinkMsg, e);
+                log.error("[{}] Failed to send downlink message [{}] {}", this.sessionId, downlinkMsg, e);
                 connected = false;
                 sessionCloseListener.accept(edge.getId());
             } finally {
@@ -442,6 +474,8 @@ public final class EdgeGrpcSession implements Closeable {
                 case UPDATED:
                 case ADDED:
                 case DELETED:
+                case ADDED_TO_ENTITY_GROUP:
+                case REMOVED_FROM_ENTITY_GROUP:
                 case ASSIGNED_TO_EDGE:
                 case UNASSIGNED_FROM_EDGE:
                 case ALARM_ACK:
@@ -449,8 +483,7 @@ public final class EdgeGrpcSession implements Closeable {
                 case CREDENTIALS_UPDATED:
                 case RELATION_ADD_OR_UPDATE:
                 case RELATION_DELETED:
-                case ASSIGNED_TO_CUSTOMER:
-                case UNASSIGNED_FROM_CUSTOMER:
+                case CHANGE_OWNER:
                     downlinkMsg = processEntityMessage(edgeEvent, edgeEvent.getAction());
                     log.trace("[{}][{}] entity message processed [{}]", edgeEvent.getTenantId(), this.sessionId, downlinkMsg);
                     break;
@@ -473,7 +506,7 @@ public final class EdgeGrpcSession implements Closeable {
                     log.warn("[{}][{}] Unsupported action type [{}]", edge.getTenantId(), this.sessionId, edgeEvent.getAction());
             }
         } catch (Exception e) {
-            log.error("[{}][{}] Exception during converting edge event to downlink msg", edge.getTenantId(), this.sessionId, e);
+            log.error("[{}][{}] Exception during converting edge event to downlink msg {}", edge.getTenantId(), this.sessionId, e);
         }
         return downlinkMsg;
     }
@@ -539,6 +572,20 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getWidgetTypeProcessor().processWidgetTypeToEdge(edgeEvent, msgType, action);
             case ADMIN_SETTINGS:
                 return ctx.getAdminSettingsProcessor().processAdminSettingsToEdge(edgeEvent);
+            case SCHEDULER_EVENT:
+                return ctx.getSchedulerEventProcessor().processSchedulerEventToEdge(edgeEvent, msgType);
+            case ENTITY_GROUP:
+                return ctx.getEntityGroupProcessor().processEntityGroupToEdge(edgeEvent, msgType);
+            case WHITE_LABELING:
+                return ctx.getWhiteLabelingProcessor().processWhiteLabelingToEdge(edgeEvent);
+            case LOGIN_WHITE_LABELING:
+                return ctx.getWhiteLabelingProcessor().processLoginWhiteLabelingToEdge(edgeEvent);
+            case CUSTOM_TRANSLATION:
+                return ctx.getWhiteLabelingProcessor().processCustomTranslationToEdge(edgeEvent);
+            case ROLE:
+                return ctx.getRoleProcessor().processRoleToEdge(edgeEvent, msgType);
+            case GROUP_PERMISSION:
+                return ctx.getGroupPermissionsProcessor().processGroupPermissionToEdge(edgeEvent, msgType);
             default:
                 log.warn("Unsupported edge event type [{}]", edgeEvent);
                 return null;
@@ -549,16 +596,17 @@ public final class EdgeGrpcSession implements Closeable {
         switch (actionType) {
             case UPDATED:
             case CREDENTIALS_UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case ASSIGNED_TO_EDGE:
             case RELATION_ADD_OR_UPDATE:
                 return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
             case RELATION_DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
+            case CHANGE_OWNER:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
                 return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
@@ -629,7 +677,8 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (uplinkMsg.getDeviceProfileDevicesRequestMsgCount() > 0) {
                 for (DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg : uplinkMsg.getDeviceProfileDevicesRequestMsgList()) {
-                    result.add(ctx.getEdgeRequestsService().processDeviceProfileDevicesRequestMsg(edge.getTenantId(), edge, deviceProfileDevicesRequestMsg));
+                    // do nothing. used in CE. in PE devices are synced by entity group entities request
+                    result.add(Futures.immediateFuture(null));
                 }
             }
             if (uplinkMsg.getWidgetBundleTypesRequestMsgCount() > 0) {
@@ -642,8 +691,20 @@ public final class EdgeGrpcSession implements Closeable {
                     result.add(ctx.getEdgeRequestsService().processEntityViewsRequestMsg(edge.getTenantId(), edge, entityViewRequestMsg));
                 }
             }
+            if (uplinkMsg.getEntityGroupEntitiesRequestMsgList() != null && !uplinkMsg.getEntityGroupEntitiesRequestMsgList().isEmpty()) {
+                for (EntityGroupRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
+                    result.add(ctx.getEdgeRequestsService().processEntityGroupEntitiesRequest(edge.getTenantId(), edge, entityGroupEntitiesRequestMsg));
+                }
+            }
+            if (uplinkMsg.getEntityGroupPermissionsRequestMsgList() != null && !uplinkMsg.getEntityGroupPermissionsRequestMsgList().isEmpty()) {
+                for (EntityGroupRequestMsg userGroupPermissionsRequestMsg : uplinkMsg.getEntityGroupPermissionsRequestMsgList()) {
+                    result.add(ctx.getEdgeRequestsService().processEntityGroupPermissionsRequest(edge.getTenantId(), edge, userGroupPermissionsRequestMsg));
+                }
+            }
         } catch (Exception e) {
-            log.error("[{}] Can't process uplink msg [{}]", this.sessionId, uplinkMsg, e);
+            String errMsg = String.format("[%s] Can't process uplink msg [%s]", this.sessionId, uplinkMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(e);
         }
         return Futures.allAsList(result);
     }
@@ -667,7 +728,7 @@ public final class EdgeGrpcSession implements Closeable {
                         .setErrorMsg("Failed to validate the edge!")
                         .setConfiguration(EdgeConfiguration.getDefaultInstance()).build();
             } catch (Exception e) {
-                log.error("[{}] Failed to process edge connection!", request.getEdgeRoutingKey(), e);
+                log.error("[{}] Failed to process edge connection! {}", request.getEdgeRoutingKey(), e);
                 return ConnectResponseMsg.newBuilder()
                         .setResponseCode(ConnectResponseCode.SERVER_UNAVAILABLE)
                         .setErrorMsg("Failed to process edge connection!")
@@ -693,7 +754,7 @@ public final class EdgeGrpcSession implements Closeable {
                 .setEdgeLicenseKey(edge.getEdgeLicenseKey())
                 .setCloudEndpoint(edge.getCloudEndpoint())
                 .setAdditionalInfo(JacksonUtil.toString(edge.getAdditionalInfo()))
-                .setCloudType("CE");
+                .setCloudType("PE");
         if (edge.getCustomerId() != null) {
             builder.setCustomerIdMSB(edge.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(edge.getCustomerId().getId().getLeastSignificantBits());

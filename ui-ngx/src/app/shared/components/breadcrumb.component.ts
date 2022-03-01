@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
@@ -20,6 +35,9 @@ import { BreadCrumb, BreadCrumbConfig } from './breadcrumb';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { MenuSection } from '@core/services/menu.models';
+import { MenuService } from '@core/services/menu.service';
+import { UtilsService } from '@core/services/utils.service';
 import { guid } from '@core/utils';
 import { BroadcastService } from '@core/services/broadcast.service';
 
@@ -54,7 +72,9 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
               private activatedRoute: ActivatedRoute,
               private broadcast: BroadcastService,
               private cd: ChangeDetectorRef,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private menuService: MenuService,
+              public utils: UtilsService) {
   }
 
   ngOnInit(): void {
@@ -89,27 +109,50 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         let label;
         let labelFunction;
         let ignoreTranslate;
-        if (breadcrumbConfig.labelFunction) {
-          labelFunction = () => {
-            return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data);
-          };
-          ignoreTranslate = true;
-        } else {
-          label = breadcrumbConfig.label || 'home.home';
-          ignoreTranslate = false;
+        let icon;
+        let iconUrl;
+        let isMdiIcon;
+        let link;
+        let queryParams;
+        let section: MenuSection = null;
+        if (breadcrumbConfig.custom || breadcrumbConfig.customChild) {
+          section = breadcrumbConfig.customChild ? this.menuService.getCurrentCustomChildSection()
+            : this.menuService.getCurrentCustomSection();
         }
-        const icon = breadcrumbConfig.icon || 'home';
-        const isMdiIcon = icon.startsWith('mdi:');
-        const link = [ route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/') ];
+        if (section) {
+          ignoreTranslate = true;
+          label = section.name;
+          icon = section.icon;
+          if (icon) {
+            isMdiIcon = icon.startsWith('mdi:');
+          }
+          iconUrl = section.iconUrl;
+          link = section.path;
+          queryParams = section.queryParams;
+        } else {
+          if (breadcrumbConfig.labelFunction) {
+            labelFunction = () => {
+              return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils);
+            };
+            ignoreTranslate = true;
+          } else {
+            label = breadcrumbConfig.label || 'home.home';
+            ignoreTranslate = false;
+          }
+          icon = breadcrumbConfig.icon || 'home';
+          isMdiIcon = icon.startsWith('mdi:');
+          link = [route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/')];
+        }
         const breadcrumb = {
           id: guid(),
           label,
           labelFunction,
           ignoreTranslate,
           icon,
+          iconUrl,
           isMdiIcon,
           link,
-          queryParams: null
+          queryParams
         };
         newBreadcrumbs = [...breadcrumbs, breadcrumb];
       }

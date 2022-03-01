@@ -1,68 +1,94 @@
 <!--
 
-    Copyright © 2016-2022 The Thingsboard Authors
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
-        http://www.apache.org/licenses/LICENSE-2.0
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-login-content mat-app-background tb-dark" fxFlex fxLayoutAlign="center center">
-  <mat-card style="max-height: 80vh; overflow-y: auto;">
+<div class="tb-login-content mat-app-background tb-dark" [ngClass]="{'dark-foreground': wl.loginDarkForeground$ | async}" fxFlex fxLayoutAlign="center center"
+  [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
+  <mat-card style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
       <form class="tb-login-form" [formGroup]="loginFormGroup" (ngSubmit)="login()">
         <fieldset [disabled]="isLoading$ | async" fxLayout="column">
-          <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
-            <tb-logo class="login-logo"></tb-logo>
-          </div>
-          <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
-          </mat-progress-bar>
-          <span style="height: 4px;" *ngIf="!(isLoading$ | async)"></span>
-          <div tb-toast fxLayout="column" class="layout-padding">
-            <span style="height: 50px;"></span>
-            <div class="oauth-container tb-default" fxLayout="column" fxLayoutGap="16px" *ngIf="oauth2Clients?.length">
-              <ng-container *ngFor="let oauth2Client of oauth2Clients">
-                <a mat-raised-button class="login-with-button" href="{{ oauth2Client.url }}">
-                  <mat-icon class="icon" svgIcon="{{ oauth2Client.icon }}"></mat-icon>
-                  {{ 'login.login-with' | translate: {name: oauth2Client.name} }}
-                </a>
-              </ng-container>
-              <div class="container-divider">
-                <div class="line"><mat-divider></mat-divider></div>
-                <div class="text mat-typography">{{ "login.or" | translate | uppercase }}</div>
-                <div class="line"><mat-divider></mat-divider></div>
+          <div fxLayout="column">
+            <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
+              <img [src]="wl.loginLogoSafeUrl$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
+              <section class="version center"
+                       *ngIf="(wl.loginShowNameVersion$ | async) && !(wl.showNameBottom$ | async)" [innerHTML]="platformNameAndVersion$() | async"></section>
+            </div>
+            <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+            </mat-progress-bar>
+            <span style="height: 4px;" *ngIf="!(isLoading$ | async)"></span>
+            <div tb-toast fxLayout="column" class="layout-padding">
+              <span style="height: 40px;"></span>
+              <div class="oauth-container tb-default" fxLayout="column" fxLayoutGap="16px" *ngIf="oauth2Clients?.length">
+                <ng-container *ngFor="let oauth2Client of oauth2Clients">
+                  <a mat-raised-button class="login-with-button" href="{{ oauth2Client.url }}">
+                    <mat-icon class="icon" svgIcon="{{ oauth2Client.icon }}"></mat-icon>
+                    {{ 'login.login-with' | translate: {name: oauth2Client.name} }}
+                  </a>
+                </ng-container>
+                <div class="container-divider">
+                  <div class="line"><mat-divider></mat-divider></div>
+                  <div class="text mat-typography">{{ "login.or" | translate | uppercase }}</div>
+                  <div class="line"><mat-divider></mat-divider></div>
+                </div>
+              </div>
+              <mat-form-field>
+                <mat-label translate>login.username</mat-label>
+                <input id="username-input" matInput type="email" autofocus formControlName="username" email required/>
+                <mat-icon class="material-icons" matPrefix>email</mat-icon>
+                <mat-error *ngIf="loginFormGroup.get('username').invalid">
+                  {{ 'user.invalid-email-format' | translate }}
+                </mat-error>
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label translate>common.password</mat-label>
+                <input id="password-input" matInput type="password" formControlName="password"/>
+                <tb-toggle-password matSuffix></tb-toggle-password>
+                <mat-icon matPrefix>lock</mat-icon>
+              </mat-form-field>
+              <div fxLayoutAlign="end center">
+                <button class="tb-reset-password" mat-button type="button" routerLink="/login/resetPasswordRequest">{{ 'login.forgot-password' | translate }}
+                </button>
+              </div>
+              <div fxLayout="column" class="tb-action-button" fxLayoutGap="16px">
+                <button mat-raised-button color="accent" [disabled]="(isLoading$ | async)"
+                        type="submit">{{ 'login.login' | translate }}</button>
+                <div *ngIf="selfRegistrationService.signUpParams?.activate" fxLayout="row" class="no-account-section">
+                  <span class="no-account-message" translate>login.no-account</span>
+                  <a routerLink="/signup">{{ 'signup.signup' | translate }}</a>
+                </div>
               </div>
             </div>
-            <mat-form-field>
-              <mat-label translate>login.username</mat-label>
-              <input id="username-input" matInput type="email" autofocus formControlName="username" email required/>
-              <mat-icon matPrefix>email</mat-icon>
-              <mat-error *ngIf="loginFormGroup.get('username').invalid">
-                {{ 'user.invalid-email-format' | translate }}
-              </mat-error>
-            </mat-form-field>
-            <mat-form-field>
-              <mat-label translate>common.password</mat-label>
-              <input id="password-input" matInput type="password" formControlName="password"/>
-              <tb-toggle-password matSuffix></tb-toggle-password>
-              <mat-icon matPrefix>lock</mat-icon>
-            </mat-form-field>
-            <div fxLayoutAlign="end center" class="forgot-password">
-              <button class="tb-reset-password" mat-button type="button" routerLink="/login/resetPasswordRequest">{{ 'login.forgot-password' | translate }}
-              </button>
-            </div>
-            <div fxLayout="column" class="tb-action-button">
-              <button mat-raised-button color="accent" [disabled]="(isLoading$ | async)"
-                      type="submit">{{ 'login.login' | translate }}</button>
-            </div>
+            <section class="version"
+                     *ngIf="(wl.loginShowNameVersion$ | async) && (wl.showNameBottom$ | async)" [innerHTML]="platformNameAndVersion$() | async"></section>
           </div>
         </fieldset>
       </form>

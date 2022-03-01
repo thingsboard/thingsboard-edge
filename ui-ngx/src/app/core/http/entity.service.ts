@@ -1,23 +1,38 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Injectable } from '@angular/core';
 import { EMPTY, forkJoin, Observable, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { PageLink } from '@shared/models/page/page-link';
+import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -62,7 +77,24 @@ import { EntityRelationService } from '@core/http/entity-relation.service';
 import { deepClone, generateSecret, guid, isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { Asset } from '@shared/models/asset.models';
 import { Device, DeviceCredentialsType } from '@shared/models/device.models';
+import { EntityView } from '@shared/models/entity-view.models';
 import { AttributeService } from '@core/http/attribute.service';
+import { ConverterService } from '@core/http/converter.service';
+import { IntegrationService } from '@core/http/integration.service';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { BlobEntityService } from '@core/http/blob-entity.service';
+import { RoleService } from '@core/http/role.service';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { Dashboard } from '@shared/models/dashboard.models';
+import { User } from '@shared/models/user.model';
+import { Converter } from '@shared/models/converter.models';
+import { Integration } from '@shared/models/integration.models';
+import { SchedulerEvent } from '@shared/models/scheduler-event.models';
+import { Role } from '@shared/models/role.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, resourceByEntityType, RoleType } from '@shared/models/security.models';
+import { EntityGroup } from '@shared/models/entity-group.models';
+import { CustomerId } from '@shared/models/id/customer-id';
 import {
   AlarmData,
   AlarmDataQuery,
@@ -81,7 +113,6 @@ import {
   StringOperation
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
-import { OtaPackageService } from '@core/http/ota-package.service';
 import { EdgeService } from '@core/http/edge.service';
 import {
   Edge,
@@ -89,7 +120,8 @@ import {
   EdgeEventType,
   bodyContentEdgeEventActionTypes
 } from '@shared/models/edge.models';
-import { RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
+import { OtaPackageService } from '@core/http/ota-package.service';
+import { RuleChainMetaData, RuleChainType, RuleChain } from '@shared/models/rule-chain.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 
@@ -102,9 +134,9 @@ export class EntityService {
     private http: HttpClient,
     private store: Store<AppState>,
     private deviceService: DeviceService,
-    private edgeService: EdgeService,
     private assetService: AssetService,
     private entityViewService: EntityViewService,
+    private edgeService: EdgeService,
     private tenantService: TenantService,
     private customerService: CustomerService,
     private userService: UserService,
@@ -115,8 +147,16 @@ export class EntityService {
     private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
+    private converterService: ConverterService,
+    private integrationService: IntegrationService,
+    private schedulerEventService: SchedulerEventService,
+    private blobEntityService: BlobEntityService,
+    private roleService: RoleService,
+    private entityGroupService: EntityGroupService,
+    private userPermissionsService: UserPermissionsService,
     private utils: UtilsService
-  ) { }
+  ) {
+  }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
                               config?: RequestConfig): Observable<BaseData<EntityId>> {
@@ -129,11 +169,11 @@ export class EntityService {
       case EntityType.ASSET:
         observable = this.assetService.getAsset(entityId, config);
         break;
-      case EntityType.EDGE:
-        observable = this.edgeService.getEdge(entityId, config);
-        break;
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.getEntityView(entityId, config);
+        break;
+      case EntityType.EDGE:
+        observable = this.edgeService.getEdge(entityId, config);
         break;
       case EntityType.TENANT:
         observable = this.tenantService.getTenant(entityId, config);
@@ -142,7 +182,11 @@ export class EntityService {
         observable = this.customerService.getCustomer(entityId, config);
         break;
       case EntityType.DASHBOARD:
-        observable = this.dashboardService.getDashboardInfo(entityId, config);
+        if (config && config.loadEntityDetails) {
+          observable = this.dashboardService.getDashboard(entityId, config);
+        } else {
+          observable = this.dashboardService.getDashboardInfo(entityId, config);
+        }
         break;
       case EntityType.USER:
         observable = this.userService.getUser(entityId, config);
@@ -153,12 +197,85 @@ export class EntityService {
       case EntityType.ALARM:
         console.error('Get Alarm Entity is not implemented!');
         break;
+      case EntityType.CONVERTER:
+        observable = this.converterService.getConverter(entityId, config);
+        break;
+      case EntityType.INTEGRATION:
+        observable = this.integrationService.getIntegration(entityId, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        observable = this.schedulerEventService.getSchedulerEventInfo(entityId, config);
+        break;
+      case EntityType.BLOB_ENTITY:
+        observable = this.blobEntityService.getBlobEntityInfo(entityId, config);
+        break;
+      case EntityType.ROLE:
+        observable = this.roleService.getRole(entityId, config);
+        break;
+      case EntityType.ENTITY_GROUP:
+        observable = this.entityGroupService.getEntityGroup(entityId, config);
+        break;
       case EntityType.OTA_PACKAGE:
         observable = this.otaPackageService.getOtaPackageInfo(entityId, config);
         break;
     }
     return observable;
   }
+
+  private saveEntityObservable(entity: BaseData<EntityId>,
+                               config?: RequestConfig): Observable<BaseData<EntityId>> {
+    let observable: Observable<BaseData<EntityId>>;
+    const entityType = entity.id.entityType;
+    if (!entity.id.id) {
+      delete entity.id;
+    }
+    switch (entityType) {
+      case EntityType.DEVICE:
+        observable = this.deviceService.saveDevice(entity as Device, null, config);
+        break;
+      case EntityType.ASSET:
+        observable = this.assetService.saveAsset(entity as Asset, null, config);
+        break;
+      case EntityType.ENTITY_VIEW:
+        observable = this.entityViewService.saveEntityView(entity as EntityView, null, config);
+        break;
+      case EntityType.EDGE:
+        observable = this.edgeService.saveEdge(entity as Edge, null, config);
+        break;
+      case EntityType.TENANT:
+        observable = this.tenantService.saveTenant(entity as Tenant, config);
+        break;
+      case EntityType.CUSTOMER:
+        observable = this.customerService.saveCustomer(entity as Customer, null, config);
+        break;
+      case EntityType.DASHBOARD:
+        observable = this.dashboardService.saveDashboard(entity as Dashboard, null, config);
+        break;
+      case EntityType.USER:
+        observable = this.userService.saveUser(entity as User, false, null, config);
+        break;
+      case EntityType.RULE_CHAIN:
+        observable = this.ruleChainService.saveRuleChain(entity as RuleChain, config);
+        break;
+      case EntityType.ALARM:
+        console.error('Save Alarm Entity is not implemented!');
+        break;
+      case EntityType.CONVERTER:
+        observable = this.converterService.saveConverter(entity as Converter, config);
+        break;
+      case EntityType.INTEGRATION:
+        observable = this.integrationService.saveIntegration(entity as Integration, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        observable = this.schedulerEventService.saveSchedulerEvent(entity as SchedulerEvent, config);
+        break;
+      case EntityType.ROLE:
+        observable = this.roleService.saveRole(entity as Role, config);
+        break;
+    }
+    return observable;
+  }
+
   public getEntity(entityType: EntityType, entityId: string,
                    config?: RequestConfig): Observable<BaseData<EntityId>> {
     const entityObservable = this.getEntityObservable(entityType, entityId, config);
@@ -169,7 +286,62 @@ export class EntityService {
     }
   }
 
-  private getEntitiesByIdsObservable(fetchEntityFunction: (entityId: string) => Observable<BaseData<EntityId>>,
+  public saveEntity(entity: BaseData<EntityId>,
+                    config?: RequestConfig): Observable<BaseData<EntityId>> {
+    const entityObservable = this.saveEntityObservable(entity, config);
+    if (entityObservable) {
+      return entityObservable;
+    } else {
+      return throwError(null);
+    }
+  }
+
+  private saveGroupEntityObservable(entity: BaseData<EntityId>,
+                                    entityGroupId: string,
+                                    config?: RequestConfig): Observable<BaseData<EntityId>> {
+    let observable: Observable<BaseData<EntityId>>;
+    const entityType = entity.id.entityType;
+    if (!entity.id.id) {
+      delete entity.id;
+    }
+    switch (entityType) {
+      case EntityType.DEVICE:
+        observable = this.deviceService.saveDevice(entity as Device, entityGroupId, config);
+        break;
+      case EntityType.ASSET:
+        observable = this.assetService.saveAsset(entity as Asset, entityGroupId, config);
+        break;
+      case EntityType.ENTITY_VIEW:
+        observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupId, config);
+        break;
+      case EntityType.EDGE:
+        observable = this.edgeService.saveEdge(entity as Edge, entityGroupId, config);
+        break;
+      case EntityType.CUSTOMER:
+        observable = this.customerService.saveCustomer(entity as Customer, entityGroupId, config);
+        break;
+      case EntityType.DASHBOARD:
+        observable = this.dashboardService.saveDashboard(entity as Dashboard, entityGroupId, config);
+        break;
+      case EntityType.USER:
+        observable = this.userService.saveUser(entity as User, false, entityGroupId, config);
+        break;
+    }
+    return observable;
+  }
+
+  public saveGroupEntity(entity: BaseData<EntityId>,
+                         entityGroupId: string,
+                         config?: RequestConfig): Observable<BaseData<EntityId>> {
+    const entityObservable = this.saveGroupEntityObservable(entity, entityGroupId, config);
+    if (entityObservable) {
+      return entityObservable;
+    } else {
+      return throwError(null);
+    }
+  }
+
+  /*private getEntitiesByIdsObservable(fetchEntityFunction: (entityId: string) => Observable<BaseData<EntityId>>,
                                      entityIds: Array<string>): Observable<Array<BaseData<EntityId>>> {
     const tasks: Observable<BaseData<EntityId>>[] = [];
     entityIds.forEach((entityId) => {
@@ -189,7 +361,7 @@ export class EntityService {
         }
       })
     );
-  }
+  }*/
 
 
   private getEntitiesObservable(entityType: EntityType, entityIds: Array<string>,
@@ -202,36 +374,44 @@ export class EntityService {
       case EntityType.ASSET:
         observable = this.assetService.getAssets(entityIds, config);
         break;
+      case EntityType.ENTITY_VIEW:
+        observable = this.entityViewService.getEntityViews(entityIds, config);
+        break;
       case EntityType.EDGE:
         observable = this.edgeService.getEdges(entityIds, config);
         break;
-      case EntityType.ENTITY_VIEW:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.entityViewService.getEntityView(id, config),
-          entityIds);
-        break;
       case EntityType.TENANT:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.tenantService.getTenant(id, config),
-          entityIds);
+        observable = this.tenantService.getTenantsByIds(entityIds, config);
         break;
       case EntityType.CUSTOMER:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.customerService.getCustomer(id, config),
-          entityIds);
+        observable = this.customerService.getCustomersByIds(entityIds, config);
         break;
       case EntityType.DASHBOARD:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.dashboardService.getDashboardInfo(id, config),
-          entityIds);
+        observable = this.dashboardService.getDashboards(entityIds, config);
         break;
       case EntityType.USER:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.userService.getUser(id, config),
-          entityIds);
+        observable = this.userService.getUsers(entityIds, config);
         break;
       case EntityType.ALARM:
         console.error('Get Alarm Entity is not implemented!');
+        break;
+      case EntityType.ENTITY_GROUP:
+        observable = this.entityGroupService.getEntityGroupsByIds(entityIds, config);
+        break;
+      case EntityType.CONVERTER:
+        observable = this.converterService.getConvertersByIds(entityIds, config);
+        break;
+      case EntityType.INTEGRATION:
+        observable = this.integrationService.getIntegrationsByIds(entityIds, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        observable = this.schedulerEventService.getSchedulerEventsByIds(entityIds, config);
+        break;
+      case EntityType.BLOB_ENTITY:
+        observable = this.blobEntityService.getBlobEntitiesByIds(entityIds, config);
+        break;
+      case EntityType.ROLE:
+        observable = this.roleService.getRolesByIds(entityIds, config);
         break;
     }
     return observable;
@@ -269,65 +449,44 @@ export class EntityService {
     );
   }
 
-  private getSingleCustomerByPageLinkObservable(pageLink: PageLink,
-                                                config?: RequestConfig): Observable<PageData<Customer>> {
-    const authUser = getCurrentAuthUser(this.store);
-    const customerId = authUser.customerId;
-    return this.customerService.getCustomer(customerId, config).pipe(
-      map((customer) => {
-        const result = {
-          data: [],
-          totalPages: 0,
-          totalElements: 0,
-          hasNext: false
-        } as PageData<Customer>;
-        if (customer.title.toLowerCase().startsWith(pageLink.textSearch.toLowerCase())) {
-          result.data.push(customer);
-          result.totalPages = 1;
-          result.totalElements = 1;
-        }
-        return result;
-      })
-    );
-  }
-
   private getEntitiesByPageLinkObservable(entityType: EntityType, pageLink: PageLink, subType: string = '',
                                           config?: RequestConfig): Observable<PageData<BaseData<EntityId>>> {
     let entitiesObservable: Observable<PageData<BaseData<EntityId>>>;
     const authUser = getCurrentAuthUser(this.store);
-    const customerId = authUser.customerId;
+    const isGenericPermission = this.userPermissionsService.hasReadGenericPermission(resourceByEntityType.get(entityType));
     switch (entityType) {
       case EntityType.DEVICE:
         pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.deviceService.getCustomerDeviceInfos(customerId, pageLink, subType, config);
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.deviceService.getTenantDevices(pageLink, subType, config);
         } else {
-          entitiesObservable = this.deviceService.getTenantDeviceInfos(pageLink, subType, config);
+          entitiesObservable = this.deviceService.getUserDevices(pageLink, subType, config);
         }
         break;
       case EntityType.ASSET:
         pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.assetService.getCustomerAssetInfos(customerId, pageLink, subType, config);
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.assetService.getTenantAssets(pageLink, subType, config);
         } else {
-          entitiesObservable = this.assetService.getTenantAssetInfos(pageLink, subType, config);
-        }
-        break;
-      case EntityType.EDGE:
-        pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.edgeService.getCustomerEdgeInfos(customerId, pageLink, subType, config);
-        } else {
-          entitiesObservable = this.edgeService.getTenantEdgeInfos(pageLink, subType, config);
+          entitiesObservable = this.assetService.getUserAssets(pageLink, subType, config);
         }
         break;
       case EntityType.ENTITY_VIEW:
         pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.entityViewService.getCustomerEntityViewInfos(customerId, pageLink,
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.entityViewService.getTenantEntityViews(pageLink,
             subType, config);
         } else {
-          entitiesObservable = this.entityViewService.getTenantEntityViewInfos(pageLink, subType, config);
+          entitiesObservable = this.entityViewService.getUserEntityViews(pageLink, subType, config);
+        }
+        break;
+      case EntityType.EDGE:
+        pageLink.sortOrder.property = 'name';
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.edgeService.getTenantEdges(pageLink,
+            subType, config);
+        } else {
+          entitiesObservable = this.edgeService.getUserEdges(pageLink, subType, config);
         }
         break;
       case EntityType.TENANT:
@@ -340,11 +499,7 @@ export class EntityService {
         break;
       case EntityType.CUSTOMER:
         pageLink.sortOrder.property = 'title';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.getSingleCustomerByPageLinkObservable(pageLink, config);
-        } else {
-          entitiesObservable = this.customerService.getCustomers(pageLink, config);
-        }
+        entitiesObservable = this.customerService.getUserCustomers(pageLink, config);
         break;
       case EntityType.RULE_CHAIN:
         pageLink.sortOrder.property = 'name';
@@ -357,18 +512,50 @@ export class EntityService {
         break;
       case EntityType.DASHBOARD:
         pageLink.sortOrder.property = 'title';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.dashboardService.getCustomerDashboards(customerId, pageLink, config);
-        } else {
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
           entitiesObservable = this.dashboardService.getTenantDashboards(pageLink, config);
+        } else {
+          entitiesObservable = this.dashboardService.getUserDashboards(null, null, pageLink, config);
         }
         break;
       case EntityType.USER:
         pageLink.sortOrder.property = 'email';
-        entitiesObservable = this.userService.getUsers(pageLink);
+        entitiesObservable = this.userService.getUserUsers(pageLink, config);
         break;
       case EntityType.ALARM:
         console.error('Get Alarm Entities is not implemented!');
+        break;
+      case EntityType.ENTITY_GROUP:
+        pageLink.sortOrder.property = 'name';
+        if (subType && subType.length) {
+          entitiesObservable = this.entityGroupService.getEntityGroupsByPageLink(pageLink, subType as EntityType, config);
+        } else {
+          entitiesObservable = of(null);
+        }
+        break;
+      case EntityType.CONVERTER:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.converterService.getConverters(pageLink, config);
+        break;
+      case EntityType.INTEGRATION:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.integrationService.getIntegrations(pageLink, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.schedulerEventService.getSchedulerEvents(null, config).pipe(
+          map((schedulerEvents) => {
+            return pageLink.filterData(schedulerEvents);
+          })
+        );
+        break;
+      case EntityType.BLOB_ENTITY:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.blobEntityService.getBlobEntities(pageLink as TimePageLink, null, config);
+        break;
+      case EntityType.ROLE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.roleService.getRoles(pageLink, subType as RoleType, config);
         break;
       case EntityType.OTA_PACKAGE:
         pageLink.sortOrder.property = 'title';
@@ -424,6 +611,102 @@ export class EntityService {
         return of(null);
       }
     }
+  }
+
+  private getEntityGroupEntitiesByPageLink(entityGroupId: string, pageLink: PageLink, entityGroupType: EntityType,
+                                           config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+    const entitiesObservable: Observable<PageData<BaseData<EntityId>>> =
+      this.entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, entityGroupType, config);
+    if (entitiesObservable) {
+      return entitiesObservable.pipe(
+        expand((data) => {
+          if (data.hasNext) {
+            pageLink.page += 1;
+            return this.entityGroupService.getEntityGroupEntities<BaseData<EntityId>>(entityGroupId, pageLink, entityGroupType, config);
+          } else {
+            return EMPTY;
+          }
+        }),
+        map((data) => data.data),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      return of(null);
+    }
+  }
+
+  public getEntityGroupEntities(entityGroupId: string, entityGroupType: EntityType,
+                                pageSize: number, config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+    const pageLink = new PageLink(pageSize, 0, null, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    if (pageSize === -1) { // all
+      pageLink.pageSize = entityGroupType === EntityType.CUSTOMER ? 1024 : 100;
+      return this.getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, entityGroupType, config).pipe(
+        map((data) => data && data.length ? data : null)
+      );
+    } else {
+      const entitiesObservable: Observable<PageData<BaseData<EntityId>>> =
+        this.entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, entityGroupType, config);
+      if (entitiesObservable) {
+        return entitiesObservable.pipe(
+          map((data) => data && data.data.length ? data.data : null)
+        );
+      } else {
+        return of(null);
+      }
+    }
+  }
+
+  public getEntitiesByGroupName(entityType: EntityType, entityNameFilter: string,
+                                pageSize: number, stateEntityId?: EntityId, config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+    let entityGroupsObservable: Observable<Array<EntityGroup>>;
+    if (isDefined(stateEntityId)) {
+      entityGroupsObservable = this.getEntity(stateEntityId.entityType as EntityType, stateEntityId.id, config).pipe(
+        mergeMap((entity) => {
+          let entityId: EntityId;
+          if (entity.id.entityType === EntityType.CUSTOMER) {
+            entityId = entity.id;
+          } else {
+            entityId = entity.ownerId;
+          }
+          return this.entityGroupService.getEntityGroupsByOwnerId(entityId.entityType as EntityType, entityId.id, entityType, config);
+        }),
+        catchError(() => {
+          return of(null);
+        })
+      );
+    } else {
+      entityGroupsObservable = this.entityGroupService.getEntityGroups(entityType, config);
+    }
+    return entityGroupsObservable.pipe(
+      map((entityGroups) => {
+        if (entityGroups && entityGroups.length) {
+          for (const entityGroup of entityGroups) {
+            if (entityGroup.name === entityNameFilter) {
+              return entityGroup.id.id;
+            }
+          }
+        }
+        return null;
+      }),
+      catchError((err) => {
+        return of(null as string);
+      })
+    ).pipe(
+      mergeMap((groupId) => {
+        if (groupId) {
+          return this.getEntityGroupEntities(groupId, entityType, pageSize, config);
+        } else {
+          return of(null as Array<BaseData<EntityId>>);
+        }
+      }),
+      catchError((err) => {
+        return of(null as Array<BaseData<EntityId>>);
+      })
+    );
   }
 
   public findEntityDataByQuery(query: EntityDataQuery, config?: RequestConfig): Observable<PageData<EntityData>> {
@@ -528,23 +811,32 @@ export class EntityService {
     if (this.filterAliasFilterTypeByEntityTypes(filter.type, entityTypes)) {
       switch (filter.type) {
         case AliasFilterType.singleEntity:
-          return entityTypes.indexOf(filter.singleEntity.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.singleEntity.entityType) > -1;
+        case AliasFilterType.entityGroup:
+          return entityTypes.indexOf(filter.groupType) > -1;
         case AliasFilterType.entityList:
-          return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.entityName:
-          return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.entityType:
-          return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.entityType) > -1;
+        case AliasFilterType.entityGroupList:
+          return entityTypes.indexOf(EntityType.ENTITY_GROUP) > -1;
+        case AliasFilterType.entityGroupName:
+          return entityTypes.indexOf(EntityType.ENTITY_GROUP) > -1;
+        case AliasFilterType.entitiesByGroupName:
+          return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.stateEntity:
+        case AliasFilterType.stateEntityOwner:
           return true;
         case AliasFilterType.assetType:
-          return entityTypes.indexOf(EntityType.ASSET)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ASSET) > -1;
         case AliasFilterType.deviceType:
-          return entityTypes.indexOf(EntityType.DEVICE)  > -1 ? true : false;
-        case AliasFilterType.edgeType:
-          return entityTypes.indexOf(EntityType.EDGE) > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewType:
-          return entityTypes.indexOf(EntityType.ENTITY_VIEW)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
+        case AliasFilterType.edgeType:
+          return entityTypes.indexOf(EntityType.EDGE) > -1;
         case AliasFilterType.relationsQuery:
           if (filter.filters && filter.filters.length) {
             let match = false;
@@ -566,13 +858,13 @@ export class EntityService {
             return true;
           }
         case AliasFilterType.assetSearchQuery:
-          return entityTypes.indexOf(EntityType.ASSET)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ASSET) > -1;
         case AliasFilterType.deviceSearchQuery:
-          return entityTypes.indexOf(EntityType.DEVICE)  > -1 ? true : false;
-        case AliasFilterType.edgeSearchQuery:
-          return entityTypes.indexOf(EntityType.EDGE) > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewSearchQuery:
-          return entityTypes.indexOf(EntityType.ENTITY_VIEW)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
+        case AliasFilterType.edgeSearchQuery:
+          return entityTypes.indexOf(EntityType.EDGE) > -1;
       }
     }
     return false;
@@ -594,22 +886,31 @@ export class EntityService {
     switch (aliasFilterType) {
       case AliasFilterType.singleEntity:
         return true;
+      case AliasFilterType.entityGroup:
+        return true;
       case AliasFilterType.entityList:
         return true;
       case AliasFilterType.entityName:
         return true;
       case AliasFilterType.entityType:
         return true;
+      case AliasFilterType.entityGroupList:
+        return entityType === EntityType.ENTITY_GROUP;
+      case AliasFilterType.entityGroupName:
+        return entityType === EntityType.ENTITY_GROUP;
+      case AliasFilterType.entitiesByGroupName:
+        return true;
       case AliasFilterType.stateEntity:
+      case AliasFilterType.stateEntityOwner:
         return true;
       case AliasFilterType.assetType:
         return entityType === EntityType.ASSET;
       case AliasFilterType.deviceType:
         return entityType === EntityType.DEVICE;
-      case AliasFilterType.edgeType:
-        return entityType === EntityType.EDGE;
       case AliasFilterType.entityViewType:
         return entityType === EntityType.ENTITY_VIEW;
+      case AliasFilterType.edgeType:
+        return entityType === EntityType.EDGE;
       case AliasFilterType.relationsQuery:
         return true;
       case AliasFilterType.apiUsageState:
@@ -618,16 +919,16 @@ export class EntityService {
         return entityType === EntityType.ASSET;
       case AliasFilterType.deviceSearchQuery:
         return entityType === EntityType.DEVICE;
-      case AliasFilterType.edgeSearchQuery:
-        return entityType === EntityType.EDGE;
       case AliasFilterType.entityViewSearchQuery:
         return entityType === EntityType.ENTITY_VIEW;
+      case AliasFilterType.edgeSearchQuery:
+        return entityType === EntityType.EDGE;
     }
     return false;
   }
 
   public prepareAllowedEntityTypesList(allowedEntityTypes: Array<EntityType | AliasEntityType>,
-                                       useAliasEntityTypes?: boolean): Array<EntityType | AliasEntityType> {
+                                       useAliasEntityTypes?: boolean, operation?: Operation): Array<EntityType | AliasEntityType> {
     const authState = getCurrentAuthState(this.store);
     const entityTypes: Array<EntityType | AliasEntityType> = [];
     switch (authState.authUser.authority) {
@@ -640,8 +941,13 @@ export class EntityService {
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
-        entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.DASHBOARD);
+        entityTypes.push(EntityType.USER);
+        entityTypes.push(EntityType.CONVERTER);
+        entityTypes.push(EntityType.INTEGRATION);
+        entityTypes.push(EntityType.SCHEDULER_EVENT);
+        entityTypes.push(EntityType.BLOB_ENTITY);
+        entityTypes.push(EntityType.ROLE);
         if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
         }
@@ -655,8 +961,10 @@ export class EntityService {
         entityTypes.push(EntityType.ASSET);
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.CUSTOMER);
-        entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.DASHBOARD);
+        entityTypes.push(EntityType.USER);
+        entityTypes.push(EntityType.SCHEDULER_EVENT);
+        entityTypes.push(EntityType.BLOB_ENTITY);
         if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
         }
@@ -675,6 +983,16 @@ export class EntityService {
       for (let index = entityTypes.length - 1; index >= 0; index--) {
         if (allowedEntityTypes.indexOf(entityTypes[index]) === -1) {
           entityTypes.splice(index, 1);
+        }
+      }
+    }
+    if (operation) {
+      for (let index = entityTypes.length - 1; index >= 0; index--) {
+        const resource = resourceByEntityType.get(entityTypes[index] as EntityType);
+        if (resource) {
+          if (!this.userPermissionsService.hasGenericPermission(resource, operation)) {
+            entityTypes.splice(index, 1);
+          }
         }
       }
     }
@@ -717,6 +1035,18 @@ export class EntityService {
       case EntityType.DASHBOARD:
         entityFieldKeys.push(entityFields.title.keyName);
         break;
+      case EntityType.CONVERTER:
+      case EntityType.INTEGRATION:
+      case EntityType.SCHEDULER_EVENT:
+      case EntityType.BLOB_ENTITY:
+      case EntityType.ROLE:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        break;
+      case EntityType.ENTITY_GROUP:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        break;
       case EntityType.API_USAGE_STATE:
         entityFieldKeys.push(entityFields.name.keyName);
         break;
@@ -754,9 +1084,9 @@ export class EntityService {
             } else {
               return dataKeys;
             }
-           }
+          }
         )
-    );
+      );
   }
 
   public getEntityKeysByEntityFilter(filter: EntityFilter, types: DataKeyType[], config?: RequestConfig): Observable<Array<DataKey>> {
@@ -864,6 +1194,7 @@ export class EntityService {
     }
     const stateEntityInfo = this.getStateEntityInfo(filter, stateParams);
     const stateEntityId = stateEntityInfo.entityId;
+    const stateEntityGroupType = stateEntityInfo.entityGroupType;
     switch (filter.type) {
       case AliasFilterType.singleEntity:
         const aliasEntityId = this.resolveAliasEntityId(filter.singleEntity.entityType, filter.singleEntity.id);
@@ -872,6 +1203,25 @@ export class EntityService {
           singleEntity: aliasEntityId
         };
         return of(result);
+      case AliasFilterType.entityGroup:
+        result.stateEntity = filter.groupStateEntity;
+        let entityGroup: string;
+        let entityType: EntityType;
+        if (result.stateEntity && stateEntityId) {
+          entityGroup = stateEntityId.id;
+          entityType = stateEntityGroupType;
+        } else {
+          entityGroup = filter.entityGroup;
+          entityType = filter.groupType;
+        }
+        if (entityGroup && entityType) {
+          result.entityFilter = deepClone(filter);
+          result.entityFilter.groupType = entityType;
+          result.entityFilter.entityGroup = entityGroup;
+          return of(result);
+        } else {
+          return of(result);
+        }
       case AliasFilterType.entityList:
         result.entityFilter = deepClone(filter);
         return of(result);
@@ -881,11 +1231,34 @@ export class EntityService {
       case AliasFilterType.entityType:
         result.entityFilter = deepClone(filter);
         return of(result);
+      case AliasFilterType.entityGroupList:
+        result.entityFilter = deepClone(filter);
+        return of(result);
+      case AliasFilterType.entityGroupName:
+        result.entityFilter = deepClone(filter);
+        return of(result);
+      case AliasFilterType.entitiesByGroupName:
+        result.stateEntity = filter.groupStateEntity;
+        result.entityFilter = deepClone(filter);
+        if (filter.groupStateEntity && stateEntityId &&
+            (stateEntityId.entityType === EntityType.TENANT || stateEntityId.entityType === EntityType.CUSTOMER)) {
+          result.entityFilter.ownerId = stateEntityId;
+        }
+        return of(result);
       case AliasFilterType.stateEntity:
         result.stateEntity = true;
         if (stateEntityId) {
           result.entityFilter = {
             type: AliasFilterType.singleEntity,
+            singleEntity: stateEntityId
+          };
+        }
+        return of(result);
+      case AliasFilterType.stateEntityOwner:
+        result.stateEntity = true;
+        if (stateEntityId) {
+          result.entityFilter = {
+            type: AliasFilterType.stateEntityOwner,
             singleEntity: stateEntityId
           };
         }
@@ -944,9 +1317,11 @@ export class EntityService {
     );
   }
 
-  public saveEntityParameters(entityType: EntityType, entityData: ImportEntityData, update: boolean,
+  public saveEntityParameters(customerId: CustomerId, entityType: EntityType, entityGroupId: string,
+                              entityData: ImportEntityData, update: boolean,
                               config?: RequestConfig): Observable<ImportEntitiesResultInfo> {
-    const saveEntityObservable: Observable<BaseData<EntityId>> = this.getSaveEntityObservable(entityType, entityData, config);
+    const saveEntityObservable: Observable<BaseData<EntityId>> =
+      this.getSaveEntityObservable(customerId, entityType, entityGroupId, entityData, config);
     return saveEntityObservable.pipe(
       mergeMap((entity) => {
         return this.saveEntityData(entity.id, entityData, config).pipe(
@@ -964,20 +1339,43 @@ export class EntityService {
       catchError(err => {
         if (update) {
           let findEntityObservable: Observable<BaseData<EntityId>>;
+          const authUser = getCurrentAuthUser(this.store);
           switch (entityType) {
             case EntityType.DEVICE:
-              findEntityObservable = this.deviceService.findByName(entityData.name, config);
+              if (authUser.authority === Authority.TENANT_ADMIN) {
+                findEntityObservable = this.deviceService.findByName(entityData.name, config);
+              } else {
+                const pageLink = new PageLink(1, null, entityData.name);
+                findEntityObservable = this.deviceService.getUserDevices(pageLink, '', config).pipe(
+                  map(data => data.data[0])
+                );
+              }
               break;
             case EntityType.ASSET:
-              findEntityObservable = this.assetService.findByName(entityData.name, config);
+              if (authUser.authority === Authority.TENANT_ADMIN) {
+                findEntityObservable = this.assetService.findByName(entityData.name, config);
+              } else {
+                const pageLink = new PageLink(1, null, entityData.name);
+                findEntityObservable = this.assetService.getUserAssets(pageLink, '', config).pipe(
+                  map(data => data.data[0])
+                );
+              }
               break;
             case EntityType.EDGE:
-              findEntityObservable = this.edgeService.findByName(entityData.name, config);
+              if (authUser.authority === Authority.TENANT_ADMIN) {
+                findEntityObservable = this.edgeService.findByName(entityData.name, config);
+              } else {
+                const pageLink = new PageLink(1, null, entityData.name);
+                findEntityObservable = this.edgeService.getUserEdges(pageLink, '', config).pipe(
+                  map(data => data.data[0])
+                );
+              }
               break;
           }
           return findEntityObservable.pipe(
             mergeMap((entity) => {
-              const updateEntityTasks: Observable<any>[] = this.getUpdateEntityTasks(entityType, entityData, entity, config);
+              const updateEntityTasks: Observable<any>[] =
+                this.getUpdateEntityTasks(entityType, entityData, entityGroupId, entity, config);
               return forkJoin(updateEntityTasks).pipe(
                 map(() => {
                   return { update: { entity: 1 } } as ImportEntitiesResultInfo;
@@ -1009,8 +1407,8 @@ export class EntityService {
     );
   }
 
-  private getSaveEntityObservable(entityType: EntityType, entityData: ImportEntityData,
-                                  config?: RequestConfig): Observable<BaseData<EntityId>> {
+  private getSaveEntityObservable(customerId: CustomerId, entityType: EntityType, entityGroupId: string,
+                                  entityData: ImportEntityData, config?: RequestConfig): Observable<BaseData<EntityId>> {
     let saveEntityObservable: Observable<BaseData<EntityId>>;
     switch (entityType) {
       case EntityType.DEVICE:
@@ -1018,6 +1416,7 @@ export class EntityService {
           name: entityData.name,
           type: entityData.type,
           label: entityData.label,
+          customerId,
           additionalInfo: {
             description: entityData.description
           }
@@ -1028,18 +1427,19 @@ export class EntityService {
             gateway: entityData.gateway
           };
         }
-        saveEntityObservable = this.deviceService.saveDevice(device, config);
+        saveEntityObservable = this.deviceService.saveDevice(device, entityGroupId, config);
         break;
       case EntityType.ASSET:
         const asset: Asset = {
           name: entityData.name,
           type: entityData.type,
           label: entityData.label,
+          customerId,
           additionalInfo: {
             description: entityData.description
           }
         };
-        saveEntityObservable = this.assetService.saveAsset(asset, config);
+        saveEntityObservable = this.assetService.saveAsset(asset, entityGroupId, config);
         break;
       case EntityType.EDGE:
         const edgeEntityData: EdgeImportEntityData = entityData as EdgeImportEntityData;
@@ -1055,14 +1455,14 @@ export class EntityService {
           routingKey: edgeEntityData.routingKey !== '' ? edgeEntityData.routingKey : guid(),
           secret: edgeEntityData.secret !== '' ? edgeEntityData.secret : generateSecret(20)
         };
-        saveEntityObservable = this.edgeService.saveEdge(edge, config);
+        saveEntityObservable = this.edgeService.saveEdge(edge, entityGroupId, config);
         break;
     }
     return saveEntityObservable;
   }
 
   private getUpdateEntityTasks(entityType: EntityType,  entityData: ImportEntityData | EdgeImportEntityData,
-                               entity: BaseData<EntityId>, config?: RequestConfig): Observable<any>[] {
+                               entityGroupId: string, entity: BaseData<EntityId>, config?: RequestConfig): Observable<any>[] {
     const tasks: Observable<any>[] = [];
     let result;
     let additionalInfo;
@@ -1082,12 +1482,15 @@ export class EntityService {
           if (result.id.entityType === EntityType.DEVICE) {
             result.additionalInfo.gateway = entityData.gateway;
           }
+          if (result.id.entityType === EntityType.DEVICE && result.deviceProfileId) {
+            delete result.deviceProfileId;
+          }
           switch (result.id.entityType) {
             case EntityType.DEVICE:
-              tasks.push(this.deviceService.saveDevice(result, config));
+              tasks.push(this.deviceService.saveDevice(result, entityGroupId, config));
               break;
             case EntityType.ASSET:
-              tasks.push(this.assetService.saveAsset(result, config));
+              tasks.push(this.assetService.saveAsset(result, entityGroupId, config));
               break;
           }
         }
@@ -1120,7 +1523,7 @@ export class EntityService {
           if (edgeEntityData.secret !== '') {
             result.secret = edgeEntityData.secret;
           }
-          tasks.push(this.edgeService.saveEdge(result, config));
+          tasks.push(this.edgeService.saveEdge(result, entityGroupId, config));
         }
         tasks.push(this.saveEntityData(entity.id, edgeEntityData, config));
         break;
@@ -1200,24 +1603,35 @@ export class EntityService {
     }
   }
 
-  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): {entityId: EntityId} {
+  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): { entityId: EntityId, entityGroupType: EntityType } {
     let entityId: EntityId = null;
+    let entityGroupType: EntityType = null;
     if (stateParams) {
       if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
         if (stateParams[filter.stateEntityParamName]) {
           entityId = stateParams[filter.stateEntityParamName].entityId;
+          entityGroupType = stateParams[filter.stateEntityParamName].entityGroupType;
         }
       } else {
         entityId = stateParams.entityId;
+        entityGroupType = stateParams.entityGroupType;
       }
     }
     if (!entityId) {
-      entityId = filter.defaultStateEntity;
+      if (filter.type === AliasFilterType.entityGroup && filter.defaultStateEntityGroup) {
+        entityId = {
+          entityType: EntityType.ENTITY_GROUP,
+          id: filter.defaultStateEntityGroup
+        };
+        entityGroupType = filter.defaultStateGroupType;
+      } else {
+        entityId = filter.defaultStateEntity;
+      }
     }
     if (entityId) {
       entityId = this.resolveAliasEntityId(entityId.entityType, entityId.id);
     }
-    return {entityId};
+    return {entityId, entityGroupType};
   }
 
   private resolveAliasEntityId(entityType: EntityType | AliasEntityType, id: string): EntityId {
@@ -1231,16 +1645,16 @@ export class EntityService {
       if (authUser.authority === Authority.CUSTOMER_USER) {
         entityId.id = authUser.customerId;
       }
-    } else if (entityType === AliasEntityType.CURRENT_TENANT){
-      const authUser =  getCurrentAuthUser(this.store);
+    } else if (entityType === AliasEntityType.CURRENT_TENANT) {
+      const authUser = getCurrentAuthUser(this.store);
       entityId.entityType = EntityType.TENANT;
       entityId.id = authUser.tenantId;
-    } else if (entityType === AliasEntityType.CURRENT_USER){
-      const authUser =  getCurrentAuthUser(this.store);
+    } else if (entityType === AliasEntityType.CURRENT_USER) {
+      const authUser = getCurrentAuthUser(this.store);
       entityId.entityType = EntityType.USER;
       entityId.id = authUser.userId;
-    } else if (entityType === AliasEntityType.CURRENT_USER_OWNER){
-      const authUser =  getCurrentAuthUser(this.store);
+    } else if (entityType === AliasEntityType.CURRENT_USER_OWNER) {
+      const authUser = getCurrentAuthUser(this.store);
       if (authUser.authority === Authority.TENANT_ADMIN) {
         entityId.entityType = EntityType.TENANT;
         entityId.id = authUser.tenantId;
@@ -1354,23 +1768,25 @@ export class EntityService {
     });
   }
 
-  public getAssignedToEdgeEntitiesByType(edgeId: string, entityType: EntityType, pageLink: PageLink): Observable<PageData<any>> {
-    let entitiesObservable: Observable<PageData<any>>;
+  public getAssignedToEdgeEntitiesByType(edgeId: string, entityType?: EntityType, pageLink?: PageLink): Observable<any> {
+    let entitiesObservable: Observable<any>;
     switch (entityType) {
-      case (EntityType.ASSET):
-        entitiesObservable = this.assetService.getEdgeAssets(edgeId, pageLink);
+      case EntityType.USER:
+      case EntityType.ASSET:
+      case EntityType.DEVICE:
+      case EntityType.ENTITY_VIEW:
+      case EntityType.DASHBOARD:
+        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: true });
         break;
-      case (EntityType.DEVICE):
-        entitiesObservable = this.deviceService.getEdgeDevices(edgeId, pageLink);
+      case EntityType.SCHEDULER_EVENT:
+        entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
         break;
-      case (EntityType.ENTITY_VIEW):
-        entitiesObservable = this.entityViewService.getEdgeEntityViews(edgeId, pageLink);
+      case EntityType.RULE_CHAIN:
+        entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
-      case (EntityType.DASHBOARD):
-        entitiesObservable = this.dashboardService.getEdgeDashboards(edgeId, pageLink);
-        break;
-      case (EntityType.RULE_CHAIN):
-        entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink);
+      default:
+        entitiesObservable = of(null);
+        console.error(`Edge does not support EntityType ${entityType}`);
         break;
     }
     return entitiesObservable;
@@ -1387,6 +1803,8 @@ export class EntityService {
       case EdgeEventType.EDGE:
       case EdgeEventType.USER:
       case EdgeEventType.CUSTOMER:
+      case EdgeEventType.ENTITY_GROUP:
+      case EdgeEventType.SCHEDULER_EVENT:
       case EdgeEventType.TENANT:
       case EdgeEventType.ASSET:
       case EdgeEventType.DEVICE:
@@ -1408,6 +1826,9 @@ export class EntityService {
         break;
       case EdgeEventType.DEVICE_PROFILE:
         entityObservable = this.deviceProfileService.getDeviceProfile(entityId);
+        break;
+      case EdgeEventType.GROUP_PERMISSION:
+        entityObservable = this.roleService.getGroupPermissionInfo(entityId, false);
         break;
       case EdgeEventType.RELATION:
         entityObservable = of(entity.body);

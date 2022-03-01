@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.rule.engine.action;
 
@@ -57,6 +72,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.same;
@@ -511,6 +527,70 @@ public class TbAlarmNodeTest {
                 .build();
 
         assertEquals(expectedAlarm, actualAlarm);
+    }
+
+    @Test
+    public void testCreateAlarmsWithPropagationToTenantWithDynamicTypes() throws Exception{
+        for (int i = 0; i < 10; i++) {
+            var config = new TbCreateAlarmNodeConfiguration();
+            config.setPropagateToTenant(true);
+            config.setSeverity(CRITICAL.name());
+            config.setAlarmType("SomeType" + i);
+            config.setAlarmDetailsBuildJs("DETAILS");
+            config.setDynamicSeverity(true);
+            ObjectMapper mapper = new ObjectMapper();
+            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+
+            when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
+
+            when(ctx.getTenantId()).thenReturn(tenantId);
+            when(ctx.getAlarmService()).thenReturn(alarmService);
+            when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
+
+            node = new TbCreateAlarmNode();
+            node.init(ctx, nodeConfiguration);
+
+            metaData.putValue("key", "value");
+            TbMsg msg = TbMsg.newMsg("USER", originator, metaData, TbMsgDataType.JSON, rawJson, ruleChainId, ruleNodeId);
+
+            when(detailsJs.executeJsonAsync(msg)).thenReturn(Futures.immediateFuture(null));
+            when(alarmService.findLatestByOriginatorAndType(tenantId, originator, "SomeType" + i)).thenReturn(Futures.immediateFuture(null));
+            doAnswer((Answer<Alarm>) invocationOnMock -> (Alarm) (invocationOnMock.getArguments())[0]).when(alarmService).createOrUpdateAlarm(any(Alarm.class));
+            long ts = msg.getTs();
+            node.onMsg(ctx, msg);
+
+            verify(ctx, atMost(10)).enqueue(any(), successCaptor.capture(), failureCaptor.capture());
+            successCaptor.getValue().run();
+            verify(ctx, atMost(10)).tellNext(any(), eq("Created"));
+
+            ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
+            ArgumentCaptor<String> typeCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<EntityId> originatorCaptor = ArgumentCaptor.forClass(EntityId.class);
+            ArgumentCaptor<TbMsgMetaData> metadataCaptor = ArgumentCaptor.forClass(TbMsgMetaData.class);
+            ArgumentCaptor<String> dataCaptor = ArgumentCaptor.forClass(String.class);
+            verify(ctx, atMost(10)).transformMsg(msgCaptor.capture(), typeCaptor.capture(), originatorCaptor.capture(), metadataCaptor.capture(), dataCaptor.capture());
+
+            assertEquals("ALARM", typeCaptor.getValue());
+            assertEquals(originator, originatorCaptor.getValue());
+            assertEquals("value", metadataCaptor.getValue().getValue("key"));
+            assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_NEW_ALARM));
+            assertNotSame(metaData, metadataCaptor.getValue());
+
+            Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+            Alarm expectedAlarm = Alarm.builder()
+                    .startTs(ts)
+                    .endTs(ts)
+                    .tenantId(tenantId)
+                    .originator(originator)
+                    .status(ACTIVE_UNACK)
+                    .severity(CRITICAL)
+                    .propagateToTenant(true)
+                    .type("SomeType" + i)
+                    .details(null)
+                    .build();
+
+            assertEquals(expectedAlarm, actualAlarm);
+        }
     }
 
     private void initWithCreateAlarmScript() {

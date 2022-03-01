@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.telemetry;
 
@@ -31,6 +46,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -42,6 +58,8 @@ import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.util.TenantRateLimitException;
@@ -52,7 +70,7 @@ import org.thingsboard.server.service.security.ValidationCallback;
 import org.thingsboard.server.service.security.ValidationResult;
 import org.thingsboard.server.service.security.ValidationResultCode;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.subscription.TbAttributeSubscription;
 import org.thingsboard.server.service.subscription.TbAttributeSubscriptionScope;
 import org.thingsboard.server.service.subscription.TbEntityDataSubscriptionService;
@@ -71,6 +89,7 @@ import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataCmd;
 import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUpdate;
 import org.thingsboard.server.service.telemetry.cmd.v2.UnsubscribeCmd;
 import org.thingsboard.server.service.telemetry.exception.UnauthorizedException;
+import org.thingsboard.server.service.telemetry.exception.ValidationException;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionErrorCode;
 import org.thingsboard.server.service.telemetry.sub.TelemetrySubscriptionUpdate;
 
@@ -128,6 +147,9 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
 
     @Autowired
     private AccessValidator accessValidator;
+
+    @Autowired
+    private AccessControlService accessControlService;
 
     @Autowired
     private AttributesService attributesService;
@@ -275,8 +297,16 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         String sessionId = sessionRef.getSessionId();
         log.debug("[{}] Processing: {}", sessionId, cmd);
 
-        if (validateSessionMetadata(sessionRef, cmd.getCmdId(), sessionId)
-                && validateSubscriptionCmd(sessionRef, cmd)) {
+        try {
+            accessControlService.checkPermission(sessionRef.getSecurityCtx(), Resource.ALARM, Operation.READ);
+        } catch (ThingsboardException e) {
+            TelemetrySubscriptionUpdate update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.ACCESS_DENIED,
+                    "You don't have permission to view alarms");
+            sendWsMsg(sessionRef, update);
+            return;
+        }
+
+        if (validateSessionMetadata(sessionRef, cmd.getCmdId(), sessionId) && validateSubscriptionCmd(sessionRef, cmd)) {
             entityDataSubService.handleCmd(sessionRef, cmd);
         }
     }
@@ -427,7 +457,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 unsubscribe(sessionRef, cmd, sessionId);
             } else if (validateSubscriptionCmd(sessionRef, cmd)) {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(cmd.getEntityType(), cmd.getEntityId());
-                log.debug("[{}] fetching latest attributes ({}) values for device: {}", sessionId, cmd.getKeys(), entityId);
+                log.debug("[{}] fetching telemetry attributes ({}) values for device: {}", sessionId, cmd.getKeys(), entityId);
                 Optional<Set<String>> keysOptional = getKeys(cmd);
                 if (keysOptional.isPresent()) {
                     List<String> keys = new ArrayList<>(keysOptional.get());
@@ -530,6 +560,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                     update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.UNAUTHORIZED,
                             SubscriptionErrorCode.UNAUTHORIZED.getDefaultMsg());
                 } else {
+                    log.error(FAILED_TO_FETCH_DATA + " Reason: " + e.getMessage(), e);
                     update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR,
                             FAILED_TO_FETCH_DATA);
                 }
@@ -620,7 +651,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         } else {
             List<String> keys = new ArrayList<>(getKeys(cmd).orElse(Collections.emptySet()));
             startTs = System.currentTimeMillis();
-            log.debug("[{}] fetching latest timeseries data for keys: ({}) for device : {}", sessionId, cmd.getKeys(), entityId);
+            log.debug("[{}] fetching telemetry timeseries data for keys: ({}) for device : {}", sessionId, cmd.getKeys(), entityId);
             final FutureCallback<List<TsKvEntry>> callback = getSubscriptionCallback(sessionRef, cmd, sessionId, entityId, startTs, keys);
             accessValidator.validate(sessionRef.getSecurityCtx(), Operation.READ_TELEMETRY, entityId,
                     on(r -> Futures.addCallback(tsService.findLatest(sessionRef.getSecurityCtx().getTenantId(), entityId, keys), callback, executor), callback::onFailure));
@@ -655,6 +686,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                     update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.UNAUTHORIZED,
                             SubscriptionErrorCode.UNAUTHORIZED.getDefaultMsg());
                 } else {
+                    log.error(FAILED_TO_FETCH_DATA + " Reason: " + e.getMessage(), e);
                     update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR,
                             FAILED_TO_FETCH_DATA);
                 }
@@ -693,11 +725,39 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 } else {
                     log.info(FAILED_TO_FETCH_DATA, e);
                 }
-                TelemetrySubscriptionUpdate update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), SubscriptionErrorCode.INTERNAL_ERROR,
-                        FAILED_TO_FETCH_DATA);
+
+                SubscriptionErrorCode errorCode = SubscriptionErrorCode.INTERNAL_ERROR;
+
+                if (e instanceof ValidationException) {
+                    ValidationResultCode validationResultCode = ((ValidationException) e).getValidationResultCode();
+                    errorCode = validationResultToSubscriptionErrorCode(validationResultCode);
+                }
+
+                String message = errorCode.getDefaultMsg();
+                message += ": " + e.getMessage();
+
+                TelemetrySubscriptionUpdate update = new TelemetrySubscriptionUpdate(cmd.getCmdId(), errorCode,
+                        message);
                 sendWsMsg(sessionRef, update);
             }
         };
+    }
+
+    private SubscriptionErrorCode validationResultToSubscriptionErrorCode(ValidationResultCode validationResultCode) {
+        switch (validationResultCode) {
+            case OK:
+                return SubscriptionErrorCode.NO_ERROR;
+            case UNAUTHORIZED:
+                return SubscriptionErrorCode.UNAUTHORIZED;
+            case ACCESS_DENIED:
+                return SubscriptionErrorCode.ACCESS_DENIED;
+            case ENTITY_NOT_FOUND:
+                return SubscriptionErrorCode.BAD_REQUEST;
+            case INTERNAL_ERROR:
+                return SubscriptionErrorCode.INTERNAL_ERROR;
+            default:
+                return SubscriptionErrorCode.INTERNAL_ERROR;
+        }
     }
 
     private void unsubscribe(TelemetryWebSocketSessionRef sessionRef, SubscriptionCmd cmd, String sessionId) {

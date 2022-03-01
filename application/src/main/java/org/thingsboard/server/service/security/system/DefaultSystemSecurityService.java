@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.security.system;
 
@@ -43,13 +58,16 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
 import org.thingsboard.server.utils.MiscUtils;
@@ -78,6 +96,9 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Resource
     private SystemSecurityService self;
@@ -128,7 +149,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
                     userService.setUserCredentialsEnabled(TenantId.SYS_TENANT_ID, userCredentials.getUserId(), false);
                     if (StringUtils.isNoneBlank(securitySettings.getUserLockoutNotificationEmail())) {
                         try {
-                            mailService.sendAccountLockoutEmail(username, securitySettings.getUserLockoutNotificationEmail(), securitySettings.getMaxFailedLoginAttempts());
+                            mailService.sendAccountLockoutEmail(tenantId, username, securitySettings.getUserLockoutNotificationEmail(), securitySettings.getMaxFailedLoginAttempts());
                         } catch (ThingsboardException e) {
                             log.warn("Can't send email regarding user account [{}] lockout to provided email [{}]", username, securitySettings.getUserLockoutNotificationEmail(), e);
                         }
@@ -198,9 +219,48 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
                         throw new DataValidationException("Password was already used for the last " + passwordPolicy.getPasswordReuseFrequencyDays() + " days");
                     }
                 }
-
             }
         }
+    }
+
+    @Override
+    public String getBaseUrl(Authority authority, TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest) {
+        String baseUrl;
+        LoginWhiteLabelingParams loginWhiteLabelingParams = null;
+        if (Authority.CUSTOMER_USER.equals(authority)) {
+            try {
+                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(tenantId, customerId);
+            } catch (Exception e) {
+                log.warn("Failed to fetch CustomerLoginWhiteLabelingParams.");
+            }
+        }
+
+        if ((!isBaseUrlSet(loginWhiteLabelingParams) && Authority.CUSTOMER_USER.equals(authority)) || Authority.TENANT_ADMIN.equals(authority)) {
+            try {
+                loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(tenantId);
+            } catch (Exception e) {
+                log.warn("Failed to fetch TenantLoginWhiteLabelingParams.");
+            }
+        }
+
+        if (!isBaseUrlSet(loginWhiteLabelingParams)) {
+            try {
+                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+            } catch (Exception e) {
+                log.warn("Failed to fetch TenantLoginWhiteLabelingParams.");
+            }
+        }
+
+        if (isBaseUrlSet(loginWhiteLabelingParams) && loginWhiteLabelingParams.isProhibitDifferentUrl()) {
+            baseUrl = loginWhiteLabelingParams.getBaseUrl();
+        } else {
+            return getBaseUrl(tenantId, customerId, httpServletRequest);
+        }
+        return baseUrl;
+    }
+
+    private boolean isBaseUrlSet(LoginWhiteLabelingParams loginWhiteLabelingParams) {
+        return loginWhiteLabelingParams != null && StringUtils.isNoneEmpty(loginWhiteLabelingParams.getBaseUrl());
     }
 
     @Override
@@ -222,6 +282,6 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
     }
 
     private static boolean isPositiveInteger(Integer val) {
-        return val != null && val.intValue() > 0;
+        return val != null && val > 0;
     }
 }

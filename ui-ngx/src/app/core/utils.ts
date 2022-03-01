@@ -1,22 +1,38 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import _ from 'lodash';
 import { Observable, Subject } from 'rxjs';
 import { finalize, share } from 'rxjs/operators';
+import { Type } from '@angular/core';
 import { Datasource } from '@app/shared/models/widget.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
@@ -123,6 +139,10 @@ export function isString(value: any): boolean {
   return typeof value === 'string';
 }
 
+export function isArray(value: any): boolean {
+  return Array.isArray(value);
+}
+
 export function isEmpty(obj: any): boolean {
   for (const key of Object.keys(obj)) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -185,6 +205,19 @@ export function objToBase64(obj: any): string {
     }));
 }
 
+export function stringToBase64(value: string): string {
+  return btoa(encodeURIComponent(value).replace(/%([0-9A-F]{2})/g,
+    function toSolidBytes(match, p1) {
+      return String.fromCharCode(Number('0x' + p1));
+    }));
+}
+
+export function base64toString(b64Encoded: string): string {
+  return decodeURIComponent(atob(b64Encoded).split('').map((c) => {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+}
+
 export function objToBase64URI(obj: any): string {
   return encodeURIComponent(objToBase64(obj));
 }
@@ -194,6 +227,13 @@ export function base64toObj(b64Encoded: string): any {
     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
   }).join(''));
   return JSON.parse(json);
+}
+
+export function checkNumericStringAndConvert(val: string): number | string {
+  if (val && isNumeric(val) && Number(val).toString() === val) {
+    return Number(val);
+  }
+  return val;
 }
 
 const scrollRegex = /(auto|scroll)/;
@@ -325,6 +365,21 @@ export function guid(): string {
     s4() + '-' + s4() + s4() + s4();
 }
 
+const PROP_METADATA = '__prop__metadata__';
+
+export function cloneMetadata<S, T>(sourceType: Type<S>, targetType: Type<T>) {
+  const sourceMeta = sourceType.prototype.constructor[PROP_METADATA];
+  const targetMeta = Object.defineProperty(targetType.prototype.constructor,
+    PROP_METADATA, { value: {} })[PROP_METADATA];
+  if (isDefinedAndNotNull(sourceMeta)) {
+    for (const field of Object.keys(sourceMeta)) {
+      if (sourceMeta.hasOwnProperty(field)) {
+        targetMeta[field] = sourceMeta[field];
+      }
+    }
+  }
+}
+
 const SNAKE_CASE_REGEXP = /[A-Z]/g;
 
 export function snakeCase(name: string, separator: string): string {
@@ -399,6 +454,24 @@ export function padValue(val: any, dec: number): string {
   return strVal;
 }
 
+export function removeEmptyObjects(obj: object): object {
+  for (const key of Object.keys(obj)) {
+    if (obj[key] === null || obj[key] === undefined) {
+      delete obj[key];
+    } else if (Array.isArray(obj[key])) {
+        obj[key] = obj[key].filter(el => !!removeEmptyObjects(el));
+    } else if (typeof (obj[key]) === 'object') {
+        removeEmptyObjects(obj[key]);
+    }
+  }
+  if (Object.keys(obj).length) {
+    return obj;
+  } else {
+    return null;
+  }
+}
+
+
 export function baseUrl(): string {
   let url = window.location.protocol + '//' + window.location.hostname;
   const port = window.location.port;
@@ -406,6 +479,24 @@ export function baseUrl(): string {
     url += ':' + port;
   }
   return url;
+}
+
+export function coapBaseUrl(dtlsEnabled: boolean): string {
+  if (dtlsEnabled) {
+    return "coaps:" + '//' + window.location.hostname;
+  }
+  return "coap:" + '//' + window.location.hostname;
+}
+
+export function generateId(length: number): string {
+  if (!length || isNaN(length)) {
+    length = 1;
+  }
+  const str = Math.random().toString(36).substr(2, length > 10 ? 10 : length);
+  if (str.length >= length) {
+    return str;
+  }
+  return str.concat(generateId(length - str.length));
 }
 
 export function sortObjectKeys<T>(obj: T): T {

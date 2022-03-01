@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.sql.asset;
 
@@ -21,8 +36,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
-import org.thingsboard.server.dao.model.sql.AssetInfoEntity;
-import org.thingsboard.server.dao.model.sql.RuleChainEntity;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,26 +45,12 @@ import java.util.UUID;
  */
 public interface AssetRepository extends PagingAndSortingRepository<AssetEntity, UUID> {
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo) " +
-            "FROM AssetEntity a " +
-            "LEFT JOIN CustomerEntity c on c.id = a.customerId " +
-            "WHERE a.id = :assetId")
-    AssetInfoEntity findAssetInfoById(@Param("assetId") UUID assetId);
-
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<AssetEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                      @Param("textSearch") String textSearch,
                                      Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo) " +
-            "FROM AssetEntity a " +
-            "LEFT JOIN CustomerEntity c on c.id = a.customerId " +
-            "WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<AssetInfoEntity> findAssetInfosByTenantId(@Param("tenantId") UUID tenantId,
-                                                   @Param("textSearch") String textSearch,
-                                                   Pageable pageable);
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId " +
@@ -61,16 +60,40 @@ public interface AssetRepository extends PagingAndSortingRepository<AssetEntity,
                                                   @Param("textSearch") String textSearch,
                                                   Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo) " +
-            "FROM AssetEntity a " +
-            "LEFT JOIN CustomerEntity c on c.id = a.customerId " +
-            "WHERE a.tenantId = :tenantId " +
-            "AND a.customerId = :customerId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<AssetInfoEntity> findAssetInfosByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
-                                                                @Param("customerId") UUID customerId,
-                                                                @Param("searchText") String searchText,
-                                                                Pageable pageable);
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
+                                          @Param("textSearch") String textSearch,
+                                          Pageable pageable);
+
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
+                                           @Param("textSearch") String textSearch,
+                                           Pageable pageable);
+
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND a.type = :type " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<UUID> groupIds,
+                                                  @Param("type") String type,
+                                                  @Param("textSearch") String textSearch,
+                                                  Pageable pageable);
 
     List<AssetEntity> findByTenantIdAndIdIn(UUID tenantId, List<UUID> assetIds);
 
@@ -86,17 +109,6 @@ public interface AssetRepository extends PagingAndSortingRepository<AssetEntity,
                                             @Param("textSearch") String textSearch,
                                             Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo) " +
-            "FROM AssetEntity a " +
-            "LEFT JOIN CustomerEntity c on c.id = a.customerId " +
-            "WHERE a.tenantId = :tenantId " +
-            "AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<AssetInfoEntity> findAssetInfosByTenantIdAndType(@Param("tenantId") UUID tenantId,
-                                                          @Param("type") String type,
-                                                          @Param("textSearch") String textSearch,
-                                                          Pageable pageable);
-
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId AND a.type = :type " +
@@ -107,41 +119,8 @@ public interface AssetRepository extends PagingAndSortingRepository<AssetEntity,
                                                          @Param("textSearch") String textSearch,
                                                          Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.dao.model.sql.AssetInfoEntity(a, c.title, c.additionalInfo) " +
-            "FROM AssetEntity a " +
-            "LEFT JOIN CustomerEntity c on c.id = a.customerId " +
-            "WHERE a.tenantId = :tenantId " +
-            "AND a.customerId = :customerId " +
-            "AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<AssetInfoEntity> findAssetInfosByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
-                                                                       @Param("customerId") UUID customerId,
-                                                                       @Param("type") String type,
-                                                                       @Param("textSearch") String textSearch,
-                                                                       Pageable pageable);
-
     @Query("SELECT DISTINCT a.type FROM AssetEntity a WHERE a.tenantId = :tenantId")
     List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
-
-    @Query("SELECT a FROM AssetEntity a, RelationEntity re WHERE a.tenantId = :tenantId " +
-            "AND a.id = re.toId AND re.toType = 'ASSET' AND re.relationTypeGroup = 'EDGE' " +
-            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<AssetEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
-                                              @Param("edgeId") UUID edgeId,
-                                              @Param("searchText") String searchText,
-                                              Pageable pageable);
-
-    @Query("SELECT a FROM AssetEntity a, RelationEntity re WHERE a.tenantId = :tenantId " +
-            "AND a.id = re.toId AND re.toType = 'ASSET' AND re.relationTypeGroup = 'EDGE' " +
-            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<AssetEntity> findByTenantIdAndEdgeIdAndType(@Param("tenantId") UUID tenantId,
-                                              @Param("edgeId") UUID edgeId,
-                                              @Param("type") String type,
-                                              @Param("searchText") String searchText,
-                                              Pageable pageable);
 
     Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
 }

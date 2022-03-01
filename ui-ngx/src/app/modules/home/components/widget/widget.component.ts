@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -44,6 +59,7 @@ import {
   WidgetActionDescriptor,
   widgetActionSources,
   WidgetActionType,
+  WidgetExportType,
   WidgetComparisonSettings, WidgetMobileActionDescriptor, WidgetMobileActionType,
   WidgetResource,
   widgetType,
@@ -54,11 +70,12 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetService } from '@core/http/widget.service';
 import { UtilsService } from '@core/services/utils.service';
-import { forkJoin, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs';
+import { forkJoin, isObservable, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs';
 import {
   deepClone,
   insertVariable,
   isDefined,
+  isFunction,
   isNotEmptyStr,
   objToBase64,
   objToBase64URI,
@@ -96,7 +113,9 @@ import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { DashboardService } from '@core/http/dashboard.service';
 import { WidgetSubscription } from '@core/api/widget-subscription';
 import { EntityService } from '@core/http/entity.service';
+import { DatePipe } from '@angular/common';
 import { ServicesMap } from '@home/models/services.map';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { EntityDataService } from '@core/api/entity-data.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -192,10 +211,12 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
               private deviceService: DeviceService,
               private entityService: EntityService,
               private dashboardService: DashboardService,
+              private importExport: ImportExportService,
               private entityDataService: EntityDataService,
               private alarmDataService: AlarmDataService,
               private translate: TranslateService,
               private utils: UtilsService,
+              private datePipe: DatePipe,
               private mobileService: MobileService,
               private dialogs: DialogService,
               private raf: RafService,
@@ -307,6 +328,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       openDashboardStateInPopover: this.openDashboardStateInPopover.bind(this)
     };
 
+    this.widgetContext.exportWidgetData = this.exportWidgetData.bind(this);
+
     this.widgetContext.customHeaderActions = [];
     const headerActionsDescriptors = this.getActionDescriptors(widgetActionSources.headerButton.value);
     headerActionsDescriptors.forEach((descriptor) =>
@@ -342,6 +365,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     this.subscriptionContext = new WidgetSubscriptionContext(this.widgetContext.dashboard);
     this.subscriptionContext.timeService = this.timeService;
     this.subscriptionContext.deviceService = this.deviceService;
+    this.subscriptionContext.datePipe = this.datePipe;
     this.subscriptionContext.translate = this.translate;
     this.subscriptionContext.entityDataService = this.entityDataService;
     this.subscriptionContext.alarmDataService = this.alarmDataService;
@@ -1479,6 +1503,43 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       messageToShow += `<div>${error}</div>`;
     });
     this.store.dispatch(new ActionNotificationShow({message: messageToShow, type: 'error'}));
+  }
+
+  private exportWidgetData(widgetExportType: WidgetExportType) {
+    let filename: string;
+    if (this.widgetContext.widgetTitle && this.widgetContext.widgetTitle.length) {
+      filename = this.widgetContext.widgetTitle;
+    } else {
+      filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
+    }
+    const data = this.prepareWidgetExportData();
+    if (isObservable(data)) {
+      data.subscribe((d) => {
+        this.doExportWidgetData(filename, d, widgetExportType);
+      });
+    } else {
+      this.doExportWidgetData(filename, data, widgetExportType);
+    }
+  }
+
+  private doExportWidgetData(filename: string, data: {[key: string]: any}[], widgetExportType: WidgetExportType) {
+    if (widgetExportType === WidgetExportType.csv) {
+      this.importExport.exportCsv(data, filename);
+    } else if (widgetExportType === WidgetExportType.xls) {
+      this.importExport.exportXls(data, filename);
+    } else if (widgetExportType === WidgetExportType.xlsx) {
+      this.importExport.exportXlsx(data, filename);
+    }
+  }
+
+  private prepareWidgetExportData(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
+    if (isFunction(this.widgetContext.customDataExport)) {
+      return this.widgetContext.customDataExport();
+    } else if (this.widgetContext.defaultSubscription){
+      return this.widgetContext.defaultSubscription.exportData();
+    } else {
+      return [];
+    }
   }
 
   private getActiveEntityInfo(): SubscriptionEntityInfo {

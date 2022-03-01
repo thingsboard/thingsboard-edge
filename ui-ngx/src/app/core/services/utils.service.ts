@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 // tslint:disable-next-line:no-reference
@@ -35,14 +50,15 @@ import { WindowMessage } from '@shared/models/window-message.model';
 import { TranslateService } from '@ngx-translate/core';
 import { customTranslationsPrefix, i18nPrefix } from '@app/shared/models/constants';
 import { DataKey, Datasource, DatasourceType, KeyInfo } from '@shared/models/widget.models';
-import { EntityType } from '@shared/models/entity-type.models';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { DataKeyType } from '@app/shared/models/telemetry/telemetry.models';
-import { alarmFields } from '@shared/models/alarm.models';
+import { alarmFields, alarmSeverityTranslations, alarmStatusTranslations } from '@shared/models/alarm.models';
 import { materialColors } from '@app/shared/models/material.models';
 import { WidgetInfo } from '@home/models/widget-component.models';
 import jsonSchemaDefaults from 'json-schema-defaults';
 import materialIconsCodepoints from '!raw-loader!./material-icons-codepoints.raw';
 import { Observable, of, ReplaySubject } from 'rxjs';
+import { DatePipe } from '@angular/common';
 
 const i18nRegExp = new RegExp(`{${i18nPrefix}:[^{}]+}`, 'g');
 
@@ -90,6 +106,8 @@ export class UtilsService {
   widgetEditMode = false;
   editWidgetInfo: WidgetInfo = null;
 
+  stateSelectView = false;
+
   defaultDataKey: DataKey = {
     name: 'f(x)',
     type: DataKeyType.function,
@@ -112,6 +130,7 @@ export class UtilsService {
 
   constructor(@Inject(WINDOW) private window: Window,
               private zone: NgZone,
+              private datePipe: DatePipe,
               private translate: TranslateService) {
     let frame: Element = null;
     try {
@@ -125,6 +144,10 @@ export class UtilsService {
       if (dataWidgetAttr && dataWidgetAttr.length) {
         this.editWidgetInfo = JSON.parse(dataWidgetAttr);
         this.widgetEditMode = true;
+      }
+      const stateSelectViewAttr = frame.getAttribute('state-select-view');
+      if (stateSelectViewAttr) {
+        this.stateSelectView = true;
       }
     }
   }
@@ -165,6 +188,25 @@ export class UtilsService {
       this.initDefaultAlarmDataKeys();
     }
     return deepClone(this.defaultAlarmDataKeys);
+  }
+
+  public defaultAlarmFieldContent(key: DataKey | {name: string}, value: any): string {
+    if (isDefined(value)) {
+      const alarmField = alarmFields[key.name];
+      if (alarmField) {
+        if (alarmField.time) {
+          return value ? this.datePipe.transform(value, 'yyyy-MM-dd HH:mm:ss') : '';
+        } else if (alarmField === alarmFields.severity) {
+          return this.translate.instant(alarmSeverityTranslations.get(value));
+        } else if (alarmField === alarmFields.status) {
+          return this.translate.instant(alarmStatusTranslations.get(value));
+        } else if (alarmField === alarmFields.originatorType) {
+          return this.translate.instant(entityTypeTranslations.get(value).type);
+        }
+      }
+      return value;
+    }
+    return '';
   }
 
   public generateObjectFromJsonSchema(schema: any): any {
@@ -472,6 +514,14 @@ export class UtilsService {
       return value;
     } else {
       return defaultValue;
+    }
+  }
+
+  public translateText(text: string): string {
+    if (text.startsWith('${') && text.endsWith('}')) {
+      return this.translate.instant(text.substring(2, text.length - 1));
+    } else {
+      return text;
     }
   }
 }

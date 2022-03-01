@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.rule.engine.geo;
 
@@ -20,7 +35,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
-import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -79,22 +95,46 @@ public abstract class AbstractGeofencingNode<T extends TbGpsGeofencingFilterNode
 
     protected List<Perimeter> getPerimeters(TbMsg msg, JsonObject msgDataObj) throws TbNodeException {
         if (config.isFetchPerimeterInfoFromMessageMetadata()) {
-            //TODO: add fetching perimeters from the message itself, if configuration is empty.
-            if (!StringUtils.isEmpty(msg.getMetaData().getValue("perimeter"))) {
-                Perimeter perimeter = new Perimeter();
-                perimeter.setPerimeterType(PerimeterType.POLYGON);
-                perimeter.setPolygonsDefinition(msg.getMetaData().getValue("perimeter"));
-                return Collections.singletonList(perimeter);
-            } else if (!StringUtils.isEmpty(msg.getMetaData().getValue("centerLatitude"))) {
-                Perimeter perimeter = new Perimeter();
-                perimeter.setPerimeterType(PerimeterType.CIRCLE);
-                perimeter.setCenterLatitude(Double.parseDouble(msg.getMetaData().getValue("centerLatitude")));
-                perimeter.setCenterLongitude(Double.parseDouble(msg.getMetaData().getValue("centerLongitude")));
-                perimeter.setRange(Double.parseDouble(msg.getMetaData().getValue("range")));
-                perimeter.setRangeUnit(RangeUnit.valueOf(msg.getMetaData().getValue("rangeUnit")));
-                return Collections.singletonList(perimeter);
+            if (StringUtils.isEmpty(config.getPerimeterKeyName())) {
+                // Old configuration before "perimeterKeyName" was introduced
+                String perimeterValue = msg.getMetaData().getValue("perimeter");
+                if (!StringUtils.isEmpty(perimeterValue)) {
+                    Perimeter perimeter = new Perimeter();
+                    perimeter.setPerimeterType(PerimeterType.POLYGON);
+                    perimeter.setPolygonsDefinition(perimeterValue);
+                    return Collections.singletonList(perimeter);
+                } else if (!StringUtils.isEmpty(msg.getMetaData().getValue("centerLatitude"))) {
+                    Perimeter perimeter = new Perimeter();
+                    perimeter.setPerimeterType(PerimeterType.CIRCLE);
+                    perimeter.setCenterLatitude(Double.parseDouble(msg.getMetaData().getValue("centerLatitude")));
+                    perimeter.setCenterLongitude(Double.parseDouble(msg.getMetaData().getValue("centerLongitude")));
+                    perimeter.setRange(Double.parseDouble(msg.getMetaData().getValue("range")));
+                    perimeter.setRangeUnit(RangeUnit.valueOf(msg.getMetaData().getValue("rangeUnit")));
+                    return Collections.singletonList(perimeter);
+                } else {
+                    throw new TbNodeException("Missing perimeter definition!");
+                }
             } else {
-                throw new TbNodeException("Missing perimeter definition!");
+                String perimeterValue = msg.getMetaData().getValue(config.getPerimeterKeyName());
+                if (!StringUtils.isEmpty(perimeterValue)) {
+                    if (config.getPerimeterType().equals(PerimeterType.POLYGON)) {
+                        Perimeter perimeter = new Perimeter();
+                        perimeter.setPerimeterType(PerimeterType.POLYGON);
+                        perimeter.setPolygonsDefinition(perimeterValue);
+                        return Collections.singletonList(perimeter);
+                    } else {
+                        var circleDef = JacksonUtil.toJsonNode(perimeterValue);
+                        Perimeter perimeter = new Perimeter();
+                        perimeter.setPerimeterType(PerimeterType.CIRCLE);
+                        perimeter.setCenterLatitude(circleDef.get("latitude").asDouble());
+                        perimeter.setCenterLongitude(circleDef.get("longitude").asDouble());
+                        perimeter.setRange(circleDef.get("radius").asDouble());
+                        perimeter.setRangeUnit(circleDef.has("radiusUnit") ? RangeUnit.valueOf(circleDef.get("radiusUnit").asText()) : RangeUnit.METER);
+                        return Collections.singletonList(perimeter);
+                    }
+                } else {
+                    throw new TbNodeException("Missing perimeter definition!");
+                }
             }
         } else {
             Perimeter perimeter = new Perimeter();

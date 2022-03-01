@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Read Only",
+    "type": "GROUP",
+    "operations": ["READ", "READ_ATTRIBUTES", "READ_CREDENTIALS", "READ_TELEMETRY"]
+  }
+]

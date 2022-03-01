@@ -1,20 +1,36 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import * as tinycolor_ from 'tinycolor2';
+import { mergeDeep } from '@core/utils';
 
 const tinycolor = tinycolor_;
 
@@ -25,7 +41,133 @@ export interface MaterialColorItem {
   isDark: boolean;
 }
 
-export const materialColorPalette: {[palette: string]: {[spectrum: string]: string}} = {
+export type ColorPalette = {[spectrum: string]: string};
+
+export interface PaletteContrastInfo {
+  contrastDefaultColor: 'light' | 'dark',
+  contrastDarkColors: string[];
+  contrastLightColors: string[];
+  contrastStrongLightColors: string[];
+}
+
+export const materialColorPaletteContrastInfo: {[palette: string]: PaletteContrastInfo} = {
+  red: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 A100'.split(' '),
+    contrastStrongLightColors: '400 500 600 700 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  pink: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '500 600 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  purple: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '300 400 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  'deep-purple': {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '300 400 A200'.split(' '),
+    contrastLightColors: []
+  },
+  indigo: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '300 400 A200 A400'.split(' '),
+    contrastLightColors: []
+  },
+  blue: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 400 A100'.split(' '),
+    contrastStrongLightColors: '500 600 700 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  'light-blue': {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '600 700 800 900 A700'.split(' '),
+    contrastStrongLightColors: '600 700 800 A700'.split(' '),
+    contrastDarkColors: []
+  },
+  cyan: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '700 800 900'.split(' '),
+    contrastStrongLightColors: '700 800 900'.split(' '),
+    contrastDarkColors: []
+  },
+  teal: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '500 600 700 800 900'.split(' '),
+    contrastStrongLightColors: '500 600 700'.split(' '),
+    contrastDarkColors: []
+  },
+  green: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '500 600 700 800 900'.split(' '),
+    contrastStrongLightColors: '500 600 700'.split(' '),
+    contrastDarkColors: []
+  },
+  'light-green': {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '700 800 900'.split(' '),
+    contrastStrongLightColors: '700 800 900'.split(' '),
+    contrastDarkColors: []
+  },
+  lime: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '900'.split(' '),
+    contrastStrongLightColors: '900'.split(' '),
+    contrastDarkColors: []
+  },
+  yellow: {
+    contrastDefaultColor: 'dark',
+    contrastDarkColors: [],
+    contrastLightColors: [],
+    contrastStrongLightColors: []
+  },
+  amber: {
+    contrastDefaultColor: 'dark',
+    contrastStrongLightColors: [],
+    contrastLightColors: [],
+    contrastDarkColors: []
+  },
+  orange: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '800 900'.split(' '),
+    contrastStrongLightColors: '800 900'.split(' '),
+    contrastDarkColors: []
+  },
+  'deep-orange': {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 400 A100 A200'.split(' '),
+    contrastStrongLightColors: '500 600 700 800 900 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  brown: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100 A200'.split(' '),
+    contrastStrongLightColors: '300 400'.split(' '),
+    contrastLightColors: []
+  },
+  grey: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '600 700 800 900 A200 A400 A700'.split(' '),
+    contrastDarkColors: [],
+    contrastStrongLightColors: []
+  },
+  'blue-grey': {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 A100 A200'.split(' '),
+    contrastStrongLightColors: '400 500 700'.split(' '),
+    contrastLightColors: []
+  }
+}
+
+export const materialColorPalette: {[palette: string]: ColorPalette} = {
   red: {
     50: '#ffebee',
     100: '#ffcdd2',
@@ -331,6 +473,38 @@ export const materialColorPalette: {[palette: string]: {[spectrum: string]: stri
     A700: '#455a64'
   }
 };
+
+export function extendDefaultPalette(existingPaletteName: string, palette: ColorPalette) {
+  return extendPalette(materialColorPalette, existingPaletteName, palette);
+}
+
+export function extendPalette(paletteMap: {[palette: string]: ColorPalette}, paletteName: string, palette: ColorPalette) {
+  const existingPalette = paletteMap[paletteName];
+  return mergeDeep({}, existingPalette, palette);
+}
+
+const DARK_CONTRAST_COLOR = 'rgba(0,0,0,0.87)';
+const LIGHT_CONTRAST_COLOR = 'rgba(255,255,255,0.87)';
+const STRONG_LIGHT_CONTRAST_COLOR = 'rgb(255,255,255)';
+
+export function getContrastColor(palette: string, hueName: string): string {
+  const paletteContrastInfo = materialColorPaletteContrastInfo[palette];
+  if (paletteContrastInfo.contrastDefaultColor === 'light') {
+    if (paletteContrastInfo.contrastDarkColors.indexOf(hueName) > -1) {
+      return DARK_CONTRAST_COLOR;
+    } else {
+      return paletteContrastInfo.contrastStrongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR
+        : LIGHT_CONTRAST_COLOR;
+    }
+  } else {
+    if (paletteContrastInfo.contrastLightColors.indexOf(hueName) > -1) {
+      return paletteContrastInfo.contrastStrongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR
+        : LIGHT_CONTRAST_COLOR;
+    } else {
+      return DARK_CONTRAST_COLOR;
+    }
+  }
+}
 
 export const materialColors = new Array<MaterialColorItem>();
 

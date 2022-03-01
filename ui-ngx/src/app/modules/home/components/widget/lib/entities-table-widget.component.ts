@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -35,6 +50,7 @@ import {
   DataKey,
   Datasource,
   DatasourceData,
+  DatasourceType,
   WidgetActionDescriptor,
   WidgetConfig
 } from '@shared/models/widget.models';
@@ -42,10 +58,12 @@ import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  checkNumericStringAndConvert,
   createLabelFromDatasource,
   deepClone,
   hashCode,
   isDefined,
+  isDefinedAndNotNull,
   isNumber,
   isObject,
   isUndefined
@@ -53,11 +71,11 @@ import {
 import cssjs from '@core/css/css';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { BehaviorSubject, fromEvent, merge, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, fromEvent, merge, Observable } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
+import { concatMap, debounceTime, distinctUntilChanged, expand, map, tap, toArray } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -65,6 +83,7 @@ import {
   CellContentInfo,
   CellStyleInfo,
   checkHasActions,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,
@@ -99,14 +118,18 @@ import {
 import {
   dataKeyToEntityKey,
   Direction,
+  EntityData as QueryEntityData,
   EntityDataPageLink,
   entityDataPageLinkSortDirection,
+  EntityDataQuery,
   EntityKeyType,
+  getLatestDataValue,
   KeyFilter
 } from '@shared/models/query/query.models';
 import { sortItems } from '@shared/models/page/page-link';
 import { entityFields } from '@shared/models/entity.models';
 import { DatePipe } from '@angular/common';
+import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
@@ -169,6 +192,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private columnWidth: {[key: string]: string} = {};
   private columnDefaultVisibility: {[key: string]: boolean} = {};
   private columnSelectionAvailability: {[key: string]: boolean} = {};
+  private columnExportParameters: {[key: string]: columnExportOptions} = {};
 
   private rowStylesInfo: RowStyleInfo;
 
@@ -190,11 +214,14 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     }
   };
 
+  private postProcessingFunctionMap = new Map<string, any>();
+
   constructor(protected store: Store<AppState>,
               private elementRef: ElementRef,
               private ngZone: NgZone,
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
+              private entityService: EntityService,
               private utils: UtilsService,
               private datePipe: DatePipe,
               private translate: TranslateService,
@@ -273,6 +300,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   private initializeConfig() {
     this.ctx.widgetActions = [this.searchAction, this.columnDisplayAction];
+
+    this.ctx.customDataExport = this.customDataExport.bind(this);
 
     this.setCellButtonAction = !!this.ctx.actionsApi.getActionDescriptors('actionCellButton').length;
 
@@ -362,6 +391,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.columnWidth.entityName = '0px';
       this.columnDefaultVisibility.entityName = true;
       this.columnSelectionAvailability.entityName = true;
+      this.columnExportParameters.entityName = columnExportOptions.onlyVisible;
     }
     if (displayEntityLabel) {
       this.columns.push(
@@ -386,6 +416,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.columnWidth.entityLabel = '0px';
       this.columnDefaultVisibility.entityLabel = true;
       this.columnSelectionAvailability.entityLabel = true;
+      this.columnExportParameters.entityLabel = columnExportOptions.onlyVisible;
     }
     if (displayEntityType) {
       this.columns.push(
@@ -410,6 +441,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.columnWidth.entityType = '0px';
       this.columnDefaultVisibility.entityType = true;
       this.columnSelectionAvailability.entityType = true;
+      this.columnExportParameters.entityType = columnExportOptions.onlyVisible;
     }
 
     const dataKeys: Array<DataKey> = [];
@@ -445,6 +477,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
         this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings);
         this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
+        this.columnExportParameters[dataKey.def] = keySettings.columnExportOption;
         this.columns.push(dataKey);
       });
       this.displayedColumns.push(...this.columns.filter(column => this.columnDefaultVisibility[column.def])
@@ -643,10 +676,10 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     return res;
   }
 
-  public cellContent(entity: EntityData, key: EntityColumn, row: number): SafeHtml {
+  public cellContent(entity: EntityData, key: EntityColumn, row: number, useSafeHtml = true): SafeHtml {
     const col = this.columns.indexOf(key);
     const index = row * this.columns.length + col;
-    let res = this.cellContentCache[index];
+    let res = useSafeHtml ? this.cellContentCache[index] : undefined;
     if (isUndefined(res)) {
       res = '';
       if (entity && key) {
@@ -662,19 +695,20 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         } else {
           content = this.defaultContent(key, contentInfo, value);
         }
-
         if (isDefined(content)) {
           content = this.utils.customTranslation(content, content);
           switch (typeof content) {
             case 'string':
-              res = this.domSanitizer.bypassSecurityTrustHtml(content);
+              res = useSafeHtml ?  this.domSanitizer.bypassSecurityTrustHtml(content) : content;
               break;
             default:
               res = content;
           }
         }
       }
-      this.cellContentCache[index] = res;
+      if (useSafeHtml) {
+        this.cellContentCache[index] = res;
+      }
     }
     return res;
   }
@@ -730,11 +764,124 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.ctx.actionsApi.handleWidgetAction($event, actionDescriptor, entityId, entityName, {entity}, entityLabel);
   }
 
+  customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
+    const datasource = this.subscription.datasources[0];
+    if (datasource && datasource.type === DatasourceType.entity && datasource.entityFilter) {
+      const pageLink = deepClone(this.pageLink);
+      pageLink.dynamic = false;
+      pageLink.page = 0;
+      pageLink.pageSize = 1000;
+      const query: EntityDataQuery = {
+        entityFilter: datasource.entityFilter,
+        keyFilters: datasource.keyFilters,
+        pageLink
+      };
+      const exportedColumns = this.columns.filter(
+        c => this.includeColumnInExport(c) && c.entityKey);
+
+      query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
+                                                       entityFields[c.entityKey.key]).map(c => c.entityKey);
+      query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
+                                                       c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
+
+      return this.entityService.findEntityDataByQuery(query).pipe(
+        expand(data => {
+            if (data.hasNext) {
+              pageLink.page += 1;
+              return this.entityService.findEntityDataByQuery(query);
+            } else {
+              return EMPTY;
+            }
+        }),
+        map(data => data.data.map((e, index) => this.queryEntityDataToExportedData(e, index, exportedColumns))),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      const exportedData: {[key: string]: any}[] = [];
+      const entitiesToExport = this.entityDatasource.entities;
+      entitiesToExport.forEach((entity, index) => {
+        const dataObj: {[key: string]: any} = {};
+        this.columns.forEach((column) => {
+          if (this.includeColumnInExport(column)) {
+            dataObj[column.title] = this.cellContent(entity, column, index, false);
+          }
+        });
+        exportedData.push(dataObj);
+      });
+      return exportedData;
+    }
+  }
+
+  private includeColumnInExport(column: EntityColumn): boolean {
+    switch (this.columnExportParameters[column.def]) {
+      case columnExportOptions.always:
+        return true;
+      case columnExportOptions.never:
+        return false;
+      default:
+        return this.displayedColumns.indexOf(column.def) > -1;
+    }
+  }
+
+  private queryEntityDataToExportedData(queryEntityData: QueryEntityData,
+                                        index: number,
+                                        columns: EntityColumn[]): {[key: string]: any} {
+    const entity: EntityData = {
+      entityName: '',
+      id: queryEntityData.entityId,
+      entityType: this.translate.instant(entityTypeTranslations.get(queryEntityData.entityId.entityType).type)
+    };
+    const latest = queryEntityData.latest;
+    if (latest) {
+      entity.entityName = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'name', '');
+      entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName);
+    }
+    columns.forEach(column => {
+      if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
+        if (latest) {
+          let dataValue: any = '';
+          let tsValue;
+          const fields = latest[column.entityKey.type];
+          if (fields) {
+            tsValue = fields[column.entityKey.key];
+            if (tsValue && isDefinedAndNotNull(tsValue.value)) {
+              dataValue = tsValue.value;
+            }
+          }
+          if (column.usePostProcessing && column.postFuncBody) {
+            if (!this.postProcessingFunctionMap.has(column.label)) {
+              const postFunction = new Function('time', 'value', 'prevValue', 'timePrev', 'prevOrigValue',
+                column.postFuncBody);
+              this.postProcessingFunctionMap.set(column.label, postFunction);
+            }
+
+            dataValue = checkNumericStringAndConvert(dataValue);
+            let dataTs = 0;
+            if (tsValue && isDefinedAndNotNull(tsValue.ts)) {
+              dataTs = tsValue.ts;
+            }
+            dataValue = this.postProcessingFunctionMap.get(column.label)(dataTs, dataValue, 0, 0, 0);
+          }
+          entity[column.label] = dataValue;
+        } else {
+          entity[column.label] = '';
+        }
+      }
+    });
+    const dataObj: { [key: string]: any } = {};
+    columns.forEach(column => {
+      dataObj[column.title] = this.cellContent(entity, column, index, false);
+    });
+    return dataObj;
+  }
+
   private clearCache() {
     this.cellContentCache.length = 0;
     this.cellStyleCache.length = 0;
     this.rowStyleCache.length = 0;
   }
+
 }
 
 class EntityDatasource implements DataSource<EntityData> {
@@ -744,6 +891,7 @@ class EntityDatasource implements DataSource<EntityData> {
 
   private currentEntity: EntityData = null;
 
+  public entities: EntityData[] = [];
   public dataLoading = true;
   public countCellButtonAction = 0;
 
@@ -786,6 +934,7 @@ class EntityDatasource implements DataSource<EntityData> {
   }
 
   private clear() {
+    this.entities = [];
     this.entitiesSubject.next([]);
     this.pageDataSubject.next(emptyPageData<EntityData>());
   }
@@ -807,6 +956,7 @@ class EntityDatasource implements DataSource<EntityData> {
       const asc = this.appliedPageLink.sortOrder.direction === Direction.ASC;
       entities = entities.sort((a, b) => sortItems(a, b, this.appliedSortOrderLabel, asc));
     }
+    this.entities = entities;
     if (!dynamicWidthCellButtonActions && this.cellButtonActions.length && entities.length) {
       maxCellButtonAction = entities[0].actionCellButtons.length;
     }

@@ -1,18 +1,33 @@
 <!--
 
-    Copyright © 2016-2022 The Thingsboard Authors
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
-        http://www.apache.org/licenses/LICENSE-2.0
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
 <div>
@@ -36,7 +51,7 @@
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
       <form [formGroup]="profile" (ngSubmit)="save()">
-        <fieldset [disabled]="isLoading$ | async">
+        <fieldset [disabled]="(isLoading$ | async) || !(resource.PROFILE | hasGenericPermission: operation.WRITE)">
           <mat-form-field class="mat-block">
             <mat-label translate>user.email</mat-label>
             <input matInput formControlName="email" required/>
@@ -63,14 +78,13 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-          <section class="tb-home-dashboard" fxFlex fxLayout="column" fxLayout.gt-sm="row" *ngIf="!isSysAdmin()">
+          <section *ngIf="authState.whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)"
+                   class="tb-home-dashboard" fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
               placeholder="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
-              [dashboardsScope]="user?.authority === authorities.TENANT_ADMIN ? 'tenant' : 'customer'"
-              [tenantId]="user?.tenantId?.id"
-              [customerId]="user?.customerId?.id"
+              [userId]="user?.id.id"
               [selectFirstDashboard]="false"
             ></tb-dashboard-autocomplete>
             <mat-checkbox fxFlex formControlName="homeDashboardHideToolbar">
@@ -80,6 +94,7 @@
           <div fxLayout="row" style="padding-bottom: 16px;">
             <button mat-button mat-raised-button color="primary"
                     type="button"
+                    *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE"
                     [disabled]="(isLoading$ | async)" (click)="changePassword()">
               {{'profile.change-password' | translate}}
             </button>
@@ -96,6 +111,7 @@
           <div fxLayout="row" class="layout-wrap">
             <span fxFlex></span>
             <button mat-button mat-raised-button color="primary"
+                    *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE"
                     type="submit"
                     [disabled]="(isLoading$ | async) || profile.invalid || !profile.dirty">
               {{ 'action.save' | translate }}

@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.security;
 
@@ -27,55 +42,76 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.ApiUsageStateId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.controller.HttpValidationCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
@@ -95,8 +131,11 @@ public class AccessValidator {
     public static final String CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "Customer user is not allowed to perform this operation!";
     public static final String SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "System administrator is not allowed to perform this operation!";
     public static final String DEVICE_WITH_REQUESTED_ID_NOT_FOUND = "Device with requested id wasn't found!";
-    public static final String EDGE_WITH_REQUESTED_ID_NOT_FOUND = "Edge with requested id wasn't found!";
+    public static final String USER_WITH_REQUESTED_ID_NOT_FOUND = "User with requested id wasn't found!";
     public static final String ENTITY_VIEW_WITH_REQUESTED_ID_NOT_FOUND = "Entity-view with requested id wasn't found!";
+    public static final String ROLE_WITH_REQUESTED_ID_NOT_FOUND = "Role with requested id wasn't found!";
+    public static final String DASHBOARD_WITH_REQUESTED_ID_NOT_FOUND = "Dashboard with requested id wasn't found!";
+    public static final String EDGE_WITH_REQUESTED_ID_NOT_FOUND = "Edge with requested id wasn't found!";
 
     @Autowired
     protected TenantService tenantService;
@@ -123,7 +162,28 @@ public class AccessValidator {
     protected RuleChainService ruleChainService;
 
     @Autowired
+    protected ConverterService converterService;
+
+    @Autowired
+    protected IntegrationService integrationService;
+
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
+
+    @Autowired
+    protected EntityGroupService entityGroupService;
+
+    @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected RoleService roleService;
+
+    @Autowired
+    protected DashboardService dashboardService;
 
     @Autowired(required = false)
     protected EdgeService edgeService;
@@ -220,14 +280,35 @@ public class AccessValidator {
             case TENANT:
                 validateTenant(currentUser, operation, entityId, callback);
                 return;
+            case CONVERTER:
+                validateConverter(currentUser, operation, entityId, callback);
+                return;
+            case INTEGRATION:
+                validateIntegration(currentUser, operation, entityId, callback);
+                return;
             case TENANT_PROFILE:
                 validateTenantProfile(currentUser, operation, entityId, callback);
                 return;
             case USER:
                 validateUser(currentUser, operation, entityId, callback);
                 return;
+            case SCHEDULER_EVENT:
+                validateSchedulerEvent(currentUser, operation, entityId, callback);
+                return;
+            case BLOB_ENTITY:
+                validateBlobEntity(currentUser, operation, entityId, callback);
+                return;
+            case ENTITY_GROUP:
+                validateEntityGroup(currentUser, operation, entityId, callback);
+                return;
             case ENTITY_VIEW:
                 validateEntityView(currentUser, operation, entityId, callback);
+                return;
+            case ROLE:
+                validateRole(currentUser, operation, entityId, callback);
+                return;
+            case DASHBOARD:
+                validateDashboard(currentUser, operation, entityId, callback);
                 return;
             case EDGE:
                 validateEdge(currentUser, operation, entityId, callback);
@@ -242,12 +323,28 @@ public class AccessValidator {
                 validateOtaPackage(currentUser, operation, entityId, callback);
                 return;
             case RPC:
-                validateRpc(currentUser, operation, entityId, callback);
+                validateRpc(currentUser, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
                 throw new IllegalStateException("Not Implemented!");
         }
+    }
+
+    private void validateUser(SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        ListenableFuture<User> userFuture = userService.findUserByIdAsync(currentUser.getTenantId(), new UserId(entityId.getId()));
+        Futures.addCallback(userFuture, getCallback(callback, user -> {
+            if (user == null) {
+                return ValidationResult.entityNotFound(USER_WITH_REQUESTED_ID_NOT_FOUND);
+            } else {
+                try {
+                    accessControlService.checkPermission(currentUser, Resource.USER, operation, entityId, user);
+                } catch (ThingsboardException e) {
+                    return ValidationResult.accessDenied(e.getMessage());
+                }
+                return ValidationResult.ok(user);
+            }
+        }), executor);
     }
 
     private void validateDevice(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
@@ -270,14 +367,15 @@ public class AccessValidator {
         }
     }
 
-    private void validateRpc(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+    private void validateRpc(final SecurityUser currentUser, EntityId entityId, FutureCallback<ValidationResult> callback) {
         ListenableFuture<Rpc> rpcFurure = rpcService.findRpcByIdAsync(currentUser.getTenantId(), new RpcId(entityId.getId()));
         Futures.addCallback(rpcFurure, getCallback(callback, rpc -> {
             if (rpc == null) {
                 return ValidationResult.entityNotFound("Rpc with requested id wasn't found!");
             } else {
                 try {
-                    accessControlService.checkPermission(currentUser, Resource.RPC, operation, entityId, rpc);
+                    Device device = deviceService.findDeviceById(currentUser.getTenantId(), rpc.getDeviceId());
+                    accessControlService.checkPermission(currentUser, Resource.DEVICE, Operation.RPC_CALL, device.getId(), device);
                 } catch (ThingsboardException e) {
                     return ValidationResult.accessDenied(e.getMessage());
                 }
@@ -466,6 +564,28 @@ public class AccessValidator {
         }
     }
 
+    private void validateConverter(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isCustomerUser()) {
+            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Converter> converterFuture = converterService.findConverterByIdAsync(currentUser.getTenantId(), new ConverterId(entityId.getId()));
+            Futures.addCallback(converterFuture, getCallback(callback, converter -> {
+                if (converter == null) {
+                    return ValidationResult.entityNotFound("Converter with requested id wasn't found!");
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.CONVERTER, operation, entityId, converter);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(converter);
+                }
+            }), executor);
+        }
+    }
+
     private void validateTenantProfile(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.ok(null));
@@ -474,20 +594,88 @@ public class AccessValidator {
         }
     }
 
-    private void validateUser(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
-        ListenableFuture<User> userFuture = userService.findUserByIdAsync(currentUser.getTenantId(), new UserId(entityId.getId()));
-        Futures.addCallback(userFuture, getCallback(callback, user -> {
-            if (user == null) {
-                return ValidationResult.entityNotFound("User with requested id wasn't found!");
-            }
-            try {
-                accessControlService.checkPermission(currentUser, Resource.USER, operation, entityId, user);
-            } catch (ThingsboardException e) {
-                return ValidationResult.accessDenied(e.getMessage());
-            }
-            return ValidationResult.ok(user);
+    private void validateIntegration(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isCustomerUser()) {
+            callback.onSuccess(ValidationResult.accessDenied(CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Integration> integrationFuture = integrationService.findIntegrationByIdAsync(currentUser.getTenantId(), new IntegrationId(entityId.getId()));
+            Futures.addCallback(integrationFuture, getCallback(callback, integration -> {
+                if (integration == null) {
+                    return ValidationResult.entityNotFound("Integration with requested id wasn't found!");
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.INTEGRATION, operation, entityId, integration);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(integration);
+                }
+            }), executor);
+        }
+    }
 
-        }), executor);
+    private void validateSchedulerEvent(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<SchedulerEventInfo> schedulerEventInfoFuture = schedulerEventService.findSchedulerEventInfoByIdAsync(
+                    currentUser.getTenantId(), new SchedulerEventId(entityId.getId()));
+            Futures.addCallback(schedulerEventInfoFuture, getCallback(callback, schedulerEventInfo -> {
+                if (schedulerEventInfo == null) {
+                    return ValidationResult.entityNotFound("Scheduler event with requested id wasn't found!");
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.SCHEDULER_EVENT, operation, entityId, schedulerEventInfo);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(schedulerEventInfo);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateBlobEntity(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<BlobEntityInfo> blobEntityInfoFuture = blobEntityService.findBlobEntityInfoByIdAsync(
+                    currentUser.getTenantId(), new BlobEntityId(entityId.getId()));
+            Futures.addCallback(blobEntityInfoFuture, getCallback(callback, blobEntityInfo -> {
+                if (blobEntityInfo == null) {
+                    return ValidationResult.entityNotFound("Blob entity with requested id wasn't found!");
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.BLOB_ENTITY, operation, entityId, blobEntityInfo);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(blobEntityInfo);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateEntityGroup(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(currentUser.getTenantId(), new EntityGroupId(entityId.getId()));
+            Futures.addCallback(entityGroupFuture, getCallback(callback, entityGroup -> {
+                if (entityGroup == null) {
+                    return ValidationResult.entityNotFound("Entity group with requested id wasn't found!");
+                } else {
+                    try {
+                        accessControlService.checkEntityGroupPermission(currentUser, operation, entityGroup);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(entityGroup);
+                }
+            }), executor);
+        }
     }
 
     private void validateEntityView(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
@@ -510,6 +698,27 @@ public class AccessValidator {
         }
     }
 
+    private void validateRole(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Role> roleFuture = roleService.findRoleByIdAsync(currentUser.getTenantId(), new RoleId(entityId.getId()));
+            Futures.addCallback(roleFuture, getCallback(callback, role -> {
+                if (role == null) {
+                    return ValidationResult.entityNotFound(ROLE_WITH_REQUESTED_ID_NOT_FOUND);
+                } else {
+
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.ROLE, operation, entityId, role);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(role);
+                }
+            }), executor);
+        }
+    }
+
     private void validateEdge(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
@@ -525,6 +734,26 @@ public class AccessValidator {
                         return ValidationResult.accessDenied(e.getMessage());
                     }
                     return ValidationResult.ok(edge);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateDashboard(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<DashboardInfo> dashboardFuture = dashboardService.findDashboardInfoByIdAsync(currentUser.getTenantId(), new DashboardId(entityId.getId()));
+            Futures.addCallback(dashboardFuture, getCallback(callback, dashboard -> {
+                if (dashboard == null) {
+                    return ValidationResult.entityNotFound(DASHBOARD_WITH_REQUESTED_ID_NOT_FOUND);
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.DASHBOARD, operation, entityId, dashboard);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(dashboard);
                 }
             }), executor);
         }

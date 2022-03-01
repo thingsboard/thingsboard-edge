@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.sql.event;
 
@@ -42,7 +57,7 @@ public interface EventRepository extends PagingAndSortingRepository<EventEntity,
                                                        UUID entityId);
 
     @Query("SELECT e FROM EventEntity e WHERE e.tenantId = :tenantId AND e.entityType = :entityType " +
-            "AND e.entityId = :entityId AND e.eventType = :eventType ORDER BY e.eventType DESC, e.id DESC")
+            "AND e.entityId = :entityId AND e.eventType = :eventType ORDER BY e.createdTime DESC")
     List<EventEntity> findLatestByTenantIdAndEntityTypeAndEntityIdAndEventType(
             @Param("tenantId") UUID tenantId,
             @Param("entityType") EntityType entityType,
@@ -135,6 +150,95 @@ public interface EventRepository extends PagingAndSortingRepository<EventEntity,
                                               @Param("data") String data,
                                               @Param("metadata") String metadata,
                                               Pageable pageable);
+
+    @Query(nativeQuery = true,
+            value = "SELECT e.id, e.created_time, e.body, e.entity_id, e.entity_type, e.event_type, e.event_uid, e.tenant_id, ts  FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_INTEGRATION' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:message IS NULL OR lower(json_body->>'message') LIKE concat('%', lower(:message\\:\\:varchar), '%')) " +
+                    "AND (:status IS NULL OR lower(json_body->>'status') LIKE concat('%', lower(:status\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))",
+            countQuery = "SELECT count(*) FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_INTEGRATION' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:message IS NULL OR lower(json_body->>'message') LIKE concat('%', lower(:message\\:\\:varchar), '%')) " +
+                    "AND (:status IS NULL OR lower(json_body->>'status') LIKE concat('%', lower(:status\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))"
+    )
+    Page<EventEntity> findDebugIntegrationEvents(@Param("tenantId") UUID tenantId,
+                                                 @Param("entityId") UUID entityId,
+                                                 @Param("entityType") String entityType,
+                                                 @Param("startTime") Long startTime,
+                                                 @Param("endTime") Long endTime,
+                                                 @Param("type") String type,
+                                                 @Param("server") String server,
+                                                 @Param("message") String message,
+                                                 @Param("status") String status,
+                                                 @Param("isError") boolean isError,
+                                                 @Param("error") String error,
+                                                 Pageable pageable);
+
+    @Query(nativeQuery = true,
+            value = "SELECT e.id, e.created_time, e.body, e.entity_id, e.entity_type, e.event_type, e.event_uid, e.tenant_id, ts  FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_CONVERTER' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:inParam IS NULL OR lower(json_body->>'in') LIKE concat('%', lower(:inParam\\:\\:varchar), '%')) " +
+                    "AND (:outParam IS NULL OR lower(json_body->>'out') LIKE concat('%', lower(:outParam\\:\\:varchar), '%')) " +
+                    "AND (:metadata IS NULL OR lower(json_body->>'metadata') LIKE concat('%', lower(:metadata\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))",
+            countQuery = "SELECT count(*) FROM " +
+                    "(SELECT *, e.body\\:\\:jsonb as json_body FROM event e WHERE " +
+                    "e.tenant_id = :tenantId " +
+                    "AND e.entity_type = :entityType " +
+                    "AND e.entity_id = :entityId " +
+                    "AND e.event_type = 'DEBUG_CONVERTER' " +
+                    "AND e.created_time >= :startTime AND (:endTime = 0 OR e.created_time <= :endTime) " +
+                    ") AS e WHERE " +
+                    "(:type IS NULL OR lower(json_body->>'type') LIKE concat('%', lower(:type\\:\\:varchar), '%')) " +
+                    "AND (:server IS NULL OR lower(json_body->>'server') LIKE concat('%', lower(:server\\:\\:varchar), '%')) " +
+                    "AND (:inParam IS NULL OR lower(json_body->>'in') LIKE concat('%', lower(:inParam\\:\\:varchar), '%')) " +
+                    "AND (:outParam IS NULL OR lower(json_body->>'out') LIKE concat('%', lower(:outParam\\:\\:varchar), '%')) " +
+                    "AND (:metadata IS NULL OR lower(json_body->>'metadata') LIKE concat('%', lower(:metadata\\:\\:varchar), '%')) " +
+                    "AND ((:isError = FALSE) OR (json_body->>'error') IS NOT NULL) " +
+                    "AND (:error IS NULL OR lower(json_body->>'error') LIKE concat('%', lower(:error\\:\\:varchar), '%'))"
+    )
+    Page<EventEntity> findDebugConverterEvents(@Param("tenantId") UUID tenantId,
+                                                 @Param("entityId") UUID entityId,
+                                                 @Param("entityType") String entityType,
+                                                 @Param("startTime") Long startTime,
+                                                 @Param("endTime") Long endTime,
+                                                 @Param("type") String type,
+                                                 @Param("server") String server,
+                                                 @Param("inParam") String in,
+                                                 @Param("outParam") String out,
+                                                 @Param("metadata") String metadata,
+                                                 @Param("isError") boolean isError,
+                                                 @Param("error") String error,
+                                                 Pageable pageable);
 
     @Query(nativeQuery = true,
             value = "SELECT e.id, e.created_time, e.body, e.entity_id, e.entity_type, e.event_type, e.event_uid, e.tenant_id, ts  FROM " +
@@ -240,5 +344,6 @@ public interface EventRepository extends PagingAndSortingRepository<EventEntity,
                                            @Param("messagesProcessed") Integer messagesProcessed,
                                            @Param("errorsOccurred") Integer errorsOccurred,
                                            Pageable pageable);
+
 
 }

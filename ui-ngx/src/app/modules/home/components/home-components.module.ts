@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { NgModule } from '@angular/core';
@@ -134,13 +149,37 @@ import { EmbedDashboardDialogComponent } from '@home/components/widget/dialog/em
 import { EMBED_DASHBOARD_DIALOG_TOKEN } from '@home/components/widget/dialog/embed-dashboard-dialog-token';
 import { EdgeDownlinkTableComponent } from '@home/components/edge/edge-downlink-table.component';
 import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
+import { EntityGroupWizardDialogComponent } from '@home/components/wizard/entity-group-wizard-dialog.component';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
+import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
+import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
+import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
+import { PermissionListComponent } from '@home/components/role/permission-list.component';
+import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
+import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
+import { EntityGroupSettingsComponent } from '@home/components/group/entity-group-settings.component';
+import { EntityGroupColumnsComponent } from '@home/components/group/entity-group-columns.component';
+import { EntityGroupColumnDialogComponent } from '@home/components/group/entity-group-column-dialog.component';
+import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
+import { RegistrationPermissionsComponent } from '@home/components/role/registration-permissions.component';
+import { EntityGroupComponent } from '@home/components/group/entity-group.component';
+import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
+import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
 import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
 import { AlarmDurationPredicateValueComponent } from '@home/components/profile/alarm/alarm-duration-predicate-value.component';
+import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config/ota-update-event-config.component';
+import { TargetSelectComponent } from '@home/components/scheduler/config/target-select.component';
 import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
 import { WidgetContainerComponent } from '@home/components/widget/widget-container.component';
 import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snmp/snmp-device-profile-transport.module';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
+import { SolutionInstallDialogComponent } from '@home/components/solution/solution-install-dialog.component';
 import {
   COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN,
   DASHBOARD_PAGE_COMPONENT_TOKEN,
@@ -202,6 +241,22 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
       SelectTargetStateDialogComponent,
       AddWidgetToDashboardDialogComponent,
       TableColumnsAssignmentComponent,
+      ConverterAutocompleteComponent,
+      OperationTypeListComponent,
+      ResourceTypeAutocompleteComponent,
+      PermissionListComponent,
+      ViewRoleDialogComponent,
+      GroupEntitiesTableComponent,
+      GroupEntityTabsComponent,
+      GroupEntityTableHeaderComponent,
+      EntityGroupComponent,
+      EntityGroupTabsComponent,
+      EntityGroupSettingsComponent,
+      EntityGroupColumnComponent,
+      EntityGroupColumnsComponent,
+      EntityGroupColumnDialogComponent,
+      AddGroupEntityDialogComponent,
+      RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
       NumericFilterPredicateComponent,
@@ -254,6 +309,7 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
       SmsProviderConfigurationComponent,
       AwsSnsProviderConfigurationComponent,
       TwilioSmsProviderConfigurationComponent,
+      EntityGroupWizardDialogComponent,
       DashboardToolbarComponent,
       DashboardPageComponent,
       DashboardStateComponent,
@@ -267,12 +323,16 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
       DashboardStateDialogComponent,
       DashboardImageDialogComponent,
       EmbedDashboardDialogComponent,
-      DisplayWidgetTypesPanelComponent
+      OtaUpdateEventConfigComponent,
+      TargetSelectComponent,
+      DisplayWidgetTypesPanelComponent,
+      SolutionInstallDialogComponent
     ],
   imports: [
     CommonModule,
     SharedModule,
     SharedHomeComponentsModule,
+    HomeDialogsModule,
     Lwm2mProfileComponentsModule,
     SnmpDeviceProfileTransportModule,
     StatesControllerModule,
@@ -280,6 +340,7 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
     DeviceProfileCommonModule
   ],
   exports: [
+    SharedHomeComponentsModule,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,
@@ -320,6 +381,22 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
     TableColumnsAssignmentComponent,
     SelectTargetLayoutDialogComponent,
     SelectTargetStateDialogComponent,
+    ConverterAutocompleteComponent,
+    OperationTypeListComponent,
+    ResourceTypeAutocompleteComponent,
+    PermissionListComponent,
+    ViewRoleDialogComponent,
+    GroupEntitiesTableComponent,
+    GroupEntityTabsComponent,
+    GroupEntityTableHeaderComponent,
+    EntityGroupComponent,
+    EntityGroupTabsComponent,
+    EntityGroupSettingsComponent,
+    EntityGroupColumnComponent,
+    EntityGroupColumnsComponent,
+    EntityGroupColumnDialogComponent,
+    AddGroupEntityDialogComponent,
+    RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
     NumericFilterPredicateComponent,
@@ -367,6 +444,7 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
     SmsProviderConfigurationComponent,
     AwsSnsProviderConfigurationComponent,
     TwilioSmsProviderConfigurationComponent,
+    EntityGroupWizardDialogComponent,
     DashboardToolbarComponent,
     DashboardPageComponent,
     DashboardStateComponent,
@@ -380,16 +458,23 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
     DashboardStateDialogComponent,
     DashboardImageDialogComponent,
     EmbedDashboardDialogComponent,
-    DisplayWidgetTypesPanelComponent
+    OtaUpdateEventConfigComponent,
+    TargetSelectComponent,
+    DisplayWidgetTypesPanelComponent,
+    SolutionInstallDialogComponent
   ],
   providers: [
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
+    GroupConfigTableConfigService,
+    EntityGroupsTableConfigResolver,
+    EntityGroupConfigResolver,
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
     {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule }
   ]
 })
-export class HomeComponentsModule { }
+export class HomeComponentsModule {
+}

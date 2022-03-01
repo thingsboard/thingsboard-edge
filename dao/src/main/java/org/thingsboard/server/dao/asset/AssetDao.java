@@ -1,28 +1,41 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
@@ -35,15 +48,6 @@ import java.util.UUID;
  *
  */
 public interface AssetDao extends Dao<Asset>, TenantEntityDao {
-
-    /**
-     * Find asset info by id.
-     *
-     * @param tenantId the tenant id
-     * @param assetId the asset id
-     * @return the asset info object
-     */
-    AssetInfo findAssetInfoById(TenantId tenantId, UUID assetId);
 
     /**
      * Save or update asset object
@@ -63,15 +67,6 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao {
     PageData<Asset> findAssetsByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
-     * Find asset infos by tenantId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param pageLink the page link
-     * @return the list of asset info objects
-     */
-    PageData<AssetInfo> findAssetInfosByTenantId(UUID tenantId, PageLink pageLink);
-
-    /**
      * Find assets by tenantId, type and page link.
      *
      * @param tenantId the tenantId
@@ -82,16 +77,6 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao {
     PageData<Asset> findAssetsByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
 
     /**
-     * Find asset infos by tenantId, type and page link.
-     *
-     * @param tenantId the tenantId
-     * @param type the type
-     * @param pageLink the page link
-     * @return the list of asset info objects
-     */
-    PageData<AssetInfo> findAssetInfosByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
-
-    /**
      * Find assets by tenantId and assets Ids.
      *
      * @param tenantId the tenantId
@@ -99,6 +84,12 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao {
      * @return the list of asset objects
      */
     ListenableFuture<List<Asset>> findAssetsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> assetIds);
+
+    PageData<Asset> findAssetsByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<Asset> findAssetsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<Asset> findAssetsByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
 
     /**
      * Find assets by tenantId, customerId and page link.
@@ -111,16 +102,6 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao {
     PageData<Asset> findAssetsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
 
     /**
-     * Find asset infos by tenantId, customerId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param customerId the customerId
-     * @param pageLink the page link
-     * @return the list of asset info objects
-     */
-    PageData<AssetInfo> findAssetInfosByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
-
-    /**
      * Find assets by tenantId, customerId, type and page link.
      *
      * @param tenantId the tenantId
@@ -130,17 +111,6 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao {
      * @return the list of asset objects
      */
     PageData<Asset> findAssetsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink);
-
-    /**
-     * Find asset infos by tenantId, customerId, type and page link.
-     *
-     * @param tenantId the tenantId
-     * @param customerId the customerId
-     * @param type the type
-     * @param pageLink the page link
-     * @return the list of asset info objects
-     */
-    PageData<AssetInfo> findAssetInfosByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink);
 
     /**
      * Find assets by tenantId, customerId and assets Ids.
@@ -167,25 +137,4 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao {
      * @return the list of tenant asset type objects
      */
     ListenableFuture<List<EntitySubtype>> findTenantAssetTypesAsync(UUID tenantId);
-
-    /**
-     * Find assets by tenantId, edgeId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param edgeId the edgeId
-     * @param pageLink the page link
-     * @return the list of asset objects
-     */
-    PageData<Asset> findAssetsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
-
-    /**
-     * Find assets by tenantId, edgeId, type and page link.
-     *
-     * @param tenantId the tenantId
-     * @param edgeId the edgeId
-     * @param type the type
-     * @param pageLink the page link
-     * @return the list of asset objects
-     */
-    PageData<Asset> findAssetsByTenantIdAndEdgeIdAndType(UUID tenantId, UUID edgeId, String type, PageLink pageLink);
 }

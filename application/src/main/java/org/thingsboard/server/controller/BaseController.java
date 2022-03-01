@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.controller;
 
@@ -24,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,68 +48,94 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.EntityViewInfo;
+import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterableByTenantIdEntityId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
+
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
@@ -101,16 +143,23 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -119,6 +168,7 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
@@ -128,11 +178,13 @@ import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.resource.TbResourceService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -140,14 +192,19 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
 import static org.thingsboard.server.controller.ControllerConstants.INCORRECT_TENANT_ID;
+import static org.thingsboard.server.controller.UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @Slf4j
@@ -186,6 +243,12 @@ public abstract class BaseController {
     protected AssetService assetService;
 
     @Autowired
+    protected IntegrationService integrationService;
+
+    @Autowired
+    protected ConverterService converterService;
+
+    @Autowired
     protected AlarmSubscriptionService alarmService;
 
     @Autowired
@@ -219,13 +282,34 @@ public abstract class BaseController {
     protected RelationService relationService;
 
     @Autowired
+    protected EntityGroupService entityGroupService;
+
+    @Autowired
+    protected OwnersCacheService ownersCacheService;
+
+    @Autowired
+    protected SchedulerEventService schedulerEventService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
+
+    @Autowired
     protected AuditLogService auditLogService;
 
     @Autowired
     protected DeviceStateService deviceStateService;
 
     @Autowired
+    protected SchedulerService schedulerService;
+
+    @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected RoleService roleService;
+
+    @Autowired
+    protected GroupPermissionService groupPermissionService;
 
     @Autowired
     protected TelemetrySubscriptionService tsSubService;
@@ -234,10 +318,16 @@ public abstract class BaseController {
     protected AttributesService attributesService;
 
     @Autowired
+    protected UserPermissionsService userPermissionsService;
+
+    @Autowired
     protected ClaimDevicesService claimDevicesService;
 
     @Autowired
     protected PartitionService partitionService;
+
+    @Autowired
+    protected TbServiceInfoProvider serviceInfoProvider;
 
     @Autowired
     protected TbResourceService resourceService;
@@ -249,10 +339,19 @@ public abstract class BaseController {
     protected OtaPackageStateService otaPackageStateService;
 
     @Autowired
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+
+    @Autowired
     protected RpcService rpcService;
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;
+
+    @Autowired
+    protected EntityQueryService entityQueryService;
+
+    @Autowired
+    protected EntityService entityService;
 
     @Autowired
     protected TbTenantProfileCache tenantProfileCache;
@@ -353,6 +452,75 @@ public abstract class BaseController {
         }
     }
 
+    RoleType checkStrRoleType(String name, String strGroupType) throws ThingsboardException {
+        checkParameter(name, strGroupType);
+        RoleType groupType;
+        try {
+            groupType = RoleType.valueOf(strGroupType);
+        } catch (IllegalArgumentException e) {
+            throw new ThingsboardException("Unsupported role type '" + strGroupType + "'! Only 'GENERIC' or 'GROUP' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
+    EntityType checkStrEntityGroupType(String name, String strGroupType) throws ThingsboardException {
+        checkParameter(name, strGroupType);
+        EntityType groupType;
+        try {
+            groupType = EntityType.valueOf(strGroupType);
+        } catch (IllegalArgumentException e) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + strGroupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return checkEntityGroupType(groupType);
+    }
+
+    void checkEntityGroupType(EntityType expected, EntityType actual) throws ThingsboardException {
+        if (expected == null) {
+            throw new RuntimeException("Expected Entitytype is not specified!");
+        }
+        if (actual == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (!expected.equals(actual)) {
+            throw new ThingsboardException("Expected entity group with type '" + expected + "' but received '" + actual + "'!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
+
+    EntityType checkEntityGroupType(EntityType groupType) throws ThingsboardException {
+        if (groupType == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET
+                && groupType != EntityType.DEVICE && groupType != EntityType.USER
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE
+                && groupType != EntityType.DASHBOARD) {
+            throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
+    EntityType checkSharableEntityGroupType(EntityType groupType) throws ThingsboardException {
+        if (groupType == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (!Arrays.stream(EntityGroup.sharableGroupTypes).anyMatch(type -> type.equals(groupType))) {
+            throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'CUSTOMER', 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be shared.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
+    EntityType checkPublicEntityGroupType(EntityType groupType) throws ThingsboardException {
+        if (groupType == null) {
+            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
+            throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        return groupType;
+    }
+
     UUID toUUID(String id) {
         return UUID.fromString(id);
     }
@@ -446,17 +614,74 @@ public abstract class BaseController {
             validateId(userId, "Incorrect userId " + userId);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user, "User with id [" + userId + "] is not found");
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            }
             return user;
         } catch (Exception e) {
             throw handleException(e, false);
         }
     }
 
-    protected <I extends EntityId, T extends HasTenantId> void checkEntity(I entityId, T entity, Resource resource) throws ThingsboardException {
+    protected <I extends EntityId, T extends GroupEntity<I>> T
+    saveGroupEntity(T entity, String strEntityGroupId, Function<T, T> saveEntityFunction) throws ThingsboardException {
+        try {
+            entity.setTenantId(getCurrentUser().getTenantId());
+
+            EntityGroupId entityGroupId = null;
+            EntityGroup entityGroup = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            }
+            if (entity.getId() == null && (entity.getCustomerId() == null || entity.getCustomerId().isNullUid())) {
+                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    entity.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                    entity.setOwnerId(getCurrentUser().getCustomerId());
+                }
+            }
+
+            checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
+
+            T savedEntity = checkNotNull(saveEntityFunction.apply(entity));
+
+            if (entityGroup != null && entity.getId() == null) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntity.getId());
+                logEntityAction(savedEntity.getId(), savedEntity,
+                        savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
+
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+            }
+
+            logEntityAction(savedEntity.getId(), savedEntity,
+                    savedEntity.getCustomerId(),
+                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (entity.getId() != null) {
+                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
+            }
+
+            return savedEntity;
+
+        } catch (Exception e) {
+            logEntityAction(emptyId(entity.getEntityType()), entity,
+                    null, entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            throw handleException(e);
+        }
+    }
+
+    protected <I extends EntityId, T extends TenantEntity> void checkEntity(I entityId, T entity, Resource resource, EntityGroupId entityGroupId) throws ThingsboardException {
         if (entityId == null) {
-            accessControlService
-                    .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity);
+            if (entityGroupId == null) {
+                accessControlService
+                        .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity);
+            } else {
+                accessControlService
+                        .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity, entityGroupId);
+            }
         } else {
             checkEntityId(entityId, Operation.WRITE);
         }
@@ -496,11 +721,26 @@ public abstract class BaseController {
                 case ASSET:
                     checkAssetId(new AssetId(entityId.getId()), operation);
                     return;
+                case INTEGRATION:
+                    checkIntegrationId(new IntegrationId(entityId.getId()), operation);
+                    return;
+                case CONVERTER:
+                    checkConverterId(new ConverterId(entityId.getId()), operation);
+                    return;
                 case DASHBOARD:
                     checkDashboardId(new DashboardId(entityId.getId()), operation);
                     return;
                 case USER:
                     checkUserId(new UserId(entityId.getId()), operation);
+                    return;
+                case ENTITY_GROUP:
+                    checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
+                    return;
+                case SCHEDULER_EVENT:
+                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
+                    return;
+                case BLOB_ENTITY:
+                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
                     return;
                 case ENTITY_VIEW:
                     checkEntityViewId(new EntityViewId(entityId.getId()), operation);
@@ -508,11 +748,17 @@ public abstract class BaseController {
                 case EDGE:
                     checkEdgeId(new EdgeId(entityId.getId()), operation);
                     return;
+                case ROLE:
+                    checkRoleId(new RoleId(entityId.getId()), operation);
+                    return;
                 case WIDGETS_BUNDLE:
                     checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
                     return;
                 case WIDGET_TYPE:
                     checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
+                    return;
+                case GROUP_PERMISSION:
+                    checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
                     return;
                 case TB_RESOURCE:
                     checkResourceId(new TbResourceId(entityId.getId()), operation);
@@ -532,18 +778,6 @@ public abstract class BaseController {
         try {
             validateId(deviceId, "Incorrect deviceId " + deviceId);
             Device device = deviceService.findDeviceById(getCurrentUser().getTenantId(), deviceId);
-            checkNotNull(device, "Device with id [" + deviceId + "] is not found");
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation, deviceId, device);
-            return device;
-        } catch (Exception e) {
-            throw handleException(e, false);
-        }
-    }
-
-    DeviceInfo checkDeviceInfoId(DeviceId deviceId, Operation operation) throws ThingsboardException {
-        try {
-            validateId(deviceId, "Incorrect deviceId " + deviceId);
-            DeviceInfo device = deviceService.findDeviceInfoById(getCurrentUser().getTenantId(), deviceId);
             checkNotNull(device, "Device with id [" + deviceId + "] is not found");
             accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation, deviceId, device);
             return device;
@@ -576,13 +810,37 @@ public abstract class BaseController {
         }
     }
 
-    EntityViewInfo checkEntityViewInfoId(EntityViewId entityViewId, Operation operation) throws ThingsboardException {
+    protected Role checkRoleId(RoleId roleId, Operation operation) throws ThingsboardException {
         try {
-            validateId(entityViewId, "Incorrect entityViewId " + entityViewId);
-            EntityViewInfo entityView = entityViewService.findEntityViewInfoById(getCurrentUser().getTenantId(), entityViewId);
-            checkNotNull(entityView, "Entity view with id [" + entityViewId + "] is not found");
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation, entityViewId, entityView);
-            return entityView;
+            validateId(roleId, "Incorrect roleId " + roleId);
+            Role role = roleService.findRoleById(getTenantId(), roleId);
+            checkNotNull(role, "Role with id [" + roleId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, operation, roleId, role);
+            return role;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    GroupPermission checkGroupPermissionId(GroupPermissionId groupPermissionId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(groupPermissionId, "Incorrect groupPermissionId " + groupPermissionId);
+            GroupPermission groupPermission = groupPermissionService.findGroupPermissionById(getTenantId(), groupPermissionId);
+            checkNotNull(groupPermission, "Group permission with id [" + groupPermissionId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation, groupPermissionId, groupPermission);
+            return groupPermission;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    GroupPermissionInfo checkGroupPermissionInfoId(GroupPermissionId groupPermissionId, Operation operation, boolean isUserGroup) throws ThingsboardException {
+        try {
+            validateId(groupPermissionId, "Incorrect groupPermissionId " + groupPermissionId);
+            GroupPermissionInfo groupPermission = groupPermissionService.findGroupPermissionInfoByIdAsync(getTenantId(), groupPermissionId, isUserGroup).get();
+            checkNotNull(groupPermission, "Group permission with id [" + groupPermissionId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation, groupPermissionId, groupPermission);
+            return groupPermission;
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -600,13 +858,25 @@ public abstract class BaseController {
         }
     }
 
-    AssetInfo checkAssetInfoId(AssetId assetId, Operation operation) throws ThingsboardException {
+    Integration checkIntegrationId(IntegrationId integrationId, Operation operation) throws ThingsboardException {
         try {
-            validateId(assetId, "Incorrect assetId " + assetId);
-            AssetInfo asset = assetService.findAssetInfoById(getCurrentUser().getTenantId(), assetId);
-            checkNotNull(asset, "Asset with id [" + assetId + "] is not found");
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation, assetId, asset);
-            return asset;
+            validateId(integrationId, "Incorrect integrationId " + integrationId);
+            Integration integration = integrationService.findIntegrationById(getTenantId(), integrationId);
+            checkNotNull(integration, "Integration with id [" + integrationId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation, integrationId, integration);
+            return integration;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    Converter checkConverterId(ConverterId converterId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(converterId, "Incorrect converterId " + converterId);
+            Converter converter = converterService.findConverterById(getTenantId(), converterId);
+            checkNotNull(converter, "Converter with id [" + converterId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, operation, converterId, converter);
+            return converter;
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -684,18 +954,6 @@ public abstract class BaseController {
         }
     }
 
-    EdgeInfo checkEdgeInfoId(EdgeId edgeId, Operation operation) throws ThingsboardException {
-        try {
-            validateId(edgeId, "Incorrect edgeId " + edgeId);
-            EdgeInfo edge = edgeService.findEdgeInfoById(getCurrentUser().getTenantId(), edgeId);
-            checkNotNull(edge, "Edge with id [" + edgeId + "] is not found");
-            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation, edgeId, edge);
-            return edge;
-        } catch (Exception e) {
-            throw handleException(e, false);
-        }
-    }
-
     DashboardInfo checkDashboardInfoId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
         try {
             validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
@@ -743,6 +1001,66 @@ public abstract class BaseController {
         return ruleChain;
     }
 
+    protected EntityGroup checkEntityGroupId(EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+            EntityGroup entityGroup = entityGroupService.findEntityGroupById(getTenantId(), entityGroupId);
+            checkNotNull(entityGroup, "Entity group with id [" + entityGroupId + "] is not found");
+            accessControlService.checkEntityGroupPermission(getCurrentUser(), operation, entityGroup);
+            return entityGroup;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    SchedulerEvent checkSchedulerEventId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+            SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(getTenantId(), schedulerEventId);
+            checkNotNull(schedulerEvent, "Scheduler event with id [" + schedulerEventId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation, schedulerEventId, schedulerEvent);
+            return schedulerEvent;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    SchedulerEventWithCustomerInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+            SchedulerEventWithCustomerInfo schedulerEventInfo = schedulerEventService.findSchedulerEventWithCustomerInfoById(getTenantId(), schedulerEventId);
+            checkNotNull(schedulerEventInfo, "Scheduler event with id [" + schedulerEventId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation, schedulerEventId, schedulerEventInfo);
+            return schedulerEventInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    BlobEntity checkBlobEntityId(BlobEntityId blobEntityId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
+            BlobEntity blobEntity = blobEntityService.findBlobEntityById(getTenantId(), blobEntityId);
+            checkNotNull(blobEntity, "Blob entity with id [" + blobEntityId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.BLOB_ENTITY, operation, blobEntityId, blobEntity);
+            return blobEntity;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    BlobEntityWithCustomerInfo checkBlobEntityInfoId(BlobEntityId blobEntityId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
+            BlobEntityWithCustomerInfo blobEntityInfo = blobEntityService.findBlobEntityWithCustomerInfoById(getTenantId(), blobEntityId);
+            checkNotNull(blobEntityInfo, "Blob entity with id [" + blobEntityId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.BLOB_ENTITY, operation, blobEntityId, blobEntityInfo);
+            return blobEntityInfo;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
     protected RuleNode checkRuleNode(RuleNodeId ruleNodeId, Operation operation) throws ThingsboardException {
         validateId(ruleNodeId, "Incorrect ruleNodeId " + ruleNodeId);
         RuleNode ruleNode = ruleChainService.findRuleNodeById(getTenantId(), ruleNodeId);
@@ -775,6 +1093,11 @@ public abstract class BaseController {
         }
     }
 
+    protected ThingsboardException permissionDenied() {
+        return new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
+                ThingsboardErrorCode.PERMISSION_DENIED);
+    }
+
     OtaPackage checkOtaPackageId(OtaPackageId otaPackageId, Operation operation) throws ThingsboardException {
         try {
             validateId(otaPackageId, "Incorrect otaPackageId " + otaPackageId);
@@ -799,12 +1122,12 @@ public abstract class BaseController {
         }
     }
 
-    Rpc checkRpcId(RpcId rpcId, Operation operation) throws ThingsboardException {
+    Rpc checkRpcId(RpcId rpcId) throws ThingsboardException {
         try {
             validateId(rpcId, "Incorrect rpcId " + rpcId);
             Rpc rpc = rpcService.findById(getCurrentUser().getTenantId(), rpcId);
             checkNotNull(rpc, "RPC with id [" + rpcId + "] is not found");
-            accessControlService.checkPermission(getCurrentUser(), Resource.RPC, operation, rpcId, rpc);
+            checkDeviceId(rpc.getDeviceId(), Operation.RPC_CALL);
             return rpc;
         } catch (Exception e) {
             throw handleException(e, false);
@@ -831,6 +1154,64 @@ public abstract class BaseController {
         return error != null ? (Exception.class.isInstance(error) ? (Exception) error : new Exception(error)) : null;
     }
 
+    protected MergedUserPermissions getMergedUserPermissions(User user, boolean isPublic) {
+        try {
+            return userPermissionsService.getMergedPermissions(user, isPublic);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Failed to get user permissions", e);
+        }
+    }
+
+    protected <E> PageData<E> toPageData(List<E> entities, PageLink pageLink) {
+        int totalElements = entities.size();
+        int totalPages = pageLink.getPageSize() > 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;
+        boolean hasNext = false;
+        if (pageLink.getPageSize() > 0) {
+            int startIndex = pageLink.getPageSize() * pageLink.getPage();
+            int endIndex = startIndex + pageLink.getPageSize();
+            if (entities.size() <= startIndex) {
+                entities = Collections.emptyList();
+            } else {
+                if (endIndex > entities.size()) {
+                    endIndex = entities.size();
+                }
+                entities = new ArrayList<>(entities.subList(startIndex, endIndex));
+            }
+            hasNext = totalElements > startIndex + entities.size();
+        }
+        return new PageData<>(entities, totalPages, totalElements, hasNext);
+    }
+
+    protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
+        int result = e1.getSearchText().compareToIgnoreCase(e2.getSearchText());
+        if (result == 0) {
+            result = (int) (e2.getCreatedTime() - e1.getCreatedTime());
+        }
+        return result;
+    };
+
+    protected class EntityPageLinkFilter implements Predicate<SearchTextBased<? extends UUIDBased>> {
+
+        private final String textSearch;
+
+        EntityPageLinkFilter(PageLink pageLink) {
+            if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
+                this.textSearch = pageLink.getTextSearch().toLowerCase();
+            } else {
+                this.textSearch = "";
+            }
+        }
+
+        @Override
+        public boolean test(SearchTextBased<? extends UUIDBased> searchTextBased) {
+            if (textSearch.length() > 0) {
+                return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
+            } else {
+                return true;
+            }
+        }
+    }
+
     protected <E extends HasName> String entityToStr(E entity) {
         try {
             return json.writeValueAsString(json.valueToTree(entity));
@@ -840,11 +1221,29 @@ public abstract class BaseController {
         return null;
     }
 
+
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, EntityId previousOwnerId) {
+        if (edgeIds != null && !edgeIds.isEmpty()) {
+            for (EdgeId edgeId : edgeIds) {
+                String body = null;
+                if (EntityType.EDGE.equals(entityId.getEntityType())) {
+                    try {
+                        body = json.writeValueAsString(previousOwnerId);
+                    } catch (Exception e) {
+                        log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
+                    }
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.UPDATED);
+                }
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
+            }
+        }
+    }
+
     protected void sendRelationNotificationMsg(TenantId tenantId, EntityRelation relation, EdgeEventActionType action) {
         try {
             if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
                     !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
-                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action);
+                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
             }
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
@@ -858,7 +1257,7 @@ public abstract class BaseController {
     protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, String body) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
             }
         }
     }
@@ -871,27 +1270,39 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendEntityAssignToCustomerNotificationMsg(TenantId tenantId, EntityId entityId, CustomerId customerId, EdgeEventActionType action) {
-        try {
-            sendNotificationMsgToEdgeService(tenantId, null, entityId, json.writeValueAsString(customerId), null, action);
-        } catch (Exception e) {
-            log.warn("Failed to push assign/unassign to/from customer to core: {}", customerId, e);
-        }
-    }
-
     protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action);
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, null, action);
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, type, action);
+    protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, null, action, groupType, null);
+    }
+
+    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
+                                                  EntityGroupId entityGroupId) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+    }
+
+    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                                  EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
+    }
+
+    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                                  EdgeEventType type, EdgeEventActionType action,
+                                                  EntityType entityGroupType, EntityGroupId entityGroupId) {
+        tbClusterService.sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        return findRelatedEdgeIds(tenantId, entityId, null);
+    }
+
+    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId, EntityType groupType) {
         if (!edgesEnabled) {
             return null;
         }

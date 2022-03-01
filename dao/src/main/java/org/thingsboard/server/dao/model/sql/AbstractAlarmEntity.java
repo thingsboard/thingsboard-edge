@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.model.sql;
 
@@ -51,6 +66,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ALARM_ORIGINATOR_I
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_ORIGINATOR_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_RELATION_TYPES;
+import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_TO_OWNER_HIERARCHY_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_TO_OWNER_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_PROPAGATE_TO_TENANT_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ALARM_SEVERITY_PROPERTY;
@@ -65,13 +81,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.ALARM_TYPE_PROPERT
 @MappedSuperclass
 public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
-    @Column(name = ALARM_TENANT_ID_PROPERTY)
+    @Column(name = ALARM_TENANT_ID_PROPERTY, columnDefinition = "uuid")
     private UUID tenantId;
 
     @Column(name = ALARM_CUSTOMER_ID_PROPERTY)
     private UUID customerId;
 
-    @Column(name = ALARM_ORIGINATOR_ID_PROPERTY)
+    @Column(name = ALARM_ORIGINATOR_ID_PROPERTY, columnDefinition = "uuid")
     private UUID originatorId;
 
     @Column(name = ALARM_ORIGINATOR_TYPE_PROPERTY)
@@ -110,6 +126,9 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
     @Column(name = ALARM_PROPAGATE_TO_OWNER_PROPERTY)
     private Boolean propagateToOwner;
 
+    @Column(name = ALARM_PROPAGATE_TO_OWNER_HIERARCHY_PROPERTY)
+    private Boolean propagateToOwnerHierarchy;
+
     @Column(name = ALARM_PROPAGATE_TO_TENANT_PROPERTY)
     private Boolean propagateToTenant;
 
@@ -139,6 +158,7 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         this.status = alarm.getStatus();
         this.propagate = alarm.isPropagate();
         this.propagateToOwner = alarm.isPropagateToOwner();
+        this.propagateToOwnerHierarchy = alarm.isPropagateToOwnerHierarchy();
         this.propagateToTenant = alarm.isPropagateToTenant();
         this.startTs = alarm.getStartTs();
         this.endTs = alarm.getEndTs();
@@ -165,6 +185,7 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         this.status = alarmEntity.getStatus();
         this.propagate = alarmEntity.getPropagate();
         this.propagateToOwner = alarmEntity.getPropagateToOwner();
+        this.propagateToOwnerHierarchy = alarmEntity.getPropagateToOwnerHierarchy();
         this.propagateToTenant = alarmEntity.getPropagateToTenant();
         this.startTs = alarmEntity.getStartTs();
         this.endTs = alarmEntity.getEndTs();
@@ -189,6 +210,7 @@ public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity
         alarm.setStatus(status);
         alarm.setPropagate(propagate);
         alarm.setPropagateToOwner(propagateToOwner);
+        alarm.setPropagateToOwnerHierarchy(propagateToOwnerHierarchy);
         alarm.setPropagateToTenant(propagateToTenant);
         alarm.setStartTs(startTs);
         alarm.setEndTs(endTs);

@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import {
@@ -52,14 +67,15 @@ import {
 import { forkJoin, Observable, of, ReplaySubject, Subject, throwError, timer } from 'rxjs';
 import { CancelAnimationFrame } from '@core/services/raf.service';
 import { EntityType } from '@shared/models/entity-type.models';
-import { createLabelFromDatasource, deepClone, isDefined, isDefinedAndNotNull, isEqual } from '@core/utils';
+import { alarmFields } from '@shared/models/alarm.models';
+import { createLabelFromDatasource, deepClone, getDescendantProp, isDefined, isDefinedAndNotNull, isEqual } from '@core/utils';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import * as moment_ from 'moment';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityDataListener } from '@core/api/entity-data.service';
 import {
   AlarmData,
-  AlarmDataPageLink,
+  AlarmDataPageLink, dataKeyTypeToEntityKeyType,
   EntityData,
   EntityDataPageLink,
   entityDataToEntityInfo,
@@ -69,6 +85,7 @@ import {
 } from '@shared/models/query/query.models';
 import { distinct, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { AlarmDataListener } from '@core/api/alarm-data.service';
+import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { RpcStatus } from '@shared/models/rpc.models';
 
 const moment = moment_;
@@ -1126,6 +1143,112 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   isDataResolved(): boolean {
     return this.hasResolvedData;
+  }
+
+  exportData(): {[key: string]: any}[] {
+    const exportedData: {[key: string]: any}[] = [];
+    if (this.type === widgetType.timeseries || this.type === widgetType.latest) {
+      if (this.data.length) {
+        const tsRows: {[ts: string]: {[key: string]: any}} = {};
+        const allKeys: {[key: string]: boolean} = {};
+        this.data.forEach((datasourceData) => {
+          datasourceData.data.forEach((row) => {
+            let key = datasourceData.dataKey.label;
+            const ts = row[0];
+            let tsKey = ts.toString();
+            if(this.type ===  widgetType.timeseries && this.datasources.length > 1){
+              tsKey += '_' + datasourceData.datasource.entityName;
+            }
+            const value = row[1];
+            let tsRow = tsRows[tsKey];
+            if (!tsRow) {
+              tsRow = {};
+              tsRow.Timestamp = this.ctx.datePipe.transform(ts, 'yyyy-MM-dd HH:mm:ss');
+              tsRow['Entity Name'] = datasourceData.datasource.entityName;
+              tsRows[tsKey] = tsRow;
+            }
+            key = this.checkProperty(tsRow, key);
+            if (!allKeys[key]) {
+              allKeys[key] = true;
+            }
+            tsRow[key] = value;
+          });
+        });
+        const timestamps = Object.keys(tsRows);
+        const rowKeys = Object.keys(allKeys);
+        timestamps.sort();
+        rowKeys.sort();
+        timestamps.forEach((timestamp) => {
+          const tsRow = tsRows[timestamp];
+          const dataObj: {[key: string]: any} = {};
+          dataObj.Timestamp = tsRow.Timestamp;
+          if(this.type === widgetType.timeseries && this.datasources.length > 1) {
+            dataObj['Entity Name'] = tsRow['Entity Name'];
+          }
+          rowKeys.forEach((key) => {
+            if (isDefined(tsRow[key])) {
+              dataObj[key] = tsRow[key];
+            } else {
+              dataObj[key] = null;
+            }
+          });
+          exportedData.push(dataObj);
+        });
+        if (!exportedData.length) {
+          const dataObj: {[key: string]: any} = {};
+          dataObj.Timestamp = null;
+          this.data.forEach((datasourceData) => {
+            const key = datasourceData.dataKey.label;
+            dataObj[this.checkProperty(dataObj, key)] = null;
+          });
+          exportedData.push(dataObj);
+        }
+      }
+    } else if (this.type === widgetType.alarm) {
+      this.alarms.data.forEach((alarm) => {
+        const dataObj: {[key: string]: any} = {};
+        this.alarmSource.dataKeys.forEach((dataKey) => {
+          const key = dataKey.title;
+          if (dataKey.type === DataKeyType.alarm) {
+            const alarmField = alarmFields[dataKey.name];
+            const value = getDescendantProp(alarm, alarmField ? alarmField.value : dataKey.name);
+            dataObj[key] = this.ctx.utils.defaultAlarmFieldContent(dataKey, value);
+          } else {
+            const type = dataKeyTypeToEntityKeyType(dataKey.type);
+            let value = '';
+            if (type) {
+              if (alarm.latest && alarm.latest[type]) {
+                const tsVal = alarm.latest[type][dataKey.name];
+                if (tsVal) {
+                  value = tsVal.value;
+                }
+              }
+            }
+            dataObj[key] = value;
+          }
+        });
+        exportedData.push(dataObj);
+      });
+      if (!exportedData.length) {
+        const dataObj: {[key: string]: any} = {};
+        this.alarmSource.dataKeys.forEach((dataKey) => {
+          const key = dataKey.title;
+          dataObj[key] = null;
+        });
+        exportedData.push(dataObj);
+      }
+    }
+    return exportedData;
+  }
+
+  private checkProperty(dataObj: any, key: string): string {
+    let toCheck = key;
+    let count = 1;
+    while (Object.prototype.hasOwnProperty.call(dataObj, toCheck)) {
+      count++;
+      toCheck = key + count;
+    }
+    return toCheck;
   }
 
   destroy(): void {

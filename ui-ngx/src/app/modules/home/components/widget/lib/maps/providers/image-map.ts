@@ -1,22 +1,37 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import L, { LatLngBounds, LatLngLiteral, LatLngTuple } from 'leaflet';
 import LeafletMap from '../leaflet-map';
-import { MapImage, PosFuncton, UnitedMapSettings } from '../map-models';
+import { CircleData, MapImage, PosFuncton, UnitedMapSettings } from '../map-models';
 import { Observable, ReplaySubject } from 'rxjs';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import {
@@ -94,8 +109,10 @@ export class ImageMap extends LeafletMap {
         type: widgetType.latest,
         callbacks: {
           onDataUpdated: (subscription) => {
-            result.next([subscription.data[0]?.data, isUpdate]);
-            isUpdate = true;
+            if (subscription.data[0]?.data[0]?.length > 0) {
+              result.next([subscription.data[0].data, isUpdate]);
+              isUpdate = true;
+            }
           }
         }
       };
@@ -126,7 +143,6 @@ export class ImageMap extends LeafletMap {
 
     private imageFromAlias(alias: Observable<[DataSet, boolean]>): Observable<MapImage> {
       return alias.pipe(
-        filter(result => result[0].length > 0),
         mergeMap(res => {
           const mapImage: MapImage = {
             imageUrl: res[0][0][1],
@@ -201,18 +217,11 @@ export class ImageMap extends LeafletMap {
             this.map.invalidateSize(false);
             (this.map as any)._enforcingBounds = false;
             this.updateMarkers(this.markersData);
-            if (this.options.draggableMarker && this.addMarkers.length) {
-              this.addMarkers.forEach((marker) => {
-                const prevPoint = this.convertToCustomFormat(marker.getLatLng(), null, prevWidth, prevHeight);
-                marker.setLatLng(this.convertPosition(prevPoint));
-              });
+            if (this.options.showPolygon) {
+              this.updatePolygons(this.polygonsData);
             }
-            this.updatePolygons(this.polygonsData);
-            if (this.options.showPolygon && this.options.editablePolygon && this.addPolygons.length) {
-              this.addPolygons.forEach((polygon) => {
-                const prevPolygonPoint = this.convertToPolygonFormat(polygon.getLatLngs(), prevWidth, prevHeight);
-                polygon.setLatLngs(this.convertPositionPolygon(prevPolygonPoint));
-              });
+            if (this.options.showCircle) {
+              this.updateCircle(this.circleData);
             }
           }
         }
@@ -322,5 +331,32 @@ export class ImageMap extends LeafletMap {
       return {
         [this.options.polygonKeyName]: coordinate
       };
+    }
+
+    convertCircleToCustomFormat(expression: L.LatLng, radius: number, width = this.width,
+                                height = this.height): {[key: string]: CircleData} {
+      let circleDara: CircleData = null;
+      if (expression) {
+        const point = this.latLngToPoint(expression);
+        const customX = calculateNewPointCoordinate(point.x, width);
+        const customY = calculateNewPointCoordinate(point.y, height);
+        const customRadius = calculateNewPointCoordinate(radius, width);
+        circleDara = {
+          latitude: customX,
+          longitude: customY,
+          radius: customRadius
+        };
+      }
+      return {
+        [this.options.circleKeyName]: circleDara
+      };
+    }
+
+    convertToCircleFormat(circle: CircleData, width = this.width, height = this.height): CircleData {
+      const centerPoint = this.pointToLatLng(circle.longitude * width, circle.latitude * height);
+      circle.latitude = centerPoint.lat;
+      circle.longitude = centerPoint.lng;
+      circle.radius = circle.radius * width;
+      return circle;
     }
 }

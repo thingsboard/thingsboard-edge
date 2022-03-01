@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Injectable } from '@angular/core';
@@ -19,7 +34,6 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  checkBoxCell,
   DateEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig,
@@ -30,7 +44,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { forkJoin, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { selectAuthUser } from '@core/auth/auth.selectors';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
@@ -38,36 +52,20 @@ import { AppState } from '@core/core.state';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
 import { Customer } from '@app/shared/models/customer.model';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
-import {
-  AssignToCustomerDialogComponent,
-  AssignToCustomerDialogData
-} from '@modules/home/dialogs/assign-to-customer-dialog.component';
-import {
-  AddEntitiesToCustomerDialogComponent,
-  AddEntitiesToCustomerDialogData
-} from '../../dialogs/add-entities-to-customer-dialog.component';
-import { Asset, AssetInfo } from '@app/shared/models/asset.models';
+import { Asset } from '@app/shared/models/asset.models';
 import { AssetService } from '@app/core/http/asset.service';
-import { AssetComponent } from '@modules/home/pages/asset/asset.component';
 import { AssetTableHeaderComponent } from '@modules/home/pages/asset/asset-table-header.component';
-import { AssetId } from '@app/shared/models/id/asset-id';
 import { AssetTabsComponent } from '@home/pages/asset/asset-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { DeviceInfo } from '@shared/models/device.models';
-import { EdgeService } from '@core/http/edge.service';
-import {
-  AddEntitiesToEdgeDialogComponent,
-  AddEntitiesToEdgeDialogData
-} from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
-export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo>> {
+export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asset>> {
 
-  private readonly config: EntityTableConfig<AssetInfo> = new EntityTableConfig<AssetInfo>();
+  private readonly config: EntityTableConfig<Asset> = new EntityTableConfig<Asset>();
 
   private customerId: string;
 
@@ -75,33 +73,34 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
               private broadcast: BroadcastService,
               private assetService: AssetService,
               private customerService: CustomerService,
-              private edgeService: EdgeService,
               private dialogService: DialogService,
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
+              private utils: UtilsService,
               private router: Router,
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.ASSET;
-    this.config.entityComponent = AssetComponent;
+    // this.config.entityComponent = AssetComponent;
     this.config.entityTabsComponent = AssetTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     this.config.entityResources = entityTypeResources.get(EntityType.ASSET);
 
-    this.config.deleteEntityTitle = asset => this.translate.instant('asset.delete-asset-title', {assetName: asset.name});
+    this.config.entityTitle = (asset) => asset ?
+      this.utils.customTranslation(asset.name, asset.name) : '';
+
+    this.config.deleteEntityTitle = asset => this.translate.instant('asset.delete-asset-title', { assetName: asset.name });
     this.config.deleteEntityContent = () => this.translate.instant('asset.delete-asset-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('asset.delete-assets-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('asset.delete-assets-text');
 
-    this.config.loadEntity = id => this.assetService.getAssetInfo(id.id);
+    this.config.loadEntity = id => this.assetService.getAsset(id.id);
     this.config.saveEntity = asset => {
       return this.assetService.saveAsset(asset).pipe(
         tap(() => {
           this.broadcast.broadcast('assetSaved');
-        }),
-        mergeMap((savedAsset) => this.assetService.getAssetInfo(savedAsset.id.id)
-        ));
+        }));
     };
     this.config.onEntityAction = action => this.onAssetAction(action, this.config);
     this.config.detailsReadonly = () => (this.config.componentsData.assetScope === 'customer_user' ||
@@ -111,12 +110,11 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
 
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<AssetInfo>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<Asset>> {
     const routeParams = route.params;
     this.config.componentsData = {
       assetScope: route.data.assetsType,
-      assetType: '',
-      edgeId: routeParams.edgeId
+      assetType: ''
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -140,10 +138,6 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           } else {
             this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('asset.assets');
           }
-        } else if (this.config.componentsData.assetScope === 'edge') {
-          this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(
-            edge => this.config.tableTitle = edge.name + ': ' + this.translate.instant('asset.assets')
-          );
         } else {
           this.config.tableTitle = this.translate.instant('asset.assets');
         }
@@ -160,43 +154,45 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     );
   }
 
-  configureColumns(assetScope: string): Array<EntityTableColumn<AssetInfo>> {
-    const columns: Array<EntityTableColumn<AssetInfo>> = [
-      new DateEntityTableColumn<AssetInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<AssetInfo>('name', 'asset.name', '25%'),
-      new EntityTableColumn<AssetInfo>('type', 'asset.asset-type', '25%'),
-      new EntityTableColumn<DeviceInfo>('label', 'asset.label', '25%'),
+  configureColumns(assetScope: string): Array<EntityTableColumn<Asset>> {
+    const columns: Array<EntityTableColumn<Asset>> = [
+      new DateEntityTableColumn<Asset>('createdTime', 'common.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<Asset>('name', 'asset.name', '25%', this.config.entityTitle),
+      new EntityTableColumn<Asset>('type', 'asset.asset-type', '25%'),
+      new EntityTableColumn<Asset>('label', 'asset.label', '25%'),
     ];
-    if (assetScope === 'tenant') {
+    /*if (assetScope === 'tenant') {
       columns.push(
-        new EntityTableColumn<AssetInfo>('customerTitle', 'customer.customer', '25%'),
-        new EntityTableColumn<AssetInfo>('customerIsPublic', 'asset.public', '60px',
+        new EntityTableColumn<Asset>('customerTitle', 'customer.customer', '25%'),
+        new EntityTableColumn<Asset>('customerIsPublic', 'asset.public', '60px',
           entity => {
             return checkBoxCell(entity.customerIsPublic);
           }, () => ({}), false),
       );
-    }
+    }*/
     return columns;
   }
 
   configureEntityFunctions(assetScope: string): void {
     if (assetScope === 'tenant') {
       this.config.entitiesFetchFunction = pageLink =>
-        this.assetService.getTenantAssetInfos(pageLink, this.config.componentsData.assetType);
+        this.assetService.getTenantAssets(pageLink, this.config.componentsData.assetType);
       this.config.deleteEntity = id => this.assetService.deleteAsset(id.id);
-    } else if (assetScope === 'edge' || assetScope === 'edge_customer_user') {
+    }
+    /* else if (assetScope === 'edge' || assetScope === 'edge_customer_user') {
       this.config.entitiesFetchFunction = pageLink =>
         this.assetService.getEdgeAssets(this.config.componentsData.edgeId, pageLink, this.config.componentsData.assetType);
-    } else {
+    }*/
+    else {
       this.config.entitiesFetchFunction = pageLink =>
-        this.assetService.getCustomerAssetInfos(this.customerId, pageLink, this.config.componentsData.assetType);
-      this.config.deleteEntity = id => this.assetService.unassignAssetFromCustomer(id.id);
+        this.assetService.getCustomerAssets(this.customerId, pageLink, this.config.componentsData.assetType);
+    //  this.config.deleteEntity = id => this.assetService.unassignAssetFromCustomer(id.id);
     }
   }
 
-  configureCellActions(assetScope: string): Array<CellActionDescriptor<AssetInfo>> {
-    const actions: Array<CellActionDescriptor<AssetInfo>> = [];
-    if (assetScope === 'tenant') {
+  configureCellActions(assetScope: string): Array<CellActionDescriptor<Asset>> {
+    const actions: Array<CellActionDescriptor<Asset>> = [];
+    /*if (assetScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('asset.make-public'),
@@ -250,12 +246,13 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
+    */
     return actions;
   }
 
-  configureGroupActions(assetScope: string): Array<GroupActionDescriptor<AssetInfo>> {
-    const actions: Array<GroupActionDescriptor<AssetInfo>> = [];
-    if (assetScope === 'tenant') {
+  configureGroupActions(assetScope: string): Array<GroupActionDescriptor<Asset>> {
+    const actions: Array<GroupActionDescriptor<Asset>> = [];
+    /*if (assetScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('asset.assign-assets'),
@@ -285,6 +282,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
+    */
     return actions;
   }
 
@@ -306,7 +304,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
-    if (assetScope === 'customer') {
+    /*if (assetScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('asset.assign-new-asset'),
@@ -315,30 +313,20 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event) => this.addAssetsToCustomer($event)
         }
       );
-    }
-    if (assetScope === 'edge') {
-      actions.push(
-        {
-          name: this.translate.instant('asset.assign-new-asset'),
-          icon: 'add',
-          isEnabled: () => true,
-          onAction: ($event) => this.addAssetsToEdge($event)
-        }
-      );
-    }
+    }*/
     return actions;
   }
 
   importAssets($event: Event) {
-    this.homeDialogs.importEntities(EntityType.ASSET).subscribe((res) => {
+    /*this.homeDialogs.importEntities(EntityType.ASSET).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('assetSaved');
         this.config.updateData();
       }
-    });
+    });*/
   }
 
-  private openAsset($event: Event, asset: Asset, config: EntityTableConfig<AssetInfo>) {
+/*  private openAsset($event: Event, asset: Asset, config: EntityTableConfig<AssetInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -466,11 +454,11 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       }
     );
-  }
+  }*/
 
-  onAssetAction(action: EntityAction<AssetInfo>, config: EntityTableConfig<AssetInfo>): boolean {
+  onAssetAction(action: EntityAction<Asset>, config: EntityTableConfig<Asset>): boolean {
     switch (action.action) {
-      case 'open':
+      /*case 'open':
         this.openAsset(action.event, action.entity, config);
         return true;
       case 'makePublic':
@@ -484,79 +472,8 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         return true;
       case 'unassignFromEdge':
         this.unassignFromEdge(action.event, action.entity);
-        return true;
+        return true;*/
     }
     return false;
   }
-
-  addAssetsToEdge($event: Event) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        edgeId: this.config.componentsData.edgeId,
-        entityType: EntityType.ASSET
-      }
-    }).afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.config.updateData();
-        }
-      });
-  }
-
-  unassignFromEdge($event: Event, asset: AssetInfo) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialogService.confirm(
-      this.translate.instant('asset.unassign-asset-from-edge-title', {assetName: asset.name}),
-      this.translate.instant('asset.unassign-asset-from-edge-text'),
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).subscribe((res) => {
-        if (res) {
-          this.assetService.unassignAssetFromEdge(this.config.componentsData.edgeId, asset.id.id).subscribe(
-            () => {
-              this.config.updateData(this.config.componentsData.assetScope !== 'tenant');
-            }
-          );
-        }
-      }
-    );
-  }
-
-  unassignAssetsFromEdge($event: Event, assets: Array<AssetInfo>) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialogService.confirm(
-      this.translate.instant('asset.unassign-assets-from-edge-title', {count: assets.length}),
-      this.translate.instant('asset.unassign-assets-from-edge-text'),
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).subscribe((res) => {
-        if (res) {
-          const tasks: Observable<any>[] = [];
-          assets.forEach(
-            (asset) => {
-              tasks.push(this.assetService.unassignAssetFromEdge(this.config.componentsData.edgeId, asset.id.id));
-            }
-          );
-          forkJoin(tasks).subscribe(
-            () => {
-              this.config.updateData();
-            }
-          );
-        }
-      }
-    );
-  }
-
 }

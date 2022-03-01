@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.device;
 
@@ -35,6 +50,8 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -47,6 +64,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.device.claim.ClaimData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -60,6 +78,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.common.data.CacheConstants.CLAIM_DEVICES_CACHE;
+import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CACHE;
 
 @Service
 @Slf4j
@@ -82,6 +101,8 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     private CustomerService customerService;
     @Autowired
     private CacheManager cacheManager;
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     @Value("${security.claim.allowClaimingByDefault}")
     private boolean isAllowedClaimingByDefault;
@@ -156,10 +177,25 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.FAILURE));
             } else {
                 if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                    device.setCustomerId(customerId);
-                    Device savedDevice = deviceService.saveDevice(device);
-                    clusterService.onDeviceUpdated(savedDevice, device);
-                    return Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(savedDevice, ClaimResponse.SUCCESS), MoreExecutors.directExecutor());
+                    ListenableFuture<Void> future = Futures.transform(entityGroupService.findEntityGroupsForEntity(device.getTenantId(), device.getId()), entityGroupList -> {
+                        for (EntityGroupId entityGroupId : entityGroupList) {
+                            entityGroupService.removeEntityFromEntityGroup(device.getTenantId(), entityGroupId, device.getId());
+                        }
+                        entityGroupService.addEntityToEntityGroupAll(device.getTenantId(), customerId, device.getId());
+
+                        device.setCustomerId(customerId);
+                        device.setOwnerId(customerId);
+                        Device savedDevice = deviceService.saveDevice(device);
+                        clusterService.onDeviceUpdated(savedDevice, device);
+
+                        ownersCacheEviction(device.getId());
+                        return null;
+                    }, MoreExecutors.directExecutor());
+                    return Futures.transformAsync(future, input ->
+                            Futures.transform(removeClaimingSavedData(cache, claimData, device),
+                                    result -> new ClaimResult(device, ClaimResponse.SUCCESS),
+                                    MoreExecutors.directExecutor()),
+                            MoreExecutors.directExecutor());
                 }
                 return Futures.transform(removeClaimingSavedData(cache, claimData, device), result -> new ClaimResult(null, ClaimResponse.CLAIMED), MoreExecutors.directExecutor());
             }
@@ -180,31 +216,42 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     @Override
     public ListenableFuture<ReclaimResult> reClaimDevice(TenantId tenantId, Device device) {
         if (!device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            cacheEviction(device.getId());
-            Customer unassignedCustomer = customerService.findCustomerById(tenantId, device.getCustomerId());
-            device.setCustomerId(null);
-            Device savedDevice = deviceService.saveDevice(device);
-            clusterService.onDeviceUpdated(savedDevice, device);
-            if (isAllowedClaimingByDefault) {
-                return Futures.immediateFuture(new ReclaimResult(unassignedCustomer));
-            }
-            SettableFuture<ReclaimResult> result = SettableFuture.create();
-            telemetryService.saveAndNotify(
-                    tenantId, savedDevice.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
-                            new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true), System.currentTimeMillis())
-                    ),
-                    new FutureCallback<>() {
-                        @Override
-                        public void onSuccess(@Nullable Void tmp) {
-                            result.set(new ReclaimResult(unassignedCustomer));
-                        }
+            return Futures.transformAsync(entityGroupService.findEntityGroupsForEntity(tenantId, device.getId()), entityGroupList -> {
+                for (EntityGroupId entityGroupId : entityGroupList) {
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, device.getId());
+                }
+                entityGroupService.addEntityToEntityGroupAll(tenantId, tenantId, device.getId());
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            result.setException(t);
-                        }
-                    });
-            return result;
+                cacheEviction(device.getId());
+                Customer unassignedCustomer = customerService.findCustomerById(tenantId, device.getCustomerId());
+                device.setCustomerId(null);
+                device.setOwnerId(tenantId);
+                Device savedDevice = deviceService.saveDevice(device);
+                clusterService.onDeviceUpdated(savedDevice, device);
+
+                ownersCacheEviction(device.getId());
+
+                if (isAllowedClaimingByDefault) {
+                    return Futures.immediateFuture(new ReclaimResult(unassignedCustomer));
+                }
+                SettableFuture<ReclaimResult> result = SettableFuture.create();
+                telemetryService.saveAndNotify(
+                        tenantId, device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(
+                                new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true), System.currentTimeMillis())
+                        ),
+                        new FutureCallback<>() {
+                            @Override
+                            public void onSuccess(@Nullable Void tmp) {
+                                result.set(new ReclaimResult(unassignedCustomer));
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                result.setException(t);
+                            }
+                        });
+                return result;
+            }, MoreExecutors.directExecutor());
         }
         cacheEviction(device.getId());
         return Futures.immediateFuture(new ReclaimResult(null));
@@ -252,4 +299,17 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
         cache.evict(constructCacheKey(deviceId));
     }
 
+    private void ownersCacheEviction(DeviceId deviceId) {
+        Cache ownersCache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
+        ownersCache.evict(getOwnersCacheKey(deviceId));
+        ownersCache.evict(getOwnerCacheKey(deviceId));
+    }
+
+    private String getOwnersCacheKey(EntityId entityId) {
+        return ENTITY_OWNERS_CACHE + "_" + entityId.getId().toString();
+    }
+
+    private String getOwnerCacheKey(EntityId entityId) {
+        return ENTITY_OWNERS_CACHE + "_owner_" + entityId.getId().toString();
+    }
 }

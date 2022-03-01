@@ -1,25 +1,42 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.controller;
 
 public class ControllerConstants {
 
+    protected static final String ENTITY_GROUP_ID = "entityGroupId";
     protected static final String NEW_LINE = "\n\n";
     protected static final String UUID_WIKI_LINK = "[time-based UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_1_(date-time_and_MAC_address)). ";
     protected static final int DEFAULT_PAGE_SIZE = 1000;
+    protected static final int DEFAULT_ENTITY_GROUP_LIMIT = 100;
     protected static final String ENTITY_TYPE = "entityType";
     protected static final String CUSTOMER_ID = "customerId";
     protected static final String TENANT_ID = "tenantId";
@@ -27,11 +44,15 @@ public class ControllerConstants {
     protected static final String EDGE_ID = "edgeId";
     protected static final String RPC_ID = "rpcId";
     protected static final String ENTITY_ID = "entityId";
+
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
             "See the 'Model' tab of the Response Class for more details. ";
     protected static final String DASHBOARD_ID_PARAM_DESCRIPTION = "A string value representing the device id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String RPC_ID_PARAM_DESCRIPTION = "A string value representing the rpc id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_GROUP_ID_PARAM_DESCRIPTION = "A string value representing the Entity Group Id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION = "A string value representing the Entity Group Id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'. " +
+            "If specified, the entity will be added to the corresponding entity group.";
     protected static final String DEVICE_ID_PARAM_DESCRIPTION = "A string value representing the device id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_VIEW_ID_PARAM_DESCRIPTION = "A string value representing the entity view id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String DEVICE_PROFILE_ID_PARAM_DESCRIPTION = "A string value representing the device profile id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
@@ -41,9 +62,16 @@ public class ControllerConstants {
     protected static final String CUSTOMER_ID_PARAM_DESCRIPTION = "A string value representing the customer id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String USER_ID_PARAM_DESCRIPTION = "A string value representing the user id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ASSET_ID_PARAM_DESCRIPTION = "A string value representing the asset id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION = "A string value representing the solution template id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String CONVERTER_ID_PARAM_DESCRIPTION = "A string value representing the converter id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String INTEGRATION_ID_PARAM_DESCRIPTION = "A string value representing the integration id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ROLE_ID_PARAM_DESCRIPTION = "A string value representing the role id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String GROUP_PERMISSION_ID_PARAM_DESCRIPTION = "A string value representing the group permission id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String BLOB_ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the blob entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String OTA_PACKAGE_ID_PARAM_DESCRIPTION = "A string value representing the ota package id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String SCHEDULER_EVENT_ID_PARAM_DESCRIPTION = "A string value representing the scheduler id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_TYPE_PARAM_DESCRIPTION = "A string value representing the entity type. For example, 'DEVICE'";
     protected static final String RULE_CHAIN_ID_PARAM_DESCRIPTION = "A string value representing the rule chain id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String RULE_NODE_ID_PARAM_DESCRIPTION = "A string value representing the rule node id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
@@ -63,11 +91,16 @@ public class ControllerConstants {
     protected static final String ASSET_TYPE_DESCRIPTION = "Asset type";
     protected static final String EDGE_TYPE_DESCRIPTION = "A string value representing the edge type. For example, 'default'";
     protected static final String RULE_CHAIN_TYPE_DESCRIPTION = "Rule chain type (CORE or EDGE)";
+    protected static final String BLOB_ENTITY_TYPE_DESCRIPTION = "A string value representing the blob entity type. For example, 'report'";
     protected static final String ASSET_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the asset name.";
+    protected static final String BLOB_ENTITY_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the blob entity name.";
+    protected static final String CONVERTER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the converter name.";
+    protected static final String INTEGRATION_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the integration name.";
     protected static final String DASHBOARD_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the dashboard title.";
     protected static final String WIDGET_BUNDLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the widget bundle title.";
     protected static final String RPC_TEXT_SEARCH_DESCRIPTION = "Not implemented. Leave empty.";
     protected static final String DEVICE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the device name.";
+    protected static final String ROLE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the role name.";
     protected static final String ENTITY_VIEW_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the entity view name.";
     protected static final String USER_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the user email.";
     protected static final String TENANT_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the tenant name.";
@@ -78,11 +111,14 @@ public class ControllerConstants {
     protected static final String EDGE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the edge name.";
     protected static final String EVENT_TEXT_SEARCH_DESCRIPTION = "The value is not used in searching.";
     protected static final String AUDIT_LOG_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on one of the next properties: entityType, entityName, userName, actionType, actionStatus.";
+    protected static final String ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'startsWith' filter based on the entity group name.";
+    protected static final String ENTITY_GROUP_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, description";
     protected static final String SORT_PROPERTY_DESCRIPTION = "Property of entity to sort by";
     protected static final String DASHBOARD_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title";
     protected static final String CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, email, country, city";
     protected static final String RPC_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, expirationTime, request, response";
     protected static final String DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, deviceProfileName, label, customerTitle";
+    protected static final String ROLE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, description";
     protected static final String ENTITY_VIEW_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type";
     protected static final String ENTITY_VIEW_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, customerTitle";
     protected static final String USER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, firstName, lastName, email";
@@ -92,12 +128,15 @@ public class ControllerConstants {
     protected static final String TENANT_INFO_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, tenantProfileName, title, email, country, state, city, address, address2, zip, phone, email";
     protected static final String DEVICE_PROFILE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, transportType, description, isDefault";
     protected static final String ASSET_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
+    protected static final String CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode";
+    protected static final String INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode, allowCreateDevicesOrAssets, enabled, remote, routingKey, secret";
     protected static final String ALARM_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, startTs, endTs, type, ackTs, clearTs, severity, status";
     protected static final String EVENT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, id";
     protected static final String EDGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
     protected static final String RULE_CHAIN_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, root";
     protected static final String WIDGET_BUNDLE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, tenantId";
     protected static final String AUDIT_LOG_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, entityType, entityName, userName, actionType, actionStatus";
+    protected static final String BLOB_ENTITY_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, contentType, customerTitle";
     protected static final String SORT_ORDER_DESCRIPTION = "Sort order. ASC (ASCENDING) or DESC (DESCENDING)";
     protected static final String SORT_ORDER_ALLOWABLE_VALUES = "ASC, DESC";
     protected static final String RPC_STATUS_ALLOWABLE_VALUES = "QUEUED, SENT, DELIVERED, SUCCESSFUL, TIMEOUT, EXPIRED, FAILED";
@@ -182,7 +221,7 @@ public class ControllerConstants {
     protected static final String IS_BOOTSTRAP_SERVER_PARAM_DESCRIPTION = "A Boolean value representing the Server SecurityInfo for future Bootstrap client mode settings. Values: 'true' for Bootstrap Server; 'false' for Lwm2m Server. ";
 
     protected static final String DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION =
-                    "{\n" +
+            "{\n" +
                     "  \"device\": {\n" +
                     "    \"name\": \"LwRpk00000000\",\n" +
                     "    \"type\": \"lwm2mProfileRpk\"\n" +
@@ -585,6 +624,80 @@ public class ControllerConstants {
             MARKDOWN_CODE_BLOCK_END +
             "";
 
+    protected static final String ENTITY_GROUP_FILTER = "\n\n## Group Entities Filter\n\n" +
+            "Allows to filter multiple entities of the same type using the entity group type and id. " +
+            "For example, this entity filter selects all devices that " +
+            "belong to the group 'e52b0020-2a7a-11ec-94eb-213c95f54092':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroup\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroup\": \"e52b0020-2a7a-11ec-94eb-213c95f54092\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_LIST_FILTER = "\n\n## Group List Filter\n\n" +
+            "Return multiple groups of the same type using specified ids. " +
+            "For example, this entity filter selects 2 device groups (if they are present in the system) " +
+            "with ids 'e52b0020-2a7a-11ec-94eb-213c95f54092' and 'e52b0020-2a7a-11ec-94eb-213c95f54093':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroupList\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupList\": [\"e52b0020-2a7a-11ec-94eb-213c95f54092\", \"e52b0020-2a7a-11ec-94eb-213c95f54093\"]\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_GROUP_NAME_FILTER = "\n\n## Group Name Filter\n\n" +
+            "Allows to filter entity groups based on their type and the **'starts with'** expression over their name. " +
+            "For example, this entity filter selects all devices which name starts with 'CAT':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entityGroupName\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"CAT\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITIES_BY_GROUP_NAME_FILTER = "\n\n## Entities by Group Name Filter\n\n" +
+            "Allows to filter entities that belong to group based on the entity type and the group name. " +
+            "Optional parameter 'ownerId' allows you to specify the owner of the group (Tenant or Customer, current user owner by default)." +
+            "For example, this entity filter selects all devices which belong to group 'Water Meters':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entitiesByGroupName\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "\n\n Other example, this entity filter selects all devices which belong to group 'Water Meters' which in turn belongs to (sub-)Customer with id 'e52b0020-2a7a-11ec-94eb-213c95f54093': \n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"entitiesByGroupName\",\n" +
+            "  \"ownerId\": \"e52b0020-2a7a-11ec-94eb-213c95f54093\",\n" +
+            "  \"groupType\": \"DEVICE\",\n" +
+            "  \"entityGroupNameFilter\": \"Water Meters\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
+    protected static final String ENTITY_OWNER_FILTER = "\n\n## Entity owner Filter\n\n" +
+            "Allows to fetch owner (Tenant or Customer) of the specified entity. " +
+            "For example, this entity filter selects owner of the device with id 'e52b0020-2a7a-11ec-94eb-213c95f54093':\n\n" +
+            MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "  \"type\": \"stateEntityOwner\",\n" +
+            "  \"singleEntity\": {\n" +
+            "    \"id\": \"d521edb0-2a7a-11ec-94eb-213c95f54092\",\n" +
+            "    \"entityType\": \"DEVICE\"\n" +
+            "  }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END +
+            "";
+
     protected static final String EMPTY = "\n\n## Entity Type Filter\n\n" +
             "Allows to filter multiple entities of the same type using the **'starts with'** expression over entity name. " +
             "For example, this entity filter selects all devices which name starts with 'Air Quality':\n\n" +
@@ -596,7 +709,8 @@ public class ControllerConstants {
     protected static final String ENTITY_FILTERS =
             "\n\n # Entity Filters" +
                     "\nEntity Filter body depends on the 'type' parameter. Let's review available entity filter types. In fact, they do correspond to available dashboard aliases." +
-                    SINGLE_ENTITY + ENTITY_LIST + ENTITY_NAME + ENTITY_TYPE_FILTER + ASSET_TYPE + DEVICE_TYPE + EDGE_TYPE + ENTITY_VIEW_TYPE + API_USAGE + RELATIONS_QUERY_FILTER
+                    SINGLE_ENTITY + ENTITY_GROUP_FILTER + ENTITY_LIST + ENTITY_NAME + ENTITY_TYPE_FILTER + ENTITY_GROUP_LIST_FILTER + ENTITY_GROUP_NAME_FILTER + ENTITIES_BY_GROUP_NAME_FILTER +
+                    ENTITY_OWNER_FILTER + ASSET_TYPE + DEVICE_TYPE + EDGE_TYPE + ENTITY_VIEW_TYPE + API_USAGE + RELATIONS_QUERY_FILTER
                     + ASSET_QUERY_FILTER + DEVICE_QUERY_FILTER + EV_QUERY_FILTER + EDGE_QUERY_FILTER;
 
     protected static final String FILTER_KEY = "\n\n## Filter Key\n\n" +
@@ -1406,6 +1520,11 @@ public class ControllerConstants {
 
     protected static final String DEVICE_PROFILE_ID = "deviceProfileId";
 
+    private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
+
+    protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
+    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
+
     protected static final String MODEL_DESCRIPTION = "See the 'Model' tab for more details.";
     protected static final String ENTITY_VIEW_DESCRIPTION = "Entity Views limit the degree of exposure of the Device or Asset telemetry and attributes to the Customers. " +
             "Every Entity View references exactly one entity (device or asset) and defines telemetry and attribute keys that will be visible to the assigned Customer. " +
@@ -1443,7 +1562,7 @@ public class ControllerConstants {
     protected static final String ENTITY_ATTRIBUTE_SCOPES = " List of possible attribute scopes depends on the entity type: " +
             "\n\n * SERVER_SCOPE - supported for all entity types;" +
             "\n * CLIENT_SCOPE - supported for devices;" +
-            "\n * SHARED_SCOPE - supported for devices. "+ "\n\n";
+            "\n * SHARED_SCOPE - supported for devices. " + "\n\n";
 
     protected static final String ATTRIBUTE_DATA_EXAMPLE = "[\n" +
             "  {\"key\": \"stringAttributeKey\", \"value\": \"value\", \"lastUpdateTs\": 1609459200000},\n" +
@@ -1523,5 +1642,266 @@ public class ControllerConstants {
             "\n\n JSON array with timestamps: \n\n" +
             MARKDOWN_CODE_BLOCK_START +
             "[{\"ts\":1634712287000,\"values\":{\"temperature\":26, \"humidity\":87}}, {\"ts\":1634712588000,\"values\":{\"temperature\":25, \"humidity\":88}}]" +
-            MARKDOWN_CODE_BLOCK_END ;
+            MARKDOWN_CODE_BLOCK_END;
+
+    protected static final String RBAC_GROUP_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for specified group.";
+    protected static final String RBAC_GROUP_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for specified group.";
+    protected static final String RBAC_GROUP_DELETE_CHECK = " Security check is performed to verify that the user has 'DELETE' permission for specified group.";
+    protected static final String RBAC_GROUP_ADD_CHECK = " Security check is performed to verify that the user has 'ADD_TO_GROUP' permission for specified group.";
+    protected static final String RBAC_GROUP_REMOVE_CHECK = " Security check is performed to verify that the user has 'REMOVE_FROM_GROUP' permission for specified group.";
+
+    protected static final String RBAC_READ_CHECK = " Security check is performed to verify that the user has 'READ' permission for the entity (entities).";
+    protected static final String RBAC_WRITE_CHECK = " Security check is performed to verify that the user has 'WRITE' permission for the entity (entities).";
+    protected static final String RBAC_DELETE_CHECK = " Security check is performed to verify that the user has 'DELETE' permission for the entity (entities).";
+
+    protected static final String WL_READ_CHECK = "\n\nSecurity check is performed to verify that the user has 'READ' permission for the white labeling resource.";
+    protected static final String WL_WRITE_CHECK = "\n\nSecurity check is performed to verify that the user has 'WRITE' permission for the white labeling resource.";
+
+    private static final String CONVERTER_UPLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\",\n" +
+            "   \"encoder\":null\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_DOWNLINK_CONFIGURATION = MARKDOWN_CODE_BLOCK_START + "{\n" +
+            "   \"decoder\":null,\n" +
+            "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempFreq = msg.temperatureUploadFrequency;\\ndata.humFreq = msg.humidityUploadFrequency;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
+            "}" + MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEXT_UPLINK_CONFIGURATION = "```text\n" +
+            "// Decode an uplink message from a buffer\n" +
+            "// payload - array of bytes\n" +
+            "// metadata - key/value object\n" +
+            "\n" +
+            "/** Decoder **/\n" +
+            "\n" +
+            "// decode payload to string\n" +
+            "var payloadStr = decodeToString(payload);\n" +
+            "\n" +
+            "// decode payload to JSON\n" +
+            "// var data = decodeToJson(payload);\n" +
+            "\n" +
+            "var deviceName = 'Device A';\n" +
+            "var deviceType = 'thermostat';\n" +
+            "var customerName = 'customer';\n" +
+            "var groupName = 'thermostat devices';\n" +
+            "// use assetName and assetType instead of deviceName and deviceType\n" +
+            "// to automatically create assets instead of devices.\n" +
+            "// var assetName = 'Asset A';\n" +
+            "// var assetType = 'building';\n" +
+            "\n" +
+            "// Result object with device/asset attributes/telemetry data\n" +
+            "var result = {\n" +
+            "// Use deviceName and deviceType or assetName and assetType, but not both.\n" +
+            "   deviceName: deviceName,\n" +
+            "   deviceType: deviceType,\n" +
+            "// assetName: assetName,\n" +
+            "// assetType: assetType,\n" +
+            "   customerName: customerName,\n" +
+            "   groupName: groupName,\n" +
+            "   attributes: {\n" +
+            "       model: 'Model A',\n" +
+            "       serialNumber: 'SN111',\n" +
+            "       integrationName: metadata['integrationName']\n" +
+            "   },\n" +
+            "   telemetry: {\n" +
+            "       temperature: 42,\n" +
+            "       humidity: 80,\n" +
+            "       rawData: payloadStr\n" +
+            "   }\n" +
+            "};\n" +
+            "\n" +
+            "/** Helper functions **/\n" +
+            "\n" +
+            "function decodeToString(payload) {\n" +
+            "   return String.fromCharCode.apply(String, payload);\n" +
+            "}\n" +
+            "\n" +
+            "function decodeToJson(payload) {\n" +
+            "   // covert payload to string.\n" +
+            "   var str = decodeToString(payload);\n" +
+            "\n" +
+            "   // parse string to JSON\n" +
+            "   var data = JSON.parse(str);\n" +
+            "   return data;\n" +
+            "}\n" +
+            "\n" +
+            "return result;" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEXT_DOWNLINK_CONFIGURATION = "```text\n" +
+            "// Encode downlink data from incoming Rule Engine message\n" +
+            "\n" +
+            "// msg - JSON message payload downlink message json\n" +
+            "// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\n" +
+            "// metadata - list of key-value pairs with additional data about the message\n" +
+            "// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\n" +
+            "\n" +
+            "/** Encoder **/\n" +
+            "\n" +
+            "var data = {};\n" +
+            "\n" +
+            "// Process data from incoming message and metadata\n" +
+            "\n" +
+            "data.tempFreq = msg.temperatureUploadFrequency;\n" +
+            "data.humFreq = msg.humidityUploadFrequency;\n" +
+            "\n" +
+            "data.devSerialNumber = metadata['ss_serialNumber'];\n" +
+            "\n" +
+            "// Result object with encoded downlink payload\n" +
+            "var result = {\n" +
+            "\n" +
+            "    // downlink data content type: JSON, TEXT or BINARY (base64 format)\n" +
+            "    contentType: \"JSON\",\n" +
+            "\n" +
+            "    // downlink data\n" +
+            "    data: JSON.stringify(data),\n" +
+            "\n" +
+            "    // Optional metadata object presented in key/value format\n" +
+            "    metadata: {\n" +
+            "            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\n" +
+            "    }\n" +
+            "\n" +
+            "};\n" +
+            "\n" +
+            "return result;" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_UPLINK_DEBUG_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"inContentType\":\"JSON\",\n" +
+            "   \"inContent\":\"{\\\"temp\\\":40}\",\n" +
+            "   \"inMetadata\":\"{\\\"Header:sec-ch-ua\\\":\\\"\\\\\\\"Chromium\\\\\\\";v=\\\\\\\"94\\\\\\\", \\\\\\\"Google Chrome\\\\\\\";v=\\\\\\\"94\\\\\\\", \\\\\\\";Not A Brand\\\\\\\";v=\\\\\\\"99\\\\\\\"\\\",\\\"Header:user-agent\\\":\\\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36\\\",\\\"integrationName\\\":\\\"Integration\\\",\\\"Header:cookie\\\":\\\"GUID=zYSs8hymSwZKv8kHALKY; redirect_to=%2F; JSESSIONID=B0A7C8E481409CE7924E738DB04F62F9\\\",\\\"Header:sec-ch-ua-platform\\\":\\\"\\\\\\\"Linux\\\\\\\"\\\",\\\"Header:accept\\\":\\\"*/*\\\",\\\"Header:origin\\\":\\\"http://localhost:8080\\\",\\\"Header:sec-fetch-site\\\":\\\"same-origin\\\",\\\"Header:connection\\\":\\\"keep-alive\\\",\\\"Header:accept-encoding\\\":\\\"gzip, deflate, br\\\",\\\"Header:content-type\\\":\\\"application/json\\\",\\\"Header:content-length\\\":\\\"16\\\",\\\"Header:sec-fetch-mode\\\":\\\"cors\\\",\\\"Header:sec-ch-ua-mobile\\\":\\\"?0\\\",\\\"Header:sec-fetch-dest\\\":\\\"empty\\\",\\\"Header:host\\\":\\\"localhost:8080\\\",\\\"Header:referer\\\":\\\"http://localhost:8080/swagger-ui.html\\\",\\\"Header:accept-language\\\":\\\"en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7,uk;q=0.6,und;q=0.5\\\"}\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_DOWNLINK_DEBUG_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"inContentType\":\"JSON\",\n" +
+            "   \"inContent\":\"{\\\"temp\\\":42,\\\"humidity\\\":77}\",\n" +
+            "   \"inMsgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"inMetadata\":\"{\\\"data\\\":\\\"40\\\"}\",\n" +
+            "   \"inIntegrationMetadata\":\"{\\\"integrationName\\\":\\\"Integration\\\"}\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_UPLINK_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "   },\n" +
+            "   \"payload\":\"ewogICAgImRhdGEiOiAiZGF0YSIKfQ==\",\n" +
+            "   \"decoder\":\"// Decode an uplink message from a buffer\\n// payload - array of bytes\\n// metadata - key/value object\\n\\n/** Decoder **/\\n\\n// decode payload to string\\nvar payloadStr = decodeToString(payload);\\n\\n// decode payload to JSON\\n// var data = decodeToJson(payload);\\n\\nvar deviceName = 'Device A';\\nvar deviceType = 'thermostat';\\nvar customerName = 'customer';\\nvar groupName = 'thermostat devices';\\n// use assetName and assetType instead of deviceName and deviceType\\n// to automatically create assets instead of devices.\\n// var assetName = 'Asset A';\\n// var assetType = 'building';\\n\\n// Result object with device/asset attributes/telemetry data\\nvar result = {\\n// Use deviceName and deviceType or assetName and assetType, but not both.\\n   deviceName: deviceName,\\n   deviceType: deviceType,\\n// assetName: assetName,\\n// assetType: assetType,\\n   customerName: customerName,\\n   groupName: groupName,\\n   attributes: {\\n       model: 'Model A',\\n       serialNumber: 'SN111',\\n       integrationName: metadata['integrationName']\\n   },\\n   telemetry: {\\n       temperature: 42,\\n       humidity: 80,\\n       rawData: payloadStr\\n   }\\n};\\n\\n/** Helper functions **/\\n\\nfunction decodeToString(payload) {\\n   return String.fromCharCode.apply(String, payload);\\n}\\n\\nfunction decodeToJson(payload) {\\n   // covert payload to string.\\n   var str = decodeToString(payload);\\n\\n   // parse string to JSON\\n   var data = JSON.parse(str);\\n   return data;\\n}\\n\\nreturn result;\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_UPLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"output\":\"{\\\"deviceName\\\":\\\"Device A\\\",\\\"deviceType\\\":\\\"thermostat\\\",\\\"customerName\\\":\\\"customer\\\",\\\"groupName\\\":\\\"thermostat devices\\\",\\\"attributes\\\":{\\\"model\\\":\\\"Model A\\\",\\\"serialNumber\\\":\\\"SN111\\\"},\\\"telemetry\\\":{\\\"temperature\\\":42,\\\"humidity\\\":80,\\\"rawData\\\":\\\"{\\\\n    \\\\\\\"data\\\\\\\": \\\\\\\"data\\\\\\\"\\\\n}\\\"}}\",\n" +
+            "   \"error\":\"\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String CONVERTER_CONFIGURATION_DESCRIPTION = "# Converter Configuration" + NEW_LINE +
+            "Converter configuration (**'configuration'** field) is the JSON object that should contain one of two possible fields: **'decoder'** or **'encoder'**. " +
+            "The former is used when the converter has UPLINK type, the latter is used - when DOWNLINK type. It can contain both 'decoder' and 'encoder' fields, when the correct one is specified for the appropriate converter type, another one can be set to 'null'. " +
+            "See the examples of each one below. " + NEW_LINE +
+            "## Uplink Converter Configuration" + NEW_LINE +
+            CONVERTER_UPLINK_CONFIGURATION + NEW_LINE +
+            "Decoder field in the more readable form:" + NEW_LINE +
+            CONVERTER_TEXT_UPLINK_CONFIGURATION + NEW_LINE +
+            "## Downlink Converter Configuration" + NEW_LINE +
+            CONVERTER_DOWNLINK_CONFIGURATION + NEW_LINE +
+            "Encoder field in the more readable form:" + NEW_LINE +
+            CONVERTER_TEXT_DOWNLINK_CONFIGURATION + NEW_LINE;
+
+    static final String CONVERTER_DEBUG_INPUT_DEFINITION = "## Uplink Converter Debug Input Event Example" + NEW_LINE +
+            CONVERTER_UPLINK_DEBUG_INPUT + NEW_LINE +
+            " * 'inContentType' - content type of the message received by the integration; \n" +
+            " * 'inContent' - message data received; \n" +
+            " * 'inMetadata' - integration metadata (e.g. headers)." + NEW_LINE +
+            "## Downlink Converter Debug Input Event Example" + NEW_LINE +
+            CONVERTER_DOWNLINK_DEBUG_INPUT + NEW_LINE +
+            " * 'inContentType' - content type of the message received by the integration; \n" +
+            " * 'inContent' - content of the message pushed from the rule engine; \n" +
+            " * 'inMsgType' - type of the message pushed from the rule engine; \n" +
+            " * 'inMetadata' - content of the message metadata pushed from the rule engine; \n" +
+            " * 'inIntegrationMetadata' - integration metadata. \n";
+
+    static final String TEST_UPLINK_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            CONVERTER_TEST_UPLINK_INPUT + NEW_LINE +
+            " * 'metadata' - integration metadata; \n" +
+            " * 'payload' - base64 string representation of the data; \n" +
+            " * 'decoder' - string representation of the decoder configuration." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            CONVERTER_TEST_UPLINK_OUTPUT + NEW_LINE +
+            " * 'output' - string representation of the output message; \n" +
+            " * 'error' - string representation of the error message. \n";
+
+    private static final String CONVERTER_TEST_DOWNLINK_INPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"metadata\":{\n" +
+            "      \"data\":\"40\"\n" +
+            "   },\n" +
+            "   \"msg\":\"{\\n    \\\"temp\\\": 42,\\n    \\\"humidity\\\": 77\\n}\",\n" +
+            "   \"msgType\":\"POST_TELEMETRY_REQUEST\",\n" +
+            "   \"integrationMetadata\":{\n" +
+            "      \"integrationName\":\"Integration\"\n" +
+            "   },\n" +
+            "   \"encoder\":\"// Encode downlink data from incoming Rule Engine message\\n\\n// msg - JSON message payload downlink message json\\n// msgType - type of message, for ex. 'ATTRIBUTES_UPDATED', 'POST_TELEMETRY_REQUEST', etc.\\n// metadata - list of key-value pairs with additional data about the message\\n// integrationMetadata - list of key-value pairs with additional data defined in Integration executing this converter\\n\\n/** Encoder **/\\n\\nvar data = {};\\n\\n// Process data from incoming message and metadata\\n\\ndata.tempValue = msg.temp;\\ndata.humValue = msg.humidity;\\n\\ndata.devSerialNumber = metadata['ss_serialNumber'];\\n\\n// Result object with encoded downlink payload\\nvar result = {\\n\\n    // downlink data content type: JSON, TEXT or BINARY (base64 format)\\n    contentType: \\\"JSON\\\",\\n\\n    // downlink data\\n    data: JSON.stringify(data),\\n\\n    // Optional metadata object presented in key/value format\\n    metadata: {\\n            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\\n    }\\n\\n};\\n\\nreturn result;\"\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    private static final String CONVERTER_TEST_DOWNLINK_OUTPUT = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"contentType\":\"JSON\",\n" +
+            "   \"data\":\"{\\\"tempValue\\\":42,\\\"humValue\\\":77}\",\n" +
+            "   \"metadata\":{\n" +
+            "      \"topic\":\"sensor/Temp Sensor/upload\"\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String TEST_DOWNLINK_CONVERTER_DEFINITION = "## Request Body Example" + NEW_LINE +
+            CONVERTER_TEST_DOWNLINK_INPUT + NEW_LINE +
+            " * 'metadata' - message metadata pushed from the rule engine; \n" +
+            " * 'msg' - message data pushed from the rule engine; \n" +
+            " * 'msgType' - type of the message pushed from the rule engine; \n" +
+            " * 'integrationMetadata' - integration metadata object; \n" +
+            " * 'encoder' - string representation of the encoder configuration." + NEW_LINE +
+            "## Response Body Example" + NEW_LINE +
+            CONVERTER_TEST_DOWNLINK_OUTPUT + NEW_LINE +
+            " * 'contentType' - downlink data content type; \n" +
+            " * 'data' - downlink data; \n" +
+            " * 'metadata' - optional metadata object. \n";
+
+    private static final String INTEGRATION_CONFIGURATION_EXAMPLE = MARKDOWN_CODE_BLOCK_START +
+            "{\n" +
+            "   \"clientConfiguration\":{\n" +
+            "      \"host\":\"broker.hivemq.com\",\n" +
+            "      \"port\":1883,\n" +
+            "      \"cleanSession\":false,\n" +
+            "      \"ssl\":false,\n" +
+            "      \"connectTimeoutSec\":10,\n" +
+            "      \"clientId\":\"\",\n" +
+            "      \"maxBytesInMessage\":32368,\n" +
+            "      \"credentials\":{\n" +
+            "         \"type\":\"anonymous\"\n" +
+            "      }\n" +
+            "   },\n" +
+            "   \"downlinkTopicPattern\":\"${topic}\",\n" +
+            "   \"topicFilters\":[\n" +
+            "      {\n" +
+            "         \"filter\":\"tb/mqtt-integration-tutorial/sensors/+/temperature\",\n" +
+            "         \"qos\":0\n" +
+            "      }\n" +
+            "   ],\n" +
+            "   \"metadata\":{\n" +
+            "   }\n" +
+            "}" +
+            MARKDOWN_CODE_BLOCK_END;
+
+    static final String INTEGRATION_CONFIGURATION_DEFINITION = NEW_LINE +
+            "# Integration Configuration" + NEW_LINE +
+            "Integration configuration (**'configuration'** field) is the JSON object representing the special configuration per integration type with " +
+            "the connectivity fields and other important parameters dependent on the specific integration type. Let's review the configuration object for the MQTT Integration type below. " +
+            NEW_LINE + INTEGRATION_CONFIGURATION_EXAMPLE + NEW_LINE;
 }

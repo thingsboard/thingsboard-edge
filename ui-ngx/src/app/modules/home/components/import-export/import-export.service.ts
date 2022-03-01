@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Inject, Injectable } from '@angular/core';
@@ -21,7 +36,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, isDefined, isObject, isString, isUndefined } from '@core/utils';
+import { deepClone, isDefined, isNumber, isObject, isString, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -35,7 +50,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { ImportDialogComponent, ImportDialogData } from '@home/components/import-export/import-dialog.component';
 import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import {catchError, map, mergeMap, switchMap, tap} from 'rxjs/operators';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { EntityService } from '@core/http/entity.service';
 import { Widget, WidgetSize, WidgetType, WidgetTypeDetails } from '@shared/models/widget.models';
@@ -44,16 +59,31 @@ import {
   EntityAliasesDialogData
 } from '@home/components/alias/entity-aliases-dialog.component';
 import { ItemBufferService, WidgetItem } from '@core/services/item-buffer.service';
-import { FileType, ImportWidgetResult, JSON_TYPE, WidgetsBundleItem, ZIP_TYPE, BulkImportRequest, BulkImportResult } from './import-export.models';
+import {
+  BulkImportRequest,
+  BulkImportResult,
+  CSV_TYPE,
+  FileType,
+  ImportWidgetResult,
+  JSON_TYPE,
+  TEMPLATE_XLS,
+  WidgetsBundleItem,
+  XLS_TYPE,
+  XLSX_TYPE,
+  ZIP_TYPE
+} from './import-export.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { UtilsService } from '@core/services/utils.service';
 import { WidgetService } from '@core/http/widget.service';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
-import { ImportEntitiesResultInfo, ImportEntityData } from '@shared/models/entity.models';
+import { ImportEntityData, ImportEntitiesResultInfo } from '@shared/models/entity.models';
 import { RequestConfig } from '@core/http/http-utils';
 import { RuleChain, RuleChainImport, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
+import { CustomerId } from '@shared/models/id/customer-id';
+import { ConverterService } from '@core/http/converter.service';
+import { Converter, ConverterType } from '@shared/models/converter.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { DeviceProfile } from '@shared/models/device.models';
@@ -62,6 +92,12 @@ import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { DeviceService } from '@core/http/device.service';
 import { AssetService } from '@core/http/asset.service';
 import { EdgeService } from '@core/http/edge.service';
+import { RuleNode } from '@shared/models/rule-node.models';
+
+import { Borders, Column, Workbook } from 'exceljs';
+import * as moment_ from 'moment';
+
+const moment = moment_;
 
 // @dynamic
 @Injectable()
@@ -78,6 +114,7 @@ export class ImportExportService {
               private tenantProfileService: TenantProfileService,
               private entityService: EntityService,
               private ruleChainService: RuleChainService,
+              private converterService: ConverterService,
               private deviceService: DeviceService,
               private assetService: AssetService,
               private edgeService: EdgeService,
@@ -100,7 +137,7 @@ export class ImportExportService {
     );
   }
 
-  public importDashboard(): Observable<Dashboard> {
+  public importDashboard(customerId: CustomerId, entityGroupId?: string): Observable<Dashboard> {
     return this.openImportDialog('dashboard.import', 'dashboard.dashboard-file').pipe(
       mergeMap((dashboard: Dashboard) => {
         if (!this.validateImportedDashboard(dashboard)) {
@@ -110,6 +147,7 @@ export class ImportExportService {
           throw new Error('Invalid dashboard file');
         } else {
           dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
+          dashboard.customerId = customerId;
           let aliasIds = null;
           const entityAliases = dashboard.configuration.entityAliases;
           if (entityAliases) {
@@ -126,16 +164,16 @@ export class ImportExportService {
                       for (const aliasId of Object.keys(updatedEntityAliases)) {
                         entityAliases[aliasId] = updatedEntityAliases[aliasId];
                       }
-                      return this.saveImportedDashboard(dashboard);
+                      return this.saveImportedDashboard(dashboard, entityGroupId);
                     })
                   );
                 } else {
-                  return this.saveImportedDashboard(dashboard);
+                  return this.saveImportedDashboard(dashboard, entityGroupId);
                 }
               }
              ));
           } else {
-            return this.saveImportedDashboard(dashboard);
+            return this.saveImportedDashboard(dashboard, entityGroupId);
           }
         }
       }),
@@ -359,7 +397,8 @@ export class ImportExportService {
     }
   }
 
-  public importEntities(entitiesData: ImportEntityData[], entityType: EntityType, updateData: boolean,
+  public importEntities(entitiesData: ImportEntityData[], customerId: CustomerId, entityType: EntityType,
+                        entityGroupId: string, updateData: boolean,
                         importEntityCompleted?: () => void, config?: RequestConfig): Observable<ImportEntitiesResultInfo> {
     let partSize = 100;
     partSize = entitiesData.length > partSize ? partSize : entitiesData.length;
@@ -368,7 +407,8 @@ export class ImportExportService {
     const importEntitiesObservables: Observable<ImportEntitiesResultInfo>[] = [];
     for (let i = 0; i < partSize; i++) {
       let saveEntityPromise: Observable<ImportEntitiesResultInfo>;
-      saveEntityPromise = this.entityService.saveEntityParameters(entityType, entitiesData[i], updateData, config);
+      saveEntityPromise = this.entityService.saveEntityParameters(customerId, entityType, entityGroupId, entitiesData[i],
+                                                                  updateData, config);
       const importEntityPromise = saveEntityPromise.pipe(
           tap((res) => {
             if (importEntityCompleted) {
@@ -385,7 +425,7 @@ export class ImportExportService {
         }
         entitiesData.splice(0, partSize);
         if (entitiesData.length) {
-          return this.importEntities(entitiesData, entityType, updateData, importEntityCompleted, config).pipe(
+          return this.importEntities(entitiesData, customerId, entityType, entityGroupId, updateData, importEntityCompleted, config).pipe(
             map((response) => {
               return this.sumObject(statisticalInfo, response) as ImportEntitiesResultInfo;
             })
@@ -423,7 +463,7 @@ export class ImportExportService {
 
   public importRuleChain(expectedRuleChainType: RuleChainType): Observable<RuleChainImport> {
     return this.openImportDialog('rulechain.import', 'rulechain.rulechain-file').pipe(
-      map((ruleChainImport: RuleChainImport) => {
+      mergeMap((ruleChainImport: RuleChainImport) => {
         if (!this.validateImportedRuleChain(ruleChainImport)) {
           this.store.dispatch(new ActionNotificationShow(
             {message: this.translate.instant('rulechain.invalid-rulechain-file-error'),
@@ -435,10 +475,122 @@ export class ImportExportService {
               type: 'error'}));
           throw new Error('Invalid rule chain type');
         } else {
-          return ruleChainImport;
+          return this.processOldRuleChainConnections(ruleChainImport);
         }
       }),
       catchError((err) => {
+        return of(null);
+      })
+    );
+  }
+
+  private processOldRuleChainConnections(ruleChainImport: RuleChainImport): Observable<RuleChainImport> {
+    const metadata = ruleChainImport.metadata;
+    if ((metadata as any).ruleChainConnections) {
+      const ruleChainNameResolveObservables: Observable<void>[] = [];
+      for (const ruleChainConnection of (metadata as any).ruleChainConnections) {
+        if (ruleChainConnection.targetRuleChainId && ruleChainConnection.targetRuleChainId.id) {
+          const ruleChainNode: RuleNode = {
+            name: '',
+            debugMode: false,
+            type: 'org.thingsboard.rule.engine.flow.TbRuleChainInputNode',
+            configuration: {
+              ruleChainId: ruleChainConnection.targetRuleChainId.id
+            },
+            additionalInfo: ruleChainConnection.additionalInfo
+          };
+          ruleChainNameResolveObservables.push(this.ruleChainService.getRuleChain(ruleChainNode.configuration.ruleChainId,
+            {ignoreErrors: true, ignoreLoading: true}).pipe(
+            catchError(err => {
+              return of({name: 'Rule Chain Input'} as RuleChain);
+            }),
+            map((ruleChain => {
+                ruleChainNode.name = ruleChain.name;
+                return null;
+              })
+            )
+          ));
+          const toIndex = metadata.nodes.length;
+          metadata.nodes.push(ruleChainNode);
+          metadata.connections.push({
+            toIndex,
+            fromIndex: ruleChainConnection.fromIndex,
+            type: ruleChainConnection.type
+          });
+        }
+      }
+      if (ruleChainNameResolveObservables.length) {
+        return forkJoin(ruleChainNameResolveObservables).pipe(
+          map(() => ruleChainImport)
+        );
+      } else {
+        return of(ruleChainImport);
+      }
+    } else {
+      return of(ruleChainImport);
+    }
+  }
+
+  public exportConverter(converterId: string) {
+    this.converterService.getConverter(converterId).subscribe((converter) => {
+        if (!converter.configuration || converter.configuration === null) {
+          converter.configuration = {};
+        }
+        let name = converter.name;
+        name = name.toLowerCase().replace(/\W/g, '_');
+        this.exportToPc(this.prepareExport(converter), name);
+      },
+      (error) => {
+        this.handleExportError(error, 'converter.export-failed-error');
+      });
+  }
+
+  public importConverter(): Observable<Converter> {
+    return this.openImportDialog('converter.import', 'converter.converter-file').pipe(
+      mergeMap((converter: Converter) => {
+        if (!this.validateImportedConverter(converter)) {
+          this.store.dispatch(new ActionNotificationShow(
+            {message: this.translate.instant('converter.invalid-converter-file-error'),
+              type: 'error'}));
+          throw new Error('Invalid converter file');
+        } else {
+          return this.converterService.saveConverter(converter);
+        }
+      }),
+      catchError((err) => {
+        return of(null);
+      })
+    );
+  }
+
+  public exportTenantProfile(tenantProfileId: string) {
+    this.tenantProfileService.getTenantProfile(tenantProfileId).subscribe(
+      (tenantProfile) => {
+        let name = tenantProfile.name;
+        name = name.toLowerCase().replace(/\W/g, '_');
+        this.exportToPc(this.prepareProfileExport(tenantProfile), name);
+      },
+      (e) => {
+        this.handleExportError(e, 'tenant-profile.export-failed-error');
+      }
+    );
+  }
+
+  public importTenantProfile(): Observable<TenantProfile> {
+    return this.openImportDialog('tenant-profile.import', 'tenant-profile.tenant-profile-file').pipe(
+      mergeMap((tenantProfile: TenantProfile) => {
+        if (!this.validateImportedTenantProfile(tenantProfile)) {
+          this.store.dispatch(new ActionNotificationShow(
+            {
+              message: this.translate.instant('tenant-profile.invalid-tenant-profile-file-error'),
+              type: 'error'
+            }));
+          throw new Error('Invalid tenant profile file');
+        } else {
+          return this.tenantProfileService.saveTenantProfile(tenantProfile);
+        }
+      }),
+      catchError(() => {
         return of(null);
       })
     );
@@ -475,35 +627,139 @@ export class ImportExportService {
     );
   }
 
-  public exportTenantProfile(tenantProfileId: string) {
-    this.tenantProfileService.getTenantProfile(tenantProfileId).subscribe(
-      (tenantProfile) => {
-        let name = tenantProfile.name;
-        name = name.toLowerCase().replace(/\W/g, '_');
-        this.exportToPc(this.prepareProfileExport(tenantProfile), name);
-      },
-      (e) => {
-        this.handleExportError(e, 'tenant-profile.export-failed-error');
+  private processCSVCell(cellData: any): any {
+    if (isString(cellData)) {
+      let result = cellData.replace(/"/g, '""');
+      if (result.search(/([",\n])/g) >= 0) {
+        result = `"${result}"`;
       }
-    );
+      return result;
+    }
+    return cellData;
   }
 
-  public importTenantProfile(): Observable<TenantProfile> {
-    return this.openImportDialog('tenant-profile.import', 'tenant-profile.tenant-profile-file').pipe(
-      mergeMap((tenantProfile: TenantProfile) => {
-        if (!this.validateImportedTenantProfile(tenantProfile)) {
-          this.store.dispatch(new ActionNotificationShow(
-            {message: this.translate.instant('tenant-profile.invalid-tenant-profile-file-error'),
-              type: 'error'}));
-          throw new Error('Invalid tenant profile file');
-        } else {
-          return this.tenantProfileService.saveTenantProfile(tenantProfile);
+  public exportCsv(data: {[key: string]: any}[], filename: string) {
+    let colsHead: string;
+    let colsData: string;
+    if (data && data.length) {
+      this.formatDataAccordingToLocale(data);
+      colsHead = Object.keys(data[0]).map(key => [this.processCSVCell(key)]).join(';');
+      colsData = data.map(obj => [ // obj === row
+        Object.keys(obj).map(col => [
+          this.processCSVCell(obj[col])
+        ]).join(';')
+      ]).join('\n');
+    } else {
+      colsHead = '';
+      colsData = '';
+    }
+    const csvData = `${colsHead}\n${colsData}`;
+    this.downloadFile(csvData, filename, CSV_TYPE);
+  }
+
+  public exportXls(data: {[key: string]: any}[], filename: string) {
+    let colsHead: string;
+    let colsData: string;
+    if (data && data.length) {
+      this.formatDataAccordingToLocale(data);
+      colsHead = `<tr>${Object.keys(data[0]).map(key => `<td><b>${key}</b></td>`).join('')}</tr>`;
+      colsData = data.map(obj => [`<tr>
+                ${Object.keys(obj).map(col => `<td>${obj[col] ? obj[col] : ''}</td>`).join('')}
+            </tr>`])
+        .join('');
+    } else {
+      colsHead = '';
+      colsData = '';
+    }
+    const tableData = `<table>${colsHead}${colsData}</table>`.trim();
+    const parameters = { title: filename, table: tableData };
+    const xlsData = TEMPLATE_XLS.replace(/{(\w+)}/g, (x, y) => parameters[y]);
+    this.downloadFile(xlsData, filename, XLS_TYPE);
+  }
+
+  public exportXlsx(data: { [key: string]: any }[], filename: string) {
+    import('exceljs').then((Excel) => {
+      const workbook: Workbook = new Excel.Workbook();
+      workbook.creator = 'ThingsBoard, Inc.';
+      workbook.lastModifiedBy = 'ThingsBoard, Inc.';
+      workbook.properties.date1904 = false;
+
+      const sheet = workbook.addWorksheet('Export');
+
+      const cellBorderStyle: Partial<Borders> = {
+        top: {style: 'thin'},
+        left: {style: 'thin'},
+        bottom: {style: 'thin'},
+        right: {style: 'thin'}
+      };
+
+      const dateFormat = 'yyyy-MM-dd HH:mm:ss';
+
+      if (data && data.length) {
+        const titles = Object.keys(data[0]);
+        const columnsTable: Array<Partial<Column>> = [];
+        titles.forEach((title) => {
+          columnsTable.push({
+            header: title,
+            key: title,
+            width: (title === 'Timestamp' ? dateFormat.length : title.length) * 1.2,
+            style: {
+              numFmt: title === 'Timestamp' ? dateFormat : null
+            }
+          });
+        });
+        sheet.columns = columnsTable;
+        sheet.views = [
+          {state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'B1'}
+        ];
+        sheet.getRow(1).eachCell(cell => cell.border = cellBorderStyle);
+
+        data.forEach((item) => {
+          if (item.Timestamp) {
+            item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
+          }
+          sheet.addRow(item).eachCell((cell) => {
+            cell.border = cellBorderStyle;
+          });
+        });
+      }
+
+      workbook.xlsx.writeBuffer().then((xlsxData) => {
+        this.downloadFile(xlsxData, filename, XLSX_TYPE);
+      });
+    });
+  }
+
+  private formatDataAccordingToLocale(data: {[key: string]: any}[]) {
+    for (const row of data) {
+      for (const key in Object.keys(row)) {
+        if (isNumber(row[key])) {
+          row[key] = (row[key] as number).toLocaleString(undefined, {maximumFractionDigits: 14});
         }
-      }),
-      catchError(() => {
-        return of(null);
-      })
-    );
+      }
+    }
+  }
+
+  private validateImportedConverter(converter: Converter): boolean {
+    if (isUndefined(converter.name)
+        || isUndefined(converter.type
+        || isUndefined(converter.configuration))) {
+      return false;
+    }
+    if (!ConverterType[converter.type]) {
+      return false;
+    }
+    if (converter.type === ConverterType.UPLINK) {
+      if (!converter.configuration.decoder || !converter.configuration.decoder.length) {
+        return false;
+      }
+    }
+    if (converter.type === ConverterType.DOWNLINK) {
+      if (!converter.configuration.encoder || !converter.configuration.encoder.length) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public exportJSZip(data: object, filename: string) {
@@ -645,8 +901,8 @@ export class ImportExportService {
     return true;
   }
 
-  private saveImportedDashboard(dashboard: Dashboard): Observable<Dashboard> {
-    return this.dashboardService.saveDashboard(dashboard);
+  private saveImportedDashboard(dashboard: Dashboard, entityGroupId?: string): Observable<Dashboard> {
+    return this.dashboardService.saveDashboard(dashboard, entityGroupId);
   }
 
   private addImportedWidget(dashboard: Dashboard, targetState: string,
@@ -787,6 +1043,36 @@ export class ImportExportService {
     };
   }
 
+  private prepareDashboardExport(dashboard: Dashboard): Dashboard {
+    dashboard = this.prepareExport(dashboard);
+    delete dashboard.assignedCustomers;
+    delete dashboard.ownerId;
+    return dashboard;
+  }
+
+  private prepareDeviceProfileExport(deviceProfile: DeviceProfile): DeviceProfile {
+    deviceProfile = this.prepareExport(deviceProfile);
+    deviceProfile.default = false;
+    return deviceProfile;
+  }
+
+  private prepareExport(data: any): any {
+    const exportedData = deepClone(data);
+    if (isDefined(exportedData.id)) {
+      delete exportedData.id;
+    }
+    if (isDefined(exportedData.createdTime)) {
+      delete exportedData.createdTime;
+    }
+    if (isDefined(exportedData.tenantId)) {
+      delete exportedData.tenantId;
+    }
+    if (isDefined(exportedData.customerId)) {
+      delete exportedData.customerId;
+    }
+    return exportedData;
+  }
+
   private openImportDialog(importTitle: string, importFileLabel: string): Observable<any> {
     return this.dialog.open<ImportDialogComponent, ImportDialogData,
       any>(ImportDialogComponent, {
@@ -843,33 +1129,10 @@ export class ImportExportService {
     }
   }
 
-  private prepareDashboardExport(dashboard: Dashboard): Dashboard {
-    dashboard = this.prepareExport(dashboard);
-    delete dashboard.assignedCustomers;
-    return dashboard;
-  }
-
   private prepareProfileExport<T extends DeviceProfile|TenantProfile>(profile: T): T {
     profile = this.prepareExport(profile);
     profile.default = false;
     return profile;
-  }
-
-  private prepareExport(data: any): any {
-    const exportedData = deepClone(data);
-    if (isDefined(exportedData.id)) {
-      delete exportedData.id;
-    }
-    if (isDefined(exportedData.createdTime)) {
-      delete exportedData.createdTime;
-    }
-    if (isDefined(exportedData.tenantId)) {
-      delete exportedData.tenantId;
-    }
-    if (isDefined(exportedData.customerId)) {
-      delete exportedData.customerId;
-    }
-    return exportedData;
   }
 
 }

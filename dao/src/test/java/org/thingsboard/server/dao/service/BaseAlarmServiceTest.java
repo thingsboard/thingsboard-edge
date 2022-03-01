@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.service;
 
@@ -22,8 +37,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
@@ -34,8 +51,12 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataPageLink;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
@@ -50,21 +71,26 @@ import org.thingsboard.common.util.JacksonUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
+public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     public static final String TEST_ALARM = "TEST_ALARM";
     private TenantId tenantId;
+    private MergedUserPermissions mergedUserPermissions;
 
     @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
+    public void beforeRun() {
+        tenantId = before();
+        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.ALARM), Collections.singleton(Operation.ALL));
+        mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
     @After
@@ -215,6 +241,52 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void testFindAlarmCounts() throws ExecutionException, InterruptedException {
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId id1 = new AssetId(Uuids.timeBased());
+        AssetId id2 = new AssetId(Uuids.timeBased());
+
+        EntityRelation relation = new EntityRelation(parentId, id1, EntityRelation.CONTAINS_TYPE);
+        Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());
+        relation = new EntityRelation(parentId, id2, EntityRelation.CONTAINS_TYPE);
+        Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());
+
+        long ts = System.currentTimeMillis();
+        Alarm alarm = Alarm.builder().tenantId(tenantId).originator(id1)
+                .type(TEST_ALARM)
+                .propagate(true)
+                .severity(AlarmSeverity.CRITICAL).status(AlarmStatus.ACTIVE_UNACK)
+                .startTs(ts).build();
+
+        alarmService.createOrUpdateAlarm(alarm);
+        alarm = Alarm.builder().tenantId(tenantId).originator(id2)
+                .type(TEST_ALARM)
+                .propagate(true)
+                .severity(AlarmSeverity.WARNING).status(AlarmStatus.ACTIVE_ACK)
+                .startTs(ts).build();
+        alarmService.createOrUpdateAlarm(alarm);
+
+        List<Long> alarmCounts = alarmService.findAlarmCounts(tenantId, AlarmQuery.builder()
+                        .affectedEntityId(parentId)
+                        .pageLink(
+                                new TimePageLink(new PageLink(Integer.MAX_VALUE), null, null)
+                        ).build(), Arrays.asList(
+                AlarmFilter.builder().severityList(Arrays.asList(AlarmSeverity.CRITICAL)).build(),
+                AlarmFilter.builder().severityList(Arrays.asList(AlarmSeverity.MAJOR)).build(),
+                AlarmFilter.builder().severityList(Arrays.asList(AlarmSeverity.WARNING))
+                        .typesList(Arrays.asList(TEST_ALARM)).statusList(Arrays.asList(AlarmStatus.ACTIVE_ACK)).build(),
+                AlarmFilter.builder().typesList(Arrays.asList(TEST_ALARM)).build()
+                )
+        );
+
+        Assert.assertNotNull(alarmCounts);
+        Assert.assertEquals(4, alarmCounts.size());
+        Assert.assertEquals(1, alarmCounts.get(0).longValue());
+        Assert.assertEquals(0, alarmCounts.get(1).longValue());
+        Assert.assertEquals(1, alarmCounts.get(2).longValue());
+        Assert.assertEquals(2, alarmCounts.get(3).longValue());
+    }
+
     public void testFindCustomerAlarm() throws ExecutionException, InterruptedException {
         Customer customer = new Customer();
         customer.setTitle("TestCustomer");
@@ -264,10 +336,10 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        PageData<AlarmData> tenantAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Arrays.asList(tenantDevice.getId(), customerDevice.getId()));
+        PageData<AlarmData> tenantAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Arrays.asList(tenantDevice.getId(), customerDevice.getId()));
         Assert.assertEquals(2, tenantAlarms.getData().size());
 
-        PageData<AlarmData> customerAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(customerDevice.getId()));
+        PageData<AlarmData> customerAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(customerDevice.getId()));
         Assert.assertEquals(1, customerAlarms.getData().size());
         Assert.assertEquals(deviceAlarm, customerAlarms.getData().get(0));
 
@@ -341,7 +413,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
         //TEST that propagated alarms are visible on the asset level.
-        PageData<AlarmData> customerAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(customerAsset.getId()));
+        PageData<AlarmData> customerAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(customerAsset.getId()));
         Assert.assertEquals(1, customerAlarms.getData().size());
         Assert.assertEquals(customerAlarm, customerAlarms.getData().get(0));
     }
@@ -392,12 +464,12 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
         //TEST that propagated alarms are visible on the asset level.
-        PageData<AlarmData> tenantAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(tenantId));
+        PageData<AlarmData> tenantAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(tenantId));
         Assert.assertEquals(1, tenantAlarms.getData().size());
         Assert.assertEquals(tenantAlarm, tenantAlarms.getData().get(0));
 
         //TEST that propagated alarms are visible on the asset level.
-        PageData<AlarmData> customerAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(customer.getId()));
+        PageData<AlarmData> customerAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(customer.getId()));
         Assert.assertEquals(1, customerAlarms.getData().size());
         Assert.assertEquals(customerAlarm, customerAlarms.getData().get(0));
     }
@@ -500,7 +572,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        PageData<AlarmData> alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(childId));
+        PageData<AlarmData> alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(childId));
 
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
@@ -516,13 +588,13 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(childId));
+        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(childId));
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, new Alarm(alarms.getData().get(0)));
 
         pageLink.setSearchPropagatedAlarms(true);
-        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(childId));
+        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(childId));
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, new Alarm(alarms.getData().get(0)));
@@ -543,7 +615,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(childId));
+        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(childId));
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, alarms.getData().get(0));
@@ -559,7 +631,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(parentId));
+        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(parentId));
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, alarms.getData().get(0));
@@ -604,7 +676,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(parentId));
+        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(parentId));
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, alarms.getData().get(0));
@@ -622,7 +694,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setSeverityList(Arrays.asList(AlarmSeverity.CRITICAL, AlarmSeverity.WARNING));
         pageLink.setStatusList(Arrays.asList(AlarmSearchStatus.ACTIVE));
 
-        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, toQuery(pageLink), Collections.singletonList(childId));
+        alarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(childId));
         Assert.assertNotNull(alarms.getData());
         Assert.assertEquals(1, alarms.getData().size());
         Assert.assertEquals(created, alarms.getData().get(0));

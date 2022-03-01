@@ -1,22 +1,36 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.tenant;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -31,6 +45,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -54,6 +69,9 @@ public class TenantProfileServiceImpl extends AbstractEntityService implements T
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private DataValidator<TenantProfile> tenantProfileValidator;
 
     @Cacheable(cacheNames = TENANT_PROFILE_CACHE, key = "{#tenantProfileId.id}")
     @Override
@@ -79,7 +97,7 @@ public class TenantProfileServiceImpl extends AbstractEntityService implements T
         try {
             savedTenantProfile = tenantProfileDao.save(tenantId, tenantProfile);
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("tenant_profile_name_unq_key")) {
                 throw new DataValidationException("Tenant profile with such name already exists!");
             } else {
@@ -104,14 +122,14 @@ public class TenantProfileServiceImpl extends AbstractEntityService implements T
         if (tenantProfile != null && tenantProfile.isDefault()) {
             throw new DataValidationException("Deletion of Default Tenant Profile is prohibited!");
         }
-        this.removeTenantProfile(tenantId, tenantProfileId);
+        this.removeTenantProfile(tenantId, tenantProfileId, false);
     }
 
-    private void removeTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId) {
+    private void removeTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId, boolean isDefault) {
         try {
             tenantProfileDao.removeById(tenantId, tenantProfileId.getId());
         } catch (Exception t) {
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_tenant_profile")) {
                 throw new DataValidationException("The tenant profile referenced by the tenants cannot be deleted!");
             } else {
@@ -122,6 +140,10 @@ public class TenantProfileServiceImpl extends AbstractEntityService implements T
         Cache cache = cacheManager.getCache(TENANT_PROFILE_CACHE);
         cache.evict(Collections.singletonList(tenantProfileId.getId()));
         cache.evict(Arrays.asList("info", tenantProfileId.getId()));
+        if (isDefault) {
+            cache.evict(Collections.singletonList("default"));
+            cache.evict(Arrays.asList("default", "info"));
+        }
     }
 
     @Override
@@ -209,41 +231,7 @@ public class TenantProfileServiceImpl extends AbstractEntityService implements T
         tenantProfilesRemover.removeEntities(tenantId, null);
     }
 
-    private DataValidator<TenantProfile> tenantProfileValidator =
-            new DataValidator<TenantProfile>() {
-                @Override
-                protected void validateDataImpl(TenantId tenantId, TenantProfile tenantProfile) {
-                    if (StringUtils.isEmpty(tenantProfile.getName())) {
-                        throw new DataValidationException("Tenant profile name should be specified!");
-                    }
-                    if (tenantProfile.getProfileData() == null) {
-                        throw new DataValidationException("Tenant profile data should be specified!");
-                    }
-                    if (tenantProfile.getProfileData().getConfiguration() == null) {
-                        throw new DataValidationException("Tenant profile data configuration should be specified!");
-                    }
-                    if (tenantProfile.isDefault()) {
-                        TenantProfile defaultTenantProfile = findDefaultTenantProfile(tenantId);
-                        if (defaultTenantProfile != null && !defaultTenantProfile.getId().equals(tenantProfile.getId())) {
-                            throw new DataValidationException("Another default tenant profile is present!");
-                        }
-                    }
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, TenantProfile tenantProfile) {
-                    TenantProfile old = tenantProfileDao.findById(TenantId.SYS_TENANT_ID, tenantProfile.getId().getId());
-                    if (old == null) {
-                        throw new DataValidationException("Can't update non existing tenant profile!");
-                    } else if (old.isIsolatedTbRuleEngine() != tenantProfile.isIsolatedTbRuleEngine()) {
-                        throw new DataValidationException("Can't update isolatedTbRuleEngine property!");
-                    } else if (old.isIsolatedTbCore() != tenantProfile.isIsolatedTbCore()) {
-                        throw new DataValidationException("Can't update isolatedTbCore property!");
-                    }
-                }
-            };
-
-    private PaginatedRemover<String, TenantProfile> tenantProfilesRemover =
+    private final PaginatedRemover<String, TenantProfile> tenantProfilesRemover =
             new PaginatedRemover<String, TenantProfile>() {
 
                 @Override
@@ -253,7 +241,7 @@ public class TenantProfileServiceImpl extends AbstractEntityService implements T
 
                 @Override
                 protected void removeEntity(TenantId tenantId, TenantProfile entity) {
-                    removeTenantProfile(tenantId, entity.getId());
+                    removeTenantProfile(tenantId, entity.getId(), entity.isDefault());
                 }
             };
 

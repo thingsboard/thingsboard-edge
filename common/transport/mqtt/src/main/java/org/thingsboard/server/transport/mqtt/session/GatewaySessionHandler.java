@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.transport.mqtt.session;
 
@@ -36,18 +51,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.adaptor.ProtoConverter;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.transport.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
-import org.thingsboard.server.common.transport.adaptor.ProtoConverter;
 import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
-import org.thingsboard.server.gen.transport.TransportApiProtos;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
+import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.transport.mqtt.MqttTransportContext;
 import org.thingsboard.server.transport.mqtt.MqttTransportHandler;
 import org.thingsboard.server.transport.mqtt.adaptors.JsonMqttAdaptor;
@@ -272,7 +298,7 @@ public class GatewaySessionHandler {
                                     log.trace("[{}] First got or created device [{}], type [{}] for the gateway session", sessionId, deviceName, deviceType);
                                     SessionInfoProto deviceSessionInfo = deviceSessionCtx.getSessionInfo();
                                     transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
-                                    transportService.process(TransportProtos.TransportToDeviceActorMsg.newBuilder()
+                                    transportService.process(TransportToDeviceActorMsg.newBuilder()
                                             .setSessionInfo(deviceSessionInfo)
                                             .setSessionEvent(SESSION_EVENT_MSG_OPEN)
                                             .setSubscribeToAttributes(SUBSCRIBE_TO_ATTRIBUTE_UPDATES_ASYNC_MSG)
@@ -353,7 +379,7 @@ public class GatewaySessionHandler {
                                     throw new JsonSyntaxException(CAN_T_PARSE_VALUE + json);
                                 }
                                 try {
-                                    TransportProtos.PostTelemetryMsg postTelemetryMsg = JsonConverter.convertToTelemetryProto(deviceEntry.getValue().getAsJsonArray());
+                                    PostTelemetryMsg postTelemetryMsg = JsonConverter.convertToTelemetryProto(deviceEntry.getValue().getAsJsonArray());
                                     processPostTelemetryMsg(deviceCtx, postTelemetryMsg, deviceName, msgId);
                                 } catch (Throwable e) {
                                     log.warn("[{}][{}] Failed to convert telemetry: {}", gateway.getDeviceId(), deviceName, deviceEntry.getValue(), e);
@@ -383,9 +409,9 @@ public class GatewaySessionHandler {
                             new FutureCallback<GatewayDeviceSessionCtx>() {
                                 @Override
                                 public void onSuccess(@Nullable GatewayDeviceSessionCtx deviceCtx) {
-                                    TransportProtos.PostTelemetryMsg msg = telemetryMsg.getMsg();
+                                    PostTelemetryMsg msg = telemetryMsg.getMsg();
                                     try {
-                                        TransportProtos.PostTelemetryMsg postTelemetryMsg = ProtoConverter.validatePostTelemetryMsg(msg.toByteArray());
+                                        PostTelemetryMsg postTelemetryMsg = ProtoConverter.validatePostTelemetryMsg(msg.toByteArray());
                                         processPostTelemetryMsg(deviceCtx, postTelemetryMsg, deviceName, msgId);
                                     } catch (Throwable e) {
                                         log.warn("[{}][{}] Failed to convert telemetry: {}", gateway.getDeviceId(), deviceName, msg, e);
@@ -408,7 +434,7 @@ public class GatewaySessionHandler {
         }
     }
 
-    private void processPostTelemetryMsg(GatewayDeviceSessionCtx deviceCtx, TransportProtos.PostTelemetryMsg postTelemetryMsg, String deviceName, int msgId) {
+    private void processPostTelemetryMsg(GatewayDeviceSessionCtx deviceCtx, PostTelemetryMsg postTelemetryMsg, String deviceName, int msgId) {
         transportService.process(deviceCtx.getSessionInfo(), postTelemetryMsg, getPubAckCallback(channel, deviceName, msgId, postTelemetryMsg));
     }
 
@@ -427,7 +453,7 @@ public class GatewaySessionHandler {
                                 }
                                 try {
                                     DeviceId deviceId = deviceCtx.getDeviceId();
-                                    TransportProtos.ClaimDeviceMsg claimDeviceMsg = JsonConverter.convertToClaimDeviceProto(deviceId, deviceEntry.getValue());
+                                    ClaimDeviceMsg claimDeviceMsg = JsonConverter.convertToClaimDeviceProto(deviceId, deviceEntry.getValue());
                                     processClaimDeviceMsg(deviceCtx, claimDeviceMsg, deviceName, msgId);
                                 } catch (Throwable e) {
                                     log.warn("[{}][{}] Failed to convert claim message: {}", gateway.getDeviceId(), deviceName, deviceEntry.getValue(), e);
@@ -462,7 +488,7 @@ public class GatewaySessionHandler {
                                     }
                                     try {
                                         DeviceId deviceId = deviceCtx.getDeviceId();
-                                        TransportProtos.ClaimDeviceMsg claimDeviceMsg = ProtoConverter.convertToClaimDeviceProto(deviceId, claimRequest.toByteArray());
+                                        ClaimDeviceMsg claimDeviceMsg = ProtoConverter.convertToClaimDeviceProto(deviceId, claimRequest.toByteArray());
                                         processClaimDeviceMsg(deviceCtx, claimDeviceMsg, deviceName, msgId);
                                     } catch (Throwable e) {
                                         log.warn("[{}][{}] Failed to convert claim message: {}", gateway.getDeviceId(), deviceName, claimRequest, e);
@@ -484,7 +510,7 @@ public class GatewaySessionHandler {
         }
     }
 
-    private void processClaimDeviceMsg(GatewayDeviceSessionCtx deviceCtx, TransportProtos.ClaimDeviceMsg claimDeviceMsg, String deviceName, int msgId) {
+    private void processClaimDeviceMsg(GatewayDeviceSessionCtx deviceCtx, ClaimDeviceMsg claimDeviceMsg, String deviceName, int msgId) {
         transportService.process(deviceCtx.getSessionInfo(), claimDeviceMsg, getPubAckCallback(channel, deviceName, msgId, claimDeviceMsg));
     }
 
@@ -501,7 +527,7 @@ public class GatewaySessionHandler {
                                 if (!deviceEntry.getValue().isJsonObject()) {
                                     throw new JsonSyntaxException(CAN_T_PARSE_VALUE + json);
                                 }
-                                TransportProtos.PostAttributeMsg postAttributeMsg = JsonConverter.convertToAttributesProto(deviceEntry.getValue().getAsJsonObject());
+                                PostAttributeMsg postAttributeMsg = JsonConverter.convertToAttributesProto(deviceEntry.getValue().getAsJsonObject());
                                 processPostAttributesMsg(deviceCtx, postAttributeMsg, deviceName, msgId);
                             }
 
@@ -527,12 +553,12 @@ public class GatewaySessionHandler {
                             new FutureCallback<GatewayDeviceSessionCtx>() {
                                 @Override
                                 public void onSuccess(@Nullable GatewayDeviceSessionCtx deviceCtx) {
-                                    TransportProtos.PostAttributeMsg kvListProto = attributesMsg.getMsg();
+                                    PostAttributeMsg kvListProto = attributesMsg.getMsg();
                                     if (kvListProto == null) {
                                         throw new IllegalArgumentException("Attributes List for device: " + deviceName + " is empty!");
                                     }
                                     try {
-                                        TransportProtos.PostAttributeMsg postAttributeMsg = ProtoConverter.validatePostAttributeMsg(kvListProto.toByteArray());
+                                        PostAttributeMsg postAttributeMsg = ProtoConverter.validatePostAttributeMsg(kvListProto.toByteArray());
                                         processPostAttributesMsg(deviceCtx, postAttributeMsg, deviceName, msgId);
                                     } catch (Throwable e) {
                                         log.warn("[{}][{}] Failed to process device attributes command: {}", gateway.getDeviceId(), deviceName, kvListProto, e);
@@ -554,7 +580,7 @@ public class GatewaySessionHandler {
         }
     }
 
-    private void processPostAttributesMsg(GatewayDeviceSessionCtx deviceCtx, TransportProtos.PostAttributeMsg postAttributeMsg, String deviceName, int msgId) {
+    private void processPostAttributesMsg(GatewayDeviceSessionCtx deviceCtx, PostAttributeMsg postAttributeMsg, String deviceName, int msgId) {
         transportService.process(deviceCtx.getSessionInfo(), postAttributeMsg, getPubAckCallback(channel, deviceName, msgId, postAttributeMsg));
     }
 
@@ -575,7 +601,7 @@ public class GatewaySessionHandler {
                     keys.add(keyObj.getAsString());
                 }
             }
-            TransportProtos.GetAttributeRequestMsg requestMsg = toGetAttributeRequestMsg(requestId, clientScope, keys);
+            GetAttributeRequestMsg requestMsg = toGetAttributeRequestMsg(requestId, clientScope, keys);
             processGetAttributeRequestMessage(msg, deviceName, requestMsg);
         } else {
             throw new JsonSyntaxException(CAN_T_PARSE_VALUE + json);
@@ -590,7 +616,7 @@ public class GatewaySessionHandler {
             boolean clientScope = gatewayAttributesRequestMsg.getClient();
             ProtocolStringList keysList = gatewayAttributesRequestMsg.getKeysList();
             Set<String> keys = new HashSet<>(keysList);
-            TransportProtos.GetAttributeRequestMsg requestMsg = toGetAttributeRequestMsg(requestId, clientScope, keys);
+            GetAttributeRequestMsg requestMsg = toGetAttributeRequestMsg(requestId, clientScope, keys);
             processGetAttributeRequestMessage(mqttMsg, deviceName, requestMsg);
         } catch (RuntimeException | InvalidProtocolBufferException e) {
             throw new AdaptorException(e);
@@ -608,7 +634,7 @@ public class GatewaySessionHandler {
                         public void onSuccess(@Nullable GatewayDeviceSessionCtx deviceCtx) {
                             Integer requestId = jsonObj.get("id").getAsInt();
                             String data = jsonObj.get("data").toString();
-                            TransportProtos.ToDeviceRpcResponseMsg rpcResponseMsg = TransportProtos.ToDeviceRpcResponseMsg.newBuilder()
+                            ToDeviceRpcResponseMsg rpcResponseMsg = ToDeviceRpcResponseMsg.newBuilder()
                                     .setRequestId(requestId).setPayload(data).build();
                             processRpcResponseMsg(deviceCtx, rpcResponseMsg, deviceName, msgId);
                         }
@@ -633,7 +659,7 @@ public class GatewaySessionHandler {
                         public void onSuccess(@Nullable GatewayDeviceSessionCtx deviceCtx) {
                             Integer requestId = gatewayRpcResponseMsg.getId();
                             String data = gatewayRpcResponseMsg.getData();
-                            TransportProtos.ToDeviceRpcResponseMsg rpcResponseMsg = TransportProtos.ToDeviceRpcResponseMsg.newBuilder()
+                            ToDeviceRpcResponseMsg rpcResponseMsg = ToDeviceRpcResponseMsg.newBuilder()
                                     .setRequestId(requestId).setPayload(data).build();
                             processRpcResponseMsg(deviceCtx, rpcResponseMsg, deviceName, msgId);
                         }
@@ -648,11 +674,11 @@ public class GatewaySessionHandler {
         }
     }
 
-    private void processRpcResponseMsg(GatewayDeviceSessionCtx deviceCtx, TransportProtos.ToDeviceRpcResponseMsg rpcResponseMsg, String deviceName, int msgId) {
+    private void processRpcResponseMsg(GatewayDeviceSessionCtx deviceCtx, ToDeviceRpcResponseMsg rpcResponseMsg, String deviceName, int msgId) {
         transportService.process(deviceCtx.getSessionInfo(), rpcResponseMsg, getPubAckCallback(channel, deviceName, msgId, rpcResponseMsg));
     }
 
-    private void processGetAttributeRequestMessage(MqttPublishMessage mqttMsg, String deviceName, TransportProtos.GetAttributeRequestMsg requestMsg) {
+    private void processGetAttributeRequestMessage(MqttPublishMessage mqttMsg, String deviceName, GetAttributeRequestMsg requestMsg) {
         int msgId = getMsgId(mqttMsg);
         Futures.addCallback(checkDeviceConnected(deviceName),
                 new FutureCallback<GatewayDeviceSessionCtx>() {
@@ -669,8 +695,8 @@ public class GatewaySessionHandler {
                 }, context.getExecutor());
     }
 
-    private TransportProtos.GetAttributeRequestMsg toGetAttributeRequestMsg(int requestId, boolean clientScope, Set<String> keys) {
-        TransportProtos.GetAttributeRequestMsg.Builder result = TransportProtos.GetAttributeRequestMsg.newBuilder();
+    private GetAttributeRequestMsg toGetAttributeRequestMsg(int requestId, boolean clientScope, Set<String> keys) {
+        GetAttributeRequestMsg.Builder result = GetAttributeRequestMsg.newBuilder();
         result.setRequestId(requestId);
 
         if (clientScope) {

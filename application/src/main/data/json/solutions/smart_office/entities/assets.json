@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Office",
+    "type": "office",
+    "label": "Office",
+    "group": "Buildings",
+    "jsonId": "51833d60-60b3-11eb-adab-69485f2f5834",
+    "attributes": {
+      "address": "246 Bowery New York NY 10012 United States",
+      "email": "support@office-center.com",
+      "floorPlan": "https://thingsboard.io/images/dashboards/smart-building/office-floor-plan.jpg",
+      "phone": "+1112223334"
+    },
+    "relations": []
+  }
+]

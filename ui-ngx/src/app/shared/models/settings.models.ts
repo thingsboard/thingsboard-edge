@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { ValidatorFn } from '@angular/forms';
@@ -27,6 +42,7 @@ export interface AdminSettings<T> {
 export declare type SmtpProtocol = 'smtp' | 'smtps';
 
 export interface MailServerSettings {
+  useSystemMailSettings: boolean;
   showChangePassword: boolean;
   mailFrom: string;
   smtpProtocol: SmtpProtocol;
@@ -46,6 +62,44 @@ export interface MailServerSettings {
 
 export interface GeneralSettings {
   baseUrl: string;
+}
+
+export enum MailTemplate {
+  test = 'test',
+  activation = 'activation',
+  accountActivated = 'accountActivated',
+  accountLockout = 'accountLockout',
+  resetPassword = 'resetPassword',
+  passwordWasReset = 'passwordWasReset',
+  userActivated = 'userActivated',
+  userRegistered = 'userRegistered',
+  apiUsageStateEnabled = 'apiUsageStateEnabled',
+  apiUsageStateWarning = 'apiUsageStateWarning',
+  apiUsageStateDisabled = 'apiUsageStateDisabled',
+}
+
+export const mailTemplateTranslations = new Map<MailTemplate, string>(
+  [
+    [MailTemplate.test, 'admin.mail-template.test'],
+    [MailTemplate.activation, 'admin.mail-template.activation'],
+    [MailTemplate.accountActivated, 'admin.mail-template.account-activated'],
+    [MailTemplate.accountLockout, 'admin.mail-template.account-lockout'],
+    [MailTemplate.resetPassword, 'admin.mail-template.reset-password'],
+    [MailTemplate.passwordWasReset, 'admin.mail-template.password-was-reset'],
+    [MailTemplate.userActivated, 'admin.mail-template.user-activated'],
+    [MailTemplate.userRegistered, 'admin.mail-template.user-registered'],
+    [MailTemplate.apiUsageStateEnabled, 'admin.mail-template.api-usage-state-enabled'],
+    [MailTemplate.apiUsageStateWarning, 'admin.mail-template.api-usage-state-warning'],
+    [MailTemplate.apiUsageStateDisabled, 'admin.mail-template.api-usage-state-disabled']
+  ]
+);
+
+export interface MailTemplatesSettings {
+  useSystemMailSettings?: any;
+  [mailTemplate: string]: {
+    subject: string;
+    body: string;
+  };
 }
 
 export interface UserPasswordPolicy {
@@ -97,6 +151,7 @@ export interface TwilioSmsProviderConfiguration {
 export type SmsProviderConfigurations = AwsSnsSmsProviderConfiguration & TwilioSmsProviderConfiguration;
 
 export interface SmsProviderConfiguration extends SmsProviderConfigurations {
+  useSystemSmsSettings?: boolean;
   type: SmsProviderType;
 }
 

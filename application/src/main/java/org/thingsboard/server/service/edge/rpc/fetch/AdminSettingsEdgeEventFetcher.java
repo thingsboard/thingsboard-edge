@@ -1,49 +1,57 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
+
 
 @AllArgsConstructor
 @Slf4j
@@ -52,23 +60,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final AdminSettingsService adminSettingsService;
-    private final Configuration freemarkerConfig;
-
-    private static Pattern startPattern = Pattern.compile("<div class=\"content\".*?>");
-    private static Pattern endPattern = Pattern.compile("<div class=\"footer\".*?>");
-
-    private static List<String> templatesNames = Arrays.asList(
-            "account.activated.ftl",
-            "account.lockout.ftl",
-            "activation.ftl",
-            "password.was.reset.ftl",
-            "reset.password.ftl",
-            "test.ftl");
-
-    // TODO: fix format of next templates
-    // "state.disabled.ftl",
-    // "state.enabled.ftl",
-    // "state.warning.ftl",
+    private final AttributesService attributesService;
 
     @Override
     public PageLink getPageLink(int pageSize) {
@@ -78,84 +70,28 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
         List<EdgeEvent> result = new ArrayList<>();
-
-        AdminSettings systemMailSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-        result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                EdgeEventActionType.UPDATED, null, mapper.valueToTree(systemMailSettings)));
-
-        AdminSettings tenantMailSettings = convertToTenantAdminSettings(systemMailSettings.getKey(), (ObjectNode) systemMailSettings.getJsonValue());
-        result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailSettings)));
-
-        AdminSettings systemMailTemplates = loadMailTemplates();
-        result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                EdgeEventActionType.UPDATED, null, mapper.valueToTree(systemMailTemplates)));
-
-        AdminSettings tenantMailTemplates = convertToTenantAdminSettings(systemMailTemplates.getKey(), (ObjectNode) systemMailTemplates.getJsonValue());
-        result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailTemplates)));
-
+        List<String> adminSettingsKeys = Arrays.asList("general", "mail", "mailTemplates");
+        for (String key : adminSettingsKeys) {
+            AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
+            if (sysAdminMainSettings != null) {
+                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, mapper.valueToTree(sysAdminMainSettings)));
+            }
+            Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
+            if (tenantMailSettingsAttr.isPresent()) {
+                AdminSettings tenantMailSettings = new AdminSettings();
+                tenantMailSettings.setKey(key);
+                String value = tenantMailSettingsAttr.get().getValueAsString();
+                tenantMailSettings.setJsonValue(mapper.readTree(value));
+                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                        EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailSettings)));
+            }
+        }
         // @voba - returns PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
     }
-
-    private AdminSettings loadMailTemplates() throws Exception {
-        Map<String, Object> mailTemplates = new HashMap<>();
-        for (String templatesName : templatesNames) {
-            Template template = freemarkerConfig.getTemplate(templatesName);
-            if (template != null) {
-                String name = validateName(template.getName());
-                Map<String, String> mailTemplate = getMailTemplateFromFile(template.toString());
-                if (mailTemplate != null) {
-                    mailTemplates.put(name, mailTemplate);
-                } else {
-                    log.error("Can't load mail template from file {}", template.getName());
-                }
-            }
-        }
-        AdminSettings adminSettings = new AdminSettings();
-        adminSettings.setId(new AdminSettingsId(Uuids.timeBased()));
-        adminSettings.setKey("mailTemplates");
-        adminSettings.setJsonValue(mapper.convertValue(mailTemplates, JsonNode.class));
-        return adminSettings;
-    }
-
-    private Map<String, String> getMailTemplateFromFile(String stringTemplate) {
-        Map<String, String> mailTemplate = new HashMap<>();
-        Matcher start = startPattern.matcher(stringTemplate);
-        Matcher end = endPattern.matcher(stringTemplate);
-        if (start.find() && end.find()) {
-            String body = StringUtils.substringBetween(stringTemplate, start.group(), end.group()).replaceAll("\t", "");
-            String subject = StringUtils.substringBetween(body, "<h2>", "</h2>");
-            mailTemplate.put("subject", subject);
-            mailTemplate.put("body", body);
-        } else {
-            return null;
-        }
-        return mailTemplate;
-    }
-
-    private String validateName(String name) throws Exception {
-        StringBuilder nameBuilder = new StringBuilder();
-        name = name.replace(".ftl", "");
-        String[] nameParts = name.split("\\.");
-        if (nameParts.length >= 1) {
-            nameBuilder.append(nameParts[0]);
-            for (int i = 1; i < nameParts.length; i++) {
-                String word = WordUtils.capitalize(nameParts[i]);
-                nameBuilder.append(word);
-            }
-            return nameBuilder.toString();
-        } else {
-            throw new Exception("Error during filename validation");
-        }
-    }
-
-    private AdminSettings convertToTenantAdminSettings(String key, ObjectNode jsonValue) {
-        AdminSettings tenantMailSettings = new AdminSettings();
-        jsonValue.put("useSystemMailSettings", true);
-        tenantMailSettings.setJsonValue(jsonValue);
-        tenantMailSettings.setKey(key);
-        return tenantMailSettings;
-    }
 }
+
+
+
+

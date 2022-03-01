@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.dao.service;
 
@@ -25,15 +40,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -271,42 +284,6 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         deviceService.saveDevice(device);
     }
 
-    @Test(expected = DataValidationException.class)
-    public void testAssignDeviceToNonExistentCustomer() {
-        Device device = new Device();
-        device.setName("My device");
-        device.setType("default");
-        device.setTenantId(tenantId);
-        device = deviceService.saveDevice(device);
-        try {
-            deviceService.assignDeviceToCustomer(tenantId, device.getId(), new CustomerId(Uuids.timeBased()));
-        } finally {
-            deviceService.deleteDevice(tenantId, device.getId());
-        }
-    }
-
-    @Test(expected = DataValidationException.class)
-    public void testAssignDeviceToCustomerFromDifferentTenant() {
-        Device device = new Device();
-        device.setName("My device");
-        device.setType("default");
-        device.setTenantId(tenantId);
-        device = deviceService.saveDevice(device);
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test different tenant");
-        tenant = tenantService.saveTenant(tenant);
-        Customer customer = new Customer();
-        customer.setTenantId(tenant.getId());
-        customer.setTitle("Test different customer");
-        customer = customerService.saveCustomer(customer);
-        try {
-            deviceService.assignDeviceToCustomer(tenantId, device.getId(), customer.getId());
-        } finally {
-            deviceService.deleteDevice(tenantId, device.getId());
-            tenantService.deleteTenant(tenant.getId());
-        }
-    }
-
     @Test
     public void testFindDeviceById() {
         Device device = new Device();
@@ -420,7 +397,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     @Test
     public void testFindDevicesByTenantIdAndName() {
         String title1 = "Device title 1";
-        List<DeviceInfo> devicesTitle1 = new ArrayList<>();
+        List<Device> devicesTitle1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
@@ -429,10 +406,10 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
-            devicesTitle1.add(new DeviceInfo(deviceService.saveDevice(device), null, false, "default"));
+            devicesTitle1.add(deviceService.saveDevice(device));
         }
         String title2 = "Device title 2";
-        List<DeviceInfo> devicesTitle2 = new ArrayList<>();
+        List<Device> devicesTitle2 = new ArrayList<>();
         for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
@@ -441,14 +418,15 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
-            devicesTitle2.add(new DeviceInfo(deviceService.saveDevice(device), null, false, "default"));
+            devicesTitle2.add(deviceService.saveDevice(device));
         }
 
-        List<DeviceInfo> loadedDevicesTitle1 = new ArrayList<>();
+        List<Device> loadedDevicesTitle1 = new ArrayList<>();
+
         PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<DeviceInfo> pageData = null;
+        PageData<Device> pageData = null;
         do {
-            pageData = deviceService.findDeviceInfosByTenantId(tenantId, pageLink);
+            pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
             loadedDevicesTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -460,10 +438,11 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
 
         Assert.assertEquals(devicesTitle1, loadedDevicesTitle1);
 
-        List<DeviceInfo> loadedDevicesTitle2 = new ArrayList<>();
+        List<Device> loadedDevicesTitle2 = new ArrayList<>();
+
         pageLink = new PageLink(4, 0, title2);
         do {
-            pageData = deviceService.findDeviceInfosByTenantId(tenantId, pageLink);
+            pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
             loadedDevicesTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -480,7 +459,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         }
 
         pageLink = new PageLink(4, 0, title1);
-        pageData = deviceService.findDeviceInfosByTenantId(tenantId, pageLink);
+        pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -489,7 +468,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         }
 
         pageLink = new PageLink(4, 0, title2);
-        pageData = deviceService.findDeviceInfosByTenantId(tenantId, pageLink);
+        pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
@@ -574,232 +553,6 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindDevicesByTenantIdAndCustomerId() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer.setTenantId(tenantId);
-        customer = customerService.saveCustomer(customer);
-        CustomerId customerId = customer.getId();
-
-        List<DeviceInfo> devices = new ArrayList<>();
-        for (int i = 0; i < 278; i++) {
-            Device device = new Device();
-            device.setTenantId(tenantId);
-            device.setName("Device" + i);
-            device.setType("default");
-            device = deviceService.saveDevice(device);
-            devices.add(new DeviceInfo(deviceService.assignDeviceToCustomer(tenantId, device.getId(), customerId), customer.getTitle(), customer.isPublic(), "default"));
-        }
-
-        List<DeviceInfo> loadedDevices = new ArrayList<>();
-        PageLink pageLink = new PageLink(23);
-        PageData<DeviceInfo> pageData = null;
-        do {
-            pageData = deviceService.findDeviceInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-            loadedDevices.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(devices, idComparator);
-        Collections.sort(loadedDevices, idComparator);
-
-        Assert.assertEquals(devices, loadedDevices);
-
-        deviceService.unassignCustomerDevices(tenantId, customerId);
-
-        pageLink = new PageLink(33);
-        pageData = deviceService.findDeviceInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertTrue(pageData.getData().isEmpty());
-
-        tenantService.deleteTenant(tenantId);
-    }
-
-    @Test
-    public void testFindDevicesByTenantIdCustomerIdAndName() {
-
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer.setTenantId(tenantId);
-        customer = customerService.saveCustomer(customer);
-        CustomerId customerId = customer.getId();
-
-        String title1 = "Device title 1";
-        List<Device> devicesTitle1 = new ArrayList<>();
-        for (int i = 0; i < 175; i++) {
-            Device device = new Device();
-            device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            device.setName(name);
-            device.setType("default");
-            device = deviceService.saveDevice(device);
-            devicesTitle1.add(deviceService.assignDeviceToCustomer(tenantId, device.getId(), customerId));
-        }
-        String title2 = "Device title 2";
-        List<Device> devicesTitle2 = new ArrayList<>();
-        for (int i = 0; i < 143; i++) {
-            Device device = new Device();
-            device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            device.setName(name);
-            device.setType("default");
-            device = deviceService.saveDevice(device);
-            devicesTitle2.add(deviceService.assignDeviceToCustomer(tenantId, device.getId(), customerId));
-        }
-
-        List<Device> loadedDevicesTitle1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<Device> pageData = null;
-        do {
-            pageData = deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-            loadedDevicesTitle1.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(devicesTitle1, idComparator);
-        Collections.sort(loadedDevicesTitle1, idComparator);
-
-        Assert.assertEquals(devicesTitle1, loadedDevicesTitle1);
-
-        List<Device> loadedDevicesTitle2 = new ArrayList<>();
-        pageLink = new PageLink(4, 0, title2);
-        do {
-            pageData = deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-            loadedDevicesTitle2.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(devicesTitle2, idComparator);
-        Collections.sort(loadedDevicesTitle2, idComparator);
-
-        Assert.assertEquals(devicesTitle2, loadedDevicesTitle2);
-
-        for (Device device : loadedDevicesTitle1) {
-            deviceService.deleteDevice(tenantId, device.getId());
-        }
-
-        pageLink = new PageLink(4, 0, title1);
-        pageData = deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-
-        for (Device device : loadedDevicesTitle2) {
-            deviceService.deleteDevice(tenantId, device.getId());
-        }
-
-        pageLink = new PageLink(4, 0, title2);
-        pageData = deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-        customerService.deleteCustomer(tenantId, customerId);
-    }
-
-    @Test
-    public void testFindDevicesByTenantIdCustomerIdAndType() {
-
-        Customer customer = new Customer();
-        customer.setTitle("Test customer");
-        customer.setTenantId(tenantId);
-        customer = customerService.saveCustomer(customer);
-        CustomerId customerId = customer.getId();
-
-        String title1 = "Device title 1";
-        String type1 = "typeC";
-        List<Device> devicesType1 = new ArrayList<>();
-        for (int i = 0; i < 175; i++) {
-            Device device = new Device();
-            device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title1 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            device.setName(name);
-            device.setType(type1);
-            device = deviceService.saveDevice(device);
-            devicesType1.add(deviceService.assignDeviceToCustomer(tenantId, device.getId(), customerId));
-        }
-        String title2 = "Device title 2";
-        String type2 = "typeD";
-        List<Device> devicesType2 = new ArrayList<>();
-        for (int i = 0; i < 143; i++) {
-            Device device = new Device();
-            device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
-            String name = title2 + suffix;
-            name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
-            device.setName(name);
-            device.setType(type2);
-            device = deviceService.saveDevice(device);
-            devicesType2.add(deviceService.assignDeviceToCustomer(tenantId, device.getId(), customerId));
-        }
-
-        List<Device> loadedDevicesType1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15);
-        PageData<Device> pageData = null;
-        do {
-            pageData = deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type1, pageLink);
-            loadedDevicesType1.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(devicesType1, idComparator);
-        Collections.sort(loadedDevicesType1, idComparator);
-
-        Assert.assertEquals(devicesType1, loadedDevicesType1);
-
-        List<Device> loadedDevicesType2 = new ArrayList<>();
-        pageLink = new PageLink(4);
-        do {
-            pageData = deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type2, pageLink);
-            loadedDevicesType2.addAll(pageData.getData());
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-
-        Collections.sort(devicesType2, idComparator);
-        Collections.sort(loadedDevicesType2, idComparator);
-
-        Assert.assertEquals(devicesType2, loadedDevicesType2);
-
-        for (Device device : loadedDevicesType1) {
-            deviceService.deleteDevice(tenantId, device.getId());
-        }
-
-        pageLink = new PageLink(4);
-        pageData = deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type1, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-
-        for (Device device : loadedDevicesType2) {
-            deviceService.deleteDevice(tenantId, device.getId());
-        }
-
-        pageLink = new PageLink(4);
-        pageData = deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type2, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(0, pageData.getData().size());
-        customerService.deleteCustomer(tenantId, customerId);
-    }
-
-    @Test
     public void testCleanCacheIfDeviceRenamed() {
         String deviceNameBeforeRename = RandomStringUtils.randomAlphanumeric(15);
         String deviceNameAfterRename = RandomStringUtils.randomAlphanumeric(15);
@@ -821,156 +574,4 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         deviceService.deleteDevice(tenantId, savedDevice.getId());
     }
 
-    @Test
-    public void testFindDeviceInfoByTenantId() {
-        Customer customer = new Customer();
-        customer.setTitle("Customer X");
-        customer.setTenantId(tenantId);
-        Customer savedCustomer = customerService.saveCustomer(customer);
-
-        Device device = new Device();
-        device.setTenantId(tenantId);
-        device.setName("default");
-        device.setType("default");
-        device.setLabel("label");
-        device.setCustomerId(savedCustomer.getId());
-
-        Device savedDevice = deviceService.saveDevice(device);
-
-        PageLink pageLinkWithLabel = new PageLink(100, 0, "label");
-        List<DeviceInfo> deviceInfosWithLabel = deviceService
-                .findDeviceInfosByTenantId(tenantId, pageLinkWithLabel).getData();
-
-        Assert.assertFalse(deviceInfosWithLabel.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithLabel.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                    && d.getTenantId().equals(tenantId)
-                                    && d.getLabel().equals(savedDevice.getLabel())
-                        )
-        );
-
-        PageLink pageLinkWithCustomer = new PageLink(100, 0, savedCustomer.getSearchText());
-        List<DeviceInfo> deviceInfosWithCustomer = deviceService
-                .findDeviceInfosByTenantId(tenantId, pageLinkWithCustomer).getData();
-
-        Assert.assertFalse(deviceInfosWithCustomer.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithCustomer.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                        && d.getTenantId().equals(tenantId)
-                                        && d.getCustomerId().equals(savedCustomer.getId())
-                                        && d.getCustomerTitle().equals(savedCustomer.getTitle())
-                        )
-        );
-
-        PageLink pageLinkWithType = new PageLink(100, 0, device.getType());
-        List<DeviceInfo> deviceInfosWithType = deviceService
-                .findDeviceInfosByTenantId(tenantId, pageLinkWithType).getData();
-
-        Assert.assertFalse(deviceInfosWithType.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithType.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                        && d.getTenantId().equals(tenantId)
-                                        && d.getType().equals(device.getType())
-                        )
-        );
-    }
-
-    @Test
-    public void testFindDeviceInfoByTenantIdAndType() {
-        Customer customer = new Customer();
-        customer.setTitle("Customer X");
-        customer.setTenantId(tenantId);
-        Customer savedCustomer = customerService.saveCustomer(customer);
-
-        Device device = new Device();
-        device.setTenantId(tenantId);
-        device.setName("default");
-        device.setType("default");
-        device.setLabel("label");
-        device.setCustomerId(savedCustomer.getId());
-        Device savedDevice = deviceService.saveDevice(device);
-
-        PageLink pageLinkWithLabel = new PageLink(100, 0, "label");
-        List<DeviceInfo> deviceInfosWithLabel = deviceService
-                .findDeviceInfosByTenantIdAndType(tenantId, device.getType(), pageLinkWithLabel).getData();
-
-        Assert.assertFalse(deviceInfosWithLabel.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithLabel.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                    && d.getTenantId().equals(tenantId)
-                                    && d.getDeviceProfileName().equals(savedDevice.getType())
-                                    && d.getLabel().equals(savedDevice.getLabel())
-                        )
-        );
-
-        PageLink pageLinkWithCustomer = new PageLink(100, 0, savedCustomer.getSearchText());
-        List<DeviceInfo> deviceInfosWithCustomer = deviceService
-                .findDeviceInfosByTenantIdAndType(tenantId, device.getType(), pageLinkWithCustomer).getData();
-
-        Assert.assertFalse(deviceInfosWithCustomer.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithCustomer.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                        && d.getTenantId().equals(tenantId)
-                                        && d.getDeviceProfileName().equals(savedDevice.getType())
-                                        && d.getCustomerId().equals(savedCustomer.getId())
-                                        && d.getCustomerTitle().equals(savedCustomer.getTitle())
-                        )
-        );
-    }
-
-    @Test
-    public void testFindDeviceInfoByTenantIdAndDeviceProfileId() {
-        Customer customer = new Customer();
-        customer.setTitle("Customer X");
-        customer.setTenantId(tenantId);
-        Customer savedCustomer = customerService.saveCustomer(customer);
-
-        Device device = new Device();
-        device.setTenantId(tenantId);
-        device.setName("default");
-        device.setLabel("label");
-        device.setCustomerId(savedCustomer.getId());
-        Device savedDevice = deviceService.saveDevice(device);
-
-        PageLink pageLinkWithLabel = new PageLink(100, 0, "label");
-        List<DeviceInfo> deviceInfosWithLabel = deviceService
-                .findDeviceInfosByTenantIdAndDeviceProfileId(tenantId, savedDevice.getDeviceProfileId(), pageLinkWithLabel).getData();
-
-        Assert.assertFalse(deviceInfosWithLabel.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithLabel.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                        && d.getTenantId().equals(tenantId)
-                                        && d.getDeviceProfileId().equals(savedDevice.getDeviceProfileId())
-                                        && d.getLabel().equals(savedDevice.getLabel())
-                        )
-        );
-
-        PageLink pageLinkWithCustomer = new PageLink(100, 0, savedCustomer.getSearchText());
-        List<DeviceInfo> deviceInfosWithCustomer = deviceService
-                .findDeviceInfosByTenantIdAndDeviceProfileId(tenantId, savedDevice.getDeviceProfileId(), pageLinkWithCustomer).getData();
-
-        Assert.assertFalse(deviceInfosWithCustomer.isEmpty());
-        Assert.assertTrue(
-                deviceInfosWithCustomer.stream()
-                        .anyMatch(
-                                d -> d.getId().equals(savedDevice.getId())
-                                        && d.getTenantId().equals(tenantId)
-                                        && d.getDeviceProfileId().equals(savedDevice.getDeviceProfileId())
-                                        && d.getCustomerId().equals(savedCustomer.getId())
-                                        && d.getCustomerTitle().equals(savedCustomer.getTitle())
-                        )
-        );
-    }
 }

@@ -1,27 +1,45 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.actors.ruleChain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
@@ -29,39 +47,46 @@ import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.actors.TbActorRef;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
-import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -69,10 +94,15 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -85,6 +115,7 @@ import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -92,7 +123,7 @@ import java.util.function.Consumer;
  * Created by ashvayka on 19.03.18.
  */
 @Slf4j
-class DefaultTbContext implements TbContext {
+class DefaultTbContext implements TbContext, TbPeContext {
 
     public final static ObjectMapper mapper = new ObjectMapper();
 
@@ -132,7 +163,7 @@ class DefaultTbContext implements TbContext {
     @Override
     public void tellSelf(TbMsg msg, long delayMs) {
         //TODO: add persistence layer
-        scheduleMsgWithDelay(new RuleNodeToSelfMsg(this, msg), delayMs, nodeCtx.getSelfActor());
+        mainCtx.scheduleMsgWithDelay(nodeCtx.getSelfActor(), new RuleNodeToSelfMsg(this, msg), delayMs);
     }
 
     @Override
@@ -277,8 +308,9 @@ class DefaultTbContext implements TbContext {
         return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getTenantId(), entityId).isMyPartition();
     }
 
-    private void scheduleMsgWithDelay(TbActorMsg msg, long delayInMs, TbActorRef target) {
-        mainCtx.scheduleMsgWithDelay(target, msg, delayInMs);
+    @Override
+    public ScriptEngine createAttributesJsScriptEngine(String script) {
+        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsSandbox(), nodeCtx.getSelf().getId(), JsScriptType.ATTRIBUTES_SCRIPT, script);
     }
 
     @Override
@@ -428,6 +460,11 @@ class DefaultTbContext implements TbContext {
     }
 
     @Override
+    public EventService getEventService() {
+        return mainCtx.getEventService();
+    }
+
+    @Override
     public void logJsEvalRequest() {
         if (mainCtx.isStatisticsEnabled()) {
             mainCtx.getJsInvokeStats().incrementRequests();
@@ -554,12 +591,8 @@ class DefaultTbContext implements TbContext {
     }
 
     @Override
-    public MailService getMailService(boolean isSystem) {
-        if (!isSystem || mainCtx.isAllowSystemMailService()) {
-            return mainCtx.getMailService();
-        } else {
-            throw new RuntimeException("Access to System Mail Service is forbidden!");
-        }
+    public MailService getMailService() {
+        return mainCtx.getMailService();
     }
 
     @Override
@@ -579,6 +612,137 @@ class DefaultTbContext implements TbContext {
     @Override
     public RuleEngineRpcService getRpcService() {
         return mainCtx.getTbRuleEngineDeviceRpcService();
+    }
+
+    @Override
+    public TbPeContext getPeContext() {
+        return this;
+    }
+
+    @Override
+    public IntegrationService getIntegrationService() {
+        return mainCtx.getIntegrationService();
+    }
+
+    @Override
+    public EntityGroupService getEntityGroupService() {
+        return mainCtx.getEntityGroupService();
+    }
+
+    @Override
+    public ReportService getReportService() {
+        return mainCtx.getReportService();
+    }
+
+    @Override
+    public BlobEntityService getBlobEntityService() {
+        return mainCtx.getBlobEntityService();
+    }
+
+    @Override
+    public GroupPermissionService getGroupPermissionService() {
+        return mainCtx.getGroupPermissionService();
+    }
+
+    @Override
+    public RoleService getRoleService() {
+        return mainCtx.getRoleService();
+    }
+
+    @Override
+    public EntityId getOwner(TenantId tenantId, EntityId entityId) {
+        return mainCtx.getOwnersCacheService().getOwner(tenantId, entityId);
+    }
+
+    @Override
+    public void clearOwners(EntityId entityId) {
+        mainCtx.getOwnersCacheService().clearOwners(entityId);
+    }
+
+    @Override
+    public Set<EntityId> getChildOwners(TenantId tenantId, EntityId parentOwnerId) {
+        return mainCtx.getOwnersCacheService().getChildOwners(tenantId, parentOwnerId);
+    }
+
+    @Override
+    public void changeDashboardOwner(TenantId tenantId, EntityId targetOwnerId, Dashboard entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeDashboardOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeUserOwner(TenantId tenantId, EntityId targetOwnerId, User entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeUserOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeCustomerOwner(TenantId tenantId, EntityId targetOwnerId, Customer entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeCustomerOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeEntityViewOwner(TenantId tenantId, EntityId targetOwnerId, EntityView entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeEntityViewOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeAssetOwner(TenantId tenantId, EntityId targetOwnerId, Asset entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeAssetOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeDeviceOwner(TenantId tenantId, EntityId targetOwnerId, Device entity) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeDeviceOwner(tenantId, targetOwnerId, entity);
+    }
+
+    @Override
+    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeEntityOwner(tenantId, targetOwnerId, entityId, entityType);
+    }
+
+    @Override
+    public void pushToIntegration(IntegrationId integrationId, TbMsg msg, FutureCallback<Void> callback) {
+        boolean restApiCall = msg.getType().equals(DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE);
+        UUID requestUUID;
+        String serviceId;
+        if (restApiCall) {
+            String tmp = msg.getMetaData().getValue("requestUUID");
+            serviceId = msg.getMetaData().getValue("originServiceId");
+
+            if (serviceId == null) {
+                throw new RuntimeException("Origin Service Id is not present in the message metadata!");
+            }
+
+            requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUID.randomUUID();
+            tmp = msg.getMetaData().getValue("oneway");
+            boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
+            if (!oneway) {
+                throw new RuntimeException("Only oneway RPC calls are supported in the integration!");
+            }
+        } else {
+            requestUUID = null;
+            serviceId = null;
+        }
+
+        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
+                .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
+                .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
+                .setData(TbMsg.toByteString(msg)).build();
+        mainCtx.getClusterService().pushMsgToCore(getTenantId(), integrationId, TransportProtos.ToCoreMsg.newBuilder().setIntegrationDownlinkMsg(downlinkMsgProto).build(),
+                new SimpleTbQueueCallback(() -> {
+                    if (restApiCall) {
+                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
+                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
+                    }
+                    callback.onSuccess(null);
+                }, error -> {
+                    if (restApiCall) {
+                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
+                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
+                    }
+                    callback.onFailure(error);
+                }));
     }
 
     @Override

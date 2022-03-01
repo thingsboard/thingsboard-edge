@@ -1,17 +1,32 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 ///
-///     http://www.apache.org/licenses/LICENSE-2.0
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
 ///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
 import { Injectable, NgZone } from '@angular/core';
@@ -28,7 +43,11 @@ import { Authority } from '@shared/models/authority.enum';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
-import { isObject } from '@core/utils';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { SelfRegistrationService } from '@core/http/self-register.service';
+import { isDefined, isObject } from '@core/utils';
+import { MenuService } from '@core/services/menu.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MobileService } from '@core/services/mobile.service';
 
 @Injectable({
@@ -42,6 +61,10 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               private dialogService: DialogService,
               private utils: UtilsService,
               private translate: TranslateService,
+              private whiteLabelingService: WhiteLabelingService,
+              private selfRegistrationService: SelfRegistrationService,
+              private userPermissionsService: UserPermissionsService,
+              private menuService: MenuService,
               private mobileService: MobileService,
               private zone: NgZone) {}
 
@@ -77,8 +100,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
         const data = lastChild.data || {};
         const params = lastChild.params || {};
         const isPublic = data.module === 'public';
-
-        if (!authState.isAuthenticated) {
+        if (!authState.isAuthenticated || isPublic) {
           if (publicId && publicId.length > 0) {
             this.authService.setUserFromJwtToken(null, null, false);
             this.authService.reloadUser();
@@ -88,15 +110,23 @@ export class AuthGuard implements CanActivate, CanActivateChild {
             // this.authService.gotoDefaultPlace(false);
             return of(this.authService.defaultUrl(false));
           } else {
-            if (path === 'login') {
-              return forkJoin([this.authService.loadOAuth2Clients()]).pipe(
-                map(() => {
-                  return true;
-                })
-              );
-            } else {
-              return of(true);
+            const tasks: Observable<any>[] = [];
+            tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
+            if (path === 'login' || path === 'signup') {
+              tasks.push(this.selfRegistrationService.loadSelfRegistrationParams());
+              if (path === 'login') {
+                tasks.push(this.authService.loadOAuth2Clients());
+              }
             }
+            return forkJoin(tasks).pipe(
+              map(() => {
+                if (path === 'signup' && !this.selfRegistrationService.signUpParams.activate) {
+                  return this.authService.defaultUrl(false);
+                } else {
+                  return true;
+                }
+              })
+            );
           }
         } else {
           if (authState.authUser.isPublic) {
@@ -119,18 +149,36 @@ export class AuthGuard implements CanActivate, CanActivateChild {
             // this.authService.gotoDefaultPlace(true);
             return of(defaultUrl);
           } else {
+            if (authState.authUser.isPublic) {
+              if (this.authService.forceDefaultPlace(authState, path, params)) {
+                this.dialogService.forbidden();
+                return of(false);
+              }
+            }
             const authority = Authority[authState.authUser.authority];
             if (data.auth && data.auth.indexOf(authority) === -1) {
               this.dialogService.forbidden();
               return of(false);
+            } else if (isDefined(data.canActivate) && !data.canActivate(this.userPermissionsService)) {
+              this.dialogService.forbidden();
+              return of(false);
             } else if (data.redirectTo) {
               let redirect;
-              if (isObject(data.redirectTo)) {
+              if (isObject(data.redirectTo) && !data.redirectTo.hasOwnProperty('condition')) {
                 redirect = data.redirectTo[authority];
               } else {
                 redirect = data.redirectTo;
               }
-              return of(this.router.parseUrl(redirect));
+              if (isObject(redirect) && redirect.hasOwnProperty('condition')) {
+                const userPermissionsService = this.userPermissionsService; // used in eval
+                // tslint:disable-next-line:no-eval
+                redirect = eval(redirect.condition);
+              }
+              return this.menuService.getRedirectPath(path, redirect).pipe(
+                map((redirectPath) => {
+                  return this.router.parseUrl(redirectPath);
+                })
+              );
             } else {
               return of(true);
             }

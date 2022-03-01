@@ -1,18 +1,33 @@
 <!--
 
-    Copyright © 2016-2022 The Thingsboard Authors
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
 
-        http://www.apache.org/licenses/LICENSE-2.0
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
 <div class="mat-padding tb-entity-table tb-absolute-fill">
@@ -35,6 +50,7 @@
         </div>
         <span fxFlex></span>
         <button mat-icon-button [disabled]="isLoading$ | async"
+                *ngIf="!readonly"
                 (click)="addRelation($event)"
                 matTooltip="{{ 'action.add' | translate }}"
                 matTooltipPosition="above">
@@ -140,7 +156,7 @@
           <mat-header-cell *matHeaderCellDef style="min-width: 80px; max-width: 80px; width: 80px">
           </mat-header-cell>
           <mat-cell *matCellDef="let relation">
-            <div fxFlex fxLayout="row" fxLayoutAlign="end">
+            <div fxFlex fxLayout="row" fxLayoutAlign="end" *ngIf="isRelationEditable(relation); else buttonView">
               <button mat-icon-button [disabled]="isLoading$ | async"
                       matTooltip="{{ 'relation.edit' | translate }}"
                       matTooltipPosition="above"
@@ -154,12 +170,22 @@
                 <mat-icon>delete</mat-icon>
               </button>
             </div>
+            <ng-template #buttonView>
+              <div fxFlex fxLayout="row" fxLayoutAlign="end">
+                <button mat-icon-button [disabled]="isLoading$ | async"
+                        matTooltip="{{ 'action.view' | translate }}"
+                        matTooltipPosition="above"
+                        (click)="showRelation($event, relation)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+            </ng-template>
           </mat-cell>
         </ng-container>
         <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
         <mat-row [ngClass]="{'mat-row-select': true,
                              'mat-selected': dataSource.selection.isSelected(relation)}"
-                 *matRowDef="let relation; columns: displayedColumns;" (click)="dataSource.selection.toggle(relation)"></mat-row>
+                 *matRowDef="let relation; columns: displayedColumns;" (click)="onRowClick($event, relation)"></mat-row>
       </table>
       <span [fxShow]="dataSource.isEmpty() | async"
             fxLayoutAlign="center center"
