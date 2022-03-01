@@ -545,19 +545,6 @@ export class ImportExportService {
       });
   }
 
-  public exportDeviceProfile(deviceProfileId: string) {
-    this.deviceProfileService.getDeviceProfile(deviceProfileId).subscribe(
-      (deviceProfile) => {
-          let name = deviceProfile.name;
-          name = name.toLowerCase().replace(/\W/g, '_');
-          this.exportToPc(this.prepareProfileExport(deviceProfile), name);
-        },
-        (e) => {
-          this.handleExportError(e, 'device-profile.export-failed-error');
-        }
-      );
-  }
-
   public importConverter(): Observable<Converter> {
     return this.openImportDialog('converter.import', 'converter.converter-file').pipe(
       mergeMap((converter: Converter) => {
