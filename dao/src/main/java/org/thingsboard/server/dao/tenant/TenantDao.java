@@ -54,13 +54,12 @@ public interface TenantDao extends Dao<Tenant> {
     Tenant save(TenantId tenantId, Tenant tenant);
     
     /**
-     * Find tenants by region and page link.
+     * Find tenants by page link.
      * 
-     * @param region the region
      * @param pageLink the page link
      * @return the list of tenant objects
      */
-    PageData<Tenant> findTenantsByRegion(TenantId tenantId, String region, PageLink pageLink);
+    PageData<Tenant> findTenants(TenantId tenantId, PageLink pageLink);
 
     /**
      * Find tenants by tenant Ids.
@@ -70,7 +69,7 @@ public interface TenantDao extends Dao<Tenant> {
      */
     ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds);
 
-    PageData<TenantInfo> findTenantInfosByRegion(TenantId tenantId, String region, PageLink pageLink);
+    PageData<TenantInfo> findTenantInfos(TenantId tenantId, PageLink pageLink);
 
     PageData<TenantId> findTenantsIds(PageLink pageLink);
 

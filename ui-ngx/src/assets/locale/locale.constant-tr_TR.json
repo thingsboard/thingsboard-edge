@@ -1409,7 +1409,7 @@
     "edge-license-key-hint": "To obtain your license please navigate to the <a href='https://thingsboard.io/pricing/?active=thingsboard-edge' target='_blank'>pricing page</a> and select the best license option for your case.",
     "cloud-endpoint": "Cloud Endpoint",
     "cloud-endpoint-required": "Cloud Endpoint is required.",
-    "cloud-endpoint-hint": "Edge requires HTTP(s) access to Cloud (ThingsBoard CE/PE) to verify the license key. Please specify Cloud URL that Edge is able to connect to.",
+    "cloud-endpoint-hint": "Edge requires HTTP(s) access to Cloud (ThingsBoard PE) to verify the license key. Please specify Cloud URL that Edge is able to connect to.",
     "description": "Description",
     "details": "Details",
     "events": "Events",

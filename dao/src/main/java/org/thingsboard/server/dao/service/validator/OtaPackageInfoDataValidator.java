@@ -28,18 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.dao.service.validator;
 
-import org.eclipse.leshan.core.model.ResourceModel;
-import org.eclipse.leshan.core.node.LwM2mMultipleResource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.ota.OtaPackageInfoDao;
 
-import java.io.Serializable;
+@Component
+public class OtaPackageInfoDataValidator extends BaseOtaPackageDataValidator<OtaPackageInfo> {
 
-public class TbLwM2mMultipleResource extends LwM2mMultipleResource implements TbLwM2MResource, Serializable {
+    @Autowired
+    private OtaPackageInfoDao otaPackageInfoDao;
 
-    private static final long serialVersionUID = 4658477128628087186L;
+    @Override
+    protected void validateDataImpl(TenantId tenantId, OtaPackageInfo otaPackageInfo) {
+        validateImpl(otaPackageInfo);
+    }
 
-    public TbLwM2mMultipleResource(int id, ResourceModel.Type type, TbLwM2MResourceInstance... instances) {
-        super(id, type, instances);
+    @Override
+    protected void validateUpdate(TenantId tenantId, OtaPackageInfo otaPackage) {
+        OtaPackageInfo otaPackageOld = otaPackageInfoDao.findById(tenantId, otaPackage.getUuidId());
+        validateUpdate(otaPackage, otaPackageOld);
     }
 }

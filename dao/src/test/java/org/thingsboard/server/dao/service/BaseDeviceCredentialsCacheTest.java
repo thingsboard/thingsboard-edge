@@ -64,6 +64,9 @@ public abstract class BaseDeviceCredentialsCacheTest extends AbstractServiceTest
     @Autowired
     private DeviceCredentialsService deviceCredentialsService;
 
+    @Autowired
+    private DataValidator<DeviceCredentials> credentialsValidator;
+
     private DeviceCredentialsDao deviceCredentialsDao;
     private DeviceService deviceService;
 
@@ -74,10 +77,15 @@ public abstract class BaseDeviceCredentialsCacheTest extends AbstractServiceTest
 
     @Before
     public void setup() throws Exception {
-        deviceCredentialsDao = mock(DeviceCredentialsDao.class);
         deviceService = mock(DeviceService.class);
+        deviceCredentialsDao = mock(DeviceCredentialsDao.class);
+
+        ReflectionTestUtils.setField(credentialsValidator, "deviceService", deviceService);
+        ReflectionTestUtils.setField(credentialsValidator, "deviceCredentialsDao", deviceCredentialsDao);
+
         ReflectionTestUtils.setField(unwrapDeviceCredentialsService(), "deviceCredentialsDao", deviceCredentialsDao);
-        ReflectionTestUtils.setField(unwrapDeviceCredentialsService(), "deviceService", deviceService);
+        ReflectionTestUtils.setField(unwrapDeviceCredentialsService(), "credentialsValidator", credentialsValidator);
+
     }
 
     @After

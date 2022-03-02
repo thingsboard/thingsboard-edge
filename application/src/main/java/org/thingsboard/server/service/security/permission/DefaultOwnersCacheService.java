@@ -213,7 +213,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeEdgeOwner(TenantId tenantId, EntityId targetOwnerId, Edge edge) throws ThingsboardException {
-        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, e -> edgeService.saveEdge(e, true));
+        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, e -> edgeService.saveEdge(e));
     }
 
     @Override

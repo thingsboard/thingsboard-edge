@@ -28,9 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.dao.service.validator;
 
-import org.eclipse.leshan.core.node.LwM2mResource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
 
-public interface TbLwM2MResource extends LwM2mResource {
+@Component
+public class ClientRegistrationTemplateDataValidator extends DataValidator<OAuth2ClientRegistrationTemplate> {
+
+    @Override
+    protected void validateCreate(TenantId tenantId, OAuth2ClientRegistrationTemplate clientRegistrationTemplate) {
+    }
+
+    @Override
+    protected void validateUpdate(TenantId tenantId, OAuth2ClientRegistrationTemplate clientRegistrationTemplate) {
+    }
+
+    @Override
+    protected void validateDataImpl(TenantId tenantId, OAuth2ClientRegistrationTemplate clientRegistrationTemplate) {
+        if (StringUtils.isEmpty(clientRegistrationTemplate.getProviderId())) {
+            throw new DataValidationException("Provider ID should be specified!");
+        }
+        if (clientRegistrationTemplate.getMapperConfig() == null) {
+            throw new DataValidationException("Mapper config should be specified!");
+        }
+        if (clientRegistrationTemplate.getMapperConfig().getType() == null) {
+            throw new DataValidationException("Mapper type should be specified!");
+        }
+        if (clientRegistrationTemplate.getMapperConfig().getBasic() == null) {
+            throw new DataValidationException("Basic mapper config should be specified!");
+        }
+    }
 }

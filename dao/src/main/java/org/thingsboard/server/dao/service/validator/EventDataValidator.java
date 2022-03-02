@@ -28,18 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.dao.service.validator;
 
-import org.eclipse.leshan.core.model.ResourceModel;
-import org.eclipse.leshan.core.node.LwM2mResourceInstance;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
 
-import java.io.Serializable;
+@Component
+public class EventDataValidator extends DataValidator<Event> {
 
-public class TbLwM2MResourceInstance extends LwM2mResourceInstance implements Serializable {
-
-    private static final long serialVersionUID = -8322290426892538345L;
-
-    protected TbLwM2MResourceInstance(int id, Object value, ResourceModel.Type type) {
-        super(id, value, type);
+    @Override
+    protected void validateDataImpl(TenantId tenantId, Event event) {
+        if (event.getEntityId() == null) {
+            throw new DataValidationException("Entity id should be specified!.");
+        }
+        if (StringUtils.isEmpty(event.getType())) {
+            throw new DataValidationException("Event type should be specified!.");
+        }
+        if (event.getBody() == null) {
+            throw new DataValidationException("Event body should be specified!.");
+        }
     }
 }

@@ -28,18 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.dao.cache;
 
-import org.eclipse.leshan.core.model.ResourceModel;
-import org.eclipse.leshan.core.node.LwM2mSingleResource;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.io.Serializable;
+public interface EntitiesCacheManager {
 
-public class TbLwM2MSingleResource extends LwM2mSingleResource implements TbLwM2MResource, Serializable {
+    void removeDeviceFromCacheByName(TenantId tenantId, String name);
 
-    private static final long serialVersionUID = -878078368245340809L;
+    void removeDeviceFromCacheById(TenantId tenantId, DeviceId deviceId);
 
-    public TbLwM2MSingleResource(int id, Object value, ResourceModel.Type type) {
-        super(id, value, type);
-    }
+    void removeAssetFromCacheByName(TenantId tenantId, String name);
+
+    void removeEdgeFromCacheByName(TenantId tenantId, String name);
 }

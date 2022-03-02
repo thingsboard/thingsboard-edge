@@ -188,9 +188,9 @@ public class DefaultSolutionService implements SolutionService {
     private static final Map<SolutionTemplateLevel, Set<String>> allowedSolutionTemplateLevelsMap = new HashMap<>();
 
     static {
-        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.MAKER, Set.of("Maker", "Prototype", "Startup"));
-        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.PROTOTYPE, Set.of("Prototype", "Startup"));
-        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.STARTUP, Set.of("Startup"));
+        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.MAKER, Set.of("Maker", "Prototype", "Startup", "Business"));
+        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.PROTOTYPE, Set.of("Prototype", "Startup", "Business"));
+        allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.STARTUP, Set.of("Startup", "Business"));
     }
 
     private List<SolutionTemplateInfo> solutions = new ArrayList<>();

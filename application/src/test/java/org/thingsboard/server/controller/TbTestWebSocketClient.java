@@ -69,7 +69,7 @@ public class TbTestWebSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int i, String s, boolean b) {
-        log.error("CLOSED:");
+        log.info("CLOSED.");
     }
 
     @Override

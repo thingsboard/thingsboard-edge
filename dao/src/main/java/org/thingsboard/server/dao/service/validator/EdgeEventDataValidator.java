@@ -28,17 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.dao.service.validator;
 
-import org.eclipse.leshan.core.model.ResourceModel;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
 
-import java.io.Serializable;
+@Component
+public class EdgeEventDataValidator extends DataValidator<EdgeEvent> {
 
-public class TbResourceModel extends ResourceModel implements Serializable {
-
-    private static final long serialVersionUID = -2082846558899793932L;
-
-    public TbResourceModel(Integer id, String name, Operations operations, Boolean multiple, Boolean mandatory, Type type, String rangeEnumeration, String units, String description) {
-        super(id, name, operations, multiple, mandatory, type, rangeEnumeration, units, description);
+    @Override
+    protected void validateDataImpl(TenantId tenantId, EdgeEvent edgeEvent) {
+        if (edgeEvent.getEdgeId() == null) {
+            throw new DataValidationException("Edge id should be specified!");
+        }
+        if (edgeEvent.getAction() == null) {
+            throw new DataValidationException("Edge Event action should be specified!");
+        }
     }
 }
