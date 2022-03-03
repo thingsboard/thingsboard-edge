@@ -3725,6 +3725,7 @@
         "target": "Target",
         "rpc-method": "Method",
         "rpc-method-required": "Method is required",
+        "rpc-method-white-space": "White space is not allowed.",
         "rpc-params": "Params",
         "select-dashboard-state": "Select dashboard state",
         "hours": "Hours",

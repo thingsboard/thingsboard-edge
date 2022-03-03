@@ -63,6 +63,7 @@
     <tb-entity-group-select
       fxFlex
       [ownerId]="originatorFormGroup.get('groupOwnerId').value"
+      [originator]="originatorFormGroup.get('originator').value"
       [allowedGroupTypes]="allowedEntityTypes"
       (currentGroupInfo)="entityGroupLoaded($event)"
       (currentGroupType)="currentGroupType.emit($event)"
