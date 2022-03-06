@@ -28,13 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.common.data.scheduler;
+
+import lombok.Data;
 
 /**
  * Created by ashvayka on 28.11.17.
  */
-public enum SchedulerRepeatType {
+@Data
+public class DailyRepeat implements SchedulerRepeat {
 
-    DAILY, WEEKLY, MONTHLY, YEARLY, TIMER;
+    public static final long _1DAY = 1000 * 60 * 60 * 24;
+    private long endsOn;
 
+    @Override
+    public SchedulerRepeatType getType() {
+        return SchedulerRepeatType.DAILY;
+    }
+
+
+    @Override
+    public long getNext(long startTime, long ts, String timezone) {
+        for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
+            if (tmp > ts) {
+                return tmp;
+            }
+        }
+        return 0L;
+    }
 }

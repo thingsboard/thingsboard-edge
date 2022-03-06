@@ -415,6 +415,12 @@ integrations:
 reports:
   server:
     endpointUrl: "${REPORTS_SERVER_ENDPOINT_URL:http://localhost:8383}"
+  rate_limits:
+    enabled: "${REPORTS_TENANT_RATE_LIMITS_ENABLED:false}"
+    configuration: "${REPORTS_TENANT_RATE_LIMITS_CONFIGURATION:5:300}"
+  scheduler:
+    # minimum interval between subsequent scheduler events. Applicable for timer based events.
+    min_interval: "${REPORTS_SCHEDULER_MIN_INTERVAL_IN_SEC:60}"
 
 # Cache parameters
 cache:

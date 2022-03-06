@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -49,6 +51,8 @@ import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
+import org.thingsboard.server.common.data.scheduler.TimerRepeat;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.device.DeviceProfileService;
@@ -67,6 +71,9 @@ import static org.thingsboard.server.dao.scheduler.BaseSchedulerEventService.get
 
 @Component
 public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
+
+    @Value("${reports.scheduler.min_interval:60}")
+    private int minTimerBasedIntervalForEventInSec;
 
     @Autowired
     private OtaPackageService otaPackageService;
@@ -170,6 +177,18 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
                         throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
                     }
                     break;
+            }
+        }
+
+        JsonNode repeatNode = schedulerEvent.getSchedule().get("repeat");
+        if (repeatNode != null) {
+            var repeat = JacksonUtil.treeToValue(repeatNode, SchedulerRepeat.class);
+            if (repeat instanceof TimerRepeat) {
+                var timerRepeat = (TimerRepeat) repeat;
+                long seconds = timerRepeat.getTimeUnit().toSeconds(timerRepeat.getRepeatInterval());
+                if (seconds < minTimerBasedIntervalForEventInSec) {
+                    throw new DataValidationException("Timer-based repeats are too frequent (less than " + minTimerBasedIntervalForEventInSec + " seconds)!");
+                }
             }
         }
     }

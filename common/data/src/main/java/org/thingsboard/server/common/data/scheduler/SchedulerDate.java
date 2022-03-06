@@ -28,24 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
-
-import lombok.Data;
+package org.thingsboard.server.common.data.scheduler;
 
 import java.util.Calendar;
 
-@Data
-public class YearlyRepeat extends SchedulerDate implements SchedulerRepeat {
+abstract class SchedulerDate {
 
-    private long endsOn;
+    protected long getNext(long startTime, long ts, String timezone, long endsOn, int calendarField) {
+        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
 
-    @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.YEARLY;
-    }
-
-    @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        return getNext(startTime, ts, timezone, endsOn, Calendar.YEAR);
+        long tmp = startTime;
+        int repeatIteration = 0;
+        while (tmp < endsOn) {
+            calendar.setTimeInMillis(startTime);
+            calendar.add(calendarField, repeatIteration);
+            tmp = calendar.getTimeInMillis();
+            if (tmp > ts) {
+                return tmp;
+            }
+            repeatIteration++;
+        }
+        return 0L;
     }
 }
