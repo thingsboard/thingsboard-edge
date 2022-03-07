@@ -82,7 +82,9 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   @Input()
   set ownerId(value: EntityId) {
     if (isDefinedAndNotNull(value) && !isEqual(this.ownerIdValue, value)) {
-      this.reset();
+      const currentEntityGroup = this.getCurrentEntityGroup();
+      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
+      this.reset(keepEntityGroup);
       this.dirty = true;
     }
     this.ownerIdValue = value;
@@ -242,11 +244,13 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  reset() {
+  reset(keepEntityGroup = false) {
     this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
-    this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
-    setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
+    if (!keepEntityGroup) {
+      this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
+      setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
+    }
   }
 
   updateView(value: string | null, entityGroup: EntityGroupInfo | string | null ) {
