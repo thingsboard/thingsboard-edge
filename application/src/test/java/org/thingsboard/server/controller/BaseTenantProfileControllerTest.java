@@ -78,7 +78,7 @@ public abstract class BaseTenantProfileControllerTest extends AbstractController
         Assert.assertEquals(tenantProfile.isIsolatedTbRuleEngine(), savedTenantProfile.isIsolatedTbRuleEngine());
 
         savedTenantProfile.setName("New tenant profile");
-        doPost("/api/tenantProfile", savedTenantProfile, TenantProfile.class);
+        doPost("/api/tenantProfile", savedTenantProfile).andExpect(status().isOk());
         TenantProfile foundTenantProfile = doGet("/api/tenantProfile/"+savedTenantProfile.getId().getId().toString(), TenantProfile.class);
         Assert.assertEquals(foundTenantProfile.getName(), savedTenantProfile.getName());
     }
