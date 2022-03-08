@@ -326,6 +326,7 @@ public class LwM2MBootstrapConfigStoreTaskProvider implements LwM2MBootstrapTask
         return (requests);
     }
 
+
     private void initSupportedObjectsDefault() {
         this.supportedObjects = new HashMap<>();
         this.supportedObjects.put(0, "1.1");
