@@ -407,6 +407,10 @@
             <artifactId>Java-WebSocket</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>sdk-server</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
