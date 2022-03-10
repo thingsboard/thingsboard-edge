@@ -401,9 +401,10 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             return;
         }
         try {
-            if (connected && scheduleRescan && !connect()) {
-                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
+            if (!connected && !connect()) {
+                log.debug("[{}] Scheduling next connect in {} seconds!", this.configuration.getId(), delayBetweenReconnects.get());
                 scheduleConnect();
+                scheduleRescan = false;
                 return;
             }
 
@@ -418,12 +419,15 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             if (connected) {
                 log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
-                scheduleScan();
+                scheduleRescan = true;
             }
         } catch (Throwable e) {
             log.warn("[{}] Periodic device scan failed!", this.configuration.getId(), e);
             scheduleRescan = true;
+        }
+        if (connected && scheduleRescan) {
             scheduleScan();
+            scheduleRescan = false;
         }
     }
 
@@ -489,7 +493,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             } catch (Exception e) {
                 log.error("[{}] Failed to scan device: {}", this.configuration.getName(), node, e);
                 scheduleRescan = true;
-                scheduleScan();
             }
         });
         if (scanChildren) {
