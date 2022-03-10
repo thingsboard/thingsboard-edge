@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration.opcua.server;
 
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.server.util.HostnameUtil;
 import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateBuilder;
 import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateGenerator;
@@ -52,6 +53,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+@Slf4j
 class KeyStoreLoader {
 
     private static final Pattern IP_ADDR_PATTERN = Pattern.compile(
@@ -59,8 +61,6 @@ class KeyStoreLoader {
 
     private static final String SERVER_ALIAS = "server-ai";
     private static final char[] PASSWORD = "password".toCharArray();
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private X509Certificate[] serverCertificateChain;
     private X509Certificate serverCertificate;
@@ -71,7 +71,7 @@ class KeyStoreLoader {
 
         File serverKeyStore = baseDir.resolve("example-server.pfx").toFile();
 
-        logger.info("Loading KeyStore at {}", serverKeyStore);
+        log.info("Loading KeyStore at {}", serverKeyStore);
 
         if (!serverKeyStore.exists()) {
             keyStore.load(null, PASSWORD);

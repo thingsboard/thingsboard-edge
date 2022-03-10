@@ -410,6 +410,7 @@
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-server</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

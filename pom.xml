@@ -1588,6 +1588,7 @@
                 <groupId>org.eclipse.milo</groupId>
                 <artifactId>sdk-server</artifactId>
                 <version>${milo.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.californium</groupId>

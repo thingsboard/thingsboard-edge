@@ -28,8 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 package org.thingsboard.server.service.integration.opcua.server;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilter;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext.GetAttributeContext;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext.SetAttributeContext;
@@ -39,9 +41,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.function.Predicate;
 
+@Slf4j
 public class AttributeLoggingFilter implements AttributeFilter {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Predicate<AttributeId> attributePredicate;
 
@@ -59,7 +60,7 @@ public class AttributeLoggingFilter implements AttributeFilter {
 
         // only log external reads
         if (attributePredicate.test(attributeId) && ctx.getSession().isPresent()) {
-            logger.info(
+            log.info(
                 "get nodeId={} attributeId={} value={}",
                 ctx.getNode().getNodeId(), attributeId, value
             );
@@ -72,7 +73,7 @@ public class AttributeLoggingFilter implements AttributeFilter {
     public void setAttribute(SetAttributeContext ctx, AttributeId attributeId, Object value) {
         // only log external writes
         if (attributePredicate.test(attributeId) && ctx.getSession().isPresent()) {
-            logger.info(
+            log.info(
                 "set nodeId={} attributeId={} value={}",
                 ctx.getNode().getNodeId(), attributeId, value
             );

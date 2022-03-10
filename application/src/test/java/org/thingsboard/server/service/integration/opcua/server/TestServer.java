@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration.opcua.server;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
@@ -76,6 +77,7 @@ import static org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig.USE
 import static org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig.USER_TOKEN_POLICY_USERNAME;
 import static org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig.USER_TOKEN_POLICY_X509;
 
+@Slf4j
 public class TestServer {
 
     private static final int TCP_BIND_PORT = 12686;
@@ -109,10 +111,8 @@ public class TestServer {
 
         File pkiDir = securityTempDir.resolve("pki").toFile();
 
-        LoggerFactory.getLogger(getClass())
-            .info("security dir: {}", securityTempDir.toAbsolutePath());
-        LoggerFactory.getLogger(getClass())
-            .info("security pki dir: {}", pkiDir.getAbsolutePath());
+        log.info("security dir: {}", securityTempDir.toAbsolutePath());
+        log.info("security pki dir: {}", pkiDir.getAbsolutePath());
 
         KeyStoreLoader loader = new KeyStoreLoader().load(securityTempDir);
 
