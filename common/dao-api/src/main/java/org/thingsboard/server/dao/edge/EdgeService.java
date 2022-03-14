@@ -44,6 +44,8 @@ public interface EdgeService {
 
     Edge saveEdge(Edge edge, boolean doValidate);
 
+    Edge saveEdge(Edge edge);
+
     Edge assignEdgeToCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId);
 
     Edge unassignEdgeFromCustomer(TenantId tenantId, EdgeId edgeId);

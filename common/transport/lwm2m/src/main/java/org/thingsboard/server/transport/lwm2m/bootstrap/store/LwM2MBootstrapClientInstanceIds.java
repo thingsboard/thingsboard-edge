@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.edge;
+package org.thingsboard.server.transport.lwm2m.bootstrap.store;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.http.ResponseEntity;
+import lombok.Data;
 
-public interface EdgeLicenseService {
+import java.util.HashMap;
+import java.util.Map;
 
-    ResponseEntity<JsonNode> checkInstance(JsonNode request);
+@Data
+public class LwM2MBootstrapClientInstanceIds {
 
-    ResponseEntity<JsonNode> activateInstance(String licenseSecret, String releaseDate);
+    /**
+     * Map<serverId (shortId), InstanceId>
+     */
+    private Map<Integer, Integer> securityInstances = new HashMap<>();
+    private  Map<Integer, Integer> serverInstances = new HashMap<>();
 }

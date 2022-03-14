@@ -32,7 +32,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Tenant;
@@ -559,8 +558,6 @@ public class CloudManagerService extends BaseCloudEventService {
         edge.setType(edgeConfiguration.getType());
         edge.setRoutingKey(edgeConfiguration.getRoutingKey());
         edge.setSecret(edgeConfiguration.getSecret());
-        edge.setEdgeLicenseKey(edgeConfiguration.getEdgeLicenseKey());
-        edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
         edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
         edgeService.saveEdge(edge, false);
         saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.ATTRIBUTES_REQUEST, edgeId, null);

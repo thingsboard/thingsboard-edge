@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.controller.sql;
 
-import org.eclipse.leshan.core.model.ResourceModel;
+import org.thingsboard.server.controller.BaseAlarmControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.io.Serializable;
-
-public class TbResourceModel extends ResourceModel implements Serializable {
-
-    private static final long serialVersionUID = -2082846558899793932L;
-
-    public TbResourceModel(Integer id, String name, Operations operations, Boolean multiple, Boolean mandatory, Type type, String rangeEnumeration, String units, String description) {
-        super(id, name, operations, multiple, mandatory, type, rangeEnumeration, units, description);
-    }
+@DaoSqlTest
+public class AlarmControllerSqlTest extends BaseAlarmControllerTest {
 }

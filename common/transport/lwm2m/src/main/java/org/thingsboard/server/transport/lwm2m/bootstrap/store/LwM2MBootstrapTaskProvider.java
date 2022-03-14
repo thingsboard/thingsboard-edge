@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.transport.lwm2m.bootstrap.store;
 
-import org.eclipse.leshan.core.model.ResourceModel;
-import org.eclipse.leshan.core.node.LwM2mSingleResource;
+import org.eclipse.leshan.server.bootstrap.BootstrapTaskProvider;
+import org.eclipse.leshan.server.bootstrap.InvalidConfigurationException;
 
-import java.io.Serializable;
+public interface LwM2MBootstrapTaskProvider extends BootstrapTaskProvider {
 
-public class TbLwM2MSingleResource extends LwM2mSingleResource implements TbLwM2MResource, Serializable {
+    void put(String endpoint)  throws InvalidConfigurationException;
 
-    private static final long serialVersionUID = -878078368245340809L;
-
-    public TbLwM2MSingleResource(int id, Object value, ResourceModel.Type type) {
-        super(id, value, type);
-    }
+    void remove(String endpoint);
 }
