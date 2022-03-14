@@ -301,7 +301,7 @@ public abstract class AbstractMqttTimeseriesProtoIntegrationTest extends Abstrac
 
 
     @Test
-    public void testPushTelemetryWithMalformedPayloadAndSendPubAckOnErrorEnabled() throws Exception {
+    public void testPushTelemetryWithMalformedPayloadAndSendAckOnErrorEnabled() throws Exception {
         processBeforeTest("Test Post Telemetry device proto payload", "Test Post Telemetry gateway proto payload", TransportPayloadType.PROTOBUF, POST_DATA_TELEMETRY_TOPIC, null, true);
         CountDownLatch latch = new CountDownLatch(1);
         MqttAsyncClient client = getMqttAsyncClient(accessToken);
@@ -313,7 +313,7 @@ public abstract class AbstractMqttTimeseriesProtoIntegrationTest extends Abstrac
     }
 
     @Test
-    public void testPushTelemetryWithMalformedPayloadAndSendPubAckOnErrorDisabled() throws Exception {
+    public void testPushTelemetryWithMalformedPayloadAndSendAckOnErrorDisabled() throws Exception {
         processBeforeTest("Test Post Telemetry device proto payload", "Test Post Telemetry gateway proto payload", TransportPayloadType.PROTOBUF, POST_DATA_TELEMETRY_TOPIC, null, false);
         CountDownLatch latch = new CountDownLatch(1);
         MqttAsyncClient client = getMqttAsyncClient(accessToken);
@@ -325,7 +325,7 @@ public abstract class AbstractMqttTimeseriesProtoIntegrationTest extends Abstrac
     }
 
     @Test
-    public void testPushTelemetryWithMalformedPayloadAndSendPubAckOnErrorEnabledAndBackwardCompatibilityEnabled() throws Exception {
+    public void testPushTelemetryWithMalformedPayloadAndSendAckOnErrorEnabledAndBackwardCompatibilityEnabled() throws Exception {
         processBeforeTest("Test Post Telemetry device", "Test Post Telemetry gateway", TransportPayloadType.PROTOBUF, POST_DATA_TELEMETRY_TOPIC, null, true, false, true);
         CountDownLatch latch = new CountDownLatch(1);
         MqttAsyncClient client = getMqttAsyncClient(accessToken);
@@ -337,7 +337,7 @@ public abstract class AbstractMqttTimeseriesProtoIntegrationTest extends Abstrac
     }
 
     @Test
-    public void testPushTelemetryWithMalformedPayloadAndSendPubAckOnErrorDisabledAndBackwardCompatibilityEnabled() throws Exception {
+    public void testPushTelemetryWithMalformedPayloadAndSendAckOnErrorDisabledAndBackwardCompatibilityEnabled() throws Exception {
         processBeforeTest("Test Post Telemetry device", "Test Post Telemetry gateway", TransportPayloadType.PROTOBUF, POST_DATA_TELEMETRY_TOPIC, null, true, false, false);
         CountDownLatch latch = new CountDownLatch(1);
         MqttAsyncClient client = getMqttAsyncClient(accessToken);
@@ -349,7 +349,7 @@ public abstract class AbstractMqttTimeseriesProtoIntegrationTest extends Abstrac
     }
 
     @Test
-    public void testPushTelemetryGatewayWithMalformedPayloadAndSendPubAckOnErrorEnabled() throws Exception {
+    public void testPushTelemetryGatewayWithMalformedPayloadAndSendAckOnErrorEnabled() throws Exception {
         processBeforeTest("Test Post Telemetry device proto payload", "Test Post Telemetry gateway proto payload", TransportPayloadType.PROTOBUF, POST_DATA_TELEMETRY_TOPIC, null, true);
         CountDownLatch latch = new CountDownLatch(1);
         MqttAsyncClient client = getMqttAsyncClient(gatewayAccessToken);
@@ -361,7 +361,7 @@ public abstract class AbstractMqttTimeseriesProtoIntegrationTest extends Abstrac
     }
 
     @Test
-    public void testPushTelemetryGatewayWithMalformedPayloadAndSendPubAckOnErrorDisabled() throws Exception {
+    public void testPushTelemetryGatewayWithMalformedPayloadAndSendAckOnErrorDisabled() throws Exception {
         processBeforeTest("Test Post Telemetry device proto payload", "Test Post Telemetry gateway proto payload", TransportPayloadType.PROTOBUF, POST_DATA_TELEMETRY_TOPIC, null, false);
         CountDownLatch latch = new CountDownLatch(1);
         MqttAsyncClient client = getMqttAsyncClient(gatewayAccessToken);

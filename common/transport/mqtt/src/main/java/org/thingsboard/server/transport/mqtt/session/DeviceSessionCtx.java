@@ -99,7 +99,7 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
     private volatile MqttTransportAdaptor adaptor;
     private volatile boolean jsonPayloadFormatCompatibilityEnabled;
     private volatile boolean useJsonPayloadFormatForDefaultDownlinkTopics;
-    private volatile boolean sendPubAckOnValidationException;
+    private volatile boolean sendAckOnValidationException;
 
     @Getter
     @Setter
@@ -131,8 +131,8 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
         return payloadType.equals(TransportPayloadType.JSON);
     }
 
-    public boolean isSendPubAckOnValidationException() {
-        return sendPubAckOnValidationException;
+    public boolean isSendAckOnValidationException() {
+        return sendAckOnValidationException;
     }
 
     public Descriptors.Descriptor getTelemetryDynamicMsgDescriptor() {
@@ -172,7 +172,7 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             payloadType = transportPayloadTypeConfiguration.getTransportPayloadType();
             telemetryTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceTelemetryTopic());
             attributesTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesTopic());
-            sendPubAckOnValidationException = mqttConfig.isSendPubAckOnValidationException();
+            sendAckOnValidationException = mqttConfig.isSendAckOnValidationException();
             if (TransportPayloadType.PROTOBUF.equals(payloadType)) {
                 ProtoTransportPayloadConfiguration protoTransportPayloadConfig = (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;
                 updateDynamicMessageDescriptors(protoTransportPayloadConfig);
@@ -183,7 +183,7 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             telemetryTopicFilter = MqttTopicFilterFactory.getDefaultTelemetryFilter();
             attributesTopicFilter = MqttTopicFilterFactory.getDefaultAttributesFilter();
             payloadType = TransportPayloadType.JSON;
-            sendPubAckOnValidationException = false;
+            sendAckOnValidationException = false;
         }
         updateAdaptor();
     }
