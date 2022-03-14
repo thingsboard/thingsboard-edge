@@ -25,7 +25,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -208,6 +210,9 @@ public class CloudManagerService extends BaseCloudEventService {
 
     @Autowired
     private InstallScripts installScripts;
+
+    @Autowired
+    private ConfigurableApplicationContext context;
 
     private CountDownLatch latch;
 
@@ -505,8 +510,20 @@ public class CloudManagerService extends BaseCloudEventService {
                 scheduledFuture = null;
             }
 
-            initAndUpdateEdgeSettings(edgeConfiguration);
-
+            if ("CE".equals(edgeConfiguration.getCloudType())) {
+                initAndUpdateEdgeSettings(edgeConfiguration);
+            } else {
+                new Thread(() -> {
+                    log.error("Terminating application. CE edge can be connected only to CE server version...");
+                    int exitCode = -1;
+                    int appExitCode = exitCode;
+                    try {
+                        appExitCode = SpringApplication.exit(context, () -> exitCode);
+                    } finally {
+                        System.exit(appExitCode);
+                    }
+                }, "Shutdown Thread").start();
+            }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
