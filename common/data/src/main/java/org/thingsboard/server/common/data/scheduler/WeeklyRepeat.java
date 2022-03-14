@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.Calendar;
@@ -39,6 +40,7 @@ import java.util.List;
  * Created by ashvayka on 28.11.17.
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WeeklyRepeat implements SchedulerRepeat {
 
     public static final long _1DAY = 1000 * 60 * 60 * 24;

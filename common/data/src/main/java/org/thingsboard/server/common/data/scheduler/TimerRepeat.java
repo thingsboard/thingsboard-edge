@@ -30,11 +30,13 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.concurrent.TimeUnit;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TimerRepeat implements SchedulerRepeat {
 
     private long repeatInterval;
