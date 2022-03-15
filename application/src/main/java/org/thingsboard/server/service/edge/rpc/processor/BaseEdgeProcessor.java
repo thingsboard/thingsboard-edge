@@ -34,8 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -63,6 +65,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
@@ -91,7 +94,6 @@ import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConst
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 @Slf4j
@@ -157,6 +159,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected WidgetTypeService widgetTypeService;
+
+    @Autowired
+    protected DataValidator<Device> deviceValidator;
 
     @Autowired
     protected EntityDataMsgConstructor entityDataMsgConstructor;

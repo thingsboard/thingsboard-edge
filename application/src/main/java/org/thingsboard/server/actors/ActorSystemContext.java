@@ -538,7 +538,7 @@ public class ActorSystemContext {
     }
 
     private void persistEvent(Event event) {
-        eventService.save(event);
+        eventService.saveAsync(event);
     }
 
     private String toString(Throwable e) {
@@ -623,13 +623,11 @@ public class ActorSystemContext {
                 }
 
                 event.setBody(node);
-                ListenableFuture<Event> future = eventService.saveAsync(event);
-                Futures.addCallback(future, new FutureCallback<Event>() {
+                ListenableFuture<Void> future = eventService.saveAsync(event);
+                Futures.addCallback(future, new FutureCallback<Void>() {
                     @Override
-                    public void onSuccess(@Nullable Event event) {
-                        if (event != null) {
-                            log.trace("[{}] Event saved successfully", event.getUid());
-                        }
+                    public void onSuccess(@Nullable Void event) {
+
                     }
 
                     @Override
@@ -678,10 +676,10 @@ public class ActorSystemContext {
         }
 
         event.setBody(node);
-        ListenableFuture<Event> future = eventService.saveAsync(event);
-        Futures.addCallback(future, new FutureCallback<Event>() {
+        ListenableFuture<Void> future = eventService.saveAsync(event);
+        Futures.addCallback(future, new FutureCallback<Void>() {
             @Override
-            public void onSuccess(@Nullable Event event) {
+            public void onSuccess(@Nullable Void event) {
 
             }
 

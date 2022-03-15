@@ -2200,6 +2200,7 @@
         "target": "Целевой объект",
         "rpc-method": "Метод",
         "rpc-method-required": "Необходимо указать метод",
+        "rpc-method-white-space": "Пробелы не допускаются.",
         "rpc-params": "Параметры",
         "select-dashboard-state": "Выберите состояние дашборда",
         "hours": "Часы",

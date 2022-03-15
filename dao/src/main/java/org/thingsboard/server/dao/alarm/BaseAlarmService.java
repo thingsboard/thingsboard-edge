@@ -40,10 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -68,10 +66,8 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -79,7 +75,6 @@ import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,13 +97,13 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     private AlarmDao alarmDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private EntityService entityService;
 
     @Autowired
     private OwnerService ownerService;
 
     @Autowired
-    private EntityService entityService;
+    private DataValidator<Alarm> alarmDataValidator;
 
     protected ExecutorService readResultsProcessingExecutor;
 
@@ -467,32 +462,4 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         ListenableFuture<Alarm> entity = alarmDao.findAlarmByIdAsync(tenantId, alarmId.getId());
         return Futures.transform(entity, function, readResultsProcessingExecutor);
     }
-
-    private DataValidator<Alarm> alarmDataValidator =
-            new DataValidator<>() {
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Alarm alarm) {
-                    if (StringUtils.isEmpty(alarm.getType())) {
-                        throw new DataValidationException("Alarm type should be specified!");
-                    }
-                    if (alarm.getOriginator() == null) {
-                        throw new DataValidationException("Alarm originator should be specified!");
-                    }
-                    if (alarm.getSeverity() == null) {
-                        throw new DataValidationException("Alarm severity should be specified!");
-                    }
-                    if (alarm.getStatus() == null) {
-                        throw new DataValidationException("Alarm status should be specified!");
-                    }
-                    if (alarm.getTenantId() == null) {
-                        throw new DataValidationException("Alarm should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(alarm.getTenantId(), alarm.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Alarm is referencing to non-existent tenant!");
-                        }
-                    }
-                }
-            };
 }

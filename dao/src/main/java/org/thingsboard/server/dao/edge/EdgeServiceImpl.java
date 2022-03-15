@@ -41,18 +41,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -69,7 +64,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
-import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.cache.EntitiesCacheManager;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -78,11 +73,9 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -93,7 +86,6 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -115,13 +107,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     private EdgeDao edgeDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private CustomerDao customerDao;
-
-    @Autowired
-    private CacheManager cacheManager;
+    private EntitiesCacheManager cacheManager;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -131,6 +117,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     @Autowired
     private EntityGroupService entityGroupService;
+
+    @Autowired
+    private DataValidator<Edge> edgeValidator;
 
     @Override
     public Edge findEdgeById(TenantId tenantId, EdgeId edgeId) {
@@ -160,6 +149,12 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         log.trace("Executing findEdgeByRoutingKey [{}]", routingKey);
         Validator.validateString(routingKey, "Incorrect edge routingKey for search request.");
         return edgeDao.findByRoutingKey(tenantId.getId(), routingKey);
+    }
+
+    @CacheEvict(cacheNames = EDGE_CACHE, key = "{#edge.tenantId, #edge.name}")
+    @Override
+    public Edge saveEdge(Edge edge) {
+        return saveEdge(edge, true);
     }
 
     @CacheEvict(cacheNames = EDGE_CACHE, key = "{#edge.tenantId, #edge.name}")
@@ -197,14 +192,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
         deleteEntityRelations(tenantId, edgeId);
 
-        removeEdgeFromCacheByName(edge.getTenantId(), edge.getName());
+        cacheManager.removeEdgeFromCacheByName(edge.getTenantId(), edge.getName());
 
         edgeDao.removeById(tenantId, edgeId.getId());
-    }
-
-    private void removeEdgeFromCacheByName(TenantId tenantId, String name) {
-        Cache cache = cacheManager.getCache(EDGE_CACHE);
-        cache.evict(Arrays.asList(tenantId, name));
     }
 
     @Override
@@ -288,7 +278,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             @Nullable
             @Override
             public List<Edge> apply(@Nullable List<Edge> edgeList) {
-                return edgeList == null ? Collections.emptyList() : edgeList.stream().filter(edge -> query.getEdgeTypes().contains(edge.getType())).collect(Collectors.toList());
+                return edgeList == null ?
+                        Collections.emptyList() :
+                        edgeList.stream().filter(edge -> query.getEdgeTypes().contains(edge.getType())).collect(Collectors.toList());
             }
         }, MoreExecutors.directExecutor());
 
@@ -372,63 +364,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
         return edgeDao.findEdgeIdsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupUuids, groupType, pageLink);
     }
-
-    private DataValidator<Edge> edgeValidator =
-            new DataValidator<Edge>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, Edge edge) {
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, Edge edge) {
-                    Edge old = edgeDao.findById(edge.getTenantId(), edge.getId().getId());
-                    if (!old.getName().equals(edge.getName())) {
-                        removeEdgeFromCacheByName(tenantId, old.getName());
-                    }
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Edge edge) {
-                    if (StringUtils.isEmpty(edge.getType())) {
-                        throw new DataValidationException("Edge type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getName())) {
-                        throw new DataValidationException("Edge name should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getSecret())) {
-                        throw new DataValidationException("Edge secret should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getRoutingKey())) {
-                        throw new DataValidationException("Edge routing key should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getEdgeLicenseKey())) {
-                        throw new DataValidationException("Edge license key should be specified!");
-                    }
-                    if (StringUtils.isEmpty(edge.getCloudEndpoint())) {
-                        throw new DataValidationException("Cloud endpoint should be specified!");
-                    }
-                    if (edge.getTenantId() == null) {
-                        throw new DataValidationException("Edge should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(edge.getTenantId(), edge.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Edge is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (edge.getCustomerId() == null) {
-                        edge.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!edge.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(edge.getTenantId(), edge.getCustomerId().getId());
-                        if (customer == null) {
-                            throw new DataValidationException("Can't assign edge to non-existent customer!");
-                        }
-                        if (!customer.getTenantId().getId().equals(edge.getTenantId().getId())) {
-                            throw new DataValidationException("Can't assign edge to customer from different tenant!");
-                        }
-                    }
-                }
-            };
 
     private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
             new PaginatedRemover<TenantId, Edge>() {

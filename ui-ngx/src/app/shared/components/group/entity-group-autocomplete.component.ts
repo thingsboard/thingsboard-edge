@@ -53,7 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { isEqual, isString } from '@core/utils';
+import { isDefinedAndNotNull, isEqual, isString } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -74,8 +74,21 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   @Input()
   groupType: EntityType;
 
+  private ownerIdValue: EntityId;
+  get ownerId(): EntityId {
+    return this.ownerIdValue;
+  }
+
   @Input()
-  ownerId: EntityId;
+  set ownerId(value: EntityId) {
+    if (isDefinedAndNotNull(value) && !isEqual(this.ownerIdValue, value)) {
+      const currentEntityGroup = this.getCurrentEntityGroup();
+      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
+      this.reset(keepEntityGroup);
+      this.dirty = true;
+    }
+    this.ownerIdValue = value;
+  }
 
   @Input()
   excludeGroupIds: Array<string>;
@@ -173,9 +186,6 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
             this.reset();
             this.dirty = true;
           }
-        } else if (propName === 'ownerId') {
-            this.reset();
-            this.dirty = true;
         }
       }
     }
@@ -234,11 +244,13 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  reset() {
+  reset(keepEntityGroup = false) {
     this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
-    this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
-    setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
+    if (!keepEntityGroup) {
+      this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
+      setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
+    }
   }
 
   updateView(value: string | null, entityGroup: EntityGroupInfo | string | null ) {

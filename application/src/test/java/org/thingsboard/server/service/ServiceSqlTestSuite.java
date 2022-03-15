@@ -39,7 +39,8 @@ import org.thingsboard.server.queue.memory.InMemoryStorage;
 @ClasspathSuite.ClassnameFilters({
         "org.thingsboard.server.service.resource.sql.*Test",
         "org.thingsboard.server.service.edge.*Test",
-        "org.thingsboard.server.service.sql.*Test"
+        "org.thingsboard.server.service.sql.*Test",
+        "org.thingsboard.server.service.scheduler.sql.*Test"
 })
 public class ServiceSqlTestSuite {
 

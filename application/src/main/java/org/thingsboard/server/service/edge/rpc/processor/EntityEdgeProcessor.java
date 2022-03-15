@@ -33,8 +33,8 @@ package org.thingsboard.server.service.edge.rpc.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -107,34 +107,27 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
-        EdgeId edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB()));
-        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        PageData<EdgeId> pageData;
+        EdgeId edgeId = null;
+        if (edgeNotificationMsg.getEdgeIdMSB() != 0 && edgeNotificationMsg.getEdgeIdLSB() != 0) {
+            edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB()));
+        }
         switch (actionType) {
             case ADDED:
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
             case CREDENTIALS_UPDATED:
-                do {
-                    pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, pageLink);
-                    if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                        EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
-                        for (EdgeId relatedEdgeId : pageData.getData()) {
-                            saveEdgeEvent(tenantId, relatedEdgeId, type, actionType, entityId, null, entityGroupId);
-                        }
-                        if (pageData.hasNext()) {
-                            pageLink = pageLink.nextPageLink();
-                        }
-                    }
-                } while (pageData != null && pageData.hasNext());
+                pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
                 break;
             case DELETED:
             case CHANGE_OWNER:
-                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                if (edgeId != null) {
+                    saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                } else {
+                    pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
+                }
                 break;
             case REMOVED_FROM_ENTITY_GROUP:
-                EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
-                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, entityGroupId);
+                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, constructEntityGroupId(tenantId, edgeNotificationMsg));
                 break;
             case ASSIGNED_TO_EDGE:
             case UNASSIGNED_FROM_EDGE:
@@ -158,6 +151,22 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
         } else {
             return null;
         }
+    }
+
+    private void pushNotificationToAllRelatedEdges(TenantId tenantId, EntityId entityId, EdgeEventType type, EdgeEventActionType actionType, EntityGroupId entityGroupId) {
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EdgeId> pageData;
+        do {
+            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (EdgeId relatedEdgeId : pageData.getData()) {
+                    saveEdgeEvent(tenantId, relatedEdgeId, type, actionType, entityId, null, entityGroupId);
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
     }
 
     private void updateDependentRuleChains(TenantId tenantId, RuleChainId processingRuleChainId, EdgeId edgeId) {

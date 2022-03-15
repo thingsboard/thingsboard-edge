@@ -35,13 +35,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -51,21 +48,20 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -83,13 +79,10 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     private RoleDao roleDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private CustomerDao customerDao;
-
-    @Autowired
     private GroupPermissionService groupPermissionService;
+
+    @Autowired
+    private DataValidator<Role> roleValidator;
 
     @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
     @Override
@@ -279,78 +272,6 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         validatePageLink(pageLink);
         return roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
     }
-
-    private DataValidator<Role> roleValidator =
-            new DataValidator<Role>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, Role role) {
-                    if (role.getCustomerId() == null || role.getCustomerId().isNullUid()) {
-                        roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
-                                .ifPresent(e -> {
-                                    throw new DataValidationException("Role with such name already exists!");
-                                });
-                    } else {
-                        roleDao.findRoleByByTenantIdAndCustomerIdAndName(role.getTenantId().getId(), role.getCustomerId().getId(), role.getName())
-                                .ifPresent(e -> {
-                                    throw new DataValidationException("Role with such name already exists!");
-                                });
-                    }
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, Role role) {
-                    if (role.getCustomerId() == null || role.getCustomerId().isNullUid()) {
-                        roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
-                                .ifPresent(e -> {
-                                    if (!e.getUuidId().equals(role.getUuidId())) {
-                                        throw new DataValidationException("Role with such name already exists!");
-                                    }
-                                });
-                    } else {
-                        roleDao.findRoleByByTenantIdAndCustomerIdAndName(role.getTenantId().getId(), role.getCustomerId().getId(), role.getName())
-                                .ifPresent(e -> {
-                                    if (!e.getUuidId().equals(role.getUuidId())) {
-                                        throw new DataValidationException("Role with such name already exists!");
-                                    }
-                                });
-                    }
-
-                    Role before = findRoleById(tenantId, role.getId());
-                    if (before != null && role.getType() != before.getType()) {
-                        throw new DataValidationException("Role type cannot be changed after role creation");
-                    }
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Role role) {
-                    if (role.getType() == null) {
-                        throw new DataValidationException("Role type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(role.getName())) {
-                        throw new DataValidationException("Role name should be specified!");
-                    }
-                    if (role.getTenantId() == null) {
-                        role.setTenantId(new TenantId(NULL_UUID));
-                    } else if (!role.getTenantId().isNullUid()) { // not Sys admin level
-                        Tenant tenant = tenantDao.findById(tenantId, role.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Role is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (role.getCustomerId() == null) {
-                        role.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!role.getCustomerId().isNullUid()) {
-                        Customer customer = customerDao.findById(tenantId, role.getCustomerId().getId());
-                        if (customer == null) {
-                            throw new DataValidationException("Can't assign role to non-existent customer!");
-                        }
-                        if (!customer.getTenantId().equals(role.getTenantId())) {
-                            throw new DataValidationException("Can't assign role to customer from different tenant!");
-                        }
-                    }
-                }
-            };
 
     private PaginatedRemover<TenantId, Role> tenantRoleRemover =
             new PaginatedRemover<TenantId, Role>() {

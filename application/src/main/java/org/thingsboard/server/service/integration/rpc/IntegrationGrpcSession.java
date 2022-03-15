@@ -34,6 +34,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
@@ -358,20 +361,18 @@ public final class IntegrationGrpcSession implements Closeable {
             event.setType(proto.getType());
             event.setUid(proto.getUid());
             event.setBody(mapper.readTree(proto.getData()));
-            ctx.getEventService().save(event);
+            ListenableFuture<Void> future = ctx.getEventService().saveAsync(event);
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void event) {
+                }
+                @Override
+                public void onFailure(Throwable th) {
+                    log.error("[{}] Failed to save event!", proto.getData(), th);
+                }
+            }, MoreExecutors.directExecutor());
         } catch (IOException e) {
             log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
-        } catch (Exception t) {
-            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
-            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("event_unq_key")) {
-                /* Catch exception to avoid endless loop in case:
-                ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
-                Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
-                 */
-                log.error("[{}] Failed to save event!", proto.getData(), e);
-            } else {
-                throw t;
-            }
         }
     }
 

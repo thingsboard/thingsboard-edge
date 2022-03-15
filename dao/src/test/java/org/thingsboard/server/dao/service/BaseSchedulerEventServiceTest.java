@@ -36,8 +36,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -73,7 +73,7 @@ public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest 
     @Test
     public void testFindEdgeSchedulerEventsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
-        Edge savedEdge = edgeService.saveEdge(edge, true);
+        Edge savedEdge = edgeService.saveEdge(edge);
 
         String name1 = "Edge Scheduler Event name 1";
         List<SchedulerEvent> schedulerEventsName1 = new ArrayList<>();

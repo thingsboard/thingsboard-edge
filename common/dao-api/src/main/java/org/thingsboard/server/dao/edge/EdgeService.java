@@ -58,6 +58,8 @@ public interface EdgeService {
 
     Edge saveEdge(Edge edge, boolean doValidate);
 
+    Edge saveEdge(Edge edge);
+
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
     PageData<Edge> findEdgesByTenantId(TenantId tenantId, PageLink pageLink);

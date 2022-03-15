@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -93,6 +94,7 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -123,8 +125,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected static final String TENANT_ADMIN_EMAIL = "testtenant@thingsboard.org";
     private static final String TENANT_ADMIN_PASSWORD = "tenant";
 
+    protected static final String DIFFERENT_TENANT_ADMIN_EMAIL = "testdifftenant@thingsboard.org";
+    private static final String DIFFERENT_TENANT_ADMIN_PASSWORD = "difftenant";
+
     protected static final String CUSTOMER_USER_EMAIL = "testcustomer@thingsboard.org";
     private static final String CUSTOMER_USER_PASSWORD = "customer";
+
+    protected static final String DIFFERENT_CUSTOMER_USER_EMAIL = "testdifferentcustomer@thingsboard.org";
+    private static final String DIFFERENT_CUSTOMER_USER_PASSWORD = "diffcustomer";
 
     /** See {@link org.springframework.test.web.servlet.DefaultMvcResult#getAsyncResult(long)}
      *  and {@link org.springframework.mock.web.MockAsyncContext#getTimeout()}
@@ -140,6 +148,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected String username;
 
     protected TenantId tenantId;
+    protected CustomerId customerId;
+    protected TenantId differentTenantId;
+    protected CustomerId differentCustomerId;
 
     @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
@@ -208,6 +219,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         customer.setTitle("Customer");
         customer.setTenantId(tenantId);
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+        customerId = savedCustomer.getId();
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
@@ -270,25 +282,55 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     private Tenant savedDifferentTenant;
+    private Customer savedDifferentCustomer;
 
     protected void loginDifferentTenant() throws Exception {
-        loginSysAdmin();
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Different tenant");
-        savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedDifferentTenant);
-        User differentTenantAdmin = new User();
-        differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
-        differentTenantAdmin.setEmail("different_tenant@thingsboard.org");
+        if (savedDifferentTenant != null) {
+            login(savedDifferentTenant.getEmail(), TENANT_ADMIN_PASSWORD);
+        } else {
+            loginSysAdmin();
 
-        createUserAndLogin(differentTenantAdmin, "testPassword");
+            Tenant tenant = new Tenant();
+            tenant.setTitle("Different tenant");
+            savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
+            differentTenantId = savedDifferentTenant.getId();
+            Assert.assertNotNull(savedDifferentTenant);
+            User differentTenantAdmin = new User();
+            differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
+            differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
+            differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
+
+            createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
+        }
+    }
+
+    protected void loginDifferentCustomer() throws Exception {
+        if (savedDifferentCustomer != null) {
+            login(savedDifferentCustomer.getEmail(), CUSTOMER_USER_PASSWORD);
+        } else {
+            loginTenantAdmin();
+
+            Customer customer = new Customer();
+            customer.setTitle("Different customer");
+            savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
+            differentCustomerId = savedDifferentCustomer.getId();
+            Assert.assertNotNull(savedDifferentCustomer);
+            User differentCustomerUser = new User();
+            differentCustomerUser.setAuthority(Authority.CUSTOMER_USER);
+            differentCustomerUser.setTenantId(tenantId);
+            differentCustomerUser.setCustomerId(savedDifferentCustomer.getId());
+            differentCustomerUser.setEmail(DIFFERENT_CUSTOMER_USER_EMAIL);
+
+            createUserAndLogin(differentCustomerUser, DIFFERENT_CUSTOMER_USER_PASSWORD);
+        }
     }
 
     protected void deleteDifferentTenant() throws Exception {
-        loginSysAdmin();
-        doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        if (savedDifferentTenant != null) {
+            loginSysAdmin();
+            doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
     }
 
     protected User createUserAndLogin(User user, String password) throws Exception {
@@ -633,5 +675,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;
+    }
+
+    protected static void setFieldReflectively(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }
