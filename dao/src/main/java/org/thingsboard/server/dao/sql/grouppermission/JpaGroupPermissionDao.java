@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.grouppermission;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.page.PageData;
@@ -56,7 +57,7 @@ public class JpaGroupPermissionDao extends JpaAbstractDao<GroupPermissionEntity,
     }
 
     @Override
-    protected CrudRepository<GroupPermissionEntity, UUID> getCrudRepository() {
+    protected JpaRepository<GroupPermissionEntity, UUID> getRepository() {
         return groupPermissionRepository;
     }
 

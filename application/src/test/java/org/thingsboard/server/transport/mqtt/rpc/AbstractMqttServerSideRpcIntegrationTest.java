@@ -36,7 +36,6 @@ import com.github.os72.protobuf.dynamic.DynamicSchema;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.nimbusds.jose.util.StandardCharset;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +57,7 @@ import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeCon
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -305,12 +305,12 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
     protected MqttMessage processJsonMessageArrived(String requestTopic, MqttMessage mqttMessage) throws MqttException, InvalidProtocolBufferException {
         MqttMessage message = new MqttMessage();
         if (requestTopic.startsWith(MqttTopics.BASE_DEVICE_API_TOPIC) || requestTopic.startsWith(MqttTopics.BASE_DEVICE_API_TOPIC_V2)) {
-            message.setPayload(DEVICE_RESPONSE.getBytes(StandardCharset.UTF_8));
+            message.setPayload(DEVICE_RESPONSE.getBytes(StandardCharsets.UTF_8));
         } else {
-            JsonNode requestMsgNode = JacksonUtil.toJsonNode(new String(mqttMessage.getPayload(), StandardCharset.UTF_8));
+            JsonNode requestMsgNode = JacksonUtil.toJsonNode(new String(mqttMessage.getPayload(), StandardCharsets.UTF_8));
             String deviceName = requestMsgNode.get("device").asText();
             int requestId = requestMsgNode.get("data").get("id").asInt();
-            message.setPayload(("{\"device\": \"" + deviceName + "\", \"id\": " + requestId + ", \"data\": {\"success\": true}}").getBytes(StandardCharset.UTF_8));
+            message.setPayload(("{\"device\": \"" + deviceName + "\", \"id\": " + requestId + ", \"data\": {\"success\": true}}").getBytes(StandardCharsets.UTF_8));
         }
         return message;
     }

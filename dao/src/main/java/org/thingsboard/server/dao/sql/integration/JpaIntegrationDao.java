@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -86,7 +87,7 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
-    protected CrudRepository<IntegrationEntity, UUID> getCrudRepository() {
+    protected JpaRepository<IntegrationEntity, UUID> getRepository() {
         return integrationRepository;
     }
 

@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -59,7 +60,7 @@ public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEven
     }
 
     @Override
-    protected CrudRepository<SchedulerEventEntity, UUID> getCrudRepository() {
+    protected JpaRepository<SchedulerEventEntity, UUID> getRepository() {
         return schedulerEventRepository;
     }
 

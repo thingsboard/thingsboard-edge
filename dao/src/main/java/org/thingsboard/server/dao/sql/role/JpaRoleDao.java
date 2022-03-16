@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -62,7 +63,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
-    protected CrudRepository<RoleEntity, UUID> getCrudRepository() {
+    protected JpaRepository<RoleEntity, UUID> getRepository() {
         return roleRepository;
     }
 

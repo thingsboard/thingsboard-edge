@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.grouppermission;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -40,7 +41,7 @@ import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
 
 import java.util.UUID;
 
-public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, UUID>, JpaSpecificationExecutor<GroupPermissionEntity> {
+public interface GroupPermissionRepository extends JpaRepository<GroupPermissionEntity, UUID>, JpaSpecificationExecutor<GroupPermissionEntity> {
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
             "g.tenantId = :tenantId"
