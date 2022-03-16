@@ -129,6 +129,12 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     this.config.deleteEnabled = (customer) => customer && (!customer.additionalInfo || !customer.additionalInfo.isPublic);
     this.config.entitySelectionEnabled = (customer) => customer && (!customer.additionalInfo || !customer.additionalInfo.isPublic);
     this.config.detailsReadonly = (customer) => customer && customer.additionalInfo && customer.additionalInfo.isPublic;
+
+    // edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
   }
 
   resolve(): EntityTableConfig<Customer> {

@@ -116,6 +116,13 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     this.config.deleteEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.detailsReadonly = (resource) => !this.isResourceEditable(resource, authUser.authority);
+
+    // edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 

@@ -34,7 +34,7 @@
         </div>
         <span fxFlex></span>
         <button mat-icon-button
-                *ngIf="!isClientSideTelemetryTypeMap.get(attributeScope)"
+                *ngIf="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
                 [disabled]="isLoading$ | async"
                 (click)="addAttribute($event)"
                 matTooltip="{{ 'action.add' | translate }}"
@@ -85,7 +85,7 @@
                 'attribute.selected-telemetry' : 'attribute.selected-attributes') | translate:{count: dataSource.selection.selected.length} }}
         </span>
         <span fxFlex></span>
-        <button [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope)"
+        <button [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
                 class="button-widget-action"
                 mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
@@ -93,7 +93,8 @@
                 (click)="deleteAttributes($event)">
           <mat-icon>delete</mat-icon>
         </button>
-        <button mat-raised-button color="accent"
+        <button [fxShow]="false"
+                mat-raised-button color="accent"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
                 matTooltip="{{ 'attribute.show-on-widget' | translate }}"
@@ -116,7 +117,7 @@
                                     (ngModelChange)="onWidgetsBundleChanged($event)">
           </tb-widgets-bundle-select>
         </div>
-        <button mat-raised-button [fxShow]="widgetsList.length > 0"
+        <button mat-raised-button [fxShow]="widgetsList.length > 0 && false"
                 color="accent"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
@@ -171,7 +172,7 @@
                     (click)="editAttribute($event, attribute)">
             <div fxLayout="row" style="align-items: center">
               <span fxFlex>{{attribute.value | tbJson}}</span>
-              <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope)">
+              <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
             </div>

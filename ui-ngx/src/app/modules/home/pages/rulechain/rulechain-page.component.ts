@@ -101,6 +101,8 @@ export class RuleChainPageComponent extends PageComponent
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
 
+  readonly = true;
+
   eventTypes = EventType;
 
   debugEventTypes = DebugEventType;
@@ -259,15 +261,25 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngAfterViewInit() {
-    fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.updateRuleChainLibrary();
-        })
-      )
-      .subscribe();
+    if (!this.readonly) {
+      fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
+        .pipe(
+          debounceTime(150),
+          distinctUntilChanged(),
+          tap(() => {
+            this.updateRuleChainLibrary();
+          })
+        )
+        .subscribe();
+    } else {
+      this.ruleChainCanvas.modelService.isEditable = () => false;
+      this.ruleChainCanvas.modelService.edges.handleEdgeMouseClick = (edge) => {
+        this.openLinkDetails(edge);
+      };
+      const canvas = $(this.ruleChainCanvas.modelService.canvasHtmlElement);
+      const connectorElements  = $('.fc-connector', canvas);
+      connectorElements.attr('draggable', 'false');
+    }
     this.ruleChainCanvas.adjustCanvasSize(true);
   }
 
@@ -471,7 +483,7 @@ export class RuleChainPageComponent extends PageComponent
       }
       model.nodes.push(node);
     });
-    if (this.expansionPanels) {
+    if (this.expansionPanels && !this.readonly) {
       for (let i = 0; i < ruleNodeTypesLibrary.length; i++) {
         const panel = this.expansionPanels.find((item, index) => {
           return index === i;
@@ -561,6 +573,7 @@ export class RuleChainPageComponent extends PageComponent
         );
       }
       nodes.push(node);
+      node.readonly = this.readonly;
       this.ruleChainModel.nodes.push(node);
     });
     if (this.ruleChainMetaData.firstNodeIndex > -1) {
@@ -615,7 +628,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   openRuleChainContextMenu($event: MouseEvent) {
-    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey) {
+    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey && !this.readonly) {
       const x = $event.clientX;
       const y = $event.clientY;
       const item = this.ruleChainCanvas.modelService.getItemInfoAtPoint(x, y);
@@ -1045,8 +1058,10 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   onModelChanged() {
-    this.isDirtyValue = true;
-    this.validate();
+    if (!this.readonly) {
+      this.isDirtyValue = true;
+      this.validate();
+    }
   }
 
   helpLinkIdForRuleNodeType(): string {

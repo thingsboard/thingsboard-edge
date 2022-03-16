@@ -431,7 +431,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         ruleChainMetaData.addConnectionInfo(0, 2, "fail");
         ruleChainMetaData.addConnectionInfo(1, 2, "success");
 
-        ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", mapper.createObjectNode());
+        // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", mapper.createObjectNode());
 
         restClient.saveRuleChainMetaData(ruleChainMetaData);
     }

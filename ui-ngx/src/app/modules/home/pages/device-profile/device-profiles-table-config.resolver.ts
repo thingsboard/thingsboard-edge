@@ -92,7 +92,8 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',
-        isEnabled: (deviceProfile) => !deviceProfile.default,
+        // isEnabled: (deviceProfile) => !deviceProfile.default,
+        isEnabled: (deviceProfile) => false,
         onAction: ($event, entity) => this.setDefaultDeviceProfile($event, entity)
       }
     );
@@ -112,6 +113,14 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.deleteEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.entitySelectionEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
+
+    // edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
+    this.config.entitySelectionEnabled = (deviceProfile) => false;
   }
 
   resolve(): EntityTableConfig<DeviceProfile> {

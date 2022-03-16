@@ -122,6 +122,13 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
     const authState = getCurrentAuthState(this.store);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink);
+
+    // edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 

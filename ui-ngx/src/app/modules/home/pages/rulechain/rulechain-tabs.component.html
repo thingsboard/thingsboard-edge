@@ -18,6 +18,7 @@
 <mat-tab *ngIf="entity"
          label="{{ 'attribute.attributes' | translate }}" #attributesTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="attributeScopes.SERVER_SCOPE"
+                      readonly
                       [active]="attributesTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name">
@@ -27,6 +28,7 @@
          label="{{ 'attribute.latest-telemetry' | translate }}" #telemetryTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="latestTelemetryTypes.LATEST_TELEMETRY"
                       disableAttributeScopeSelection
+                      readonly
                       [active]="telemetryTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name">
@@ -46,7 +48,9 @@
 </mat-tab>
 <mat-tab *ngIf="entity"
          label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
-  <tb-relation-table [active]="relationsTab.isActive" [entityId]="entity.id"></tb-relation-table>
+  <tb-relation-table readonly
+                     [active]="relationsTab.isActive"
+                     [entityId]="entity.id"></tb-relation-table>
 </mat-tab>
 <mat-tab *ngIf="entity && authUser.authority === authorities.TENANT_ADMIN"
          label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">

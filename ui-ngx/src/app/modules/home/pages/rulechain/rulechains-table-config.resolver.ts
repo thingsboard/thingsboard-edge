@@ -108,6 +108,13 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       });
       this.config.entitiesDeleteEnabled = false;
     }
+
+    // edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
     return this.config;
   }
 
@@ -146,6 +153,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
   configureAddActions(ruleChainScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     if (ruleChainScope === 'tenant' || ruleChainScope === 'edges') {
+      /* @voba - merge comment - hide this on edge
       actions.push(
         {
           name: this.translate.instant('rulechain.create-new-rulechain'),
@@ -160,6 +168,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event) => this.importRuleChain($event)
         }
       );
+       */
     }
     if (ruleChainScope === 'edge') {
       actions.push(
@@ -226,6 +235,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       }
     );
     if (ruleChainScope === 'tenant') {
+      /* @voba - merge comment - hide this on edge
       actions.push(
         {
           name: this.translate.instant('rulechain.set-root'),
@@ -234,6 +244,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event, entity) => this.setRootRuleChain($event, entity)
         }
       );
+       */
     }
     if (ruleChainScope === 'edges') {
       actions.push(

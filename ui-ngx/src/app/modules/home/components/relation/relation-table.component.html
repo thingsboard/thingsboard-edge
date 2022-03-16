@@ -35,6 +35,7 @@
         </div>
         <span fxFlex></span>
         <button mat-icon-button [disabled]="isLoading$ | async"
+                *ngIf="!readonly"
                 (click)="addRelation($event)"
                 matTooltip="{{ 'action.add' | translate }}"
                 matTooltipPosition="above">
@@ -140,7 +141,8 @@
           <mat-header-cell *matHeaderCellDef style="min-width: 80px; max-width: 80px; width: 80px">
           </mat-header-cell>
           <mat-cell *matCellDef="let relation">
-            <div fxFlex fxLayout="row" fxLayoutAlign="end">
+            <div fxFlex fxLayout="row" fxLayoutAlign="end"
+                 *ngIf="isRelationEditable(relation)">
               <button mat-icon-button [disabled]="isLoading$ | async"
                       matTooltip="{{ 'relation.edit' | translate }}"
                       matTooltipPosition="above"
