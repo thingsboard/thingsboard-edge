@@ -42,9 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -87,19 +87,9 @@ import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
-import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.GeneralEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.RuleChainsEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.SchedulerEventsEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.SysAdminRolesEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.SystemWidgetsBundlesEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.TenantRolesEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.TenantWidgetsBundlesEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.WhiteLabelingEdgeEventFetcher;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -712,7 +702,9 @@ public final class EdgeGrpcSession implements Closeable {
                 }
             }
         } catch (Exception e) {
-            log.error("[{}] Can't process uplink msg [{}] {}", this.sessionId, uplinkMsg, e);
+            String errMsg = String.format("[%s] Can't process uplink msg [%s]", this.sessionId, uplinkMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(e);
         }
         return Futures.allAsList(result);
     }

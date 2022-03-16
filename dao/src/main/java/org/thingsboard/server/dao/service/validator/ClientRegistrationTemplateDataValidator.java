@@ -28,30 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.dao.service.validator;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = DailyRepeat.class, name = "DAILY"),
-        @JsonSubTypes.Type(value = WeeklyRepeat.class, name = "WEEKLY"),
-        @JsonSubTypes.Type(value = MonthlyRepeat.class, name = "MONTHLY"),
-        @JsonSubTypes.Type(value = YearlyRepeat.class, name = "YEARLY"),
-        @JsonSubTypes.Type(value = TimerRepeat.class, name = "TIMER")
-})
-public interface SchedulerRepeat {
+@Component
+public class ClientRegistrationTemplateDataValidator extends DataValidator<OAuth2ClientRegistrationTemplate> {
 
-    long getEndsOn();
+    @Override
+    protected void validateCreate(TenantId tenantId, OAuth2ClientRegistrationTemplate clientRegistrationTemplate) {
+    }
 
-    SchedulerRepeatType getType();
+    @Override
+    protected void validateUpdate(TenantId tenantId, OAuth2ClientRegistrationTemplate clientRegistrationTemplate) {
+    }
 
-    long getNext(long startTime, long ts, String timezone);
+    @Override
+    protected void validateDataImpl(TenantId tenantId, OAuth2ClientRegistrationTemplate clientRegistrationTemplate) {
+        if (StringUtils.isEmpty(clientRegistrationTemplate.getProviderId())) {
+            throw new DataValidationException("Provider ID should be specified!");
+        }
+        if (clientRegistrationTemplate.getMapperConfig() == null) {
+            throw new DataValidationException("Mapper config should be specified!");
+        }
+        if (clientRegistrationTemplate.getMapperConfig().getType() == null) {
+            throw new DataValidationException("Mapper type should be specified!");
+        }
+        if (clientRegistrationTemplate.getMapperConfig().getBasic() == null) {
+            throw new DataValidationException("Basic mapper config should be specified!");
+        }
+    }
 }

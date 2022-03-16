@@ -28,24 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.common.data.scheduler;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.util.Calendar;
+/**
+ * Created by ashvayka on 28.11.17.
+ */
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = DailyRepeat.class, name = "DAILY"),
+        @JsonSubTypes.Type(value = WeeklyRepeat.class, name = "WEEKLY"),
+        @JsonSubTypes.Type(value = MonthlyRepeat.class, name = "MONTHLY"),
+        @JsonSubTypes.Type(value = YearlyRepeat.class, name = "YEARLY"),
+        @JsonSubTypes.Type(value = TimerRepeat.class, name = "TIMER")
+})
+public interface SchedulerRepeat {
 
-@Data
-public class YearlyRepeat extends SchedulerDate implements SchedulerRepeat {
+    long getEndsOn();
 
-    private long endsOn;
+    SchedulerRepeatType getType();
 
-    @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.YEARLY;
-    }
-
-    @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        return getNext(startTime, ts, timezone, endsOn, Calendar.YEAR);
-    }
+    long getNext(long startTime, long ts, String timezone);
 }

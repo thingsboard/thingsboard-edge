@@ -28,38 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.dao.service.validator;
 
-import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.ota.OtaPackageInfoDao;
 
-import java.util.concurrent.TimeUnit;
+@Component
+public class OtaPackageInfoDataValidator extends BaseOtaPackageDataValidator<OtaPackageInfo> {
 
-@Data
-public class TimerRepeat implements SchedulerRepeat {
-
-    private long repeatInterval;
-    private TimeUnit timeUnit;
-    private long endsOn;
-
+    @Autowired
+    private OtaPackageInfoDao otaPackageInfoDao;
 
     @Override
-    public long getEndsOn() {
-        return endsOn;
+    protected void validateDataImpl(TenantId tenantId, OtaPackageInfo otaPackageInfo) {
+        validateImpl(otaPackageInfo);
     }
 
     @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.TIMER;
-    }
-
-    @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        long interval = timeUnit.toMillis(repeatInterval);
-        for (long tmp = startTime; tmp < endsOn; tmp += interval) {
-            if (tmp > ts) {
-                return tmp;
-            }
-        }
-        return 0L;
+    protected void validateUpdate(TenantId tenantId, OtaPackageInfo otaPackage) {
+        OtaPackageInfo otaPackageOld = otaPackageInfoDao.findById(tenantId, otaPackage.getUuidId());
+        validateUpdate(otaPackage, otaPackageOld);
     }
 }

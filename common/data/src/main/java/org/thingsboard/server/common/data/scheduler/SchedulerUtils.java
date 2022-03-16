@@ -28,32 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.common.data.scheduler;
 
-import lombok.Data;
+import org.springframework.util.StringUtils;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-@Data
-public class DailyRepeat implements SchedulerRepeat {
+import java.util.Calendar;
+import java.util.TimeZone;
 
-    public static final long _1DAY = 1000 * 60 * 60 * 24;
-    private long endsOn;
+public class SchedulerUtils {
 
-    @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.DAILY;
-    }
-
-
-    @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
-            if (tmp > ts) {
-                return tmp;
-            }
+    public static Calendar getCalendarWithTimeZone(String timezone) {
+        TimeZone tz;
+        if (StringUtils.isEmpty(timezone)) {
+            tz = TimeZone.getTimeZone("UTC");
+        } else {
+            tz = TimeZone.getTimeZone(timezone);
         }
-        return 0L;
+        return Calendar.getInstance(tz);
     }
 }

@@ -35,13 +35,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.Arrays;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
-import org.eclipse.milo.opcua.sdk.client.api.nodes.VariableNode;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
+import org.eclipse.milo.opcua.sdk.core.nodes.VariableNode;
 import org.eclipse.milo.opcua.stack.client.DiscoveryClient;
 import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
@@ -95,7 +96,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -249,13 +249,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             IdentityProvider identityProvider = configuration.getIdentity().toProvider();
 
             List<EndpointDescription> endpoints;
-            String endpointUrl = "opc.tcp://" + configuration.getHost() + ":" + configuration.getPort();
+            String endpointUrl = "opc.tcp://" + configuration.getHost() + ":" + configuration.getPort(); //TODO add scheme to configuration TODO Add Path to configuration
             try {
-                endpoints = DiscoveryClient.getEndpoints(endpointUrl).get();
-            } catch (ExecutionException e) {
+                endpoints = DiscoveryClient.getEndpoints(endpointUrl).get(10, TimeUnit.SECONDS);
+            } catch (Exception e) {
                 log.error("[{}] Failed to connect to provided endpoint! With error: [{}]", this.configuration.getName(), e.getMessage());
                 throw new OpcUaIntegrationException("Failed to connect to provided endpoint: " + endpointUrl, e);
             }
+            log.info("Endpoints processing finished. Processed endpoints count: {}", endpoints.size());
 
             EndpointDescription endpoint = endpoints.stream()
                     .filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getUri()))
@@ -288,18 +289,19 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             OpcUaClientConfig config = configBuilder.build();
 
+            log.info("Creating client...");
+
             client = OpcUaClient.create(config);
-            client.connect().get();
+            client.connect().get(30, TimeUnit.SECONDS);
             log.info("[{}] OPC-UA Client connected successfully!", this.configuration.getName());
             sendConnectionSucceededMessageToRuleEngine();
             subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
-        } catch (Exception e) {
-            Throwable t = e;
-            if (e instanceof ExecutionException) {
-                t = e.getCause();
-            }
-            log.error("[{}] Failed to connect to OPC-UA server. Reason: {}", this.configuration.getName(), t.getMessage(), t);
-            throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + t.getMessage(), e);
+        } catch (TimeoutException e) {
+            throw new OpcUaIntegrationException("Failed to connect to OPC-UA server - timeout.");
+        }
+        catch (Exception e) {
+            log.error("[{}] Failed to connect to OPC-UA server. Reason: {}", this.configuration.getName(), e.getMessage(), e);
+            throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + e.getMessage(), e);
         }
         return true;
     }
@@ -307,16 +309,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private void sendConnectionSucceededMessageToRuleEngine() {
         String messageType = "OPC_UA_INT_SUCCESS";
         log.info("[{}] Sending OPC-UA integration succeeded message to Rule Engine", this.configuration.getName());
-        sendAlertToRuleEngine(messageType);
+        TbMsg tbMsg = sendAlertToRuleEngine(messageType);
+        persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "SUCCESS", null);
     }
 
-    private void sendConnectionFailedMessageToRuleEngine() {
+    private void sendConnectionFailedMessageToRuleEngine(Exception e) {
         String messageType = "OPC_UA_INT_FAILURE";
         log.warn("[{}] Sending OPC-UA integration failed message to Rule Engine", this.configuration.getName());
-        sendAlertToRuleEngine(messageType);
+        TbMsg tbMsg = sendAlertToRuleEngine(messageType);
+        persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "FAILURE", e);
     }
 
-    private void sendAlertToRuleEngine(String messageType) {
+    private TbMsg sendAlertToRuleEngine(String messageType) {
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData();
         tbMsgMetaData.putValue("name", this.configuration.getName());
         tbMsgMetaData.putValue("id", this.configuration.getId().getId().toString());
@@ -327,6 +331,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (context != null) {
             context.processCustomMsg(tbMsg, null);
         }
+        return tbMsg;
     }
 
     @Override
@@ -357,19 +362,19 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             }
             clientCreated = initClient(opcUaServerConfiguration);
         } catch (OpcUaIntegrationException e) {
-            log.warn("[{}] Failed to connect", this.configuration.getName(), e);
+            sendConnectionFailedMessageToRuleEngine(e);
         }
         if (clientCreated) {
             connected = true;
             scheduleRescan = false;
             delayBetweenReconnects.set(10);
             context.getScheduledExecutorService().execute(this::scanForDevices);
+            log.info("OPC-UA client was connected successfully to server {}", opcUaServerConfiguration.getHost());
         } else {
             int currentDelayBetweenReconnectAttempt = delayBetweenReconnects.get();
             if (currentDelayBetweenReconnectAttempt < 600)
                 delayBetweenReconnects.set(currentDelayBetweenReconnectAttempt + 10);
             scheduleConnect();
-            sendConnectionFailedMessageToRuleEngine();
         }
         return clientCreated;
     }
@@ -401,9 +406,10 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             return;
         }
         try {
-            if (connected && scheduleRescan && !connect()) {
-                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
+            if (!connected && !connect()) {
+                log.debug("[{}] Scheduling next connect in {} seconds!", this.configuration.getId(), delayBetweenReconnects.get());
                 scheduleConnect();
+                scheduleRescan = false;
                 return;
             }
 
@@ -418,12 +424,15 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             if (connected) {
                 log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
-                scheduleScan();
+                scheduleRescan = true;
             }
         } catch (Throwable e) {
             log.warn("[{}] Periodic device scan failed!", this.configuration.getId(), e);
             scheduleRescan = true;
+        }
+        if (connected && scheduleRescan) {
             scheduleScan();
+            scheduleRescan = false;
         }
     }
 
@@ -489,7 +498,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             } catch (Exception e) {
                 log.error("[{}] Failed to scan device: {}", this.configuration.getName(), node, e);
                 scheduleRescan = true;
-                scheduleScan();
             }
         });
         if (scanChildren) {
@@ -502,9 +510,11 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
                 for (ReferenceDescription rd : references) {
                     if (rd.getNodeId().isLocal()) {
-                        NodeId childNodeId = rd.getNodeId().local().get();
-                        OpcUaNode childNode = new OpcUaNode(node, childNodeId, rd.getBrowseName().getName());
-                        scanForDevices(childNode);
+                        NodeId childNodeId = rd.getNodeId().toNodeId(client.getNamespaceTable()).orElse(null);
+                        if (childNodeId != null) {
+                            OpcUaNode childNode = new OpcUaNode(node, childNodeId, rd.getBrowseName().getName());
+                            scanForDevices(childNode);
+                        }
                     } else {
                         log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
                     }
@@ -514,14 +524,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     connected = false;
                     String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
                     log.error(message, e);
-                    sendConnectionFailedMessageToRuleEngine();
+                    sendConnectionFailedMessageToRuleEngine(e);
                     scheduleConnect();
                 }
             } catch (Exception e) {
                 if (connected) {
                     String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
                     log.error(message, e);
-                    sendConnectionFailedMessageToRuleEngine();
                     scheduleScan();
                 }
             }
@@ -548,8 +557,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 for (NodeId tagId : newTags.values()) {
                     devicesByTags.computeIfAbsent(tagId, key -> new ArrayList<>()).add(device);
                     if (client != null && client.getAddressSpace() != null) {
-                        VariableNode varNode = client.getAddressSpace().createVariableNode(tagId);
-                        DataValue dataValue = varNode.readValue().get();
+                        VariableNode varNode = client.getAddressSpace().getVariableNode(tagId);
+                        DataValue dataValue = varNode.getValue();
                         if (dataValue != null) {
                             device.updateTag(tagId, dataValue);
                         }
@@ -605,13 +614,10 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     readValueId, MonitoringMode.Reporting, parameters));
         }
 
-        BiConsumer<UaMonitoredItem, Integer> onItemCreated =
-                (item, id) -> item.setValueConsumer(this::onSubscriptionValue);
-
         List<UaMonitoredItem> items = subscription.createMonitoredItems(
                 TimestampsToReturn.Both,
                 requests,
-                onItemCreated
+                (item, i) -> item.setValueConsumer(OpcUaIntegration.this::onSubscriptionValue)
         ).get(5, TimeUnit.SECONDS);
 
         for (UaMonitoredItem item : items) {
@@ -651,7 +657,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             for (ReferenceDescription rd : references) {
                 NodeId childId;
                 if (rd.getNodeId().isLocal()) {
-                    childId = rd.getNodeId().local().get();
+                    childId = rd.getNodeId().toNodeId(client.getNamespaceTable()).get();
                 } else {
                     log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
                     continue;

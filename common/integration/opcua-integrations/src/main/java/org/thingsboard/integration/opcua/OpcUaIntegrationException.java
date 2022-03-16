@@ -32,6 +32,10 @@ package org.thingsboard.integration.opcua;
 
 public class OpcUaIntegrationException extends Exception {
     public OpcUaIntegrationException(String s, Exception e) {
+        super(s, e.getCause());
+    }
+
+    public OpcUaIntegrationException(String s) {
         super(s);
     }
 }

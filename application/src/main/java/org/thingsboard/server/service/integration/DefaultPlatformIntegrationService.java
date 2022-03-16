@@ -390,6 +390,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     @Override
     public void updateIntegration(Integration configuration) {
         if (configuration.isRemote()) {
+            integrationsByIdMap.remove(configuration.getId());
+            integrationsByRoutingKeyMap.remove(configuration.getRoutingKey());
             integrationRpcService.updateIntegration(configuration);
         } else {
             if (configuration.getType().isSingleton()) {
@@ -411,6 +413,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
                                 actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                                 integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.UPDATED);
                             } catch (Exception e) {
+                                integration.getFirst().destroy();
                                 integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
                                 actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
                             }
@@ -1031,6 +1034,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
                     actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                     integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.STARTED);
                 } catch (Exception e) {
+                    integrationPair.getFirst().destroy();
                     integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
                     actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
                     throw handleException(e);

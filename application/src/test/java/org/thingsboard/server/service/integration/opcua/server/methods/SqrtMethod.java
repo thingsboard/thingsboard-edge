@@ -28,24 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.service.integration.opcua.server.methods;
 
-import lombok.Data;
+import org.eclipse.milo.opcua.sdk.core.ValueRanks;
+import org.eclipse.milo.opcua.sdk.server.api.methods.AbstractMethodInvocationHandler;
+import org.eclipse.milo.opcua.sdk.server.nodes.UaMethodNode;
+import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
+import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.eclipse.milo.opcua.stack.core.types.structured.Argument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Calendar;
+public class SqrtMethod extends AbstractMethodInvocationHandler {
 
-@Data
-public class MonthlyRepeat extends SchedulerDate implements SchedulerRepeat {
+    public static final Argument X = new Argument(
+        "x",
+        Identifiers.Double,
+        ValueRanks.Scalar,
+        null,
+        new LocalizedText("A value.")
+    );
 
-    private long endsOn;
+    public static final Argument X_SQRT = new Argument(
+        "x_sqrt",
+        Identifiers.Double,
+        ValueRanks.Scalar,
+        null,
+        new LocalizedText("A value.")
+    );
 
-    @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.MONTHLY;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    public SqrtMethod(UaMethodNode node) {
+        super(node);
     }
 
     @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        return getNext(startTime, ts, timezone, endsOn, Calendar.MONTH);
+    public Argument[] getInputArguments() {
+        return new Argument[]{X};
     }
+
+    @Override
+    public Argument[] getOutputArguments() {
+        return new Argument[]{X_SQRT};
+    }
+
+    @Override
+    protected Variant[] invoke(InvocationContext invocationContext, Variant[] inputValues) {
+        logger.debug("Invoking sqrt() method of objectId={}", invocationContext.getObjectId());
+
+        double x = (double) inputValues[0].getValue();
+        double xSqrt = Math.sqrt(x);
+
+        return new Variant[]{new Variant(xSqrt)};
+    }
+
 }

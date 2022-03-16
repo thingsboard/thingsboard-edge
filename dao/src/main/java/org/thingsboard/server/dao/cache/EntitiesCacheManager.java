@@ -28,13 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.dao.cache;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-public enum SchedulerRepeatType {
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-    DAILY, WEEKLY, MONTHLY, YEARLY, TIMER;
+public interface EntitiesCacheManager {
 
+    void removeDeviceFromCacheByName(TenantId tenantId, String name);
+
+    void removeDeviceFromCacheById(TenantId tenantId, DeviceId deviceId);
+
+    void removeAssetFromCacheByName(TenantId tenantId, String name);
+
+    void removeEdgeFromCacheByName(TenantId tenantId, String name);
 }

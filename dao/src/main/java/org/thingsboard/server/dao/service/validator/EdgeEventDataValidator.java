@@ -28,26 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.dao.service.validator;
 
-import java.util.Calendar;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
 
-abstract class SchedulerDate {
+@Component
+public class EdgeEventDataValidator extends DataValidator<EdgeEvent> {
 
-    protected long getNext(long startTime, long ts, String timezone, long endsOn, int calendarField) {
-        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
-
-        long tmp = startTime;
-        int repeatIteration = 0;
-        while (tmp < endsOn) {
-            calendar.setTimeInMillis(startTime);
-            calendar.add(calendarField, repeatIteration);
-            tmp = calendar.getTimeInMillis();
-            if (tmp > ts) {
-                return tmp;
-            }
-            repeatIteration++;
+    @Override
+    protected void validateDataImpl(TenantId tenantId, EdgeEvent edgeEvent) {
+        if (edgeEvent.getEdgeId() == null) {
+            throw new DataValidationException("Edge id should be specified!");
         }
-        return 0L;
+        if (edgeEvent.getAction() == null) {
+            throw new DataValidationException("Edge Event action should be specified!");
+        }
     }
 }

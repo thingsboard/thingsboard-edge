@@ -28,43 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
-
-import lombok.Data;
-
-import java.util.Calendar;
-import java.util.List;
+package org.thingsboard.server.common.data.scheduler;
 
 /**
  * Created by ashvayka on 28.11.17.
  */
-@Data
-public class WeeklyRepeat implements SchedulerRepeat {
+public enum SchedulerRepeatType {
 
-    public static final long _1DAY = 1000 * 60 * 60 * 24;
+    DAILY, WEEKLY, MONTHLY, YEARLY, TIMER;
 
-    private long endsOn;
-    private List<Integer> repeatOn;
-
-    @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.WEEKLY;
-    }
-
-    @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
-
-        for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
-            if (tmp > ts) {
-                calendar.setTimeInMillis(tmp);
-                int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-                dayOfWeek = dayOfWeek - 1; // The UI calendar starts from 0;
-                if (repeatOn.contains(dayOfWeek)) {
-                    return tmp;
-                }
-            }
-        }
-        return 0L;
-    }
 }

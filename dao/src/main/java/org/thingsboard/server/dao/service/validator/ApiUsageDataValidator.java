@@ -28,22 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.scheduler;
+package org.thingsboard.server.dao.service.validator;
 
-import org.springframework.util.StringUtils;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.tenant.TenantDao;
 
-import java.util.Calendar;
-import java.util.TimeZone;
+@Component
+@AllArgsConstructor
+public class ApiUsageDataValidator extends DataValidator<ApiUsageState> {
 
-public class SchedulerUtils {
+    private final TenantDao tenantDao;
 
-    public static Calendar getCalendarWithTimeZone(String timezone) {
-        TimeZone tz;
-        if (StringUtils.isEmpty(timezone)) {
-            tz = TimeZone.getTimeZone("UTC");
+    @Override
+    protected void validateDataImpl(TenantId requestTenantId, ApiUsageState apiUsageState) {
+        if (apiUsageState.getTenantId() == null) {
+            throw new DataValidationException("ApiUsageState should be assigned to tenant!");
         } else {
-            tz = TimeZone.getTimeZone(timezone);
+            Tenant tenant = tenantDao.findById(requestTenantId, apiUsageState.getTenantId().getId());
+            if (tenant == null && !requestTenantId.equals(TenantId.SYS_TENANT_ID)) {
+                throw new DataValidationException("ApiUsageState is referencing to non-existent tenant!");
+            }
         }
-        return Calendar.getInstance(tz);
+        if (apiUsageState.getEntityId() == null) {
+            throw new DataValidationException("UsageRecord should be assigned to entity!");
+        } else if (apiUsageState.getEntityId().getEntityType() != EntityType.TENANT && apiUsageState.getEntityId().getEntityType() != EntityType.CUSTOMER) {
+            throw new DataValidationException("Only Tenant and Customer Usage Records are supported!");
+        }
     }
 }

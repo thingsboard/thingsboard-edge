@@ -94,32 +94,16 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     public static final String INCORRECT_SCHEDULER_EVENT_ID = "Incorrect schedulerEventId ";
 
     @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
-    @Autowired
     private SchedulerEventDao schedulerEventDao;
 
     @Autowired
     private SchedulerEventInfoDao schedulerEventInfoDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private CustomerDao customerDao;
-
-    @Autowired
     private EdgeService edgeService;
 
     @Autowired
-    private OtaPackageService otaPackageService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private DeviceProfileService deviceProfileService;
+    private DataValidator<SchedulerEvent> schedulerEventValidator;
 
     @Override
     public SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId) {
@@ -280,94 +264,6 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
         return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
-
-    private DataValidator<SchedulerEvent> schedulerEventValidator =
-            new DataValidator<SchedulerEvent>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, SchedulerEvent data) {
-                    DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-                    long maxSchedulerEvents = profileConfiguration.getMaxSchedulerEvents();
-                    validateNumberOfEntitiesPerTenant(tenantId, schedulerEventDao, maxSchedulerEvents, EntityType.SCHEDULER_EVENT);
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, SchedulerEvent schedulerEvent) {
-                    if (StringUtils.isEmpty(schedulerEvent.getType())) {
-                        throw new DataValidationException("SchedulerEvent type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(schedulerEvent.getName())) {
-                        throw new DataValidationException("SchedulerEvent name should be specified!");
-                    }
-                    if (schedulerEvent.getSchedule() == null) {
-                        throw new DataValidationException("SchedulerEvent schedule configuration should be specified!");
-                    }
-                    if (schedulerEvent.getConfiguration() == null) {
-                        throw new DataValidationException("SchedulerEvent configuration should be specified!");
-                    }
-                    if (schedulerEvent.getTenantId() == null) {
-                        throw new DataValidationException("SchedulerEvent should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, schedulerEvent.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("SchedulerEvent is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (schedulerEvent.getCustomerId() == null) {
-                        schedulerEvent.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!schedulerEvent.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(tenantId, schedulerEvent.getCustomerId().getId());
-                        if (customer == null) {
-                            throw new DataValidationException("Can't assign schedulerEvent to non-existent customer!");
-                        }
-                        if (!customer.getTenantId().equals(schedulerEvent.getTenantId())) {
-                            throw new DataValidationException("Can't assign schedulerEvent to customer from different tenant!");
-                        }
-                    }
-
-                    boolean isFirmwareUpdate = UPDATE_FIRMWARE.equals(schedulerEvent.getType());
-                    boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(schedulerEvent.getType());
-
-                    if (isFirmwareUpdate || isSoftwareUpdate) {
-                        OtaPackageId firmwareId =
-                                JacksonUtil.convertValue(schedulerEvent.getConfiguration().get("msgBody"), OtaPackageId.class);
-                        if (firmwareId == null) {
-                            throw new DataValidationException("SchedulerEvent firmwareId should be specified!");
-                        }
-                        OtaPackageInfo firmwareInfo = otaPackageService.findOtaPackageById(tenantId, firmwareId);
-                        if (firmwareInfo == null) {
-                            throw new DataValidationException("Can't assign non-existent firmware!");
-                        }
-
-                        if ((isFirmwareUpdate && !OtaPackageType.FIRMWARE.equals(firmwareInfo.getType()))
-                                || (isSoftwareUpdate && !OtaPackageType.SOFTWARE.equals(firmwareInfo.getType()))) {
-                            throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
-                        }
-
-                        EntityId originatorId = getOriginatorId(schedulerEvent.getId(), schedulerEvent.getConfiguration());
-
-                        if (originatorId == null) {
-                            throw new DataValidationException("SchedulerEvent originatorId should be specified!");
-                        }
-
-                        switch (originatorId.getEntityType()) {
-                            case DEVICE:
-                                Device device = deviceService.findDeviceById(tenantId, (DeviceId) originatorId);
-                                if (!device.getDeviceProfileId().equals(firmwareInfo.getDeviceProfileId())) {
-                                    throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
-                                }
-                                break;
-                            case DEVICE_PROFILE:
-                                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, (DeviceProfileId) originatorId);
-                                if (!deviceProfile.getId().equals(firmwareInfo.getDeviceProfileId())) {
-                                    throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
-                                }
-                                break;
-                        }
-                    }
-                }
-            };
 
     public static EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
         EntityId originatorId = eventId;
