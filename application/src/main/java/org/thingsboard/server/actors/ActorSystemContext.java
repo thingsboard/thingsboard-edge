@@ -627,7 +627,6 @@ public class ActorSystemContext {
                 Futures.addCallback(future, new FutureCallback<Void>() {
                     @Override
                     public void onSuccess(@Nullable Void event) {
-
                     }
 
                     @Override
