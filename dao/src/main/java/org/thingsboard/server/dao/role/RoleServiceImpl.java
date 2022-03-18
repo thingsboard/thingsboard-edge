@@ -86,11 +86,19 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
     @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
     @Override
-    public Role saveRole(TenantId tenantId, Role role) {
+    public Role saveRole(TenantId tenantId, Role role, boolean doValidate) {
         log.trace("Executing save role [{}]", role);
-        roleValidator.validate(role, Role::getTenantId);
+        if (doValidate) {
+            roleValidator.validate(role, Role::getTenantId);
+        }
         Role savedRole = roleDao.save(tenantId, role);
         return savedRole;
+    }
+
+    @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
+    @Override
+    public Role saveRole(TenantId tenantId, Role role) {
+        return saveRole(tenantId, role, true);
     }
 
     @Cacheable(cacheNames = ROLE_CACHE, key = "{#roleId}")

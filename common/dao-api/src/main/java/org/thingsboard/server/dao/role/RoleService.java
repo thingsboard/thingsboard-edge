@@ -44,6 +44,8 @@ import java.util.Optional;
 
 public interface RoleService {
 
+    Role saveRole(TenantId tenantId, Role role, boolean doValidate);
+
     Role saveRole(TenantId tenantId, Role role);
 
     Role findRoleById(TenantId tenantId, RoleId roleId);

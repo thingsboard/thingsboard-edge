@@ -41,6 +41,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,7 +50,6 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
@@ -88,12 +88,13 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     Role role = roleService.findRoleById(tenantId, roleId);
+                    boolean created = false;
                     if (role == null) {
                         role = new Role();
-                        role.setId(roleId);
                         role.setCreatedTime(Uuids.unixTimestamp(roleId.getId()));
                         TenantId roleTenantId = new TenantId(new UUID(roleProto.getTenantIdMSB(), roleProto.getTenantIdLSB()));
                         role.setTenantId(roleTenantId);
+                        created = true;
                     }
                     role.setName(roleProto.getName());
                     role.setType(RoleType.valueOf(roleProto.getType()));
@@ -108,7 +109,14 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                         role.setCustomerId(new CustomerId(customerUUID));
                     }
 
-                    Role savedRole = roleService.saveRole(tenantId, role);
+                    if (created) {
+                        roleValidator.validate(role, Role::getTenantId);
+                        role.setId(roleId);
+                    } else {
+                        roleValidator.validate(role, Role::getTenantId);
+                    }
+
+                    Role savedRole = roleService.saveRole(tenantId, role, false);
 
                     userPermissionsService.onRoleUpdated(savedRole);
 
