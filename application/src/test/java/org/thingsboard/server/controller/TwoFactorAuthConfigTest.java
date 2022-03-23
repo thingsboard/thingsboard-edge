@@ -70,6 +70,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// TODO [viacheslav]: test for permissions
 public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
     @SpyBean

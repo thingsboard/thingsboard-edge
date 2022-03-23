@@ -46,6 +46,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
 import org.thingsboard.server.service.security.auth.mfa.config.TwoFactorAuthConfigManager;
@@ -73,6 +76,7 @@ public class TwoFactorAuthConfigController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public TwoFactorAuthAccountConfig getTwoFaAccountConfig() throws ThingsboardException {
         SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.READ);
         return twoFactorAuthConfigManager.getTwoFaAccountConfig(user.getTenantId(), user.getId()).orElse(null);
     }
 
@@ -80,6 +84,7 @@ public class TwoFactorAuthConfigController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public TwoFactorAuthAccountConfig generateTwoFaAccountConfig(@RequestParam TwoFactorAuthProviderType providerType) throws Exception {
         SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
         return twoFactorAuthService.generateNewAccountConfig(user, providerType);
     }
 
@@ -102,6 +107,7 @@ public class TwoFactorAuthConfigController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void submitTwoFaAccountConfig(@Valid @RequestBody TwoFactorAuthAccountConfig accountConfig) throws Exception {
         SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
         twoFactorAuthService.prepareVerificationCode(user, accountConfig, false);
     }
 
@@ -110,6 +116,7 @@ public class TwoFactorAuthConfigController extends BaseController {
     public void verifyAndSaveTwoFaAccountConfig(@Valid @RequestBody TwoFactorAuthAccountConfig accountConfig,
                                                 @RequestParam String verificationCode) throws Exception {
         SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
         boolean verificationSuccess = twoFactorAuthService.checkVerificationCode(user, verificationCode, accountConfig, false);
         if (verificationSuccess) {
             twoFactorAuthConfigManager.saveTwoFaAccountConfig(user.getTenantId(), user.getId(), accountConfig);
@@ -122,6 +129,7 @@ public class TwoFactorAuthConfigController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void deleteTwoFactorAuthAccountConfig() throws ThingsboardException {
         SecurityUser user = getCurrentUser();
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
         twoFactorAuthConfigManager.deleteTwoFaAccountConfig(user.getTenantId(), user.getId());
     }
 
@@ -129,12 +137,20 @@ public class TwoFactorAuthConfigController extends BaseController {
     @GetMapping("/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public TwoFactorAuthSettings getTwoFactorAuthSettings() throws ThingsboardException {
-        return twoFactorAuthConfigManager.getTwoFaSettings(getTenantId(), false).orElse(null);
+        SecurityUser user = getCurrentUser();
+        if (user.getAuthority() == Authority.SYS_ADMIN) {
+            accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+        }
+        return twoFactorAuthConfigManager.getTwoFaSettings(user.getTenantId(), false).orElse(null);
     }
 
     @PostMapping("/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public void saveTwoFactorAuthSettings(@RequestBody TwoFactorAuthSettings twoFactorAuthSettings) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
+        if (user.getAuthority() == Authority.SYS_ADMIN) {
+            accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
+        }
         twoFactorAuthConfigManager.saveTwoFaSettings(getTenantId(), twoFactorAuthSettings);
     }
 
