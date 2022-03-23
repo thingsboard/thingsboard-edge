@@ -64,7 +64,7 @@ public class UserPermissionsController extends BaseController {
                     "The result impacts UI behavior and hides certain UI elements if user has no permissions to invoke the related operations. " +
                     "Nevertheless, all API calls check the permissions each time they are executed on the server side." +
                     PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/permissions/allowedPermissions", method = RequestMethod.GET)
     @ResponseBody
     public AllowedPermissionsInfo getAllowedPermissions() throws ThingsboardException {

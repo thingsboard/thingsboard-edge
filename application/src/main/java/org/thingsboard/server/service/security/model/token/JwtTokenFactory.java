@@ -97,8 +97,9 @@ public class JwtTokenFactory {
 
         UserPrincipal principal = securityUser.getUserPrincipal();
 
+        Claims claims = Jwts.claims().setSubject(principal.getValue());
         JwtBuilder jwtBuilder = setUpToken(securityUser, securityUser.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()), settings.getTokenExpirationTime());
+                .map(GrantedAuthority::getAuthority).collect(Collectors.toList()), settings.getTokenExpirationTime(), claims);
         jwtBuilder.claim(FIRST_NAME, securityUser.getFirstName())
                 .claim(LAST_NAME, securityUser.getLastName())
                 .claim(ENABLED, securityUser.isEnabled())
@@ -112,7 +113,7 @@ public class JwtTokenFactory {
 
         String token = jwtBuilder.compact();
 
-        return new AccessJwtToken(token);
+        return new AccessJwtToken(token, claims);
     }
 
     public SecurityUser parseAccessJwtToken(RawAccessJwtToken rawAccessToken) {
@@ -139,24 +140,21 @@ public class JwtTokenFactory {
         }
 
         UserPrincipal principal;
-        boolean isPublic;
         if (securityUser.getAuthority() != Authority.PRE_VERIFICATION_TOKEN) {
             securityUser.setFirstName(claims.get(FIRST_NAME, String.class));
             securityUser.setLastName(claims.get(LAST_NAME, String.class));
             securityUser.setEnabled(claims.get(ENABLED, Boolean.class));
-            isPublic = claims.get(IS_PUBLIC, Boolean.class);
+            boolean isPublic = claims.get(IS_PUBLIC, Boolean.class);
             principal = new UserPrincipal(isPublic ? UserPrincipal.Type.PUBLIC_ID : UserPrincipal.Type.USER_NAME, subject);
+            try {
+                securityUser.setUserPermissions(userPermissionsService.getMergedPermissions(securityUser, isPublic));
+            } catch (Exception e) {
+                throw new BadCredentialsException("Failed to get user permissions", e);
+            }
         } else {
-            isPublic = false;
             principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, subject);
         }
         securityUser.setUserPrincipal(principal);
-
-        try {
-            securityUser.setUserPermissions(userPermissionsService.getMergedPermissions(securityUser, isPublic));
-        } catch (Exception e) {
-            throw new BadCredentialsException("Failed to get user permissions", e);
-        }
 
         return securityUser;
     }
@@ -164,11 +162,12 @@ public class JwtTokenFactory {
     public JwtToken createRefreshToken(SecurityUser securityUser) {
         UserPrincipal principal = securityUser.getUserPrincipal();
 
-        String token = setUpToken(securityUser, Collections.singletonList(Authority.REFRESH_TOKEN.name()), settings.getRefreshTokenExpTime())
+        Claims claims = Jwts.claims().setSubject(principal.getValue());
+        String token = setUpToken(securityUser, Collections.singletonList(Authority.REFRESH_TOKEN.name()), settings.getRefreshTokenExpTime(), claims)
                 .claim(IS_PUBLIC, principal.getType() == UserPrincipal.Type.PUBLIC_ID)
                 .setId(UUID.randomUUID().toString()).compact();
 
-        return new AccessJwtToken(token);
+        return new AccessJwtToken(token, claims);
     }
 
     public SecurityUser parseRefreshToken(RawAccessJwtToken rawAccessToken) {
@@ -191,22 +190,20 @@ public class JwtTokenFactory {
     }
 
     public JwtToken createPreVerificationToken(SecurityUser user, Integer expirationTime) {
-        JwtBuilder jwtBuilder = setUpToken(user, Collections.singletonList(Authority.PRE_VERIFICATION_TOKEN.name()), expirationTime)
+        Claims claims = Jwts.claims().setSubject(user.getEmail());
+        JwtBuilder jwtBuilder = setUpToken(user, Collections.singletonList(Authority.PRE_VERIFICATION_TOKEN.name()), expirationTime, claims)
                 .claim(TENANT_ID, user.getTenantId().toString());
         if (user.getCustomerId() != null) {
             jwtBuilder.claim(CUSTOMER_ID, user.getCustomerId().toString());
         }
-        return new AccessJwtToken(jwtBuilder.compact());
+        return new AccessJwtToken(jwtBuilder.compact(), claims);
     }
 
-    private JwtBuilder setUpToken(SecurityUser securityUser, List<String> scopes, long expirationTime) {
+    private JwtBuilder setUpToken(SecurityUser securityUser, List<String> scopes, long expirationTime, Claims claims) {
         if (StringUtils.isBlank(securityUser.getEmail())) {
             throw new IllegalArgumentException("Cannot create JWT Token without username/email");
         }
 
-        UserPrincipal principal = securityUser.getUserPrincipal();
-
-        Claims claims = Jwts.claims().setSubject(principal.getValue());
         claims.put(USER_ID, securityUser.getId().getId().toString());
         claims.put(SCOPES, scopes);
 
