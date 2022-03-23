@@ -32,6 +32,7 @@ package org.thingsboard.server.common.msg.tools;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket4j;
+import io.github.bucket4j.Refill;
 import io.github.bucket4j.local.LocalBucket;
 import io.github.bucket4j.local.LocalBucketBuilder;
 
@@ -44,12 +45,17 @@ public class TbRateLimits {
     private final LocalBucket bucket;
 
     public TbRateLimits(String limitsConfiguration) {
+        this(limitsConfiguration, false);
+    }
+
+    public TbRateLimits(String limitsConfiguration, boolean refillIntervally) {
         LocalBucketBuilder builder = Bucket4j.builder();
         boolean initialized = false;
         for (String limitSrc : limitsConfiguration.split(",")) {
             long capacity = Long.parseLong(limitSrc.split(":")[0]);
             long duration = Long.parseLong(limitSrc.split(":")[1]);
-            builder.addLimit(Bandwidth.simple(capacity, Duration.ofSeconds(duration)));
+            Refill refill = refillIntervally ? Refill.intervally(capacity, Duration.ofSeconds(duration)) : Refill.greedy(capacity, Duration.ofSeconds(duration));
+            builder.addLimit(Bandwidth.classic(capacity, refill));
             initialized = true;
         }
         if (initialized) {
@@ -57,8 +63,6 @@ public class TbRateLimits {
         } else {
             throw new IllegalArgumentException("Failed to parse rate limits configuration: " + limitsConfiguration);
         }
-
-
     }
 
     public boolean tryConsume() {

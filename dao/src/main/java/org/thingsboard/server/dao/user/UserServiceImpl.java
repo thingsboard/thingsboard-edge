@@ -338,21 +338,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
 
     @Override
-    public void onUserLoginSuccessful(TenantId tenantId, UserId userId) {
+    public void resetFailedLoginAttempts(TenantId tenantId, UserId userId) {
         log.trace("Executing onUserLoginSuccessful [{}]", userId);
         User user = findUserById(tenantId, userId);
-        setLastLoginTs(user);
         resetFailedLoginAttempts(user);
         saveUser(user);
-    }
-
-    private void setLastLoginTs(User user) {
-        JsonNode additionalInfo = user.getAdditionalInfo();
-        if (!(additionalInfo instanceof ObjectNode)) {
-            additionalInfo = JacksonUtil.newObjectNode();
-        }
-        ((ObjectNode) additionalInfo).put(LAST_LOGIN_TS, System.currentTimeMillis());
-        user.setAdditionalInfo(additionalInfo);
     }
 
     private void resetFailedLoginAttempts(User user) {
@@ -365,7 +355,19 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId) {
+    public void setLastLoginTs(TenantId tenantId, UserId userId) {
+        User user = findUserById(tenantId, userId);
+        JsonNode additionalInfo = user.getAdditionalInfo();
+        if (!(additionalInfo instanceof ObjectNode)) {
+            additionalInfo = JacksonUtil.newObjectNode();
+        }
+        ((ObjectNode) additionalInfo).put(LAST_LOGIN_TS, System.currentTimeMillis());
+        user.setAdditionalInfo(additionalInfo);
+        saveUser(user);
+    }
+
+    @Override
+    public int increaseFailedLoginAttempts(TenantId tenantId, UserId userId) {
         log.trace("Executing onUserLoginIncorrectCredentials [{}]", userId);
         User user = findUserById(tenantId, userId);
         int failedLoginAttempts = increaseFailedLoginAttempts(user);

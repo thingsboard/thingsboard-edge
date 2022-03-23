@@ -157,6 +157,7 @@
         <testcontainers.version>1.16.0</testcontainers.version>
         <zeroturnaround.version>1.12</zeroturnaround.version>
         <dotenv-java.version>2.2.0</dotenv-java.version>
+        <aerogear-otp.version>1.0.0</aerogear-otp.version>
     </properties>
 
     <modules>
@@ -2066,6 +2067,11 @@
                 <artifactId>dotenv-java</artifactId>
                 <version>${dotenv-java.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.aerogear</groupId>
+                <artifactId>aerogear-otp-java</artifactId>
+                <version>${aerogear-otp.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -85,7 +85,7 @@ public interface UserService {
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 
     PageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-	    
+
 	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
     PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
@@ -94,7 +94,10 @@ public interface UserService {
 
 	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
-	void onUserLoginSuccessful(TenantId tenantId, UserId userId);
+	void resetFailedLoginAttempts(TenantId tenantId, UserId userId);
 
-	int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId);
+	int increaseFailedLoginAttempts(TenantId tenantId, UserId userId);
+
+	void setLastLoginTs(TenantId tenantId, UserId userId);
+
 }
