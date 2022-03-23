@@ -140,6 +140,8 @@ public class TwoFactorAuthConfigController extends BaseController {
         SecurityUser user = getCurrentUser();
         if (user.getAuthority() == Authority.SYS_ADMIN) {
             accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+        } else {
+            accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.READ);
         }
         return twoFactorAuthConfigManager.getTwoFaSettings(user.getTenantId(), false).orElse(null);
     }
@@ -150,6 +152,8 @@ public class TwoFactorAuthConfigController extends BaseController {
         SecurityUser user = getCurrentUser();
         if (user.getAuthority() == Authority.SYS_ADMIN) {
             accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
+        } else {
+            accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.WRITE);
         }
         twoFactorAuthConfigManager.saveTwoFaSettings(getTenantId(), twoFactorAuthSettings);
     }

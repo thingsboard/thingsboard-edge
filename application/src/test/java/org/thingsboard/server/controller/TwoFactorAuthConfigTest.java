@@ -36,15 +36,22 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cache.CacheManager;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.auth.mfa.config.TwoFactorAuthConfigManager;
 import org.thingsboard.server.service.security.auth.mfa.config.TwoFactorAuthSettings;
 import org.thingsboard.server.service.security.auth.mfa.config.account.SmsTwoFactorAuthAccountConfig;
@@ -56,10 +63,13 @@ import org.thingsboard.server.service.security.auth.mfa.config.provider.TwoFacto
 import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
 import org.thingsboard.server.service.security.auth.mfa.provider.impl.OtpBasedTwoFactorAuthProvider;
 import org.thingsboard.server.service.security.auth.mfa.provider.impl.TotpTwoFactorAuthProvider;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,10 +77,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// TODO [viacheslav]: test for permissions
 public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
     @SpyBean
@@ -81,6 +92,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
     private CacheManager cacheManager;
     @Autowired
     private TwoFactorAuthConfigManager twoFactorAuthConfigManager;
+    @SpyBean
+    private UserPermissionsService userPermissionsService;
 
     @Before
     public void beforeEach() throws Exception {
@@ -538,6 +551,74 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
         assertThat(readResponse(doGet("/api/2fa/account/config").andExpect(status().isOk()), String.class))
                 .isNullOrEmpty();
+    }
+
+    @Test
+    public void testTwoFaAccountConfigManagement_permissions() throws Exception {
+        loginTenantAdmin();
+        configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        doGet("/api/2fa/account/config")
+                .andExpect(status().isOk());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.DEVICE, Set.of(Operation.READ)
+        ));
+        assertForbidden(doGet("/api/2fa/account/config"));
+        reset(userPermissionsService);
+
+        TotpTwoFactorAuthAccountConfig twoFaAccountConfig = readResponse(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk()), TotpTwoFactorAuthAccountConfig.class);
+        doPost("/api/2fa/account/config/submit", twoFaAccountConfig)
+                .andExpect(status().isOk());
+        doPost("/api/2fa/account/config?verificationCode=123456", twoFaAccountConfig)
+                .andExpect(status().isBadRequest());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.PROFILE, Set.of(Operation.READ)
+        ));
+        assertForbidden(doPost("/api/2fa/account/config/generate?providerType=TOTP"));
+        assertForbidden(doPost("/api/2fa/account/config/submit", twoFaAccountConfig));
+        assertForbidden(doPost("/api/2fa/account/config?verificationCode=123456", twoFaAccountConfig));
+        assertForbidden(doDelete("/api/2fa/account/config"));
+        reset(userPermissionsService);
+    }
+
+    @Test
+    public void testTwoFaSettingsManagement_permissions() throws Exception {
+        loginTenantAdmin();
+
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.WHITE_LABELING, Set.of(Operation.READ)
+        ));
+        doGet("/api/2fa/settings")
+                .andExpect(status().isOk());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.DEVICE, Set.of(Operation.READ)
+        ));
+        assertForbidden(doGet("/api/2fa/settings"));
+        reset(userPermissionsService);
+
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.WHITE_LABELING, Set.of(Operation.READ, Operation.WRITE)
+        ));
+        doPost("/api/2fa/settings", new TwoFactorAuthSettings())
+                .andExpect(status().isOk());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.WHITE_LABELING, Set.of(Operation.READ)
+        ));
+        assertForbidden(doPost("/api/2fa/settings", new TwoFactorAuthSettings()));
+        reset(userPermissionsService);
+    }
+
+    private void assertForbidden(ResultActions apiCall) throws Exception {
+        String errorMessage = getErrorMessage(apiCall.andExpect(status().isForbidden()));
+        assertThat(errorMessage).containsIgnoringCase("don't have permission to perform");
+    }
+
+    private void mockPermissions(ArgumentMatcher<User> userMatcher, Map<Resource, Set<Operation>> permissions) throws ThingsboardException {
+        doReturn(new MergedUserPermissions(permissions, Collections.emptyMap()))
+                .when(userPermissionsService).getMergedPermissions(argThat(userMatcher), eq(false));
     }
 
 }
