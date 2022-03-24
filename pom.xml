@@ -124,7 +124,7 @@
         <fst.version>2.57</fst.version>
         <antlr.version>2.7.7</antlr.version>
         <snakeyaml.version>1.27</snakeyaml.version>
-        <amazon-kinesis-producer>0.13.1</amazon-kinesis-producer>
+        <amazon-kinesis-producer>0.14.12</amazon-kinesis-producer>
         <amazon-kinesis-client>2.2.4-TB</amazon-kinesis-client>
         <aws.sdk.version>1.11.747</aws.sdk.version>
         <pubsub.client.version>1.105.0</pubsub.client.version>
