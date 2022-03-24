@@ -42,7 +42,7 @@ import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthPr
         use = JsonTypeInfo.Id.NAME,
         property = "providerType")
 @JsonSubTypes({
-        @Type(name = "TOTP", value = TotpTwoFactorAuthAccountConfig.class ),
+        @Type(name = "TOTP", value = TotpTwoFactorAuthAccountConfig.class),
         @Type(name = "SMS", value = SmsTwoFactorAuthAccountConfig.class)
 })
 public interface TwoFactorAuthAccountConfig {
