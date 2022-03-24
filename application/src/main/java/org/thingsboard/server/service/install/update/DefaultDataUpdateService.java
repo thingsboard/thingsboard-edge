@@ -257,6 +257,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.3.2 to 3.3.3 ...");
                 updateNestedRuleChains();
                 break;
+            case "3.3.3":
+                log.info("Updating data from version 3.3.3 to 3.3.4 ...");
+                tenantsEdgeSettingsUpdater.updateEntities(null);
+                break;
             case "3.3.4":
                 log.info("Updating data from version 3.3.4 to 3.3.4PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
@@ -355,6 +359,46 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         RuleChain ruleChain = ruleChainService.getRootTenantRuleChain(tenant.getId());
                         if (ruleChain == null) {
                             installScripts.createDefaultRuleChains(tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
+
+    private final PaginatedUpdater<String, Tenant> tenantsEdgeSettingsUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants edge settings updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        Optional<AttributeKvEntry> attr =
+                                attributesService.find(tenant.getTenantId(), tenant.getTenantId(), DataConstants.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
+                        if (attr.isPresent()) {
+                            AttributeKvEntry edgeSettingsAttr = attr.get();
+                            ObjectNode tmp = (ObjectNode) objectMapper.readTree(edgeSettingsAttr.getValueAsString());
+                            tmp.remove("cloudType");
+                            StringDataEntry edgeSettingsKvEntry = new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, objectMapper.writeValueAsString(tmp));
+                            BaseAttributeKvEntry edgeSettingAttr =
+                                    new BaseAttributeKvEntry(edgeSettingsKvEntry, edgeSettingsAttr.getLastUpdateTs());
+                            List<AttributeKvEntry> attributes =
+                                    Collections.singletonList(edgeSettingAttr);
+                            attributesService.save(tenant.getTenantId(), tenant.getTenantId(), DataConstants.SERVER_SCOPE, attributes).get();
                         }
                     } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
