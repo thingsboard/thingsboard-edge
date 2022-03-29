@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { defaultSettings, FormattedData, hereProviders, MapProviders, UnitedMapSettings } from './map-models';
+import { defaultSettings, hereProviders, MapProviders, UnitedMapSettings } from './map-models';
 import LeafletMap from './leaflet-map';
 import {
   commonMapSettingsSchema,
@@ -43,13 +43,19 @@ import {
 import { MapWidgetInterface, MapWidgetStaticInterface } from './map-widget.interface';
 import { addCondition, addGroupInfo, addToSchema, initSchema, mergeSchemes } from '@core/schema-utils';
 import { WidgetContext } from '@app/modules/home/models/widget-component.models';
-import { getDefCenterPosition, getProviderSchema, parseFunction, parseWithTranslation } from './common-maps-utils';
-import { Datasource, DatasourceData, JsonSettingsSchema, WidgetActionDescriptor } from '@shared/models/widget.models';
+import { getDefCenterPosition, getProviderSchema, parseWithTranslation } from './common-maps-utils';
+import {
+  Datasource,
+  DatasourceData,
+  FormattedData,
+  JsonSettingsSchema,
+  WidgetActionDescriptor
+} from '@shared/models/widget.models';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import { EntityDataPageLink } from '@shared/models/query/query.models';
 import { providerClass } from '@home/components/widget/lib/maps/providers';
-import { isDefined } from '@core/utils';
+import { isDefined, parseFunction } from '@core/utils';
 import L from 'leaflet';
 import { forkJoin, Observable, of } from 'rxjs';
 import { AttributeService } from '@core/http/attribute.service';
@@ -235,8 +241,12 @@ export class MapWidgetController implements MapWidgetInterface {
         id: e.$datasource.entityId
       };
 
+      let dataKeys = e.$datasource.dataKeys;
+      if (e.$datasource.latestDataKeys) {
+        dataKeys = dataKeys.concat(e.$datasource.latestDataKeys);
+      }
       for (const dataKeyName of Object.keys(values)) {
-        for (const key of e.$datasource.dataKeys) {
+        for (const key of dataKeys) {
           if (dataKeyName === key.name) {
             const value = {
               key: key.name,
@@ -324,6 +334,10 @@ export class MapWidgetController implements MapWidgetInterface {
     update() {
         this.map.updateData(this.drawRoutes, this.settings.showPolygon);
         this.map.setLoading(false);
+    }
+
+    latestDataUpdate() {
+      this.map.updateData(this.drawRoutes, this.settings.showPolygon);
     }
 
     resize() {
