@@ -29,8 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Datasource } from '@app/shared/models/widget.models';
-import { EntityType } from '@shared/models/entity-type.models';
+import { Datasource, FormattedData } from '@app/shared/models/widget.models';
 import tinycolor from 'tinycolor2';
 import { BaseIconOptions, Icon } from 'leaflet';
 
@@ -137,22 +136,6 @@ export type MarkerSettings = {
     tooltipOffsetY: number;
 };
 
-export interface FormattedData {
-    $datasource: Datasource;
-    entityName: string;
-    entityId: string;
-    entityType: EntityType;
-    dsIndex: number;
-    deviceType: string;
-    [key: string]: any;
-}
-
-export interface ReplaceInfo {
-  variable: string;
-  valDec?: number;
-  dataKeyName: string;
-}
-
 export type PolygonSettings = {
     showPolygon: boolean;
     polygonKeyName: string;
@@ -253,7 +236,7 @@ export interface MapImage {
     update?: boolean;
 }
 
-export interface TripAnimationSettings extends PolygonSettings {
+export interface TripAnimationSettings extends PolygonSettings, CircleSettings {
     showPoints: boolean;
     pointColor: string;
     pointSize: number;
