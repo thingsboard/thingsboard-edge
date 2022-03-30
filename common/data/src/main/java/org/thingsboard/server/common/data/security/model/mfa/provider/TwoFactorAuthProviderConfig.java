@@ -28,32 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.config.provider;
+package org.thingsboard.server.common.data.security.model.mfa.provider;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "providerType")
+@JsonSubTypes({
+        @Type(name = "TOTP", value = TotpTwoFactorAuthProviderConfig.class),
+        @Type(name = "SMS", value = SmsTwoFactorAuthProviderConfig.class)
+})
+public interface TwoFactorAuthProviderConfig {
 
-@ApiModel(parent = OtpBasedTwoFactorAuthProviderConfig.class)
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class SmsTwoFactorAuthProviderConfig extends OtpBasedTwoFactorAuthProviderConfig {
-
-    @ApiModelProperty(value = "SMS verification message template. Available template variables are ${verificationCode} and ${userEmail}. " +
-            "It must not be blank and must contain verification code variable.",
-            example = "Here is your verification code: ${verificationCode}", required = true)
-    @NotBlank(message = "verification message template is required")
-    @Pattern(regexp = ".*\\$\\{verificationCode}.*", message = "template must contain verification code")
-    private String smsVerificationMessageTemplate;
-
-    @Override
-    public TwoFactorAuthProviderType getProviderType() {
-        return TwoFactorAuthProviderType.SMS;
-    }
+    @JsonIgnore
+    TwoFactorAuthProviderType getProviderType();
 
 }

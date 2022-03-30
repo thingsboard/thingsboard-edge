@@ -28,12 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.config.provider;
+package org.thingsboard.server.common.data.security.model.mfa.provider;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
 
 import javax.validation.constraints.NotBlank;
 

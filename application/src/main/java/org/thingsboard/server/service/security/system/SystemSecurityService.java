@@ -38,10 +38,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
+import org.thingsboard.server.common.data.security.model.mfa.TwoFactorAuthSettings;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.common.data.security.model.SecuritySettings;
-import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.service.security.auth.mfa.config.TwoFactorAuthSettings;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;

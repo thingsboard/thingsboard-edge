@@ -28,26 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.config.account;
+package org.thingsboard.server.common.data.security.model.mfa.account;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
+import lombok.Data;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "providerType")
-@JsonSubTypes({
-        @Type(name = "TOTP", value = TotpTwoFactorAuthAccountConfig.class),
-        @Type(name = "SMS", value = SmsTwoFactorAuthAccountConfig.class)
-})
-public interface TwoFactorAuthAccountConfig {
-
-    @JsonIgnore
-    TwoFactorAuthProviderType getProviderType();
-
+@Data
+public abstract class OtpBasedTwoFactorAuthAccountConfig implements TwoFactorAuthAccountConfig {
 }

@@ -28,29 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.config.account;
+package org.thingsboard.server.common.data.security.model.mfa.provider;
 
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Min;
 
-@ApiModel
 @Data
-public class TotpTwoFactorAuthAccountConfig implements TwoFactorAuthAccountConfig {
-
-    @ApiModelProperty(value = "OTP auth URL used to generate a QR code to scan with an authenticator app. Must not be blank and must follow specific pattern.",
-            example = "otpauth://totp/ThingsBoard:tenant@thingsboard.org?issuer=ThingsBoard&secret=FUNBIM3CXFNNGQR6ZIPVWHP65PPFWDII", required = true)
-    @NotBlank(message = "OTP auth URL cannot be blank")
-    @Pattern(regexp = "otpauth://totp/(\\S+?):(\\S+?)\\?issuer=(\\S+?)&secret=(\\w+?)", message = "OTP auth url is invalid")
-    private String authUrl;
-
-    @Override
-    public TwoFactorAuthProviderType getProviderType() {
-        return TwoFactorAuthProviderType.TOTP;
-    }
-
+public abstract class OtpBasedTwoFactorAuthProviderConfig implements TwoFactorAuthProviderConfig {
+    @ApiModelProperty(value = "Verification code lifetime in seconds. Verification codes with a lifetime bigger than this param " +
+            "will be considered incorrect", example = "60", required = true)
+    @Min(value = 1, message = "verification code lifetime is required")
+    private int verificationCodeLifetime;
 }

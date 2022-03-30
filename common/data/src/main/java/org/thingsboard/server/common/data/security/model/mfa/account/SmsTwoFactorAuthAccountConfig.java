@@ -28,26 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.config.provider;
+package org.thingsboard.server.common.data.security.model.mfa.account;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderType;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "providerType")
-@JsonSubTypes({
-        @Type(name = "TOTP", value = TotpTwoFactorAuthProviderConfig.class),
-        @Type(name = "SMS", value = SmsTwoFactorAuthProviderConfig.class)
-})
-public interface TwoFactorAuthProviderConfig {
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
-    @JsonIgnore
-    TwoFactorAuthProviderType getProviderType();
+@ApiModel
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SmsTwoFactorAuthAccountConfig extends OtpBasedTwoFactorAuthAccountConfig {
+
+    @ApiModelProperty(value = "Phone number to use for 2FA. Must no be blank and must be of E.164 number format.", required = true)
+    @NotBlank(message = "phone number cannot be blank")
+    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "phone number is not of E.164 format")
+    private String phoneNumber;
+
+    @Override
+    public TwoFactorAuthProviderType getProviderType() {
+        return TwoFactorAuthProviderType.SMS;
+    }
 
 }

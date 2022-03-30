@@ -30,28 +30,28 @@
  */
 package org.thingsboard.server.service.security.auth.mfa.config;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.JsonDataEntry;
+import org.thingsboard.server.common.data.security.UserAuthSettings;
+import org.thingsboard.server.common.data.security.model.mfa.TwoFactorAuthSettings;
+import org.thingsboard.server.common.data.security.model.mfa.account.TwoFactorAuthAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderType;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsDao;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.service.security.auth.mfa.config.account.TwoFactorAuthAccountConfig;
-import org.thingsboard.server.service.security.auth.mfa.config.provider.TwoFactorAuthProviderConfig;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProviderType;
+import org.thingsboard.server.dao.user.UserAuthSettingsDao;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -61,12 +61,11 @@ import java.util.concurrent.ExecutionException;
 @RequiredArgsConstructor
 public class DefaultTwoFactorAuthConfigManager implements TwoFactorAuthConfigManager {
 
-    private final UserService userService;
+    private final UserAuthSettingsDao userAuthSettingsDao;
     private final AdminSettingsService adminSettingsService;
     private final AdminSettingsDao adminSettingsDao;
     private final AttributesService attributesService;
 
-    protected static final String TWO_FACTOR_AUTH_ACCOUNT_CONFIG_KEY = "twoFaConfig";
     protected static final String TWO_FACTOR_AUTH_SETTINGS_KEY = "twoFaSettings";
 
 
@@ -77,13 +76,9 @@ public class DefaultTwoFactorAuthConfigManager implements TwoFactorAuthConfigMan
 
     @Override
     public Optional<TwoFactorAuthAccountConfig> getTwoFaAccountConfig(TenantId tenantId, UserId userId) {
-        User user = userService.findUserById(tenantId, userId);
-        return Optional.ofNullable(user.getAdditionalInfo())
-                .flatMap(additionalInfo -> Optional.ofNullable(additionalInfo.get(TWO_FACTOR_AUTH_ACCOUNT_CONFIG_KEY)).filter(jsonNode -> !jsonNode.isNull()))
-                .map(jsonNode -> JacksonUtil.treeToValue(jsonNode, TwoFactorAuthAccountConfig.class))
-                .filter(twoFactorAuthAccountConfig -> {
-                    return getTwoFaProviderConfig(tenantId, twoFactorAuthAccountConfig.getProviderType()).isPresent();
-                });
+        return Optional.ofNullable(userAuthSettingsDao.findByUserId(userId))
+                .flatMap(userAuthSettings -> Optional.ofNullable(userAuthSettings.getTwoFaAccountConfig()))
+                .filter(twoFaAccountConfig -> getTwoFaProviderConfig(tenantId, twoFaAccountConfig.getProviderType()).isPresent());
     }
 
     @Override
@@ -91,24 +86,23 @@ public class DefaultTwoFactorAuthConfigManager implements TwoFactorAuthConfigMan
         getTwoFaProviderConfig(tenantId, accountConfig.getProviderType())
                 .orElseThrow(() -> new ThingsboardException("2FA provider is not configured", ThingsboardErrorCode.BAD_REQUEST_PARAMS));
 
-        User user = userService.findUserById(tenantId, userId);
-        ObjectNode additionalInfo = (ObjectNode) Optional.ofNullable(user.getAdditionalInfo())
-                .orElseGet(JacksonUtil::newObjectNode);
-        additionalInfo.set(TWO_FACTOR_AUTH_ACCOUNT_CONFIG_KEY, JacksonUtil.valueToTree(accountConfig));
-        user.setAdditionalInfo(additionalInfo);
-
-        userService.saveUser(user);
+        UserAuthSettings userAuthSettings = Optional.ofNullable(userAuthSettingsDao.findByUserId(userId))
+                .orElseGet(() -> {
+                    UserAuthSettings newUserAuthSettings = new UserAuthSettings();
+                    newUserAuthSettings.setUserId(userId);
+                    return newUserAuthSettings;
+                });
+        userAuthSettings.setTwoFaAccountConfig(accountConfig);
+        userAuthSettingsDao.save(tenantId, userAuthSettings);
     }
 
     @Override
     public void deleteTwoFaAccountConfig(TenantId tenantId, UserId userId) {
-        User user = userService.findUserById(tenantId, userId);
-        ObjectNode additionalInfo = (ObjectNode) Optional.ofNullable(user.getAdditionalInfo())
-                .orElseGet(JacksonUtil::newObjectNode);
-        additionalInfo.remove(TWO_FACTOR_AUTH_ACCOUNT_CONFIG_KEY);
-        user.setAdditionalInfo(additionalInfo);
-
-        userService.saveUser(user);
+        Optional.ofNullable(userAuthSettingsDao.findByUserId(userId))
+                .ifPresent(userAuthSettings -> {
+                    userAuthSettings.setTwoFaAccountConfig(null);
+                    userAuthSettingsDao.save(tenantId, userAuthSettings);
+                });
     }
 
 
