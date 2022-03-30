@@ -28,11 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.utils;
+package org.thingsboard.server.queue.common;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -59,16 +58,16 @@ public class EventDeduplicationExecutor<P> {
     }
 
     public void submit(P params) {
-        log.info("[{}] Going to submit: {}", name, params);
+        log.debug("[{}] Going to submit: {}", name, params);
         synchronized (EventDeduplicationExecutor.this) {
             if (!busy) {
                 busy = true;
                 pendingTask = null;
                 try {
-                    log.info("[{}] Submitting task: {}", name, params);
+                    log.debug("[{}] Submitting task: {}", name, params);
                     executor.submit(() -> {
                         try {
-                            log.info("[{}] Executing task: {}", name, params);
+                            log.debug("[{}] Executing task: {}", name, params);
                             function.accept(params);
                         } catch (Throwable e) {
                             log.warn("[{}] Failed to process task with parameters: {}", name, params, e);
@@ -83,7 +82,7 @@ public class EventDeduplicationExecutor<P> {
                     throw e;
                 }
             } else {
-                log.info("[{}] Task is already in progress. {} pending task: {}", name, pendingTask == null ? "adding" : "updating", params);
+                log.debug("[{}] Task is already in progress. {} pending task: {}", name, pendingTask == null ? "adding" : "updating", params);
                 pendingTask = params;
             }
         }

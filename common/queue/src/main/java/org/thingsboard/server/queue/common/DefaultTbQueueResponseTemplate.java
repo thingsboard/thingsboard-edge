@@ -72,7 +72,6 @@ public class DefaultTbQueueResponseTemplate<Request extends TbQueueMsg, Response
     @Builder
     public DefaultTbQueueResponseTemplate(TbQueueConsumer<Request> requestTemplate,
                                           TbQueueProducer<Response> responseTemplate,
-                                          TbQueueHandler<Request, Response> handler,
                                           long pollInterval,
                                           long requestTimeout,
                                           int maxPendingRequests,

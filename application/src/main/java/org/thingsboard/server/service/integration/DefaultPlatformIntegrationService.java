@@ -159,7 +159,7 @@ import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
-import org.thingsboard.server.utils.EventDeduplicationExecutor;
+import org.thingsboard.server.queue.common.EventDeduplicationExecutor;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;

@@ -313,7 +313,11 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
      * Synchronized to ensure that other servers info is up to date
      * */
     synchronized void recalculatePartitions() {
-        partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
+        try {
+            partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

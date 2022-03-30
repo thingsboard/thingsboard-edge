@@ -28,36 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server;
+package org.thingsboard.server.queue.provider;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.TbQueueRequestTemplate;
+import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-import java.util.Arrays;
+/**
+ * Responsible for initialization of various Producers and Consumers used by TB Integration Executor Node.
+ * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
+ */
+public interface TbIntegrationExecutorQueueFactory extends TbUsageStatsClientQueueFactory {
 
-@SpringBootConfiguration
-@EnableAsync
-@EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration"})
-public class ThingsboardServerApplication {
+    /**
+     * Used to push messages to instances of TB RuleEngine Service
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineMsgProducer();
 
-    private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
-    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "thingsboard";
+    /**
+     * Used to push messages to other instances of TB Core Service
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> createTbCoreMsgProducer();
 
-    public static void main(String[] args) {
-        SpringApplication.run(ThingsboardServerApplication.class, updateArguments(args));
-    }
+    TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate();
 
-    private static String[] updateArguments(String[] args) {
-        if (Arrays.stream(args).noneMatch(arg -> arg.startsWith(SPRING_CONFIG_NAME_KEY))) {
-            String[] modifiedArgs = new String[args.length + 1];
-            System.arraycopy(args, 0, modifiedArgs, 0, args.length);
-            modifiedArgs[args.length] = DEFAULT_SPRING_CONFIG_PARAM;
-            return modifiedArgs;
-        }
-        return args;
-    }
+    TbQueueRequestTemplate<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
+
 }

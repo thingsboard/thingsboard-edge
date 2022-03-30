@@ -49,6 +49,8 @@ public class TbKafkaTopicConfigs {
     private String ruleEngineProperties;
     @Value("${queue.kafka.topic-properties.transport-api}")
     private String transportApiProperties;
+    @Value("${queue.kafka.topic-properties.integration-api:}")
+    private String integrationApiProperties;
     @Value("${queue.kafka.topic-properties.notifications}")
     private String notificationsProperties;
     @Value("${queue.kafka.topic-properties.js-executor}")
@@ -63,6 +65,8 @@ public class TbKafkaTopicConfigs {
     @Getter
     private Map<String, String> transportApiConfigs;
     @Getter
+    private Map<String, String> integrationApiConfigs;
+    @Getter
     private Map<String, String> notificationsConfigs;
     @Getter
     private Map<String, String> jsExecutorConfigs;
@@ -74,6 +78,7 @@ public class TbKafkaTopicConfigs {
         coreConfigs = getConfigs(coreProperties);
         ruleEngineConfigs = getConfigs(ruleEngineProperties);
         transportApiConfigs = getConfigs(transportApiProperties);
+        integrationApiConfigs = getConfigs(integrationApiProperties);
         notificationsConfigs = getConfigs(notificationsProperties);
         jsExecutorConfigs = getConfigs(jsExecutorProperties);
         fwUpdatesConfigs = getConfigs(fwUpdatesProperties);

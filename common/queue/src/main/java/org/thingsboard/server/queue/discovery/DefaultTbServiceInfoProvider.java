@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
@@ -72,6 +73,9 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     @Getter
     @Value("${service.tenant_id:}")
     private String tenantIdStr;
+
+    @Value("${service.supported-integrations:}")
+    private String supportedIntegrationsStr;
 
     @Autowired(required = false)
     private TbQueueRuleEngineSettings ruleEngineSettings;
@@ -118,6 +122,20 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
                         .setPartitions(queue.getPartitions()).build();
                 builder.addRuleEngineQueues(queueInfo);
             }
+        }
+        if (serviceTypes.contains(ServiceType.TB_INTEGRATION_EXECUTOR)) {
+            List<IntegrationType> supportedIntegrationTypes;
+            if (StringUtils.isEmpty(supportedIntegrationsStr)) {
+                supportedIntegrationTypes = Arrays.asList(IntegrationType.values());
+            } else {
+                try {
+                    supportedIntegrationTypes = Arrays.stream(supportedIntegrationsStr.split(",")).map(String::trim).map(IntegrationType::valueOf).collect(Collectors.toList());
+                } catch (RuntimeException e) {
+                    log.warn("Failed to parse supplied integration types: {}", supportedIntegrationsStr);
+                    throw e;
+                }
+            }
+            supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
         }
 
         serviceInfo = builder.build();

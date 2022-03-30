@@ -28,8 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.transport;
+package org.thingsboard.server.service.integration;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,56 +42,52 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.stats.MessagesStats;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
+import org.thingsboard.server.queue.TbQueueHandler;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueResponseTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueResponseTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 
-/**
- * Created by ashvayka on 05.10.18.
- */
 @Slf4j
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class TbCoreTransportApiService {
+public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> {
     private final TbCoreQueueFactory tbCoreQueueFactory;
-    private final TransportApiService transportApiService;
     private final StatsFactory statsFactory;
 
-    @Value("${queue.transport_api.max_pending_requests:10000}")
+    @Value("${queue.integration_api.max_pending_requests:10000}")
     private int maxPendingRequests;
-    @Value("${queue.transport_api.max_requests_timeout:10000}")
+    @Value("${queue.integration_api.max_requests_timeout:10000}")
     private long requestTimeout;
-    @Value("${queue.transport_api.request_poll_interval:25}")
+    @Value("${queue.integration_api.request_poll_interval:25}")
     private int responsePollDuration;
-    @Value("${queue.transport_api.max_callback_threads:100}")
+    @Value("${queue.integration_api.max_callback_threads:100}")
     private int maxCallbackThreads;
 
     private ExecutorService transportCallbackExecutor;
-    private TbQueueResponseTemplate<TbProtoQueueMsg<TransportApiRequestMsg>,
-            TbProtoQueueMsg<TransportApiResponseMsg>> transportApiTemplate;
+    private TbQueueResponseTemplate<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>,
+            TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> integrationApiTemplate;
 
     @PostConstruct
     public void init() {
         this.transportCallbackExecutor = ThingsBoardExecutors.newWorkStealingPool(maxCallbackThreads, getClass());
-        TbQueueProducer<TbProtoQueueMsg<TransportApiResponseMsg>> producer = tbCoreQueueFactory.createTransportApiResponseProducer();
-        TbQueueConsumer<TbProtoQueueMsg<TransportApiRequestMsg>> consumer = tbCoreQueueFactory.createTransportApiRequestConsumer();
+        TbQueueProducer<TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> producer = tbCoreQueueFactory.createTransportApiResponseProducer();
+        TbQueueConsumer<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>> consumer = tbCoreQueueFactory.createTransportApiRequestConsumer();
 
         String key = StatsType.TRANSPORT.getName();
         MessagesStats queueStats = statsFactory.createMessagesStats(key);
 
         DefaultTbQueueResponseTemplate.DefaultTbQueueResponseTemplateBuilder
-                <TbProtoQueueMsg<TransportApiRequestMsg>, TbProtoQueueMsg<TransportApiResponseMsg>> builder = DefaultTbQueueResponseTemplate.builder();
+                <TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> builder = DefaultTbQueueResponseTemplate.builder();
         builder.requestTemplate(consumer);
         builder.responseTemplate(producer);
         builder.maxPendingRequests(maxPendingRequests);
@@ -98,24 +95,28 @@ public class TbCoreTransportApiService {
         builder.pollInterval(responsePollDuration);
         builder.executor(transportCallbackExecutor);
         builder.stats(queueStats);
-        transportApiTemplate = builder.build();
+        integrationApiTemplate = builder.build();
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Order(value = 2)
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         log.info("Received application ready event. Starting polling for events.");
-        transportApiTemplate.init(transportApiService);
+        integrationApiTemplate.init(this);
     }
 
     @PreDestroy
     public void destroy() {
-        if (transportApiTemplate != null) {
-            transportApiTemplate.stop();
+        if (integrationApiTemplate != null) {
+            integrationApiTemplate.stop();
         }
         if (transportCallbackExecutor != null) {
             transportCallbackExecutor.shutdownNow();
         }
     }
 
+    @Override
+    public ListenableFuture<TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> handle(TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg> integrationApiRequestMsgTbProtoQueueMsg) {
+        return null;
+    }
 }

@@ -28,36 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server;
+package org.thingsboard.integration.service.api;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-import java.util.Arrays;
+@Data
+public class IntegrationInfo {
 
-@SpringBootConfiguration
-@EnableAsync
-@EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration"})
-public class ThingsboardServerApplication {
+    private final IntegrationId id;
+    private final TenantId tenantId;
+    private final String name;
+    private final IntegrationType type;
 
-    private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
-    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "thingsboard";
 
-    public static void main(String[] args) {
-        SpringApplication.run(ThingsboardServerApplication.class, updateArguments(args));
-    }
-
-    private static String[] updateArguments(String[] args) {
-        if (Arrays.stream(args).noneMatch(arg -> arg.startsWith(SPRING_CONFIG_NAME_KEY))) {
-            String[] modifiedArgs = new String[args.length + 1];
-            System.arraycopy(args, 0, modifiedArgs, 0, args.length);
-            modifiedArgs[args.length] = DEFAULT_SPRING_CONFIG_PARAM;
-            return modifiedArgs;
-        }
-        return args;
-    }
 }

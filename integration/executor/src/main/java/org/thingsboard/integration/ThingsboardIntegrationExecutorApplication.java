@@ -28,27 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server;
+package org.thingsboard.integration;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Arrays;
 
-@SpringBootConfiguration
+@SpringBootApplication
 @EnableAsync
-@EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration"})
-public class ThingsboardServerApplication {
+@ComponentScan({"org.thingsboard.server.queue", "org.thingsboard.integration", "org.thingsboard.js.api"})
+public class ThingsboardIntegrationExecutorApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
-    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "thingsboard";
+    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "tb-integration-executor";
 
     public static void main(String[] args) {
-        SpringApplication.run(ThingsboardServerApplication.class, updateArguments(args));
+        SpringApplication.run(ThingsboardIntegrationExecutorApplication.class, updateArguments(args));
     }
 
     private static String[] updateArguments(String[] args) {
@@ -60,4 +58,5 @@ public class ThingsboardServerApplication {
         }
         return args;
     }
+
 }
