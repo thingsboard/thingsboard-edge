@@ -77,6 +77,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     protected final String SUB_CUSTOMER_ADMIN_EMAIL = "subcustomer@thingsboard.org";
     protected final String SUB_CUSTOMER_ADMIN_PASSWORD = "subcustomer";
 
+    protected final String SUB_SUB_CUSTOMER_ADMIN_EMAIL = "subsubcustomer@thingsboard.org";
+    protected final String SUB_SUB_CUSTOMER_ADMIN_PASSWORD = "subsubcustomer";
+
     protected Device customerDevice;
 
     private Role role;
@@ -404,6 +407,94 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         AlarmInfo alarmInfo = pageData.get(0);
         boolean equals = alarm.getId().equals(alarmInfo.getId()) && alarm.getType().equals(alarmInfo.getType());
+        Assert.assertTrue("Created alarm doesn't match the found one!", equals);
+
+
+        loginTenantAdmin();
+
+        response = doGetTyped(
+                "/api/alarm/" + savedDevice.getEntityType() + "/" + savedDevice.getUuidId() + "?page=0&pageSize=1",
+                new TypeReference<PageData<AlarmInfo>>() {}
+        );
+        pageData = response.getData();
+        Assert.assertNotNull("Found pageData is null", pageData);
+        Assert.assertNotEquals("Expected alarms are not found!", 0, pageData.size());
+
+        alarmInfo = pageData.get(0);
+        equals = alarm.getId().equals(alarmInfo.getId()) && alarm.getType().equals(alarmInfo.getType());
+        Assert.assertTrue("Created alarm doesn't match the found one!", equals);
+    }
+
+    @Test
+    public void testSubCustomersSubCustomerAlarmsCanBeFoundByParentCustomer() throws Exception{
+        loginCustomerAdministrator();
+
+        Customer subCustomer = new Customer();
+        subCustomer.setParentCustomerId(customerId);
+        subCustomer.setTitle("Sub Customer");
+
+        Customer savedSubCustomer = doPost("/api/customer", subCustomer, Customer.class);
+        createCustomerAdministrator(
+                savedCustomerAdministrator.getTenantId(),
+                savedSubCustomer.getId(),
+                SUB_CUSTOMER_ADMIN_EMAIL,
+                SUB_CUSTOMER_ADMIN_PASSWORD
+        );
+
+        login(SUB_CUSTOMER_ADMIN_EMAIL, SUB_CUSTOMER_ADMIN_PASSWORD);
+
+        Customer subSubCustomer = new Customer();
+        subSubCustomer.setParentCustomerId(savedSubCustomer.getId());
+        subSubCustomer.setTitle("Sub sub Customer");
+
+        Customer savedSubSubCustomer = doPost("/api/customer", subSubCustomer, Customer.class);
+        createCustomerAdministrator(
+                savedCustomerAdministrator.getTenantId(),
+                savedSubSubCustomer.getId(),
+                SUB_SUB_CUSTOMER_ADMIN_EMAIL,
+                SUB_SUB_CUSTOMER_ADMIN_PASSWORD
+        );
+
+        login(SUB_SUB_CUSTOMER_ADMIN_EMAIL, SUB_SUB_CUSTOMER_ADMIN_PASSWORD);
+
+        Device device = new Device();
+        device.setName("sub sub customer device");
+        device.setLabel("Label");
+        device.setType("Type");
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        Alarm alarm = createAlarm(
+                savedSubSubCustomer,
+                savedDevice.getId(),
+                TEST_ALARM_TYPE
+        );
+
+        login(SUB_CUSTOMER_ADMIN_EMAIL, SUB_CUSTOMER_ADMIN_PASSWORD);
+
+        var response = doGetTyped(
+                "/api/alarm/" + savedDevice.getEntityType() + "/" + savedDevice.getUuidId() + "?page=0&pageSize=1",
+                new TypeReference<PageData<AlarmInfo>>() {}
+        );
+        var pageData = response.getData();
+        Assert.assertNotNull("Found pageData is null", pageData);
+        Assert.assertNotEquals("Expected alarms are not found!", 0, pageData.size());
+
+        AlarmInfo alarmInfo = pageData.get(0);
+        boolean equals = alarm.getId().equals(alarmInfo.getId()) && alarm.getType().equals(alarmInfo.getType());
+        Assert.assertTrue("Created alarm doesn't match the found one!", equals);
+
+        loginCustomerAdministrator();
+
+        response = doGetTyped(
+                "/api/alarm/" + savedDevice.getEntityType() + "/" + savedDevice.getUuidId() + "?page=0&pageSize=1",
+                new TypeReference<PageData<AlarmInfo>>() {}
+        );
+        pageData = response.getData();
+        Assert.assertNotNull("Found pageData is null", pageData);
+        Assert.assertNotEquals("Expected alarms are not found!", 0, pageData.size());
+
+        alarmInfo = pageData.get(0);
+        equals = alarm.getId().equals(alarmInfo.getId()) && alarm.getType().equals(alarmInfo.getType());
         Assert.assertTrue("Created alarm doesn't match the found one!", equals);
 
 
