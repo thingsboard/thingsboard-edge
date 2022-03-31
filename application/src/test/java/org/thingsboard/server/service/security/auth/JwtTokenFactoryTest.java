@@ -33,6 +33,7 @@ package org.thingsboard.server.service.security.auth;
 import io.jsonwebtoken.Claims;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -44,6 +45,7 @@ import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.AccessJwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.model.token.RawAccessJwtToken;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -65,7 +67,7 @@ public class JwtTokenFactoryTest {
         jwtSettings.setTokenExpirationTime((int) TimeUnit.HOURS.toSeconds(2));
         jwtSettings.setRefreshTokenExpTime((int) TimeUnit.DAYS.toSeconds(7));
 
-        tokenFactory = new JwtTokenFactory(jwtSettings);
+        tokenFactory = new JwtTokenFactory(jwtSettings, Mockito.mock(UserPermissionsService.class));
     }
 
     @Test
@@ -83,7 +85,7 @@ public class JwtTokenFactoryTest {
 
         testCreateAndParseAccessJwtToken(securityUser);
 
-        securityUser = new SecurityUser(securityUser, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, securityUser.getEmail()));
+        securityUser = new SecurityUser(securityUser, true, new UserPrincipal(UserPrincipal.Type.PUBLIC_ID, securityUser.getEmail()), null);
         securityUser.setFirstName(null);
         securityUser.setLastName(null);
         securityUser.setCustomerId(null);
