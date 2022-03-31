@@ -160,6 +160,18 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
         return new InMemoryTbQueueProducer<>(coreSettings.getUsageStatsTopic());
     }
 
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+        // TODO: ashvayka integration executor
+        return null;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+        // TODO: ashvayka integration executor
+        return null;
+    }
+
     @Scheduled(fixedRateString = "${queue.in_memory.stats.print-interval-ms:60000}")
     private void printInMemoryStats() {
         storage.printStats();

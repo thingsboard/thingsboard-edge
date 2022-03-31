@@ -31,12 +31,21 @@
 package org.thingsboard.integration.service.api;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.List;
 
 public interface IntegrationApiService {
 
-    ListenableFuture<List<IntegrationInfo>> getActiveIntegrationList(IntegrationType type);
+    List<IntegrationInfo> getActiveIntegrationList(IntegrationType type);
+
+    ListenableFuture<Integration> getIntegration(TenantId tenantId, IntegrationId integrationId);
+
+    ListenableFuture<Converter> getConverter(TenantId tenantId, ConverterId converterId);
 
 }

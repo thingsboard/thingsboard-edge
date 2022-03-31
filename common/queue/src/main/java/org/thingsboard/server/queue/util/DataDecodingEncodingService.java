@@ -28,42 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.queue.util;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationInfo;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-
-import java.util.List;
 import java.util.Optional;
 
-public interface IntegrationService {
+public interface DataDecodingEncodingService {
 
-    Integration saveIntegration(Integration integration);
+    <T> Optional<T> decode(byte[] byteArray);
 
-    Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId);
+    <T> byte[] encode(T msq);
 
-    ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId);
-
-    ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds);
-
-    Optional<Integration> findIntegrationByRoutingKey(TenantId tenantId, String routingKey);
-
-    List<Integration> findAllIntegrations(TenantId tenantId);
-
-    List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId);
-
-    PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink);
-
-    void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
-
-    void deleteIntegrationsByTenantId(TenantId tenantId);
-
-    List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 }
+

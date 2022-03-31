@@ -31,39 +31,24 @@
 package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface IntegrationService {
-
-    Integration saveIntegration(Integration integration);
-
-    Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId);
-
-    ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId);
-
-    ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds);
-
-    Optional<Integration> findIntegrationByRoutingKey(TenantId tenantId, String routingKey);
-
-    List<Integration> findAllIntegrations(TenantId tenantId);
-
-    List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId);
-
-    PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink);
-
-    void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
-
-    void deleteIntegrationsByTenantId(TenantId tenantId);
+/**
+ * The Interface IntegrationDao.
+ *
+ */
+public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
 
     List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+
 }

@@ -28,15 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.util;
+package org.thingsboard.server.queue.util;
+
+import lombok.extern.slf4j.Slf4j;
+import org.nustaq.serialization.FSTConfiguration;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-public interface DataDecodingEncodingService {
+@Slf4j
+@Service
+public class ProtoWithFSTService implements DataDecodingEncodingService {
 
-    <T> Optional<T> decode(byte[] byteArray);
+    private final FSTConfiguration config = FSTConfiguration.createDefaultConfiguration();
 
-    <T> byte[] encode(T msq);
+    @Override
+    public <T> Optional<T> decode(byte[] byteArray) {
+        try {
+            @SuppressWarnings("unchecked")
+            T msg = byteArray != null && byteArray.length > 0 ? (T) config.asObject(byteArray) : null;
+            return Optional.ofNullable(msg);
+        } catch (IllegalArgumentException e) {
+            log.error("Error during deserialization message, [{}]", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public <T> byte[] encode(T msq) {
+        return config.asByteArray(msq);
+    }
 
 }
-

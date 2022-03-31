@@ -32,13 +32,18 @@ package org.thingsboard.integration.service.api;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiResponseMsg;
@@ -49,14 +54,17 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class DefaultIntegrationApiService implements IntegrationApiService {
 
+    private final DataDecodingEncodingService dataDecodingEncodingService;
     private final TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> apiTemplate;
     private final ExecutorService callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(4, "integration-api-callback");
 
@@ -74,13 +82,43 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
     }
 
     @Override
-    public ListenableFuture<List<IntegrationInfo>> getActiveIntegrationList(IntegrationType type) {
-        var request = TransportProtos.IntegrationInfoListRequestProto.newBuilder().setEnabled(true).setType(type.name()).build();
+    public List<IntegrationInfo> getActiveIntegrationList(IntegrationType type) {
+        while (true) {
+            try {
+                var request = TransportProtos.IntegrationInfoListRequestProto.newBuilder().setEnabled(true).setType(type.name()).build();
+                var response =
+                        apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationListRequest(request).build()));
+                return Futures.transform(response, this::parseListFromProto, callbackExecutor).get(10, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.warn("Failed to receive the list of integrations. Going to retry immediately.", e);
+            }
+        }
+    }
 
-        var responseFuture =
-                apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationListRequest(request).build()));
+    @Override
+    public ListenableFuture<Integration> getIntegration(TenantId tenantId, IntegrationId integrationId) {
+        var request = TransportProtos.IntegrationRequestProto.newBuilder()
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
+                .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
+                .build();
+        var response =
+                apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationRequest(request).build()));
+        return Futures.transform(response, this::parseIntegrationFromProto, callbackExecutor);
+    }
 
-        return Futures.transform(responseFuture, this::parseListFromProto, callbackExecutor);
+    @Override
+    public ListenableFuture<Converter> getConverter(TenantId tenantId, ConverterId converterId) {
+        var request = TransportProtos.ConverterRequestProto.newBuilder()
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setConverterIdMSB(converterId.getId().getMostSignificantBits())
+                .setConverterIdLSB(converterId.getId().getLeastSignificantBits())
+                .build();
+        var response =
+                apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setConverterRequest(request).build()));
+        return Futures.transform(response, this::parseConverterFromProto, callbackExecutor);
     }
 
     private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg> proto) {
@@ -96,4 +134,17 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
 
         return result;
     }
+
+    private Integration parseIntegrationFromProto(TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg> proto) {
+        ByteString data = proto.getValue().getIntegrationResponse().getData();
+        Optional<Integration> integration = dataDecodingEncodingService.decode(data.toByteArray());
+        return integration.orElseThrow(() -> new RuntimeException("Can't parse the integration from bytes!"));
+    }
+
+    private Converter parseConverterFromProto(TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg> proto) {
+        ByteString data = proto.getValue().getConverterResponse().getData();
+        Optional<Converter> converter = dataDecodingEncodingService.decode(data.toByteArray());
+        return converter.orElseThrow(() -> new RuntimeException("Can't parse the converter from bytes!"));
+    }
+
 }

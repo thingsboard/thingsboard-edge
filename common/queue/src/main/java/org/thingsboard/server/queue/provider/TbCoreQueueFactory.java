@@ -31,6 +31,8 @@
 package org.thingsboard.server.queue.provider;
 
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
@@ -135,6 +137,20 @@ public interface TbCoreQueueFactory extends TbUsageStatsClientQueueFactory {
      * @return
      */
     TbQueueProducer<TbProtoQueueMsg<TransportApiResponseMsg>> createTransportApiResponseProducer();
+
+    /**
+     * Used to consume Integration API Calls
+     *
+     * @return
+     */
+    TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer();
+
+    /**
+     * Used to push replies to Integration API Calls
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer();
 
     TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate();
 

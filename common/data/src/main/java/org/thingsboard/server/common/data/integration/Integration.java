@@ -68,8 +68,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     @NoXss
     @Length(fieldName = "secret")
     private String secret;
-    private transient JsonNode configuration;
-    private transient JsonNode additionalInfo;
+    private JsonNode configuration;
+    private JsonNode additionalInfo;
 
     public Integration() {
         super();

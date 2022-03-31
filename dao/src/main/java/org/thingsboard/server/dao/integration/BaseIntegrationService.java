@@ -38,6 +38,8 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -64,6 +66,9 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
     @Autowired
     private IntegrationDao integrationDao;
+
+    @Autowired
+    private IntegrationInfoDao integrationInfoDao;
 
     @Autowired
     private DataValidator<Integration> integrationValidator;
@@ -138,6 +143,12 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        log.trace("Executing findAllIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
+        return integrationInfoDao.findAllIntegrationInfos(integrationType, remote, enabled);
     }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =

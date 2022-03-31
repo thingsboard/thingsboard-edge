@@ -73,7 +73,7 @@ public class TbCoreTransportApiService {
     private long requestTimeout;
     @Value("${queue.transport_api.request_poll_interval:25}")
     private int responsePollDuration;
-    @Value("${queue.transport_api.max_callback_threads:100}")
+    @Value("${queue.transport_api.max_callback_threads:10}")
     private int maxCallbackThreads;
 
     private ExecutorService transportCallbackExecutor;

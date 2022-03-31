@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
@@ -45,6 +46,8 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiResponseMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
@@ -61,6 +64,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -79,6 +83,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueCoreSettings coreSettings;
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
@@ -87,6 +92,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueAdmin ruleEngineAdmin;
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin transportApiAdmin;
+    private final TbQueueAdmin integrationApiAdmin;
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin fwUpdatesAdmin;
 
@@ -95,6 +101,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
                                    TbQueueCoreSettings coreSettings,
                                    TbQueueRuleEngineSettings ruleEngineSettings,
                                    TbQueueTransportApiSettings transportApiSettings,
+                                   TbQueueIntegrationApiSettings integrationApiSettings,
                                    TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                    TbKafkaConsumerStatsService consumerStatsService,
                                    TbQueueTransportNotificationSettings transportNotificationSettings,
@@ -105,6 +112,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         this.coreSettings = coreSettings;
         this.ruleEngineSettings = ruleEngineSettings;
         this.transportApiSettings = transportApiSettings;
+        this.integrationApiSettings = integrationApiSettings;
         this.jsInvokeSettings = jsInvokeSettings;
         this.consumerStatsService = consumerStatsService;
         this.transportNotificationSettings = transportNotificationSettings;
@@ -113,6 +121,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
         this.jsExecutorAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorConfigs());
         this.transportApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiConfigs());
+        this.integrationApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
         this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
     }
@@ -208,6 +217,29 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         requestBuilder.clientId("tb-core-transport-api-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(transportApiSettings.getResponsesTopic());
         requestBuilder.admin(transportApiAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<IntegrationApiRequestMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(integrationApiSettings.getRequestsTopic());
+        consumerBuilder.clientId("tb-core-integration-api-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId("tb-core-integration-api-consumer");
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(integrationApiAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<IntegrationApiResponseMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-integration-api-producer-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(integrationApiSettings.getResponsesTopic());
+        requestBuilder.admin(integrationApiAdmin);
         return requestBuilder.build();
     }
 

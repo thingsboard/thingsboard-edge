@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
@@ -239,6 +240,18 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         requestBuilder.defaultTopic(transportApiSettings.getResponsesTopic());
         requestBuilder.admin(transportApiAdmin);
         return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+        // TODO: ashvayka integration executor
+        return null;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+        // TODO: ashvayka integration executor
+        return null;
     }
 
     @Override

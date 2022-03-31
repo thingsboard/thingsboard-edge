@@ -28,35 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.util;
+package org.thingsboard.server.dao.sql.integration;
 
-import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
+import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.UUID;
 
-@Slf4j
-@Service
-public class ProtoWithFSTService implements DataDecodingEncodingService {
+/**
+ * Created by Valerii Sosliuk on 5/6/2017.
+ */
+public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfoEntity, UUID> {
 
-    private final FSTConfiguration config = FSTConfiguration.createDefaultConfiguration();
-
-    @Override
-    public <T> Optional<T> decode(byte[] byteArray) {
-        try {
-            @SuppressWarnings("unchecked")
-            T msg = byteArray != null && byteArray.length > 0 ? (T) config.asObject(byteArray) : null;
-            return Optional.ofNullable(msg);
-        } catch (IllegalArgumentException e) {
-            log.error("Error during deserialization message, [{}]", e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public <T> byte[] encode(T msq) {
-        return config.asByteArray(msq);
-    }
+    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.type = :type AND ii.isRemote = :isRemote AND ii.enabled = :enabled")
+    List<IntegrationInfoEntity> findAllIntegrationInfos(@Param("type") IntegrationType type, @Param("isRemote") boolean remote, @Param("enabled") boolean enabled);
 
 }

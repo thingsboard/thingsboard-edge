@@ -28,42 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.dao.sql.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
+import org.thingsboard.server.dao.integration.IntegrationInfoDao;
+import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
+import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.dashboard.DashboardInfoRepository;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.UUID;
 
-public interface IntegrationService {
 
-    Integration saveIntegration(Integration integration);
+/**
+ * Created by Valerii Sosliuk on 5/6/2017.
+ */
+@Slf4j
+@Component
+public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationInfoEntity, IntegrationInfo> implements IntegrationInfoDao {
 
-    Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId);
+    @Autowired
+    private IntegrationInfoRepository integrationInfoRepository;
 
-    ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId);
+    @Override
+    protected Class<IntegrationInfoEntity> getEntityClass() {
+        return IntegrationInfoEntity.class;
+    }
 
-    ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds);
+    @Override
+    protected JpaRepository<IntegrationInfoEntity, UUID> getRepository() {
+        return integrationInfoRepository;
+    }
 
-    Optional<Integration> findIntegrationByRoutingKey(TenantId tenantId, String routingKey);
-
-    List<Integration> findAllIntegrations(TenantId tenantId);
-
-    List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId);
-
-    PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink);
-
-    void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
-
-    void deleteIntegrationsByTenantId(TenantId tenantId);
-
-    List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+    @Override
+    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        return DaoUtil.convertDataList(integrationInfoRepository.findAllIntegrationInfos(integrationType, remote, enabled));
+    }
 }

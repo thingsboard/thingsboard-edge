@@ -1072,7 +1072,7 @@ queue:
     responses_topic: "${TB_QUEUE_TRANSPORT_API_RESPONSE_TOPIC:tb_transport.api.responses}"
     max_pending_requests: "${TB_QUEUE_TRANSPORT_MAX_PENDING_REQUESTS:10000}"
     max_requests_timeout: "${TB_QUEUE_TRANSPORT_MAX_REQUEST_TIMEOUT:10000}"
-    max_callback_threads: "${TB_QUEUE_TRANSPORT_MAX_CALLBACK_THREADS:100}"
+    max_callback_threads: "${TB_QUEUE_TRANSPORT_MAX_CALLBACK_THREADS:10}"
     request_poll_interval: "${TB_QUEUE_TRANSPORT_REQUEST_POLL_INTERVAL_MS:25}"
     response_poll_interval: "${TB_QUEUE_TRANSPORT_RESPONSE_POLL_INTERVAL_MS:25}"
   core:
@@ -1169,7 +1169,7 @@ queue:
     responses_topic: "${TB_QUEUE_INTEGRATION_EXECUTOR_API_RESPONSE_TOPIC:tb_ie.api.responses}"
     max_pending_requests: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_PENDING_REQUESTS:10000}"
     max_requests_timeout: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_REQUEST_TIMEOUT:10000}"
-    max_callback_threads: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_CALLBACK_THREADS:100}"
+    max_callback_threads: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_CALLBACK_THREADS:10}"
     request_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_REQUEST_POLL_INTERVAL_MS:25}"
     response_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_RESPONSE_POLL_INTERVAL_MS:25}"
 

@@ -46,7 +46,7 @@ import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
