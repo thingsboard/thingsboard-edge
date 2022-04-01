@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -71,6 +72,13 @@ public interface TbQueueProducerProvider {
      * @return
      */
     TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> getTbCoreMsgProducer();
+
+    /**
+     * Used to push messages to other instances of TB Core Service
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> getTbCoreIntegrationMsgProducer();
 
     /**
      * Used to push messages to other instances of TB Core Service

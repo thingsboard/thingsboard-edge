@@ -86,62 +86,12 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
-
-        UUID sessionId = configuration.getUuidId(); //for local integration context sessionId is exact integrationId
-        TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
-                .setSessionIdMSB(sessionId.getMostSignificantBits())
-                .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                .setDeviceName(device.getName())
-                .setDeviceType(device.getType())
-                .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
-
-        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
-            builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
-        }
-
-        TransportProtos.SessionInfoProto sessionInfo = builder.build();
-
-        if (data.hasPostTelemetryMsg()) {
-            ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
-        }
-
-        if (data.hasPostAttributesMsg()) {
-            ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
-        }
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
     }
 
     @Override
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
-
-        if (data.hasPostTelemetryMsg()) {
-            data.getPostTelemetryMsg().getTsKvListList()
-                    .forEach(tsKv -> {
-                        TbMsgMetaData metaData = new TbMsgMetaData();
-                        metaData.putValue("assetName", data.getAssetName());
-                        metaData.putValue("assetType", data.getAssetType());
-                        metaData.putValue("ts", tsKv.getTs() + "");
-                        JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-                        ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
-                    });
-        }
-
-        if (data.hasPostAttributesMsg()) {
-            TbMsgMetaData metaData = new TbMsgMetaData();
-            metaData.putValue("assetName", data.getAssetName());
-            metaData.putValue("assetType", data.getAssetType());
-            JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-            ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
-        }
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
     }
 
     @Override

@@ -28,21 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.server.service.integration;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.AbstractListeningExecutor;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-@Component
-public class JsExecutorService extends AbstractListeningExecutor {
+public interface EventStorageService {
 
-    @Value("${actors.rule.js_thread_pool_size}")
-    private int jsExecutorThreadPoolSize;
-
-    @Override
-    protected int getThreadPollSize() {
-        return Math.max(jsExecutorThreadPoolSize, 1);
-    }
+    void persistLifecycleEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent lcEvent, Exception e);
 
 }

@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.provider;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -46,6 +47,8 @@ import javax.annotation.PostConstruct;
 @Service
 @ConditionalOnExpression("'${service.type:null}'=='tb-rule-engine'")
 public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
+
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by Rule Engine!";
 
     private final TbRuleEngineQueueFactory tbQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> toTransport;
@@ -90,6 +93,11 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> getTbCoreIntegrationMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> getTbCoreNotificationsMsgProducer() {
         return toTbCoreNotifications;
     }
@@ -101,6 +109,6 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Rule Engine!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 }

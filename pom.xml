@@ -933,8 +933,18 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common.js</groupId>
+                <artifactId>remote-js-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>integration-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>cluster-integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

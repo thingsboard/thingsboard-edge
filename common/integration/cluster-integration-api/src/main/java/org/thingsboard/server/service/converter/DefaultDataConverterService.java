@@ -38,15 +38,14 @@ import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
+import org.thingsboard.server.service.integration.EventStorageService;
 import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.server.service.integration.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;
@@ -56,12 +55,12 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by ashvayka on 02.12.17.
  */
-@TbCoreComponent
+@TbCoreOrIntegrationExecutorComponent
 @Service
 public class DefaultDataConverterService implements DataConverterService {
 
     @Autowired
-    private ConverterService converterService;
+    private ConverterLookupService converterService;
 
     @Autowired
     private JsInvokeService jsSandbox;
@@ -69,11 +68,11 @@ public class DefaultDataConverterService implements DataConverterService {
     @Autowired
     private LogSettingsComponent logSettingsComponent;
 
-    @Autowired
+    @Autowired(required = false)
     private IntegrationRpcService rpcService;
 
     @Autowired
-    private ActorSystemContext actorContext;
+    private EventStorageService eventStorageService;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
@@ -90,11 +89,13 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Override
     public TBDataConverter updateConverter(Converter configuration) {
-        rpcService.updateConverter(configuration);
+        if (rpcService != null) {
+            rpcService.updateConverter(configuration);
+        }
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);
-            actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
+            eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
             return converter;
         } else {
             return createConverter(configuration);

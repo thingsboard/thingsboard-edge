@@ -31,6 +31,7 @@
 package org.thingsboard.server.queue.provider;
 
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -39,7 +40,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
 
 import javax.annotation.PostConstruct;
@@ -48,9 +48,10 @@ import javax.annotation.PostConstruct;
 @TbIntegrationExecutorComponent
 public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvider {
 
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by Integration Executor!";
+
     private final TbIntegrationExecutorQueueFactory tbQueueProvider;
-    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toRuleEngine;
-    private TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> toTbCore;
+    private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
@@ -59,34 +60,38 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @PostConstruct
     public void init() {
-        this.toTbCore = tbQueueProvider.createTbCoreMsgProducer();
-        this.toRuleEngine = tbQueueProvider.createRuleEngineMsgProducer();
+        this.toTbCore = tbQueueProvider.createTbCoreIntegrationMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> getTransportNotificationsMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Integration Executor!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getRuleEngineMsgProducer() {
-        return toRuleEngine;
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> getRuleEngineNotificationsMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Integration Executor!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> getTbCoreMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> getTbCoreIntegrationMsgProducer() {
         return toTbCore;
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> getTbCoreNotificationsMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Integration Executor!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
@@ -96,6 +101,6 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Integration Executor!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 }

@@ -185,18 +185,7 @@ public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueM
         IntegrationType integrationType = IntegrationType.valueOf(request.getType());
         List<IntegrationInfo> data = integrationService.findAllIntegrationInfos(integrationType, false, request.getEnabled());
 
-        List<TransportProtos.IntegrationInfoProto> integrationInfoList =
-                data.stream().map(integrationInfo ->
-                        TransportProtos.IntegrationInfoProto.newBuilder()
-                                .setIntegrationIdMSB(integrationInfo.getId().getId().getMostSignificantBits())
-                                .setIntegrationIdLSB(integrationInfo.getId().getId().getLeastSignificantBits())
-                                .setTenantIdMSB(integrationInfo.getId().getId().getMostSignificantBits())
-                                .setTenantIdLSB(integrationInfo.getId().getId().getLeastSignificantBits())
-                                .setName(integrationInfo.getName())
-                                .setType(integrationInfo.getType().name())
-                                .setEnabled(integrationInfo.isEnabled())
-                                .setRemote(integrationInfo.isRemote()).build()
-                ).collect(Collectors.toList());
+        List<TransportProtos.IntegrationInfoProto> integrationInfoList = data.stream().map(IntegrationProtoUtil::toProto).collect(Collectors.toList());
 
         return Futures.immediateFuture(IntegrationApiResponseMsg.newBuilder().setIntegrationListResponse(
                 TransportProtos.IntegrationInfoListResponseProto.newBuilder().addAllIntegrationInfoList(integrationInfoList).build()

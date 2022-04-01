@@ -58,6 +58,7 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
     private IntegrationType type;
     private Boolean enabled;
     private Boolean isRemote;
+    private Boolean allowCreateDevicesOrAssets;
 
     public IntegrationInfo() {
         super();
@@ -74,6 +75,7 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         this.type = integration.getType();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
+        this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +
@@ -128,6 +130,15 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         isRemote = remote;
     }
 
+    @ApiModelProperty(position = 11, value = "Boolean flag to allow/disallow the integration to create devices or assets that send message and do not exist in the system yet")
+    public Boolean isAllowCreateDevicesOrAssets() {
+        return !(allowCreateDevicesOrAssets == null) && allowCreateDevicesOrAssets;
+    }
+
+    public void setAllowCreateDevicesOrAssets(Boolean allow) {
+        allowCreateDevicesOrAssets = allow;
+    }
+
     @ApiModelProperty(position = 15, required = true, value = "Integration Name", example = "Http Integration")
     @Override
     public String getName() {
@@ -154,6 +165,8 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         builder.append(type);
         builder.append(", isRemote=");
         builder.append(isRemote);
+        builder.append(", allowCreateDevicesOrAssets=");
+        builder.append(allowCreateDevicesOrAssets);
         builder.append(", createdTime=");
         builder.append(createdTime);
         builder.append(", id=");

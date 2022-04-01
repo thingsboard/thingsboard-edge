@@ -64,7 +64,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-@ConditionalOnExpression("'${js.evaluator:null}'=='remote' && ('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-rule-engine')")
+@ConditionalOnExpression("'${js.evaluator:null}'=='remote' && " +
+        "('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-rule-engine' || '${service.type:null}'=='tb-integration-executor')")
 @Service
 public class RemoteJsInvokeService extends AbstractJsInvokeService {
 
@@ -114,7 +115,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
     @Autowired
     private TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> requestTemplate;
 
-    private Map<UUID, String> scriptIdToBodysMap = new ConcurrentHashMap<>();
+    private Map<UUID, String> scriptIdToBodyMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -172,7 +173,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
             UUID compiledScriptId = new UUID(compilationResult.getScriptIdMSB(), compilationResult.getScriptIdLSB());
             if (compilationResult.getSuccess()) {
                 scriptIdToNameMap.put(scriptId, functionName);
-                scriptIdToBodysMap.put(scriptId, scriptBody);
+                scriptIdToBodyMap.put(scriptId, scriptBody);
                 return compiledScriptId;
             } else {
                 log.debug("[{}] Failed to compile script due to [{}]: {}", compiledScriptId, compilationResult.getErrorCode().name(), compilationResult.getErrorDetails());
@@ -184,7 +185,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
     @Override
     protected ListenableFuture<Object> doInvokeFunction(UUID scriptId, String functionName, Object[] args) {
         log.trace("doInvokeFunction js-request for uuid {} with timeout {}ms", scriptId, maxRequestsTimeout);
-        final String scriptBody = scriptIdToBodysMap.get(scriptId);
+        final String scriptBody = scriptIdToBodyMap.get(scriptId);
         if (scriptBody == null) {
             return Futures.immediateFailedFuture(new RuntimeException("No script body found for scriptId: [" + scriptId + "]!"));
         }
@@ -261,7 +262,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
         JsInvokeProtos.JsReleaseResponse compilationResult = response.getReleaseResponse();
         UUID compiledScriptId = new UUID(compilationResult.getScriptIdMSB(), compilationResult.getScriptIdLSB());
         if (compilationResult.getSuccess()) {
-            scriptIdToBodysMap.remove(scriptId);
+            scriptIdToBodyMap.remove(scriptId);
         } else {
             log.debug("[{}] Failed to release script due", compiledScriptId);
         }

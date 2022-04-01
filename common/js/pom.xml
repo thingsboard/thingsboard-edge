@@ -51,6 +51,7 @@
     </properties>
     <modules>
         <module>js-api</module>
+        <module>remote-js-client</module>
     </modules>
 
 </project>

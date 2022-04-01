@@ -37,18 +37,32 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.stats.MessagesStats;
+import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.common.stats.StatsType;
+import org.thingsboard.server.gen.integration.ConverterRequestProto;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
+import org.thingsboard.server.gen.integration.IntegrationInfoProto;
+import org.thingsboard.server.gen.integration.IntegrationRequestProto;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiResponseMsg;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -64,13 +78,19 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DefaultIntegrationApiService implements IntegrationApiService {
 
+    private final StatsFactory statsFactory;
+    private final PartitionService partitionService;
     private final DataDecodingEncodingService dataDecodingEncodingService;
     private final TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> apiTemplate;
+    private final TbQueueProducerProvider producerProvider;
     private final ExecutorService callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(4, "integration-api-callback");
+
+    protected MessagesStats tbCoreProducerStats;
 
     @PostConstruct
     public void init() {
         apiTemplate.init();
+        this.tbCoreProducerStats = statsFactory.createMessagesStats(StatsType.CORE.getName() + ".producer");
     }
 
     @PreDestroy
@@ -85,7 +105,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
     public List<IntegrationInfo> getActiveIntegrationList(IntegrationType type) {
         while (true) {
             try {
-                var request = TransportProtos.IntegrationInfoListRequestProto.newBuilder().setEnabled(true).setType(type.name()).build();
+                var request = IntegrationInfoListRequestProto.newBuilder().setEnabled(true).setType(type.name()).build();
                 var response =
                         apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationListRequest(request).build()));
                 return Futures.transform(response, this::parseListFromProto, callbackExecutor).get(10, TimeUnit.SECONDS);
@@ -97,7 +117,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
 
     @Override
     public ListenableFuture<Integration> getIntegration(TenantId tenantId, IntegrationId integrationId) {
-        var request = TransportProtos.IntegrationRequestProto.newBuilder()
+        var request = IntegrationRequestProto.newBuilder()
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
@@ -110,7 +130,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
 
     @Override
     public ListenableFuture<Converter> getConverter(TenantId tenantId, ConverterId converterId) {
-        var request = TransportProtos.ConverterRequestProto.newBuilder()
+        var request = ConverterRequestProto.newBuilder()
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setConverterIdMSB(converterId.getId().getMostSignificantBits())
@@ -121,7 +141,27 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
         return Futures.transform(response, this::parseConverterFromProto, callbackExecutor);
     }
 
-    private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg> proto) {
+    @Override
+    public void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto,
+                               DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
+        if (log.isTraceEnabled()) {
+            log.trace("[{}][{}] Pushing to topic {} message {}", integration.getTenantId(), integration.getId(), tpi.getFullTopicName(), uplinkData);
+        }
+        tbCoreProducerStats.incrementTotal();
+        StatsTbQueueCallback wrappedCallback = new StatsTbQueueCallback(
+                callback != null ? new IntegrationTbQueueCallback(callbackExecutor, callback) : null, tbCoreProducerStats);
+        // TODO: ashvayka integration executor: use different producer;
+        producerProvider.getTbCoreIntegrationMsgProducer().send(tpi,
+                new TbProtoQueueMsg<>(integration.getId().getId(),
+                        ToCoreIntegrationMsg.newBuilder()
+                                .setIntegration(integrationInfoProto)
+                                .setDeviceUplinkProto(uplinkData)
+                                .build()),
+                wrappedCallback);
+    }
+
+    private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         var result = new ArrayList<IntegrationInfo>();
 
         var response = proto.getValue().getIntegrationListResponse().getIntegrationInfoListList();
@@ -135,13 +175,13 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
         return result;
     }
 
-    private Integration parseIntegrationFromProto(TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg> proto) {
+    private Integration parseIntegrationFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         ByteString data = proto.getValue().getIntegrationResponse().getData();
         Optional<Integration> integration = dataDecodingEncodingService.decode(data.toByteArray());
         return integration.orElseThrow(() -> new RuntimeException("Can't parse the integration from bytes!"));
     }
 
-    private Converter parseConverterFromProto(TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg> proto) {
+    private Converter parseConverterFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         ByteString data = proto.getValue().getConverterResponse().getData();
         Optional<Converter> converter = dataDecodingEncodingService.decode(data.toByteArray());
         return converter.orElseThrow(() -> new RuntimeException("Can't parse the converter from bytes!"));

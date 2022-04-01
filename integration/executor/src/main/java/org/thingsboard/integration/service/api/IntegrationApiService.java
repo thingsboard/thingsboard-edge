@@ -31,12 +31,15 @@
 package org.thingsboard.integration.service.api;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 
 import java.util.List;
 
@@ -48,4 +51,5 @@ public interface IntegrationApiService {
 
     ListenableFuture<Converter> getConverter(TenantId tenantId, ConverterId converterId);
 
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 }

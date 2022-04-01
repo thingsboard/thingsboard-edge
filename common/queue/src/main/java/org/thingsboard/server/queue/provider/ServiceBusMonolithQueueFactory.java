@@ -35,6 +35,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
@@ -221,13 +223,13 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+    public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
         // TODO: ashvayka integration executor
         return null;
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+    public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
         // TODO: ashvayka integration executor
         return null;
     }

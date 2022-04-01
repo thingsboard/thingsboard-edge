@@ -39,8 +39,11 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
@@ -50,6 +53,10 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
  * Created by ashvayka on 02.12.17.
  */
 public interface PlatformIntegrationService {
+
+    void processUplinkData(IntegrationInfo integrationInfo, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+
+    void processUplinkData(IntegrationInfo integrationInfo, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
 
     void validateIntegrationConfiguration(Integration integration);
 
@@ -71,9 +78,9 @@ public interface PlatformIntegrationService {
 
     void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
 
-    Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
+    Device getOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
 
-    Asset getOrCreateAsset(Integration configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
+    Asset getOrCreateAsset(IntegrationInfo configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
 
-    EntityView getOrCreateEntityView(Integration configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
+    EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
 }

@@ -34,13 +34,11 @@ import com.google.protobuf.util.JsonFormat;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiResponseMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
@@ -109,16 +107,11 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineMsgProducer() {
-        return createRuleEngineProducerTemplate("tb-ie-rule-engine-");
-    }
-
-    @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> createTbCoreMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCoreMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+    public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCoreIntegrationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-ie-to-core-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(coreSettings.getTopic());
+        requestBuilder.defaultTopic(coreSettings.getIntegrationsTopic());
         requestBuilder.admin(coreAdmin);
         return requestBuilder.build();
     }
@@ -176,7 +169,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         responseBuilder.statsService(consumerStatsService);
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
-                <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> templateBuilder = DefaultTbQueueRequestTemplate.builder();
+                <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> templateBuilder = DefaultTbQueueRequestTemplate.builder();
         templateBuilder.queueAdmin(integrationApiAdmin);
         templateBuilder.requestTemplate(requestBuilder.build());
         templateBuilder.responseTemplate(responseBuilder.build());
@@ -184,15 +177,6 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         templateBuilder.maxRequestTimeout(integrationApiSettings.getMaxRequestsTimeout());
         templateBuilder.pollInterval(integrationApiSettings.getResponsePollInterval());
         return templateBuilder.build();
-    }
-
-    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineProducerTemplate(String clientIdPrefix) {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
-        requestBuilder.settings(kafkaSettings);
-        requestBuilder.clientId(clientIdPrefix + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(ruleEngineSettings.getTopic());
-        requestBuilder.admin(ruleEngineAdmin);
-        return requestBuilder.build();
     }
 
     @PreDestroy

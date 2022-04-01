@@ -58,13 +58,11 @@ import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @TbIntegrationExecutorComponent
@@ -74,6 +72,7 @@ public class IntegrationExecutorService extends TbApplicationEventListener<Parti
 
     private final PartitionService partitionService;
     private final IntegrationApiService apiService;
+    private final IntegrationManagerService integrationManagerService;
     private final ConcurrentMap<IntegrationType, EventDeduplicationExecutor<Set<TopicPartitionInfo>>> deduplicationMap = new ConcurrentHashMap<>();
     private ListeningExecutorService refreshExecutorService;
 
@@ -83,6 +82,19 @@ public class IntegrationExecutorService extends TbApplicationEventListener<Parti
     @PostConstruct
     public void init() {
         refreshExecutorService = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(4, "default-integration-refresh"));
+    }
+
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        IntegrationType integrationType = IntegrationType.valueOf(event.getServiceQueueKey().getServiceQueue().getQueue());
+        deduplicationMap.computeIfAbsent(integrationType, it -> new EventDeduplicationExecutor<>(IntegrationExecutorService.class.getSimpleName(), refreshExecutorService,
+                partitions -> refreshIntegrationsByType(integrationType, partitions)))
+                .submit(event.getPartitions());
+    }
+
+    @Override
+    protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
+        return ServiceType.TB_INTEGRATION_EXECUTOR.equals(event.getServiceType());
     }
 
     private void refreshIntegrationsByType(IntegrationType integrationType, Set<TopicPartitionInfo> partitions) {
@@ -140,21 +152,8 @@ public class IntegrationExecutorService extends TbApplicationEventListener<Parti
 
     private void initEverything() {
         for (Integration integration : integrationsMap.values()) {
-
+            integrationManagerService.getOrCreateIntegration(integration, false);
         }
-    }
-
-    @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        IntegrationType integrationType = IntegrationType.valueOf(event.getServiceQueueKey().getServiceQueue().getQueue());
-        deduplicationMap.computeIfAbsent(integrationType, it -> new EventDeduplicationExecutor<>(IntegrationExecutorService.class.getSimpleName(), refreshExecutorService,
-                partitions -> refreshIntegrationsByType(integrationType, partitions)))
-                .submit(event.getPartitions());
-    }
-
-    @Override
-    protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
-        return ServiceType.TB_INTEGRATION_EXECUTOR.equals(event.getServiceType());
     }
 
 }

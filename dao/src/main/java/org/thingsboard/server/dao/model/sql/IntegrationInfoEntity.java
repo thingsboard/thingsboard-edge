@@ -89,6 +89,9 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
     private Boolean isRemote;
 
+    @Column(name = INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS)
+    private Boolean allowCreateDevicesOrAssets;
+
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
 
@@ -108,6 +111,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         this.type = integration.getType();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
+        this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
     }
 
     public String getSearchText() {
@@ -135,6 +139,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         integration.setType(type);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
+        integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         return integration;
     }
 }

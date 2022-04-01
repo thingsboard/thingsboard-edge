@@ -31,6 +31,7 @@
 package org.thingsboard.server.queue.provider;
 
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -47,6 +48,7 @@ import javax.annotation.PostConstruct;
 @TbCoreComponent
 public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
 
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by TB Core!";
     private final TbCoreQueueFactory tbQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> toTransport;
     private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toRuleEngine;
@@ -89,6 +91,11 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> getTbCoreMsgProducer() {
         return toTbCore;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> getTbCoreIntegrationMsgProducer() {
+       throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override

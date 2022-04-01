@@ -65,12 +65,48 @@
             <artifactId>queue</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>remote-js-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>cluster-integration-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>http-integrations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>mqtt-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>gcloud-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>aws-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>opcua-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>kafka-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>rabbitmq-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>apache-pulsar</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>coap-integrations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

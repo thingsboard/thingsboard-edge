@@ -52,6 +52,7 @@
     <modules>
         <module>integration-api</module>
         <module>remote-integration-api</module>
+        <module>cluster-integration-api</module>
         <module>http-integrations</module>
         <module>mqtt-integrations</module>
         <module>azure-integrations</module>

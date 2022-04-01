@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
@@ -46,21 +49,14 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 public interface TbIntegrationExecutorQueueFactory extends TbUsageStatsClientQueueFactory {
 
     /**
-     * Used to push messages to instances of TB RuleEngine Service
-     *
-     * @return
-     */
-    TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineMsgProducer();
-
-    /**
      * Used to push messages to other instances of TB Core Service
      *
      * @return
      */
-    TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> createTbCoreMsgProducer();
+    TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer();
 
     TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate();
 
-    TbQueueRequestTemplate<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
+    TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
 
 }
