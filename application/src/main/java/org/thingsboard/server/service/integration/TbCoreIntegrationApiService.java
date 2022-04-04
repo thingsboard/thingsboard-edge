@@ -52,10 +52,15 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationApiResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.IntegrationInfoListRequestProto;
+import org.thingsboard.server.gen.integration.ConverterRequestProto;
+import org.thingsboard.server.gen.integration.ConverterResponseProto;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
+import org.thingsboard.server.gen.integration.IntegrationInfoListResponseProto;
+import org.thingsboard.server.gen.integration.IntegrationInfoProto;
+import org.thingsboard.server.gen.integration.IntegrationRequestProto;
+import org.thingsboard.server.gen.integration.IntegrationResponseProto;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueHandler;
 import org.thingsboard.server.queue.TbQueueProducer;
@@ -77,7 +82,7 @@ import java.util.stream.Collectors;
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> {
+public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> {
 
     private final DataDecodingEncodingService dataDecodingEncodingService;
     private final TbCoreQueueFactory tbCoreQueueFactory;
@@ -95,20 +100,20 @@ public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueM
     private int maxCallbackThreads;
 
     private ExecutorService integrationCallbackExecutor;
-    private TbQueueResponseTemplate<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>,
-            TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> integrationApiTemplate;
+    private TbQueueResponseTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>,
+            TbProtoQueueMsg<IntegrationApiResponseMsg>> integrationApiTemplate;
 
     @PostConstruct
     public void init() {
         this.integrationCallbackExecutor = ThingsBoardExecutors.newWorkStealingPool(maxCallbackThreads, getClass());
-        TbQueueProducer<TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> producer = tbCoreQueueFactory.createIntegrationApiResponseProducer();
-        TbQueueConsumer<TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>> consumer = tbCoreQueueFactory.createIntegrationApiRequestConsumer();
+        TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> producer = tbCoreQueueFactory.createIntegrationApiResponseProducer();
+        TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> consumer = tbCoreQueueFactory.createIntegrationApiRequestConsumer();
 
         String key = StatsType.INTEGRATION.getName();
         MessagesStats queueStats = statsFactory.createMessagesStats(key);
 
         DefaultTbQueueResponseTemplate.DefaultTbQueueResponseTemplateBuilder
-                <TbProtoQueueMsg<TransportProtos.IntegrationApiRequestMsg>, TbProtoQueueMsg<TransportProtos.IntegrationApiResponseMsg>> builder = DefaultTbQueueResponseTemplate.builder();
+                <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> builder = DefaultTbQueueResponseTemplate.builder();
         builder.requestTemplate(consumer);
         builder.responseTemplate(producer);
         builder.maxPendingRequests(maxPendingRequests);
@@ -157,26 +162,26 @@ public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueM
                 MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<IntegrationApiResponseMsg> handleConverterRequest(TransportProtos.ConverterRequestProto request) {
+    private ListenableFuture<IntegrationApiResponseMsg> handleConverterRequest(ConverterRequestProto request) {
         var converterId = new ConverterId(new UUID(request.getConverterIdMSB(), request.getConverterIdLSB()));
         var tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
         var future = converterService.findConverterByIdAsync(tenantId, converterId);
 
         return Futures.transform(future, converter -> IntegrationApiResponseMsg.newBuilder()
                 .setConverterResponse(
-                        TransportProtos.ConverterResponseProto.newBuilder()
+                        ConverterResponseProto.newBuilder()
                                 .setData(ByteString.copyFrom(dataDecodingEncodingService.encode(converter)))
                 ).build(), MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<IntegrationApiResponseMsg> handleIntegrationRequest(TransportProtos.IntegrationRequestProto request) {
+    private ListenableFuture<IntegrationApiResponseMsg> handleIntegrationRequest(IntegrationRequestProto request) {
         var integrationId = new IntegrationId(new UUID(request.getIntegrationIdMSB(), request.getIntegrationIdLSB()));
         var tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
         var future = integrationService.findIntegrationByIdAsync(tenantId, integrationId);
 
         return Futures.transform(future, integration -> IntegrationApiResponseMsg.newBuilder()
                 .setIntegrationResponse(
-                        TransportProtos.IntegrationResponseProto.newBuilder()
+                        IntegrationResponseProto.newBuilder()
                                 .setData(ByteString.copyFrom(dataDecodingEncodingService.encode(integration)))
                 ).build(), MoreExecutors.directExecutor());
     }
@@ -185,10 +190,10 @@ public class TbCoreIntegrationApiService implements TbQueueHandler<TbProtoQueueM
         IntegrationType integrationType = IntegrationType.valueOf(request.getType());
         List<IntegrationInfo> data = integrationService.findAllIntegrationInfos(integrationType, false, request.getEnabled());
 
-        List<TransportProtos.IntegrationInfoProto> integrationInfoList = data.stream().map(IntegrationProtoUtil::toProto).collect(Collectors.toList());
+        List<IntegrationInfoProto> integrationInfoList = data.stream().map(IntegrationProtoUtil::toProto).collect(Collectors.toList());
 
         return Futures.immediateFuture(IntegrationApiResponseMsg.newBuilder().setIntegrationListResponse(
-                TransportProtos.IntegrationInfoListResponseProto.newBuilder().addAllIntegrationInfoList(integrationInfoList).build()
+                IntegrationInfoListResponseProto.newBuilder().addAllIntegrationInfoList(integrationInfoList).build()
         ).build());
     }
 
