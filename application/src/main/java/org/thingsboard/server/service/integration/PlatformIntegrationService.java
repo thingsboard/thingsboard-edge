@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.protobuf.ByteString;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.Device;
@@ -44,6 +45,8 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
@@ -54,9 +57,15 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
  */
 public interface PlatformIntegrationService {
 
-    void processUplinkData(IntegrationInfo integrationInfo, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    void processUplinkData(IntegrationInfo info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(IntegrationInfo integrationInfo, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    void processUplinkData(IntegrationInfo info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+
+    void processUplinkData(IntegrationInfo info, EntityViewDataProto data, IntegrationCallback<Void> callback);
+
+    void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback integrationApiCallback);
+
+    void processUplinkData(IntegrationInfo info, TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
 
     void validateIntegrationConfiguration(Integration integration);
 
@@ -83,4 +92,5 @@ public interface PlatformIntegrationService {
     Asset getOrCreateAsset(IntegrationInfo configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
 
     EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
+
 }

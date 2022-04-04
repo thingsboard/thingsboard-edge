@@ -48,7 +48,10 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.stats.MessagesStats;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
@@ -173,6 +176,12 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
         } else if (msg.hasAssetUplinkProto()) {
             platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
+        } else if (msg.hasEntityViewDataProto()) {
+            platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
+        } else if (!msg.getCustomTbMsg().isEmpty()) {
+            platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(ServiceQueue.MAIN, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+        } else if (msg.hasEventProto()) {
+            platformIntegrationService.processUplinkData(info, msg.getEventProto(), new IntegrationApiCallback(callback));
         } else {
             callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
         }

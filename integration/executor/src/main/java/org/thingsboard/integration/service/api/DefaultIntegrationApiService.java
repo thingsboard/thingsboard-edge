@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.MessagesStats;
@@ -53,11 +54,13 @@ import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.IntegrationRequestProto;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -153,6 +156,21 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
     @Override
     public void sendUplinkData(Integration integration, IntegrationInfoProto proto, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
         sendUplinkData(integration, proto, data, (b, d) -> b.setAssetUplinkProto(d).build(), callback);
+    }
+
+    @Override
+    public void sendUplinkData(Integration integration, IntegrationInfoProto proto, EntityViewDataProto data, IntegrationCallback<Void> callback) {
+        sendUplinkData(integration, proto, data, (b, d) -> b.setEntityViewDataProto(d).build(), callback);
+    }
+
+    @Override
+    public void sendUplinkData(Integration integration, IntegrationInfoProto proto, TbMsg data, IntegrationCallback<Void> callback) {
+        sendUplinkData(integration, proto, data, (b, d) -> b.setCustomTbMsg(TbMsg.toByteString(data)).build(), callback);
+    }
+
+    @Override
+    public void sendUplinkData(Integration integration, IntegrationInfoProto proto, TbIntegrationEventProto data, IntegrationCallback<Void> callback) {
+        sendUplinkData(integration, proto, data, (b, d) -> b.setEventProto(data).build(), callback);
     }
 
     public <T> void sendUplinkData(Integration integration, IntegrationInfoProto proto, T data,

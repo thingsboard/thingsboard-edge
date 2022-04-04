@@ -262,8 +262,21 @@ message ToIntegrationExecutorNotificationMsg {
   bytes componentLifecycleMsg = 1;
 }
 
+message TbIntegrationEventProto {
+  TbEventSource source = 1;
+  int64 eventSourceIdMSB = 2;
+  int64 eventSourceIdLSB = 3;
+  string type = 4;
+  string uid = 5;
+  string data = 6;
+  string deviceName = 7;
+}
+
 message ToCoreIntegrationMsg {
   IntegrationInfoProto integration = 1;
   DeviceUplinkDataProto deviceUplinkProto = 2;
   AssetUplinkDataProto assetUplinkProto = 3;
+  EntityViewDataProto entityViewDataProto = 4;
+  bytes customTbMsg = 5;
+  TbIntegrationEventProto eventProto = 6;
 }

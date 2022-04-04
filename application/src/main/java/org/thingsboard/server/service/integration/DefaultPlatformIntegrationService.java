@@ -44,6 +44,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -99,6 +100,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -127,8 +129,12 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.TbEventProto;
+import org.thingsboard.server.gen.integration.TbEventSource;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -166,6 +172,7 @@ import org.thingsboard.server.queue.common.EventDeduplicationExecutor;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -375,7 +382,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         if (data.hasPostAttributesMsg()) {
             process(sessionInfo, data.getPostAttributesMsg(), callback);
         }
-
     }
 
     @Override
@@ -401,8 +407,45 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             metaData.putValue("assetType", data.getAssetType());
             JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
             TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-
             process(asset.getTenantId(), tbMsg, callback);
+        }
+    }
+
+    @Override
+    public void processUplinkData(IntegrationInfo integrationInfo, EntityViewDataProto data, IntegrationCallback<Void> callback) {
+        Device device = getOrCreateDevice(integrationInfo, data.getDeviceName(), data.getDeviceType(), null, null, null);
+        getOrCreateEntityView(integrationInfo, device, data);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback callback) {
+        process(info.getTenantId(), data, callback);
+    }
+
+    @Override
+    public void processUplinkData(IntegrationInfo info, TbIntegrationEventProto data, IntegrationApiCallback callback) {
+        var eventSource = data.getSource();
+        EntityId entityid = null;
+        switch (eventSource) {
+            case DEVICE:
+                Device device = deviceService.findDeviceByTenantIdAndName(info.getTenantId(), data.getDeviceName());
+                if (device != null) {
+                    entityid = device.getId();
+                }
+                break;
+            case INTEGRATION:
+                entityid = info.getId();
+                break;
+            case UPLINK_CONVERTER:
+            case DOWNLINK_CONVERTER:
+                entityid = new ConverterId(new UUID(data.getEventSourceIdMSB(), data.getEventSourceIdLSB()));
+                break;
+        }
+        if (entityid != null) {
+            saveEvent(info.getTenantId(), entityid, data, callback);
+        } else {
+            callback.onSuccess(null);
         }
     }
 
@@ -433,6 +476,35 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     public ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration) {
         return createIntegration(configuration, false);
     }
+
+    private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
+        try {
+            Event event = new Event();
+            event.setTenantId(tenantId);
+            event.setEntityId(entityId);
+            event.setType(proto.getType());
+            event.setUid(proto.getUid());
+            event.setBody(mapper.readTree(proto.getData()));
+            DonAsynchron.withCallback(eventService.saveAsync(event), callback::onSuccess, callback::onError);
+        } catch (IOException e) {
+            log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
+            callback.onError(e);
+        } catch (Exception t) {
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
+            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("event_unq_key")) {
+                /* Catch exception to avoid endless loop in case:
+                ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
+                Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
+                 */
+                log.error("[{}] Failed to save event!", proto.getData(), e);
+                callback.onSuccess(null);
+            } else {
+                callback.onError(t);
+                throw t;
+            }
+        }
+    }
+
 
     private ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration, boolean forceReinit) {
         if (configuration.getType().isSingleton()) {

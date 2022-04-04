@@ -39,9 +39,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
+import org.thingsboard.server.gen.integration.TbEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 
 import java.util.List;
 
@@ -53,7 +57,13 @@ public interface IntegrationApiService {
 
     ListenableFuture<Converter> getConverter(TenantId tenantId, ConverterId converterId);
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, EntityViewDataProto data, IntegrationCallback<Void> callback);
+
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbMsg data, IntegrationCallback<Void> callback);
+
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
 }
